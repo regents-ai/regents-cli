@@ -1,6 +1,6 @@
 import { getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 
-const DEFAULT_BASE_URL = "http://127.0.0.1:4000";
+const DEFAULT_BASE_URL = "http://127.0.0.1:4010";
 const SESSION_COOKIE_ENV = "AUTOLAUNCH_SESSION_COOKIE";
 const PRIVY_TOKEN_ENV = "AUTOLAUNCH_PRIVY_BEARER_TOKEN";
 export const AGENT_PRIVATE_KEY_ENV = "AUTOLAUNCH_AGENT_PRIVATE_KEY";
@@ -176,12 +176,28 @@ export const autolaunchChainId = (args: ParsedCliArgs): AutolaunchChainId => {
 };
 
 export const requireLaunchIdentity = (args: ParsedCliArgs) => {
+  const chainId = launchChainId(args);
+  if (chainId !== "1") {
+    throw new Error("autolaunch launch commands only support Ethereum mainnet");
+  }
+
   return {
     agent: requireArg(getFlag(args, "agent"), "agent"),
-    chainId: launchChainId(args),
+    chainId,
     name: requireArg(getFlag(args, "name"), "name"),
     symbol: requireArg(getFlag(args, "symbol"), "symbol"),
-    treasuryAddress: requireArg(getFlag(args, "treasury-address"), "treasury-address"),
+    recoverySafeAddress: requireArg(
+      getFlag(args, "recovery-safe-address"),
+      "recovery-safe-address",
+    ),
+    auctionProceedsRecipient: requireArg(
+      getFlag(args, "auction-proceeds-recipient"),
+      "auction-proceeds-recipient",
+    ),
+    ethereumRevenueTreasury: requireArg(
+      getFlag(args, "ethereum-revenue-treasury"),
+      "ethereum-revenue-treasury",
+    ),
   };
 };
 

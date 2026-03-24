@@ -22,6 +22,8 @@ const postBidMutation = async (
   );
 };
 
+const AGENT_LAUNCH_TOTAL_SUPPLY = "100000000000000000000000000000";
+
 export async function runAutolaunchAgentsList(args: ParsedCliArgs): Promise<void> {
   printJson(
     await requestJson(
@@ -46,8 +48,10 @@ export async function runAutolaunchLaunchPreview(args: ParsedCliArgs): Promise<v
     chain_id: required.chainId,
     token_name: required.name,
     token_symbol: required.symbol,
-    treasury_address: required.treasuryAddress,
-    total_supply: getFlag(args, "total-supply") ?? "100000000000000000000000000000",
+    recovery_safe_address: required.recoverySafeAddress,
+    auction_proceeds_recipient: required.auctionProceedsRecipient,
+    ethereum_revenue_treasury: required.ethereumRevenueTreasury,
+    total_supply: AGENT_LAUNCH_TOTAL_SUPPLY,
     launch_notes: getFlag(args, "launch-notes"),
   };
 
@@ -62,8 +66,10 @@ export async function runAutolaunchLaunchCreate(args: ParsedCliArgs): Promise<vo
     chain_id: required.chainId,
     token_name: required.name,
     token_symbol: required.symbol,
-    treasury_address: required.treasuryAddress,
-    total_supply: getFlag(args, "total-supply") ?? "100000000000000000000000000000",
+    recovery_safe_address: required.recoverySafeAddress,
+    auction_proceeds_recipient: required.auctionProceedsRecipient,
+    ethereum_revenue_treasury: required.ethereumRevenueTreasury,
+    total_supply: AGENT_LAUNCH_TOTAL_SUPPLY,
     launch_notes: getFlag(args, "launch-notes"),
     wallet_address: requireArg(getFlag(args, "wallet-address"), "wallet-address"),
     nonce: requireArg(getFlag(args, "nonce"), "nonce"),
