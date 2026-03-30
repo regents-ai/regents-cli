@@ -3,10 +3,10 @@ import net from "node:net";
 import type { GossipsubStatus, TrollboxLiveEvent } from "../internal-types/index.js";
 
 import { daemonCall } from "../daemon-client.js";
-import { getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
-type TrollboxRoom = "global" | "agent";
+type TrollboxRoom = "webapp" | "agent";
 
 const isTrollboxLiveEvent = (payload: unknown): payload is TrollboxLiveEvent => {
   if (!payload || typeof payload !== "object") {
@@ -22,23 +22,34 @@ const parseRoomFlag = (args?: ParsedCliArgs): TrollboxRoom | undefined => {
     return undefined;
   }
 
-  const room = getFlag(args, "room");
-  if (room === undefined || room === "global" || room === "agent") {
-    return room;
+  const wantsAgent = getBooleanFlag(args, "agent");
+  const wantsWebapp = getBooleanFlag(args, "webapp");
+  if (wantsAgent && wantsWebapp) {
+    throw new Error("choose either `--agent` or `--webapp`, not both");
+  }
+  if (wantsAgent) {
+    return "agent";
+  }
+  if (wantsWebapp) {
+    return "webapp";
   }
 
-  throw new Error("invalid --room value; expected `global` or `agent`");
+  if (args.flags.has("room")) {
+    throw new Error("`--room` was removed; use `--agent` or `--webapp`");
+  }
+
+  return undefined;
 };
 
 export async function runTrollboxHistory(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const room = parseRoomFlag(args);
+  const room = parseRoomFlag(args) ?? "webapp";
   printJson(
     await daemonCall(
       "techtree.trollbox.history",
       {
         limit: parseIntegerFlag(args, "limit"),
         before: parseIntegerFlag(args, "before"),
-        room: room === "agent" ? "agent" : undefined,
+        room: room,
       },
       configPath,
     ),
@@ -47,6 +58,10 @@ export async function runTrollboxHistory(args: ParsedCliArgs, configPath?: strin
 
 export async function runTrollboxPost(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const room = parseRoomFlag(args);
+  if (room === "webapp") {
+    throw new Error("CLI posting is limited to agent chat; use the web app for webapp chat");
+  }
+
   printJson(
     await daemonCall(
       "techtree.trollbox.post",
@@ -54,7 +69,7 @@ export async function runTrollboxPost(args: ParsedCliArgs, configPath?: string):
         body: requireArg(getFlag(args, "body"), "body"),
         reply_to_message_id: parseIntegerFlag(args, "reply-to"),
         client_message_id: getFlag(args, "client-message-id"),
-        room: room === "agent" ? "agent" : undefined,
+        room: "agent",
       },
       configPath,
     ),
@@ -62,7 +77,7 @@ export async function runTrollboxPost(args: ParsedCliArgs, configPath?: string):
 }
 
 export async function runTrollboxTail(args?: ParsedCliArgs, configPath?: string): Promise<void> {
-  const room = parseRoomFlag(args) === "agent" ? "agent" : "global";
+  const room = parseRoomFlag(args) === "agent" ? "agent" : "webapp";
   const status = await daemonCall("gossipsub.status", undefined, configPath);
 
   if (!status.enabled) {
@@ -167,3 +182,7 @@ export async function runTrollboxTail(args?: ParsedCliArgs, configPath?: string)
     });
   });
 }
+
+export const runChatHistory = runTrollboxHistory;
+export const runChatPost = runTrollboxPost;
+export const runChatTail = runTrollboxTail;

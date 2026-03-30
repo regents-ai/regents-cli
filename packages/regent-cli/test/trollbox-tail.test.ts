@@ -117,7 +117,7 @@ describe("trollbox tail", () => {
 
     expect(output.stderr).toBe("");
     expect(socket.encoding).toBe("utf8");
-    expect(socket.writes).toEqual([`${JSON.stringify({ room: "global" })}\n`]);
+    expect(socket.writes).toEqual([`${JSON.stringify({ room: "webapp" })}\n`]);
     expect(socket.ended).toBe(true);
     expect(socket.destroyed).toBe(true);
 
@@ -152,7 +152,7 @@ describe("trollbox tail", () => {
     expect(createConnectionMock).not.toHaveBeenCalled();
   });
 
-  it("sends agent room subscription when --room agent is provided", async () => {
+  it("sends agent room subscription when --agent is provided", async () => {
     const socket = new FakeSocket();
     createConnectionMock.mockImplementationOnce(() => {
       queueMicrotask(() => {
@@ -170,9 +170,9 @@ describe("trollbox tail", () => {
     const output = await captureOutput(async () =>
       runTrollboxTail(
         {
-          raw: ["trollbox", "tail", "--room", "agent"],
-          positionals: ["trollbox", "tail"],
-          flags: new Map([["room", "agent"]]),
+          raw: ["chat", "tail", "--agent"],
+          positionals: ["chat", "tail"],
+          flags: new Map([["agent", true]]),
         },
         "/tmp/regent.config.json",
       ),
@@ -182,7 +182,7 @@ describe("trollbox tail", () => {
     expect(socket.writes).toEqual([`${JSON.stringify({ room: "agent" })}\n`]);
   });
 
-  it("rejects invalid --room values before connecting", async () => {
+  it("rejects removed --room usage before connecting", async () => {
     await expect(
       runTrollboxTail(
         {
@@ -192,7 +192,7 @@ describe("trollbox tail", () => {
         },
         "/tmp/regent.config.json",
       ),
-    ).rejects.toThrow("invalid --room value; expected `global` or `agent`");
+    ).rejects.toThrow("`--room` was removed; use `--agent` or `--webapp`");
 
     expect(daemonCallMock).not.toHaveBeenCalled();
     expect(createConnectionMock).not.toHaveBeenCalled();

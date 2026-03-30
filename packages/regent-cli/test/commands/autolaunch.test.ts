@@ -1,5 +1,10 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
 const { writeContractMock, waitForReceiptMock } = vi.hoisted(() => ({
@@ -13,6 +18,7 @@ vi.mock("viem/accounts", () => ({
       privateKey === "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ? "0x00000000000000000000000000000000000000aa"
         : "0x00000000000000000000000000000000000000bb",
+    signMessage: async () => "0xsigned",
   }),
 }));
 
@@ -42,6 +48,16 @@ describe("autolaunch CLI command group", () => {
   const expectedBaseUrl = "http://127.0.0.1:4010";
   const originalEnv = { ...process.env };
   const fetchMock = vi.fn<typeof fetch>();
+  const tempDirs: string[] = [];
+
+  const createConfigPath = () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-cli-autolaunch-"));
+    tempDirs.push(tempDir);
+
+    const configPath = path.join(tempDir, "regent.config.json");
+    writeInitialConfig(configPath);
+    return configPath;
+  };
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -60,6 +76,12 @@ describe("autolaunch CLI command group", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     process.env = { ...originalEnv };
+    while (tempDirs.length > 0) {
+      const dir = tempDirs.pop();
+      if (dir) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
   });
 
   it("lists active auctions via regent autolaunch", async () => {
@@ -264,6 +286,115 @@ describe("autolaunch CLI command group", () => {
       prepared: {
         ensip25: { tx: { to: "0xresolver" } },
       },
+    });
+  });
+
+  it("shows subject revenue state through the shared autolaunch API", async () => {
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          subject: { subject_id: "0xabc", splitter_address: "0x9999999999999999999999999999999999999999" },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "subjects", "show", "0xabc"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/subjects/0xabc`);
+    expect(parsePrintedJson<{ subject: { subject_id: string } }>(output.stdout)).toMatchObject({
+      subject: { subject_id: "0xabc" },
+    });
+  });
+
+  it("prepares strategy migration through the contracts API", async () => {
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          prepared: {
+            resource: "strategy",
+            action: "migrate",
+            tx_request: { data: "0x8fd3ab80" },
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "strategy", "migrate", "--job", "job_123"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/api/contracts/jobs/job_123/strategy/migrate/prepare`,
+    );
+    expect(parsePrintedJson<{ prepared: { action: string } }>(output.stdout)).toMatchObject({
+      prepared: { action: "migrate" },
+    });
+  });
+
+  it("prepares factory authorized creator changes through the contracts API", async () => {
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          prepared: {
+            resource: "revenue_share_factory",
+            action: "set_authorized_creator",
+            tx_request: { data: "0xe1434f4e" },
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "factory",
+        "revenue-share",
+        "set-authorized-creator",
+        "--account",
+        "0x00000000000000000000000000000000000000aa",
+        "--enabled",
+        "true",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/api/contracts/admin/revenue_share_factory/set_authorized_creator/prepare`,
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
+      account: "0x00000000000000000000000000000000000000aa",
+      enabled: "true",
+    });
+    expect(parsePrintedJson<{ prepared: { resource: string } }>(output.stdout)).toMatchObject({
+      prepared: { resource: "revenue_share_factory" },
     });
   });
 
@@ -547,6 +678,278 @@ describe("autolaunch CLI command group", () => {
       error: {
         message: "--interval must be a positive number",
       },
+    });
+  });
+
+  it("guides a prelaunch wizard flow and saves the local plan", async () => {
+    const configPath = createConfigPath();
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_alpha",
+              state: "draft",
+              agent_id: "11155111:42",
+              metadata_draft: { title: "Atlas Launch" },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            asset: {
+              asset_id: "asset_alpha",
+              public_url: "/prelaunch-assets/asset_alpha.png",
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_alpha",
+              state: "draft",
+              metadata_draft: {
+                title: "Atlas Launch",
+                image_url: "/prelaunch-assets/asset_alpha.png",
+                image_asset_id: "asset_alpha",
+              },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_alpha",
+              state: "launchable",
+              validation_summary: { launchable: true },
+            },
+            validation: { launchable: true, blockers: [], warnings: [] },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "prelaunch",
+        "wizard",
+        "--config",
+        configPath,
+        "--agent",
+        "11155111:42",
+        "--name",
+        "Atlas Coin",
+        "--symbol",
+        "ATLAS",
+        "--treasury-safe-address",
+        "0x1111111111111111111111111111111111111111",
+        "--auction-proceeds-recipient",
+        "0x2222222222222222222222222222222222222222",
+        "--ethereum-revenue-treasury",
+        "0x3333333333333333333333333333333333333333",
+        "--backup-safe-address",
+        "0x4444444444444444444444444444444444444444",
+        "--title",
+        "Atlas Launch",
+        "--description",
+        "Prepare the Atlas coin launch.",
+        "--image-url",
+        "https://cdn.example/atlas.png",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/prelaunch/plans`);
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(`${expectedBaseUrl}/api/prelaunch/assets`);
+    expect(fetchMock.mock.calls[3]?.[0]).toBe(
+      `${expectedBaseUrl}/api/prelaunch/plans/plan_alpha/validate`,
+    );
+
+    const localPlan = JSON.parse(
+      fs.readFileSync(
+        path.join(path.dirname(configPath), "state", "autolaunch-plans", "plan_alpha.json"),
+        "utf8",
+      ),
+    ) as { plan_id: string; remote_plan: { state: string } };
+
+    expect(localPlan.plan_id).toBe("plan_alpha");
+    expect(localPlan.remote_plan.state).toBe("launchable");
+    expect(parsePrintedJson<{ validation: { launchable: boolean } }>(output.stdout)).toMatchObject({
+      validation: { launchable: true },
+    });
+  });
+
+  it("runs a launch from a saved plan and watches the job once", async () => {
+    const configPath = createConfigPath();
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+    process.env.REGENT_WALLET_PRIVATE_KEY =
+      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    const planDir = path.join(path.dirname(configPath), "state", "autolaunch-plans");
+    fs.mkdirSync(planDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(planDir, "plan_alpha.json"),
+      `${JSON.stringify({
+        plan_id: "plan_alpha",
+        saved_at: "2026-03-27T00:00:00Z",
+        remote_plan: {
+          plan_id: "plan_alpha",
+          fallback_operator_wallet: "0x00000000000000000000000000000000000000aa",
+        },
+      })}\n`,
+      "utf8",
+    );
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_alpha",
+              fallback_operator_wallet: "0x00000000000000000000000000000000000000aa",
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: { plan_id: "plan_alpha", state: "launchable" },
+            validation: { launchable: true },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { nonce: "nonce_alpha" } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: { plan_id: "plan_alpha", state: "launched", launch_job_id: "job_alpha" },
+            launch: { job_id: "job_alpha" },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            job: { job_id: "job_alpha", status: "ready" },
+            auction: { auction_id: "auc_alpha" },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "launch", "run", "--config", configPath, "--plan", "plan_alpha"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/prelaunch/plans/plan_alpha`);
+    expect(fetchMock.mock.calls[2]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/siwa/nonce`);
+    expect(fetchMock.mock.calls[3]?.[0]).toBe(`${expectedBaseUrl}/api/prelaunch/plans/plan_alpha/launch`);
+    expect(fetchMock.mock.calls[4]?.[0]).toBe(`${expectedBaseUrl}/api/launch/jobs/job_alpha`);
+    expect(parsePrintedJson<{ job: { job_id: string; status: string } }>(output.stdout)).toMatchObject({
+      job: { job_id: "job_alpha", status: "ready" },
+    });
+  });
+
+  it("shows lifecycle monitor, finalize, and vesting status through the new golden path", async () => {
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            job: { job_id: "job_alpha", status: "ready" },
+            recommended_action: "migrate",
+            migrate_ready: true,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            recommended_action: "migrate",
+            prepared: {
+              action: "migrate",
+              tx_request: { data: "0x8fd3ab80" },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            job_id: "job_alpha",
+            vesting_wallet_address: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            release_ready: true,
+            releasable_launch_token: 25,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const monitorOutput = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "launch", "monitor", "--job", "job_alpha"]),
+    );
+    const finalizeOutput = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "launch", "finalize", "--job", "job_alpha"]),
+    );
+    const vestingOutput = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "vesting", "status", "--job", "job_alpha"]),
+    );
+
+    expect(monitorOutput.result).toBe(0);
+    expect(finalizeOutput.result).toBe(0);
+    expect(vestingOutput.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/lifecycle/jobs/job_alpha`);
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+      `${expectedBaseUrl}/api/lifecycle/jobs/job_alpha/finalize/prepare`,
+    );
+    expect(fetchMock.mock.calls[2]?.[0]).toBe(`${expectedBaseUrl}/api/lifecycle/jobs/job_alpha/vesting`);
+    expect(parsePrintedJson<{ recommended_action: string }>(monitorOutput.stdout)).toMatchObject({
+      recommended_action: "migrate",
+    });
+    expect(parsePrintedJson<{ prepared: { action: string } }>(finalizeOutput.stdout)).toMatchObject({
+      prepared: { action: "migrate" },
+    });
+    expect(parsePrintedJson<{ release_ready: boolean }>(vestingOutput.stdout)).toMatchObject({
+      release_ready: true,
     });
   });
 });

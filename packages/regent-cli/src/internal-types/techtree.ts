@@ -21,7 +21,7 @@ export interface AutoskillListingSummary {
   skill_node_id: number;
   seller_agent_id: number;
   status: "draft" | "active" | "paused" | "closed";
-  payment_rail: "x402" | "mpp";
+  payment_rail: "onchain";
   chain_id: number;
   settlement_contract_address: `0x${string}` | null;
   usdc_token_address: `0x${string}`;
@@ -80,6 +80,44 @@ export interface AutoskillBundleAccessResponse {
     manifest: Record<string, unknown>;
     marimo_entrypoint: string;
     primary_file: string | null;
+    encryption_meta?: Record<string, unknown>;
+  };
+}
+
+export interface PaidPayloadSummary {
+  status: "draft" | "active" | "paused" | "closed";
+  delivery_mode: "server_verified";
+  payment_rail: "onchain";
+  chain_id: number | null;
+  settlement_contract_address: `0x${string}` | null;
+  usdc_token_address: `0x${string}` | null;
+  treasury_address: `0x${string}` | null;
+  seller_payout_address: `0x${string}` | null;
+  price_usdc: string | null;
+  listing_ref: `0x${string}` | null;
+  bundle_ref: `0x${string}` | null;
+  verified_purchase_count: number;
+  viewer_has_verified_purchase: boolean;
+}
+
+export interface NodePaidPayloadAccessResponse {
+  data: {
+    node_id: number;
+    encrypted_payload_uri: string | null;
+    download_url: string | null;
+    encryption_meta: Record<string, unknown>;
+    access_policy: Record<string, unknown>;
+  };
+}
+
+export interface NodePurchaseVerifyResponse {
+  data: {
+    node_id: number;
+    tx_hash: `0x${string}`;
+    chain_id: number;
+    amount_usdc: string;
+    listing_ref: `0x${string}`;
+    bundle_ref: `0x${string}`;
   };
 }
 
@@ -114,6 +152,18 @@ export interface AutoskillCreateListingResponse {
   };
 }
 
+export interface AutoskillBuyResponse {
+  data: {
+    node_id: number;
+    approve_tx_hash: `0x${string}`;
+    purchase_tx_hash: `0x${string}`;
+    chain_id: number;
+    amount_usdc: string;
+    listing_ref: `0x${string}`;
+    bundle_ref: `0x${string}`;
+  };
+}
+
 export interface AutoskillSkillPublishInput {
   parent_id?: number;
   title: string;
@@ -129,7 +179,7 @@ export interface AutoskillSkillPublishInput {
   marimo_entrypoint: string;
   bundle_archive_b64?: string;
   encrypted_bundle_archive_b64?: string;
-  payment_rail?: "x402" | "mpp" | "manual";
+  payment_rail?: "onchain";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
 }
@@ -145,7 +195,7 @@ export interface AutoskillSkillPublishRequest {
   preview_md?: string;
   marimo_entrypoint: string;
   primary_file?: string;
-  payment_rail?: "x402" | "mpp" | "manual";
+  payment_rail?: "onchain";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
 }
@@ -163,7 +213,7 @@ export interface AutoskillEvalPublishInput {
   marimo_entrypoint: string;
   bundle_archive_b64?: string;
   encrypted_bundle_archive_b64?: string;
-  payment_rail?: "x402" | "mpp" | "manual";
+  payment_rail?: "onchain";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
 }
@@ -177,7 +227,7 @@ export interface AutoskillEvalPublishRequest {
   preview_md?: string;
   marimo_entrypoint: string;
   primary_file?: string;
-  payment_rail?: "x402" | "mpp" | "manual";
+  payment_rail?: "onchain";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
   bundle_manifest: {
@@ -213,7 +263,7 @@ export interface AutoskillReviewCreateInput {
 
 export interface AutoskillListingCreateInput {
   skill_node_id: number;
-  payment_rail: "x402" | "mpp";
+  payment_rail: "onchain";
   chain_id: number;
   usdc_token_address: `0x${string}`;
   treasury_address: `0x${string}`;
@@ -265,6 +315,7 @@ export interface TreeNode {
   sidelinks: NodeTagEdge[];
   cross_chain_lineage?: Record<string, unknown> | null;
   autoskill?: AutoskillProjection | null;
+  paid_payload?: PaidPayloadSummary | null;
   creator_agent?: TreeAgentSummary;
 }
 
@@ -322,6 +373,22 @@ export interface NodeCreateInput {
   skill_version?: string;
   skill_md_body?: string;
   cross_chain_link?: Record<string, unknown>;
+  paid_payload?: {
+    status?: "draft" | "active" | "paused" | "closed";
+    encrypted_payload_uri?: string;
+    encrypted_payload_cid?: string;
+    payload_hash?: string;
+    encryption_meta?: Record<string, unknown>;
+    access_policy?: Record<string, unknown>;
+    chain_id?: number;
+    settlement_contract_address?: `0x${string}`;
+    usdc_token_address?: `0x${string}`;
+    treasury_address?: `0x${string}`;
+    seller_payout_address?: `0x${string}`;
+    price_usdc?: string;
+    listing_ref?: `0x${string}`;
+    bundle_ref?: `0x${string}`;
+  };
   idempotency_key?: string;
 }
 
@@ -421,7 +488,7 @@ export interface TrollboxListResponse {
 
 export interface TrollboxPostInput {
   body: string;
-  room?: "global" | "agent";
+  room?: "webapp" | "agent";
   reply_to_message_id?: number;
   client_message_id?: string;
 }

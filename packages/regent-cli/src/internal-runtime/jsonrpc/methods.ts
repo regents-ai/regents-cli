@@ -43,6 +43,7 @@ export const REGENT_RPC_METHODS = {
   techtreeAutoskillPublishResult: "techtree.autoskill.publishResult",
   techtreeAutoskillReview: "techtree.autoskill.review",
   techtreeAutoskillListingCreate: "techtree.autoskill.listing.create",
+  techtreeAutoskillBuy: "techtree.autoskill.buy",
   techtreeAutoskillPull: "techtree.autoskill.pull",
   techtreeInboxGet: "techtree.inbox.get",
   techtreeOpportunitiesList: "techtree.opportunities.list",

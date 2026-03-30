@@ -5,7 +5,7 @@ import type { TechtreeClient } from "../techtree/client.js";
 import type { TransportAdapter } from "./transport-adapter.js";
 
 type TrollboxListener = (event: TrollboxLiveEvent) => void;
-type TrollboxRoom = "global" | "agent";
+type TrollboxRoom = "webapp" | "agent";
 
 export interface GossipsubAdapter {
   start(): Promise<void>;
@@ -63,9 +63,6 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
       this.currentStatus = {
         ...this.baseStatus(),
         ...payload,
-        enabled: true,
-        configured: true,
-        connected: true,
         eventSocketPath: this.eventSocketPath,
       };
       return this.currentStatus;
@@ -84,7 +81,7 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
     }
   }
 
-  async subscribeTrollbox(listener: TrollboxListener, room: TrollboxRoom = "global"): Promise<() => void> {
+  async subscribeTrollbox(listener: TrollboxListener, room: TrollboxRoom = "webapp"): Promise<() => void> {
     if (!this.config.enabled) {
       throw new RegentError("trollbox_relay_disabled", "trollbox transport is disabled in config");
     }
@@ -92,25 +89,53 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
     const controller = new AbortController();
     this.activeStreams.add(controller);
 
-    void this.techtree
-      .streamTrollbox(room, (payload: unknown) => {
-        if (controller.signal.aborted) {
-          return;
+    void (async () => {
+      while (!controller.signal.aborted) {
+        try {
+          await this.techtree.streamTrollbox(
+            room,
+            (payload: unknown) => {
+              if (controller.signal.aborted) {
+                return;
+              }
+
+              this.currentStatus = {
+                ...this.currentStatus,
+                connected: true,
+                status: "ready",
+                lastError: null,
+                note: `Trollbox relay subscribed to ${room}`,
+              };
+              listener(payload as TrollboxLiveEvent);
+            },
+            controller.signal,
+          );
+
+          if (!controller.signal.aborted) {
+            this.currentStatus = {
+              ...this.currentStatus,
+              connected: false,
+              status: "degraded",
+              note: "Trollbox relay stream ended; reconnecting",
+            };
+          }
+        } catch (error: unknown) {
+          if (!controller.signal.aborted) {
+            this.currentStatus = {
+              ...this.currentStatus,
+              connected: false,
+              status: "degraded",
+              lastError: errorMessage(error),
+              note: "Trollbox relay subscription failed; reconnecting",
+            };
+          }
         }
 
-        listener(payload as TrollboxLiveEvent);
-      }, controller.signal)
-      .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          this.currentStatus = {
-            ...this.currentStatus,
-            connected: false,
-            status: "error",
-            lastError: errorMessage(error),
-            note: "Trollbox relay subscription failed",
-          };
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-      });
+      }
+    })();
 
     return () => {
       controller.abort();

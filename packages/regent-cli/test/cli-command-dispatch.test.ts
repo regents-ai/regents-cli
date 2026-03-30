@@ -256,6 +256,50 @@ const commandCases: CommandCase[] = [
     },
   },
   {
+    name: "techtree node create with paid payload payee override",
+    args: [
+      "techtree",
+      "node",
+      "create",
+      "--seed",
+      "ml",
+      "--kind",
+      "hypothesis",
+      "--title",
+      "Paid node",
+      "--notebook-source",
+      "print('hello')",
+      "--paid-payload",
+      `{"encrypted_payload_uri":"ipfs://bafy-paid","seller_payout_address":"${TEST_REGISTRY}"}`,
+    ],
+    expected: {
+      method: "techtree.nodes.create",
+      params: {
+        seed: "ml",
+        kind: "hypothesis",
+        title: "Paid node",
+        notebook_source: "print('hello')",
+        paid_payload: {
+          encrypted_payload_uri: "ipfs://bafy-paid",
+          seller_payout_address: TEST_REGISTRY,
+        },
+      },
+    },
+  },
+  {
+    name: "techtree comment add",
+    args: ["techtree", "comment", "add", "--node-id", "42", "--body-markdown", "Useful note"],
+    expected: {
+      method: "techtree.comments.create",
+      params: {
+        node_id: 42,
+        body_markdown: "Useful note",
+        body_plaintext: undefined,
+        idempotency_key: undefined,
+      },
+    },
+  },
+  {
     name: "techtree activity",
     args: ["techtree", "activity", "--limit", "4"],
     expected: { method: "techtree.activity.list", params: { limit: 4 } },
@@ -360,7 +404,7 @@ const commandCases: CommandCase[] = [
       "--access-mode",
       "gated_paid",
       "--payment-rail",
-      "x402",
+      "onchain",
     ],
     expected: {
       method: "techtree.autoskill.publishEval",
@@ -372,7 +416,7 @@ const commandCases: CommandCase[] = [
           access_mode: "gated_paid",
           marimo_entrypoint: "session.marimo.py",
           primary_file: "scenario.yaml",
-          payment_rail: "x402",
+          payment_rail: "onchain",
           bundle_manifest: {
             metadata: {
               version: "0.2.0",
@@ -453,7 +497,7 @@ const commandCases: CommandCase[] = [
       "--skill-node-id",
       "42",
       "--payment-rail",
-      "x402",
+      "onchain",
       "--chain-id",
       "8453",
       "--usdc-token-address",
@@ -469,7 +513,7 @@ const commandCases: CommandCase[] = [
       method: "techtree.autoskill.listing.create",
       params: {
         skill_node_id: 42,
-        payment_rail: "x402",
+        payment_rail: "onchain",
         chain_id: 8453,
         usdc_token_address: TEST_WALLET,
         treasury_address: TEST_REGISTRY,
@@ -479,14 +523,23 @@ const commandCases: CommandCase[] = [
     },
   },
   {
+    name: "techtree autoskill buy",
+    args: ["techtree", "autoskill", "buy", "42"],
+    expected: {
+      method: "techtree.autoskill.buy",
+      params: {
+        node_id: 42,
+      },
+    },
+  },
+  {
     name: "techtree autoskill pull",
-    args: ["techtree", "autoskill", "pull", "42", "pull-workspace", "--x-payment", "receipt_123"],
+    args: ["techtree", "autoskill", "pull", "42", "pull-workspace"],
     expected: {
       method: "techtree.autoskill.pull",
       params: {
         node_id: 42,
         workspace_path: path.resolve("pull-workspace"),
-        x402_receipt: "receipt_123",
       },
     },
   },

@@ -178,7 +178,7 @@ export async function runAutoskillReview(args: ParsedCliArgs, configPath?: strin
 export async function runAutoskillListingCreate(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const payload: AutoskillListingCreateInput = {
     skill_node_id: parseNodeId(getFlag(args, "skill-node-id"), "skill-node-id"),
-    payment_rail: requireArg(getFlag(args, "payment-rail"), "payment-rail") as "x402" | "mpp",
+    payment_rail: (getFlag(args, "payment-rail") ?? "onchain") as "onchain",
     chain_id: Number(requireArg(getFlag(args, "chain-id"), "chain-id")),
     usdc_token_address: requireArg(getFlag(args, "usdc-token-address"), "usdc-token-address") as `0x${string}`,
     treasury_address: requireArg(getFlag(args, "treasury-address"), "treasury-address") as `0x${string}`,
@@ -193,6 +193,18 @@ export async function runAutoskillListingCreate(args: ParsedCliArgs, configPath?
   printJson(await daemonCall("techtree.autoskill.listing.create", payload, configPath));
 }
 
+export async function runAutoskillBuy(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  printJson(
+    await daemonCall(
+      "techtree.autoskill.buy",
+      {
+        node_id: parseNodeId(getFlag(args, "node-id") ?? args.positionals[3], "node-id"),
+      },
+      configPath,
+    ),
+  );
+}
+
 export async function runAutoskillPull(args: ParsedCliArgs, configPath?: string): Promise<void> {
   printJson(
     await daemonCall(
@@ -200,8 +212,6 @@ export async function runAutoskillPull(args: ParsedCliArgs, configPath?: string)
       {
         node_id: parseNodeId(getFlag(args, "node-id") ?? args.positionals[3], "node-id"),
         workspace_path: resolveWorkspace(args, 4),
-        x402_receipt: getFlag(args, "x-payment") ?? undefined,
-        mpp_receipt: getFlag(args, "x-mpp-payment") ?? undefined,
       },
       configPath,
     ),

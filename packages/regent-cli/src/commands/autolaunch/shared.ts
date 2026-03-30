@@ -12,7 +12,7 @@ export interface JsonObject {
 type JsonValue = string | number | boolean | null | JsonObject | JsonValue[];
 
 export interface RequestOptions {
-  readonly body?: Record<string, unknown>;
+  readonly body?: unknown;
   readonly requireSession?: boolean;
 }
 
@@ -121,6 +121,44 @@ export const requestJson = async (
   }
 
   return parsed;
+};
+
+export const requestTypedJson = async <T>(
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> => {
+  const headers = new Headers({ accept: "application/json" });
+
+  if (options.body) {
+    headers.set("content-type", "application/json");
+  }
+
+  if (options.requireSession) {
+    const cookie = await toCookieHeader();
+    if (!cookie) {
+      throw new Error(
+        "This command requires an authenticated session. Set AUTOLAUNCH_SESSION_COOKIE or AUTOLAUNCH_PRIVY_BEARER_TOKEN.",
+      );
+    }
+
+    headers.set("cookie", cookie);
+  }
+
+  const response = await fetch(`${baseUrl()}${path}`, {
+    method,
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+
+  const text = await response.text();
+  const parsed = text ? failIfNotObject(JSON.parse(text) as unknown) : {};
+
+  if (!response.ok) {
+    throw new Error(JSON.stringify(parsed, null, 2));
+  }
+
+  return parsed as T;
 };
 
 export const appendQuery = (

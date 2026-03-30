@@ -17,11 +17,11 @@ import { getBooleanFlag, getFlag, type ParsedCliArgs, parseCliArgs } from "../pa
 import { CLI_PALETTE, isHumanTerminal, printText, renderPanel, tone } from "../printer.js";
 import { renderDoctorReport } from "../printers/doctorPrinter.js";
 import {
-  listAutolaunchIdentities,
-  mintAutolaunchIdentity,
-  type IdentityListResult,
-  type IdentityMintResult,
-} from "./autolaunch/identities.js";
+  listTechtreeIdentities,
+  mintTechtreeIdentity,
+  type TechtreeIdentityListResult as IdentityListResult,
+  type TechtreeIdentityMintResult as IdentityMintResult,
+} from "./techtree-identities.js";
 
 type WizardStep =
   | "config"
@@ -48,8 +48,8 @@ interface StartWizardDeps {
   readonly callJsonRpc: typeof callJsonRpc;
   readonly runDoctor: typeof runDoctor;
   readonly runScopedDoctor: typeof runScopedDoctor;
-  readonly listIdentities: typeof listAutolaunchIdentities;
-  readonly mintIdentity: typeof mintAutolaunchIdentity;
+  readonly listIdentities: typeof listTechtreeIdentities;
+  readonly mintIdentity: typeof mintTechtreeIdentity;
   readonly authStatus: (configPath?: string) => Promise<{
     authenticated: boolean;
     protectedRoutesReady: boolean;
@@ -185,8 +185,8 @@ export const startWizardDeps: StartWizardDeps = {
   callJsonRpc,
   runDoctor,
   runScopedDoctor,
-  listIdentities: listAutolaunchIdentities,
-  mintIdentity: mintAutolaunchIdentity,
+  listIdentities: listTechtreeIdentities,
+  mintIdentity: mintTechtreeIdentity,
   authStatus: defaultAuthStatus,
   authLogin: defaultAuthLogin,
   bbhProbe: defaultBbhProbe,

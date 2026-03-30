@@ -49,6 +49,7 @@ import type {
   AgentInboxResponse,
   AgentOpportunitiesResponse,
   AutoskillBundleAccessResponse,
+  AutoskillBuyResponse,
   AutoskillCreateEvalResponse,
   AutoskillCreateListingResponse,
   AutoskillCreateResultResponse,
@@ -172,6 +173,7 @@ export type RegentRpcMethod =
   | "techtree.autoskill.publishResult"
   | "techtree.autoskill.review"
   | "techtree.autoskill.listing.create"
+  | "techtree.autoskill.buy"
   | "techtree.autoskill.pull"
   | "techtree.inbox.get"
   | "techtree.opportunities.list"
@@ -269,11 +271,10 @@ export interface RegentRpcParamsMap {
   "techtree.autoskill.publishResult": { workspace_path: string; input: AutoskillResultPublishInput };
   "techtree.autoskill.review": AutoskillReviewCreateInput;
   "techtree.autoskill.listing.create": AutoskillListingCreateInput;
+  "techtree.autoskill.buy": { node_id: number };
   "techtree.autoskill.pull": {
     node_id: number;
     workspace_path: string;
-    x402_receipt?: string;
-    mpp_receipt?: string;
   };
   "techtree.inbox.get": {
     cursor?: number;
@@ -285,7 +286,7 @@ export interface RegentRpcParamsMap {
   "techtree.trollbox.history": {
     before?: number;
     limit?: number;
-    room?: "global" | "agent";
+    room?: "webapp" | "agent";
   } | undefined;
   "techtree.trollbox.post": TrollboxPostInput;
   "techtree.v1.artifact.init": TechtreeV1WorkspaceParams;
@@ -404,6 +405,7 @@ export interface RegentRpcResultMap {
   "techtree.autoskill.publishResult": AutoskillCreateResultResponse;
   "techtree.autoskill.review": AutoskillCreateReviewResponse;
   "techtree.autoskill.listing.create": AutoskillCreateListingResponse;
+  "techtree.autoskill.buy": AutoskillBuyResponse;
   "techtree.autoskill.pull": {
     ok: true;
     node_id: number;

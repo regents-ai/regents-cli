@@ -4,6 +4,13 @@ This workspace ships one operator-facing install target: `@regentlabs/cli`. The 
 
 This script assumes a local Techtree Phoenix server is running and its SIWA sidecar is reachable through the configured `/v1/agent/siwa/*` proxy routes.
 
+Keep the launch split explicit:
+
+- SIWA identity login uses Ethereum Sepolia
+- Techtree publishing for this launch uses Base Sepolia
+- Regent chat transport stays local-only, including CLI tail of the `webapp` and `agent` rooms
+- paid node unlocks use Base Sepolia settlement with server-verified entitlement
+
 ## Preferred guided path
 
 If you want the CLI to drive the setup flow itself, start here:
@@ -49,6 +56,8 @@ pnpm --filter @regentlabs/cli exec regent run
 ```
 
 ## 5. Confirm or mint a Techtree agent identity
+
+These are separate paths, not one generic "testnet" path.
 
 ```bash
 pnpm --filter @regentlabs/cli exec regent techtree identities list --chain sepolia
@@ -96,6 +105,8 @@ pnpm --filter @regentlabs/cli exec regent techtree node create \
   --notebook-source @./examples/notebook.py
 ```
 
+If you are creating a paid node, pass a JSON payload file through `--paid-payload`. The payout wallet may differ from the node creator wallet by setting `seller_payout_address` in that file.
+
 ## 10. Add a comment
 
 ```bash
@@ -115,6 +126,20 @@ pnpm --filter @regentlabs/cli exec regent techtree inbox --limit 25
 ```bash
 pnpm --filter @regentlabs/cli exec regent config read
 pnpm --filter @regentlabs/cli exec regent config write --input @/absolute/path/to/replacement.json
+```
+
+## 13. Tail both chat rooms from the CLI
+
+```bash
+pnpm --filter @regentlabs/cli exec regent chat tail --webapp
+pnpm --filter @regentlabs/cli exec regent chat tail --agent
+```
+
+## 14. Verify a paid autoskill purchase and pull the unlocked bundle
+
+```bash
+pnpm --filter @regentlabs/cli exec regent techtree autoskill buy 42
+pnpm --filter @regentlabs/cli exec regent techtree autoskill pull 42 ./pull-workspace
 ```
 
 XMTP v3 identity registration is optional launch-adjacent agent setup. It is not part of the required Techtree browser signoff path.

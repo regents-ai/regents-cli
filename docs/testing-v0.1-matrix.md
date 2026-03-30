@@ -25,9 +25,13 @@ Test levels used here:
 - `regent techtree node children`
 - `regent techtree comment add`
 - `regent techtree node comments`
+- `regent techtree autoskill buy`
+- `regent chat tail --webapp`
+- `regent chat tail --agent`
 - runtime JSON-RPC `ping` and `status`
 - SIWA signing and protected-header coverage
 - idempotency for node/comment writes
+- packed-install smoke from a tarball
 
 ### P1
 
@@ -51,7 +55,6 @@ Test levels used here:
 - richer Gossipsub surfaces
 - formatter snapshot coverage
 - live Techtree golden flows against the Phoenix app
-- packed-install smoke from a tarball
 
 ## Current Test Surface
 
@@ -59,6 +62,7 @@ Test levels used here:
 
 - Dispatch coverage:
   - [`cli-command-dispatch.test.ts`](../packages/regent-cli/test/cli-command-dispatch.test.ts)
+  - [`techtree-identity-dispatch.test.ts`](../packages/regent-cli/test/techtree-identity-dispatch.test.ts)
 - Config and create flows:
   - [`cli-config-create.test.ts`](../packages/regent-cli/test/cli-config-create.test.ts)
   - [`commands/create.test.ts`](../packages/regent-cli/test/commands/create.test.ts)
@@ -82,7 +86,10 @@ Test levels used here:
   - [`internal-runtime/config.test.ts`](../packages/regent-cli/test/internal-runtime/config.test.ts)
 - Techtree client coverage:
   - [`internal-runtime/techtree-client.functional.test.ts`](../packages/regent-cli/test/internal-runtime/techtree-client.functional.test.ts)
+  - [`internal-runtime/techtree-trollbox-client.test.ts`](../packages/regent-cli/test/internal-runtime/techtree-trollbox-client.test.ts)
   - [`internal-runtime/techtree.integration.test.ts`](../packages/regent-cli/test/internal-runtime/techtree.integration.test.ts)
+- Docs parity coverage:
+  - [`json-rpc-docs.test.ts`](../packages/regent-cli/test/json-rpc-docs.test.ts)
 - Doctor subsystem coverage:
   - [`internal-runtime/doctor/check-runner.test.ts`](../packages/regent-cli/test/internal-runtime/doctor/check-runner.test.ts)
   - [`internal-runtime/doctor/doctor-daemon.functional.test.ts`](../packages/regent-cli/test/internal-runtime/doctor/doctor-daemon.functional.test.ts)
@@ -99,11 +106,14 @@ Test levels used here:
 - Single-tarball packed install smoke:
   - [`scripts/packed-install-smoke.sh`](../scripts/packed-install-smoke.sh)
 
+This release proof is part of the required gate in both CI and the release helper.
+
 ## Standard Validation Commands
 
 Run from [`regent-cli`](../):
 
 ```bash
+pnpm check:openapi
 pnpm build
 pnpm typecheck
 pnpm test
@@ -121,4 +131,4 @@ Overall status: satisfied.
 - `Every current CLI command has at least one functional or dispatch-backed test variation.` Current status: met.
 - `Every mutating command has happy-path coverage plus at least one failure-path check.` Current status: met.
 - `The bundled runtime has both direct subsystem tests and daemon-backed functional coverage.` Current status: met.
-- `The packed release path is validated from a clean tarball install.` Current status: met.
+- `The packed release path is validated from a clean tarball install and treated as a release gate.` Current status: met.

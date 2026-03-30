@@ -30,6 +30,7 @@ import { handleGossipsubStatus } from "./handlers/gossipsub.js";
 import { handleRuntimePing, handleRuntimeShutdown, handleRuntimeStatus } from "./handlers/runtime.js";
 import {
   handleTechtreeActivityList,
+  handleTechtreeAutoskillBuy,
   handleTechtreeAutoskillInitEval,
   handleTechtreeAutoskillInitSkill,
   handleTechtreeAutoskillListingCreate,
@@ -472,6 +473,11 @@ export class RegentRuntime {
         return handleTechtreeAutoskillListingCreate(
           ctx,
           params as Parameters<typeof handleTechtreeAutoskillListingCreate>[1],
+        );
+      case "techtree.autoskill.buy":
+        return handleTechtreeAutoskillBuy(
+          ctx,
+          params as Parameters<typeof handleTechtreeAutoskillBuy>[1],
         );
       case "techtree.autoskill.pull":
         return handleTechtreeAutoskillPull(

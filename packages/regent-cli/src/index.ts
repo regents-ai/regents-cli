@@ -7,6 +7,9 @@ import { defaultConfigPath, expandHome } from "./internal-runtime/index.js";
 
 import { runAgentbookLookup, runAgentbookRegister, runAgentbookSessionsWatch, runAgentbookVerifyHeader } from "./commands/agentbook.js";
 import {
+  runAutolaunchContractsAdminShow,
+  runAutolaunchContractsJobShow,
+  runAutolaunchContractsSubjectShow,
   runAutolaunchAgentsList,
   runAutolaunchAgentReadiness,
   runAutolaunchAgentShow,
@@ -21,15 +24,57 @@ import {
   runAutolaunchEnsPrepareBidirectional,
   runAutolaunchEnsPrepareErc8004,
   runAutolaunchEnsPrepareEnsip25,
+  runAutolaunchFeeRegistrySetHookEnabled,
+  runAutolaunchFeeRegistryShow,
+  runAutolaunchFeeVaultShow,
+  runAutolaunchFeeVaultWithdrawRegent,
+  runAutolaunchFeeVaultWithdrawTreasury,
   runAutolaunchIdentitiesList,
   runAutolaunchIdentitiesMint,
+  runAutolaunchIngressCreate,
+  runAutolaunchIngressRescue,
+  runAutolaunchIngressSetDefault,
+  runAutolaunchIngressSetLabel,
   runAutolaunchJobsWatch,
   runAutolaunchLaunchCreate,
+  runAutolaunchLaunchFinalize,
+  runAutolaunchLaunchMonitor,
   runAutolaunchLaunchPreview,
+  runAutolaunchLaunchRun,
+  runAutolaunchPrelaunchPublish,
+  runAutolaunchPrelaunchShow,
+  runAutolaunchPrelaunchValidate,
+  runAutolaunchPrelaunchWizard,
+  runAutolaunchRegistryLinkIdentity,
+  runAutolaunchRegistrySetSubjectManager,
+  runAutolaunchRegistryShow,
+  runAutolaunchRevenueIngressFactorySetAuthorizedCreator,
+  runAutolaunchRevenueShareFactorySetAuthorizedCreator,
+  runAutolaunchSplitterReassignDust,
+  runAutolaunchSplitterSetLabel,
+  runAutolaunchSplitterSetPaused,
+  runAutolaunchSplitterSetProtocolRecipient,
+  runAutolaunchSplitterSetProtocolSkimBps,
+  runAutolaunchSplitterSetTreasuryRecipient,
+  runAutolaunchSplitterShow,
+  runAutolaunchSplitterWithdrawProtocolReserve,
+  runAutolaunchSplitterWithdrawTreasuryResidual,
+  runAutolaunchStrategyMigrate,
+  runAutolaunchStrategySweepCurrency,
+  runAutolaunchStrategySweepToken,
+  runAutolaunchSubjectClaimUsdc,
+  runAutolaunchSubjectIngress,
+  runAutolaunchSubjectShow,
+  runAutolaunchSubjectStake,
+  runAutolaunchSubjectSweepIngress,
+  runAutolaunchSubjectUnstake,
+  runAutolaunchVestingRelease,
+  runAutolaunchVestingStatus,
 } from "./commands/autolaunch.js";
 import {
   runAutoskillInitEval,
   runAutoskillInitSkill,
+  runAutoskillBuy,
   runAutoskillListingCreate,
   runAutoskillPublishEval,
   runAutoskillPublishResult,
@@ -50,8 +95,10 @@ import { runAuthSiwaLogin, runAuthSiwaLogout, runAuthSiwaStatus } from "./comman
 import { runCreateInit, runCreateWallet } from "./commands/create.js";
 import { runGossipsubStatus } from "./commands/gossipsub.js";
 import { runRuntime } from "./commands/run.js";
+import { runChatHistory, runChatPost, runChatTail } from "./commands/trollbox.js";
 import {
   runTechtreeActivity,
+  runTechtreeCommentAdd,
   runTechtreeInbox,
   runTechtreeNodeChildren,
   runTechtreeNodeComments,
@@ -75,6 +122,10 @@ import {
   runTechtreeWatchList,
   runTechtreeWatchTail,
 } from "./commands/techtree.js";
+import {
+  runTechtreeIdentitiesList,
+  runTechtreeIdentitiesMint,
+} from "./commands/techtree-identities.js";
 import { runTechtreeStart } from "./commands/techtree-start.js";
 import {
   runTechtreeBbhDraftApply,
@@ -147,6 +198,13 @@ import {
   runXmtpTrustedList,
   runXmtpTrustedRemove,
 } from "./commands/xmtp.js";
+import {
+  runRegentStakingAccount,
+  runRegentStakingClaimUsdc,
+  runRegentStakingShow,
+  runRegentStakingStake,
+  runRegentStakingUnstake,
+} from "./commands/regent-staking.js";
 import { getFlag, parseCliArgs, requireArg } from "./parse.js";
 import { printError, printText, renderUsageScreen } from "./printer.js";
 
@@ -261,6 +319,31 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return result.ready ? 0 : 1;
     }
 
+    if (namespace === "regent-staking" && subcommand === "show") {
+      await runRegentStakingShow();
+      return 0;
+    }
+
+    if (namespace === "regent-staking" && subcommand === "account") {
+      await runRegentStakingAccount(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "regent-staking" && subcommand === "stake") {
+      await runRegentStakingStake(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "regent-staking" && subcommand === "unstake") {
+      await runRegentStakingUnstake(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "regent-staking" && subcommand === "claim-usdc") {
+      await runRegentStakingClaimUsdc();
+      return 0;
+    }
+
     if (namespace === "techtree" && subcommand === "autoskill" && maybeThird === "init" && maybeFourth === "skill") {
       await runAutoskillInitSkill(parsedArgs, configPath);
       return 0;
@@ -293,6 +376,11 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "techtree" && subcommand === "autoskill" && maybeThird === "listing" && maybeFourth === "create") {
       await runAutoskillListingCreate(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "autoskill" && maybeThird === "buy") {
+      await runAutoskillBuy(parsedArgs, configPath);
       return 0;
     }
 
@@ -568,18 +656,23 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
+    if (namespace === "techtree" && subcommand === "comment" && maybeThird === "add") {
+      await runTechtreeCommentAdd(rawArgs, configPath);
+      return 0;
+    }
+
     if (namespace === "techtree" && subcommand === "node" && maybeThird === "work-packet") {
       await runTechtreeNodeWorkPacket(requireNodeId(maybeFourth), configPath);
       return 0;
     }
 
     if (namespace === "techtree" && subcommand === "identities" && maybeThird === "list") {
-      await runAutolaunchIdentitiesList(parsedArgs);
+      await runTechtreeIdentitiesList(parsedArgs);
       return 0;
     }
 
     if (namespace === "techtree" && subcommand === "identities" && maybeThird === "mint") {
-      await runAutolaunchIdentitiesMint(parsedArgs);
+      await runTechtreeIdentitiesMint(parsedArgs);
       return 0;
     }
 
@@ -750,6 +843,21 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
+    if (namespace === "chat" && subcommand === "history") {
+      await runChatHistory(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "chat" && subcommand === "tail") {
+      await runChatTail(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "chat" && subcommand === "post") {
+      await runChatPost(parsedArgs, configPath);
+      return 0;
+    }
+
     if (namespace === "autolaunch" && subcommand === "agents" && maybeThird === "list") {
       await runAutolaunchAgentsList(parsedArgs);
       return 0;
@@ -830,6 +938,26 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
+    if (namespace === "autolaunch" && subcommand === "prelaunch" && maybeThird === "wizard") {
+      await runAutolaunchPrelaunchWizard(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "prelaunch" && maybeThird === "show") {
+      await runAutolaunchPrelaunchShow(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "prelaunch" && maybeThird === "validate") {
+      await runAutolaunchPrelaunchValidate(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "prelaunch" && maybeThird === "publish") {
+      await runAutolaunchPrelaunchPublish(parsedArgs, configPath);
+      return 0;
+    }
+
     if (namespace === "autolaunch" && subcommand === "launch" && maybeThird === "preview") {
       await runAutolaunchLaunchPreview(parsedArgs);
       return 0;
@@ -840,8 +968,262 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
+    if (namespace === "autolaunch" && subcommand === "launch" && maybeThird === "run") {
+      await runAutolaunchLaunchRun(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "launch" && maybeThird === "monitor") {
+      await runAutolaunchLaunchMonitor(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "launch" && maybeThird === "finalize") {
+      await runAutolaunchLaunchFinalize(parsedArgs, configPath);
+      return 0;
+    }
+
     if (namespace === "autolaunch" && subcommand === "jobs" && maybeThird === "watch") {
       await runAutolaunchJobsWatch(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "show") {
+      await runAutolaunchSubjectShow(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "ingress") {
+      await runAutolaunchSubjectIngress(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "stake") {
+      await runAutolaunchSubjectStake(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "unstake") {
+      await runAutolaunchSubjectUnstake(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "claim-usdc") {
+      await runAutolaunchSubjectClaimUsdc(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "sweep-ingress") {
+      await runAutolaunchSubjectSweepIngress(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "contracts" && maybeThird === "admin") {
+      await runAutolaunchContractsAdminShow();
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "contracts" && maybeThird === "job") {
+      await runAutolaunchContractsJobShow(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "contracts" && maybeThird === "subject") {
+      await runAutolaunchContractsSubjectShow(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "strategy" && maybeThird === "migrate") {
+      await runAutolaunchStrategyMigrate(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "strategy" && maybeThird === "sweep-token") {
+      await runAutolaunchStrategySweepToken(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "strategy" &&
+        maybeThird === "sweep-currency"
+    ) {
+      await runAutolaunchStrategySweepCurrency(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "vesting" && maybeThird === "release") {
+      await runAutolaunchVestingRelease(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "vesting" && maybeThird === "status") {
+      await runAutolaunchVestingStatus(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "fee-registry" && maybeThird === "show") {
+      await runAutolaunchFeeRegistryShow(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "fee-registry" &&
+        maybeThird === "set-hook-enabled"
+    ) {
+      await runAutolaunchFeeRegistrySetHookEnabled(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "fee-vault" && maybeThird === "show") {
+      await runAutolaunchFeeVaultShow(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "fee-vault" &&
+        maybeThird === "withdraw-treasury"
+    ) {
+      await runAutolaunchFeeVaultWithdrawTreasury(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "fee-vault" &&
+        maybeThird === "withdraw-regent"
+    ) {
+      await runAutolaunchFeeVaultWithdrawRegent(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "splitter" && maybeThird === "show") {
+      await runAutolaunchSplitterShow(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "splitter" && maybeThird === "set-paused") {
+      await runAutolaunchSplitterSetPaused(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "splitter" && maybeThird === "set-label") {
+      await runAutolaunchSplitterSetLabel(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "set-treasury-recipient"
+    ) {
+      await runAutolaunchSplitterSetTreasuryRecipient(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "set-protocol-recipient"
+    ) {
+      await runAutolaunchSplitterSetProtocolRecipient(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "set-protocol-skim-bps"
+    ) {
+      await runAutolaunchSplitterSetProtocolSkimBps(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "withdraw-treasury-residual"
+    ) {
+      await runAutolaunchSplitterWithdrawTreasuryResidual(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "withdraw-protocol-reserve"
+    ) {
+      await runAutolaunchSplitterWithdrawProtocolReserve(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "reassign-dust"
+    ) {
+      await runAutolaunchSplitterReassignDust(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "ingress" && maybeThird === "create") {
+      await runAutolaunchIngressCreate(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "ingress" && maybeThird === "set-default") {
+      await runAutolaunchIngressSetDefault(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "ingress" && maybeThird === "set-label") {
+      await runAutolaunchIngressSetLabel(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "ingress" && maybeThird === "rescue") {
+      await runAutolaunchIngressRescue(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "registry" && maybeThird === "show") {
+      await runAutolaunchRegistryShow(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "registry" &&
+        maybeThird === "set-subject-manager"
+    ) {
+      await runAutolaunchRegistrySetSubjectManager(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "registry" && maybeThird === "link-identity") {
+      await runAutolaunchRegistryLinkIdentity(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "factory" &&
+        maybeThird === "revenue-share" &&
+        maybeFourth === "set-authorized-creator"
+    ) {
+      await runAutolaunchRevenueShareFactorySetAuthorizedCreator(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "factory" &&
+        maybeThird === "revenue-ingress" &&
+        maybeFourth === "set-authorized-creator"
+    ) {
+      await runAutolaunchRevenueIngressFactorySetAuthorizedCreator(parsedArgs);
       return 0;
     }
 

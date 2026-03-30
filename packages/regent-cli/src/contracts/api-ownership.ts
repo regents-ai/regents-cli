@@ -1,0 +1,358 @@
+import type { paths as AutolaunchPaths } from "../generated/autolaunch-openapi.js";
+import type { paths as RegentServicePaths } from "../generated/regent-services-openapi.js";
+import type { paths as TechtreePaths } from "../generated/techtree-openapi.js";
+
+export type ApiContractOwner = "techtree" | "autolaunch" | "shared-services";
+export type ApiCommandStatus = "current" | "current-hybrid" | "stale" | "remove-before-freeze";
+
+export interface ApiCommandGroup {
+  readonly commands: readonly string[];
+  readonly owner: ApiContractOwner;
+  readonly status: ApiCommandStatus;
+  readonly note?: string;
+  readonly pathTemplates: readonly string[];
+}
+
+export const techtreeApiCommandGroups = [
+  {
+    commands: ["auth siwa login", "auth siwa status", "auth siwa logout"],
+    owner: "techtree",
+    status: "current",
+    note: "Cross-cutting auth flow, but Techtree owns the first canonical SIWA contract cut.",
+    pathTemplates: ["/v1/agent/siwa/nonce", "/v1/agent/siwa/verify"],
+  },
+  {
+    commands: ["techtree activity", "techtree search", "techtree nodes list"],
+    owner: "techtree",
+    status: "current",
+    pathTemplates: ["/v1/tree/activity", "/v1/tree/search", "/v1/tree/nodes"],
+  },
+  {
+    commands: [
+      "techtree node get",
+      "techtree node children",
+      "techtree node comments",
+      "techtree node work-packet",
+      "techtree node lineage list",
+      "techtree node lineage claim",
+      "techtree node lineage withdraw",
+      "techtree node cross-chain-links list",
+      "techtree node cross-chain-links create",
+      "techtree node cross-chain-links clear",
+      "techtree node create",
+      "techtree comment add",
+    ],
+    owner: "techtree",
+    status: "current",
+    pathTemplates: [
+      "/v1/tree/nodes/{id}",
+      "/v1/tree/nodes/{id}/children",
+      "/v1/tree/nodes/{id}/comments",
+      "/v1/tree/nodes/{id}/lineage",
+      "/v1/agent/tree/nodes/{id}/lineage",
+      "/v1/agent/tree/nodes/{id}/lineage/claims",
+      "/v1/tree/nodes/{id}/lineage/claims",
+      "/v1/tree/nodes/{id}/lineage/claims/{claim_id}",
+      "/v1/agent/tree/nodes/{id}/cross-chain-links",
+      "/v1/tree/nodes/{id}/cross-chain-links",
+      "/v1/tree/nodes/{id}/cross-chain-links/current",
+      "/v1/tree/nodes",
+      "/v1/tree/comments",
+      "/v1/tree/nodes/{id}/work-packet",
+    ],
+  },
+  {
+    commands: [
+      "techtree watch",
+      "techtree watch list",
+      "techtree unwatch",
+      "techtree star",
+      "techtree unstar",
+      "techtree inbox",
+      "techtree opportunities",
+    ],
+    owner: "techtree",
+    status: "current",
+    pathTemplates: [
+      "/v1/agent/watches",
+      "/v1/tree/nodes/{id}/watch",
+      "/v1/tree/nodes/{id}/star",
+      "/v1/agent/inbox",
+      "/v1/agent/opportunities",
+    ],
+  },
+  {
+    commands: [
+      "techtree autoskill publish skill",
+      "techtree autoskill publish eval",
+      "techtree autoskill publish result",
+      "techtree autoskill review",
+      "techtree autoskill listing create",
+      "techtree autoskill buy",
+      "techtree autoskill pull",
+    ],
+    owner: "techtree",
+    status: "current",
+    pathTemplates: [
+      "/v1/agent/autoskill/skills",
+      "/v1/agent/autoskill/evals",
+      "/v1/agent/autoskill/results",
+      "/v1/agent/autoskill/reviews/community",
+      "/v1/agent/autoskill/reviews/replicable",
+      "/v1/agent/autoskill/versions/{id}/listings",
+      "/v1/agent/autoskill/versions/{id}/bundle",
+      "/v1/agent/tree/nodes/{id}/payload",
+      "/v1/agent/tree/nodes/{id}/purchases",
+    ],
+  },
+  {
+    commands: [
+      "techtree reviewer orcid link",
+      "techtree reviewer apply",
+      "techtree reviewer status",
+      "techtree review list",
+      "techtree review claim",
+      "techtree review submit",
+      "techtree certificate verify",
+      "techtree bbh leaderboard",
+      "techtree bbh capsules list",
+      "techtree bbh capsules get",
+      "techtree bbh draft create",
+      "techtree bbh draft list",
+      "techtree bbh draft propose",
+      "techtree bbh draft proposals",
+      "techtree bbh draft apply",
+      "techtree bbh draft ready",
+      "techtree bbh submit",
+      "techtree bbh validate",
+      "techtree bbh sync",
+    ],
+    owner: "techtree",
+    status: "current",
+    pathTemplates: [
+      "/v1/bbh/leaderboard",
+      "/v1/bbh/capsules",
+      "/v1/bbh/capsules/{id}",
+      "/v1/bbh/capsules/{id}/certificate",
+      "/v1/agent/bbh/drafts",
+      "/v1/agent/bbh/drafts/{id}",
+      "/v1/agent/bbh/drafts/{id}/proposals",
+      "/v1/agent/bbh/drafts/{id}/proposals/{proposal_id}/apply",
+      "/v1/agent/bbh/drafts/{id}/ready",
+      "/v1/agent/bbh/runs",
+      "/v1/agent/bbh/validations",
+      "/v1/agent/bbh/sync",
+      "/v1/agent/reviewer/orcid/link/start",
+      "/v1/agent/reviewer/orcid/link/status/{request_id}",
+      "/v1/agent/reviewer/apply",
+      "/v1/agent/reviewer/me",
+      "/v1/agent/reviews/open",
+      "/v1/agent/reviews/{request_id}/claim",
+      "/v1/agent/reviews/{request_id}/submit",
+    ],
+  },
+  {
+    commands: [
+      "techtree {main|bbh} fetch",
+      "techtree {main|bbh} artifact pin",
+      "techtree {main|bbh} artifact publish",
+      "techtree {main|bbh} run pin",
+      "techtree {main|bbh} run publish",
+      "techtree {main|bbh} review pin",
+      "techtree {main|bbh} review publish",
+      "techtree {main|bbh} verify",
+      "techtree bbh draft pull",
+      "techtree review pull",
+    ],
+    owner: "techtree",
+    status: "current-hybrid",
+    note: "Local workspace workflow plus still-live backend endpoints.",
+    pathTemplates: [
+      "/api/v1/nodes/{id}",
+      "/api/v1/pin",
+      "/api/v1/publish/submit",
+      "/v1/agent/bbh/drafts/{id}",
+      "/v1/agent/reviews/{request_id}/packet",
+    ],
+  },
+] as const satisfies readonly (Omit<ApiCommandGroup, "pathTemplates"> & {
+  readonly pathTemplates: readonly (keyof TechtreePaths)[];
+})[];
+
+export const autolaunchApiCommandGroups = [
+  {
+    commands: ["agentbook register", "agentbook sessions watch", "agentbook lookup", "agentbook verify-header"],
+    owner: "autolaunch",
+    status: "current",
+    pathTemplates: [
+      "/api/agentbook/sessions",
+      "/api/agentbook/sessions/{id}",
+      "/api/agentbook/sessions/{id}/submit",
+      "/api/agentbook/lookup",
+      "/api/agentbook/verify",
+    ],
+  },
+  {
+    commands: ["autolaunch agents list", "autolaunch agent <id>", "autolaunch agent readiness <id>"],
+    owner: "autolaunch",
+    status: "current",
+    pathTemplates: ["/api/agents", "/api/agents/{id}", "/api/agents/{id}/readiness"],
+  },
+  {
+    commands: [
+      "autolaunch prelaunch wizard",
+      "autolaunch prelaunch show",
+      "autolaunch prelaunch validate",
+      "autolaunch prelaunch publish",
+    ],
+    owner: "autolaunch",
+    status: "current-hybrid",
+    pathTemplates: [
+      "/api/prelaunch/plans",
+      "/api/prelaunch/plans/{id}",
+      "/api/prelaunch/plans/{id}/validate",
+      "/api/prelaunch/plans/{id}/publish",
+      "/api/prelaunch/assets",
+      "/api/prelaunch/plans/{id}/metadata",
+      "/api/prelaunch/plans/{id}/metadata-preview",
+    ],
+  },
+  {
+    commands: [
+      "autolaunch launch preview",
+      "autolaunch launch create",
+      "autolaunch launch run",
+      "autolaunch launch monitor",
+      "autolaunch launch finalize",
+      "autolaunch jobs watch",
+      "autolaunch vesting status",
+      "autolaunch vesting release",
+    ],
+    owner: "autolaunch",
+    status: "current-hybrid",
+    pathTemplates: [
+      "/api/launch/preview",
+      "/api/launch/jobs",
+      "/api/launch/jobs/{id}",
+      "/api/lifecycle/jobs/{id}",
+      "/api/lifecycle/jobs/{id}/finalize/prepare",
+      "/api/lifecycle/jobs/{id}/finalize/register",
+      "/api/lifecycle/jobs/{id}/vesting",
+      "/api/contracts/jobs/{id}/{resource}/{action}/prepare",
+    ],
+  },
+  {
+    commands: [
+      "autolaunch auctions list",
+      "autolaunch auction <id>",
+      "autolaunch bids quote",
+      "autolaunch bids place",
+      "autolaunch bids mine",
+      "autolaunch bids exit",
+      "autolaunch bids claim",
+    ],
+    owner: "autolaunch",
+    status: "current",
+    pathTemplates: ["/api/auctions", "/api/auctions/{id}", "/api/auctions/{id}/bid_quote", "/api/auctions/{id}/bids", "/api/me/bids", "/api/bids/{id}/exit", "/api/bids/{id}/claim"],
+  },
+  {
+    commands: [
+      "autolaunch subjects show",
+      "autolaunch subjects ingress",
+      "autolaunch subjects stake",
+      "autolaunch subjects unstake",
+      "autolaunch subjects claim-usdc",
+      "autolaunch subjects sweep-ingress",
+    ],
+    owner: "autolaunch",
+    status: "current",
+    pathTemplates: [
+      "/api/subjects/{id}",
+      "/api/subjects/{id}/ingress",
+      "/api/subjects/{id}/stake",
+      "/api/subjects/{id}/unstake",
+      "/api/subjects/{id}/claim-usdc",
+      "/api/subjects/{id}/ingress/{address}/sweep",
+    ],
+  },
+  {
+    commands: ["autolaunch ens plan", "autolaunch ens prepare-ensip25", "autolaunch ens prepare-erc8004", "autolaunch ens prepare-bidirectional"],
+    owner: "autolaunch",
+    status: "current",
+    pathTemplates: ["/api/ens/link/plan", "/api/ens/link/prepare-ensip25", "/api/ens/link/prepare-erc8004", "/api/ens/link/prepare-bidirectional"],
+  },
+  {
+    commands: [
+      "autolaunch contracts admin",
+      "autolaunch contracts job",
+      "autolaunch contracts subject",
+      "autolaunch strategy migrate",
+      "autolaunch strategy sweep-token",
+      "autolaunch strategy sweep-currency",
+      "autolaunch fee-registry show",
+      "autolaunch fee-registry set-hook-enabled",
+      "autolaunch fee-vault show",
+      "autolaunch fee-vault withdraw-treasury",
+      "autolaunch fee-vault withdraw-regent",
+      "autolaunch splitter show",
+      "autolaunch splitter set-paused",
+      "autolaunch splitter set-label",
+      "autolaunch splitter set-treasury-recipient",
+      "autolaunch splitter set-protocol-recipient",
+      "autolaunch splitter set-protocol-skim-bps",
+      "autolaunch splitter withdraw-treasury-residual",
+      "autolaunch splitter withdraw-protocol-reserve",
+      "autolaunch splitter reassign-dust",
+      "autolaunch ingress create",
+      "autolaunch ingress set-default",
+      "autolaunch ingress set-label",
+      "autolaunch ingress rescue",
+      "autolaunch registry show",
+      "autolaunch registry set-subject-manager",
+      "autolaunch registry link-identity",
+      "autolaunch factory revenue-share set-authorized-creator",
+      "autolaunch factory revenue-ingress set-authorized-creator",
+    ],
+    owner: "autolaunch",
+    status: "current",
+    pathTemplates: [
+      "/api/contracts/admin",
+      "/api/contracts/jobs/{id}",
+      "/api/contracts/subjects/{id}",
+      "/api/contracts/jobs/{id}/{resource}/{action}/prepare",
+      "/api/contracts/subjects/{id}/{resource}/{action}/prepare",
+      "/api/contracts/admin/{resource}/{action}/prepare",
+    ],
+  },
+] as const satisfies readonly (Omit<ApiCommandGroup, "pathTemplates"> & {
+  readonly pathTemplates: readonly (keyof AutolaunchPaths)[];
+})[];
+
+export const sharedServicesApiCommandGroups = [
+  {
+    commands: [
+      "regent-staking show",
+      "regent-staking account",
+      "regent-staking stake",
+      "regent-staking unstake",
+      "regent-staking claim-usdc",
+    ],
+    owner: "shared-services",
+    status: "current",
+    pathTemplates: [
+      "/api/regent/staking",
+      "/api/regent/staking/account/{address}",
+      "/api/regent/staking/stake",
+      "/api/regent/staking/unstake",
+      "/api/regent/staking/claim-usdc",
+    ],
+  },
+] as const satisfies readonly (Omit<ApiCommandGroup, "pathTemplates"> & {
+  readonly pathTemplates: readonly (keyof RegentServicePaths)[];
+})[];
+
+export const apiCommandOwnership = [
+  ...techtreeApiCommandGroups,
+  ...autolaunchApiCommandGroups,
+  ...sharedServicesApiCommandGroups,
+] as const;

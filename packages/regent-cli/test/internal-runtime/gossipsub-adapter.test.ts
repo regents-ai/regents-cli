@@ -101,7 +101,7 @@ describe("gossipsub relay adapter", () => {
       },
     }));
     const streamTrollbox = vi.fn(
-      async (_room: "global" | "agent", onEvent: (payload: unknown) => void, signal: AbortSignal) => {
+      async (_room: "webapp" | "agent", onEvent: (payload: unknown) => void, signal: AbortSignal) => {
         onEvent(TEST_EVENT);
         await new Promise<void>((resolve) => {
           signal.addEventListener("abort", () => resolve(), { once: true });
@@ -144,7 +144,7 @@ describe("gossipsub relay adapter", () => {
       expect(receivedEvents).toEqual([TEST_EVENT]);
     });
 
-    expect(streamTrollbox).toHaveBeenCalledWith("global", expect.any(Function), expect.any(AbortSignal));
+    expect(streamTrollbox).toHaveBeenCalledWith("webapp", expect.any(Function), expect.any(AbortSignal));
 
     await dispose();
     await expect(adapter.status()).resolves.toMatchObject({

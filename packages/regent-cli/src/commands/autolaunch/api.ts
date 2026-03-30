@@ -1,13 +1,35 @@
+import type { paths as AutolaunchPaths } from "../../generated/autolaunch-openapi.js";
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import { printJson } from "../../printer.js";
+import type {
+  JsonRequestBodyFor,
+  JsonSuccessResponseFor,
+} from "../../contracts/openapi-helpers.js";
 import {
   appendQuery,
   launchChainId,
   parsePollingIntervalSeconds,
   requestJson,
+  requestTypedJson,
   requireLaunchIdentity,
   requirePositional,
 } from "./shared.js";
+
+type AutolaunchAgentsListResponse = JsonSuccessResponseFor<AutolaunchPaths, "/api/agents", "get">;
+type AutolaunchAgentResponse = JsonSuccessResponseFor<AutolaunchPaths, "/api/agents/{id}", "get">;
+type AutolaunchAgentReadinessResponse = JsonSuccessResponseFor<
+  AutolaunchPaths,
+  "/api/agents/{id}/readiness",
+  "get"
+>;
+type LaunchPreviewBody = JsonRequestBodyFor<AutolaunchPaths, "/api/launch/preview", "post">;
+type LaunchPreviewResponse = JsonSuccessResponseFor<
+  AutolaunchPaths,
+  "/api/launch/preview",
+  "post"
+>;
+type LaunchCreateBody = JsonRequestBodyFor<AutolaunchPaths, "/api/launch/jobs", "post">;
+type LaunchCreateResponse = JsonSuccessResponseFor<AutolaunchPaths, "/api/launch/jobs", "post">;
 
 const postBidMutation = async (
   action: "exit" | "claim",
@@ -26,7 +48,7 @@ const AGENT_LAUNCH_TOTAL_SUPPLY = "100000000000000000000000000000";
 
 export async function runAutolaunchAgentsList(args: ParsedCliArgs): Promise<void> {
   printJson(
-    await requestJson(
+    await requestTypedJson<AutolaunchAgentsListResponse>(
       "GET",
       appendQuery("/api/agents", { launchable: getBooleanFlag(args, "launchable") }),
     ),
@@ -34,16 +56,23 @@ export async function runAutolaunchAgentsList(args: ParsedCliArgs): Promise<void
 }
 
 export async function runAutolaunchAgentShow(agentId: string): Promise<void> {
-  printJson(await requestJson("GET", `/api/agents/${encodeURIComponent(agentId)}`));
+  printJson(
+    await requestTypedJson<AutolaunchAgentResponse>("GET", `/api/agents/${encodeURIComponent(agentId)}`),
+  );
 }
 
 export async function runAutolaunchAgentReadiness(agentId: string): Promise<void> {
-  printJson(await requestJson("GET", `/api/agents/${encodeURIComponent(agentId)}/readiness`));
+  printJson(
+    await requestTypedJson<AutolaunchAgentReadinessResponse>(
+      "GET",
+      `/api/agents/${encodeURIComponent(agentId)}/readiness`,
+    ),
+  );
 }
 
 export async function runAutolaunchLaunchPreview(args: ParsedCliArgs): Promise<void> {
   const required = requireLaunchIdentity(args);
-  const body = {
+  const body: LaunchPreviewBody = {
     agent_id: required.agent,
     chain_id: required.chainId,
     token_name: required.name,
@@ -55,13 +84,18 @@ export async function runAutolaunchLaunchPreview(args: ParsedCliArgs): Promise<v
     launch_notes: getFlag(args, "launch-notes"),
   };
 
-  printJson(await requestJson("POST", "/api/launch/preview", { body, requireSession: true }));
+  printJson(
+    await requestTypedJson<LaunchPreviewResponse>("POST", "/api/launch/preview", {
+      body,
+      requireSession: true,
+    }),
+  );
 }
 
 export async function runAutolaunchLaunchCreate(args: ParsedCliArgs): Promise<void> {
   const required = requireLaunchIdentity(args);
 
-  const body = {
+  const body: LaunchCreateBody = {
     agent_id: required.agent,
     chain_id: required.chainId,
     token_name: required.name,
@@ -78,7 +112,12 @@ export async function runAutolaunchLaunchCreate(args: ParsedCliArgs): Promise<vo
     issued_at: requireArg(getFlag(args, "issued-at"), "issued-at"),
   };
 
-  printJson(await requestJson("POST", "/api/launch/jobs", { body, requireSession: true }));
+  printJson(
+    await requestTypedJson<LaunchCreateResponse>("POST", "/api/launch/jobs", {
+      body,
+      requireSession: true,
+    }),
+  );
 }
 
 export async function runAutolaunchJobsWatch(args: ParsedCliArgs): Promise<void> {
@@ -248,4 +287,300 @@ export async function runAutolaunchEnsPrepareBidirectional(args: ParsedCliArgs):
       requireSession: true,
     }),
   );
+}
+
+const requireJobFlag = (args: ParsedCliArgs): string => requireArg(getFlag(args, "job"), "job");
+const requireSubjectFlag = (args: ParsedCliArgs): string =>
+  requireArg(getFlag(args, "subject"), "subject");
+
+const postPrepareJobAction = async (
+  args: ParsedCliArgs,
+  resource: string,
+  action: string,
+  body: Record<string, unknown> = {},
+): Promise<void> => {
+  const jobId = requireJobFlag(args);
+
+  printJson(
+    await requestJson(
+      "POST",
+      `/api/contracts/jobs/${encodeURIComponent(jobId)}/${resource}/${action}/prepare`,
+      { body, requireSession: true },
+    ),
+  );
+};
+
+const postPrepareSubjectAction = async (
+  args: ParsedCliArgs,
+  resource: string,
+  action: string,
+  body: Record<string, unknown> = {},
+): Promise<void> => {
+  const subjectId = requireSubjectFlag(args);
+
+  printJson(
+    await requestJson(
+      "POST",
+      `/api/contracts/subjects/${encodeURIComponent(subjectId)}/${resource}/${action}/prepare`,
+      { body, requireSession: true },
+    ),
+  );
+};
+
+const postPrepareAdminAction = async (
+  resource: string,
+  action: string,
+  body: Record<string, unknown> = {},
+): Promise<void> => {
+  printJson(
+    await requestJson("POST", `/api/contracts/admin/${resource}/${action}/prepare`, {
+      body,
+      requireSession: true,
+    }),
+  );
+};
+
+export async function runAutolaunchSubjectShow(args: ParsedCliArgs): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  printJson(await requestJson("GET", `/api/subjects/${encodeURIComponent(subjectId)}`, { requireSession: true }));
+}
+
+export async function runAutolaunchSubjectIngress(args: ParsedCliArgs): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  printJson(await requestJson("GET", `/api/subjects/${encodeURIComponent(subjectId)}/ingress`, { requireSession: true }));
+}
+
+export async function runAutolaunchSubjectStake(args: ParsedCliArgs): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  printJson(
+    await requestJson("POST", `/api/subjects/${encodeURIComponent(subjectId)}/stake`, {
+      body: { amount: requireArg(getFlag(args, "amount"), "amount") },
+      requireSession: true,
+    }),
+  );
+}
+
+export async function runAutolaunchSubjectUnstake(args: ParsedCliArgs): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  printJson(
+    await requestJson("POST", `/api/subjects/${encodeURIComponent(subjectId)}/unstake`, {
+      body: { amount: requireArg(getFlag(args, "amount"), "amount") },
+      requireSession: true,
+    }),
+  );
+}
+
+export async function runAutolaunchSubjectClaimUsdc(args: ParsedCliArgs): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  printJson(
+    await requestJson("POST", `/api/subjects/${encodeURIComponent(subjectId)}/claim-usdc`, {
+      body: {},
+      requireSession: true,
+    }),
+  );
+}
+
+export async function runAutolaunchSubjectSweepIngress(args: ParsedCliArgs): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  const address = requireArg(getFlag(args, "address"), "address");
+
+  printJson(
+    await requestJson(
+      "POST",
+      `/api/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
+      { body: {}, requireSession: true },
+    ),
+  );
+}
+
+export async function runAutolaunchContractsAdminShow(): Promise<void> {
+  printJson(await requestJson("GET", "/api/contracts/admin", { requireSession: true }));
+}
+
+export async function runAutolaunchContractsJobShow(args: ParsedCliArgs): Promise<void> {
+  const jobId = requireJobFlag(args);
+  printJson(await requestJson("GET", `/api/contracts/jobs/${encodeURIComponent(jobId)}`, { requireSession: true }));
+}
+
+export async function runAutolaunchContractsSubjectShow(args: ParsedCliArgs): Promise<void> {
+  const subjectId = requireSubjectFlag(args);
+  printJson(await requestJson("GET", `/api/contracts/subjects/${encodeURIComponent(subjectId)}`, { requireSession: true }));
+}
+
+export async function runAutolaunchStrategyMigrate(args: ParsedCliArgs): Promise<void> {
+  await postPrepareJobAction(args, "strategy", "migrate");
+}
+
+export async function runAutolaunchStrategySweepToken(args: ParsedCliArgs): Promise<void> {
+  await postPrepareJobAction(args, "strategy", "sweep_token");
+}
+
+export async function runAutolaunchStrategySweepCurrency(args: ParsedCliArgs): Promise<void> {
+  await postPrepareJobAction(args, "strategy", "sweep_currency");
+}
+
+export async function runAutolaunchVestingRelease(args: ParsedCliArgs): Promise<void> {
+  await postPrepareJobAction(args, "vesting", "release");
+}
+
+export async function runAutolaunchFeeRegistryShow(args: ParsedCliArgs): Promise<void> {
+  await runAutolaunchContractsJobShow(args);
+}
+
+export async function runAutolaunchFeeRegistrySetHookEnabled(args: ParsedCliArgs): Promise<void> {
+  await postPrepareJobAction(args, "fee_registry", "set_hook_enabled", {
+    enabled: requireArg(getFlag(args, "enabled"), "enabled"),
+  });
+}
+
+export async function runAutolaunchFeeVaultShow(args: ParsedCliArgs): Promise<void> {
+  await runAutolaunchContractsJobShow(args);
+}
+
+export async function runAutolaunchFeeVaultWithdrawTreasury(args: ParsedCliArgs): Promise<void> {
+  await postPrepareJobAction(args, "fee_vault", "withdraw_treasury", {
+    currency: requireArg(getFlag(args, "currency"), "currency"),
+    amount: requireArg(getFlag(args, "amount"), "amount"),
+    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
+  });
+}
+
+export async function runAutolaunchFeeVaultWithdrawRegent(args: ParsedCliArgs): Promise<void> {
+  await postPrepareJobAction(args, "fee_vault", "withdraw_regent_share", {
+    currency: requireArg(getFlag(args, "currency"), "currency"),
+    amount: requireArg(getFlag(args, "amount"), "amount"),
+    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
+  });
+}
+
+export async function runAutolaunchSplitterShow(args: ParsedCliArgs): Promise<void> {
+  await runAutolaunchContractsSubjectShow(args);
+}
+
+export async function runAutolaunchSplitterSetPaused(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "set_paused", {
+    paused: requireArg(getFlag(args, "paused"), "paused"),
+  });
+}
+
+export async function runAutolaunchSplitterSetLabel(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "set_label", {
+    label: requireArg(getFlag(args, "label"), "label"),
+  });
+}
+
+export async function runAutolaunchSplitterSetTreasuryRecipient(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "set_treasury_recipient", {
+    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
+  });
+}
+
+export async function runAutolaunchSplitterSetProtocolRecipient(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "set_protocol_recipient", {
+    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
+  });
+}
+
+export async function runAutolaunchSplitterSetProtocolSkimBps(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "set_protocol_skim_bps", {
+    skim_bps: requireArg(getFlag(args, "skim-bps"), "skim-bps"),
+  });
+}
+
+export async function runAutolaunchSplitterWithdrawTreasuryResidual(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "withdraw_treasury_residual", {
+    amount: requireArg(getFlag(args, "amount"), "amount"),
+    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
+  });
+}
+
+export async function runAutolaunchSplitterWithdrawProtocolReserve(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "withdraw_protocol_reserve", {
+    amount: requireArg(getFlag(args, "amount"), "amount"),
+    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
+  });
+}
+
+export async function runAutolaunchSplitterReassignDust(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "splitter", "reassign_dust", {
+    amount: requireArg(getFlag(args, "amount"), "amount"),
+  });
+}
+
+export async function runAutolaunchIngressCreate(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "ingress_factory", "create", {
+    label: requireArg(getFlag(args, "label"), "label"),
+    make_default: getFlag(args, "make-default") ?? "false",
+  });
+}
+
+export async function runAutolaunchIngressSetDefault(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "ingress_factory", "set_default", {
+    ingress_address: requireArg(getFlag(args, "address"), "address"),
+  });
+}
+
+export async function runAutolaunchIngressSetLabel(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "ingress_account", "set_label", {
+    ingress_address: requireArg(getFlag(args, "address"), "address"),
+    label: requireArg(getFlag(args, "label"), "label"),
+  });
+}
+
+export async function runAutolaunchIngressRescue(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "ingress_account", "rescue", {
+    ingress_address: requireArg(getFlag(args, "address"), "address"),
+    token: requireArg(getFlag(args, "token"), "token"),
+    amount: requireArg(getFlag(args, "amount"), "amount"),
+    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
+  });
+}
+
+export async function runAutolaunchRegistryShow(args: ParsedCliArgs): Promise<void> {
+  await runAutolaunchContractsSubjectShow(args);
+}
+
+export async function runAutolaunchRegistrySetSubjectManager(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareSubjectAction(args, "registry", "set_subject_manager", {
+    account: requireArg(getFlag(args, "account"), "account"),
+    enabled: requireArg(getFlag(args, "enabled"), "enabled"),
+  });
+}
+
+export async function runAutolaunchRegistryLinkIdentity(args: ParsedCliArgs): Promise<void> {
+  await postPrepareSubjectAction(args, "registry", "link_identity", {
+    identity_chain_id: requireArg(getFlag(args, "identity-chain-id"), "identity-chain-id"),
+    identity_registry: requireArg(getFlag(args, "identity-registry"), "identity-registry"),
+    identity_agent_id: requireArg(getFlag(args, "identity-agent-id"), "identity-agent-id"),
+  });
+}
+
+export async function runAutolaunchRevenueShareFactorySetAuthorizedCreator(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareAdminAction("revenue_share_factory", "set_authorized_creator", {
+    account: requireArg(getFlag(args, "account"), "account"),
+    enabled: requireArg(getFlag(args, "enabled"), "enabled"),
+  });
+}
+
+export async function runAutolaunchRevenueIngressFactorySetAuthorizedCreator(
+  args: ParsedCliArgs,
+): Promise<void> {
+  await postPrepareAdminAction("revenue_ingress_factory", "set_authorized_creator", {
+    account: requireArg(getFlag(args, "account"), "account"),
+    enabled: requireArg(getFlag(args, "enabled"), "enabled"),
+  });
 }

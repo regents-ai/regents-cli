@@ -1,0 +1,298 @@
+openapi: 3.1.0
+info:
+  title: Regent Shared Services Contract
+  version: 0.1.0
+  description: >
+    Source-of-truth contract for shared Regent service rails that are not product-owned.
+    For the first cut, this file owns the Regent staking service only.
+tags:
+  - name: regent-staking
+paths:
+  /api/regent/staking:
+    get:
+      operationId: getRegentStakingOverview
+      tags: [regent-staking]
+      responses:
+        "200":
+          description: Staking overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegentStakingOverviewResponse"
+  /api/regent/staking/account/{address}:
+    get:
+      operationId: getRegentStakingAccount
+      tags: [regent-staking]
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+      responses:
+        "200":
+          description: Account staking state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegentStakingAccountResponse"
+  /api/regent/staking/stake:
+    post:
+      operationId: stakeRegent
+      tags: [regent-staking]
+      security: [{ PrivySessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AmountRequest"
+      responses:
+        "200":
+          description: Stake prepared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedActionResponse"
+  /api/regent/staking/unstake:
+    post:
+      operationId: unstakeRegent
+      tags: [regent-staking]
+      security: [{ PrivySessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AmountRequest"
+      responses:
+        "200":
+          description: Unstake prepared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedActionResponse"
+  /api/regent/staking/claim-usdc:
+    post:
+      operationId: claimRegentStakingUsdc
+      tags: [regent-staking]
+      security: [{ PrivySessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        "200":
+          description: Claim prepared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedActionResponse"
+  /api/regent/staking/deposit-usdc/prepare:
+    post:
+      operationId: prepareRegentStakingDepositUsdc
+      tags: [regent-staking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepositUsdcRequest"
+      responses:
+        "200":
+          description: Deposit prepared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedActionResponse"
+  /api/regent/staking/withdraw-treasury/prepare:
+    post:
+      operationId: prepareRegentStakingTreasuryWithdraw
+      tags: [regent-staking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawTreasuryRequest"
+      responses:
+        "200":
+          description: Treasury withdraw prepared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedActionResponse"
+components:
+  securitySchemes:
+    PrivySessionCookie:
+      type: apiKey
+      in: cookie
+      name: _autolaunch_key
+  schemas:
+    Address:
+      type: string
+      pattern: "^0x[a-fA-F0-9]{40}$"
+    HexData:
+      type: string
+      pattern: "^0x[a-fA-F0-9]*$"
+    DecimalString:
+      type: string
+    LooseObject:
+      type: object
+      additionalProperties: true
+    ServiceError:
+      type: object
+      required: [code, message]
+      additionalProperties: true
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorEnvelope:
+      type: object
+      required: [ok, error]
+      properties:
+        ok:
+          type: boolean
+          enum: [false]
+        error:
+          $ref: "#/components/schemas/ServiceError"
+      additionalProperties: true
+    AmountRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          $ref: "#/components/schemas/DecimalString"
+      additionalProperties: false
+    DepositUsdcRequest:
+      type: object
+      required: [amount, source_tag, source_ref]
+      properties:
+        amount:
+          $ref: "#/components/schemas/DecimalString"
+        source_tag:
+          type: string
+        source_ref:
+          type: string
+      additionalProperties: false
+    WithdrawTreasuryRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          $ref: "#/components/schemas/DecimalString"
+        recipient:
+          $ref: "#/components/schemas/Address"
+      additionalProperties: false
+    TxRequest:
+      type: object
+      properties:
+        chain_id:
+          type: integer
+        to:
+          $ref: "#/components/schemas/Address"
+        value:
+          type: string
+        data:
+          $ref: "#/components/schemas/HexData"
+      additionalProperties: true
+    PreparedAction:
+      type: object
+      properties:
+        resource:
+          type: string
+        action:
+          type: string
+        chain_id:
+          type: integer
+        target:
+          $ref: "#/components/schemas/Address"
+        calldata:
+          $ref: "#/components/schemas/HexData"
+        tx_request:
+          $ref: "#/components/schemas/TxRequest"
+      additionalProperties: true
+    PreparedActionResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: "#/components/schemas/PreparedAction"
+      additionalProperties: true
+    CompactStakingState:
+      type: object
+      properties:
+        chain_id:
+          type: integer
+        chain_label:
+          type: string
+        contract_address:
+          $ref: "#/components/schemas/Address"
+        owner_address:
+          $ref: "#/components/schemas/Address"
+        stake_token_address:
+          $ref: "#/components/schemas/Address"
+        usdc_address:
+          $ref: "#/components/schemas/Address"
+        treasury_recipient:
+          $ref: "#/components/schemas/Address"
+        staker_share_bps:
+          type: integer
+        paused:
+          type: boolean
+        total_staked_raw:
+          type: string
+        total_staked:
+          $ref: "#/components/schemas/DecimalString"
+        total_recognized_rewards_usdc_raw:
+          type: string
+        total_recognized_rewards_usdc:
+          $ref: "#/components/schemas/DecimalString"
+        treasury_residual_usdc_raw:
+          type: string
+        treasury_residual_usdc:
+          $ref: "#/components/schemas/DecimalString"
+        wallet_address:
+          $ref: "#/components/schemas/Address"
+        wallet_stake_balance_raw:
+          type: string
+        wallet_stake_balance:
+          $ref: "#/components/schemas/DecimalString"
+        wallet_token_balance_raw:
+          type: string
+        wallet_token_balance:
+          $ref: "#/components/schemas/DecimalString"
+        wallet_claimable_usdc_raw:
+          type: string
+        wallet_claimable_usdc:
+          $ref: "#/components/schemas/DecimalString"
+      additionalProperties: true
+    RegentStakingOverviewResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        staking:
+          $ref: "#/components/schemas/CompactStakingState"
+        connected_wallet_address:
+          $ref: "#/components/schemas/Address"
+      additionalProperties: true
+    RegentStakingAccountResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        staking:
+          $ref: "#/components/schemas/CompactStakingState"
+      additionalProperties: true

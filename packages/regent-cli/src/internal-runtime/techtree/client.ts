@@ -47,6 +47,8 @@ import type {
   GossipsubStatus,
   NodeCreateInput,
   NodeCreateResponse,
+  NodePaidPayloadAccessResponse,
+  NodePurchaseVerifyResponse,
   NodeStarRecord,
   SearchResponse,
   SiwaNonceRequest,
@@ -126,6 +128,37 @@ const withQuery = (
 
   const queryString = query.toString();
   return queryString ? `${path}?${queryString}` : path;
+};
+
+interface RuntimeTransportResponse {
+  data: {
+    mode: string;
+    ready: boolean;
+    peer_count: number;
+    subscriptions: string[];
+    last_error: string | null;
+    local_peer_id: string | null;
+    origin_node_id: string | null;
+  };
+}
+
+const normalizeTransportStatus = (payload: RuntimeTransportResponse["data"]): GossipsubStatus => {
+  const mode = payload.mode;
+  const ready = payload.ready;
+
+  return {
+    enabled: mode !== "local_only",
+    configured: true,
+    connected: ready,
+    subscribedTopics: payload.subscriptions,
+    peerCount: payload.peer_count,
+    lastError: payload.last_error,
+    eventSocketPath: null,
+    status: ready ? "ready" : mode === "local_only" ? "stub" : "degraded",
+    note: mode === "local_only" ? "Backend transport is running in local-only mode" : `Backend mesh mode: ${mode}`,
+    mode,
+    ready,
+  };
 };
 
 export class TechtreeClient {
@@ -324,30 +357,26 @@ export class TechtreeClient {
 
   async getAutoskillBundle(
     nodeId: number,
-    params?: { x402Receipt?: string; mppReceipt?: string },
   ): Promise<AutoskillBundleAccessResponse> {
-    const headers: Record<string, string> = {};
+    return this.authedFetchJson<AutoskillBundleAccessResponse>(
+      "GET",
+      `/v1/agent/autoskill/versions/${nodeId}/bundle`,
+    );
+  }
 
-    if (params?.x402Receipt) {
-      headers["x-payment"] = params.x402Receipt;
-    }
+  async getNodePaidPayload(nodeId: number): Promise<NodePaidPayloadAccessResponse> {
+    return this.authedFetchJson<NodePaidPayloadAccessResponse>(
+      "GET",
+      `/v1/agent/tree/nodes/${nodeId}/payload`,
+    );
+  }
 
-    if (params?.mppReceipt) {
-      headers["x-mpp-payment"] = params.mppReceipt;
-    }
-
-    const res = await this.fetchWithTimeout(`${this.baseUrl}/v1/autoskill/versions/${nodeId}/bundle`, {
-      method: "GET",
-      headers,
-    });
-
-    if (!res.ok) {
-      throw await parseTechtreeErrorResponse(res);
-    }
-
-    return hasDataObject<AutoskillBundleAccessResponse["data"]>(
-      asRecord(await res.json(), "expected autoskill bundle response"),
-    ) as AutoskillBundleAccessResponse;
+  async verifyNodePurchase(nodeId: number, txHash: `0x${string}`): Promise<NodePurchaseVerifyResponse> {
+    return this.authedFetchJson<NodePurchaseVerifyResponse>(
+      "POST",
+      `/v1/agent/tree/nodes/${nodeId}/purchases`,
+      { tx_hash: txHash },
+    );
   }
 
   async fetchExternalText(url: string): Promise<string> {
@@ -585,21 +614,35 @@ export class TechtreeClient {
   async listTrollboxMessages(params?: {
     before?: number;
     limit?: number;
-    room?: "global" | "agent";
+    room?: "webapp" | "agent";
   }): Promise<TrollboxListResponse> {
-    return this.authedFetchJson<TrollboxListResponse>("GET", withQuery("/v1/agent/trollbox", params));
+    const room = params?.room ?? "webapp";
+    if (room === "agent") {
+      return this.authedFetchJson<TrollboxListResponse>(
+        "GET",
+        withQuery("/v1/agent/trollbox/messages", { ...params, room: "agent" }),
+      );
+    }
+
+    return this.getJson<TrollboxListResponse>(
+      withQuery("/v1/trollbox/messages", { ...params, room: "webapp" }),
+      "array",
+    );
   }
 
   async createAgentTrollboxMessage(input: TrollboxPostInput): Promise<TrollboxPostResponse> {
-    return this.authedFetchJson<TrollboxPostResponse>("POST", "/v1/agent/trollbox", input);
+    return this.authedFetchJson<TrollboxPostResponse>("POST", "/v1/agent/trollbox/messages", input);
   }
 
   async transportStatus(): Promise<{ data: GossipsubStatus }> {
-    return this.authedFetchJson<{ data: GossipsubStatus }>("GET", "/v1/agent/trollbox/status");
+    const response = await this.getJson<RuntimeTransportResponse>("/v1/runtime/transport", "object");
+    return {
+      data: normalizeTransportStatus(response.data),
+    };
   }
 
   async streamTrollbox(
-    room: "global" | "agent",
+    room: "webapp" | "agent",
     onEvent: (payload: unknown) => void,
     signal: AbortSignal,
   ): Promise<void> {
@@ -610,23 +653,60 @@ export class TechtreeClient {
     signal.addEventListener("abort", () => undefined, { once: true });
 
     try {
-      const response = await this.fetchWithTimeout(`${this.baseUrl}/v1/agent/trollbox/stream?room=${encodeURIComponent(room)}`, {
-        method: "GET",
-        signal,
-      });
+      const path =
+        room === "agent"
+          ? `/v1/agent/runtime/transport/stream?room=agent`
+          : `/v1/runtime/transport/stream?room=webapp`;
+      const init =
+        room === "agent"
+          ? await this.buildAuthedRequestInit("GET", path)
+          : ({ method: "GET" } as RequestInit);
+      const response = await this.fetchWithTimeout(
+        `${this.baseUrl}${path}`,
+        {
+          ...init,
+          signal,
+        },
+        { timeoutMs: 0 },
+      );
 
       if (!response.ok) {
         throw await parseTechtreeErrorResponse(response);
       }
 
-      const body = await response.text();
-      for (const line of body.split(/\r?\n/)) {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          continue;
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new TechtreeApiError("expected streaming response body", {
+          code: "invalid_techtree_response",
+        });
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (!signal.aborted) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
         }
 
-        onEvent(JSON.parse(trimmed) as unknown);
+        buffer += decoder.decode(value, { stream: true });
+
+        while (true) {
+          const newlineIndex = buffer.indexOf("\n");
+          if (newlineIndex < 0) {
+            break;
+          }
+
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (!line) {
+            continue;
+          }
+
+          onEvent(JSON.parse(line) as unknown);
+        }
       }
     } catch {
       return;
@@ -696,11 +776,11 @@ export class TechtreeClient {
     return signed || path;
   }
 
-  private async authedRequestJson<T>(
+  private async buildAuthedRequestInit(
     method: "GET" | "POST" | "DELETE",
     path: string,
     body?: unknown,
-  ): Promise<{ statusCode: number; response: T }> {
+  ): Promise<RequestInit> {
     const { session, identity } = requireAuthenticatedAgentContext(this.sessionStore, this.stateStore);
     const privateKey = await this.walletSecretSource.getPrivateKeyHex();
     const { init } = await buildAuthenticatedFetchInit({
@@ -712,14 +792,15 @@ export class TechtreeClient {
       privateKey,
     });
 
-    const finalInit: RequestInit =
-      method === "GET" || method === "DELETE"
-        ? {
-            ...init,
-            method,
-          }
-        : init;
+    return init;
+  }
 
+  private async authedRequestJson<T>(
+    method: "GET" | "POST" | "DELETE",
+    path: string,
+    body?: unknown,
+  ): Promise<{ statusCode: number; response: T }> {
+    const finalInit = await this.buildAuthedRequestInit(method, path, body);
     const url = `${this.baseUrl}${path}`;
     const res = await this.fetchWithTimeout(url, finalInit);
 
@@ -741,9 +822,15 @@ export class TechtreeClient {
     };
   }
 
-  private async fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  private async fetchWithTimeout(
+    url: string,
+    init: RequestInit,
+    options?: { timeoutMs?: number },
+  ): Promise<Response> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+    const timeoutMs = options?.timeoutMs ?? this.requestTimeoutMs;
+    const timeout =
+      timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : undefined;
     const externalSignal = init.signal;
     const forwardAbort = (): void => controller.abort();
 
@@ -770,7 +857,9 @@ export class TechtreeClient {
       if (externalSignal) {
         externalSignal.removeEventListener("abort", forwardAbort);
       }
-      clearTimeout(timeout);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     }
   }
 }

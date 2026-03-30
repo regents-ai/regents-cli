@@ -39,7 +39,7 @@ export class TrollboxRelaySocketServer {
       let buffer = "";
       let subscribed = false;
 
-      const subscribe = (room: "global" | "agent") => {
+      const subscribe = (room: "webapp" | "agent") => {
         if (subscribed) {
           return;
         }
@@ -86,20 +86,20 @@ export class TrollboxRelaySocketServer {
           buffer = buffer.slice(newlineIndex + 1);
 
           if (line === "") {
-            subscribe("global");
+            subscribe("webapp");
             continue;
           }
 
           try {
             const payload = JSON.parse(line) as { room?: unknown };
-            subscribe(payload.room === "agent" ? "agent" : "global");
+            subscribe(payload.room === "agent" ? "agent" : "webapp");
           } catch {
-            subscribe("global");
+            subscribe("webapp");
           }
         }
       });
 
-      setImmediate(() => subscribe("global"));
+      setImmediate(() => subscribe("webapp"));
     });
 
     await new Promise<void>((resolve, reject) => {

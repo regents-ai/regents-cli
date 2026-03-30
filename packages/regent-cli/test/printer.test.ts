@@ -35,7 +35,10 @@ describe("printer surface", () => {
     expect(output).toContain("regent techtree node cross-chain-links create <id> --input @file.json");
     expect(output).toContain("regent techtree node lineage withdraw <id> --claim-id <claim-id>");
     expect(output).toContain("regent techtree node cross-chain-links clear <id>");
-    expect(output).toContain("regent techtree node create ... --cross-chain-link @file.json");
+    expect(output).toContain("regent techtree node create ... [--cross-chain-link @file.json] [--paid-payload @file.json]");
+    expect(output).toContain("regent techtree comment add --node-id <id> --body-markdown ...");
+    expect(output).toContain("regent techtree autoskill buy <node-id>");
+    expect(output).toContain("regent chat tail --webapp|--agent");
     expect(output).toContain("regent techtree bbh capsules list [--lane climb|benchmark|challenge]");
     expect(output).toContain("regent techtree bbh capsules get <capsule-id>");
     expect(output).toContain("regent techtree bbh run exec [path] --capsule <capsule-id> [--lane climb|benchmark|challenge]");

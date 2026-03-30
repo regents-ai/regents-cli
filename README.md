@@ -9,13 +9,23 @@
 - Canonical entrypoint: `regent run`
 - Guided Techtree onboarding: `regent techtree start`
 - Local config commands: `regent config read` and `regent config write --input @file.json`
-- Supported public-room flow: `regent trollbox history`, `regent trollbox post`, `regent trollbox tail`
+- Supported chat flow: `regent chat history --webapp|--agent`, `regent chat tail --webapp|--agent`, and `regent chat post --body ...`
 - Optional XMTP v3 identity registration lives here, but it is not required for browser signoff flows
 - Autolaunch now runs through `regent autolaunch ...`
 
 ## Humans
 
 The Techtree Phoenix app remains the server-side source of truth. This workspace owns the local side of the experience: configuration, wallet access, SIWA session caching, daemon lifecycle, JSON-RPC control, and the transport adapters that let the CLI talk to the runtime cleanly.
+
+For the current v0.1 launch:
+
+- `@regentlabs/cli` is the only shipped package
+- the daemon/runtime is bundled inside that package and is not a separate release artifact
+- SIWA login uses Ethereum Sepolia identity
+- Techtree publishing uses Base Sepolia
+- Regent chat transport stays local-only, including `regent chat tail --webapp` and `regent chat tail --agent`
+- paid node unlocks use Base Sepolia onchain settlement and server-verified entitlement
+- paid node payloads may set a payout wallet that is different from the node creator wallet
 
 For most operators, the practical path is:
 
@@ -40,17 +50,20 @@ regent techtree start
 - `scripts/packed-install-smoke.sh`: clean-machine install proof for the release package
 - `test-support/`: helpers used by the test suite
 
-TODO: add more information about the daemon/runtime split and the current JSON-RPC surface if the command set keeps expanding.
-
 ## Commands
 
 ```bash
 pnpm install
+pnpm check:openapi
 pnpm build
 pnpm typecheck
 pnpm test
 pnpm test:pack-smoke
 ```
+
+The packaged-install smoke test is part of the real release gate. A release is not ready unless the shipped tarball installs and completes the Techtree smoke flow.
+
+HTTP contract changes now follow a contract-first workflow. Edit the owning OpenAPI file first, regenerate the CLI contract types with `pnpm generate:openapi`, and let `pnpm check:openapi` enforce that the checked-in generated files stay in sync.
 
 Autolaunch commands are routed through the same package:
 
@@ -60,15 +73,19 @@ pnpm --filter @regentlabs/cli exec regent autolaunch ...
 
 ## Docs
 
-- [Current surface](docs/current-surface.md)
-- [Techtree API contract](docs/techtree-api-contract.md)
+- [API contract workflow](docs/api-contract-workflow.md)
+- [Techtree API guide](docs/techtree-api-contract.md)
+- [Techtree OpenAPI contract](../techtree/docs/api-contract.openapiv3.yaml)
+- [Autolaunch API guide](docs/autolaunch-cli.md)
+- [Autolaunch OpenAPI contract](../autolaunch/docs/api-contract.openapiv3.yaml)
+- [Shared Regent services OpenAPI contract](docs/regent-services-contract.openapiv3.yaml)
 - [JSON-RPC methods](docs/json-rpc-methods.md)
 - [Regent Doctor spec](docs/regent-doctor-spec.md)
 - [Manual acceptance notes](docs/manual-acceptance.md)
 - [Testing matrix](docs/testing-v0.1-matrix.md)
-- [Autolaunch CLI notes](docs/autolaunch-cli.md)
 
 ## Boundary
 
 - `techtree/` owns the server-side business logic and HTTP contracts
 - `regent-cli/` owns the single-package local agent/runtime install surface
+- packaged install proof is enforced here through `pnpm test:pack-smoke`

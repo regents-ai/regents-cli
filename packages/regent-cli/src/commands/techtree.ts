@@ -278,6 +278,7 @@ export async function runTechtreeNodeCreate(args: string[], configPath?: string)
   const skillMdFlag = getFlag(args, "skill-md");
   const skillMdBody = skillMdFlag ? readAtPathValue(skillMdFlag) : undefined;
   const crossChainLinkFlag = getFlag(args, "cross-chain-link");
+  const paidPayloadFlag = getFlag(args, "paid-payload");
   const sidelinks = getRepeatedFlagValues(args, "sidelink").map(parseSidelink);
 
   assertSkillTriplet({ skillSlug, skillVersion, skillMdBody });
@@ -301,6 +302,10 @@ export async function runTechtreeNodeCreate(args: string[], configPath?: string)
 
   if (crossChainLinkFlag) {
     payload.cross_chain_link = readJsonObjectValue(crossChainLinkFlag, "--cross-chain-link");
+  }
+
+  if (paidPayloadFlag) {
+    payload.paid_payload = readJsonObjectValue(paidPayloadFlag, "--paid-payload") as NodeCreateInput["paid_payload"];
   }
 
   if (sidelinks.length > 0) {
