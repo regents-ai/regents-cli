@@ -467,7 +467,7 @@ describeNetwork.sequential("CLI functional flows against the real runtime", () =
       lastError: null,
       eventSocketPath: null,
       status: "disabled",
-      note: "Trollbox transport disabled",
+      note: "Chatbox transport disabled",
     });
   }, 15_000);
 

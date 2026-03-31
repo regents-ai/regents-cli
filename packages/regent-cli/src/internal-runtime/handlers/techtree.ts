@@ -72,9 +72,9 @@ import type {
   NodeStarRecord,
   TreeComment,
   TreeNode,
-  TrollboxListResponse,
-  TrollboxPostInput,
-  TrollboxPostResponse,
+  ChatboxListResponse,
+  ChatboxPostInput,
+  ChatboxPostResponse,
   TechtreeCompilerOutput,
   TechtreeFetchResponse,
   TechtreeNodeId,
@@ -969,18 +969,18 @@ export async function handleTechtreeOpportunitiesList(
   return ctx.techtree.getOpportunities(params);
 }
 
-export async function handleTechtreeTrollboxHistory(
+export async function handleTechtreeChatboxHistory(
   ctx: RuntimeContext,
   params?: { before?: number; limit?: number; room?: "webapp" | "agent" },
-): Promise<TrollboxListResponse> {
-  return ctx.techtree.listTrollboxMessages(params);
+): Promise<ChatboxListResponse> {
+  return ctx.techtree.listChatboxMessages(params);
 }
 
-export async function handleTechtreeTrollboxPost(
+export async function handleTechtreeChatboxPost(
   ctx: RuntimeContext,
-  params: TrollboxPostInput,
-): Promise<TrollboxPostResponse> {
-  return ctx.techtree.createAgentTrollboxMessage(params);
+  params: ChatboxPostInput,
+): Promise<ChatboxPostResponse> {
+  return ctx.techtree.createAgentChatboxMessage(params);
 }
 
 export async function handleTechtreeV1ArtifactInit(

@@ -49,6 +49,7 @@ export {
   runAutolaunchStrategyMigrate,
   runAutolaunchStrategySweepCurrency,
   runAutolaunchStrategySweepToken,
+  runAutolaunchTrustXLink,
   runAutolaunchSubjectClaimUsdc,
   runAutolaunchSubjectIngress,
   runAutolaunchSubjectShow,

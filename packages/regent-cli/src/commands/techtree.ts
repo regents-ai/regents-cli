@@ -5,7 +5,7 @@ import type { NodeCreateInput } from "../internal-types/index.js";
 import { daemonCall } from "../daemon-client.js";
 import { getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
-import { runTrollboxTail } from "./trollbox.js";
+import { runChatboxTail } from "./chatbox.js";
 
 const readAtPathValue = (value: string): string => {
   if (!value.startsWith("@")) {
@@ -339,7 +339,7 @@ export async function runTechtreeWatchList(configPath?: string): Promise<void> {
 }
 
 export async function runTechtreeWatchTail(args?: ParsedCliArgs, configPath?: string): Promise<void> {
-  await runTrollboxTail(args, configPath);
+  await runChatboxTail(args, configPath);
 }
 
 export async function runTechtreeUnwatch(nodeId: number, configPath?: string): Promise<void> {

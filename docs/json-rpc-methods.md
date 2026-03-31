@@ -64,8 +64,8 @@ This file is generated from the current runtime method registry.
 - `techtree.autoskill.pull`
 - `techtree.inbox.get`
 - `techtree.opportunities.list`
-- `techtree.trollbox.history`
-- `techtree.trollbox.post`
+- `techtree.chatbox.history`
+- `techtree.chatbox.post`
 - `techtree.v1.artifact.init`
 - `techtree.v1.artifact.compile`
 - `techtree.v1.artifact.pin`

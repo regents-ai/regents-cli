@@ -1,4 +1,10 @@
-import type { paths as AutolaunchPaths } from "../../generated/autolaunch-openapi.js";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+import type {
+  components as AutolaunchComponents,
+  paths as AutolaunchPaths,
+} from "../../generated/autolaunch-openapi.js";
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import { printJson } from "../../printer.js";
 import type {
@@ -7,6 +13,7 @@ import type {
 } from "../../contracts/openapi-helpers.js";
 import {
   appendQuery,
+  baseUrl,
   launchChainId,
   parsePollingIntervalSeconds,
   requestJson,
@@ -15,6 +22,8 @@ import {
   requirePositional,
 } from "./shared.js";
 
+const execFileAsync = promisify(execFile);
+
 type AutolaunchAgentsListResponse = JsonSuccessResponseFor<AutolaunchPaths, "/api/agents", "get">;
 type AutolaunchAgentResponse = JsonSuccessResponseFor<AutolaunchPaths, "/api/agents/{id}", "get">;
 type AutolaunchAgentReadinessResponse = JsonSuccessResponseFor<
@@ -22,6 +31,14 @@ type AutolaunchAgentReadinessResponse = JsonSuccessResponseFor<
   "/api/agents/{id}/readiness",
   "get"
 >;
+type AutolaunchAuctionsListResponse = JsonSuccessResponseFor<
+  AutolaunchPaths,
+  "/api/auctions",
+  "get"
+>;
+type AutolaunchAuctionResponse = JsonSuccessResponseFor<AutolaunchPaths, "/api/auctions/{id}", "get">;
+type XLinkStartBody = JsonRequestBodyFor<AutolaunchPaths, "/api/trust/x/start", "post">;
+type XLinkStartResponse = AutolaunchComponents["schemas"]["XLinkStartEnvelope"];
 type LaunchPreviewBody = JsonRequestBodyFor<AutolaunchPaths, "/api/launch/preview", "post">;
 type LaunchPreviewResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
@@ -46,6 +63,25 @@ const postBidMutation = async (
 
 const AGENT_LAUNCH_TOTAL_SUPPLY = "100000000000000000000000000000";
 
+const openBrowser = async (url: string): Promise<boolean> => {
+  try {
+    if (process.platform === "darwin") {
+      await execFileAsync("open", [url]);
+      return true;
+    }
+
+    if (process.platform === "win32") {
+      await execFileAsync("cmd", ["/c", "start", "", url]);
+      return true;
+    }
+
+    await execFileAsync("xdg-open", [url]);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export async function runAutolaunchAgentsList(args: ParsedCliArgs): Promise<void> {
   printJson(
     await requestTypedJson<AutolaunchAgentsListResponse>(
@@ -68,6 +104,31 @@ export async function runAutolaunchAgentReadiness(agentId: string): Promise<void
       `/api/agents/${encodeURIComponent(agentId)}/readiness`,
     ),
   );
+}
+
+export async function runAutolaunchTrustXLink(args: ParsedCliArgs): Promise<void> {
+  const body: XLinkStartBody = {
+    agent_id: requireArg(getFlag(args, "agent"), "agent"),
+  };
+  const response = await requestTypedJson<XLinkStartResponse>("POST", "/api/trust/x/start", {
+    body,
+    requireSession: true,
+  });
+  const redirectUrl = new URL(response.redirect_path, `${baseUrl()}/`).toString();
+  const browserOpened = await openBrowser(redirectUrl);
+
+  printJson({
+    ...response,
+    redirect_url: redirectUrl,
+    browser_opened: browserOpened,
+    ...(browserOpened
+      ? {}
+      : {
+          fallback: "browser_open_failed",
+          manual_open_url: redirectUrl,
+          message: `Open this URL manually: ${redirectUrl}`,
+        }),
+  });
 }
 
 export async function runAutolaunchLaunchPreview(args: ParsedCliArgs): Promise<void> {
@@ -143,7 +204,7 @@ export async function runAutolaunchJobsWatch(args: ParsedCliArgs): Promise<void>
 
 export async function runAutolaunchAuctionsList(args: ParsedCliArgs): Promise<void> {
   printJson(
-    await requestJson(
+    await requestTypedJson<AutolaunchAuctionsListResponse>(
       "GET",
       appendQuery("/api/auctions", {
         sort: getFlag(args, "sort") ?? "hottest",
@@ -156,7 +217,12 @@ export async function runAutolaunchAuctionsList(args: ParsedCliArgs): Promise<vo
 }
 
 export async function runAutolaunchAuctionShow(auctionId: string): Promise<void> {
-  printJson(await requestJson("GET", `/api/auctions/${encodeURIComponent(auctionId)}`));
+  printJson(
+    await requestTypedJson<AutolaunchAuctionResponse>(
+      "GET",
+      `/api/auctions/${encodeURIComponent(auctionId)}`,
+    ),
+  );
 }
 
 export async function runAutolaunchBidsQuote(args: ParsedCliArgs): Promise<void> {

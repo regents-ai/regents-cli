@@ -1,24 +1,24 @@
 import fs from "node:fs";
 import net from "node:net";
 
-import type { TrollboxLiveEvent } from "../../internal-types/index.js";
+import type { ChatboxLiveEvent } from "../../internal-types/index.js";
 
 import { ensureParentDir } from "../paths.js";
 import type { GossipsubAdapter } from "./gossipsub-adapter.js";
 import { resolveRelaySocketPath } from "./unix-socket-path.js";
 
-export const resolveTrollboxRelaySocketPath = (runtimeSocketPath: string): string => {
-  return resolveRelaySocketPath(runtimeSocketPath, "trollbox");
+export const resolveChatboxRelaySocketPath = (runtimeSocketPath: string): string => {
+  return resolveRelaySocketPath(runtimeSocketPath, "chatbox");
 };
 
-export class TrollboxRelaySocketServer {
+export class ChatboxRelaySocketServer {
   readonly socketPath: string;
 
   private readonly adapter: GossipsubAdapter;
   private server: net.Server | null = null;
 
   constructor(runtimeSocketPath: string, adapter: GossipsubAdapter) {
-    this.socketPath = resolveTrollboxRelaySocketPath(runtimeSocketPath);
+    this.socketPath = resolveChatboxRelaySocketPath(runtimeSocketPath);
     this.adapter = adapter;
   }
 
@@ -47,14 +47,14 @@ export class TrollboxRelaySocketServer {
         subscribed = true;
 
         void this.adapter
-          .subscribeTrollbox((event) => {
+          .subscribeChatbox((event) => {
             socket.write(`${JSON.stringify(event)}\n`);
           }, room)
           .then((dispose) => {
             unsubscribe = dispose;
           })
           .catch((error: unknown) => {
-            const message = error instanceof Error ? error.message : "unable to subscribe to trollbox relay";
+            const message = error instanceof Error ? error.message : "unable to subscribe to chatbox relay";
             socket.write(`${JSON.stringify({ error: message })}\n`);
             socket.end();
           });

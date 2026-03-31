@@ -9,6 +9,7 @@
     "test": "pnpm --filter @regentlabs/cli test",
     "generate:openapi": "node scripts/generate-openapi-types.mjs",
     "check:openapi": "pnpm generate:openapi && git diff --exit-code -- packages/regent-cli/src/generated",
+    "check:cli-contract": "node scripts/check-cli-contract.mjs",
     "test:integration": "pnpm --filter @regentlabs/cli --if-present test:integration",
     "pack:cli": "pnpm --filter @regentlabs/cli pack --pack-destination .packed",
     "test:pack-smoke": "bash scripts/packed-install-smoke.sh",
@@ -19,6 +20,7 @@
     "@types/node": "^24.6.0",
     "openapi-typescript": "^7.13.0",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "yaml": "^2.8.1"
   }
 }

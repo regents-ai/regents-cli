@@ -5,21 +5,21 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { TrollboxLiveEvent } from "../../src/internal-types/index.js";
+import type { ChatboxLiveEvent } from "../../src/internal-types/index.js";
 
 import { RegentError } from "../../src/internal-runtime/errors.js";
-import { PublicTrollboxRelayAdapter } from "../../src/internal-runtime/transports/gossipsub-adapter.js";
+import { PublicChatboxRelayAdapter } from "../../src/internal-runtime/transports/gossipsub-adapter.js";
 import {
-  resolveTrollboxRelaySocketPath,
-  TrollboxRelaySocketServer,
-} from "../../src/internal-runtime/transports/trollbox-relay-socket.js";
+  resolveChatboxRelaySocketPath,
+  ChatboxRelaySocketServer,
+} from "../../src/internal-runtime/transports/chatbox-relay-socket.js";
 import { resolveWatchedNodeRelaySocketPath } from "../../src/internal-runtime/transports/watched-node-relay-socket.js";
 
-const TEST_EVENT: TrollboxLiveEvent = {
+const TEST_EVENT: ChatboxLiveEvent = {
   event: "message.created",
   message: {
     id: 77,
-    room_id: "public-trollbox",
+    room_id: "public-chatbox",
     transport_msg_id: "transport-77",
     transport_topic: "global",
     origin_peer_id: "peer-1",
@@ -53,7 +53,7 @@ describe("gossipsub relay adapter", () => {
   });
 
   it("returns disabled status and rejects subscriptions when the relay is off", async () => {
-    const adapter = new PublicTrollboxRelayAdapter(
+    const adapter = new PublicChatboxRelayAdapter(
       {
         enabled: false,
         listenAddrs: [],
@@ -62,9 +62,9 @@ describe("gossipsub relay adapter", () => {
       },
       {
         transportStatus: vi.fn(),
-        streamTrollbox: vi.fn(),
+        streamChatbox: vi.fn(),
       } as never,
-      "/tmp/regent-disabled.trollbox.sock",
+      "/tmp/regent-disabled.chatbox.sock",
     );
 
     await adapter.start();
@@ -77,11 +77,11 @@ describe("gossipsub relay adapter", () => {
       lastError: null,
       eventSocketPath: null,
       status: "disabled",
-      note: "Trollbox transport disabled",
+      note: "Chatbox transport disabled",
     });
 
-    await expect(adapter.subscribeTrollbox(() => undefined)).rejects.toMatchObject(
-      new RegentError("trollbox_relay_disabled", "trollbox transport is disabled in config"),
+    await expect(adapter.subscribeChatbox(() => undefined)).rejects.toMatchObject(
+      new RegentError("chatbox_relay_disabled", "chatbox transport is disabled in config"),
     );
   });
 
@@ -91,7 +91,7 @@ describe("gossipsub relay adapter", () => {
         enabled: true,
         configured: true,
         connected: true,
-        subscribedTopics: ["public-trollbox"],
+        subscribedTopics: ["public-chatbox"],
         peerCount: 2,
         lastError: null,
         status: "ready" as const,
@@ -100,7 +100,7 @@ describe("gossipsub relay adapter", () => {
         ready: true,
       },
     }));
-    const streamTrollbox = vi.fn(
+    const streamChatbox = vi.fn(
       async (_room: "webapp" | "agent", onEvent: (payload: unknown) => void, signal: AbortSignal) => {
         onEvent(TEST_EVENT);
         await new Promise<void>((resolve) => {
@@ -108,7 +108,7 @@ describe("gossipsub relay adapter", () => {
         });
       },
     );
-    const adapter = new PublicTrollboxRelayAdapter(
+    const adapter = new PublicChatboxRelayAdapter(
       {
         enabled: true,
         listenAddrs: [],
@@ -117,9 +117,9 @@ describe("gossipsub relay adapter", () => {
       },
       {
         transportStatus,
-        streamTrollbox,
+        streamChatbox,
       } as never,
-      "/tmp/regent-enabled.trollbox.sock",
+      "/tmp/regent-enabled.chatbox.sock",
     );
 
     await adapter.start();
@@ -128,23 +128,23 @@ describe("gossipsub relay adapter", () => {
       enabled: true,
       configured: true,
       connected: true,
-      subscribedTopics: ["public-trollbox"],
+      subscribedTopics: ["public-chatbox"],
       peerCount: 2,
-      eventSocketPath: "/tmp/regent-enabled.trollbox.sock",
+      eventSocketPath: "/tmp/regent-enabled.chatbox.sock",
       status: "ready",
       note: "Backend mesh mode: libp2p",
       mode: "libp2p",
       ready: true,
     });
 
-    const receivedEvents: TrollboxLiveEvent[] = [];
-    const dispose = await adapter.subscribeTrollbox((event) => receivedEvents.push(event));
+    const receivedEvents: ChatboxLiveEvent[] = [];
+    const dispose = await adapter.subscribeChatbox((event) => receivedEvents.push(event));
 
     await vi.waitFor(() => {
       expect(receivedEvents).toEqual([TEST_EVENT]);
     });
 
-    expect(streamTrollbox).toHaveBeenCalledWith("webapp", expect.any(Function), expect.any(AbortSignal));
+    expect(streamChatbox).toHaveBeenCalledWith("webapp", expect.any(Function), expect.any(AbortSignal));
 
     await dispose();
     await expect(adapter.status()).resolves.toMatchObject({
@@ -153,23 +153,23 @@ describe("gossipsub relay adapter", () => {
     });
   });
 
-  it("writes relay events to the trollbox event socket", async () => {
+  it("writes relay events to the chatbox event socket", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-gossipsub-socket-"));
     tempArtifacts.push(tempDir);
 
-    let listener: ((event: TrollboxLiveEvent) => void) | null = null;
+    let listener: ((event: ChatboxLiveEvent) => void) | null = null;
     const unsubscribe = vi.fn(async () => undefined);
     const adapter = {
-      subscribeTrollbox: vi.fn(async (nextListener: (event: TrollboxLiveEvent) => void) => {
+      subscribeChatbox: vi.fn(async (nextListener: (event: ChatboxLiveEvent) => void) => {
         listener = nextListener;
         return unsubscribe;
       }),
     };
 
-    const server = new TrollboxRelaySocketServer(path.join(tempDir, "regent.sock"), adapter as never);
+    const server = new ChatboxRelaySocketServer(path.join(tempDir, "regent.sock"), adapter as never);
     await server.start();
 
-    const received = await new Promise<TrollboxLiveEvent>((resolve, reject) => {
+    const received = await new Promise<ChatboxLiveEvent>((resolve, reject) => {
       const socket = net.createConnection(server.socketPath);
       let buffer = "";
 
@@ -193,7 +193,7 @@ describe("gossipsub relay adapter", () => {
 
         const line = buffer.slice(0, newlineIndex).trim();
         socket.end();
-        resolve(JSON.parse(line) as TrollboxLiveEvent);
+        resolve(JSON.parse(line) as ChatboxLiveEvent);
       });
       socket.on("error", reject);
     });
@@ -208,12 +208,12 @@ describe("gossipsub relay adapter", () => {
 
   it("falls back to short /tmp relay socket paths when runtime path is too long", () => {
     const veryLongRuntimeSocketPath = `/tmp/${"regent-long-runtime-path-".repeat(8)}.sock`;
-    const trollboxPath = resolveTrollboxRelaySocketPath(veryLongRuntimeSocketPath);
+    const chatboxPath = resolveChatboxRelaySocketPath(veryLongRuntimeSocketPath);
     const watchPath = resolveWatchedNodeRelaySocketPath(veryLongRuntimeSocketPath);
 
-    expect(trollboxPath.startsWith("/tmp/regent-")).toBe(true);
-    expect(trollboxPath.endsWith(".trollbox.sock")).toBe(true);
-    expect(Buffer.byteLength(trollboxPath, "utf8")).toBeLessThanOrEqual(100);
+    expect(chatboxPath.startsWith("/tmp/regent-")).toBe(true);
+    expect(chatboxPath.endsWith(".chatbox.sock")).toBe(true);
+    expect(Buffer.byteLength(chatboxPath, "utf8")).toBeLessThanOrEqual(100);
 
     expect(watchPath.startsWith("/tmp/regent-")).toBe(true);
     expect(watchPath.endsWith(".watch.sock")).toBe(true);

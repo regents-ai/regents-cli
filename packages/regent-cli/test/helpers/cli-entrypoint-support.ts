@@ -26,8 +26,8 @@ const cliMocks = vi.hoisted(() => ({
   rotateXmtpDbKeyMock: vi.fn(),
   rotateXmtpWalletMock: vi.fn(),
   runTechtreeCoreJsonMock: vi.fn(),
-  loadTechtreeV1ClientMock: vi.fn(),
-  techtreeV1ClientMock: {
+  loadTechtreeRuntimeClientMock: vi.fn(),
+  techtreeRuntimeClientMock: {
     fetchNode: vi.fn(),
     pinNode: vi.fn(),
     publishNode: vi.fn(),
@@ -57,8 +57,8 @@ export const {
   rotateXmtpDbKeyMock,
   rotateXmtpWalletMock,
   runTechtreeCoreJsonMock,
-  loadTechtreeV1ClientMock,
-  techtreeV1ClientMock,
+  loadTechtreeRuntimeClientMock,
+  techtreeRuntimeClientMock,
 } = cliMocks;
 
 export interface CommandCase {
@@ -776,7 +776,7 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
         rotateXmtpDbKey: rotateXmtpDbKeyMock,
         rotateXmtpWallet: rotateXmtpWalletMock,
         runTechtreeCoreJson: runTechtreeCoreJsonMock,
-        loadTechtreeV1Client: loadTechtreeV1ClientMock,
+        loadTechtreeRuntimeClient: loadTechtreeRuntimeClientMock,
       };
     });
 
@@ -1023,11 +1023,11 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
       };
     });
 
-    loadTechtreeV1ClientMock.mockReset();
-    loadTechtreeV1ClientMock.mockReturnValue(techtreeV1ClientMock);
+    loadTechtreeRuntimeClientMock.mockReset();
+    loadTechtreeRuntimeClientMock.mockReturnValue(techtreeRuntimeClientMock);
 
-    techtreeV1ClientMock.fetchNode.mockReset();
-    techtreeV1ClientMock.fetchNode.mockImplementation(async (input: { node_id: string }) => ({
+    techtreeRuntimeClientMock.fetchNode.mockReset();
+    techtreeRuntimeClientMock.fetchNode.mockImplementation(async (input: { node_id: string }) => ({
       ok: true,
       node_id: input.node_id,
       node_type: "artifact",
@@ -1035,15 +1035,15 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
       payload_cid: "bafy-fetch-payload",
       verified: true,
     }));
-    techtreeV1ClientMock.pinNode.mockReset();
-    techtreeV1ClientMock.pinNode.mockImplementation(async (input: { node_type: string }) => ({
+    techtreeRuntimeClientMock.pinNode.mockReset();
+    techtreeRuntimeClientMock.pinNode.mockImplementation(async (input: { node_type: string }) => ({
       ok: true,
       node_id: `0x${input.node_type.padEnd(64, "0")}` as `0x${string}`,
       manifest_cid: `bafy-${input.node_type}-manifest`,
       payload_cid: `bafy-${input.node_type}-payload`,
     }));
-    techtreeV1ClientMock.publishNode.mockReset();
-    techtreeV1ClientMock.publishNode.mockImplementation(
+    techtreeRuntimeClientMock.publishNode.mockReset();
+    techtreeRuntimeClientMock.publishNode.mockImplementation(
       async (input: { node_type: string; manifest_cid: string; payload_cid: string }) => ({
         ok: true,
         node_id: `0x${input.node_type.padEnd(64, "0")}` as `0x${string}`,
@@ -1073,10 +1073,10 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
     rotateXmtpDbKeyMock.mockClear();
     rotateXmtpWalletMock.mockClear();
     runTechtreeCoreJsonMock.mockClear();
-    loadTechtreeV1ClientMock.mockClear();
-    techtreeV1ClientMock.fetchNode.mockClear();
-    techtreeV1ClientMock.pinNode.mockClear();
-    techtreeV1ClientMock.publishNode.mockClear();
+    loadTechtreeRuntimeClientMock.mockClear();
+    techtreeRuntimeClientMock.fetchNode.mockClear();
+    techtreeRuntimeClientMock.pinNode.mockClear();
+    techtreeRuntimeClientMock.publishNode.mockClear();
   });
 
   return {

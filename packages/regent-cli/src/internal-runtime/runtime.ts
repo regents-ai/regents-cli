@@ -58,8 +58,8 @@ import {
   handleTechtreeStarCreate,
   handleTechtreeStarDelete,
   handleTechtreeStatus,
-  handleTechtreeTrollboxHistory,
-  handleTechtreeTrollboxPost,
+  handleTechtreeChatboxHistory,
+  handleTechtreeChatboxPost,
   handleTechtreeV1ArtifactCompile,
   handleTechtreeV1ArtifactInit,
   handleTechtreeV1ArtifactPin,
@@ -107,19 +107,19 @@ import { handleXmtpStatus } from "./handlers/xmtp.js";
 import { JsonRpcServer } from "./jsonrpc/server.js";
 import { StateStore } from "./store/state-store.js";
 import { SessionStore } from "./store/session-store.js";
-import { TechtreeV1Client } from "./techtree/v1-client.js";
+import { TechtreeRuntimeClient } from "./techtree/runtime-client.js";
 import { TechtreeClient } from "./techtree/client.js";
 import {
   ManagedXmtpAdapter,
-  PublicTrollboxRelayAdapter,
+  PublicChatboxRelayAdapter,
   type TransportAdapter,
   type GossipsubAdapter,
   type XmtpAdapter,
-  TrollboxRelaySocketServer,
+  ChatboxRelaySocketServer,
   WatchedNodeRelay,
   WatchedNodeRelaySocketServer,
 } from "./transports/index.js";
-import { resolveTrollboxRelaySocketPath } from "./transports/trollbox-relay-socket.js";
+import { resolveChatboxRelaySocketPath } from "./transports/chatbox-relay-socket.js";
 
 export interface RuntimeContext {
   config: RegentConfig;
@@ -163,7 +163,7 @@ export class RegentRuntime {
   readonly gossipsub: GossipsubAdapter;
   readonly agentRouter: AgentRouter;
   readonly workload: WorkloadAdapter;
-  readonly trollboxRelaySocketServer: TrollboxRelaySocketServer;
+  readonly chatboxRelaySocketServer: ChatboxRelaySocketServer;
   readonly watchedNodeRelay: WatchedNodeRelay;
   readonly watchedNodeRelaySocketServer: WatchedNodeRelaySocketServer;
   readonly jsonRpcServer: JsonRpcServer;
@@ -186,19 +186,19 @@ export class RegentRuntime {
     });
     this.techtreePublisher = new TechtreeV1PublisherAdapter(
       this.techtree,
-      new TechtreeV1Client({
+      new TechtreeRuntimeClient({
         baseUrl: this.config.techtree.baseUrl,
         requestTimeoutMs: this.config.techtree.requestTimeoutMs,
       }),
     );
     this.xmtp = new ManagedXmtpAdapter(this.config.xmtp);
     this.watchedNodeRelay = new WatchedNodeRelay(this.techtree);
-    this.gossipsub = new PublicTrollboxRelayAdapter(
+    this.gossipsub = new PublicChatboxRelayAdapter(
       this.config.gossipsub,
       this.techtree,
-      resolveTrollboxRelaySocketPath(this.config.runtime.socketPath),
+      resolveChatboxRelaySocketPath(this.config.runtime.socketPath),
     );
-    this.trollboxRelaySocketServer = new TrollboxRelaySocketServer(
+    this.chatboxRelaySocketServer = new ChatboxRelaySocketServer(
       this.config.runtime.socketPath,
       this.gossipsub,
     );
@@ -225,7 +225,7 @@ export class RegentRuntime {
         await transport.start();
       }
       await this.watchedNodeRelay.start();
-      await this.trollboxRelaySocketServer.start();
+      await this.chatboxRelaySocketServer.start();
       await this.watchedNodeRelaySocketServer.start();
       await this.jsonRpcServer.start();
       this.started = true;
@@ -333,7 +333,7 @@ export class RegentRuntime {
   private async safeStopSubsystems(): Promise<void> {
     await stopIgnoringErrors(this.jsonRpcServer);
     await stopIgnoringErrors(this.watchedNodeRelaySocketServer);
-    await stopIgnoringErrors(this.trollboxRelaySocketServer);
+    await stopIgnoringErrors(this.chatboxRelaySocketServer);
     await stopIgnoringErrors(this.watchedNodeRelay);
     for (const transport of [...this.transportAdapters()].reverse()) {
       await stopIgnoringErrors(transport);
@@ -491,13 +491,13 @@ export class RegentRuntime {
           ctx,
           params as Parameters<typeof handleTechtreeOpportunitiesList>[1],
         );
-      case "techtree.trollbox.history":
-        return handleTechtreeTrollboxHistory(
+      case "techtree.chatbox.history":
+        return handleTechtreeChatboxHistory(
           ctx,
-          params as Parameters<typeof handleTechtreeTrollboxHistory>[1],
+          params as Parameters<typeof handleTechtreeChatboxHistory>[1],
         );
-      case "techtree.trollbox.post":
-        return handleTechtreeTrollboxPost(ctx, params as Parameters<typeof handleTechtreeTrollboxPost>[1]);
+      case "techtree.chatbox.post":
+        return handleTechtreeChatboxPost(ctx, params as Parameters<typeof handleTechtreeChatboxPost>[1]);
       case "techtree.v1.artifact.init":
         return handleTechtreeV1ArtifactInit(ctx, params as Parameters<typeof handleTechtreeV1ArtifactInit>[1]);
       case "techtree.v1.artifact.compile":

@@ -26,8 +26,8 @@ Test levels used here:
 - `regent techtree comment add`
 - `regent techtree node comments`
 - `regent techtree autoskill buy`
-- `regent chat tail --webapp`
-- `regent chat tail --agent`
+- `regent chatbox tail --webapp`
+- `regent chatbox tail --agent`
 - runtime JSON-RPC `ping` and `status`
 - SIWA signing and protected-header coverage
 - idempotency for node/comment writes
@@ -86,7 +86,7 @@ Test levels used here:
   - [`internal-runtime/config.test.ts`](../packages/regent-cli/test/internal-runtime/config.test.ts)
 - Techtree client coverage:
   - [`internal-runtime/techtree-client.functional.test.ts`](../packages/regent-cli/test/internal-runtime/techtree-client.functional.test.ts)
-  - [`internal-runtime/techtree-trollbox-client.test.ts`](../packages/regent-cli/test/internal-runtime/techtree-trollbox-client.test.ts)
+  - [`internal-runtime/techtree-chatbox-client.test.ts`](../packages/regent-cli/test/internal-runtime/techtree-chatbox-client.test.ts)
   - [`internal-runtime/techtree.integration.test.ts`](../packages/regent-cli/test/internal-runtime/techtree.integration.test.ts)
 - Docs parity coverage:
   - [`json-rpc-docs.test.ts`](../packages/regent-cli/test/json-rpc-docs.test.ts)

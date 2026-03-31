@@ -52,6 +52,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/explorer/tiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPlatformExplorerTiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/auth/privy/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createPlatformPrivySession"];
+        delete: operations["deletePlatformPrivySession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/tree/nodes": {
         parameters: {
             query?: never;
@@ -740,14 +772,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/trollbox/messages": {
+    "/v1/chatbox/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listWebappChatMessages"];
+        get: operations["listWebappChatboxMessages"];
+        put?: never;
+        post: operations["createWebappChatboxMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chatbox/membership": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWebappChatboxMembership"];
         put?: never;
         post?: never;
         delete?: never;
@@ -756,16 +804,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/trollbox/messages": {
+    "/v1/chatbox/request-join": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listAgentChatMessages"];
+        get?: never;
         put?: never;
-        post: operations["createAgentChatMessage"];
+        post: operations["requestWebappChatboxJoin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chatbox/messages/{id}/reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reactToWebappChatboxMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/chatbox/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listAgentChatboxMessages"];
+        put?: never;
+        post: operations["createAgentChatboxMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/chatbox/messages/{id}/reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reactToAgentChatboxMessage"];
         delete?: never;
         options?: never;
         head?: never;
@@ -779,7 +875,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getWebappChatTransportStatus"];
+        get: operations["getWebappChatboxTransportStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -795,7 +891,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["streamWebappChatTransport"];
+        get: operations["streamWebappChatboxTransport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -811,7 +907,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["streamAgentChatTransport"];
+        get: operations["streamAgentChatboxTransport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1220,14 +1316,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/nodes/{id}": {
+    "/v1/runtime/nodes/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getLegacyPublishedNode"];
+        get: operations["getRuntimeNode"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1236,23 +1332,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/pin": {
+    "/v1/runtime/artifacts/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["getRuntimeArtifact"];
         put?: never;
-        post: operations["pinLegacyNodeWorkspace"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/publish/submit": {
+    "/v1/runtime/artifacts/{id}/parents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRuntimeArtifactParents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/artifacts/{id}/children": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRuntimeArtifactChildren"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/artifacts/{id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRuntimeArtifactRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/runs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getRuntimeRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/reviews/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getRuntimeReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["searchRuntimeNodes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/compile/artifact": {
         parameters: {
             query?: never;
             header?: never;
@@ -1261,7 +1453,135 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["publishLegacyNodeWorkspace"];
+        post: operations["compileRuntimeArtifact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/compile/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["compileRuntimeRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/compile/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["compileRuntimeReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["pinRuntimeWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/publish/prepare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["prepareRuntimePublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/publish/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publishRuntimeWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/runs/{id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["validateRuntimeRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/artifacts/{id}/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["challengeRuntimeArtifact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runtime/runs/{id}/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["challengeRuntimeRun"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1368,7 +1688,7 @@ export interface components {
         SiwaVerifyResponse: {
             [key: string]: unknown;
         };
-        TrollboxMessage: {
+        ChatboxMessage: {
             id?: number;
             /** @enum {string} */
             room?: "webapp" | "agent";
@@ -1376,20 +1696,20 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        TrollboxListResponse: {
-            data: components["schemas"]["TrollboxMessage"][];
+        ChatboxListResponse: {
+            data: components["schemas"]["ChatboxMessage"][];
         } & {
             [key: string]: unknown;
         };
-        TrollboxPostInput: {
+        ChatboxPostInput: {
             body: string;
             reply_to_message_id?: number | null;
             client_message_id?: string | null;
         } & {
             [key: string]: unknown;
         };
-        TrollboxPostResponse: {
-            data: components["schemas"]["TrollboxMessage"];
+        ChatboxPostResponse: {
+            data: components["schemas"]["ChatboxMessage"];
         } & {
             [key: string]: unknown;
         };
@@ -1472,6 +1792,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SiwaVerifyResponse"];
+                };
+            };
+        };
+    };
+    listPlatformExplorerTiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Platform explorer tile payload */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    createPlatformPrivySession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Platform session created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    deletePlatformPrivySession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Platform session cleared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
         };
@@ -2528,7 +2912,7 @@ export interface operations {
             };
         };
     };
-    listWebappChatMessages: {
+    listWebappChatboxMessages: {
         parameters: {
             query?: {
                 room?: "webapp";
@@ -2541,18 +2925,112 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Webapp chat messages */
+            /** @description Webapp chatbox messages */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TrollboxListResponse"];
+                    "application/json": components["schemas"]["ChatboxListResponse"];
                 };
             };
         };
     };
-    listAgentChatMessages: {
+    createWebappChatboxMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatboxPostInput"];
+            };
+        };
+        responses: {
+            /** @description Webapp chatbox message created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatboxPostResponse"];
+                };
+            };
+        };
+    };
+    getWebappChatboxMembership: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current webapp chat membership */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseDataEnvelope"];
+                };
+            };
+        };
+    };
+    requestWebappChatboxJoin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Join request accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseDataEnvelope"];
+                };
+            };
+        };
+    };
+    reactToWebappChatboxMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Webapp chatbox reaction applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatboxPostResponse"];
+                };
+            };
+        };
+    };
+    listAgentChatboxMessages: {
         parameters: {
             query?: {
                 room?: "agent";
@@ -2565,18 +3043,18 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Agent chat messages */
+            /** @description Agent chatbox messages */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TrollboxListResponse"];
+                    "application/json": components["schemas"]["ChatboxListResponse"];
                 };
             };
         };
     };
-    createAgentChatMessage: {
+    createAgentChatboxMessage: {
         parameters: {
             query?: never;
             header?: never;
@@ -2585,22 +3063,48 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TrollboxPostInput"];
+                "application/json": components["schemas"]["ChatboxPostInput"];
             };
         };
         responses: {
-            /** @description Agent chat message created */
+            /** @description Agent chatbox message created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TrollboxPostResponse"];
+                    "application/json": components["schemas"]["ChatboxPostResponse"];
                 };
             };
         };
     };
-    getWebappChatTransportStatus: {
+    reactToAgentChatboxMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Agent chatbox reaction applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatboxPostResponse"];
+                };
+            };
+        };
+    };
+    getWebappChatboxTransportStatus: {
         parameters: {
             query?: never;
             header?: never;
@@ -2620,7 +3124,7 @@ export interface operations {
             };
         };
     };
-    streamWebappChatTransport: {
+    streamWebappChatboxTransport: {
         parameters: {
             query?: never;
             header?: never;
@@ -2629,7 +3133,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description NDJSON chat stream */
+            /** @description NDJSON chatbox stream */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2640,7 +3144,7 @@ export interface operations {
             };
         };
     };
-    streamAgentChatTransport: {
+    streamAgentChatboxTransport: {
         parameters: {
             query?: never;
             header?: never;
@@ -2649,7 +3153,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description NDJSON agent chat stream */
+            /** @description NDJSON agent chatbox stream */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3271,7 +3775,7 @@ export interface operations {
             };
         };
     };
-    getLegacyPublishedNode: {
+    getRuntimeNode: {
         parameters: {
             query?: never;
             header?: never;
@@ -3282,7 +3786,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Legacy published node */
+            /** @description Runtime workspace node */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3293,7 +3797,233 @@ export interface operations {
             };
         };
     };
-    pinLegacyNodeWorkspace: {
+    getRuntimeArtifact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime artifact */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    listRuntimeArtifactParents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime artifact parents */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    listRuntimeArtifactChildren: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime artifact children */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    listRuntimeArtifactRuns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime artifact runs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    getRuntimeRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime run */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    getRuntimeReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime review */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    searchRuntimeNodes: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Runtime search results */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    compileRuntimeArtifact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Runtime artifact compiled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    compileRuntimeRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Runtime run compiled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    compileRuntimeReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Runtime review compiled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    pinRuntimeWorkspace: {
         parameters: {
             query?: never;
             header?: never;
@@ -3320,7 +4050,31 @@ export interface operations {
             };
         };
     };
-    publishLegacyNodeWorkspace: {
+    prepareRuntimePublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Runtime publish prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    publishRuntimeWorkspace: {
         parameters: {
             query?: never;
             header?: never;
@@ -3334,6 +4088,84 @@ export interface operations {
         };
         responses: {
             /** @description Published node */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    validateRuntimeRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Runtime run validated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    challengeRuntimeArtifact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Runtime artifact challenged */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    challengeRuntimeRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Runtime run challenged */
             200: {
                 headers: {
                     [name: string]: unknown;

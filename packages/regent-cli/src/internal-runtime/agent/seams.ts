@@ -26,7 +26,7 @@ import type { StateStore } from "../store/state-store.js";
 import { getCurrentAgentIdentity } from "./profile.js";
 import { runTechtreeCoreJson, type TechtreeCoreEntrypoint } from "../techtree/core.js";
 import type { TechtreeClient } from "../techtree/client.js";
-import { TechtreeV1Client } from "../techtree/v1-client.js";
+import { TechtreeRuntimeClient } from "../techtree/runtime-client.js";
 
 export interface AgentHarnessAdapter {
   init(): Promise<RegentAgentStatus>;
@@ -71,7 +71,7 @@ export interface TechtreePublisher {
 export class TechtreeV1PublisherAdapter implements TechtreePublisher {
   constructor(
     private readonly techtree: TechtreeClient,
-    private readonly v1Client: TechtreeV1Client,
+    private readonly v1Client: TechtreeRuntimeClient,
   ) {}
 
   health(): Promise<Record<string, unknown>> {

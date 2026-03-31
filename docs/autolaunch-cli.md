@@ -139,6 +139,25 @@ regent autolaunch agent <agent-id> [--json]
 regent autolaunch agent readiness <agent-id> [--json]
 ```
 
+### Trust
+
+```bash
+regent autolaunch trust x-link --agent <agent-id>
+```
+
+This helper starts the X-link browser flow for one Autolaunch agent identity.
+
+- It calls `POST /api/trust/x/start`.
+- It opens the returned `redirect_path` in the browser using the configured `AUTOLAUNCH_BASE_URL`.
+- If the browser cannot be opened automatically, it prints the full URL so the operator can open it manually.
+- The CLI does not run OAuth itself. The browser and backend finish that part.
+
+For read surfaces, trust data now lives under the nested `trust` object:
+
+- auction list items use `item.trust.erc8004`, `item.trust.ens`, `item.trust.world`, and `item.trust.x`
+- single auction detail uses `auction.trust.erc8004`, `auction.trust.ens`, `auction.trust.world`, and `auction.trust.x`
+- direct agent trust reads use `GET /api/trust/agents/:id`
+
 ### Low-level launches
 
 ```bash
@@ -206,7 +225,7 @@ regent autolaunch auctions list \
   [--mine-only] \
   [--json]
 
-regent autolaunch auctions show <auction-id> [--json]
+regent autolaunch auction <auction-id> [--json]
 ```
 
 ### Bids

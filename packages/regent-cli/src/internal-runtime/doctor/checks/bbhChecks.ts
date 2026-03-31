@@ -1,12 +1,12 @@
 import { constants } from "node:fs";
 import fs from "node:fs/promises";
 
-import { TechtreeV1Client } from "../../techtree/v1-client.js";
+import { TechtreeRuntimeClient } from "../../techtree/runtime-client.js";
 import type { DoctorCheckDefinition } from "../types.js";
 import { buildBackendDetails, skipDueToMissingConfig } from "./shared.js";
 
 const createClient = (ctx: Parameters<DoctorCheckDefinition["run"]>[0]) =>
-  new TechtreeV1Client({
+  new TechtreeRuntimeClient({
     baseUrl: ctx.config!.techtree.baseUrl,
     requestTimeoutMs: ctx.config!.techtree.requestTimeoutMs,
   });

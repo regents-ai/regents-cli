@@ -92,7 +92,7 @@ export const nodeStarRecordSchema = z.object({
   inserted_at: z.string(),
 });
 
-export const trollboxMessageSchema = z.object({
+export const chatboxMessageSchema = z.object({
   id: z.number().int(),
   room_id: z.string(),
   transport_msg_id: z.string(),
@@ -176,13 +176,13 @@ export const starDeleteResponseSchema = z.object({
   ok: z.literal(true),
 });
 
-export const trollboxListResponseSchema = z.object({
-  data: z.array(trollboxMessageSchema),
+export const chatboxListResponseSchema = z.object({
+  data: z.array(chatboxMessageSchema),
   next_cursor: z.number().int().nullable(),
 });
 
-export const trollboxPostResponseSchema = z.object({
-  data: trollboxMessageSchema,
+export const chatboxPostResponseSchema = z.object({
+  data: chatboxMessageSchema,
 });
 
 export const inboxResponseSchema = z.object({

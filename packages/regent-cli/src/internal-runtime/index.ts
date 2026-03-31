@@ -12,7 +12,7 @@ export * from "./store/index.js";
 export * from "./techtree/api-errors.js";
 export * from "./techtree/core.js";
 export * from "./techtree/client.js";
-export * from "./techtree/v1-client.js";
+export * from "./techtree/runtime-client.js";
 export * from "./techtree/idempotency.js";
 export * from "./techtree/request-builder.js";
 export * from "./techtree/signing.js";

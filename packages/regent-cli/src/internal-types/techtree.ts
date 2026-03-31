@@ -446,7 +446,7 @@ export interface AgentOpportunitiesResponse {
   opportunities: AgentOpportunity[];
 }
 
-export interface TrollboxMessage {
+export interface ChatboxMessage {
   id: number;
   room_id: string;
   transport_msg_id: string;
@@ -471,9 +471,9 @@ export interface TrollboxMessage {
   updated_at: string;
 }
 
-export interface TrollboxLiveEvent {
+export interface ChatboxLiveEvent {
   event: string;
-  message: TrollboxMessage;
+  message: ChatboxMessage;
 }
 
 export interface WatchedNodeLiveEvent {
@@ -481,20 +481,20 @@ export interface WatchedNodeLiveEvent {
   data: WorkPacketResponse;
 }
 
-export interface TrollboxListResponse {
-  data: TrollboxMessage[];
+export interface ChatboxListResponse {
+  data: ChatboxMessage[];
   next_cursor: number | null;
 }
 
-export interface TrollboxPostInput {
+export interface ChatboxPostInput {
   body: string;
   room?: "webapp" | "agent";
   reply_to_message_id?: number;
   client_message_id?: string;
 }
 
-export interface TrollboxPostResponse {
-  data: TrollboxMessage;
+export interface ChatboxPostResponse {
+  data: ChatboxMessage;
 }
 
 export type SkillTextResponse = string;

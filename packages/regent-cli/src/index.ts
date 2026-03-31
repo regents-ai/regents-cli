@@ -62,6 +62,7 @@ import {
   runAutolaunchStrategyMigrate,
   runAutolaunchStrategySweepCurrency,
   runAutolaunchStrategySweepToken,
+  runAutolaunchTrustXLink,
   runAutolaunchSubjectClaimUsdc,
   runAutolaunchSubjectIngress,
   runAutolaunchSubjectShow,
@@ -95,7 +96,7 @@ import { runAuthSiwaLogin, runAuthSiwaLogout, runAuthSiwaStatus } from "./comman
 import { runCreateInit, runCreateWallet } from "./commands/create.js";
 import { runGossipsubStatus } from "./commands/gossipsub.js";
 import { runRuntime } from "./commands/run.js";
-import { runChatHistory, runChatPost, runChatTail } from "./commands/trollbox.js";
+import { runChatboxHistory, runChatboxPost, runChatboxTail } from "./commands/chatbox.js";
 import {
   runTechtreeActivity,
   runTechtreeCommentAdd,
@@ -843,18 +844,18 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
-    if (namespace === "chat" && subcommand === "history") {
-      await runChatHistory(parsedArgs, configPath);
+    if (namespace === "chatbox" && subcommand === "history") {
+      await runChatboxHistory(parsedArgs, configPath);
       return 0;
     }
 
-    if (namespace === "chat" && subcommand === "tail") {
-      await runChatTail(parsedArgs, configPath);
+    if (namespace === "chatbox" && subcommand === "tail") {
+      await runChatboxTail(parsedArgs, configPath);
       return 0;
     }
 
-    if (namespace === "chat" && subcommand === "post") {
-      await runChatPost(parsedArgs, configPath);
+    if (namespace === "chatbox" && subcommand === "post") {
+      await runChatboxPost(parsedArgs, configPath);
       return 0;
     }
 
@@ -870,6 +871,11 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "autolaunch" && subcommand === "agent" && maybeThird) {
       await runAutolaunchAgentShow(maybeThird);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "trust" && maybeThird === "x-link") {
+      await runAutolaunchTrustXLink(parsedArgs);
       return 0;
     }
 

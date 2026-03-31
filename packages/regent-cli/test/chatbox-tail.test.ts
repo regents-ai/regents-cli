@@ -42,7 +42,7 @@ vi.mock("node:net", () => ({
   },
 }));
 
-const { runTrollboxTail } = await import("../src/commands/trollbox.js");
+const { runChatboxTail } = await import("../src/commands/chatbox.js");
 
 const captureOutput = async (run: () => Promise<unknown>): Promise<{
   stdout: string;
@@ -75,7 +75,7 @@ const captureOutput = async (run: () => Promise<unknown>): Promise<{
   }
 };
 
-describe("trollbox tail", () => {
+describe("chatbox tail", () => {
   beforeEach(() => {
     daemonCallMock.mockReset();
     createConnectionMock.mockReset();
@@ -84,7 +84,7 @@ describe("trollbox tail", () => {
   it("prints newline-delimited live events from the daemon-owned relay socket", async () => {
     const socket = new FakeSocket();
     createConnectionMock.mockImplementationOnce((socketPath: string) => {
-      expect(socketPath).toBe("/tmp/runtime.trollbox.sock");
+      expect(socketPath).toBe("/tmp/runtime.chatbox.sock");
 
       queueMicrotask(() => {
         socket.emit("connect");
@@ -110,10 +110,10 @@ describe("trollbox tail", () => {
 
     daemonCallMock.mockResolvedValue({
       enabled: true,
-      eventSocketPath: "/tmp/runtime.trollbox.sock",
+      eventSocketPath: "/tmp/runtime.chatbox.sock",
     });
 
-    const output = await captureOutput(async () => runTrollboxTail(undefined, "/tmp/regent.config.json"));
+    const output = await captureOutput(async () => runChatboxTail(undefined, "/tmp/regent.config.json"));
 
     expect(output.stderr).toBe("");
     expect(socket.encoding).toBe("utf8");
@@ -146,8 +146,8 @@ describe("trollbox tail", () => {
       eventSocketPath: null,
     });
 
-    await expect(runTrollboxTail(undefined, "/tmp/regent.config.json")).rejects.toThrow(
-      "trollbox transport is disabled in config",
+    await expect(runChatboxTail(undefined, "/tmp/regent.config.json")).rejects.toThrow(
+      "chatbox transport is disabled in config",
     );
     expect(createConnectionMock).not.toHaveBeenCalled();
   });
@@ -164,14 +164,14 @@ describe("trollbox tail", () => {
 
     daemonCallMock.mockResolvedValue({
       enabled: true,
-      eventSocketPath: "/tmp/runtime.trollbox.sock",
+      eventSocketPath: "/tmp/runtime.chatbox.sock",
     });
 
     const output = await captureOutput(async () =>
-      runTrollboxTail(
+      runChatboxTail(
         {
-          raw: ["chat", "tail", "--agent"],
-          positionals: ["chat", "tail"],
+          raw: ["chatbox", "tail", "--agent"],
+          positionals: ["chatbox", "tail"],
           flags: new Map([["agent", true]]),
         },
         "/tmp/regent.config.json",
@@ -184,10 +184,10 @@ describe("trollbox tail", () => {
 
   it("rejects removed --room usage before connecting", async () => {
     await expect(
-      runTrollboxTail(
+      runChatboxTail(
         {
-          raw: ["trollbox", "tail", "--room", "invalid"],
-          positionals: ["trollbox", "tail"],
+          raw: ["chatbox", "tail", "--room", "invalid"],
+          positionals: ["chatbox", "tail"],
           flags: new Map([["room", "invalid"]]),
         },
         "/tmp/regent.config.json",

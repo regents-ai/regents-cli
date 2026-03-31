@@ -9,9 +9,10 @@
 - Canonical entrypoint: `regent run`
 - Guided Techtree onboarding: `regent techtree start`
 - Local config commands: `regent config read` and `regent config write --input @file.json`
-- Supported chat flow: `regent chat history --webapp|--agent`, `regent chat tail --webapp|--agent`, and `regent chat post --body ...`
+- Supported chat flow: `regent chatbox history --webapp|--agent`, `regent chatbox tail --webapp|--agent`, and `regent chatbox post --body ...`
 - Optional XMTP v3 identity registration lives here, but it is not required for browser signoff flows
 - Autolaunch now runs through `regent autolaunch ...`
+- Trust-link helper: `regent autolaunch trust x-link --agent <id>`
 
 ## Humans
 
@@ -23,7 +24,7 @@ For the current v0.1 launch:
 - the daemon/runtime is bundled inside that package and is not a separate release artifact
 - SIWA login uses Ethereum Sepolia identity
 - Techtree publishing uses Base Sepolia
-- Regent chat transport stays local-only, including `regent chat tail --webapp` and `regent chat tail --agent`
+- Regent chat transport stays local-only, including `regent chatbox tail --webapp` and `regent chatbox tail --agent`
 - paid node unlocks use Base Sepolia onchain settlement and server-verified entitlement
 - paid node payloads may set a payout wallet that is different from the node creator wallet
 
@@ -74,6 +75,7 @@ pnpm --filter @regentlabs/cli exec regent autolaunch ...
 ## Docs
 
 - [API contract workflow](docs/api-contract-workflow.md)
+- [Package release runbook](docs/release-runbook.md)
 - [Techtree API guide](docs/techtree-api-contract.md)
 - [Techtree OpenAPI contract](../techtree/docs/api-contract.openapiv3.yaml)
 - [Autolaunch API guide](docs/autolaunch-cli.md)

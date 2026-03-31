@@ -436,6 +436,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trust/agents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read one agent trust summary
+         * @description Returns the canonical nested trust summary for one agent identity. This uses the same `trust.erc8004`, `trust.ens`, `trust.world`, and `trust.x` structure exposed inside auction payloads.
+         */
+        get: operations["getAgentTrust"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trust/x/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start the X-link browser flow
+         * @description Starts the X-link flow for one agent identity and returns a relative `redirect_path`. CLI and web clients should open that path in the browser. They should not implement OAuth or provider handshakes themselves.
+         */
+        post: operations["startXLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trust/x/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save the completed X-link result
+         * @description Completes the browser-owned X-link flow and stores the linked X handle under the agent's trust summary.
+         */
+        post: operations["completeXLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auctions": {
         parameters: {
             query?: never;
@@ -809,6 +869,8 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         Address: string;
+        /** Format: date-time */
+        DateTime: string;
         LooseObject: {
             [key: string]: unknown;
         };
@@ -842,6 +904,119 @@ export interface components {
             data?: components["schemas"]["PreparedAction"];
         } & {
             [key: string]: unknown;
+        };
+        AuctionTrustErc8004: {
+            /** @enum {boolean} */
+            connected: true;
+            agent_id: string;
+            token_id: string;
+            chain_id: number;
+            registry_address?: components["schemas"]["Address"] | null;
+            web_endpoint?: string | null;
+            image_url?: string | null;
+        };
+        AuctionTrustEns: {
+            connected: boolean;
+            name: string | null;
+        };
+        AuctionTrustWorld: {
+            connected: boolean;
+            network: string;
+            human_id: string | null;
+            launch_count: number;
+        };
+        AuctionTrustX: {
+            connected: boolean;
+            handle: string | null;
+            profile_url: string | null;
+            verified_at: components["schemas"]["DateTime"] | null;
+        };
+        /** @description Canonical nested trust summary shared by auction payloads and direct trust reads. Do not flatten these fields back into older top-level flags. */
+        AuctionTrust: {
+            erc8004: components["schemas"]["AuctionTrustErc8004"];
+            ens: components["schemas"]["AuctionTrustEns"];
+            world: components["schemas"]["AuctionTrustWorld"];
+            x: components["schemas"]["AuctionTrustX"];
+        };
+        AuctionSummary: {
+            id: string;
+            agent_id: string;
+            agent_name: string;
+            symbol: string;
+            owner_address?: components["schemas"]["Address"] | null;
+            auction_address?: components["schemas"]["Address"] | null;
+            token_address?: components["schemas"]["Address"] | null;
+            network?: string;
+            chain: string;
+            chain_family?: string | null;
+            chain_id: number;
+            status: string;
+            started_at?: components["schemas"]["DateTime"] | null;
+            ends_at?: components["schemas"]["DateTime"] | null;
+            claim_at?: components["schemas"]["DateTime"] | null;
+            bidders: number;
+            raised_currency?: string | null;
+            target_currency?: string | null;
+            progress_percent?: number | null;
+            metrics_updated_at?: components["schemas"]["DateTime"] | null;
+            metrics_source?: string | null;
+            quote_mode?: string | null;
+            current_clearing_price: string;
+            total_bid_volume: string;
+            sort_score?: number | null;
+            notes?: string | null;
+            uniswap_url?: string | null;
+            trust: components["schemas"]["AuctionTrust"];
+            completion_plan?: {
+                [key: string]: unknown;
+            } | null;
+            reputation_prompt?: {
+                [key: string]: unknown;
+            } | null;
+            your_bid_status?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** @description Auction list responses use `items`, not the older generic `data` array shape. */
+        AuctionListEnvelope: {
+            /** @enum {boolean} */
+            ok: true;
+            items: components["schemas"]["AuctionSummary"][];
+            generated_at: components["schemas"]["DateTime"];
+        };
+        AuctionEnvelope: {
+            /** @enum {boolean} */
+            ok: true;
+            auction: components["schemas"]["AuctionSummary"];
+        };
+        AgentTrustEnvelope: {
+            /** @enum {boolean} */
+            ok: true;
+            agent_id: string;
+            trust: components["schemas"]["AuctionTrust"];
+        };
+        XLinkStartRequest: {
+            agent_id: string;
+        };
+        XLinkStartEnvelope: {
+            /** @enum {boolean} */
+            ok: true;
+            /** @example twitter */
+            provider: string;
+            /** @example x */
+            trust_provider: string;
+            agent_id: string;
+            /**
+             * @description Relative browser path returned by the backend for the X-link flow.
+             * @example /trust/x/redirect?token=abc123
+             */
+            redirect_path: string;
+        };
+        XLinkCallbackRequest: {
+            agent_id: string;
+            handle: string;
+            profile_url: string;
+            provider_subject: string;
         };
     };
     responses: never;
@@ -1553,9 +1728,84 @@ export interface operations {
             };
         };
     };
-    listAuctions: {
+    getAgentTrust: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["AgentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Agent trust summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentTrustEnvelope"];
+                };
+            };
+        };
+    };
+    startXLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["XLinkStartRequest"];
+            };
+        };
+        responses: {
+            /** @description X link start payload */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["XLinkStartEnvelope"];
+                };
+            };
+        };
+    };
+    completeXLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["XLinkCallbackRequest"];
+            };
+        };
+        responses: {
+            /** @description X link saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentTrustEnvelope"];
+                };
+            };
+        };
+    };
+    listAuctions: {
+        parameters: {
+            query?: {
+                sort?: string;
+                status?: string;
+                chain?: string;
+                mine_only?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1568,7 +1818,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseListEnvelope"];
+                    "application/json": components["schemas"]["AuctionListEnvelope"];
                 };
             };
         };
@@ -1590,7 +1840,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["AuctionEnvelope"];
                 };
             };
         };

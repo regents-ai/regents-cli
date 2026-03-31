@@ -1,17 +1,17 @@
-import type { GossipsubStatus, RegentConfig, TrollboxLiveEvent } from "../../internal-types/index.js";
+import type { GossipsubStatus, RegentConfig, ChatboxLiveEvent } from "../../internal-types/index.js";
 
 import { RegentError, errorMessage } from "../errors.js";
 import type { TechtreeClient } from "../techtree/client.js";
 import type { TransportAdapter } from "./transport-adapter.js";
 
-type TrollboxListener = (event: TrollboxLiveEvent) => void;
-type TrollboxRoom = "webapp" | "agent";
+type ChatboxListener = (event: ChatboxLiveEvent) => void;
+type ChatboxRoom = "webapp" | "agent";
 
 export interface GossipsubAdapter {
   start(): Promise<void>;
   stop(): Promise<void>;
   status(): Promise<GossipsubStatus>;
-  subscribeTrollbox(listener: TrollboxListener, room?: TrollboxRoom): Promise<() => void>;
+  subscribeChatbox(listener: ChatboxListener, room?: ChatboxRoom): Promise<() => void>;
 }
 
 const baseDisabledStatus = (eventSocketPath: string | null): GossipsubStatus => ({
@@ -23,10 +23,10 @@ const baseDisabledStatus = (eventSocketPath: string | null): GossipsubStatus => 
   lastError: null,
   eventSocketPath,
   status: "disabled",
-  note: "Trollbox transport disabled",
+  note: "Chatbox transport disabled",
 });
 
-export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAdapter {
+export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAdapter {
   private readonly config: RegentConfig["gossipsub"];
   private readonly techtree: TechtreeClient;
   private readonly eventSocketPath: string;
@@ -75,15 +75,15 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
         status: "degraded",
         eventSocketPath: this.eventSocketPath,
         lastError: errorMessage(error),
-        note: "Trollbox transport status could not be refreshed",
+        note: "Chatbox transport status could not be refreshed",
       };
       return this.currentStatus;
     }
   }
 
-  async subscribeTrollbox(listener: TrollboxListener, room: TrollboxRoom = "webapp"): Promise<() => void> {
+  async subscribeChatbox(listener: ChatboxListener, room: ChatboxRoom = "webapp"): Promise<() => void> {
     if (!this.config.enabled) {
-      throw new RegentError("trollbox_relay_disabled", "trollbox transport is disabled in config");
+      throw new RegentError("chatbox_relay_disabled", "chatbox transport is disabled in config");
     }
 
     const controller = new AbortController();
@@ -92,7 +92,7 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
     void (async () => {
       while (!controller.signal.aborted) {
         try {
-          await this.techtree.streamTrollbox(
+          await this.techtree.streamChatbox(
             room,
             (payload: unknown) => {
               if (controller.signal.aborted) {
@@ -104,9 +104,9 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
                 connected: true,
                 status: "ready",
                 lastError: null,
-                note: `Trollbox relay subscribed to ${room}`,
+                note: `Chatbox relay subscribed to ${room}`,
               };
-              listener(payload as TrollboxLiveEvent);
+              listener(payload as ChatboxLiveEvent);
             },
             controller.signal,
           );
@@ -116,7 +116,7 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
               ...this.currentStatus,
               connected: false,
               status: "degraded",
-              note: "Trollbox relay stream ended; reconnecting",
+              note: "Chatbox relay stream ended; reconnecting",
             };
           }
         } catch (error: unknown) {
@@ -126,7 +126,7 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
               connected: false,
               status: "degraded",
               lastError: errorMessage(error),
-              note: "Trollbox relay subscription failed; reconnecting",
+              note: "Chatbox relay subscription failed; reconnecting",
             };
           }
         }
@@ -157,7 +157,7 @@ export class PublicTrollboxRelayAdapter implements GossipsubAdapter, TransportAd
       lastError: null,
       eventSocketPath: this.eventSocketPath,
       status: "starting",
-      note: "Trollbox transport initialized",
+      note: "Chatbox transport initialized",
     };
   }
 }
@@ -171,7 +171,7 @@ export class StubGossipsubAdapter implements GossipsubAdapter {
     return baseDisabledStatus(null);
   }
 
-  async subscribeTrollbox(): Promise<() => void> {
-    throw new RegentError("trollbox_relay_disabled", "trollbox transport is disabled in config");
+  async subscribeChatbox(): Promise<() => void> {
+    throw new RegentError("chatbox_relay_disabled", "chatbox transport is disabled in config");
   }
 }

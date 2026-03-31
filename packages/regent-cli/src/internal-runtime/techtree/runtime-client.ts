@@ -64,7 +64,7 @@ const materializeNode = async (
   return workspacePath;
 };
 
-export class TechtreeV1Client {
+export class TechtreeRuntimeClient {
   readonly baseUrl: string;
   readonly requestTimeoutMs: number;
 
@@ -100,14 +100,14 @@ export class TechtreeV1Client {
       }
 
       if (error instanceof Error && error.name === "AbortError") {
-        throw new TechtreeApiError(`Techtree v1 request timed out after ${this.requestTimeoutMs}ms`, {
-          code: "techtree_v1_timeout",
+        throw new TechtreeApiError(`Techtree runtime request timed out after ${this.requestTimeoutMs}ms`, {
+          code: "techtree_runtime_timeout",
           cause: error,
         });
       }
 
-      throw new TechtreeApiError("Techtree v1 request failed", {
-        code: "techtree_v1_request_failed",
+      throw new TechtreeApiError("Techtree runtime request failed", {
+        code: "techtree_runtime_request_failed",
         cause: error,
       });
     } finally {
@@ -116,7 +116,7 @@ export class TechtreeV1Client {
   }
 
   async fetchNode(input: TechtreeFetchRequest): Promise<TechtreeFetchResponse> {
-    const response = await this.requestJson<NodeApiResponse>("GET", `/api/v1/nodes/${encodeURIComponent(input.node_id)}`);
+    const response = await this.requestJson<NodeApiResponse>("GET", `/v1/runtime/nodes/${encodeURIComponent(input.node_id)}`);
     const data = response.data;
     const materializedTo =
       input.materialize_to && data.manifest && data.payload_index && data.header
@@ -144,7 +144,7 @@ export class TechtreeV1Client {
         manifest_cid: string;
         payload_cid: string;
       };
-    }>("POST", "/api/v1/pin", {
+    }>("POST", "/v1/runtime/pin", {
       path: input.dist_path ?? input.workspace_path,
       node_type: input.node_type,
     });
@@ -158,7 +158,7 @@ export class TechtreeV1Client {
   }
 
   async publishNode(input: TechtreePublishRequest): Promise<TechtreePublishResponse> {
-    const response = await this.requestJson<NodeApiResponse>("POST", "/api/v1/publish/submit", {
+    const response = await this.requestJson<NodeApiResponse>("POST", "/v1/runtime/publish/submit", {
       path: input.dist_path ?? input.workspace_path,
       node_type: input.node_type,
       manifest_cid: input.manifest_cid,
@@ -192,9 +192,9 @@ export class TechtreeV1Client {
   }
 }
 
-export const loadTechtreeV1Client = (configPath?: string): TechtreeV1Client => {
+export const loadTechtreeRuntimeClient = (configPath?: string): TechtreeRuntimeClient => {
   const config = loadConfig(configPath);
-  return new TechtreeV1Client({
+  return new TechtreeRuntimeClient({
     baseUrl: config.techtree.baseUrl,
     requestTimeoutMs: config.techtree.requestTimeoutMs,
   });

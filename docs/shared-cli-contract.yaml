@@ -1,0 +1,19 @@
+version: 1
+product: shared-services
+command_groups:
+  - name: regent-staking
+    interface: http
+    auth_mode: mixed
+    output_envelope: regent-staking-envelopes
+    commands:
+      - regent-staking show
+      - regent-staking account
+      - regent-staking stake
+      - regent-staking unstake
+      - regent-staking claim-usdc
+    path_templates:
+      - /api/regent/staking
+      - /api/regent/staking/account/{address}
+      - /api/regent/staking/stake
+      - /api/regent/staking/unstake
+      - /api/regent/staking/claim-usdc

@@ -67,9 +67,9 @@ import type {
   NodeStarRecord,
   TreeComment,
   TreeNode,
-  TrollboxListResponse,
-  TrollboxPostInput,
-  TrollboxPostResponse,
+  ChatboxListResponse,
+  ChatboxPostInput,
+  ChatboxPostResponse,
   WatchRecord,
   WorkPacketResponse,
 } from "./techtree.js";
@@ -177,8 +177,8 @@ export type RegentRpcMethod =
   | "techtree.autoskill.pull"
   | "techtree.inbox.get"
   | "techtree.opportunities.list"
-  | "techtree.trollbox.history"
-  | "techtree.trollbox.post"
+  | "techtree.chatbox.history"
+  | "techtree.chatbox.post"
   | "techtree.v1.artifact.init"
   | "techtree.v1.artifact.compile"
   | "techtree.v1.artifact.pin"
@@ -283,12 +283,12 @@ export interface RegentRpcParamsMap {
     kind?: string | string[];
   } | undefined;
   "techtree.opportunities.list": Record<string, string | number | boolean | string[]> | undefined;
-  "techtree.trollbox.history": {
+  "techtree.chatbox.history": {
     before?: number;
     limit?: number;
     room?: "webapp" | "agent";
   } | undefined;
-  "techtree.trollbox.post": TrollboxPostInput;
+  "techtree.chatbox.post": ChatboxPostInput;
   "techtree.v1.artifact.init": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.compile": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.pin": TechtreeV1WorkspaceParams;
@@ -416,8 +416,8 @@ export interface RegentRpcResultMap {
   };
   "techtree.inbox.get": AgentInboxResponse;
   "techtree.opportunities.list": AgentOpportunitiesResponse;
-  "techtree.trollbox.history": TrollboxListResponse;
-  "techtree.trollbox.post": TrollboxPostResponse;
+  "techtree.chatbox.history": ChatboxListResponse;
+  "techtree.chatbox.post": ChatboxPostResponse;
   "techtree.v1.artifact.init": TechtreeWorkspaceActionResult;
   "techtree.v1.artifact.compile": TechtreeCompilerOutput<Record<string, unknown>>;
   "techtree.v1.artifact.pin": TechtreePinResponse & {

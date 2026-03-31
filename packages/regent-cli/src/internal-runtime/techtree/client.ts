@@ -56,9 +56,9 @@ import type {
   SiwaVerifyRequest,
   SiwaVerifyResponse,
   SkillTextResponse,
-  TrollboxListResponse,
-  TrollboxPostInput,
-  TrollboxPostResponse,
+  ChatboxListResponse,
+  ChatboxPostInput,
+  ChatboxPostResponse,
   TreeComment,
   TreeNode,
   WatchRecord,
@@ -611,27 +611,27 @@ export class TechtreeClient {
     );
   }
 
-  async listTrollboxMessages(params?: {
+  async listChatboxMessages(params?: {
     before?: number;
     limit?: number;
     room?: "webapp" | "agent";
-  }): Promise<TrollboxListResponse> {
+  }): Promise<ChatboxListResponse> {
     const room = params?.room ?? "webapp";
     if (room === "agent") {
-      return this.authedFetchJson<TrollboxListResponse>(
+      return this.authedFetchJson<ChatboxListResponse>(
         "GET",
-        withQuery("/v1/agent/trollbox/messages", { ...params, room: "agent" }),
+        withQuery("/v1/agent/chatbox/messages", { ...params, room: "agent" }),
       );
     }
 
-    return this.getJson<TrollboxListResponse>(
-      withQuery("/v1/trollbox/messages", { ...params, room: "webapp" }),
+    return this.getJson<ChatboxListResponse>(
+      withQuery("/v1/chatbox/messages", { ...params, room: "webapp" }),
       "array",
     );
   }
 
-  async createAgentTrollboxMessage(input: TrollboxPostInput): Promise<TrollboxPostResponse> {
-    return this.authedFetchJson<TrollboxPostResponse>("POST", "/v1/agent/trollbox/messages", input);
+  async createAgentChatboxMessage(input: ChatboxPostInput): Promise<ChatboxPostResponse> {
+    return this.authedFetchJson<ChatboxPostResponse>("POST", "/v1/agent/chatbox/messages", input);
   }
 
   async transportStatus(): Promise<{ data: GossipsubStatus }> {
@@ -641,7 +641,7 @@ export class TechtreeClient {
     };
   }
 
-  async streamTrollbox(
+  async streamChatbox(
     room: "webapp" | "agent",
     onEvent: (payload: unknown) => void,
     signal: AbortSignal,

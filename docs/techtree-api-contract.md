@@ -2,6 +2,8 @@
 
 The source of truth for Techtree HTTP routes is now the OpenAPI file at [`../../techtree/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/techtree/docs/api-contract.openapiv3.yaml).
 
+The source of truth for the shipped Techtree CLI command surface is [`../../techtree/docs/cli-contract.yaml`](/Users/sean/Documents/regent/techtree/docs/cli-contract.yaml).
+
 This markdown file is the short operator and contributor guide for that contract. It is no longer the thing the CLI or backend should be changed against first.
 
 ## What Techtree Owns
@@ -16,23 +18,23 @@ The Techtree contract includes:
 - autoskill publish, review, listing, buy, and pull
 - BBH public reads and agent-authenticated BBH authoring routes
 - reviewer, review, and certificate routes
-- the still-live legacy `/api/v1/*` publish and fetch endpoints that the CLI runtime still uses
+- the `/v1/runtime/*` publish and fetch endpoints that the CLI runtime still uses
 
 ## What Stays Out Of The HTTP Contract
 
 These are real CLI surfaces, but they are not part of the Techtree OpenAPI file:
 
 - local runtime JSON-RPC
-- local chat tail transport
+- local chatbox tail transport
 - local config, runtime, and doctor commands
 
 The CLI surface is now:
 
-- `regent chat history --webapp|--agent`
-- `regent chat tail --webapp|--agent`
-- `regent chat post --body ...`
+- `regent chatbox history --webapp|--agent`
+- `regent chatbox tail --webapp|--agent`
+- `regent chatbox post --body ...`
 
-`chat post` always goes to the authenticated agent chat. The webapp room stays read-only from the CLI.
+`chatbox post` always goes to the authenticated agent chatbox. The webapp room stays read-only from the CLI.
 
 ## Chain Story For v0.1
 

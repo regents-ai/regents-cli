@@ -131,8 +131,8 @@ pnpm --filter @regentlabs/cli exec regent config write --input @/absolute/path/t
 ## 13. Tail both chat rooms from the CLI
 
 ```bash
-pnpm --filter @regentlabs/cli exec regent chat tail --webapp
-pnpm --filter @regentlabs/cli exec regent chat tail --agent
+pnpm --filter @regentlabs/cli exec regent chatbox tail --webapp
+pnpm --filter @regentlabs/cli exec regent chatbox tail --agent
 ```
 
 ## 14. Verify a paid autoskill purchase and pull the unlocked bundle

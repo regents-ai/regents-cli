@@ -18,7 +18,7 @@ export function transportChecks(): DoctorCheckDefinition[] {
         return {
           status: "ok",
           message: ctx.config.gossipsub.enabled
-            ? "Backend trollbox transport config parsed; live mode is reported by Techtree as libp2p, local_only, or degraded"
+            ? "Backend chatbox transport config parsed; live mode is reported by Techtree as libp2p, local_only, or degraded"
             : "Gossipsub is disabled in config",
           details: {
             enabled: ctx.config.gossipsub.enabled,

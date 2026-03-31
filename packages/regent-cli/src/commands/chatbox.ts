@@ -1,23 +1,23 @@
 import net from "node:net";
 
-import type { GossipsubStatus, TrollboxLiveEvent } from "../internal-types/index.js";
+import type { GossipsubStatus, ChatboxLiveEvent } from "../internal-types/index.js";
 
 import { daemonCall } from "../daemon-client.js";
 import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
-type TrollboxRoom = "webapp" | "agent";
+type ChatboxRoom = "webapp" | "agent";
 
-const isTrollboxLiveEvent = (payload: unknown): payload is TrollboxLiveEvent => {
+const isChatboxLiveEvent = (payload: unknown): payload is ChatboxLiveEvent => {
   if (!payload || typeof payload !== "object") {
     return false;
   }
 
-  const candidate = payload as Partial<TrollboxLiveEvent>;
+  const candidate = payload as Partial<ChatboxLiveEvent>;
   return typeof candidate.event === "string" && !!candidate.message && typeof candidate.message === "object";
 };
 
-const parseRoomFlag = (args?: ParsedCliArgs): TrollboxRoom | undefined => {
+const parseRoomFlag = (args?: ParsedCliArgs): ChatboxRoom | undefined => {
   if (!args) {
     return undefined;
   }
@@ -41,11 +41,11 @@ const parseRoomFlag = (args?: ParsedCliArgs): TrollboxRoom | undefined => {
   return undefined;
 };
 
-export async function runTrollboxHistory(args: ParsedCliArgs, configPath?: string): Promise<void> {
+export async function runChatboxHistory(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const room = parseRoomFlag(args) ?? "webapp";
   printJson(
     await daemonCall(
-      "techtree.trollbox.history",
+      "techtree.chatbox.history",
       {
         limit: parseIntegerFlag(args, "limit"),
         before: parseIntegerFlag(args, "before"),
@@ -56,7 +56,7 @@ export async function runTrollboxHistory(args: ParsedCliArgs, configPath?: strin
   );
 }
 
-export async function runTrollboxPost(args: ParsedCliArgs, configPath?: string): Promise<void> {
+export async function runChatboxPost(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const room = parseRoomFlag(args);
   if (room === "webapp") {
     throw new Error("CLI posting is limited to agent chat; use the web app for webapp chat");
@@ -64,7 +64,7 @@ export async function runTrollboxPost(args: ParsedCliArgs, configPath?: string):
 
   printJson(
     await daemonCall(
-      "techtree.trollbox.post",
+      "techtree.chatbox.post",
       {
         body: requireArg(getFlag(args, "body"), "body"),
         reply_to_message_id: parseIntegerFlag(args, "reply-to"),
@@ -76,16 +76,16 @@ export async function runTrollboxPost(args: ParsedCliArgs, configPath?: string):
   );
 }
 
-export async function runTrollboxTail(args?: ParsedCliArgs, configPath?: string): Promise<void> {
+export async function runChatboxTail(args?: ParsedCliArgs, configPath?: string): Promise<void> {
   const room = parseRoomFlag(args) === "agent" ? "agent" : "webapp";
   const status = await daemonCall("gossipsub.status", undefined, configPath);
 
   if (!status.enabled) {
-    throw new Error("trollbox transport is disabled in config");
+    throw new Error("chatbox transport is disabled in config");
   }
 
   if (!status.eventSocketPath) {
-    throw new Error("runtime did not expose a local trollbox transport socket");
+    throw new Error("runtime did not expose a local chatbox transport socket");
   }
 
   const eventSocketPath = status.eventSocketPath;
@@ -149,11 +149,11 @@ export async function runTrollboxTail(args?: ParsedCliArgs, configPath?: string)
         try {
           payload = JSON.parse(line) as unknown;
         } catch {
-          finish(new Error("runtime trollbox transport stream returned invalid JSON"));
+          finish(new Error("runtime chatbox transport stream returned invalid JSON"));
           return;
         }
 
-        if (isTrollboxLiveEvent(payload)) {
+        if (isChatboxLiveEvent(payload)) {
           printJson(payload);
           continue;
         }
@@ -165,7 +165,7 @@ export async function runTrollboxTail(args?: ParsedCliArgs, configPath?: string)
         if (payload && typeof payload === "object" && "error" in payload) {
           finish(
             new Error(
-              `runtime trollbox transport error: ${String((payload as { error?: unknown }).error ?? "unknown")}`,
+              `runtime chatbox transport error: ${String((payload as { error?: unknown }).error ?? "unknown")}`,
             ),
           );
           return;
@@ -174,7 +174,7 @@ export async function runTrollboxTail(args?: ParsedCliArgs, configPath?: string)
     });
 
     socket.on("error", () => {
-      finish(new Error(`unable to connect to local trollbox transport socket at ${eventSocketPath}`));
+      finish(new Error(`unable to connect to local chatbox transport socket at ${eventSocketPath}`));
     });
 
     socket.on("close", () => {
@@ -182,7 +182,3 @@ export async function runTrollboxTail(args?: ParsedCliArgs, configPath?: string)
     });
   });
 }
-
-export const runChatHistory = runTrollboxHistory;
-export const runChatPost = runTrollboxPost;
-export const runChatTail = runTrollboxTail;

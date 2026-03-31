@@ -96,7 +96,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return true;
     };
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/trollbox/messages") {
+    if (req.method === "GET" && requestUrl.pathname === "/v1/chatbox/messages") {
       res.statusCode = 200;
       res.setHeader("content-type", "application/json");
       res.end(
@@ -116,7 +116,7 @@ const createHarness = async (): Promise<ClientHarness> => {
               author_label: "Public operator",
               author_wallet_address: null,
               author_transport_id: null,
-              body: "Existing public trollbox message",
+              body: "Existing public chatbox message",
               client_message_id: null,
               reply_to_message_id: null,
               reply_to_transport_msg_id: null,
@@ -133,7 +133,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/agent/trollbox/messages") {
+    if (req.method === "GET" && requestUrl.pathname === "/v1/agent/chatbox/messages") {
       if (!requireAgentHeaders()) {
         return;
       }
@@ -157,7 +157,7 @@ const createHarness = async (): Promise<ClientHarness> => {
               author_label: "Contract test agent",
               author_wallet_address: TEST_WALLET,
               author_transport_id: null,
-              body: "Existing trollbox message",
+              body: "Existing chatbox message",
               client_message_id: null,
               reply_to_message_id: null,
               reply_to_transport_msg_id: null,
@@ -174,7 +174,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/trollbox/messages") {
+    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chatbox/messages") {
       if (!requireAgentHeaders()) {
         return;
       }
@@ -232,7 +232,7 @@ const createHarness = async (): Promise<ClientHarness> => {
             author_label: "Public operator",
             author_wallet_address: null,
             author_transport_id: null,
-            body: "Streaming public trollbox event",
+            body: "Streaming public chatbox event",
             client_message_id: null,
             reply_to_message_id: null,
             reply_to_transport_msg_id: null,
@@ -264,7 +264,7 @@ const createHarness = async (): Promise<ClientHarness> => {
             mode: "libp2p",
             ready: true,
             peer_count: 2,
-            subscriptions: ["public-trollbox"],
+            subscriptions: ["public-chatbox"],
             last_error: null,
             local_peer_id: "peer-local",
             origin_node_id: "node-1",
@@ -298,7 +298,7 @@ const createHarness = async (): Promise<ClientHarness> => {
             author_label: "Contract test agent",
             author_wallet_address: TEST_WALLET,
             author_transport_id: null,
-            body: "Streamed trollbox event",
+            body: "Streamed chatbox event",
             client_message_id: null,
             reply_to_message_id: null,
             reply_to_transport_msg_id: null,
@@ -321,7 +321,7 @@ const createHarness = async (): Promise<ClientHarness> => {
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-trollbox-client-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-chatbox-client-"));
   const stateStore = new StateStore(path.join(tempDir, "runtime-state.json"));
   const sessionStore = new SessionStore(stateStore);
   sessionStore.setSiwaSession({
@@ -371,7 +371,7 @@ const createHarness = async (): Promise<ClientHarness> => {
   };
 };
 
-describe("Techtree trollbox client routes", () => {
+describe("Techtree chatbox client routes", () => {
   let harness: ClientHarness;
 
   beforeEach(async () => {
@@ -382,9 +382,9 @@ describe("Techtree trollbox client routes", () => {
     await harness.stop();
   });
 
-  it("uses the public webapp trollbox contract and emits stream events before the response closes", async () => {
-    await expect(harness.client.listTrollboxMessages({ room: "webapp", limit: 1 })).resolves.toMatchObject({
-      data: [expect.objectContaining({ body: "Existing public trollbox message" })],
+  it("uses the public webapp chatbox contract and emits stream events before the response closes", async () => {
+    await expect(harness.client.listChatboxMessages({ room: "webapp", limit: 1 })).resolves.toMatchObject({
+      data: [expect.objectContaining({ body: "Existing public chatbox message" })],
       next_cursor: null,
     });
 
@@ -393,7 +393,7 @@ describe("Techtree trollbox client routes", () => {
     let streamFinished = false;
 
     const streamPromise = harness.client
-      .streamTrollbox("webapp", (payload) => streamed.push(payload), controller.signal)
+      .streamChatbox("webapp", (payload) => streamed.push(payload), controller.signal)
       .then(() => {
         streamFinished = true;
       });
@@ -405,7 +405,7 @@ describe("Techtree trollbox client routes", () => {
     expect(streamed[0]).toEqual(
       expect.objectContaining({
         event: "message.created",
-        message: expect.objectContaining({ body: "Streaming public trollbox event" }),
+        message: expect.objectContaining({ body: "Streaming public chatbox event" }),
       }),
     );
     expect(streamFinished).toBe(false);
@@ -415,7 +415,7 @@ describe("Techtree trollbox client routes", () => {
 
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
-      "GET /v1/trollbox/messages?room=webapp&limit=1",
+      "GET /v1/chatbox/messages?room=webapp&limit=1",
       "GET /v1/runtime/transport/stream?room=webapp",
     ]);
 
@@ -427,14 +427,14 @@ describe("Techtree trollbox client routes", () => {
     }
   });
 
-  it("uses the authenticated agent trollbox and transport contracts", async () => {
-    await expect(harness.client.listTrollboxMessages({ room: "agent", limit: 1 })).resolves.toMatchObject({
-      data: [expect.objectContaining({ body: "Existing trollbox message" })],
+  it("uses the authenticated agent chatbox and transport contracts", async () => {
+    await expect(harness.client.listChatboxMessages({ room: "agent", limit: 1 })).resolves.toMatchObject({
+      data: [expect.objectContaining({ body: "Existing chatbox message" })],
       next_cursor: null,
     });
 
     await expect(
-      harness.client.createAgentTrollboxMessage({
+      harness.client.createAgentChatboxMessage({
         body: "Posted from Regent",
         room: "agent",
         client_message_id: "client-1",
@@ -448,7 +448,7 @@ describe("Techtree trollbox client routes", () => {
         enabled: true,
         configured: true,
         connected: true,
-        subscribedTopics: ["public-trollbox"],
+        subscribedTopics: ["public-chatbox"],
         peerCount: 2,
         lastError: null,
         eventSocketPath: null,
@@ -460,12 +460,12 @@ describe("Techtree trollbox client routes", () => {
     });
 
     const streamed: unknown[] = [];
-    await harness.client.streamTrollbox("agent", (payload) => streamed.push(payload), new AbortController().signal);
+    await harness.client.streamChatbox("agent", (payload) => streamed.push(payload), new AbortController().signal);
 
     expect(streamed).toEqual([
       expect.objectContaining({
         event: "message.created",
-        message: expect.objectContaining({ body: "Streamed trollbox event" }),
+        message: expect.objectContaining({ body: "Streamed chatbox event" }),
       }),
       expect.objectContaining({
         event: "heartbeat",
@@ -474,8 +474,8 @@ describe("Techtree trollbox client routes", () => {
 
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
-      "GET /v1/agent/trollbox/messages?room=agent&limit=1",
-      "POST /v1/agent/trollbox/messages",
+      "GET /v1/agent/chatbox/messages?room=agent&limit=1",
+      "POST /v1/agent/chatbox/messages",
       "GET /v1/runtime/transport",
       "GET /v1/agent/runtime/transport/stream?room=agent",
     ]);

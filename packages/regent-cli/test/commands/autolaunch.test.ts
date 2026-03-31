@@ -12,6 +12,14 @@ const { writeContractMock, waitForReceiptMock } = vi.hoisted(() => ({
   waitForReceiptMock: vi.fn(),
 }));
 
+const { execFileMock } = vi.hoisted(() => ({
+  execFileMock: vi.fn(),
+}));
+
+vi.mock("node:child_process", () => ({
+  execFile: execFileMock,
+}));
+
 vi.mock("viem/accounts", () => ({
   privateKeyToAccount: (privateKey: string) => ({
     address:
@@ -46,6 +54,8 @@ vi.mock("viem", () => ({
 
 describe("autolaunch CLI command group", () => {
   const expectedBaseUrl = "http://127.0.0.1:4010";
+  const expectedBrowserCommand =
+    process.platform === "darwin" ? "open" : process.platform === "win32" ? "cmd" : "xdg-open";
   const originalEnv = { ...process.env };
   const fetchMock = vi.fn<typeof fetch>();
   const tempDirs: string[] = [];
@@ -69,6 +79,7 @@ describe("autolaunch CLI command group", () => {
     delete process.env.AUTOLAUNCH_AGENT_PRIVATE_KEY;
     delete process.env.ETH_SEPOLIA_RPC_URL;
     fetchMock.mockReset();
+    execFileMock.mockReset();
     writeContractMock.mockReset();
     waitForReceiptMock.mockReset();
   });
@@ -86,10 +97,53 @@ describe("autolaunch CLI command group", () => {
 
   it("lists active auctions via regent autolaunch", async () => {
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, items: [{ auction_id: "auc_1" }] }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          items: [
+            {
+              id: "auc_1",
+              agent_id: "11155111:42",
+              agent_name: "Atlas",
+              symbol: "ATLAS",
+              chain: "ethereum-sepolia",
+              chain_id: 11155111,
+              status: "active",
+              bidders: 2,
+              current_clearing_price: "1000000",
+              total_bid_volume: "5000000",
+              trust: {
+                erc8004: {
+                  connected: true,
+                  token_id: "42",
+                  chain_id: 11155111,
+                },
+                ens: {
+                  connected: true,
+                  name: "atlas.eth",
+                },
+                world: {
+                  connected: false,
+                  network: "world",
+                  human_id: null,
+                  launch_count: 0,
+                },
+                x: {
+                  connected: true,
+                  handle: "atlas_agent",
+                  profile_url: "https://x.com/atlas_agent",
+                  verified_at: "2026-03-29T12:00:00Z",
+                },
+              },
+            },
+          ],
+          generated_at: "2026-03-29T12:00:00Z",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
     );
 
     const { runCliEntrypoint } = await import("../../src/index.js");
@@ -110,9 +164,95 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
       `${expectedBaseUrl}/api/auctions?sort=recently_launched&status=active`,
     );
-    expect(parsePrintedJson<{ ok: boolean }>(output.stdout)).toEqual({
-      ok: true,
-      items: [{ auction_id: "auc_1" }],
+    expect(parsePrintedJson<{ items: Array<{ id: string; trust: { x: { handle: string | null } } }> }>(output.stdout)).toMatchObject({
+      items: [{ id: "auc_1", trust: { x: { handle: "atlas_agent" } } }],
+    });
+  });
+
+  it("starts an Autolaunch X link and opens the returned browser URL", async () => {
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+    execFileMock.mockImplementation((_file, _args, callback) => {
+      callback?.(null, "", "");
+      return {} as never;
+    });
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          provider: "twitter",
+          trust_provider: "x",
+          agent_id: "11155111:42",
+          redirect_path: "/trust/x/redirect?token=abc123",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "trust", "x-link", "--agent", "11155111:42"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/trust/x/start`);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect((requestInit?.headers as Headers).get("cookie")).toBe("_autolaunch_key=abc");
+    expect(JSON.parse(String(requestInit?.body))).toEqual({ agent_id: "11155111:42" });
+    expect(execFileMock).toHaveBeenCalledWith(
+      expectedBrowserCommand,
+      [`${expectedBaseUrl}/trust/x/redirect?token=abc123`],
+      expect.any(Function),
+    );
+    expect(
+      parsePrintedJson<{ browser_opened: boolean; redirect_url: string }>(output.stdout),
+    ).toMatchObject({
+      browser_opened: true,
+      redirect_url: `${expectedBaseUrl}/trust/x/redirect?token=abc123`,
+    });
+  });
+
+  it("prints the full X link URL when the browser cannot be opened", async () => {
+    process.env.AUTOLAUNCH_SESSION_COOKIE = "_autolaunch_key=abc";
+    execFileMock.mockImplementation((_file, _args, callback) => {
+      callback?.(new Error("open failed"));
+      return {} as never;
+    });
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          provider: "twitter",
+          trust_provider: "x",
+          agent_id: "11155111:42",
+          redirect_path: "/trust/x/redirect?token=manual",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const { runCliEntrypoint } = await import("../../src/index.js");
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "trust", "x-link", "--agent", "11155111:42"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(
+      parsePrintedJson<{
+        browser_opened: boolean;
+        manual_open_url: string;
+        message: string;
+      }>(output.stdout),
+    ).toMatchObject({
+      browser_opened: false,
+      manual_open_url: `${expectedBaseUrl}/trust/x/redirect?token=manual`,
+      message: `Open this URL manually: ${expectedBaseUrl}/trust/x/redirect?token=manual`,
     });
   });
 
