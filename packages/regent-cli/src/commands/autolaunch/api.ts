@@ -1,10 +1,16 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
+import { createPublicClient, createWalletClient, http, type Hex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { base, sepolia } from "viem/chains";
+
 import type {
   components as AutolaunchComponents,
   paths as AutolaunchPaths,
 } from "../../generated/autolaunch-openapi.js";
+import { loadConfig } from "../../internal-runtime/config.js";
+import { FileWalletSecretSource, EnvWalletSecretSource } from "../../internal-runtime/agent/key-store.js";
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import { printJson } from "../../printer.js";
 import type {
@@ -68,6 +74,134 @@ const postBidMutation = async (
       requireSession: true,
     }),
   );
+};
+
+const configuredPrivateKey = async (configPath?: string): Promise<`0x${string}`> => {
+  const config = loadConfig(configPath);
+  const secretSource =
+    process.env[config.wallet.privateKeyEnv]
+      ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
+      : new FileWalletSecretSource(config.wallet.keystorePath);
+
+  return await secretSource.getPrivateKeyHex();
+};
+
+const walletClientForChain = async (chainId: number, configPath?: string) => {
+  const privateKey = await configuredPrivateKey(configPath);
+  const account = privateKeyToAccount(privateKey);
+
+  if (chainId === 11_155_111) {
+    const rpcUrl = process.env.ETH_SEPOLIA_RPC_URL;
+    if (!rpcUrl) {
+      throw new Error("missing ETH_SEPOLIA_RPC_URL for submit mode");
+    }
+
+    return {
+      chain: sepolia,
+      walletClient: createWalletClient({ account, chain: sepolia, transport: http(rpcUrl) }),
+      publicClient: createPublicClient({ chain: sepolia, transport: http(rpcUrl) }),
+      account,
+    };
+  }
+
+  if (chainId === 8_453) {
+    const rpcUrl = process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL;
+    if (!rpcUrl) {
+      throw new Error("missing BASE_MAINNET_RPC_URL or BASE_RPC_URL for submit mode");
+    }
+
+    return {
+      chain: base,
+      walletClient: createWalletClient({ account, chain: base, transport: http(rpcUrl) }),
+      publicClient: createPublicClient({ chain: base, transport: http(rpcUrl) }),
+      account,
+    };
+  }
+
+  throw new Error(`unsupported chain for submit mode: ${chainId}`);
+};
+
+const submitTxRequest = async (
+  txRequest: Record<string, unknown>,
+  configPath?: string,
+): Promise<`0x${string}`> => {
+  const chainId = Number(txRequest.chain_id);
+  if (!Number.isFinite(chainId)) {
+    throw new Error("tx_request.chain_id is missing");
+  }
+
+  const { chain, walletClient, publicClient, account } = await walletClientForChain(chainId, configPath);
+  const txHash = await (walletClient as any).sendTransaction({
+    account,
+    chain,
+    to: String(txRequest.to) as `0x${string}`,
+    data: String(txRequest.data) as Hex,
+    value: BigInt(String(txRequest.value ?? "0x0")),
+  });
+
+  await (publicClient as any).waitForTransactionReceipt({ hash: txHash });
+  return txHash;
+};
+
+const prepareOrSubmitWrite = async (
+  method: "POST",
+  path: string,
+  body: Record<string, unknown>,
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> => {
+  const prepared = await requestJson(method, path, { body, requireSession: true });
+
+  if (!getBooleanFlag(args, "submit")) {
+    printJson(prepared);
+    return;
+  }
+
+  const txRequest =
+    typeof prepared.tx_request === "object" && prepared.tx_request
+      ? (prepared.tx_request as Record<string, unknown>)
+      : null;
+
+  if (!txRequest) {
+    printJson(prepared);
+    return;
+  }
+
+  const txHash = await submitTxRequest(txRequest, configPath);
+  printJson(
+    await requestJson(method, path, {
+      body: { ...body, tx_hash: txHash },
+      requireSession: true,
+    }),
+  );
+};
+
+const prepareOrSubmitPreparedOnly = async (
+  method: "POST",
+  path: string,
+  body: Record<string, unknown>,
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> => {
+  const prepared = await requestJson(method, path, { body, requireSession: true });
+
+  if (!getBooleanFlag(args, "submit")) {
+    printJson(prepared);
+    return;
+  }
+
+  const txRequest =
+    typeof prepared.tx_request === "object" && prepared.tx_request
+      ? (prepared.tx_request as Record<string, unknown>)
+      : null;
+
+  if (!txRequest) {
+    printJson(prepared);
+    return;
+  }
+
+  const txHash = await submitTxRequest(txRequest, configPath);
+  printJson({ ...prepared, submitted: true, tx_hash: txHash });
 };
 
 const AGENT_LAUNCH_TOTAL_SUPPLY = "100000000000000000000000000000";
@@ -144,12 +278,13 @@ export async function runAutolaunchLaunchPreview(args: ParsedCliArgs): Promise<v
   const required = requireLaunchIdentity(args);
   const body: LaunchPreviewBody = {
     agent_id: required.agent,
-    chain_id: required.chainId,
+    chain_id: Number(required.chainId),
     token_name: required.name,
     token_symbol: required.symbol,
     recovery_safe_address: required.treasuryAddress,
     auction_proceeds_recipient: required.treasuryAddress,
     ethereum_revenue_treasury: required.treasuryAddress,
+    minimum_raise_usdc: requireArg(getFlag(args, "minimum-raise-usdc"), "minimum-raise-usdc"),
     total_supply: AGENT_LAUNCH_TOTAL_SUPPLY,
     launch_notes: getFlag(args, "launch-notes"),
   };
@@ -167,12 +302,13 @@ export async function runAutolaunchLaunchCreate(args: ParsedCliArgs): Promise<vo
 
   const body: LaunchCreateBody = {
     agent_id: required.agent,
-    chain_id: required.chainId,
+    chain_id: Number(required.chainId),
     token_name: required.name,
     token_symbol: required.symbol,
     recovery_safe_address: required.treasuryAddress,
     auction_proceeds_recipient: required.treasuryAddress,
     ethereum_revenue_treasury: required.treasuryAddress,
+    minimum_raise_usdc: requireArg(getFlag(args, "minimum-raise-usdc"), "minimum-raise-usdc"),
     total_supply: AGENT_LAUNCH_TOTAL_SUPPLY,
     launch_notes: getFlag(args, "launch-notes"),
     wallet_address: requireArg(getFlag(args, "wallet-address"), "wallet-address"),
@@ -294,6 +430,113 @@ export async function runAutolaunchBidsExit(args: ParsedCliArgs): Promise<void> 
 export async function runAutolaunchBidsClaim(args: ParsedCliArgs): Promise<void> {
   const bidId = requirePositional(args, 3, "bid-id");
   await postBidMutation("claim", bidId, requireArg(getFlag(args, "tx-hash"), "tx-hash"));
+}
+
+const loadTrackedPositions = async (args: ParsedCliArgs) =>
+  requestJson(
+    "GET",
+    appendQuery("/api/me/bids", {
+      auction: getFlag(args, "auction"),
+      status: getFlag(args, "status"),
+    }),
+    { requireSession: true },
+  );
+
+const requireTrackedPosition = async (
+  bidId: string,
+  args: ParsedCliArgs,
+): Promise<Record<string, unknown>> => {
+  const payload = await loadTrackedPositions(args);
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  const position = items.find((item) => typeof item === "object" && item && (item as Record<string, unknown>).bid_id === bidId);
+  if (!position || typeof position !== "object") {
+    throw new Error(`tracked bid not found: ${bidId}`);
+  }
+
+  return position as Record<string, unknown>;
+};
+
+const prepareOrSubmitPositionAction = async (
+  bidId: string,
+  kind: "return-usdc" | "exit" | "claim",
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> => {
+  const position = await requireTrackedPosition(bidId, args);
+
+  const prepared =
+    kind === "return-usdc"
+      ? (position.return_action as Record<string, unknown> | undefined)
+      : ((position.tx_actions as Record<string, unknown> | undefined)?.[
+          kind === "claim" ? "claim" : "exit"
+        ] as Record<string, unknown> | undefined);
+
+  if (!prepared) {
+    printJson({ ok: false, error: `no ${kind} action is currently available`, bid_id: bidId, position });
+    return;
+  }
+
+  if (!getBooleanFlag(args, "submit")) {
+    printJson({ ok: true, bid_id: bidId, action: kind, prepared });
+    return;
+  }
+
+  const txRequest = prepared.tx_request as Record<string, unknown> | undefined;
+  if (!txRequest) {
+    printJson({ ok: false, error: "prepared action did not include tx_request", bid_id: bidId });
+    return;
+  }
+
+  const txHash = await submitTxRequest(txRequest, configPath);
+  const endpoint =
+    kind === "return-usdc"
+      ? `/api/bids/${encodeURIComponent(bidId)}/return-usdc`
+      : `/api/bids/${encodeURIComponent(bidId)}/${kind}`;
+
+  printJson(
+    await requestJson("POST", endpoint, {
+      body: { tx_hash: txHash },
+      requireSession: true,
+    }),
+  );
+};
+
+export async function runAutolaunchAuctionReturnsList(args: ParsedCliArgs): Promise<void> {
+  printJson(
+    await requestJson(
+      "GET",
+      appendQuery("/api/auction-returns", {
+        limit: getFlag(args, "limit"),
+        offset: getFlag(args, "offset"),
+      }),
+      { requireSession: true },
+    ),
+  );
+}
+
+export async function runAutolaunchPositionsList(args: ParsedCliArgs): Promise<void> {
+  printJson(await loadTrackedPositions(args));
+}
+
+export async function runAutolaunchPositionsReturnUsdc(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  await prepareOrSubmitPositionAction(requirePositional(args, 3, "bid-id"), "return-usdc", args, configPath);
+}
+
+export async function runAutolaunchPositionsExit(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  await prepareOrSubmitPositionAction(requirePositional(args, 3, "bid-id"), "exit", args, configPath);
+}
+
+export async function runAutolaunchPositionsClaim(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  await prepareOrSubmitPositionAction(requirePositional(args, 3, "bid-id"), "claim", args, configPath);
 }
 
 const buildEnsLinkBody = (args: ParsedCliArgs): Record<string, unknown> => {
@@ -425,46 +668,189 @@ export async function runAutolaunchSubjectIngress(args: ParsedCliArgs): Promise<
   printJson(await requestJson("GET", `/api/subjects/${encodeURIComponent(subjectId)}/ingress`, { requireSession: true }));
 }
 
-export async function runAutolaunchSubjectStake(args: ParsedCliArgs): Promise<void> {
+export async function runAutolaunchSubjectStake(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
-  printJson(
-    await requestJson("POST", `/api/subjects/${encodeURIComponent(subjectId)}/stake`, {
-      body: { amount: requireArg(getFlag(args, "amount"), "amount") },
-      requireSession: true,
-    }),
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/stake`,
+    { amount: requireArg(getFlag(args, "amount"), "amount") },
+    args,
+    configPath,
   );
 }
 
-export async function runAutolaunchSubjectUnstake(args: ParsedCliArgs): Promise<void> {
+export async function runAutolaunchSubjectUnstake(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
-  printJson(
-    await requestJson("POST", `/api/subjects/${encodeURIComponent(subjectId)}/unstake`, {
-      body: { amount: requireArg(getFlag(args, "amount"), "amount") },
-      requireSession: true,
-    }),
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/unstake`,
+    { amount: requireArg(getFlag(args, "amount"), "amount") },
+    args,
+    configPath,
   );
 }
 
-export async function runAutolaunchSubjectClaimUsdc(args: ParsedCliArgs): Promise<void> {
+export async function runAutolaunchSubjectClaimUsdc(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
-  printJson(
-    await requestJson("POST", `/api/subjects/${encodeURIComponent(subjectId)}/claim-usdc`, {
-      body: {},
-      requireSession: true,
-    }),
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
+    {},
+    args,
+    configPath,
   );
 }
 
-export async function runAutolaunchSubjectSweepIngress(args: ParsedCliArgs): Promise<void> {
+export async function runAutolaunchSubjectClaimEmissions(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/claim-emissions`,
+    {},
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchSubjectClaimAndStakeEmissions(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/claim-and-stake-emissions`,
+    {},
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchSubjectSweepIngress(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
   const address = requireArg(getFlag(args, "address"), "address");
 
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
+    {},
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchHoldingsList(args: ParsedCliArgs): Promise<void> {
   printJson(
     await requestJson(
-      "POST",
-      `/api/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
-      { body: {}, requireSession: true },
+      "GET",
+      appendQuery("/api/me/holdings", {
+        subject: getFlag(args, "subject"),
+      }),
+      { requireSession: true },
     ),
+  );
+}
+
+const requireHoldingSubjectId = (args: ParsedCliArgs): string =>
+  requirePositional(args, 3, "subject-id");
+
+export async function runAutolaunchHoldingsStake(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireHoldingSubjectId(args);
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/stake`,
+    { amount: requireArg(getFlag(args, "amount"), "amount") },
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchHoldingsUnstake(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireHoldingSubjectId(args);
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/unstake`,
+    { amount: requireArg(getFlag(args, "amount"), "amount") },
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchHoldingsClaimUsdc(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireHoldingSubjectId(args);
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
+    {},
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchHoldingsClaimEmissions(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireHoldingSubjectId(args);
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/claim-emissions`,
+    {},
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchHoldingsClaimAndStakeEmissions(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireHoldingSubjectId(args);
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/claim-and-stake-emissions`,
+    {},
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchHoldingsSweepIngress(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireHoldingSubjectId(args);
+  const ingressAddress = requireArg(getFlag(args, "address"), "address");
+  await prepareOrSubmitWrite(
+    "POST",
+    `/api/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(ingressAddress)}/sweep`,
+    {},
+    args,
+    configPath,
   );
 }
 

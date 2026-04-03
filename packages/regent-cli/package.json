@@ -8,7 +8,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "regent": "./dist/index.js"
+    "regent": "dist/index.js"
   },
   "files": [
     "dist",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/regent-ai/regent-cli.git",
+    "url": "git+https://github.com/regent-ai/regent-cli.git",
     "directory": "packages/regent-cli"
   },
   "homepage": "https://github.com/regent-ai/regent-cli",

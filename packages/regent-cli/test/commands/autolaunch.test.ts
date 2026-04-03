@@ -364,6 +364,8 @@ describe("autolaunch CLI command group", () => {
         "Atlas Coin",
         "--symbol",
         "ATLAS",
+        "--minimum-raise-usdc",
+        "10000",
         "--treasury-address",
         "0x1111111111111111111111111111111111111111",
       ]),
@@ -748,6 +750,8 @@ describe("autolaunch CLI command group", () => {
         "Agent Coin",
         "--symbol",
         "AGENT",
+        "--minimum-raise-usdc",
+        "2500",
         "--treasury-address",
         "0x0000000000000000000000000000000000000001",
       ]),
@@ -759,7 +763,7 @@ describe("autolaunch CLI command group", () => {
     expect((requestInit?.headers as Headers).get("cookie")).toBe("_autolaunch_key=abc");
     expect(JSON.parse(String(requestInit?.body))).toMatchObject({
       agent_id: "ag_123",
-      chain_id: "11155111",
+      chain_id: 11155111,
       token_name: "Agent Coin",
       token_symbol: "AGENT",
     });
@@ -898,6 +902,8 @@ describe("autolaunch CLI command group", () => {
         "Atlas Coin",
         "--symbol",
         "ATLAS",
+        "--minimum-raise-usdc",
+        "10000",
         "--treasury-safe-address",
         "0x1111111111111111111111111111111111111111",
         "--auction-proceeds-recipient",
@@ -921,6 +927,9 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock.mock.calls[3]?.[0]).toBe(
       `${expectedBaseUrl}/api/prelaunch/plans/plan_alpha/validate`,
     );
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
+      minimum_raise_usdc: "10000",
+    });
 
     const localPlan = JSON.parse(
       fs.readFileSync(

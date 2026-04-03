@@ -4,9 +4,10 @@ info:
   version: 0.1.0
   description: >
     Source-of-truth contract for shared Regent service rails that are not product-owned.
-    For the first cut, this file owns the Regent staking service only.
+    This file owns Regent staking plus shared operator reporting rails.
 tags:
   - name: regent-staking
+  - name: reports
 paths:
   /api/regent/staking:
     get:
@@ -90,6 +91,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PreparedActionResponse"
+  /api/regent/staking/claim-regent:
+    post:
+      operationId: claimRegentStakingRegent
+      tags: [regent-staking]
+      security: [{ PrivySessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        "200":
+          description: Regent claim prepared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedActionResponse"
+  /api/regent/staking/claim-and-restake-regent:
+    post:
+      operationId: claimAndRestakeRegentStakingRegent
+      tags: [regent-staking]
+      security: [{ PrivySessionCookie: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        "200":
+          description: Regent claim and restake prepared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedActionResponse"
   /api/regent/staking/deposit-usdc/prepare:
     post:
       operationId: prepareRegentStakingDepositUsdc
@@ -124,6 +161,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PreparedActionResponse"
+  /api/bug-report:
+    post:
+      operationId: createBugReport
+      tags: [reports]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BugReportRequest"
+      responses:
+        "200":
+          description: Bug report stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BugReportResponse"
+        "400":
+          description: Invalid report payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /api/security-report:
+    post:
+      operationId: createSecurityReport
+      tags: [reports]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SecurityReportRequest"
+      responses:
+        "200":
+          description: Security report stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecurityReportResponse"
+        "400":
+          description: Invalid report payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
 components:
   securitySchemes:
     PrivySessionCookie:
@@ -139,6 +222,110 @@ components:
       pattern: "^0x[a-fA-F0-9]*$"
     DecimalString:
       type: string
+    ReportStatus:
+      type: string
+      enum: [pending, fixed, won't fix, duplicate]
+    ReportingAgent:
+      type: object
+      required: [wallet_address, chain_id, registry_address, token_id]
+      properties:
+        wallet_address:
+          $ref: "#/components/schemas/Address"
+        chain_id:
+          type: integer
+        registry_address:
+          $ref: "#/components/schemas/Address"
+        token_id:
+          type: string
+        label:
+          type: string
+      additionalProperties: false
+    BugReportRequest:
+      type: object
+      required: [summary, details, reporting_agent]
+      properties:
+        summary:
+          type: string
+        details:
+          type: string
+        reporting_agent:
+          $ref: "#/components/schemas/ReportingAgent"
+      additionalProperties: false
+    SecurityReportRequest:
+      type: object
+      required: [summary, details, contact, reporting_agent]
+      properties:
+        summary:
+          type: string
+        details:
+          type: string
+        contact:
+          type: string
+        reporting_agent:
+          $ref: "#/components/schemas/ReportingAgent"
+      additionalProperties: false
+    BugReportRecord:
+      type: object
+      required: [report_id, summary, details, status, reporting_agent, created_at]
+      properties:
+        report_id:
+          type: string
+        summary:
+          type: string
+        details:
+          type: string
+        status:
+          $ref: "#/components/schemas/ReportStatus"
+        reporting_agent:
+          $ref: "#/components/schemas/ReportingAgent"
+        created_at:
+          type: string
+          format: date-time
+      additionalProperties: false
+    SecurityReportRecord:
+      type: object
+      required: [report_id, summary, details, contact, reporting_agent, created_at]
+      properties:
+        report_id:
+          type: string
+        summary:
+          type: string
+        details:
+          type: string
+        contact:
+          type: string
+        reporting_agent:
+          $ref: "#/components/schemas/ReportingAgent"
+        created_at:
+          type: string
+          format: date-time
+      additionalProperties: false
+    BugReportResponse:
+      type: object
+      required: [ok, message, public_url, report]
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        message:
+          type: string
+        public_url:
+          type: string
+        report:
+          $ref: "#/components/schemas/BugReportRecord"
+      additionalProperties: false
+    SecurityReportResponse:
+      type: object
+      required: [ok, message, report]
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        message:
+          type: string
+        report:
+          $ref: "#/components/schemas/SecurityReportRecord"
+      additionalProperties: false
     LooseObject:
       type: object
       additionalProperties: true

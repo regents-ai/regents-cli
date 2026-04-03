@@ -168,6 +168,8 @@ export function renderUsageScreen(configPath: string): string {
       "regent techtree bbh sync",
     ]),
     ...renderUsageGroup("Messaging + Other", [
+      "regent bug --summary \"can't do xyz\" --details \"any more details here\"",
+      "regent security-report --summary \"private vuln\" --details \"steps and impact\" --contact \"@xyz on telegram\"",
       "regent xmtp init",
       "regent xmtp status",
       "regent xmtp doctor",

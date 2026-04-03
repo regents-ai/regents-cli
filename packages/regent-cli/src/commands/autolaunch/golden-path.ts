@@ -224,6 +224,9 @@ const createOrUpdateRemotePlan = async (
   const tokenSymbol =
     normalizeText(getFlag(args, "symbol")) ||
     (isHumanTerminal() ? await prompt("Token symbol") : undefined);
+  const minimumRaiseUsdc =
+    normalizeText(getFlag(args, "minimum-raise-usdc")) ||
+    (isHumanTerminal() ? await prompt("Minimum USDC raise") : undefined);
   const treasurySafe =
     normalizeText(getFlag(args, "treasury-safe-address") ?? getFlag(args, "treasury-address")) ||
     (isHumanTerminal() ? await prompt("Treasury safe") : undefined);
@@ -261,6 +264,7 @@ const createOrUpdateRemotePlan = async (
     agent_id: requireArg(agentId, "agent"),
     token_name: requireArg(tokenName, "name"),
     token_symbol: requireArg(tokenSymbol, "symbol"),
+    minimum_raise_usdc: requireArg(minimumRaiseUsdc, "minimum-raise-usdc"),
     treasury_safe_address: requireArg(treasurySafe, "treasury-safe-address"),
     auction_proceeds_recipient: requireArg(auctionProceeds, "auction-proceeds-recipient"),
     ethereum_revenue_treasury: requireArg(revenueTreasury, "ethereum-revenue-treasury"),

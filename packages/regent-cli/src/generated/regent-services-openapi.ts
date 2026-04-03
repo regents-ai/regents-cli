@@ -84,6 +84,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/regent/staking/claim-regent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["claimRegentStakingRegent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/regent/staking/claim-and-restake-regent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["claimAndRestakeRegentStakingRegent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/regent/staking/deposit-usdc/prepare": {
         parameters: {
             query?: never;
@@ -116,6 +148,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/bug-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createBugReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/security-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createSecurityReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -123,6 +187,57 @@ export interface components {
         Address: string;
         HexData: string;
         DecimalString: string;
+        /** @enum {string} */
+        ReportStatus: "pending" | "fixed" | "won't fix" | "duplicate";
+        ReportingAgent: {
+            wallet_address: components["schemas"]["Address"];
+            chain_id: number;
+            registry_address: components["schemas"]["Address"];
+            token_id: string;
+            label?: string;
+        };
+        BugReportRequest: {
+            summary: string;
+            details: string;
+            reporting_agent: components["schemas"]["ReportingAgent"];
+        };
+        SecurityReportRequest: {
+            summary: string;
+            details: string;
+            contact: string;
+            reporting_agent: components["schemas"]["ReportingAgent"];
+        };
+        BugReportRecord: {
+            report_id: string;
+            summary: string;
+            details: string;
+            status: components["schemas"]["ReportStatus"];
+            reporting_agent: components["schemas"]["ReportingAgent"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        SecurityReportRecord: {
+            report_id: string;
+            summary: string;
+            details: string;
+            contact: string;
+            reporting_agent: components["schemas"]["ReportingAgent"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        BugReportResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            message: string;
+            public_url: string;
+            report: components["schemas"]["BugReportRecord"];
+        };
+        SecurityReportResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            message: string;
+            report: components["schemas"]["SecurityReportRecord"];
+        };
         LooseObject: {
             [key: string]: unknown;
         };
@@ -340,6 +455,54 @@ export interface operations {
             };
         };
     };
+    claimRegentStakingRegent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Regent claim prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedActionResponse"];
+                };
+            };
+        };
+    };
+    claimAndRestakeRegentStakingRegent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Regent claim and restake prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedActionResponse"];
+                };
+            };
+        };
+    };
     prepareRegentStakingDepositUsdc: {
         parameters: {
             query?: never;
@@ -384,6 +547,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PreparedActionResponse"];
+                };
+            };
+        };
+    };
+    createBugReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BugReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Bug report stored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BugReportResponse"];
+                };
+            };
+            /** @description Invalid report payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    createSecurityReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecurityReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Security report stored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SecurityReportResponse"];
+                };
+            };
+            /** @description Invalid report payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
         };

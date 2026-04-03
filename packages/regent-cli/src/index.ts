@@ -14,12 +14,20 @@ import {
   runAutolaunchAgentReadiness,
   runAutolaunchAgentShow,
   runAutolaunchAuctionsList,
+  runAutolaunchAuctionReturnsList,
   runAutolaunchAuctionShow,
   runAutolaunchBidsClaim,
   runAutolaunchBidsExit,
   runAutolaunchBidsMine,
   runAutolaunchBidsPlace,
   runAutolaunchBidsQuote,
+  runAutolaunchHoldingsClaimAndStakeEmissions,
+  runAutolaunchHoldingsClaimEmissions,
+  runAutolaunchHoldingsClaimUsdc,
+  runAutolaunchHoldingsList,
+  runAutolaunchHoldingsStake,
+  runAutolaunchHoldingsSweepIngress,
+  runAutolaunchHoldingsUnstake,
   runAutolaunchEnsPlan,
   runAutolaunchEnsPrepareBidirectional,
   runAutolaunchEnsPrepareErc8004,
@@ -64,11 +72,17 @@ import {
   runAutolaunchStrategySweepToken,
   runAutolaunchTrustXLink,
   runAutolaunchSubjectClaimUsdc,
+  runAutolaunchSubjectClaimAndStakeEmissions,
+  runAutolaunchSubjectClaimEmissions,
   runAutolaunchSubjectIngress,
   runAutolaunchSubjectShow,
   runAutolaunchSubjectStake,
   runAutolaunchSubjectSweepIngress,
   runAutolaunchSubjectUnstake,
+  runAutolaunchPositionsClaim,
+  runAutolaunchPositionsExit,
+  runAutolaunchPositionsList,
+  runAutolaunchPositionsReturnUsdc,
   runAutolaunchVestingRelease,
   runAutolaunchVestingStatus,
 } from "./commands/autolaunch.js";
@@ -201,11 +215,14 @@ import {
 } from "./commands/xmtp.js";
 import {
   runRegentStakingAccount,
+  runRegentStakingClaimAndRestakeRegent,
+  runRegentStakingClaimRegent,
   runRegentStakingClaimUsdc,
   runRegentStakingShow,
   runRegentStakingStake,
   runRegentStakingUnstake,
 } from "./commands/regent-staking.js";
+import { runBugReport, runSecurityReport } from "./commands/reports.js";
 import { getFlag, parseCliArgs, requireArg } from "./parse.js";
 import { printError, printText, renderUsageScreen } from "./printer.js";
 
@@ -243,6 +260,16 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "run") {
       await runRuntime(configPath);
+      return 0;
+    }
+
+    if (namespace === "bug") {
+      await runBugReport(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "security-report") {
+      await runSecurityReport(parsedArgs, configPath);
       return 0;
     }
 
@@ -341,7 +368,17 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "regent-staking" && subcommand === "claim-usdc") {
-      await runRegentStakingClaimUsdc();
+      await runRegentStakingClaimUsdc(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "regent-staking" && subcommand === "claim-regent") {
+      await runRegentStakingClaimRegent(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "regent-staking" && subcommand === "claim-and-restake-regent") {
+      await runRegentStakingClaimAndRestakeRegent(parsedArgs, configPath);
       return 0;
     }
 
@@ -884,6 +921,11 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
+    if (namespace === "autolaunch" && subcommand === "auction-returns" && maybeThird === "list") {
+      await runAutolaunchAuctionReturnsList(parsedArgs);
+      return 0;
+    }
+
     if (namespace === "autolaunch" && subcommand === "auction" && maybeThird) {
       await runAutolaunchAuctionShow(maybeThird);
       return 0;
@@ -911,6 +953,26 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "autolaunch" && subcommand === "bids" && maybeThird === "claim") {
       await runAutolaunchBidsClaim(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "positions" && maybeThird === "list") {
+      await runAutolaunchPositionsList(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "positions" && maybeThird === "return-usdc") {
+      await runAutolaunchPositionsReturnUsdc(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "positions" && maybeThird === "exit") {
+      await runAutolaunchPositionsExit(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "positions" && maybeThird === "claim") {
+      await runAutolaunchPositionsClaim(parsedArgs, configPath);
       return 0;
     }
 
@@ -1005,22 +1067,75 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "stake") {
-      await runAutolaunchSubjectStake(parsedArgs);
+      await runAutolaunchSubjectStake(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "unstake") {
-      await runAutolaunchSubjectUnstake(parsedArgs);
+      await runAutolaunchSubjectUnstake(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "claim-usdc") {
-      await runAutolaunchSubjectClaimUsdc(parsedArgs);
+      await runAutolaunchSubjectClaimUsdc(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "claim-emissions") {
+      await runAutolaunchSubjectClaimEmissions(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "subjects" &&
+        maybeThird === "claim-and-stake-emissions"
+    ) {
+      await runAutolaunchSubjectClaimAndStakeEmissions(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "sweep-ingress") {
-      await runAutolaunchSubjectSweepIngress(parsedArgs);
+      await runAutolaunchSubjectSweepIngress(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "holdings" && maybeThird === "list") {
+      await runAutolaunchHoldingsList(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "holdings" && maybeThird === "stake") {
+      await runAutolaunchHoldingsStake(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "holdings" && maybeThird === "unstake") {
+      await runAutolaunchHoldingsUnstake(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "holdings" && maybeThird === "claim-usdc") {
+      await runAutolaunchHoldingsClaimUsdc(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "holdings" && maybeThird === "claim-emissions") {
+      await runAutolaunchHoldingsClaimEmissions(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "holdings" &&
+        maybeThird === "claim-and-stake-emissions"
+    ) {
+      await runAutolaunchHoldingsClaimAndStakeEmissions(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "holdings" && maybeThird === "sweep-ingress") {
+      await runAutolaunchHoldingsSweepIngress(parsedArgs, configPath);
       return 0;
     }
 

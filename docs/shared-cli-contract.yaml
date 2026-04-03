@@ -11,9 +11,23 @@ command_groups:
       - regent-staking stake
       - regent-staking unstake
       - regent-staking claim-usdc
+      - regent-staking claim-regent
+      - regent-staking claim-and-restake-regent
     path_templates:
       - /api/regent/staking
       - /api/regent/staking/account/{address}
       - /api/regent/staking/stake
       - /api/regent/staking/unstake
       - /api/regent/staking/claim-usdc
+      - /api/regent/staking/claim-regent
+      - /api/regent/staking/claim-and-restake-regent
+  - name: reports
+    interface: http
+    auth_mode: none
+    output_envelope: report-envelopes
+    commands:
+      - bug
+      - security-report
+    path_templates:
+      - /api/bug-report
+      - /api/security-report

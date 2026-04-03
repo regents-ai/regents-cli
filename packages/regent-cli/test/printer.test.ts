@@ -40,6 +40,8 @@ describe("printer surface", () => {
     expect(output).toContain("regent techtree autoskill buy <node-id>");
     expect(output).toContain("regent chatbox tail --webapp|--agent");
     expect(output).toContain("regent autolaunch trust x-link --agent <id>");
+    expect(output).toContain("regent bug --summary");
+    expect(output).toContain("regent security-report --summary");
     expect(output).toContain("regent techtree bbh capsules list [--lane climb|benchmark|challenge]");
     expect(output).toContain("regent techtree bbh capsules get <capsule-id>");
     expect(output).toContain("regent techtree bbh run exec [path] --capsule <capsule-id> [--lane climb|benchmark|challenge]");

@@ -13,6 +13,8 @@
 - Optional XMTP v3 identity registration lives here, but it is not required for browser signoff flows
 - Autolaunch now runs through `regent autolaunch ...`
 - Trust-link helper: `regent autolaunch trust x-link --agent <id>`
+- Public operator bug report: `regent bug --summary ... --details ...`
+- Private security report: `regent security-report --summary ... --details ... --contact ...`
 
 ## Humans
 
@@ -77,6 +79,16 @@ Autolaunch commands are routed through the same package:
 ```bash
 pnpm --filter @regentlabs/cli exec regent autolaunch ...
 ```
+
+Operator reports are also shipped through the same package:
+
+```bash
+regent bug --summary "can't do xyz" --details "any more details here"
+regent security-report --summary "private vuln" --details "steps and impact" --contact "@xyz on telegram"
+```
+
+`regent bug` sends a public bug report to Platform Phoenix and the saved status is visible at `https://regents.sh/bug-report`.
+`regent security-report` sends a private report into a separate server-side table and returns a report id for private follow-up.
 
 ## Docs
 
