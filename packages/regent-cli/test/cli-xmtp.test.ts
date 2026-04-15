@@ -5,13 +5,22 @@ import { describe, expect, it } from "vitest";
 
 import { captureOutput } from "../../../test-support/test-helpers.js";
 import {
+  addXmtpGroupAdminMock,
   TEST_WALLET,
   addXmtpGroupMembersMock,
+  addXmtpGroupSuperAdminMock,
   createXmtpGroupMock,
   ensureXmtpPolicyFileMock,
+  getXmtpGroupPermissionsMock,
   getXmtpStatusMock,
   initializeXmtpMock,
+  listXmtpGroupAdminsMock,
+  listXmtpGroupMembersMock,
+  listXmtpGroupSuperAdminsMock,
   listXmtpGroupsMock,
+  removeXmtpGroupAdminMock,
+  removeXmtpGroupMembersMock,
+  removeXmtpGroupSuperAdminMock,
   resolveXmtpIdentifierMock,
   revokeAllOtherXmtpInstallationsMock,
   rotateXmtpDbKeyMock,
@@ -19,6 +28,7 @@ import {
   runScopedDoctorMock,
   setupCliEntrypointHarness,
   testXmtpDmMock,
+  updateXmtpGroupPermissionMock,
 } from "./helpers/cli-entrypoint-support.js";
 
 const harness = setupCliEntrypointHarness();
@@ -255,6 +265,307 @@ describe("CLI XMTP flows", () => {
       ok: true,
       conversations: [{ id: "group-1", type: "group", name: "Reviewers" }],
     });
+  });
+
+  it("lists members and permissions for an XMTP group", async () => {
+    const members = await captureOutput(async () =>
+      harness.runCliEntrypoint(["xmtp", "group", "members", "group-1", "--sync", "--config", harness.configPath]),
+    );
+
+    expect(members.result).toBe(0);
+    expect(listXmtpGroupMembersMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+      { sync: true },
+    );
+    expect(JSON.parse(members.stdout)).toEqual({
+      ok: true,
+      conversationId: "group-1",
+      members: [
+        {
+          inboxId: "member-1",
+          accountIdentifiers: ["0x3333333333333333333333333333333333333333"],
+          installationIds: ["install-1"],
+          permissionLevel: "member",
+          consentState: "allowed",
+        },
+      ],
+      count: 1,
+    });
+
+    const permissions = await captureOutput(async () =>
+      harness.runCliEntrypoint(["xmtp", "group", "permissions", "group-1", "--config", harness.configPath]),
+    );
+
+    expect(permissions.result).toBe(0);
+    expect(getXmtpGroupPermissionsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+    );
+    expect(JSON.parse(permissions.stdout)).toEqual({
+      ok: true,
+      conversationId: "group-1",
+      permissions: {
+        policyType: "custom",
+        policySet: {
+          addMemberPolicy: "admin",
+        },
+      },
+    });
+  });
+
+  it("updates XMTP group permissions", async () => {
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "update-permission",
+        "group-1",
+        "--type",
+        "update-metadata",
+        "--policy",
+        "admin",
+        "--metadata-field",
+        "group-name",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(updateXmtpGroupPermissionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+      {
+        type: "update-metadata",
+        policy: "admin",
+        metadataField: "group-name",
+      },
+    );
+  });
+
+  it("rejects unsupported XMTP group permission values before calling the XMTP tool", async () => {
+    const invalidType = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "update-permission",
+        "group-1",
+        "--type",
+        "rename-group",
+        "--policy",
+        "admin",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(invalidType.result).toBe(1);
+    expect(invalidType.stderr).toContain("invalid --type");
+    expect(updateXmtpGroupPermissionMock).not.toHaveBeenCalled();
+
+    const invalidMetadataField = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "update-permission",
+        "group-1",
+        "--type",
+        "update-metadata",
+        "--policy",
+        "admin",
+        "--metadata-field",
+        "topic",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(invalidMetadataField.result).toBe(1);
+    expect(invalidMetadataField.stderr).toContain("invalid --metadata-field");
+    expect(updateXmtpGroupPermissionMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsupported XMTP group create permissions before calling the XMTP tool", async () => {
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "create",
+        "0x3333333333333333333333333333333333333333",
+        "--permissions",
+        "owners-only",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(output.result).toBe(1);
+    expect(output.stderr).toContain("invalid --permissions");
+    expect(createXmtpGroupMock).not.toHaveBeenCalled();
+  });
+
+  it("promotes, demotes, and lists XMTP group admins", async () => {
+    const addAdmin = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "add-admin",
+        "group-1",
+        "--address",
+        TEST_WALLET,
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(addAdmin.result).toBe(0);
+    expect(resolveXmtpIdentifierMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      TEST_WALLET,
+    );
+    expect(addXmtpGroupAdminMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+      "owner-inbox",
+    );
+
+    const removeAdmin = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "remove-admin",
+        "group-1",
+        "--inbox-id",
+        "admin-inbox",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(removeAdmin.result).toBe(0);
+    expect(removeXmtpGroupAdminMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+      "admin-inbox",
+    );
+
+    const admins = await captureOutput(async () =>
+      harness.runCliEntrypoint(["xmtp", "group", "admins", "group-1", "--config", harness.configPath]),
+    );
+
+    expect(admins.result).toBe(0);
+    expect(listXmtpGroupAdminsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+    );
+    expect(JSON.parse(admins.stdout)).toEqual({
+      ok: true,
+      conversationId: "group-1",
+      items: ["admin-inbox"],
+      count: 1,
+    });
+  });
+
+  it("promotes, demotes, and lists XMTP group super admins", async () => {
+    const addSuperAdmin = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "add-super-admin",
+        "group-1",
+        "--address",
+        TEST_WALLET,
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(addSuperAdmin.result).toBe(0);
+    expect(addXmtpGroupSuperAdminMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+      "owner-inbox",
+    );
+
+    const removeSuperAdmin = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "remove-super-admin",
+        "group-1",
+        "--inbox-id",
+        "super-admin-inbox",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(removeSuperAdmin.result).toBe(0);
+    expect(removeXmtpGroupSuperAdminMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+      "super-admin-inbox",
+    );
+
+    const superAdmins = await captureOutput(async () =>
+      harness.runCliEntrypoint(["xmtp", "group", "super-admins", "group-1", "--config", harness.configPath]),
+    );
+
+    expect(superAdmins.result).toBe(0);
+    expect(listXmtpGroupSuperAdminsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+    );
+    expect(JSON.parse(superAdmins.stdout)).toEqual({
+      ok: true,
+      conversationId: "group-1",
+      items: ["super-admin-inbox"],
+      count: 1,
+    });
+  });
+
+  it("removes XMTP group members by address", async () => {
+    const removed = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "xmtp",
+        "group",
+        "remove-member",
+        "group-1",
+        "0x3333333333333333333333333333333333333333",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+
+    expect(removed.result).toBe(0);
+    expect(removeXmtpGroupMembersMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
+      }),
+      "group-1",
+      ["0x3333333333333333333333333333333333333333"],
+    );
   });
 
   it("runs XMTP installation hygiene commands", async () => {

@@ -12,6 +12,12 @@ import type {
   XmtpGroupAddMembersResult,
   XmtpGroupCreateResult,
   XmtpGroupListResult,
+  XmtpGroupMembersResult,
+  XmtpGroupPermissionUpdateResult,
+  XmtpGroupPermissionsResult,
+  XmtpGroupRemoveMembersResult,
+  XmtpGroupRoleListResult,
+  XmtpGroupRoleMutationResult,
   XmtpInitResult,
   XmtpInstallationRevokeResult,
   XmtpMutationResult,
@@ -91,6 +97,51 @@ interface XmtpCliSendTextResult {
 
 interface XmtpCliCreateDmResult {
   id?: string;
+}
+
+interface XmtpCliGroupMemberRecord {
+  inboxId?: string;
+  accountIdentifiers?: string[];
+  installationIds?: string[];
+  permissionLevel?: string | number | null;
+  consentState?: string | null;
+}
+
+interface XmtpCliGroupPermissionsResult {
+  conversationId?: string;
+  permissions?: {
+    policyType?: string | null;
+    policySet?: Record<string, unknown>;
+  };
+}
+
+interface XmtpCliGroupPermissionUpdateResult {
+  success?: boolean;
+  conversationId?: string;
+  permissionType?: string;
+  policy?: string;
+  metadataField?: string | null;
+}
+
+interface XmtpCliGroupRoleListResult {
+  conversationId?: string;
+  admins?: string[];
+  superAdmins?: string[];
+  count?: number;
+}
+
+interface XmtpCliGroupRoleMutationResult {
+  success?: boolean;
+  conversationId?: string;
+  inboxId?: string;
+  message?: string;
+}
+
+interface XmtpCliRemoveMembersResult {
+  success?: boolean;
+  conversationId?: string;
+  removedMembers?: string[];
+  count?: number;
 }
 
 interface XmtpRuntimeState {
@@ -707,6 +758,183 @@ export const addXmtpGroupMembers = async (
     count: payload.count ?? members.length,
   };
 };
+
+export const removeXmtpGroupMembers = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  members: string[],
+): Promise<XmtpGroupRemoveMembersResult> => {
+  if (members.length === 0) {
+    throw new RegentError("xmtp_group_members_missing", "at least one member address is required");
+  }
+
+  const payload = await runConnectedXmtpCliJson<XmtpCliRemoveMembersResult>(config, [
+    "conversation",
+    "remove-members",
+    conversationId,
+    ...members.map((member) => member.toLowerCase()),
+  ]);
+
+  return {
+    ok: true,
+    conversationId: payload.conversationId ?? conversationId,
+    removedMembers: payload.removedMembers ?? members,
+    count: payload.count ?? members.length,
+  };
+};
+
+export const listXmtpGroupMembers = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  options?: { sync?: boolean },
+): Promise<XmtpGroupMembersResult> => {
+  const payload = await runConnectedXmtpCliJson<XmtpCliGroupMemberRecord[]>(config, [
+    "conversation",
+    "members",
+    conversationId,
+    ...(options?.sync ? ["--sync"] : []),
+  ]);
+
+  const members = payload.map((member) => ({
+    inboxId: member.inboxId ?? "unknown",
+    accountIdentifiers: member.accountIdentifiers ?? [],
+    installationIds: member.installationIds ?? [],
+    permissionLevel: member.permissionLevel ?? null,
+    consentState: member.consentState ?? null,
+  }));
+
+  return {
+    ok: true,
+    conversationId,
+    members,
+    count: members.length,
+  };
+};
+
+export const getXmtpGroupPermissions = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+): Promise<XmtpGroupPermissionsResult> => {
+  const payload = await runConnectedXmtpCliJson<XmtpCliGroupPermissionsResult>(config, [
+    "conversation",
+    "permissions",
+    conversationId,
+  ]);
+
+  return {
+    ok: true,
+    conversationId: payload.conversationId ?? conversationId,
+    permissions: {
+      policyType: payload.permissions?.policyType ?? null,
+      policySet: payload.permissions?.policySet ?? {},
+    },
+  };
+};
+
+export const updateXmtpGroupPermission = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  input: {
+    type: string;
+    policy: string;
+    metadataField?: string;
+  },
+): Promise<XmtpGroupPermissionUpdateResult> => {
+  const payload = await runConnectedXmtpCliJson<XmtpCliGroupPermissionUpdateResult>(config, [
+    "conversation",
+    "update-permission",
+    conversationId,
+    "--type",
+    input.type,
+    "--policy",
+    input.policy,
+    ...(input.metadataField ? ["--metadata-field", input.metadataField] : []),
+  ]);
+
+  return {
+    ok: true,
+    conversationId: payload.conversationId ?? conversationId,
+    permissionType: payload.permissionType ?? input.type,
+    policy: payload.policy ?? input.policy,
+    metadataField: payload.metadataField ?? input.metadataField ?? null,
+  };
+};
+
+const listXmtpGroupRole = async (
+  config: RegentConfig["xmtp"],
+  command: "list-admins" | "list-super-admins",
+  conversationId: string,
+): Promise<XmtpGroupRoleListResult> => {
+  const payload = await runConnectedXmtpCliJson<XmtpCliGroupRoleListResult>(config, [
+    "conversation",
+    command,
+    conversationId,
+  ]);
+
+  const items = command === "list-admins" ? (payload.admins ?? []) : (payload.superAdmins ?? []);
+
+  return {
+    ok: true,
+    conversationId: payload.conversationId ?? conversationId,
+    items,
+    count: payload.count ?? items.length,
+  };
+};
+
+export const listXmtpGroupAdmins = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+): Promise<XmtpGroupRoleListResult> => listXmtpGroupRole(config, "list-admins", conversationId);
+
+export const listXmtpGroupSuperAdmins = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+): Promise<XmtpGroupRoleListResult> => listXmtpGroupRole(config, "list-super-admins", conversationId);
+
+const mutateXmtpGroupRole = async (
+  config: RegentConfig["xmtp"],
+  command: "add-admin" | "remove-admin" | "add-super-admin" | "remove-super-admin",
+  conversationId: string,
+  inboxId: string,
+): Promise<XmtpGroupRoleMutationResult> => {
+  const payload = await runConnectedXmtpCliJson<XmtpCliGroupRoleMutationResult>(config, [
+    "conversation",
+    command,
+    conversationId,
+    inboxId,
+  ]);
+
+  return {
+    ok: true,
+    conversationId: payload.conversationId ?? conversationId,
+    inboxId: payload.inboxId ?? inboxId,
+    message: payload.message ?? "Group role updated",
+  };
+};
+
+export const addXmtpGroupAdmin = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  inboxId: string,
+): Promise<XmtpGroupRoleMutationResult> => mutateXmtpGroupRole(config, "add-admin", conversationId, inboxId);
+
+export const removeXmtpGroupAdmin = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  inboxId: string,
+): Promise<XmtpGroupRoleMutationResult> => mutateXmtpGroupRole(config, "remove-admin", conversationId, inboxId);
+
+export const addXmtpGroupSuperAdmin = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  inboxId: string,
+): Promise<XmtpGroupRoleMutationResult> => mutateXmtpGroupRole(config, "add-super-admin", conversationId, inboxId);
+
+export const removeXmtpGroupSuperAdmin = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  inboxId: string,
+): Promise<XmtpGroupRoleMutationResult> => mutateXmtpGroupRole(config, "remove-super-admin", conversationId, inboxId);
 
 export const testXmtpDm = async (
   config: RegentConfig["xmtp"],

@@ -117,6 +117,59 @@ export interface XmtpGroupListResult {
   conversations: XmtpRecentConversation[];
 }
 
+export interface XmtpGroupMemberRecord {
+  inboxId: string;
+  accountIdentifiers: string[];
+  installationIds: string[];
+  permissionLevel: string | number | null;
+  consentState: string | null;
+}
+
+export interface XmtpGroupMembersResult {
+  ok: true;
+  conversationId: string;
+  members: XmtpGroupMemberRecord[];
+  count: number;
+}
+
+export interface XmtpGroupPermissionsResult {
+  ok: true;
+  conversationId: string;
+  permissions: {
+    policyType: string | null;
+    policySet: Record<string, unknown>;
+  };
+}
+
+export interface XmtpGroupPermissionUpdateResult {
+  ok: true;
+  conversationId: string;
+  permissionType: string;
+  policy: string;
+  metadataField: string | null;
+}
+
+export interface XmtpGroupRoleListResult {
+  ok: true;
+  conversationId: string;
+  items: string[];
+  count: number;
+}
+
+export interface XmtpGroupRoleMutationResult {
+  ok: true;
+  conversationId: string;
+  inboxId: string;
+  message: string;
+}
+
+export interface XmtpGroupRemoveMembersResult {
+  ok: true;
+  conversationId: string;
+  removedMembers: string[];
+  count: number;
+}
+
 export interface XmtpInstallationRevokeResult {
   ok: true;
   currentInstallationId: string;

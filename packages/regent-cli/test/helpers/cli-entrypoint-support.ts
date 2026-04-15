@@ -22,6 +22,16 @@ const cliMocks = vi.hoisted(() => ({
   listXmtpGroupsMock: vi.fn(),
   createXmtpGroupMock: vi.fn(),
   addXmtpGroupMembersMock: vi.fn(),
+  removeXmtpGroupMembersMock: vi.fn(),
+  listXmtpGroupMembersMock: vi.fn(),
+  getXmtpGroupPermissionsMock: vi.fn(),
+  updateXmtpGroupPermissionMock: vi.fn(),
+  listXmtpGroupAdminsMock: vi.fn(),
+  listXmtpGroupSuperAdminsMock: vi.fn(),
+  addXmtpGroupAdminMock: vi.fn(),
+  removeXmtpGroupAdminMock: vi.fn(),
+  addXmtpGroupSuperAdminMock: vi.fn(),
+  removeXmtpGroupSuperAdminMock: vi.fn(),
   revokeAllOtherXmtpInstallationsMock: vi.fn(),
   rotateXmtpDbKeyMock: vi.fn(),
   rotateXmtpWalletMock: vi.fn(),
@@ -53,6 +63,16 @@ export const {
   listXmtpGroupsMock,
   createXmtpGroupMock,
   addXmtpGroupMembersMock,
+  removeXmtpGroupMembersMock,
+  listXmtpGroupMembersMock,
+  getXmtpGroupPermissionsMock,
+  updateXmtpGroupPermissionMock,
+  listXmtpGroupAdminsMock,
+  listXmtpGroupSuperAdminsMock,
+  addXmtpGroupAdminMock,
+  removeXmtpGroupAdminMock,
+  addXmtpGroupSuperAdminMock,
+  removeXmtpGroupSuperAdminMock,
   revokeAllOtherXmtpInstallationsMock,
   rotateXmtpDbKeyMock,
   rotateXmtpWalletMock,
@@ -261,6 +281,37 @@ const defaultDaemonResponse = async (method: string, params?: unknown) => {
           decision: "support",
           raw_score: 0.8,
           normalized_score: 0.9,
+        },
+      };
+    }
+
+    if (method === "techtree.v1.bbh.notebook.pair") {
+      return {
+        ok: true,
+        entrypoint: "bbh.notebook.pair",
+        workspace_path: workspacePath,
+        notebook_path: path.join(workspacePath, "analysis.py"),
+        launch_argv: ["uvx", "marimo", "edit", "analysis.py"],
+        marimo_pair: {
+          skill_name: "marimo-pair",
+          installed: true,
+          scopes: ["project"],
+          agents: ["OpenClaw"],
+          install_commands: [
+            "npx skills add marimo-team/marimo-pair",
+            "npx skills upgrade marimo-team/marimo-pair",
+            "uvx deno -A npm:skills add marimo-team/marimo-pair",
+          ],
+        },
+        instructions: {
+          recommended_default: "Use the Techtree CLI skill with an OpenAI plan on GPT-5.4 high effort.",
+          techtree_skill: "techtree-bbh-workspace",
+          hermes_prompt: "Use the installed skills `techtree-bbh-workspace` and `marimo-pair`.",
+          openclaw_prompt: "Use the installed skills `techtree-bbh-workspace` and `marimo-pair`.",
+          next_regent_commands: [
+            `regent techtree bbh submit ${workspacePath}`,
+            `regent techtree bbh validate ${workspacePath}`,
+          ],
         },
       };
     }
@@ -778,6 +829,39 @@ const defaultDaemonResponse = async (method: string, params?: unknown) => {
 
   }
 
+  if (method === "techtree.autoskill.notebook.pair") {
+    const payload = (params ?? {}) as Record<string, unknown>;
+    const workspacePath =
+      typeof payload.workspace_path === "string" ? payload.workspace_path : path.resolve("workspace");
+
+    return {
+      ok: true,
+      entrypoint: "autoskill.notebook.pair",
+      workspace_path: workspacePath,
+      workspace_kind: "skill",
+      notebook_path: path.join(workspacePath, "session.marimo.py"),
+      launch_argv: ["uvx", "marimo", "edit", "session.marimo.py"],
+      marimo_pair: {
+        skill_name: "marimo-pair",
+        installed: true,
+        scopes: ["project"],
+        agents: ["OpenClaw"],
+        install_commands: [
+          "npx skills add marimo-team/marimo-pair",
+          "npx skills upgrade marimo-team/marimo-pair",
+          "uvx deno -A npm:skills add marimo-team/marimo-pair",
+        ],
+      },
+      instructions: {
+        recommended_default: "Use the Techtree CLI skill with an OpenAI plan on GPT-5.4 high effort.",
+        techtree_skill: "techtree-autoskill-workspace",
+        hermes_prompt: "Use the installed skills `techtree-autoskill-workspace` and `marimo-pair`.",
+        openclaw_prompt: "Use the installed skills `techtree-autoskill-workspace` and `marimo-pair`.",
+        next_regent_commands: [`regent techtree autoskill publish skill ${workspacePath}`],
+      },
+    };
+  }
+
   if (method === "agent.init" || method === "agent.status") {
     return {
       initialized: true,
@@ -869,6 +953,16 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
         listXmtpGroups: listXmtpGroupsMock,
         createXmtpGroup: createXmtpGroupMock,
         addXmtpGroupMembers: addXmtpGroupMembersMock,
+        removeXmtpGroupMembers: removeXmtpGroupMembersMock,
+        listXmtpGroupMembers: listXmtpGroupMembersMock,
+        getXmtpGroupPermissions: getXmtpGroupPermissionsMock,
+        updateXmtpGroupPermission: updateXmtpGroupPermissionMock,
+        listXmtpGroupAdmins: listXmtpGroupAdminsMock,
+        listXmtpGroupSuperAdmins: listXmtpGroupSuperAdminsMock,
+        addXmtpGroupAdmin: addXmtpGroupAdminMock,
+        removeXmtpGroupAdmin: removeXmtpGroupAdminMock,
+        addXmtpGroupSuperAdmin: addXmtpGroupSuperAdminMock,
+        removeXmtpGroupSuperAdmin: removeXmtpGroupSuperAdminMock,
         revokeAllOtherXmtpInstallations: revokeAllOtherXmtpInstallationsMock,
         rotateXmtpDbKey: rotateXmtpDbKeyMock,
         rotateXmtpWallet: rotateXmtpWalletMock,
@@ -1040,6 +1134,99 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
       count: 1,
     });
 
+    removeXmtpGroupMembersMock.mockReset();
+    removeXmtpGroupMembersMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      removedMembers: ["0x3333333333333333333333333333333333333333"],
+      count: 1,
+    });
+
+    listXmtpGroupMembersMock.mockReset();
+    listXmtpGroupMembersMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      members: [
+        {
+          inboxId: "member-1",
+          accountIdentifiers: ["0x3333333333333333333333333333333333333333"],
+          installationIds: ["install-1"],
+          permissionLevel: "member",
+          consentState: "allowed",
+        },
+      ],
+      count: 1,
+    });
+
+    getXmtpGroupPermissionsMock.mockReset();
+    getXmtpGroupPermissionsMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      permissions: {
+        policyType: "custom",
+        policySet: {
+          addMemberPolicy: "admin",
+        },
+      },
+    });
+
+    updateXmtpGroupPermissionMock.mockReset();
+    updateXmtpGroupPermissionMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      permissionType: "add-member",
+      policy: "admin",
+      metadataField: null,
+    });
+
+    listXmtpGroupAdminsMock.mockReset();
+    listXmtpGroupAdminsMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      items: ["admin-inbox"],
+      count: 1,
+    });
+
+    listXmtpGroupSuperAdminsMock.mockReset();
+    listXmtpGroupSuperAdminsMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      items: ["super-admin-inbox"],
+      count: 1,
+    });
+
+    addXmtpGroupAdminMock.mockReset();
+    addXmtpGroupAdminMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      inboxId: "owner-inbox",
+      message: "Member promoted to admin",
+    });
+
+    removeXmtpGroupAdminMock.mockReset();
+    removeXmtpGroupAdminMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      inboxId: "owner-inbox",
+      message: "Admin demoted to member",
+    });
+
+    addXmtpGroupSuperAdminMock.mockReset();
+    addXmtpGroupSuperAdminMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      inboxId: "owner-inbox",
+      message: "Member promoted to super admin",
+    });
+
+    removeXmtpGroupSuperAdminMock.mockReset();
+    removeXmtpGroupSuperAdminMock.mockResolvedValue({
+      ok: true,
+      conversationId: "group-1",
+      inboxId: "owner-inbox",
+      message: "Super admin demoted to member",
+    });
+
     revokeAllOtherXmtpInstallationsMock.mockReset();
     revokeAllOtherXmtpInstallationsMock.mockResolvedValue({
       ok: true,
@@ -1166,6 +1353,16 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
     listXmtpGroupsMock.mockClear();
     createXmtpGroupMock.mockClear();
     addXmtpGroupMembersMock.mockClear();
+    removeXmtpGroupMembersMock.mockClear();
+    listXmtpGroupMembersMock.mockClear();
+    getXmtpGroupPermissionsMock.mockClear();
+    updateXmtpGroupPermissionMock.mockClear();
+    listXmtpGroupAdminsMock.mockClear();
+    listXmtpGroupSuperAdminsMock.mockClear();
+    addXmtpGroupAdminMock.mockClear();
+    removeXmtpGroupAdminMock.mockClear();
+    addXmtpGroupSuperAdminMock.mockClear();
+    removeXmtpGroupSuperAdminMock.mockClear();
     revokeAllOtherXmtpInstallationsMock.mockClear();
     rotateXmtpDbKeyMock.mockClear();
     rotateXmtpWalletMock.mockClear();
