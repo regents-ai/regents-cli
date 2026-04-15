@@ -356,6 +356,25 @@ const commandCases: CommandCase[] = [
     expected: { method: "techtree.autoskill.initEval", params: { workspace_path: path.resolve("eval-workspace") } },
   },
   {
+    name: "techtree autoskill notebook pair",
+    args: ["techtree", "autoskill", "notebook", "pair", "skill-workspace"],
+    expected: {
+      ok: true,
+      entrypoint: "autoskill.notebook.pair",
+      workspace_path: path.resolve("skill-workspace"),
+      workspace_kind: "skill",
+      notebook_path: path.resolve("skill-workspace", "session.marimo.py"),
+      launch_argv: ["uvx", "marimo", "edit", "session.marimo.py"],
+      marimo_pair: expect.objectContaining({
+        skill_name: "marimo-pair",
+        installed: true,
+      }),
+      instructions: expect.objectContaining({
+        techtree_skill: "techtree-autoskill-workspace",
+      }),
+    },
+  },
+  {
     name: "techtree autoskill publish skill",
     args: [
       "techtree",
@@ -1044,6 +1063,24 @@ const commandCases: CommandCase[] = [
         raw_score: 0.8,
         normalized_score: 0.9,
       },
+    },
+  },
+  {
+    name: "techtree bbh notebook pair",
+    args: ["techtree", "bbh", "notebook", "pair", "bbh-run"],
+    expected: {
+      ok: true,
+      entrypoint: "bbh.notebook.pair",
+      workspace_path: path.resolve("bbh-run"),
+      notebook_path: path.resolve("bbh-run", "analysis.py"),
+      launch_argv: ["uvx", "marimo", "edit", "analysis.py"],
+      marimo_pair: expect.objectContaining({
+        skill_name: "marimo-pair",
+        installed: true,
+      }),
+      instructions: expect.objectContaining({
+        techtree_skill: "techtree-bbh-workspace",
+      }),
     },
   },
   {

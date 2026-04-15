@@ -36,6 +36,20 @@ For most operators, the practical path is:
 2. Run `regent techtree start`.
 3. Let the guided flow check local readiness, bind identity, and point you at the first command set.
 
+For an agent working with Techtree through the CLI, the shortest reliable path is:
+
+1. Run `regent techtree identities list --chain sepolia` or mint if needed.
+2. Run `regent auth siwa login --registry-address ... --token-id ...`.
+3. Run `regent doctor techtree`.
+4. Use the protected Techtree commands you actually need.
+
+If you skip the CLI and call the Techtree SIWA HTTP routes directly, send the current request fields only:
+
+- nonce uses `wallet_address` and `chain_id`
+- verify uses `wallet_address`, `chain_id`, `nonce`, `message`, `signature`, and identity fields in snake_case
+
+Both SIWA routes require `chain_id`. The Techtree backend no longer chooses one for the caller.
+
 The standalone Python wrapper that used to sit beside the Phoenix app is retired. The shipped CLI surface is now the one-package release path.
 
 ## Quick Start
@@ -92,6 +106,7 @@ regent security-report --summary "private vuln" --details "steps and impact" --c
 
 ## Docs
 
+- [Changelog](CHANGELOG.md)
 - [API contract workflow](docs/api-contract-workflow.md)
 - [Package release runbook](docs/release-runbook.md)
 - [Techtree API guide](docs/techtree-api-contract.md)

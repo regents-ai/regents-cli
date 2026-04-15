@@ -49,24 +49,29 @@ import {
   runAutolaunchLaunchMonitor,
   runAutolaunchLaunchPreview,
   runAutolaunchLaunchRun,
+  runAutolaunchSafeCreate,
+  runAutolaunchSafeWizard,
   runAutolaunchPrelaunchPublish,
   runAutolaunchPrelaunchShow,
   runAutolaunchPrelaunchValidate,
   runAutolaunchPrelaunchWizard,
   runAutolaunchRegistryLinkIdentity,
+  runAutolaunchRegistryRotateSafe,
   runAutolaunchRegistrySetSubjectManager,
   runAutolaunchRegistryShow,
   runAutolaunchRevenueIngressFactorySetAuthorizedCreator,
   runAutolaunchRevenueShareFactorySetAuthorizedCreator,
+  runAutolaunchSplitterCancelTreasuryRecipientRotation,
+  runAutolaunchSplitterExecuteTreasuryRecipientRotation,
+  runAutolaunchSplitterProposeTreasuryRecipientRotation,
   runAutolaunchSplitterReassignDust,
   runAutolaunchSplitterSetLabel,
   runAutolaunchSplitterSetPaused,
   runAutolaunchSplitterSetProtocolRecipient,
   runAutolaunchSplitterSetProtocolSkimBps,
-  runAutolaunchSplitterSetTreasuryRecipient,
+  runAutolaunchSplitterSweepProtocolReserve,
+  runAutolaunchSplitterSweepTreasuryResidual,
   runAutolaunchSplitterShow,
-  runAutolaunchSplitterWithdrawProtocolReserve,
-  runAutolaunchSplitterWithdrawTreasuryResidual,
   runAutolaunchStrategyMigrate,
   runAutolaunchStrategySweepCurrency,
   runAutolaunchStrategySweepToken,
@@ -83,12 +88,16 @@ import {
   runAutolaunchPositionsExit,
   runAutolaunchPositionsList,
   runAutolaunchPositionsReturnUsdc,
+  runAutolaunchVestingCancelBeneficiaryRotation,
+  runAutolaunchVestingExecuteBeneficiaryRotation,
+  runAutolaunchVestingProposeBeneficiaryRotation,
   runAutolaunchVestingRelease,
   runAutolaunchVestingStatus,
 } from "./commands/autolaunch.js";
 import {
   runAutoskillInitEval,
   runAutoskillInitSkill,
+  runAutoskillNotebookPair,
   runAutoskillBuy,
   runAutoskillListingCreate,
   runAutoskillPublishEval,
@@ -165,6 +174,7 @@ import {
   runTechtreeArtifactPin,
   runTechtreeArtifactPublish,
   runTechtreeBbhRunExec,
+  runTechtreeBbhNotebookPair,
   runTechtreeBbhRunSolve,
   runTechtreeBbhSubmit,
   runTechtreeBbhValidate,
@@ -199,8 +209,18 @@ import {
 import {
   runXmtpDoctor,
   runXmtpGroupAddMember,
+  runXmtpGroupAddAdmin,
+  runXmtpGroupAddSuperAdmin,
+  runXmtpGroupAdmins,
   runXmtpGroupCreate,
   runXmtpGroupList,
+  runXmtpGroupMembers,
+  runXmtpGroupPermissions,
+  runXmtpGroupRemoveAdmin,
+  runXmtpGroupRemoveMember,
+  runXmtpGroupRemoveSuperAdmin,
+  runXmtpGroupSuperAdmins,
+  runXmtpGroupUpdatePermission,
   runXmtpInfo,
   runXmtpInit,
   runXmtpOwnerAdd,
@@ -365,12 +385,12 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "regent-staking" && subcommand === "stake") {
-      await runRegentStakingStake(parsedArgs);
+      await runRegentStakingStake(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "regent-staking" && subcommand === "unstake") {
-      await runRegentStakingUnstake(parsedArgs);
+      await runRegentStakingUnstake(parsedArgs, configPath);
       return 0;
     }
 
@@ -396,6 +416,11 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "techtree" && subcommand === "autoskill" && maybeThird === "init" && maybeFourth === "eval") {
       await runAutoskillInitEval(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "autoskill" && maybeThird === "notebook" && maybeFourth === "pair") {
+      await runAutoskillNotebookPair(parsedArgs, configPath);
       return 0;
     }
 
@@ -446,6 +471,11 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
       if (tree === "bbh" && action === "run" && verb === "solve") {
         await runTechtreeBbhRunSolve(parsedArgs, configPath);
+        return 0;
+      }
+
+      if (tree === "bbh" && action === "notebook" && verb === "pair") {
+        await runTechtreeBbhNotebookPair(parsedArgs, configPath);
         return 0;
       }
 
@@ -869,8 +899,58 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "remove-member") {
+      await runXmtpGroupRemoveMember(parsedArgs, configPath);
+      return 0;
+    }
+
     if (namespace === "xmtp" && subcommand === "group" && maybeThird === "list") {
       await runXmtpGroupList(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "members") {
+      await runXmtpGroupMembers(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "permissions") {
+      await runXmtpGroupPermissions(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "update-permission") {
+      await runXmtpGroupUpdatePermission(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "admins") {
+      await runXmtpGroupAdmins(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "super-admins") {
+      await runXmtpGroupSuperAdmins(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "add-admin") {
+      await runXmtpGroupAddAdmin(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "remove-admin") {
+      await runXmtpGroupRemoveAdmin(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "add-super-admin") {
+      await runXmtpGroupAddSuperAdmin(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "xmtp" && subcommand === "group" && maybeThird === "remove-super-admin") {
+      await runXmtpGroupRemoveSuperAdmin(parsedArgs, configPath);
       return 0;
     }
 
@@ -944,7 +1024,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "trust" && maybeThird === "x-link") {
-      await runAutolaunchTrustXLink(parsedArgs);
+      await runAutolaunchTrustXLink(parsedArgs, configPath);
       return 0;
     }
 
@@ -954,7 +1034,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "auction-returns" && maybeThird === "list") {
-      await runAutolaunchAuctionReturnsList(parsedArgs);
+      await runAutolaunchAuctionReturnsList(parsedArgs, configPath);
       return 0;
     }
 
@@ -974,7 +1054,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "bids" && maybeThird === "mine") {
-      await runAutolaunchBidsMine(parsedArgs);
+      await runAutolaunchBidsMine(parsedArgs, configPath);
       return 0;
     }
 
@@ -989,7 +1069,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "positions" && maybeThird === "list") {
-      await runAutolaunchPositionsList(parsedArgs);
+      await runAutolaunchPositionsList(parsedArgs, configPath);
       return 0;
     }
 
@@ -1009,22 +1089,22 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "ens" && maybeThird === "plan") {
-      await runAutolaunchEnsPlan(parsedArgs);
+      await runAutolaunchEnsPlan(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "ens" && maybeThird === "prepare-ensip25") {
-      await runAutolaunchEnsPrepareEnsip25(parsedArgs);
+      await runAutolaunchEnsPrepareEnsip25(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "ens" && maybeThird === "prepare-erc8004") {
-      await runAutolaunchEnsPrepareErc8004(parsedArgs);
+      await runAutolaunchEnsPrepareErc8004(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "ens" && maybeThird === "prepare-bidirectional") {
-      await runAutolaunchEnsPrepareBidirectional(parsedArgs);
+      await runAutolaunchEnsPrepareBidirectional(parsedArgs, configPath);
       return 0;
     }
 
@@ -1040,6 +1120,16 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "autolaunch" && subcommand === "prelaunch" && maybeThird === "wizard") {
       await runAutolaunchPrelaunchWizard(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "safe" && maybeThird === "wizard") {
+      await runAutolaunchSafeWizard(parsedArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "safe" && maybeThird === "create") {
+      await runAutolaunchSafeCreate(parsedArgs, configPath);
       return 0;
     }
 
@@ -1059,12 +1149,12 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "launch" && maybeThird === "preview") {
-      await runAutolaunchLaunchPreview(parsedArgs);
+      await runAutolaunchLaunchPreview(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "launch" && maybeThird === "create") {
-      await runAutolaunchLaunchCreate(parsedArgs);
+      await runAutolaunchLaunchCreate(parsedArgs, configPath);
       return 0;
     }
 
@@ -1074,7 +1164,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "launch" && maybeThird === "monitor") {
-      await runAutolaunchLaunchMonitor(parsedArgs);
+      await runAutolaunchLaunchMonitor(parsedArgs, configPath);
       return 0;
     }
 
@@ -1084,17 +1174,17 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "jobs" && maybeThird === "watch") {
-      await runAutolaunchJobsWatch(parsedArgs);
+      await runAutolaunchJobsWatch(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "show") {
-      await runAutolaunchSubjectShow(parsedArgs);
+      await runAutolaunchSubjectShow(parsedArgs, configPath);
       return 0;
     }
 
     if (namespace === "autolaunch" && subcommand === "subjects" && maybeThird === "ingress") {
-      await runAutolaunchSubjectIngress(parsedArgs);
+      await runAutolaunchSubjectIngress(parsedArgs, configPath);
       return 0;
     }
 
@@ -1172,7 +1262,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "contracts" && maybeThird === "admin") {
-      await runAutolaunchContractsAdminShow();
+      await runAutolaunchContractsAdminShow(configPath);
       return 0;
     }
 
@@ -1187,7 +1277,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "autolaunch" && subcommand === "strategy" && maybeThird === "migrate") {
-      await runAutolaunchStrategyMigrate(parsedArgs);
+      await runAutolaunchStrategyMigrate(parsedArgs, configPath);
       return 0;
     }
 
@@ -1210,8 +1300,35 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return 0;
     }
 
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "vesting" &&
+        maybeThird === "propose-beneficiary-rotation"
+    ) {
+      await runAutolaunchVestingProposeBeneficiaryRotation(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "vesting" &&
+        maybeThird === "cancel-beneficiary-rotation"
+    ) {
+      await runAutolaunchVestingCancelBeneficiaryRotation(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "vesting" &&
+        maybeThird === "execute-beneficiary-rotation"
+    ) {
+      await runAutolaunchVestingExecuteBeneficiaryRotation(parsedArgs);
+      return 0;
+    }
+
     if (namespace === "autolaunch" && subcommand === "vesting" && maybeThird === "status") {
-      await runAutolaunchVestingStatus(parsedArgs);
+      await runAutolaunchVestingStatus(parsedArgs, configPath);
       return 0;
     }
 
@@ -1270,9 +1387,27 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     if (
       namespace === "autolaunch" &&
         subcommand === "splitter" &&
-        maybeThird === "set-treasury-recipient"
+        maybeThird === "propose-treasury-recipient-rotation"
     ) {
-      await runAutolaunchSplitterSetTreasuryRecipient(parsedArgs);
+      await runAutolaunchSplitterProposeTreasuryRecipientRotation(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "cancel-treasury-recipient-rotation"
+    ) {
+      await runAutolaunchSplitterCancelTreasuryRecipientRotation(parsedArgs);
+      return 0;
+    }
+
+    if (
+      namespace === "autolaunch" &&
+        subcommand === "splitter" &&
+        maybeThird === "execute-treasury-recipient-rotation"
+    ) {
+      await runAutolaunchSplitterExecuteTreasuryRecipientRotation(parsedArgs);
       return 0;
     }
 
@@ -1297,18 +1432,18 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     if (
       namespace === "autolaunch" &&
         subcommand === "splitter" &&
-        maybeThird === "withdraw-treasury-residual"
+        maybeThird === "sweep-treasury-residual"
     ) {
-      await runAutolaunchSplitterWithdrawTreasuryResidual(parsedArgs);
+      await runAutolaunchSplitterSweepTreasuryResidual(parsedArgs);
       return 0;
     }
 
     if (
       namespace === "autolaunch" &&
         subcommand === "splitter" &&
-        maybeThird === "withdraw-protocol-reserve"
+        maybeThird === "sweep-protocol-reserve"
     ) {
-      await runAutolaunchSplitterWithdrawProtocolReserve(parsedArgs);
+      await runAutolaunchSplitterSweepProtocolReserve(parsedArgs);
       return 0;
     }
 
@@ -1357,6 +1492,11 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "autolaunch" && subcommand === "registry" && maybeThird === "link-identity") {
       await runAutolaunchRegistryLinkIdentity(parsedArgs);
+      return 0;
+    }
+
+    if (namespace === "autolaunch" && subcommand === "registry" && maybeThird === "rotate-safe") {
+      await runAutolaunchRegistryRotateSafe(parsedArgs);
       return 0;
     }
 
