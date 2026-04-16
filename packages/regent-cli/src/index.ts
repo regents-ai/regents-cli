@@ -375,12 +375,12 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     }
 
     if (namespace === "regent-staking" && subcommand === "show") {
-      await runRegentStakingShow();
+      await runRegentStakingShow(configPath);
       return 0;
     }
 
     if (namespace === "regent-staking" && subcommand === "account") {
-      await runRegentStakingAccount(parsedArgs);
+      await runRegentStakingAccount(parsedArgs, configPath);
       return 0;
     }
 

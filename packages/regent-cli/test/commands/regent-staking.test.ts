@@ -60,6 +60,7 @@ describe("regent-staking CLI command group", () => {
   });
 
   it("shows the regent staking overview", async () => {
+    writeAgentAuthState();
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ ok: true, chain_id: 8453, treasury_residual_usdc: "150" }), {
         status: 200,
@@ -67,14 +68,18 @@ describe("regent-staking CLI command group", () => {
       }),
     );
 
-    const output = await captureOutput(() => runCliEntrypoint(["regent-staking", "show"]));
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["regent-staking", "show", "--config", configPath]),
+    );
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/regent/staking`);
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ chain_id: number }>(output.stdout)).toMatchObject({ chain_id: 8453 });
   });
 
   it("shows a specific account", async () => {
+    writeAgentAuthState();
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ ok: true, wallet_address: "0xabc", wallet_claimable_usdc: "12" }), {
         status: 200,
@@ -83,11 +88,12 @@ describe("regent-staking CLI command group", () => {
     );
 
     const output = await captureOutput(() =>
-      runCliEntrypoint(["regent-staking", "account", "0xabc"]),
+      runCliEntrypoint(["regent-staking", "account", "0xabc", "--config", configPath]),
     );
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/regent/staking/account/0xabc`);
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ wallet_address: string }>(output.stdout)).toMatchObject({
       wallet_address: "0xabc",
     });

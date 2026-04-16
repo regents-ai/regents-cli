@@ -114,16 +114,28 @@ const printPreparedOrSubmitted = async (
   printJson({ ...payload, submitted: true, tx_hash: txHash });
 };
 
-export async function runRegentStakingShow(): Promise<void> {
-  printJson(await requestTypedJson<RegentStakingOverviewResponse>("GET", "/v1/agent/regent/staking"));
+export async function runRegentStakingShow(configPath?: string): Promise<void> {
+  printJson(
+    await requestTypedJson<RegentStakingOverviewResponse>("GET", "/v1/agent/regent/staking", {
+      requireAgentAuth: true,
+      configPath,
+    }),
+  );
 }
 
-export async function runRegentStakingAccount(args: ParsedCliArgs): Promise<void> {
+export async function runRegentStakingAccount(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
   const address = requirePositional(args, 2, "address");
   printJson(
     await requestTypedJson<RegentStakingAccountResponse>(
       "GET",
       `/v1/agent/regent/staking/account/${encodeURIComponent(address)}`,
+      {
+        requireAgentAuth: true,
+        configPath,
+      },
     ),
   );
 }
