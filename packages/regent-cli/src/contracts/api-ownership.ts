@@ -361,7 +361,7 @@ export const autolaunchApiCommandGroups = [
 
 export const sharedServicesApiCommandGroups = [
   {
-    commands: ["regent identity ensure"],
+    commands: ["identity ensure"],
     owner: "shared-services",
     status: "current",
     pathTemplates: [
