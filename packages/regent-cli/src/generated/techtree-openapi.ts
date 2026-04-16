@@ -855,6 +855,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbox/members/{id}/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Admin-only. Queue a public-room add for a human who has already completed secure room setup. */
+        post: operations["addHumanToWebappChatboxAsAdmin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbox/members/{id}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Admin-only. Queue a public-room removal for a human who already has a secure room identity. */
+        post: operations["removeHumanFromWebappChatboxAsAdmin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agent/chatbox/messages": {
         parameters: {
             query?: never;
@@ -1803,6 +1837,432 @@ export interface components {
             data: components["schemas"]["ChatboxMessage"];
         } & {
             [key: string]: unknown;
+        };
+        /** @enum {string} */
+        BbhProvider: "bbh" | "bbh_train" | "techtree";
+        /** @enum {string} */
+        BbhHarnessType: "openclaw" | "hermes" | "claude_code" | "custom";
+        /** @enum {string} */
+        BbhSplit: "climb" | "benchmark" | "challenge" | "draft";
+        /** @enum {string} */
+        BbhAssignmentPolicy: "auto" | "select" | "auto_or_select" | "operator";
+        BbhDataFile: {
+            name: string;
+            content: string;
+        };
+        BbhArtifactSourceMetadata: {
+            /** @enum {string} */
+            schema_version: "techtree.bbh.artifact-source.v1";
+            bbh: {
+                split: components["schemas"]["BbhSplit"];
+                provider: components["schemas"]["BbhProvider"];
+                provider_ref: string;
+                /** @enum {string} */
+                evaluator_kind: "hypotest";
+                dataset_ref: string;
+                benchmark_ref?: string | null;
+                family_ref?: string | null;
+                instance_ref?: string | null;
+                hypothesis?: string | null;
+                protocol_path?: string | null;
+                rubric_path?: string | null;
+                assignment_policy: components["schemas"]["BbhAssignmentPolicy"];
+            } & {
+                [key: string]: unknown;
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        BbhAssignmentCapsule: {
+            capsule_id: string;
+            provider: components["schemas"]["BbhProvider"];
+            provider_ref: string;
+            family_ref?: string | null;
+            instance_ref?: string | null;
+            split: components["schemas"]["BbhSplit"];
+            /** @enum {string} */
+            language: "python";
+            /** @enum {string} */
+            mode: "fixed" | "family";
+            assignment_policy: components["schemas"]["BbhAssignmentPolicy"];
+            title: string;
+            hypothesis: string;
+            protocol_md: string;
+            rubric_json: components["schemas"]["LooseObject"];
+            task_json: components["schemas"]["LooseObject"];
+            data_files: components["schemas"]["BbhDataFile"][];
+            artifact_source?: components["schemas"]["BbhArtifactSourceMetadata"] | null;
+            execution_defaults?: components["schemas"]["BbhExecutionDefaults"];
+            publication_artifact_id?: string | null;
+            publication_review_id?: string | null;
+            /** Format: date-time */
+            published_at?: string | null;
+        };
+        BbhNextAssignmentRequest: {
+            /** @enum {string} */
+            split?: "climb" | "benchmark" | "challenge";
+        };
+        BbhSelectAssignmentRequest: {
+            capsule_id: string;
+        };
+        BbhAssignmentEnvelope: {
+            assignment_ref: string;
+            split: components["schemas"]["BbhSplit"];
+            capsule: components["schemas"]["BbhAssignmentCapsule"];
+        };
+        BbhAssignmentResponse: {
+            data: components["schemas"]["BbhAssignmentEnvelope"];
+        };
+        BbhGenomeSource: {
+            /** @enum {string} */
+            schema_version: "techtree.bbh.genome-source.v1";
+            genome_id?: string;
+            label?: string | null;
+            parent_genome_ref?: string | null;
+            model_id: string;
+            harness_type: components["schemas"]["BbhHarnessType"];
+            harness_version: string;
+            prompt_pack_version: string;
+            skill_pack_version: string;
+            tool_profile: string;
+            runtime_image: string;
+            helper_code_hash?: string | null;
+            data_profile?: string | null;
+            axes?: components["schemas"]["LooseObject"];
+            notes?: string | null;
+        };
+        BbhRunExecutor: {
+            /** @enum {string} */
+            type: "genome" | "actor" | "system";
+            id?: string | null;
+            harness: components["schemas"]["BbhHarnessType"];
+            harness_version: string;
+            profile?: string | null;
+        };
+        BbhRunSolver: {
+            /** @enum {string} */
+            kind: "hermes" | "openclaw" | "skydiscover";
+            entrypoint?: string | null;
+        };
+        BbhExecutionDefaultSolver: {
+            /** @enum {string} */
+            kind: "hermes" | "openclaw" | "skydiscover";
+            entrypoint?: string | null;
+            search_algorithm?: string | null;
+        };
+        BbhExecutionDefaults: {
+            solver: components["schemas"]["BbhExecutionDefaultSolver"];
+            evaluator: components["schemas"]["BbhRunEvaluator"];
+            workspace: components["schemas"]["BbhRunPaths"];
+        };
+        BbhRunInstance: {
+            instance_ref: string;
+            family_ref?: string | null;
+            seed?: number | string | null;
+        };
+        BbhRunOrigin: {
+            /** @enum {string} */
+            workload: "bbh";
+            /** @enum {string} */
+            transport: "local" | "xmtp" | "gossipsub" | "api";
+            /** @enum {string} */
+            trigger: "manual" | "assignment" | "validator" | "automation";
+        };
+        BbhRunPaths: {
+            analysis_path?: string;
+            verdict_path?: string;
+            final_answer_path?: string | null;
+            report_path?: string | null;
+            log_path?: string | null;
+            genome_path?: string | null;
+            search_config_path?: string | null;
+            evaluator_path?: string | null;
+            seed_program_path?: string | null;
+            best_program_path?: string | null;
+            search_summary_path?: string | null;
+            evaluator_artifacts_path?: string | null;
+            checkpoint_pointer_path?: string | null;
+            best_solution_patch_path?: string | null;
+            search_log_path?: string | null;
+        };
+        BbhRunScore: {
+            raw: number;
+            normalized: number;
+            scorer_version?: string | null;
+        };
+        BbhRunSearch: {
+            algorithm: string;
+            budget?: number | null;
+            checkpoint_ref?: string | null;
+            summary?: components["schemas"]["BbhSearchSummary"] | null;
+        };
+        BbhSearchSummary: {
+            best_score: number;
+            best_iteration: number;
+            iterations_requested: number;
+            iterations_completed: number;
+            total_evaluations: number;
+            elapsed_ms: number;
+            checkpoint_ref?: string | null;
+            artifact_keys?: string[];
+        };
+        BbhArtifactManifestEntry: {
+            path: string;
+            /** @enum {string} */
+            kind: "workspace_file" | "generated_output" | "report" | "checkpoint_pointer" | "data_file";
+            sha256: string;
+            size_bytes?: number | null;
+            required_for_validation?: boolean | null;
+        };
+        BbhRunEvaluator: {
+            /** @enum {string} */
+            kind: "hypotest";
+            dataset_ref: string;
+            benchmark_ref?: string | null;
+            scorer_version: string;
+        };
+        BbhRunProfile: {
+            split: components["schemas"]["BbhSplit"];
+            genome_ref: string;
+            provider: components["schemas"]["BbhProvider"];
+            assignment_ref?: string | null;
+            /** @enum {string|null} */
+            keep_decision?: "keep" | "discard" | "pending" | null;
+            parent_genome_ref?: string | null;
+            child_genome_ref?: string | null;
+            notes?: string | null;
+        };
+        BbhRunSource: {
+            /** @enum {string} */
+            schema_version: "techtree.bbh.run-source.v1";
+            artifact_ref: string;
+            executor: components["schemas"]["BbhRunExecutor"];
+            solver: components["schemas"]["BbhRunSolver"];
+            instance: components["schemas"]["BbhRunInstance"];
+            origin?: components["schemas"]["BbhRunOrigin"];
+            paths: components["schemas"]["BbhRunPaths"];
+            /** @enum {string} */
+            status?: "created" | "running" | "completed" | "failed";
+            score?: components["schemas"]["BbhRunScore"] | null;
+            search?: components["schemas"]["BbhRunSearch"] | null;
+            artifact_manifest?: components["schemas"]["BbhArtifactManifestEntry"][];
+            evaluator: components["schemas"]["BbhRunEvaluator"];
+            bbh: components["schemas"]["BbhRunProfile"];
+            notes?: string | null;
+        };
+        BbhWorkspaceBundle: {
+            task_json: components["schemas"]["LooseObject"];
+            protocol_md: string;
+            rubric_json: components["schemas"]["LooseObject"];
+            analysis_py: string;
+            verdict_json: components["schemas"]["LooseObject"];
+            final_answer_md?: string | null;
+            report_html?: string | null;
+            run_log?: string | null;
+            search_summary_json?: components["schemas"]["LooseObject"] | null;
+            search_log?: string | null;
+        };
+        BbhRunSubmitRequest: {
+            run_id: string;
+            capsule_id: string;
+            assignment_ref?: string | null;
+            artifact_source?: components["schemas"]["BbhArtifactSourceMetadata"] | null;
+            genome_source: components["schemas"]["BbhGenomeSource"];
+            run_source: components["schemas"]["BbhRunSource"];
+            workspace: components["schemas"]["BbhWorkspaceBundle"];
+        };
+        BbhRunSubmitResponse: {
+            data: {
+                run_id: string;
+                status: string;
+                score: {
+                    raw: number | null;
+                    normalized: number | null;
+                };
+                validation_state: string;
+                public_run_path: string;
+            };
+        };
+        BbhReviewSourceBbh: {
+            /** @enum {string} */
+            role: "official" | "community";
+            reproduced_raw_score?: number | null;
+            reproduced_normalized_score?: number | null;
+            raw_abs_tolerance: number;
+            /** @enum {string} */
+            evaluator_kind: "hypotest";
+            dataset_ref: string;
+            scorer_version: string;
+            assignment_ref?: string | null;
+            submitted_program_sha256?: string | null;
+            reproduced_program_sha256?: string | null;
+            score_match?: boolean | null;
+            artifact_match?: boolean | null;
+        };
+        BbhReviewSource: {
+            /** @enum {string} */
+            schema_version: "techtree.bbh.review-source.v1";
+            target: {
+                /** @enum {string} */
+                type: "run";
+                id: string;
+            };
+            /** @enum {string} */
+            kind: "validation";
+            /** @enum {string} */
+            method: "replay" | "manual" | "replication";
+            /** @enum {string} */
+            result: "confirmed" | "rejected" | "mixed" | "needs_revision";
+            summary: string;
+            evidence?: {
+                /** @enum {string} */
+                kind: "file" | "run" | "note" | "external";
+                ref: string;
+                hash?: string | null;
+                note?: string | null;
+            }[];
+            paths?: {
+                replication_workspace?: string | null;
+                verdict_path?: string | null;
+                report_path?: string | null;
+                log_path?: string | null;
+            };
+            bbh: components["schemas"]["BbhReviewSourceBbh"];
+            notes?: string | null;
+        };
+        BbhValidationWorkspace: {
+            verdict_json?: components["schemas"]["LooseObject"] | null;
+            report_html?: string | null;
+            run_log?: string | null;
+        };
+        BbhValidationSubmitRequest: {
+            validation_id: string;
+            run_id: string;
+            review_source: components["schemas"]["BbhReviewSource"];
+            workspace?: components["schemas"]["BbhValidationWorkspace"] | null;
+        };
+        BbhValidationSubmitResponse: {
+            data: {
+                validation_id: string;
+                run_id: string;
+                result: string;
+            };
+        };
+        BbhSyncRequest: {
+            run_ids: string[];
+        };
+        BbhSyncResponse: {
+            data: {
+                runs: {
+                    run_id: string;
+                    status: string;
+                    raw_score?: number | null;
+                    normalized_score?: number | null;
+                    validation_status?: string | null;
+                }[];
+            };
+        };
+        BbhLeaderboardResponse: {
+            data: {
+                benchmark: string;
+                split: components["schemas"]["BbhSplit"];
+                /** Format: date-time */
+                generated_at: string;
+                entries: {
+                    rank: number;
+                    run_id?: string | null;
+                    genome_id: string;
+                    name: string;
+                    score_percent: number;
+                    final_objective_hit_rate?: number;
+                    validated_runs: number;
+                    reproducibility_rate: number;
+                    median_latency_sec?: number | null;
+                    median_cost_usd?: number | null;
+                    harness_type?: string | null;
+                    model_id?: string | null;
+                    /** Format: date-time */
+                    updated_at?: string | null;
+                }[];
+            };
+        };
+        BbhGenomeRecord: {
+            genome_id: string;
+            label?: string | null;
+            parent_genome_ref?: string | null;
+            model_id: string;
+            harness_type: string;
+            harness_version: string;
+            prompt_pack_version?: string | null;
+            skill_pack_version?: string | null;
+            tool_profile: string;
+            runtime_image: string;
+            helper_code_hash?: string | null;
+            data_profile?: string | null;
+            axes?: components["schemas"]["LooseObject"];
+            notes?: string | null;
+            source: components["schemas"]["LooseObject"];
+        } & {
+            [key: string]: unknown;
+        };
+        BbhRunRecord: {
+            run_id: string;
+            capsule_id: string;
+            assignment_ref?: string | null;
+            genome_id: string;
+            canonical_run_id?: string | null;
+            executor_type: string;
+            harness_type: string;
+            harness_version: string;
+            split: components["schemas"]["BbhSplit"];
+            status: string;
+            raw_score?: number | null;
+            normalized_score?: number | null;
+            score_source?: string | null;
+            analysis_py?: string;
+            protocol_md?: string;
+            rubric_json?: components["schemas"]["LooseObject"];
+            task_json?: components["schemas"]["LooseObject"];
+            verdict_json?: components["schemas"]["LooseObject"];
+            final_answer_md?: string | null;
+            report_html?: string | null;
+            run_log?: string | null;
+            artifact_source?: components["schemas"]["BbhArtifactSourceMetadata"] | null;
+            genome_source?: components["schemas"]["BbhGenomeSource"];
+            run_source: components["schemas"]["BbhRunSource"];
+        } & {
+            [key: string]: unknown;
+        };
+        BbhValidationRecord: {
+            validation_id: string;
+            run_id: string;
+            canonical_review_id?: string | null;
+            role: string;
+            method: string;
+            result: string;
+            reproduced_raw_score?: number | null;
+            reproduced_normalized_score?: number | null;
+            tolerance_raw_abs?: number | null;
+            summary: string;
+            review_source: components["schemas"]["BbhReviewSource"];
+            verdict_json?: components["schemas"]["LooseObject"] | null;
+            report_html?: string | null;
+            run_log?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        BbhRunDetailResponse: {
+            data: {
+                run: components["schemas"]["BbhRunRecord"];
+                capsule: {
+                    [key: string]: unknown;
+                };
+                genome: components["schemas"]["BbhGenomeRecord"];
+                validations: components["schemas"]["BbhValidationRecord"][];
+            };
+        };
+        BbhValidationListResponse: {
+            data: components["schemas"]["BbhValidationRecord"][];
         };
     };
     responses: never;
@@ -3137,6 +3597,78 @@ export interface operations {
             };
         };
     };
+    addHumanToWebappChatboxAsAdmin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Admin chatbox add accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkEnvelope"];
+                };
+            };
+            /** @description Human not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid human id, room unavailable, or secure room setup required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    removeHumanFromWebappChatboxAsAdmin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Admin chatbox removal accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkEnvelope"];
+                };
+            };
+            /** @description Human not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid human id, room unavailable, or secure room setup required */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listAgentChatboxMessages: {
         parameters: {
             query?: {
@@ -3288,7 +3820,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["BbhLeaderboardResponse"];
                 };
             };
         };
@@ -3398,7 +3930,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["BbhRunDetailResponse"];
                 };
             };
         };
@@ -3420,7 +3952,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseListEnvelope"];
+                    "application/json": components["schemas"]["BbhValidationListResponse"];
                 };
             };
         };
@@ -3434,7 +3966,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["BbhNextAssignmentRequest"];
             };
         };
         responses: {
@@ -3444,7 +3976,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["BbhAssignmentResponse"];
                 };
             };
         };
@@ -3458,7 +3990,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["BbhSelectAssignmentRequest"];
             };
         };
         responses: {
@@ -3468,7 +4000,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["BbhAssignmentResponse"];
                 };
             };
         };
@@ -3641,7 +4173,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["BbhRunSubmitRequest"];
             };
         };
         responses: {
@@ -3651,7 +4183,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["BbhRunSubmitResponse"];
                 };
             };
         };
@@ -3665,7 +4197,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["BbhValidationSubmitRequest"];
             };
         };
         responses: {
@@ -3675,7 +4207,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["BbhValidationSubmitResponse"];
                 };
             };
         };
@@ -3689,7 +4221,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["BbhSyncRequest"];
             };
         };
         responses: {
@@ -3699,7 +4231,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["BbhSyncResponse"];
                 };
             };
         };

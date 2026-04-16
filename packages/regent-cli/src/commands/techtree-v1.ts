@@ -438,23 +438,23 @@ export async function runTechtreeBbhRunExec(args: ParsedCliArgs, configPath?: st
 
 export async function runTechtreeBbhRunSolve(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const metadata = readRunMetadata(args);
-  const agentFlag = getFlag(args, "agent");
+  const solverFlag = getFlag(args, "solver");
   const timeoutSeconds = getFlag(args, "timeout-seconds");
-  const agent =
-    agentFlag === undefined
-      ? undefined
-      : agentFlag === "hermes" || agentFlag === "openclaw"
-        ? agentFlag
-        : (() => {
-            throw new Error("invalid solve agent; expected `hermes` or `openclaw`");
-          })();
+  const solver =
+    solverFlag === "hermes" || solverFlag === "openclaw" || solverFlag === "skydiscover"
+      ? solverFlag
+      : (() => {
+          throw new Error(
+            "invalid solve solver; use `hermes` or `openclaw` for direct notebook work, or `skydiscover` for the search path",
+          );
+        })();
 
   printJson(
     await daemonCall(
       "techtree.v1.bbh.run.solve",
       {
         workspace_path: normalizeWorkspacePath(args, 4),
-        ...(agent ? { agent } : {}),
+        solver,
         ...(timeoutSeconds ? { timeout_seconds: Number.parseInt(timeoutSeconds, 10) } : {}),
         ...(metadata ? { metadata } : {}),
       },

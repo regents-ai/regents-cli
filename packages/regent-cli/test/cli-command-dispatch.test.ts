@@ -1050,13 +1050,30 @@ const commandCases: CommandCase[] = [
   },
   {
     name: "techtree bbh run solve",
-    args: ["techtree", "bbh", "run", "solve", "bbh-run", "--agent", "openclaw", "--timeout-seconds", "120"],
+    args: ["techtree", "bbh", "run", "solve", "bbh-run", "--solver", "openclaw", "--timeout-seconds", "120"],
     expected: {
       ok: true,
       entrypoint: "bbh.run.solve",
       workspace_path: path.resolve("bbh-run"),
       run_id: "run_test",
-      agent: "openclaw",
+      solver: "openclaw",
+      produced_files: expect.any(Array),
+      verdict_summary: {
+        decision: "support",
+        raw_score: 0.8,
+        normalized_score: 0.9,
+      },
+    },
+  },
+  {
+    name: "techtree bbh run solve skydiscover",
+    args: ["techtree", "bbh", "run", "solve", "bbh-run", "--solver", "skydiscover"],
+    expected: {
+      ok: true,
+      entrypoint: "bbh.run.solve",
+      workspace_path: path.resolve("bbh-run"),
+      run_id: "run_test",
+      solver: "skydiscover",
       produced_files: expect.any(Array),
       verdict_summary: {
         decision: "support",
@@ -1128,6 +1145,23 @@ const commandCases: CommandCase[] = [
           },
         ],
         artifact_source: { schema_version: "techtree.bbh.artifact-source.v1" },
+        execution_defaults: {
+          solver: {
+            kind: "skydiscover",
+            entrypoint: "uv run techtree-bbh sky-search",
+            search_algorithm: "best_of_n",
+          },
+          evaluator: {
+            kind: "hypotest",
+            dataset_ref: "provider/capsule_test",
+            benchmark_ref: "family_test",
+            scorer_version: "hypotest-v0.1",
+          },
+          workspace: {
+            best_program_path: "outputs/skydiscover/best_program.py",
+            search_summary_path: "outputs/skydiscover/search_summary.json",
+          },
+        },
       },
     },
   },
