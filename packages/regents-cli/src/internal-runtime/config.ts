@@ -14,6 +14,7 @@ import {
 
 const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 const xmtpEnvSchema = z.enum(["local", "dev", "production"]);
+const siwaAudienceSchema = z.enum(["platform", "autolaunch", "techtree", "regent-services"]);
 
 const configSchema = z.object({
   runtime: z.object({
@@ -23,7 +24,7 @@ const configSchema = z.object({
   }),
   auth: z.object({
     baseUrl: z.string().url(),
-    audience: z.string().min(1),
+    audience: siwaAudienceSchema,
     defaultChainId: z.number().int().positive(),
     requestTimeoutMs: z.number().int().positive(),
   }),
@@ -281,7 +282,7 @@ export function defaultConfig(configPath?: string): RegentConfig {
     },
     auth: {
       baseUrl: "http://127.0.0.1:4000",
-      audience: "regents-cli",
+      audience: "techtree",
       defaultChainId: 84532,
       requestTimeoutMs: 10_000,
     },

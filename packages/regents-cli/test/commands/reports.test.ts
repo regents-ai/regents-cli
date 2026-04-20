@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../../src/index.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
+import { writeFakeCdp } from "../support/fake-cdp.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
 const TEST_WALLET = "0x1111111111111111111111111111111111111111";
@@ -21,8 +22,33 @@ describe("reporting CLI commands", () => {
 
   const writeAgentAuthState = () => {
     writeInitialConfig(configPath);
+    const receiptPath = path.join(tempDir, ".regent", "identity", "receipt-v1.json");
     const statePath = path.join(tempDir, "state", "runtime-state.json");
+    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
     fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    fs.writeFileSync(
+      receiptPath,
+      JSON.stringify(
+        {
+          version: 1,
+          regent_base_url: "http://127.0.0.1:4000",
+          network: "base-sepolia",
+          provider: "coinbase-cdp",
+          address: TEST_WALLET,
+          agent_id: 99,
+          agent_registry: TEST_REGISTRY,
+          signer_type: "evm_personal_sign",
+          verified: "onchain",
+          receipt: "identity-receipt",
+          receipt_issued_at: "2026-04-01T00:00:00.000Z",
+          receipt_expires_at: "2999-01-01T00:00:00.000Z",
+          cached_at: "2026-04-01T00:00:00.000Z",
+          wallet_hint: "main",
+        },
+        null,
+        2,
+      ),
+    );
     fs.writeFileSync(
       statePath,
       JSON.stringify(
@@ -41,7 +67,7 @@ describe("reporting CLI commands", () => {
             keyId: TEST_WALLET.toLowerCase(),
             receipt: "report-receipt",
             receiptExpiresAt: "2999-01-01T00:00:00.000Z",
-            audience: "regents-cli",
+            audience: "techtree",
             registryAddress: TEST_REGISTRY,
             tokenId: "99",
           },
@@ -57,6 +83,13 @@ describe("reporting CLI commands", () => {
     configPath = path.join(tempDir, "regent.config.json");
     vi.stubGlobal("fetch", fetchMock);
     process.env = { ...originalEnv };
+    process.env.HOME = tempDir;
+    process.env.PATH = `${writeFakeCdp(tempDir, {
+      accounts: [{ name: "main", address: TEST_WALLET }],
+    })}:${originalEnv.PATH ?? ""}`;
+    process.env.CDP_KEY_ID = "test-key";
+    process.env.CDP_KEY_SECRET = "test-secret";
+    process.env.CDP_WALLET_SECRET = "test-wallet-secret";
     delete process.env.PLATFORM_PHX_BASE_URL;
     process.env.REGENT_WALLET_PRIVATE_KEY = TEST_PRIVATE_KEY;
     fetchMock.mockReset();

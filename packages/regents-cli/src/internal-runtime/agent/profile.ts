@@ -9,13 +9,17 @@ import type { StateStore } from "../store/state-store.js";
 export type { LocalAgentIdentity } from "../../internal-types/index.js";
 
 export function getCurrentAgentIdentity(stateStore: StateStore): LocalAgentIdentity | null {
+  const receipt = readIdentityReceipt();
+  if (receipt) {
+    return receiptToIdentity(receipt);
+  }
+
   const storedIdentity = stateStore.read().agent;
   if (storedIdentity) {
     return storedIdentity;
   }
 
-  const receipt = readIdentityReceipt();
-  return receipt ? receiptToIdentity(receipt) : null;
+  return null;
 }
 
 export function getMissingAgentIdentityFields(stateStore: StateStore): RequiredAgentIdentityField[] {

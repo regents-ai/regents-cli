@@ -3,11 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
 
-import type { RegentConfig } from "../internal-types/index.js";
+import type { RegentConfig, RegentIdentityNetwork } from "../internal-types/index.js";
 
 import { CommandExitError } from "./errors.js";
+import { receiptMatchesRequest } from "./identity/cache.js";
 import { readIdentityReceipt } from "./identity/cache.js";
-import { isReceiptExpired } from "./identity/shared.js";
 import { ensureParentDir } from "./paths.js";
 
 const execFileAsync = promisify(execFile);
@@ -119,24 +119,56 @@ const maybeExecCdpJson = async (args: string[], timeoutMs: number): Promise<unkn
   }
 };
 
+const accountForSelector = (accounts: CoinbaseWalletAccount[], selector: string): CoinbaseWalletAccount | null => {
+  const requestedAddress = normalizeAddress(selector);
+  return accounts.find((account) => account.name === selector || account.address === requestedAddress) ?? null;
+};
+
 const resolveStoredOrNamedAccount = async (
   config: RegentConfig,
   timeoutMs: number,
-  walletHint?: string,
+  input?: { walletHint?: string; expectedAddress?: `0x${string}` },
 ): Promise<CoinbaseWalletAccount | null> => {
-  const preferredName = walletHint || readWalletState(config)?.name || DEFAULT_ACCOUNT_NAME;
-  const byName = parseAccountPayload(await maybeExecCdpJson(["evm", "accounts", "by-name", preferredName], timeoutMs));
-  if (byName) {
-    return byName;
+  const storedWallet = readWalletState(config);
+  const preferredSelectors = [
+    input?.walletHint,
+    ...(input?.walletHint ? [] : [storedWallet?.name, storedWallet?.address]),
+    input?.expectedAddress,
+  ].filter((value, index, values): value is string => Boolean(value) && values.indexOf(value) === index);
+
+  if (preferredSelectors.length > 0) {
+    const byName = parseAccountPayload(
+      await maybeExecCdpJson(["evm", "accounts", "by-name", preferredSelectors[0]], timeoutMs),
+    );
+    if (byName) {
+      return byName;
+    }
+
+    const listed = parseAccountsList(await maybeExecCdpJson(["evm", "accounts", "list"], timeoutMs));
+    for (const selector of preferredSelectors) {
+      const matchedAccount = accountForSelector(listed, selector);
+      if (matchedAccount) {
+        return matchedAccount;
+      }
+    }
+    return null;
+  }
+
+  const defaultAccount = parseAccountPayload(await maybeExecCdpJson(["evm", "accounts", "by-name", DEFAULT_ACCOUNT_NAME], timeoutMs));
+  if (defaultAccount) {
+    return defaultAccount;
   }
 
   const listed = parseAccountsList(await maybeExecCdpJson(["evm", "accounts", "list"], timeoutMs));
-  if (walletHint) {
-    const requestedAddress = normalizeAddress(walletHint);
-    return listed.find((account) => account.name == walletHint || account.address === requestedAddress) ?? null;
-  }
+  return accountForSelector(listed, DEFAULT_ACCOUNT_NAME) ?? listed[0] ?? null;
+};
 
-  return listed[0] ?? null;
+export const resolveCoinbaseAccount = async (
+  config: RegentConfig,
+  input?: { walletHint?: string; expectedAddress?: `0x${string}`; timeoutMs?: number },
+): Promise<CoinbaseWalletAccount | null> => {
+  const timeoutMs = input?.timeoutMs ?? config.auth.requestTimeoutMs;
+  return resolveStoredOrNamedAccount(config, timeoutMs, input);
 };
 
 const nextActionForStatus = (status: Omit<CoinbaseWalletStatus, "next_action">): CoinbaseWalletStatus["next_action"] => {
@@ -175,20 +207,29 @@ const nextActionForStatus = (status: Omit<CoinbaseWalletStatus, "next_action">):
 
 export const coinbaseStatus = async (
   config: RegentConfig,
-  input?: { walletHint?: string; timeoutMs?: number },
+  input?: { walletHint?: string; network?: RegentIdentityNetwork; timeoutMs?: number },
 ): Promise<CoinbaseWalletStatus> => {
   const timeoutMs = input?.timeoutMs ?? config.auth.requestTimeoutMs;
   let cliAvailable = true;
   let account: CoinbaseWalletAccount | null = null;
   try {
-    account = await resolveStoredOrNamedAccount(config, timeoutMs, input?.walletHint);
+    account = await resolveStoredOrNamedAccount(config, timeoutMs, input);
   } catch {
     cliAvailable = false;
   }
 
   const receipt = readIdentityReceipt();
   const receiptValid =
-    receipt?.provider === COINBASE_PROVIDER && !isReceiptExpired(receipt) ? receipt : null;
+    receipt?.provider === COINBASE_PROVIDER &&
+    account &&
+    receiptMatchesRequest({
+      receipt,
+      network: input?.network ?? receipt.network,
+      regentBaseUrl: config.auth.baseUrl,
+      walletHint: account.address,
+    })
+      ? receipt
+      : null;
 
   const baseStatus: Omit<CoinbaseWalletStatus, "next_action"> = {
     ok: false,
@@ -239,7 +280,7 @@ export const setupCoinbaseWallet = async (
   const timeoutMs = input?.timeoutMs ?? config.auth.requestTimeoutMs;
   const walletName = input?.walletName || DEFAULT_ACCOUNT_NAME;
 
-  let wallet = await resolveStoredOrNamedAccount(config, timeoutMs, walletName);
+  let wallet = await resolveStoredOrNamedAccount(config, timeoutMs, { walletHint: walletName });
   let created = false;
   if (!wallet) {
     wallet = parseAccountPayload(await execCdpJson(["evm", "accounts", "create", `name=${walletName}`], timeoutMs));
@@ -265,11 +306,14 @@ export const signMessageWithCoinbase = async (
 ): Promise<{ provider: typeof COINBASE_PROVIDER; address: `0x${string}`; walletHint?: string; signature: `0x${string}` }> => {
   requireCdpReadyForWrites();
   const timeoutMs = input.timeoutMs ?? config.auth.requestTimeoutMs;
-  const wallet = await resolveStoredOrNamedAccount(config, timeoutMs, input.walletHint);
+  const wallet = await resolveStoredOrNamedAccount(config, timeoutMs, {
+    walletHint: input.walletHint,
+    expectedAddress: input.expectedAddress,
+  });
   if (!wallet) {
     throw new CommandExitError("COINBASE_CDP_MISSING", "No Coinbase wallet account is ready on this machine.", 10);
   }
-  if (input.expectedAddress && wallet.address !== input.expectedAddress) {
+  if (input.expectedAddress && wallet.address.toLowerCase() !== input.expectedAddress.toLowerCase()) {
     throw new CommandExitError(
       "COINBASE_CDP_MISSING",
       "The saved Regent identity no longer matches the current Coinbase wallet.",

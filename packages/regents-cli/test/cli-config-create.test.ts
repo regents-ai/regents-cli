@@ -90,7 +90,7 @@ describe("CLI config and create flows", () => {
         },
         auth: {
           baseUrl: "http://127.0.0.1:4999",
-          audience: "regents-cli",
+          audience: "techtree",
           defaultChainId: 84532,
           requestTimeoutMs: 2500,
         },
@@ -170,7 +170,7 @@ describe("CLI config and create flows", () => {
       },
       auth: {
         baseUrl: "http://127.0.0.1:4000",
-        audience: "regents-cli",
+        audience: "techtree",
         defaultChainId: 84532,
         requestTimeoutMs: 10_000,
       },
@@ -254,7 +254,7 @@ describe("CLI config and create flows", () => {
         },
         auth: {
           baseUrl: "http://127.0.0.1:4999",
-          audience: "regents-cli",
+          audience: "techtree",
           defaultChainId: 8453,
           requestTimeoutMs: 2500,
         },
@@ -349,7 +349,7 @@ describe("CLI config and create flows", () => {
         },
         auth: {
           baseUrl: "http://127.0.0.1:4999",
-          audience: "regents-cli",
+          audience: "techtree",
           defaultChainId: 8453,
           requestTimeoutMs: 2500,
         },

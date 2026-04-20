@@ -10,6 +10,7 @@ import { RegentRuntime } from "../../src/internal-runtime/runtime.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { writeIdentityReceipt } from "../../src/internal-runtime/identity/cache.js";
 import { resolveWatchedNodeRelaySocketPath } from "../../src/internal-runtime/transports/watched-node-relay-socket.js";
+import { writeFakeCdp } from "../support/fake-cdp.js";
 import { TechtreeContractServer } from "../../../../test-support/techtree-contract-server.js";
 import { describeNetwork } from "../../../../test-support/integration.js";
 import { waitForFileRemoval } from "../../../../test-support/test-helpers.js";
@@ -102,6 +103,10 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
   let configPath = "";
   let socketPath = "";
   let originalPrivateKey: string | undefined;
+  let originalPath: string | undefined;
+  let originalKeyId: string | undefined;
+  let originalKeySecret: string | undefined;
+  let originalWalletSecret: string | undefined;
 
   beforeEach(async () => {
     server = new TechtreeContractServer();
@@ -111,7 +116,17 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
     configPath = path.join(tempDir, "regent.config.json");
     socketPath = path.join(tempDir, "runtime", "regent.sock");
     originalPrivateKey = process.env.REGENT_WALLET_PRIVATE_KEY;
+    originalPath = process.env.PATH;
+    originalKeyId = process.env.CDP_KEY_ID;
+    originalKeySecret = process.env.CDP_KEY_SECRET;
+    originalWalletSecret = process.env.CDP_WALLET_SECRET;
     process.env.REGENT_WALLET_PRIVATE_KEY = TEST_PRIVATE_KEY;
+    process.env.PATH = `${writeFakeCdp(tempDir, {
+      accounts: [{ name: "main", address: TEST_WALLET }],
+    })}:${originalPath ?? ""}`;
+    process.env.CDP_KEY_ID = "test-key";
+    process.env.CDP_KEY_SECRET = "test-secret";
+    process.env.CDP_WALLET_SECRET = "test-wallet-secret";
 
     writeInitialConfig(configPath, {
       runtime: {
@@ -121,7 +136,7 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
       },
       auth: {
         baseUrl: server.baseUrl,
-        audience: "regents-cli",
+        audience: "techtree",
         defaultChainId: 84532,
         requestTimeoutMs: 1_000,
       },
@@ -155,6 +170,10 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
 
   afterEach(async () => {
     process.env.REGENT_WALLET_PRIVATE_KEY = originalPrivateKey;
+    process.env.PATH = originalPath;
+    process.env.CDP_KEY_ID = originalKeyId;
+    process.env.CDP_KEY_SECRET = originalKeySecret;
+    process.env.CDP_WALLET_SECRET = originalWalletSecret;
     await server.stop();
   });
 

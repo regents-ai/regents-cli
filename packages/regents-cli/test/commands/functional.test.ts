@@ -101,7 +101,7 @@ exit 1
       },
       auth: {
         baseUrl: server.baseUrl,
-        audience: "regents-cli",
+        audience: "techtree",
         defaultChainId: 8453,
         requestTimeoutMs: 1_000,
       },

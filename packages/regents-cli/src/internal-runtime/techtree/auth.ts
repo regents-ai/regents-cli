@@ -1,7 +1,9 @@
-import type { LocalAgentIdentity, SiwaSession } from "../../internal-types/index.js";
+import type { LocalAgentIdentity, RegentConfig, SiwaSession } from "../../internal-types/index.js";
 
 import { AuthError } from "../errors.js";
 import { readIdentityReceipt } from "../identity/cache.js";
+import { resolveIdentitySigner, resolveSignerFromReceipt, type IdentitySigner } from "../identity/providers.js";
+import { identityNetworkForChainId } from "../identity/shared.js";
 import { receiptToIdentity } from "../identity/shared.js";
 import type { StateStore } from "../store/state-store.js";
 import type { SessionStore } from "../store/session-store.js";
@@ -9,6 +11,10 @@ import type { SessionStore } from "../store/session-store.js";
 export interface AuthenticatedAgentContext {
   session: SiwaSession;
   identity: LocalAgentIdentity;
+}
+
+export interface AuthenticatedAgentSigningContext extends AuthenticatedAgentContext {
+  signer: IdentitySigner;
 }
 
 export function requireAuthenticatedAgentContext(
@@ -40,8 +46,50 @@ export function requireAuthenticatedAgentContext(
     );
   }
 
+  const mismatches = [
+    session.walletAddress.toLowerCase() !== identity.walletAddress.toLowerCase() ? "walletAddress" : null,
+    session.chainId !== identity.chainId ? "chainId" : null,
+    session.registryAddress && session.registryAddress.toLowerCase() !== identity.registryAddress.toLowerCase()
+      ? "registryAddress"
+      : null,
+    session.tokenId && session.tokenId !== identity.tokenId ? "tokenId" : null,
+  ].filter((value): value is string => value !== null);
+
+  if (mismatches.length > 0) {
+    throw new AuthError(
+      "agent_identity_mismatch",
+      "stored Regent identity does not match the active SIWA session; run `regents identity ensure` again",
+    );
+  }
+
   return {
     session,
     identity,
+  };
+}
+
+export async function resolveAuthenticatedAgentSigningContext(
+  config: RegentConfig,
+  sessionStore: SessionStore,
+  stateStore: StateStore,
+  timeoutMs = config.auth.requestTimeoutMs,
+): Promise<AuthenticatedAgentSigningContext> {
+  const { session, identity } = requireAuthenticatedAgentContext(sessionStore, stateStore);
+  const receipt = readIdentityReceipt();
+  const signer = receipt
+    ? await resolveSignerFromReceipt(receipt, { config, timeoutMs })
+    : await resolveIdentitySigner({
+        provider: "coinbase-cdp",
+        network: identityNetworkForChainId(identity.chainId),
+        walletHint: identity.walletAddress,
+        config,
+        timeoutMs,
+        expectedAddress: identity.walletAddress,
+      });
+
+  return {
+    session,
+    identity,
+    signer,
   };
 }

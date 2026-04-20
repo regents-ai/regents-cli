@@ -56,7 +56,7 @@ describeNetwork.sequential("CLI doctor command", () => {
       },
       auth: {
         baseUrl: server.baseUrl,
-        audience: "regents-cli",
+        audience: "techtree",
         defaultChainId: 84532,
         requestTimeoutMs: 1_000,
       },

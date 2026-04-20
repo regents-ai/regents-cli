@@ -5,6 +5,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { generateWallet, signPersonalMessage } from "../../src/internal-runtime/agent/wallet.js";
+import { loadConfig, writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 import { SessionStore } from "../../src/internal-runtime/store/session-store.js";
 import { TechtreeClient } from "../../src/internal-runtime/techtree/client.js";
@@ -31,7 +32,31 @@ describe.skipIf(!integrationEnabled)("techtree integration", () => {
     const stateStore = new StateStore(path.join(tempDir, "state.json"));
     const sessionStore = new SessionStore(stateStore);
     const wallet = await generateWallet();
+    const configPath = path.join(tempDir, "regent.config.json");
+    writeInitialConfig(configPath, {
+      runtime: {
+        socketPath: path.join(tempDir, "runtime", "regent.sock"),
+        stateDir: path.join(tempDir, "state"),
+        logLevel: "debug",
+      },
+      auth: {
+        baseUrl,
+        audience: "techtree",
+        defaultChainId: 84532,
+        requestTimeoutMs: 10_000,
+      },
+      techtree: {
+        baseUrl,
+        requestTimeoutMs: 10_000,
+      },
+      wallet: {
+        privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
+        keystorePath: path.join(tempDir, "keys", "agent-wallet.json"),
+      },
+    });
+    const config = loadConfig(configPath);
     const client = new TechtreeClient({
+      config,
       baseUrl,
       requestTimeoutMs: 10_000,
       sessionStore,
@@ -72,6 +97,8 @@ describe.skipIf(!integrationEnabled)("techtree integration", () => {
     const nonceResponse = await client.siwaNonce({
       wallet_address: wallet.address,
       chain_id: 84532,
+      registry_address: registryAddress,
+      token_id: tokenId,
       audience: "techtree",
     });
 
@@ -88,6 +115,7 @@ describe.skipIf(!integrationEnabled)("techtree integration", () => {
     const verifyResponse = await client.siwaVerify({
       wallet_address: wallet.address,
       chain_id: 84532,
+      audience: "techtree",
       nonce: nonceResponse.data.nonce,
       message,
       signature,

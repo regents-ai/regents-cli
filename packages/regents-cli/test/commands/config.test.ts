@@ -38,7 +38,7 @@ describe("config commands", () => {
     expect(printed.runtime.logLevel).toBe("info");
     expect(printed.auth).toEqual({
       baseUrl: "http://127.0.0.1:4000",
-      audience: "regents-cli",
+      audience: "techtree",
       defaultChainId: 84532,
       requestTimeoutMs: 10_000,
     });
@@ -85,7 +85,7 @@ describe("config commands", () => {
         },
         auth: {
           baseUrl: "http://127.0.0.1:4000",
-          audience: "regents-cli",
+          audience: "techtree",
           defaultChainId: 8453,
           requestTimeoutMs: 3500,
         },
@@ -180,7 +180,7 @@ describe("config commands", () => {
     expect(printed.config.workloads.bbh.defaultProfile).toBe("bbh");
     expect(printed.config.auth).toEqual({
       baseUrl: "http://127.0.0.1:4000",
-      audience: "regents-cli",
+      audience: "techtree",
       defaultChainId: 8453,
       requestTimeoutMs: 3500,
     });

@@ -7,9 +7,11 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { loadConfig, writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { SessionStore } from "../../src/internal-runtime/store/session-store.js";
 import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 import { TechtreeClient } from "../../src/internal-runtime/techtree/client.js";
+import { writeFakeCdp } from "../support/fake-cdp.js";
 import type { ContractRequestRecord } from "../../../../test-support/techtree-contract-server.js";
 
 const TEST_PRIVATE_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
@@ -322,6 +324,31 @@ const createHarness = async (): Promise<ClientHarness> => {
   await once(server, "listening");
 
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-chatbox-client-"));
+  const address = server.address() as AddressInfo;
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const configPath = path.join(tempDir, "regent.config.json");
+  writeInitialConfig(configPath, {
+    runtime: {
+      socketPath: path.join(tempDir, "runtime", "regent.sock"),
+      stateDir: path.join(tempDir, "state"),
+      logLevel: "debug",
+    },
+    auth: {
+      baseUrl,
+      audience: "techtree",
+      defaultChainId: 84532,
+      requestTimeoutMs: 1_000,
+    },
+    techtree: {
+      baseUrl,
+      requestTimeoutMs: 1_000,
+    },
+    wallet: {
+      privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
+      keystorePath: path.join(tempDir, "keys", "agent-wallet.json"),
+    },
+  });
+  const config = loadConfig(configPath);
   const stateStore = new StateStore(path.join(tempDir, "runtime-state.json"));
   const sessionStore = new SessionStore(stateStore);
   sessionStore.setSiwaSession({
@@ -344,9 +371,9 @@ const createHarness = async (): Promise<ClientHarness> => {
     },
   });
 
-  const address = server.address() as AddressInfo;
   const client = new TechtreeClient({
-    baseUrl: `http://127.0.0.1:${address.port}`,
+    config,
+    baseUrl,
     requestTimeoutMs: 1_000,
     sessionStore,
     walletSecretSource: new StaticWalletSecretSource(),
@@ -373,13 +400,34 @@ const createHarness = async (): Promise<ClientHarness> => {
 
 describe("Techtree chatbox client routes", () => {
   let harness: ClientHarness;
+  let originalPath: string | undefined;
+  let originalKeyId: string | undefined;
+  let originalKeySecret: string | undefined;
+  let originalWalletSecret: string | undefined;
+  let tempHome = "";
 
   beforeEach(async () => {
+    originalPath = process.env.PATH;
+    originalKeyId = process.env.CDP_KEY_ID;
+    originalKeySecret = process.env.CDP_KEY_SECRET;
+    originalWalletSecret = process.env.CDP_WALLET_SECRET;
+    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "regent-chatbox-home-"));
+    process.env.PATH = `${writeFakeCdp(tempHome, {
+      accounts: [{ name: "main", address: TEST_WALLET }],
+    })}:${originalPath ?? ""}`;
+    process.env.CDP_KEY_ID = "test-key";
+    process.env.CDP_KEY_SECRET = "test-secret";
+    process.env.CDP_WALLET_SECRET = "test-wallet-secret";
     harness = await createHarness();
   });
 
   afterEach(async () => {
     await harness.stop();
+    process.env.PATH = originalPath;
+    process.env.CDP_KEY_ID = originalKeyId;
+    process.env.CDP_KEY_SECRET = originalKeySecret;
+    process.env.CDP_WALLET_SECRET = originalWalletSecret;
+    fs.rmSync(tempHome, { recursive: true, force: true });
   });
 
   it("uses the public webapp chatbox contract and emits stream events before the response closes", async () => {

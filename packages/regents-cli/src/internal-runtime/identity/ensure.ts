@@ -22,6 +22,13 @@ export interface EnsureIdentityOptions {
 export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<IdentityEnsureSuccess> => {
   const requestTimeoutMs = Math.max(1, options.timeoutSeconds) * 1000;
   const regentBaseUrl = normalizeRegentBaseUrl(options.config.auth.baseUrl);
+  const signer = await resolveIdentitySigner({
+    provider: "coinbase-cdp",
+    network: options.network,
+    walletHint: options.walletHint,
+    config: options.config,
+    timeoutMs: requestTimeoutMs,
+  });
 
   const cachedReceipt = readIdentityReceipt();
   if (
@@ -31,19 +38,11 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
       receipt: cachedReceipt,
       network: options.network,
       regentBaseUrl,
-      walletHint: options.walletHint,
+      walletHint: signer.address,
     })
   ) {
     return successFromReceipt(cachedReceipt, identityCachePath());
   }
-
-  const signer = await resolveIdentitySigner({
-    provider: "coinbase-cdp",
-    network: options.network,
-    walletHint: options.walletHint,
-    config: options.config,
-    timeoutMs: requestTimeoutMs,
-  });
   const client = new IdentityServiceClient(regentBaseUrl, requestTimeoutMs);
 
   const status = await client.status({

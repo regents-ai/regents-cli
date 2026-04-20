@@ -6,10 +6,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../../src/index.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
+import { writeFakeCdp } from "../support/fake-cdp.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
 describe("regent-staking CLI command group", () => {
   const expectedBaseUrl = "http://127.0.0.1:4010";
+  const testWallet = "0x1111111111111111111111111111111111111111";
+  const testRegistry = "0x2222222222222222222222222222222222222222";
   const originalEnv = { ...process.env };
   const fetchMock = vi.fn<typeof fetch>();
   let homeDir = "";
@@ -17,24 +20,53 @@ describe("regent-staking CLI command group", () => {
 
   const writeAgentAuthState = () => {
     writeInitialConfig(configPath);
+    const receiptPath = path.join(homeDir, ".regent", "identity", "receipt-v1.json");
     const statePath = path.join(homeDir, "state", "runtime-state.json");
+    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
     fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    fs.writeFileSync(
+      receiptPath,
+      JSON.stringify(
+        {
+          version: 1,
+          regent_base_url: "http://127.0.0.1:4000",
+          network: "base-sepolia",
+          provider: "coinbase-cdp",
+          address: testWallet,
+          agent_id: 99,
+          agent_registry: testRegistry,
+          signer_type: "evm_personal_sign",
+          verified: "onchain",
+          receipt: "identity-receipt",
+          receipt_issued_at: "2026-04-01T00:00:00.000Z",
+          receipt_expires_at: "2999-01-01T00:00:00.000Z",
+          cached_at: "2026-04-01T00:00:00.000Z",
+          wallet_hint: "main",
+        },
+        null,
+        2,
+      ),
+    );
     fs.writeFileSync(
       statePath,
       JSON.stringify(
         {
           agent: {
-            walletAddress: "0x1111111111111111111111111111111111111111",
+            walletAddress: testWallet,
             chainId: 84532,
+            registryAddress: testRegistry,
+            tokenId: "99",
           },
           siwa: {
-            walletAddress: "0x1111111111111111111111111111111111111111",
+            walletAddress: testWallet,
             chainId: 84532,
             nonce: "staking-nonce",
-            keyId: "0x1111111111111111111111111111111111111111",
+            keyId: testWallet.toLowerCase(),
             receipt: "staking-receipt",
             receiptExpiresAt: "2999-01-01T00:00:00.000Z",
-            audience: "regents-cli",
+            audience: "techtree",
+            registryAddress: testRegistry,
+            tokenId: "99",
           },
         },
         null,
@@ -48,6 +80,13 @@ describe("regent-staking CLI command group", () => {
     homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-staking-home-"));
     configPath = path.join(homeDir, "regent.config.json");
     process.env = { ...originalEnv };
+    process.env.HOME = homeDir;
+    process.env.PATH = `${writeFakeCdp(homeDir, {
+      accounts: [{ name: "main", address: testWallet }],
+    })}:${originalEnv.PATH ?? ""}`;
+    process.env.CDP_KEY_ID = "test-key";
+    process.env.CDP_KEY_SECRET = "test-secret";
+    process.env.CDP_WALLET_SECRET = "test-wallet-secret";
     process.env.REGENT_WALLET_PRIVATE_KEY =
       "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
     fetchMock.mockReset();

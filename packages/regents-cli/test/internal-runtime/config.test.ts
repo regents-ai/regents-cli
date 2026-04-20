@@ -19,7 +19,7 @@ describe("config loading", () => {
     const config = loadConfig(configPath);
 
     expect(config.auth.defaultChainId).toBe(84532);
-    expect(config.auth.audience).toBe("regents-cli");
+    expect(config.auth.audience).toBe("techtree");
     expect(config.runtime.stateDir).toBe(path.join(tempDir, "state"));
     expect(config.runtime.socketPath).toBe(path.join(tempDir, "run", "regent.sock"));
     expect(config.wallet.keystorePath).toBe(path.join(tempDir, "keys", "agent-wallet.json"));
@@ -92,7 +92,7 @@ describe("config loading", () => {
       },
       auth: {
         baseUrl: "http://127.0.0.1:4000",
-        audience: "regents-cli",
+        audience: "techtree",
         defaultChainId: 8453,
         requestTimeoutMs: 2_500,
       },

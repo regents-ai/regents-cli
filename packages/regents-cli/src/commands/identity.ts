@@ -65,6 +65,7 @@ export async function runIdentityStatus(
     const config = loadConfig(configPath);
     const wallet = await coinbaseStatus(config, {
       walletHint,
+      network,
       timeoutMs: timeoutSeconds * 1000,
     });
 
@@ -137,7 +138,7 @@ export async function runIdentityStatus(
       ok: wallet.ok && identityReady,
       provider: "coinbase-cdp" as const,
       network,
-      wallet_ready: wallet.ok,
+      wallet_ready: true,
       identity_ready: identityReady,
       address: wallet.account.address,
       wallet,

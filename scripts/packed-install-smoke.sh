@@ -16,6 +16,7 @@ SERVER_LOG="${WORK_DIR}/mock-server.log"
 
 TEST_PRIVATE_KEY="0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
 TEST_WALLET="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+TEST_WALLET_LOWER="$(printf '%s' "${TEST_WALLET}" | tr '[:upper:]' '[:lower:]')"
 TEST_REGISTRY="0x2222222222222222222222222222222222222222"
 TEST_SIGNATURE="0x1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
 
@@ -68,17 +69,17 @@ write_fake_cdp() {
 set -euo pipefail
 
 if [[ "\$#" -ge 4 && "\$1" == "evm" && "\$2" == "accounts" && "\$3" == "by-name" && "\$4" == "main" ]]; then
-  printf '{"name":"main","address":"${TEST_WALLET,,}"}\n'
+  printf '{"name":"main","address":"${TEST_WALLET_LOWER}"}\n'
   exit 0
 fi
 
 if [[ "\$#" -ge 3 && "\$1" == "evm" && "\$2" == "accounts" && "\$3" == "list" ]]; then
-  printf '{"accounts":[{"name":"main","address":"${TEST_WALLET,,}"}]}\n'
+  printf '{"accounts":[{"name":"main","address":"${TEST_WALLET_LOWER}"}]}\n'
   exit 0
 fi
 
 if [[ "\$#" -ge 4 && "\$1" == "evm" && "\$2" == "accounts" && "\$3" == "create" ]]; then
-  printf '{"name":"main","address":"${TEST_WALLET,,}"}\n'
+  printf '{"name":"main","address":"${TEST_WALLET_LOWER}"}\n'
   exit 0
 fi
 
@@ -371,13 +372,13 @@ cat > "${WORK_DIR}/replacement.json" <<EOF
   },
   "auth": {
     "baseUrl": "${BASE_URL}",
-    "audience": "regents-cli",
+    "audience": "techtree",
     "defaultChainId": 84532,
     "requestTimeoutMs": 1000
   },
   "techtree": {
     "baseUrl": "${BASE_URL}",
-    "audience": "regents-cli",
+    "audience": "techtree",
     "defaultChainId": 84532,
     "requestTimeoutMs": 1000
   },

@@ -1,8 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { deriveWalletAddress } from "../../agent/wallet.js";
+import { getCurrentAgentIdentity } from "../../agent/profile.js";
 import { RegentError, TechtreeApiError } from "../../errors.js";
 import { readIdentityReceipt } from "../../identity/cache.js";
+import { resolveIdentitySigner, resolveSignerFromReceipt } from "../../identity/providers.js";
+import { identityNetworkForChainId } from "../../identity/shared.js";
 const ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const POSITIVE_INTEGER_STRING_REGEX = /^[1-9][0-9]*$/;
 export function skipDueToMissingConfig() {
@@ -20,8 +23,22 @@ export function isPositiveIntegerString(value) {
 }
 export async function deriveSignerWalletAddress(ctx) {
     const receipt = readIdentityReceipt();
-    if (receipt?.provider === "coinbase-cdp") {
-        return receipt.address;
+    if (receipt?.provider === "coinbase-cdp" && ctx.config) {
+        return (await resolveSignerFromReceipt(receipt, {
+            config: ctx.config,
+            timeoutMs: ctx.config.auth.requestTimeoutMs,
+        })).address;
+    }
+    const identity = ctx.stateStore ? getCurrentAgentIdentity(ctx.stateStore) : null;
+    if (identity?.walletAddress && typeof identity.chainId === "number" && ctx.config) {
+        return (await resolveIdentitySigner({
+            provider: "coinbase-cdp",
+            network: identityNetworkForChainId(identity.chainId),
+            walletHint: identity.walletAddress,
+            config: ctx.config,
+            timeoutMs: ctx.config.auth.requestTimeoutMs,
+            expectedAddress: identity.walletAddress,
+        })).address;
     }
     if (!ctx.walletSecretSource) {
         return null;

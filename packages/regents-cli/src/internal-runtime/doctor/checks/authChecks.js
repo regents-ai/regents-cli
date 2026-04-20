@@ -1,10 +1,10 @@
 import { getCurrentAgentIdentity, getMissingAgentIdentityFields } from "../../agent/profile.js";
+import { resolveAuthenticatedAgentSigningContext } from "../../techtree/auth.js";
 import { buildAuthenticatedFetchInit } from "../../techtree/request-builder.js";
 import { buildSiwaMessage, SiwaClient } from "../../techtree/siwa.js";
 import { coveredComponentsForAgentHeaders, parseSignatureInputHeader, } from "../../techtree/signing.js";
 import { buildBackendDetails, deriveSignerWalletAddress, isPositiveIntegerString, isValidAddress, skipDueToMissingConfig } from "./shared.js";
 const FRESHNESS_THRESHOLD_MS = 5 * 60 * 1000;
-const PLACEHOLDER_WALLET = "0x0000000000000000000000000000000000000001";
 export function authChecks() {
     return [
         {
@@ -88,11 +88,19 @@ export function authChecks() {
                 try {
                     const authClient = new SiwaClient(ctx.config.auth.baseUrl, ctx.config.auth.requestTimeoutMs);
                     const identity = getCurrentAgentIdentity(ctx.stateStore);
-                    const walletAddress = identity?.walletAddress ?? (await deriveSignerWalletAddress(ctx)) ?? PLACEHOLDER_WALLET;
-                    const chainId = identity?.chainId ?? ctx.config.auth.defaultChainId;
+                    const missingFields = getMissingAgentIdentityFields(ctx.stateStore);
+                    if (!identity || missingFields.length > 0) {
+                        return {
+                            status: "skip",
+                            message: "SIWA nonce probe skipped because protected-route identity is incomplete",
+                            remediation: "Run `regents identity ensure`",
+                        };
+                    }
                     const response = await authClient.requestNonce({
-                        wallet_address: walletAddress,
-                        chain_id: chainId,
+                        wallet_address: identity.walletAddress,
+                        chain_id: identity.chainId,
+                        registry_address: identity.registryAddress,
+                        token_id: identity.tokenId,
                         audience: ctx.config.auth.audience,
                     });
                     return {
@@ -133,8 +141,15 @@ export function authChecks() {
                         remediation: "Run `regents identity ensure`",
                     };
                 }
-                const walletAddress = identity?.walletAddress ?? (await deriveSignerWalletAddress(ctx)) ?? PLACEHOLDER_WALLET;
-                const chainId = identity?.chainId ?? ctx.config.auth.defaultChainId;
+                if (!identity) {
+                    return {
+                        status: "skip",
+                        message: "SIWA verify probe skipped because protected-route identity is incomplete",
+                        remediation: "Run `regents identity ensure`",
+                    };
+                }
+                const walletAddress = identity.walletAddress;
+                const chainId = identity.chainId;
                 const nonce = `doctor-unverifiable-${Date.now()}`;
                 const message = buildSiwaMessage({
                     domain: "regent.cx",
@@ -149,10 +164,12 @@ export function authChecks() {
                     const response = await authClient.verify({
                         wallet_address: walletAddress,
                         chain_id: chainId,
+                        registry_address: identity.registryAddress,
+                        token_id: identity.tokenId,
+                        audience: ctx.config.auth.audience,
                         nonce,
                         message,
                         signature: `0x${"00".repeat(65)}`,
-                        ...(identity ? { registry_address: identity.registryAddress, token_id: identity.tokenId } : {}),
                     });
                     return {
                         status: "warn",
@@ -352,11 +369,37 @@ export function authChecks() {
             scope: "auth",
             title: "HTTP auth envelope builds locally",
             run: async (ctx) => {
-                if (!ctx.sessionStore || !ctx.stateStore || !ctx.walletSecretSource) {
+                if (!ctx.config || !ctx.sessionStore || !ctx.stateStore) {
                     return skipDueToMissingConfig();
                 }
-                const session = ctx.sessionStore.getSiwaSession();
-                const identity = getCurrentAgentIdentity(ctx.stateStore);
+                let signingContext;
+                try {
+                    signingContext = await resolveAuthenticatedAgentSigningContext(ctx.config, ctx.sessionStore, ctx.stateStore, ctx.config.auth.requestTimeoutMs);
+                }
+                catch (error) {
+                    const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : null;
+                    if (code === "siwa_session_missing" || code === "siwa_receipt_expired") {
+                        return {
+                            status: "skip",
+                            message: "No SIWA session is stored locally",
+                            remediation: "Run `regents identity ensure`",
+                        };
+                    }
+                    if (code === "agent_identity_missing") {
+                        return {
+                            status: "skip",
+                            message: "Protected-route identity is unavailable locally",
+                            remediation: "Run `regents identity ensure`",
+                        };
+                    }
+                    return {
+                        status: "fail",
+                        message: "Authenticated HTTP envelope could not be built locally",
+                        details: buildBackendDetails(error),
+                        remediation: "Inspect local SIWA session state, signer setup, and identity headers",
+                    };
+                }
+                const { session, identity, signer } = signingContext;
                 if (!session) {
                     return {
                         status: "skip",
@@ -364,21 +407,13 @@ export function authChecks() {
                         remediation: "Run `regents identity ensure`",
                     };
                 }
-                if (!identity) {
-                    return {
-                        status: "skip",
-                        message: "Protected-route identity is unavailable locally",
-                        remediation: "Run `regents identity ensure`",
-                    };
-                }
                 try {
-                    const privateKey = await ctx.walletSecretSource.getPrivateKeyHex();
                     const request = await buildAuthenticatedFetchInit({
                         method: "GET",
                         path: "/v1/agent/opportunities",
                         session,
                         agentIdentity: identity,
-                        privateKey,
+                        signMessage: signer.signMessage,
                     });
                     const headers = request.init.headers;
                     const requiredHeaders = [

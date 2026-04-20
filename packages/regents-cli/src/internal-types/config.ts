@@ -1,3 +1,4 @@
+import type { SiwaAudience } from "./auth.js";
 import type { RegentExecutorHarnessKind } from "./agent.js";
 
 export type RegentLogLevel = "debug" | "info" | "warn" | "error";
@@ -15,7 +16,7 @@ export interface RegentTechtreeConfig {
 
 export interface RegentAuthConfig {
   baseUrl: string;
-  audience: string;
+  audience: SiwaAudience;
   defaultChainId: number;
   requestTimeoutMs: number;
 }

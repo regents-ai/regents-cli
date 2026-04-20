@@ -5,11 +5,13 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { signPersonalMessage } from "../../src/internal-runtime/agent/wallet.js";
+import { loadConfig, writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { SessionStore } from "../../src/internal-runtime/store/session-store.js";
 import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 import { TechtreeClient } from "../../src/internal-runtime/techtree/client.js";
 import { buildAuthenticatedFetchInit } from "../../src/internal-runtime/techtree/request-builder.js";
 import { buildSiwaMessage } from "../../src/internal-runtime/techtree/siwa.js";
+import { writeFakeCdp } from "../support/fake-cdp.js";
 import { TechtreeContractServer } from "../../../../test-support/techtree-contract-server.js";
 import { describeNetwork } from "../../../../test-support/integration.js";
 
@@ -29,11 +31,38 @@ interface ClientHarness {
   sessionStore: SessionStore;
 }
 
+const buildConfig = (baseUrl: string, tempDir: string) => {
+  const configPath = path.join(tempDir, "regent.config.json");
+  writeInitialConfig(configPath, {
+    runtime: {
+      socketPath: path.join(tempDir, "runtime", "regent.sock"),
+      stateDir: path.join(tempDir, "state"),
+      logLevel: "debug",
+    },
+    auth: {
+      baseUrl,
+      audience: "techtree",
+      defaultChainId: 84532,
+      requestTimeoutMs: 1_000,
+    },
+    techtree: {
+      baseUrl,
+      requestTimeoutMs: 1_000,
+    },
+    wallet: {
+      privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
+      keystorePath: path.join(tempDir, "keys", "agent-wallet.json"),
+    },
+  });
+  return loadConfig(configPath);
+};
+
 const createHarness = (baseUrl: string): ClientHarness => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-client-"));
   const stateStore = new StateStore(path.join(tempDir, "runtime-state.json"));
   const sessionStore = new SessionStore(stateStore);
   const client = new TechtreeClient({
+    config: buildConfig(baseUrl, tempDir),
     baseUrl,
     requestTimeoutMs: 1_000,
     sessionStore,
@@ -103,19 +132,37 @@ const authenticate = async ({ client, stateStore, sessionStore }: ClientHarness)
 describeNetwork("TechtreeClient functional coverage", () => {
   let server: TechtreeContractServer;
   let originalHome: string | undefined;
+  let originalPath: string | undefined;
+  let originalKeyId: string | undefined;
+  let originalKeySecret: string | undefined;
+  let originalWalletSecret: string | undefined;
   let testHome = "";
 
   beforeEach(async () => {
     server = new TechtreeContractServer();
     await server.start();
     originalHome = process.env.HOME;
+    originalPath = process.env.PATH;
+    originalKeyId = process.env.CDP_KEY_ID;
+    originalKeySecret = process.env.CDP_KEY_SECRET;
+    originalWalletSecret = process.env.CDP_WALLET_SECRET;
     testHome = fs.mkdtempSync(path.join(os.tmpdir(), "regents-client-home-"));
     process.env.HOME = testHome;
+    process.env.PATH = `${writeFakeCdp(testHome, {
+      accounts: [{ name: "main", address: TEST_WALLET }],
+    })}:${originalPath ?? ""}`;
+    process.env.CDP_KEY_ID = "test-key";
+    process.env.CDP_KEY_SECRET = "test-secret";
+    process.env.CDP_WALLET_SECRET = "test-wallet-secret";
   });
 
   afterEach(async () => {
     await server.stop();
     process.env.HOME = originalHome;
+    process.env.PATH = originalPath;
+    process.env.CDP_KEY_ID = originalKeyId;
+    process.env.CDP_KEY_SECRET = originalKeySecret;
+    process.env.CDP_WALLET_SECRET = originalWalletSecret;
     fs.rmSync(testHome, { recursive: true, force: true });
   });
 

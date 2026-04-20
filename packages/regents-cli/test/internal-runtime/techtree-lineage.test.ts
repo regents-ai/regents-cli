@@ -4,9 +4,11 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { loadConfig, writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { SessionStore } from "../../src/internal-runtime/store/session-store.js";
 import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 import { TechtreeClient } from "../../src/internal-runtime/techtree/client.js";
+import { writeFakeCdp } from "../support/fake-cdp.js";
 import {
   handleTechtreeNodeCrossChainLinksClear,
   handleTechtreeNodeLineageWithdraw,
@@ -25,9 +27,33 @@ class StaticWalletSecretSource {
 
 const createClient = (baseUrl: string): { client: TechtreeClient; stateStore: StateStore; sessionStore: SessionStore } => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-lineage-"));
+  const configPath = path.join(tempDir, "regent.config.json");
+  writeInitialConfig(configPath, {
+    runtime: {
+      socketPath: path.join(tempDir, "runtime", "regent.sock"),
+      stateDir: path.join(tempDir, "state"),
+      logLevel: "debug",
+    },
+    auth: {
+      baseUrl,
+      audience: "techtree",
+      defaultChainId: 84532,
+      requestTimeoutMs: 1_000,
+    },
+    techtree: {
+      baseUrl,
+      requestTimeoutMs: 1_000,
+    },
+    wallet: {
+      privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
+      keystorePath: path.join(tempDir, "keys", "agent-wallet.json"),
+    },
+  });
+  const config = loadConfig(configPath);
   const stateStore = new StateStore(path.join(tempDir, "runtime-state.json"));
   const sessionStore = new SessionStore(stateStore);
   const client = new TechtreeClient({
+    config,
     baseUrl,
     requestTimeoutMs: 1_000,
     sessionStore,
@@ -60,14 +86,35 @@ const createClient = (baseUrl: string): { client: TechtreeClient; stateStore: St
 
 describe("techtree lineage and cross-chain link wiring", () => {
   const fetchMock = vi.fn<typeof fetch>();
+  let originalPath: string | undefined;
+  let originalKeyId: string | undefined;
+  let originalKeySecret: string | undefined;
+  let originalWalletSecret: string | undefined;
+  let tempHome = "";
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
     fetchMock.mockReset();
+    originalPath = process.env.PATH;
+    originalKeyId = process.env.CDP_KEY_ID;
+    originalKeySecret = process.env.CDP_KEY_SECRET;
+    originalWalletSecret = process.env.CDP_WALLET_SECRET;
+    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "regent-lineage-home-"));
+    process.env.PATH = `${writeFakeCdp(tempHome, {
+      accounts: [{ name: "main", address: TEST_WALLET }],
+    })}:${originalPath ?? ""}`;
+    process.env.CDP_KEY_ID = "test-key";
+    process.env.CDP_KEY_SECRET = "test-secret";
+    process.env.CDP_WALLET_SECRET = "test-wallet-secret";
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    process.env.PATH = originalPath;
+    process.env.CDP_KEY_ID = originalKeyId;
+    process.env.CDP_KEY_SECRET = originalKeySecret;
+    process.env.CDP_WALLET_SECRET = originalWalletSecret;
+    fs.rmSync(tempHome, { recursive: true, force: true });
   });
 
   it("targets the expected lineage and cross-chain routes", async () => {

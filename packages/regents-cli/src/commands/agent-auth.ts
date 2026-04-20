@@ -2,11 +2,10 @@ import path from "node:path";
 
 import type { LocalAgentIdentity, RegentConfig, SiwaSession } from "../internal-types/index.js";
 
-import { EnvWalletSecretSource, FileWalletSecretSource } from "../internal-runtime/agent/key-store.js";
-import { signPersonalMessage } from "../internal-runtime/agent/wallet.js";
 import { loadConfig, StateStore } from "../internal-runtime/index.js";
 import { readIdentityReceipt } from "../internal-runtime/identity/cache.js";
 import { receiptToIdentity } from "../internal-runtime/identity/shared.js";
+import { resolveAuthenticatedAgentSigningContext } from "../internal-runtime/techtree/auth.js";
 import { buildSignerBackedAgentHeaders } from "../internal-runtime/techtree/signing.js";
 import { SessionStore } from "../internal-runtime/store/session-store.js";
 
@@ -14,6 +13,7 @@ export const loadAgentAuthState = (
   configPath?: string,
 ): {
   config: RegentConfig;
+  stateStore: StateStore;
   sessionStore: SessionStore;
   session: SiwaSession | null;
   identity: LocalAgentIdentity | null;
@@ -40,6 +40,7 @@ export const loadAgentAuthState = (
 
   return {
     config,
+    stateStore,
     sessionStore,
     session,
     identity,
@@ -87,9 +88,16 @@ export const buildAgentAuthHeaders = async (
     requireBoundIdentity?: boolean;
   },
 ): Promise<Record<string, string>> => {
-  const { config, session, identity } = requireAgentAuthState(input.configPath, {
+  requireAgentAuthState(input.configPath, {
     requireBoundIdentity: input.requireBoundIdentity,
   });
+  const { config, stateStore, sessionStore } = loadAgentAuthState(input.configPath);
+  const { session, identity, signer } = await resolveAuthenticatedAgentSigningContext(
+    config,
+    sessionStore,
+    stateStore,
+    config.auth.requestTimeoutMs,
+  );
 
   return buildSignerBackedAgentHeaders({
     method: input.method,
@@ -99,13 +107,6 @@ export const buildAgentAuthHeaders = async (
     ...(identity.registryAddress ? { registryAddress: identity.registryAddress } : {}),
     ...(identity.tokenId ? { tokenId: identity.tokenId } : {}),
     receipt: session.receipt,
-    signMessage: async (message) => {
-      const envVarName = config.wallet.privateKeyEnv;
-      const source = process.env[envVarName]
-        ? new EnvWalletSecretSource(envVarName)
-        : new FileWalletSecretSource(config.wallet.keystorePath);
-      const privateKey = await source.getPrivateKeyHex();
-      return signPersonalMessage(privateKey, message);
-    },
+    signMessage: signer.signMessage,
   });
 };

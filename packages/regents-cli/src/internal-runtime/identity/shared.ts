@@ -23,6 +23,17 @@ export const identityNetworkChainId = (network: RegentIdentityNetwork): number =
   }
 };
 
+export const identityNetworkForChainId = (chainId: number): RegentIdentityNetwork => {
+  switch (chainId) {
+    case 8453:
+      return "base";
+    case 84532:
+      return "base-sepolia";
+    default:
+      throw new Error(`unsupported chain id: ${chainId}`);
+  }
+};
+
 export const normalizeRegentBaseUrl = (input: string): string => input.replace(/\/+$/u, "");
 
 export const isReceiptExpired = (

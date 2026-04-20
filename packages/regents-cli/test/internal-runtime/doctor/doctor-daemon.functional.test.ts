@@ -62,7 +62,7 @@ describeNetwork.sequential("doctor JSON-RPC methods", () => {
       },
       auth: {
         baseUrl: server.baseUrl,
-        audience: "regents-cli",
+        audience: "techtree",
         defaultChainId: 8453,
         requestTimeoutMs: 1_000,
       },
@@ -101,8 +101,8 @@ describeNetwork.sequential("doctor JSON-RPC methods", () => {
     expect(initial.checks).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: "auth.siwa.verify.endpoint",
-          status: "ok",
+          id: "auth.siwa.nonce.endpoint",
+          status: "skip",
         }),
         expect.objectContaining({
           id: "auth.identity.headers",
@@ -111,6 +111,10 @@ describeNetwork.sequential("doctor JSON-RPC methods", () => {
         expect.objectContaining({
           id: "auth.session.present",
           status: "warn",
+        }),
+        expect.objectContaining({
+          id: "auth.http-envelope.build",
+          status: "skip",
         }),
       ]),
     );

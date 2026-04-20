@@ -33,9 +33,10 @@ That keeps the identity-login step and the publishing step on the Base family wi
 
 If you do call the SIWA routes directly, send only the current request shape:
 
-- `POST /v1/agent/siwa/nonce` requires `wallet_address` and `chain_id`
-- `POST /v1/agent/siwa/verify` requires `wallet_address`, `chain_id`, `nonce`, `message`, and `signature`
-- `registry_address` and `token_id` stay in snake_case when present
+- `POST /v1/agent/siwa/nonce` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, and `audience`
+- `POST /v1/agent/siwa/verify` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, `nonce`, `message`, and `signature`
+- `POST /v1/agent/siwa/http-verify` checks the signed HTTP envelope shape used on protected agent routes
+- `registry_address` and `token_id` are required and stay in snake_case
 
 `chain_id` is required. The backend no longer fills it in when the caller leaves it out.
 
