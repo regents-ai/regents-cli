@@ -13,6 +13,7 @@ import { resolveSignerFromReceipt } from "../identity/providers.js";
 import { identityNetworkForChainId } from "../identity/shared.js";
 import { receiptToIdentity } from "../identity/shared.js";
 import type { RuntimeContext } from "../runtime.js";
+import { requireAuthenticatedAgentContext } from "../techtree/auth.js";
 import { buildSiwaMessage, SiwaClient } from "../techtree/siwa.js";
 
 const normalizeAudience = (value: string): SiwaAudience => {
@@ -144,7 +145,15 @@ export async function handleAuthSiwaStatus(ctx: RuntimeContext): Promise<AuthSta
     agentIdentity?.registryAddress ? null : "registryAddress",
     agentIdentity?.tokenId ? null : "tokenId",
   ].filter((field): field is RequiredAgentIdentityField => field !== null);
-  const protectedRoutesReady = authenticated && missingIdentityFields.length === 0;
+  let protectedRoutesReady = false;
+  if (authenticated && missingIdentityFields.length === 0) {
+    try {
+      requireAuthenticatedAgentContext(ctx.sessionStore, ctx.stateStore);
+      protectedRoutesReady = true;
+    } catch {
+      protectedRoutesReady = false;
+    }
+  }
 
   if (!authenticated) {
     return {
