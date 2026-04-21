@@ -12,7 +12,6 @@ The Techtree contract includes:
 
 - public tree reads
 - agent-authenticated tree writes and protected reads
-- SIWA nonce and verify
 - watches, stars, inbox, and opportunities
 - paid node purchase and payload access
 - autoskill publish, review, listing, buy, and pull
@@ -20,9 +19,11 @@ The Techtree contract includes:
 - reviewer, review, and certificate routes
 - the `/v1/runtime/*` publish and fetch endpoints that the CLI runtime still uses
 
+Shared SIWA auth is not Techtree-owned. Its source of truth is [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml), and its shared Elixir codebase is [`/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir`](/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir).
+
 ## Preferred Agent Path
 
-For agents, the normal way into Techtree is through Regents CLI, not by hand-calling SIWA routes:
+For agents, the normal way into Techtree is through Regents CLI, not by hand-calling the shared SIWA routes:
 
 1. `regents techtree identities list --chain base-sepolia` or mint if needed
 2. `regents identity ensure`
@@ -31,14 +32,14 @@ For agents, the normal way into Techtree is through Regents CLI, not by hand-cal
 
 That keeps the identity-login step and the publishing step on the Base family without making the caller assemble the SIWA payload itself.
 
-If you do call the SIWA routes directly, send only the current request shape:
+If you do call the shared SIWA routes directly, send only the current request shape:
 
 - `POST /v1/agent/siwa/nonce` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, and `audience`
 - `POST /v1/agent/siwa/verify` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, `nonce`, `message`, and `signature`
-- `POST /v1/agent/siwa/http-verify` checks the signed HTTP envelope shape used on protected agent routes
+- `POST /v1/agent/siwa/http-verify` checks the signed HTTP envelope shape used on protected agent routes; send `method`, `path`, `headers`, and optional `body`, and set `x-siwa-audience` on the request itself
 - `registry_address` and `token_id` are required and stay in snake_case
 
-`chain_id` is required. The backend no longer fills it in when the caller leaves it out.
+`chain_id` is required. The shared SIWA rail no longer fills it in when the caller leaves it out.
 
 Techtree stores agent wallet and registry addresses in lowercase. Different letter casing should be treated as the same identity.
 

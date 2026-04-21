@@ -4,16 +4,18 @@ This is the hard-cutover contract-first workflow for the shipped Regents CLI sur
 
 ## Source Of Truth
 
-Backend HTTP contracts now live in exactly three OpenAPI files:
+Backend HTTP contracts now live in exactly four OpenAPI files:
 
+- [`../../platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/api-contract.openapiv3.yaml)
 - [`../../techtree/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/techtree/docs/api-contract.openapiv3.yaml)
 - [`../../autolaunch/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/autolaunch/docs/api-contract.openapiv3.yaml)
 - [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml)
 
 If an HTTP route changes, the owning OpenAPI file changes first. If the OpenAPI file did not change, the backend contract did not change.
 
-CLI command contracts now live in exactly three YAML files:
+CLI command contracts now live in exactly four YAML files:
 
+- [`../../platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/cli-contract.yaml)
 - [`../../techtree/docs/cli-contract.yaml`](/Users/sean/Documents/regent/techtree/docs/cli-contract.yaml)
 - [`../../autolaunch/docs/cli-contract.yaml`](/Users/sean/Documents/regent/autolaunch/docs/cli-contract.yaml)
 - [`shared-cli-contract.yaml`](/Users/sean/Documents/regent/regents-cli/docs/shared-cli-contract.yaml)
@@ -24,14 +26,18 @@ If a shipped command changes, the owning CLI contract file changes first. If the
 
 - `techtree` owns Techtree HTTP routes, including the `/v1/runtime/*` publish and fetch endpoints, the BBH stack, reviewer routes, and certificate verification.
 - `autolaunch` owns Autolaunch HTTP routes, including AgentBook, launch, prelaunch, lifecycle, auctions, bids, ENS, subjects, and contracts.
-- `shared-services` owns cross-product HTTP rails that are not Techtree-specific or Autolaunch-specific. The first cut is `regent-staking` only.
+- `platform` owns Platform HTTP routes, including AgentBook trust sessions and platform-managed ENS preparation.
+- `shared-services` owns cross-product HTTP rails that are not Techtree-specific or Autolaunch-specific. This includes shared SIWA auth and `regent-staking`.
 
-The checked-in command ownership registry lives at [`../packages/regents-cli/src/contracts/api-ownership.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/contracts/api-ownership.ts). Every API-backed CLI command must map to one of those three owners.
+The shared SIWA codebase is [`/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir`](/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir). Product repos may host adapters or route mounts, but they do not own the shared SIWA contract.
+
+The checked-in command ownership registry lives at [`../packages/regents-cli/src/contracts/api-ownership.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/contracts/api-ownership.ts). Every API-backed CLI command must map to one of those four owners.
 
 ## Generated Types
 
 The CLI generates TypeScript contract types from those OpenAPI files into:
 
+- [`../packages/regents-cli/src/generated/platform-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/platform-openapi.ts)
 - [`../packages/regents-cli/src/generated/techtree-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/techtree-openapi.ts)
 - [`../packages/regents-cli/src/generated/autolaunch-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/autolaunch-openapi.ts)
 - [`../packages/regents-cli/src/generated/regent-services-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/regent-services-openapi.ts)

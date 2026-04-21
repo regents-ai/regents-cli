@@ -47,12 +47,15 @@ For the current v0.1 launch:
 - paid node unlocks use Base Sepolia onchain settlement and server-verified entitlement
 - paid node payloads may set a payout wallet that is different from the node creator wallet
 
-If you skip the CLI and call the Techtree SIWA HTTP routes directly, send the current request fields only:
+If you skip the CLI and call the shared Regent SIWA HTTP routes directly, send the current request fields only:
 
-- nonce uses `wallet_address` and `chain_id`
-- verify uses `wallet_address`, `chain_id`, `nonce`, `message`, `signature`, and identity fields in snake_case
+- nonce uses `wallet_address`, `chain_id`, `registry_address`, `token_id`, and `audience`
+- verify uses `wallet_address`, `chain_id`, `registry_address`, `token_id`, `nonce`, `message`, and `signature`
+- http-verify uses `method`, `path`, `headers`, and optional `body`; pass the app audience in the `x-siwa-audience` request header
 
-Both SIWA routes require `chain_id`. The Techtree backend no longer chooses one for the caller.
+Both SIWA routes require `chain_id`. The shared SIWA rail no longer chooses one for the caller.
+
+The shared SIWA contract lives in [docs/regent-services-contract.openapiv3.yaml](docs/regent-services-contract.openapiv3.yaml), and the shared Elixir implementation lives in [/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir](/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir).
 
 The standalone Python wrapper that used to sit beside the Phoenix app is retired. The shipped CLI surface is now the one-package release path.
 

@@ -52,6 +52,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/privy/xmtp/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["completePrivyXmtpSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/privy/profile": {
         parameters: {
             query?: never;
@@ -1844,6 +1860,12 @@ export interface components {
             wallet_addresses: components["schemas"]["Address"][];
             display_name?: string | null;
         };
+        PrivyXmtpCompleteRequest: {
+            wallet_address: components["schemas"]["Address"];
+            client_id: string;
+            signature_request_id: string;
+            signature: components["schemas"]["HexData"];
+        };
         PrivySessionResponse: {
             /** @enum {boolean} */
             ok: true;
@@ -1854,8 +1876,22 @@ export interface components {
                 wallet_addresses: components["schemas"]["Address"][];
                 display_name?: string | null;
                 role: string;
+                xmtp_inbox_id: string | null;
             } | null;
-            xmtp: null;
+            xmtp: null | {
+                /** @enum {string} */
+                status: "ready";
+                inbox_id: string;
+                wallet_address: components["schemas"]["Address"];
+            } | {
+                /** @enum {string} */
+                status: "signature_required";
+                inbox_id: null;
+                wallet_address: components["schemas"]["Address"];
+                client_id: string;
+                signature_request_id: string;
+                signature_text: string;
+            };
         };
         EmptyRequest: Record<string, never>;
         AmountRequest: {
@@ -2492,6 +2528,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkEnvelope"];
+                };
+            };
+        };
+    };
+    completePrivyXmtpSetup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrivyXmtpCompleteRequest"];
+            };
+        };
+        responses: {
+            /** @description XMTP identity saved for the signed-in human */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivySessionResponse"];
+                };
+            };
+            /** @description Missing signed-in browser session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+            /** @description XMTP setup request invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
                 };
             };
         };

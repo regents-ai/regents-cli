@@ -9,7 +9,7 @@ import { AuthError, TechtreeApiError } from "../errors.js";
 import { parseTechtreeErrorResponse } from "./api-errors.js";
 
 const DEFAULT_DOMAIN = "regent.cx";
-const DEFAULT_URI = "https://regent.cx/login";
+const DEFAULT_URI = "https://regent.cx/v1/agent/siwa/verify";
 const DEFAULT_STATEMENT = "Sign in to Regents CLI.";
 
 export function buildSiwaMessage(input: {

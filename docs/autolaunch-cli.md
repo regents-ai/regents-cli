@@ -477,7 +477,7 @@ That backend must have:
   Launch jobs, bids, and subject action registrations are persisted there.
 - launch-chain RPC configured and reachable
   The backend needs it for launch-state reads, bid verification, and subject verification.
-- the SIWA sidecar reachable
+- the shared SIWA verification path reachable
   Launch creation depends on backend-side signature verification.
 - the Foundry deploy binary and deploy workdir present on the backend node
   Without those, launch creation can queue but cannot actually execute.

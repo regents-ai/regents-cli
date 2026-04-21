@@ -2,7 +2,7 @@
 
 This workspace ships one operator-facing install target: `@regentslabs/cli`. The internal runtime and shared types packages stay inside the workspace and are not separate release products.
 
-This script assumes a local Techtree Phoenix server is running and its SIWA sidecar is reachable through the configured `/v1/agent/siwa/*` proxy routes.
+This script assumes a local Techtree Phoenix server is running and the shared SIWA rail is reachable through the configured `/v1/agent/siwa/*` routes.
 
 Keep the launch split explicit:
 
@@ -22,7 +22,7 @@ regents techtree start
 What still must already exist before the guided flow can finish:
 
 - a wallet key in `REGENT_WALLET_PRIVATE_KEY`
-- a reachable Techtree backend and SIWA sidecar
+- a reachable Techtree backend and shared SIWA service path
 - a Base Sepolia RPC URL plus Base Sepolia ETH only if the guided start needs to mint a fresh Techtree identity
 
 The rest of this document remains the explicit operator-by-operator version of the same flow.

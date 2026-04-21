@@ -30,7 +30,6 @@ export interface SiwaVerifyRequest {
   chain_id: number;
   registry_address: `0x${string}`;
   token_id: string;
-  audience: SiwaAudience;
   nonce: string;
   message: string;
   signature: `0x${string}`;

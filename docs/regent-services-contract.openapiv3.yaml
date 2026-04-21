@@ -5,12 +5,47 @@ info:
   description: >
     Source-of-truth contract for shared Regent service rails that are not product-owned.
     This file owns shared SIWA auth, Regent staking, and shared operator reporting rails.
+    Shared SIWA implementation lives in the `elixir-utils/siwa/siwa-elixir` codebase.
 tags:
   - name: identity
   - name: auth
+  - name: internal
   - name: regent-staking
   - name: reports
 paths:
+  /healthz:
+    get:
+      operationId: siwaServerHealthz
+      tags: [auth]
+      responses:
+        "200":
+          description: Simple health check response for the shared SIWA server
+          content:
+            text/plain:
+              schema:
+                type: string
+  /metrics:
+    get:
+      operationId: siwaServerMetrics
+      tags: [auth]
+      responses:
+        "200":
+          description: Prometheus scrape payload for the shared SIWA server
+          content:
+            text/plain:
+              schema:
+                type: string
+  /regent-services-contract.openapiv3.yaml:
+    get:
+      operationId: regentServicesContractSource
+      tags: [auth]
+      responses:
+        "200":
+          description: Source-of-truth shared services contract served by the SIWA server
+          content:
+            application/yaml:
+              schema:
+                type: string
   /v1/identity/status:
     post:
       operationId: getIdentityStatus
@@ -194,6 +229,13 @@ paths:
     post:
       operationId: verifySharedSiwaHttpEnvelope
       tags: [auth]
+      parameters:
+        - in: header
+          name: x-siwa-audience
+          required: false
+          schema:
+            type: string
+          description: Optional app audience that the SIWA receipt must match for this protected request
       requestBody:
         required: true
         content:
@@ -215,6 +257,178 @@ paths:
                 $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Envelope verification failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /internal/keyring/health:
+    get:
+      operationId: siwaKeyringHealth
+      tags: [internal]
+      responses:
+        "200":
+          description: Internal signer health response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+  /internal/keyring/create-wallet:
+    post:
+      operationId: siwaKeyringCreateWallet
+      tags: [internal]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LooseObject"
+      responses:
+        "200":
+          description: Wallet created or returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+        "401":
+          description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /internal/keyring/has-wallet:
+    post:
+      operationId: siwaKeyringHasWallet
+      tags: [internal]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LooseObject"
+      responses:
+        "200":
+          description: Wallet presence check
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+        "401":
+          description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /internal/keyring/get-address:
+    post:
+      operationId: siwaKeyringGetAddress
+      tags: [internal]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LooseObject"
+      responses:
+        "200":
+          description: Wallet address lookup
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+        "401":
+          description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /internal/keyring/sign-message:
+    post:
+      operationId: siwaKeyringSignMessage
+      tags: [internal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LooseObject"
+      responses:
+        "200":
+          description: Message signed with the internal keyring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+        "401":
+          description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /internal/keyring/sign-raw-message:
+    post:
+      operationId: siwaKeyringSignRawMessage
+      tags: [internal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LooseObject"
+      responses:
+        "200":
+          description: Raw payload signed with the internal keyring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+        "401":
+          description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /internal/keyring/sign-transaction:
+    post:
+      operationId: siwaKeyringSignTransaction
+      tags: [internal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LooseObject"
+      responses:
+        "200":
+          description: Transaction signed with the internal keyring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+        "401":
+          description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /internal/keyring/sign-authorization:
+    post:
+      operationId: siwaKeyringSignAuthorization
+      tags: [internal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LooseObject"
+      responses:
+        "200":
+          description: Authorization payload signed with the internal keyring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LooseObject"
+        "401":
+          description: Internal signer authentication failed
           content:
             application/json:
               schema:
@@ -546,8 +760,8 @@ components:
       in: header
       name: x-regent-agent-address
       description: >
-        Placeholder for the signed SIWA header bundle used by authenticated agent requests.
-        The concrete header set is carried by the CLI request signer.
+        Placeholder for the signed shared-SIWA header bundle used by authenticated agent requests.
+        The concrete header set is carried by the CLI request signer and verified by the shared SIWA rail.
     PrivySessionCookie:
       type: apiKey
       in: cookie
@@ -854,15 +1068,13 @@ components:
       additionalProperties: false
     SiwaVerifyRequest:
       type: object
-      required: [wallet_address, chain_id, registry_address, token_id, audience, nonce, message, signature]
+      required: [wallet_address, chain_id, registry_address, token_id, nonce, message, signature]
       properties:
         wallet_address:
           $ref: "#/components/schemas/Address"
         chain_id:
           type: integer
           minimum: 1
-        audience:
-          type: string
         nonce:
           type: string
         message:
@@ -932,9 +1144,7 @@ components:
           type: object
           additionalProperties:
             type: string
-        raw_body:
-          type: string
-        body_digest:
+        body:
           type: string
       additionalProperties: false
     SiwaHttpVerifyResponse:
@@ -949,7 +1159,7 @@ components:
           enum: [http_envelope_valid]
         data:
           type: object
-          required: [verified, walletAddress, chainId, keyId, receiptExpiresAt, requiredHeaders, requiredCoveredComponents, coveredComponents]
+          required: [verified, walletAddress, chainId, keyId, agent_claims, receiptExpiresAt, requiredHeaders, requiredCoveredComponents, coveredComponents]
           properties:
             verified:
               type: boolean
@@ -960,6 +1170,8 @@ components:
               type: integer
             keyId:
               type: string
+            agent_claims:
+              $ref: "#/components/schemas/ReportingAgent"
             receiptExpiresAt:
               type: string
               format: date-time

@@ -153,7 +153,7 @@ export function authChecks() {
                 const nonce = `doctor-unverifiable-${Date.now()}`;
                 const message = buildSiwaMessage({
                     domain: "regent.cx",
-                    uri: "https://regent.cx/login",
+                    uri: "https://regent.cx/v1/agent/siwa/verify",
                     walletAddress,
                     chainId,
                     nonce,
@@ -166,7 +166,6 @@ export function authChecks() {
                         chain_id: chainId,
                         registry_address: identity.registryAddress,
                         token_id: identity.tokenId,
-                        audience: ctx.config.auth.audience,
                         nonce,
                         message,
                         signature: `0x${"00".repeat(65)}`,

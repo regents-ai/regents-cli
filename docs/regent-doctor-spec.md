@@ -2,7 +2,7 @@
 
 Status: draft v0.1  
 Audience: coding agent implementing `regents-cli` and `regent-runtime`
-Scope: local diagnostics for `regents-cli` against the current `regents-ai/techtree` Phoenix + SIWA-sidecar architecture
+Scope: local diagnostics for `regents-cli` against the current `regents-ai/techtree` Phoenix + shared-SIWA verification architecture
 
 ## 1. Purpose
 
@@ -18,7 +18,7 @@ The command exists because the Regent/Techtree auth path has multiple failure po
 - Techtree API availability issues
 - SIWA session absence/expiry
 - malformed HTTP signature envelope
-- SIWA sidecar denial of the authenticated request
+- shared SIWA denial of the authenticated request
 
 The current Techtree API contract already exposes:
 - `GET /health`
@@ -112,11 +112,11 @@ Protected agent routes are enforced by `RequireAgentSiwa`, which requires:
 - `x-agent-registry-address`
 - `x-agent-token-id`
 
-That plug calls the SIWA sidecar `/v1/http-verify` path and only accepts a `200` body with `ok: true` and `code: "http_envelope_valid"`.
+That plug calls the shared SIWA `/v1/agent/siwa/http-verify` path and only accepts a `200` body with `ok: true` and `code: "http_envelope_valid"`.
 
 ### 5.3 HTTP signature assumptions
 
-The sidecar/vector harness requires covered components in the signature input for the normal receipt-header form:
+The shared SIWA verification path requires covered components in the signature input for the normal receipt-header form:
 - `@method`
 - `@path`
 - `x-siwa-receipt`
@@ -127,7 +127,7 @@ The sidecar/vector harness requires covered components in the signature input fo
 - `x-agent-registry-address`
 - `x-agent-token-id`
 
-The sidecar also validates:
+The shared SIWA verification path also validates:
 - receipt format and expiry
 - `x-key-id` binding to the receipt wallet
 - `x-agent-wallet-address` binding to the receipt
@@ -390,7 +390,7 @@ Checks a cheap authenticated route to prove the full path works:
 - receipt/session
 - signature envelope
 - Phoenix `RequireAgentSiwa`
-- sidecar `/v1/http-verify`
+- shared SIWA `/v1/agent/siwa/http-verify`
 - Techtree protected route success
 
 Preferred route:
@@ -598,12 +598,12 @@ Flow:
 Doctor must preserve high-value backend/auth failure information.
 
 ### 14.1 Preserve backend denial data when available
-If Techtree or sidecar returns structured JSON like:
+If Techtree or shared SIWA returns structured JSON like:
 - error code
 - message
 - detail
 
-include it under `details.backend` or `details.sidecar`.
+include it under `details.backend` or `details.auth`.
 
 ### 14.2 Categorize failures clearly
 Examples:
@@ -612,7 +612,7 @@ Examples:
 - no SIWA session -> `auth.session.present`
 - expired receipt/session -> `auth.session.freshness`
 - malformed signature-input -> `auth.http-envelope.build`
-- sidecar 401/422 on authenticated probe -> `techtree.authenticated.probe`
+- shared SIWA 401/422 on authenticated probe -> `techtree.authenticated.probe`
 
 ## 15. Testing plan
 
@@ -637,7 +637,7 @@ Must cover:
 
 ### 15.3 Live integration target
 
-For milestone proof, run against true local Phoenix + sidecar and verify:
+For milestone proof, run against true local Phoenix + shared SIWA verification and verify:
 - `regents doctor` passes through authenticated probe
 - `regents doctor --full` proves node create + comment add + readback
 
@@ -670,7 +670,7 @@ Examples:
 - missing wallet source -> `Set AGENT_WALLET_KEY or configure a wallet file`
 - no SIWA session -> `Run \`regents identity ensure\``
 - runtime not running -> `Run \`regents run\``
-- authenticated probe failed -> `Inspect auth headers and SIWA sidecar configuration`
+- authenticated probe failed -> `Inspect auth headers and shared SIWA configuration`
 - full proof needs parent -> `Re-run with --full --known-parent-id <id>`
 
 ## 18. Pseudocode

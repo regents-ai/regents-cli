@@ -76,6 +76,7 @@ export interface ContractRequestRecord {
 interface IssuedNonceRecord {
   walletAddress: `0x${string}`;
   chainId: number;
+  audience: "platform" | "autolaunch" | "techtree" | "regent-services";
   expiresAtUnixSeconds: number;
 }
 
@@ -470,9 +471,14 @@ export class TechtreeContractServer {
         return;
       }
 
-      const payload = body as { wallet_address?: `0x${string}`; chain_id?: number };
+      const payload = body as {
+        wallet_address?: `0x${string}`;
+        chain_id?: number;
+        audience?: "platform" | "autolaunch" | "techtree" | "regent-services";
+      };
       const walletAddress = payload.wallet_address ?? TEST_AGENT_WALLET;
       const chainId = payload.chain_id;
+      const audience = payload.audience;
 
       if (!Number.isSafeInteger(chainId) || (chainId ?? 0) <= 0) {
         json(res, 422, {
@@ -484,10 +490,21 @@ export class TechtreeContractServer {
         return;
       }
 
+      if (!audience) {
+        json(res, 422, {
+          error: {
+            code: "invalid_audience",
+            message: "audience is required",
+          },
+        });
+        return;
+      }
+
       const nonce = `nonce-${walletAddress}-${Date.now()}`;
       this.issuedNonces.set(nonce, {
         walletAddress,
         chainId: chainId as number,
+        audience,
         expiresAtUnixSeconds: currentUnixSeconds() + 300,
       });
       const response: SiwaNonceResponse = {
@@ -785,10 +802,6 @@ export class TechtreeContractServer {
       if (!payload.signature) {
         issues.push("signature is required");
       }
-      if (!payload.audience) {
-        issues.push("audience is required");
-      }
-
       const issuedNonce = payload.nonce ? this.issuedNonces.get(payload.nonce) : undefined;
       if (!issuedNonce) {
         issues.push("nonce was not issued");
@@ -852,13 +865,13 @@ export class TechtreeContractServer {
           chainId: payload.chain_id as number,
           registryAddress: payload.registry_address as `0x${string}`,
           tokenId: payload.token_id as string,
-          audience: payload.audience as "platform" | "autolaunch" | "techtree" | "regent-services",
           nonce: payload.nonce as string,
           keyId: walletAddress.toLowerCase(),
           signatureScheme: "evm_personal_sign",
           receipt: makeReceipt(receiptClaims),
           receiptIssuedAt: "2026-03-10T00:00:00.000Z",
           receiptExpiresAt: "2999-01-01T00:00:00.000Z",
+          audience: issuedNonce.audience,
         },
       };
       json(res, 200, response);
