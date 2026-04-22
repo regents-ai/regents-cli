@@ -36,6 +36,13 @@ export interface CoinbaseWalletStatus {
   };
 }
 
+interface CoinbaseAccountResolutionInput {
+  walletHint?: string;
+  expectedAddress?: `0x${string}`;
+}
+
+type CoinbaseStatusBase = Omit<CoinbaseWalletStatus, "next_action">;
+
 const normalizeAddress = (value: unknown): `0x${string}` | null => {
   if (typeof value !== "string" || !ADDRESS_REGEX.test(value)) {
     return null;
@@ -92,7 +99,7 @@ const parseAccountsList = (payload: unknown): CoinbaseWalletAccount[] => {
     .filter((item): item is CoinbaseWalletAccount => item !== null);
 };
 
-const execCdpJson = async (args: string[], timeoutMs: number): Promise<unknown> => {
+const runCdpJsonCommand = async (args: string[], timeoutMs: number): Promise<unknown> => {
   try {
     const { stdout } = await execFileAsync(CDP_BIN, args, {
       encoding: "utf8",
@@ -111,9 +118,12 @@ const execCdpJson = async (args: string[], timeoutMs: number): Promise<unknown> 
   }
 };
 
-const maybeExecCdpJson = async (args: string[], timeoutMs: number): Promise<unknown | null> => {
+const tryRunCdpJsonCommand = async (
+  args: string[],
+  timeoutMs: number,
+): Promise<unknown | null> => {
   try {
-    return await execCdpJson(args, timeoutMs);
+    return await runCdpJsonCommand(args, timeoutMs);
   } catch {
     return null;
   }
@@ -124,43 +134,81 @@ const accountForSelector = (accounts: CoinbaseWalletAccount[], selector: string)
   return accounts.find((account) => account.name === selector || account.address === requestedAddress) ?? null;
 };
 
-const resolveStoredOrNamedAccount = async (
-  config: RegentConfig,
+const fetchNamedAccount = async (
+  selector: string,
   timeoutMs: number,
-  input?: { walletHint?: string; expectedAddress?: `0x${string}` },
 ): Promise<CoinbaseWalletAccount | null> => {
+  return parseAccountPayload(
+    await tryRunCdpJsonCommand(["evm", "accounts", "by-name", selector], timeoutMs),
+  );
+};
+
+const fetchListedAccounts = async (timeoutMs: number): Promise<CoinbaseWalletAccount[]> => {
+  return parseAccountsList(await tryRunCdpJsonCommand(["evm", "accounts", "list"], timeoutMs));
+};
+
+const preferredAccountSelectors = (
+  config: RegentConfig,
+  input?: CoinbaseAccountResolutionInput,
+): string[] => {
   const storedWallet = readWalletState(config);
-  const preferredSelectors = [
+
+  return [
     input?.walletHint,
     ...(input?.walletHint ? [] : [storedWallet?.name, storedWallet?.address]),
     input?.expectedAddress,
-  ].filter((value, index, values): value is string => Boolean(value) && values.indexOf(value) === index);
+  ].filter(
+    (value, index, values): value is string =>
+      Boolean(value) && values.indexOf(value) === index,
+  );
+};
 
-  if (preferredSelectors.length > 0) {
-    const byName = parseAccountPayload(
-      await maybeExecCdpJson(["evm", "accounts", "by-name", preferredSelectors[0]], timeoutMs),
-    );
-    if (byName) {
-      return byName;
-    }
-
-    const listed = parseAccountsList(await maybeExecCdpJson(["evm", "accounts", "list"], timeoutMs));
-    for (const selector of preferredSelectors) {
-      const matchedAccount = accountForSelector(listed, selector);
-      if (matchedAccount) {
-        return matchedAccount;
-      }
-    }
+const resolveAccountFromSelectors = async (
+  selectors: string[],
+  timeoutMs: number,
+): Promise<CoinbaseWalletAccount | null> => {
+  if (selectors.length === 0) {
     return null;
   }
 
-  const defaultAccount = parseAccountPayload(await maybeExecCdpJson(["evm", "accounts", "by-name", DEFAULT_ACCOUNT_NAME], timeoutMs));
+  const directMatch = await fetchNamedAccount(selectors[0], timeoutMs);
+  if (directMatch) {
+    return directMatch;
+  }
+
+  const listedAccounts = await fetchListedAccounts(timeoutMs);
+  for (const selector of selectors) {
+    const matchedAccount = accountForSelector(listedAccounts, selector);
+    if (matchedAccount) {
+      return matchedAccount;
+    }
+  }
+
+  return null;
+};
+
+const resolveDefaultAccount = async (timeoutMs: number): Promise<CoinbaseWalletAccount | null> => {
+  const defaultAccount = await fetchNamedAccount(DEFAULT_ACCOUNT_NAME, timeoutMs);
   if (defaultAccount) {
     return defaultAccount;
   }
 
-  const listed = parseAccountsList(await maybeExecCdpJson(["evm", "accounts", "list"], timeoutMs));
-  return accountForSelector(listed, DEFAULT_ACCOUNT_NAME) ?? listed[0] ?? null;
+  const listedAccounts = await fetchListedAccounts(timeoutMs);
+  return accountForSelector(listedAccounts, DEFAULT_ACCOUNT_NAME) ?? listedAccounts[0] ?? null;
+};
+
+const resolveStoredOrNamedAccount = async (
+  config: RegentConfig,
+  timeoutMs: number,
+  input?: CoinbaseAccountResolutionInput,
+): Promise<CoinbaseWalletAccount | null> => {
+  const selectors = preferredAccountSelectors(config, input);
+
+  if (selectors.length > 0) {
+    return resolveAccountFromSelectors(selectors, timeoutMs);
+  }
+
+  return resolveDefaultAccount(timeoutMs);
 };
 
 export const resolveCoinbaseAccount = async (
@@ -205,6 +253,46 @@ const nextActionForStatus = (status: Omit<CoinbaseWalletStatus, "next_action">):
   return undefined;
 };
 
+const matchingReceiptForStatus = (
+  config: RegentConfig,
+  account: CoinbaseWalletAccount | null,
+  input?: { network?: RegentIdentityNetwork },
+) => {
+  const receipt = readIdentityReceipt();
+
+  if (
+    receipt?.provider !== COINBASE_PROVIDER ||
+    !account ||
+    !receiptMatchesRequest({
+      receipt,
+      network: input?.network ?? receipt.network,
+      regentBaseUrl: config.auth.baseUrl,
+      walletHint: account.address,
+    })
+  ) {
+    return null;
+  }
+
+  return receipt;
+};
+
+const buildCoinbaseStatusBase = (input: {
+  account: CoinbaseWalletAccount | null;
+  cliAvailable: boolean;
+  receiptExpiresAt?: string;
+}): CoinbaseStatusBase => {
+  return {
+    ok: false,
+    provider: COINBASE_PROVIDER,
+    cli_available: input.cliAvailable,
+    api_key_present: Boolean(process.env.CDP_KEY_ID) && Boolean(process.env.CDP_KEY_SECRET),
+    wallet_secret_present: Boolean(process.env.CDP_WALLET_SECRET),
+    account: input.account,
+    identity_ready: Boolean(input.receiptExpiresAt),
+    ...(input.receiptExpiresAt ? { receipt_expires_at: input.receiptExpiresAt } : {}),
+  };
+};
+
 export const coinbaseStatus = async (
   config: RegentConfig,
   input?: { walletHint?: string; network?: RegentIdentityNetwork; timeoutMs?: number },
@@ -218,29 +306,12 @@ export const coinbaseStatus = async (
     cliAvailable = false;
   }
 
-  const receipt = readIdentityReceipt();
-  const receiptValid =
-    receipt?.provider === COINBASE_PROVIDER &&
-    account &&
-    receiptMatchesRequest({
-      receipt,
-      network: input?.network ?? receipt.network,
-      regentBaseUrl: config.auth.baseUrl,
-      walletHint: account.address,
-    })
-      ? receipt
-      : null;
-
-  const baseStatus: Omit<CoinbaseWalletStatus, "next_action"> = {
-    ok: false,
-    provider: COINBASE_PROVIDER,
-    cli_available: cliAvailable,
-    api_key_present: Boolean(process.env.CDP_KEY_ID) && Boolean(process.env.CDP_KEY_SECRET),
-    wallet_secret_present: Boolean(process.env.CDP_WALLET_SECRET),
+  const receipt = matchingReceiptForStatus(config, account, input);
+  const baseStatus = buildCoinbaseStatusBase({
     account,
-    identity_ready: receiptValid !== null,
-    ...(receiptValid ? { receipt_expires_at: receiptValid.receipt_expires_at } : {}),
-  };
+    cliAvailable,
+    receiptExpiresAt: receipt?.receipt_expires_at,
+  });
 
   const nextAction = nextActionForStatus(baseStatus);
   return {
@@ -283,7 +354,9 @@ export const setupCoinbaseWallet = async (
   let wallet = await resolveStoredOrNamedAccount(config, timeoutMs, { walletHint: walletName });
   let created = false;
   if (!wallet) {
-    wallet = parseAccountPayload(await execCdpJson(["evm", "accounts", "create", `name=${walletName}`], timeoutMs));
+    wallet = parseAccountPayload(
+      await runCdpJsonCommand(["evm", "accounts", "create", `name=${walletName}`], timeoutMs),
+    );
     created = true;
   }
   if (!wallet) {
@@ -322,7 +395,7 @@ export const signMessageWithCoinbase = async (
     );
   }
 
-  const payload = await execCdpJson(
+  const payload = await runCdpJsonCommand(
     ["evm", "accounts", "sign", "message", wallet.address, `message=${input.message}`],
     timeoutMs,
   );

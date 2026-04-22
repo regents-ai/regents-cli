@@ -12,7 +12,7 @@ export function parseCliArgs(args: readonly string[]): ParsedCliArgs {
 
   for (let index = 0; index < args.length; index += 1) {
     const value = args[index];
-    if (!value) {
+    if (value === undefined) {
       continue;
     }
 
@@ -49,8 +49,11 @@ export function parseCliArgs(args: readonly string[]): ParsedCliArgs {
   };
 }
 
+const isParsedCliArgs = (args: readonly string[] | ParsedCliArgs): args is ParsedCliArgs =>
+  !Array.isArray(args);
+
 const ensureParsed = (args: readonly string[] | ParsedCliArgs): ParsedCliArgs =>
-  Array.isArray(args) ? parseCliArgs(args) : (args as ParsedCliArgs);
+  isParsedCliArgs(args) ? args : parseCliArgs(args);
 
 export function getFlag(args: readonly string[] | ParsedCliArgs, name: string): string | undefined {
   const parsed = ensureParsed(args);
@@ -71,16 +74,20 @@ export function requireArg(value: string | undefined, name: string): string {
   return value;
 }
 
+export function parsePositiveInteger(value: string, errorMessage: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0 || String(parsed) !== value) {
+    throw new Error(errorMessage);
+  }
+
+  return parsed;
+}
+
 export function parseIntegerFlag(args: readonly string[] | ParsedCliArgs, name: string): number | undefined {
   const value = getFlag(args, name);
   if (value === undefined) {
     return undefined;
   }
 
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
-    throw new Error(`invalid integer for --${name}`);
-  }
-
-  return parsed;
+  return parsePositiveInteger(value, `invalid integer for --${name}`);
 }

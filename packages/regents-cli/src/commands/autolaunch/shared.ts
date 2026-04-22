@@ -1,5 +1,22 @@
-import { buildAgentAuthHeaders } from "../agent-auth.js";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  isAddress,
+  isHex,
+  type Address,
+  type Hex,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { base, baseSepolia, mainnet } from "viem/chains";
+
+import { loadConfig } from "../../internal-runtime/config.js";
+import {
+  EnvWalletSecretSource,
+  FileWalletSecretSource,
+} from "../../internal-runtime/agent/key-store.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
+import { buildAgentAuthHeaders } from "../agent-auth.js";
 
 const DEFAULT_BASE_URL = "http://127.0.0.1:4010";
 export const AGENT_PRIVATE_KEY_ENV = "AUTOLAUNCH_AGENT_PRIVATE_KEY";
@@ -14,6 +31,13 @@ export interface RequestOptions {
   readonly body?: unknown;
   readonly requireAgentAuth?: boolean;
   readonly configPath?: string;
+}
+
+export interface PreparedTxRequest {
+  readonly chain_id: 1 | 8453 | 84532;
+  readonly to: Address;
+  readonly data: Hex;
+  readonly value?: string | number | bigint | null;
 }
 
 export type AutolaunchChainId = "84532" | "8453";
@@ -162,6 +186,143 @@ export const autolaunchChainId = (args: ParsedCliArgs): AutolaunchChainId => {
   }
 
   throw new Error("autolaunch only supports Base Sepolia (84532) and Base mainnet (8453)");
+};
+
+export const configuredPrivateKey = async (
+  configPath?: string,
+): Promise<`0x${string}`> => {
+  const config = loadConfig(configPath);
+  const secretSource = process.env[config.wallet.privateKeyEnv]
+    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
+    : new FileWalletSecretSource(config.wallet.keystorePath);
+
+  return await secretSource.getPrivateKeyHex();
+};
+
+interface ChainWalletClients {
+  readonly chain: typeof mainnet | typeof base | typeof baseSepolia;
+  readonly rpcUrl: string;
+}
+
+const walletClientsForPreparedTxChain = async (
+  chainId: PreparedTxRequest["chain_id"],
+): Promise<ChainWalletClients> => {
+  if (chainId === 1) {
+    const rpcUrl =
+      process.env.ETH_MAINNET_RPC_URL ?? process.env.ETHEREUM_RPC_URL;
+    if (!rpcUrl) {
+      throw new Error(
+        "missing ETH_MAINNET_RPC_URL or ETHEREUM_RPC_URL for Ethereum mainnet submit mode",
+      );
+    }
+
+    return {
+      chain: mainnet,
+      rpcUrl,
+    };
+  }
+
+  if (chainId === 8453) {
+    const rpcUrl = process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL;
+    if (!rpcUrl) {
+      throw new Error(
+        "missing BASE_MAINNET_RPC_URL or BASE_RPC_URL for Base mainnet submit mode",
+      );
+    }
+
+    return {
+      chain: base,
+      rpcUrl,
+    };
+  }
+
+  const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL;
+  if (!rpcUrl) {
+    throw new Error("missing BASE_SEPOLIA_RPC_URL for Base Sepolia submit mode");
+  }
+
+  return {
+    chain: baseSepolia,
+    rpcUrl,
+  };
+};
+
+const requirePreparedTxChainId = (
+  value: unknown,
+): PreparedTxRequest["chain_id"] => {
+  const chainId = Number(value);
+  if (chainId === 1 || chainId === 8453 || chainId === 84532) {
+    return chainId;
+  }
+
+  throw new Error(`unsupported chain for submit mode: ${String(value)}`);
+};
+
+export const extractPreparedTxRequest = (
+  value: unknown,
+): PreparedTxRequest | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const txRequest = value as Record<string, unknown>;
+  const to = txRequest.to;
+  const data = txRequest.data;
+
+  if (typeof to !== "string" || !isAddress(to)) {
+    throw new Error("prepared tx_request.to is missing or invalid");
+  }
+
+  if (typeof data !== "string" || !isHex(data)) {
+    throw new Error("prepared tx_request.data is missing or invalid");
+  }
+
+  if (
+    !(
+      typeof txRequest.value === "string" ||
+      typeof txRequest.value === "number" ||
+      typeof txRequest.value === "bigint" ||
+      txRequest.value == null
+    )
+  ) {
+    throw new Error("prepared tx_request.value is invalid");
+  }
+
+  return {
+    chain_id: requirePreparedTxChainId(txRequest.chain_id),
+    to,
+    data,
+    value: txRequest.value,
+  };
+};
+
+export const submitPreparedTxRequest = async (
+  txRequest: PreparedTxRequest,
+  configPath?: string,
+): Promise<`0x${string}`> => {
+  const account = privateKeyToAccount(await configuredPrivateKey(configPath));
+  const { chain, rpcUrl } = await walletClientsForPreparedTxChain(
+    txRequest.chain_id,
+  );
+  const walletClient = createWalletClient({
+    account,
+    chain,
+    transport: http(rpcUrl),
+  });
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(rpcUrl),
+  });
+  const txHash = await walletClient.sendTransaction({
+    account,
+    chain,
+    to: txRequest.to,
+    data: txRequest.data,
+    value: BigInt(String(txRequest.value ?? "0x0")),
+  });
+
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+  return txHash;
 };
 
 export const requireLaunchIdentity = (args: ParsedCliArgs) => {

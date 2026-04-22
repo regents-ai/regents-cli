@@ -256,7 +256,7 @@ import {
 } from "./commands/regent-staking.js";
 import { runEnsSetPrimary } from "./commands/ens.js";
 import { runBugReport, runSecurityReport } from "./commands/reports.js";
-import { getFlag, parseCliArgs, requireArg } from "./parse.js";
+import { getFlag, parseCliArgs, parsePositiveInteger, requireArg } from "./parse.js";
 import { printError, printText, renderUsageScreen } from "./printer.js";
 
 export const parseConfigPath = (args: string[]): string | undefined => {
@@ -269,12 +269,7 @@ const requireNodeId = (value: string | undefined): number => {
     throw new Error("missing required node id");
   }
 
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
-    throw new Error("invalid node id");
-  }
-
-  return parsed;
+  return parsePositiveInteger(value, "invalid node id");
 };
 
 const isNamedTree = (value: string | undefined): value is "main" | "bbh" =>
@@ -287,9 +282,8 @@ const usage = (configPath?: string): void => {
 export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
   try {
     const parsedArgs = parseCliArgs(rawArgs);
-    const args = [...parsedArgs.positionals];
     const configPath = parseConfigPath(rawArgs);
-    const [namespace, subcommand, maybeThird, maybeFourth] = args;
+    const [namespace, subcommand, maybeThird, maybeFourth] = parsedArgs.positionals;
 
     if (namespace === "run") {
       await runRuntime(configPath);

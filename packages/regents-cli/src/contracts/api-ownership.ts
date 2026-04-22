@@ -14,14 +14,46 @@ export interface ApiCommandGroup {
   readonly pathTemplates: readonly string[];
 }
 
+const defineTechtreeGroup = <
+  const TPaths extends readonly (keyof TechtreePaths)[],
+>(
+  group: Omit<ApiCommandGroup, "pathTemplates"> & {
+    readonly pathTemplates: TPaths;
+  },
+) => group;
+
+const defineAutolaunchGroup = <
+  const TPaths extends readonly (keyof AutolaunchPaths)[],
+>(
+  group: Omit<ApiCommandGroup, "pathTemplates"> & {
+    readonly pathTemplates: TPaths;
+  },
+) => group;
+
+const definePlatformGroup = <
+  const TPaths extends readonly (keyof PlatformPaths)[],
+>(
+  group: Omit<ApiCommandGroup, "pathTemplates"> & {
+    readonly pathTemplates: TPaths;
+  },
+) => group;
+
+const defineSharedServicesGroup = <
+  const TPaths extends readonly ((keyof RegentServicePaths) | (keyof PlatformPaths))[],
+>(
+  group: Omit<ApiCommandGroup, "pathTemplates"> & {
+    readonly pathTemplates: TPaths;
+  },
+) => group;
+
 export const techtreeApiCommandGroups = [
-  {
+  defineTechtreeGroup({
     commands: ["techtree activity", "techtree search", "techtree nodes list"],
     owner: "techtree",
     status: "current",
     pathTemplates: ["/v1/tree/activity", "/v1/tree/search", "/v1/tree/nodes"],
-  },
-  {
+  }),
+  defineTechtreeGroup({
     commands: [
       "techtree node get",
       "techtree node children",
@@ -54,8 +86,8 @@ export const techtreeApiCommandGroups = [
       "/v1/tree/comments",
       "/v1/tree/nodes/{id}/work-packet",
     ],
-  },
-  {
+  }),
+  defineTechtreeGroup({
     commands: [
       "techtree watch",
       "techtree watch list",
@@ -74,8 +106,8 @@ export const techtreeApiCommandGroups = [
       "/v1/agent/inbox",
       "/v1/agent/opportunities",
     ],
-  },
-  {
+  }),
+  defineTechtreeGroup({
     commands: [
       "techtree autoskill publish skill",
       "techtree autoskill publish eval",
@@ -98,8 +130,8 @@ export const techtreeApiCommandGroups = [
       "/v1/agent/tree/nodes/{id}/payload",
       "/v1/agent/tree/nodes/{id}/purchases",
     ],
-  },
-  {
+  }),
+  defineTechtreeGroup({
     commands: [
       "techtree reviewer orcid link",
       "techtree reviewer apply",
@@ -146,8 +178,8 @@ export const techtreeApiCommandGroups = [
       "/v1/agent/reviews/{request_id}/claim",
       "/v1/agent/reviews/{request_id}/submit",
     ],
-  },
-  {
+  }),
+  defineTechtreeGroup({
     commands: [
       "techtree main artifact pin",
       "techtree main artifact publish",
@@ -166,32 +198,30 @@ export const techtreeApiCommandGroups = [
     status: "current-hybrid",
     note: "Local workspace workflow plus still-live backend endpoints.",
     pathTemplates: [
-      "/v1/runtime/nodes/{id}" as keyof TechtreePaths,
-      "/v1/runtime/pin" as keyof TechtreePaths,
-      "/v1/runtime/publish/submit" as keyof TechtreePaths,
+      "/v1/runtime/nodes/{id}",
+      "/v1/runtime/pin",
+      "/v1/runtime/publish/submit",
       "/v1/agent/bbh/drafts/{id}",
       "/v1/agent/reviews/{request_id}/packet",
     ],
-  },
-] as const satisfies readonly (Omit<ApiCommandGroup, "pathTemplates"> & {
-  readonly pathTemplates: readonly (keyof TechtreePaths)[];
-})[];
+  }),
+] as const;
 
 export const autolaunchApiCommandGroups = [
-  {
+  defineAutolaunchGroup({
     commands: ["autolaunch agents list", "autolaunch agent <id>", "autolaunch agent readiness <id>"],
     owner: "autolaunch",
     status: "current",
     pathTemplates: ["/api/agents", "/api/agents/{id}", "/api/agents/{id}/readiness"],
-  },
-  {
+  }),
+  defineAutolaunchGroup({
     commands: ["autolaunch trust x-link"],
     owner: "autolaunch",
     status: "current-hybrid",
     note: "Local-only helper while the public Autolaunch contract does not yet publish the X-link route.",
     pathTemplates: [],
-  },
-  {
+  }),
+  defineAutolaunchGroup({
     commands: [
       "autolaunch prelaunch wizard",
       "autolaunch prelaunch show",
@@ -209,8 +239,8 @@ export const autolaunchApiCommandGroups = [
       "/api/prelaunch/plans/{id}/metadata",
       "/api/prelaunch/plans/{id}/metadata-preview",
     ],
-  },
-  {
+  }),
+  defineAutolaunchGroup({
     commands: [
       "autolaunch launch run",
       "autolaunch launch monitor",
@@ -232,8 +262,8 @@ export const autolaunchApiCommandGroups = [
       "/api/lifecycle/jobs/{id}/vesting",
       "/api/contracts/jobs/{id}/{resource}/{action}/prepare",
     ],
-  },
-  {
+  }),
+  defineAutolaunchGroup({
     commands: [
       "autolaunch auctions list",
       "autolaunch auction-returns list",
@@ -252,7 +282,7 @@ export const autolaunchApiCommandGroups = [
     status: "current",
     pathTemplates: [
       "/api/auctions",
-      "/api/auction-returns" as keyof AutolaunchPaths,
+      "/api/auction-returns",
       "/api/auctions/{id}",
       "/api/auctions/{id}/bid_quote",
       "/api/auctions/{id}/bids",
@@ -261,8 +291,8 @@ export const autolaunchApiCommandGroups = [
       "/api/bids/{id}/exit",
       "/api/bids/{id}/claim",
     ],
-  },
-  {
+  }),
+  defineAutolaunchGroup({
     commands: [
       "autolaunch subjects show",
       "autolaunch subjects ingress",
@@ -288,19 +318,19 @@ export const autolaunchApiCommandGroups = [
       "/api/subjects/{id}/stake",
       "/api/subjects/{id}/unstake",
       "/api/subjects/{id}/claim-usdc",
-      "/api/subjects/{id}/claim-emissions" as keyof AutolaunchPaths,
-      "/api/subjects/{id}/claim-and-stake-emissions" as keyof AutolaunchPaths,
+      "/api/subjects/{id}/claim-emissions",
+      "/api/subjects/{id}/claim-and-stake-emissions",
       "/api/subjects/{id}/ingress/{address}/sweep",
-      "/api/me/holdings" as keyof AutolaunchPaths,
+      "/api/me/holdings",
     ],
-  },
-  {
+  }),
+  defineAutolaunchGroup({
     commands: ["autolaunch ens plan", "autolaunch ens prepare-ensip25", "autolaunch ens prepare-erc8004", "autolaunch ens prepare-bidirectional"],
     owner: "autolaunch",
     status: "current",
     pathTemplates: ["/api/ens/link/plan", "/api/ens/link/prepare-ensip25", "/api/ens/link/prepare-erc8004", "/api/ens/link/prepare-bidirectional"],
-  },
-  {
+  }),
+  defineAutolaunchGroup({
     commands: [
       "autolaunch contracts admin",
       "autolaunch contracts job",
@@ -343,13 +373,11 @@ export const autolaunchApiCommandGroups = [
       "/api/contracts/subjects/{id}/{resource}/{action}/prepare",
       "/api/contracts/admin/{resource}/{action}/prepare",
     ],
-  },
-] as const satisfies readonly (Omit<ApiCommandGroup, "pathTemplates"> & {
-  readonly pathTemplates: readonly (keyof AutolaunchPaths)[];
-})[];
+  }),
+] as const;
 
 export const platformApiCommandGroups = [
-  {
+  definePlatformGroup({
     commands: ["agentbook register", "agentbook sessions watch", "agentbook lookup"],
     owner: "platform",
     status: "current",
@@ -358,17 +386,17 @@ export const platformApiCommandGroups = [
       "/api/agentbook/sessions/{id}",
       "/api/agentbook/lookup",
     ],
-  },
-] as const satisfies readonly ApiCommandGroup[];
+  }),
+] as const;
 
 export const sharedServicesApiCommandGroups = [
-  {
+  defineSharedServicesGroup({
     commands: ["identity status"],
     owner: "shared-services",
     status: "current",
     pathTemplates: ["/v1/identity/status"],
-  },
-  {
+  }),
+  defineSharedServicesGroup({
     commands: ["identity ensure"],
     owner: "shared-services",
     status: "current",
@@ -379,8 +407,8 @@ export const sharedServicesApiCommandGroups = [
       "/v1/identity/siwa/nonce",
       "/v1/identity/siwa/verify",
     ],
-  },
-  {
+  }),
+  defineSharedServicesGroup({
     commands: [
       "regent-staking show",
       "regent-staking account",
@@ -401,22 +429,20 @@ export const sharedServicesApiCommandGroups = [
       "/v1/agent/regent/staking/claim-regent",
       "/v1/agent/regent/staking/claim-and-restake-regent",
     ],
-  },
-  {
+  }),
+  defineSharedServicesGroup({
     commands: ["bug", "security-report"],
     owner: "shared-services",
     status: "current",
     pathTemplates: ["/v1/agent/bug-report", "/v1/agent/security-report"],
-  },
-  {
+  }),
+  defineSharedServicesGroup({
     commands: ["ens set-primary"],
     owner: "shared-services",
     status: "current",
     pathTemplates: ["/api/agent-platform/ens/prepare-primary"],
-  },
-] as const satisfies readonly (Omit<ApiCommandGroup, "pathTemplates"> & {
-  readonly pathTemplates: readonly ((keyof RegentServicePaths) | (keyof PlatformPaths))[];
-})[];
+  }),
+] as const;
 
 export const apiCommandOwnership = [
   ...techtreeApiCommandGroups,

@@ -1,19 +1,10 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
-import { createPublicClient, createWalletClient, http, type Hex } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia } from "viem/chains";
-
 import type {
   components as AutolaunchComponents,
   paths as AutolaunchPaths,
 } from "../../generated/autolaunch-openapi.js";
-import { loadConfig } from "../../internal-runtime/config.js";
-import {
-  FileWalletSecretSource,
-  EnvWalletSecretSource,
-} from "../../internal-runtime/agent/key-store.js";
 import {
   getBooleanFlag,
   getFlag,
@@ -28,12 +19,14 @@ import type {
 import {
   appendQuery,
   baseUrl,
+  extractPreparedTxRequest,
   launchChainId,
   parsePollingIntervalSeconds,
   requestJson,
   requestTypedJson,
   requireLaunchIdentity,
   requirePositional,
+  submitPreparedTxRequest,
 } from "./shared.js";
 
 const execFileAsync = promisify(execFile);
@@ -112,91 +105,6 @@ const postBidMutation = async (
   );
 };
 
-const configuredPrivateKey = async (
-  configPath?: string,
-): Promise<`0x${string}`> => {
-  const config = loadConfig(configPath);
-  const secretSource = process.env[config.wallet.privateKeyEnv]
-    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
-    : new FileWalletSecretSource(config.wallet.keystorePath);
-
-  return await secretSource.getPrivateKeyHex();
-};
-
-const walletClientForChain = async (chainId: number, configPath?: string) => {
-  const privateKey = await configuredPrivateKey(configPath);
-  const account = privateKeyToAccount(privateKey);
-
-  if (chainId === 84_532) {
-    const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL;
-    if (!rpcUrl) {
-      throw new Error("missing BASE_SEPOLIA_RPC_URL for submit mode");
-    }
-
-    return {
-      chain: baseSepolia,
-      walletClient: createWalletClient({
-        account,
-        chain: baseSepolia,
-        transport: http(rpcUrl),
-      }),
-      publicClient: createPublicClient({
-        chain: baseSepolia,
-        transport: http(rpcUrl),
-      }),
-      account,
-    };
-  }
-
-  if (chainId === 8_453) {
-    const rpcUrl = process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL;
-    if (!rpcUrl) {
-      throw new Error(
-        "missing BASE_MAINNET_RPC_URL or BASE_RPC_URL for submit mode",
-      );
-    }
-
-    return {
-      chain: base,
-      walletClient: createWalletClient({
-        account,
-        chain: base,
-        transport: http(rpcUrl),
-      }),
-      publicClient: createPublicClient({
-        chain: base,
-        transport: http(rpcUrl),
-      }),
-      account,
-    };
-  }
-
-  throw new Error(`unsupported chain for submit mode: ${chainId}`);
-};
-
-const submitTxRequest = async (
-  txRequest: Record<string, unknown>,
-  configPath?: string,
-): Promise<`0x${string}`> => {
-  const chainId = Number(txRequest.chain_id);
-  if (!Number.isFinite(chainId)) {
-    throw new Error("tx_request.chain_id is missing");
-  }
-
-  const { chain, walletClient, publicClient, account } =
-    await walletClientForChain(chainId, configPath);
-  const txHash = await (walletClient as any).sendTransaction({
-    account,
-    chain,
-    to: String(txRequest.to) as `0x${string}`,
-    data: String(txRequest.data) as Hex,
-    value: BigInt(String(txRequest.value ?? "0x0")),
-  });
-
-  await (publicClient as any).waitForTransactionReceipt({ hash: txHash });
-  return txHash;
-};
-
 const prepareOrSubmitWrite = async (
   method: "POST",
   path: string,
@@ -214,17 +122,14 @@ const prepareOrSubmitWrite = async (
     return;
   }
 
-  const txRequest =
-    typeof prepared.tx_request === "object" && prepared.tx_request
-      ? (prepared.tx_request as Record<string, unknown>)
-      : null;
+  const txRequest = extractPreparedTxRequest(prepared.tx_request);
 
   if (!txRequest) {
     printJson(prepared);
     return;
   }
 
-  const txHash = await submitTxRequest(txRequest, configPath);
+  const txHash = await submitPreparedTxRequest(txRequest, configPath);
   printJson(
     await requestJson(method, path, {
       body: { ...body, tx_hash: txHash },
@@ -250,17 +155,14 @@ const prepareOrSubmitPreparedOnly = async (
     return;
   }
 
-  const txRequest =
-    typeof prepared.tx_request === "object" && prepared.tx_request
-      ? (prepared.tx_request as Record<string, unknown>)
-      : null;
+  const txRequest = extractPreparedTxRequest(prepared.tx_request);
 
   if (!txRequest) {
     printJson(prepared);
     return;
   }
 
-  const txHash = await submitTxRequest(txRequest, configPath);
+  const txHash = await submitPreparedTxRequest(txRequest, configPath);
   printJson({ ...prepared, submitted: true, tx_hash: txHash });
 };
 
@@ -635,7 +537,7 @@ const prepareOrSubmitPositionAction = async (
     return;
   }
 
-  const txRequest = prepared.tx_request as Record<string, unknown> | undefined;
+  const txRequest = extractPreparedTxRequest(prepared.tx_request);
   if (!txRequest) {
     printJson({
       ok: false,
@@ -645,7 +547,7 @@ const prepareOrSubmitPositionAction = async (
     return;
   }
 
-  const txHash = await submitTxRequest(txRequest, configPath);
+  const txHash = await submitPreparedTxRequest(txRequest, configPath);
   const endpoint =
     kind === "return-usdc"
       ? `/v1/agent/bids/${encodeURIComponent(bidId)}/return-usdc`
