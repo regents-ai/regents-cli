@@ -208,6 +208,38 @@ describe("agentbook CLI command group", () => {
             ok: true,
             session: {
               session_id: "sess_1",
+              status: "proof_ready",
+              approval_url: null,
+              wallet_address: TEST_WALLET,
+              chain_id: 84532,
+              registry_address: TEST_REGISTRY,
+              token_id: "99",
+              network: "world",
+              source: "regents-cli",
+              expires_at: "2026-04-21T20:00:00Z",
+              connector_uri: null,
+              deep_link_uri: null,
+              error_text: "waiting on registration",
+              frontend_request: null,
+              tx_request: null,
+              trust: {
+                connected: false,
+                world_human_id: null,
+                unique_agent_count: 0,
+                connected_at: null,
+                source: null,
+              },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            session: {
+              session_id: "sess_1",
               status: "registered",
               approval_url: null,
               wallet_address: TEST_WALLET,
@@ -241,6 +273,7 @@ describe("agentbook CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/sessions/sess_1");
+    expect(fetchMock.mock.calls[2]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/sessions/sess_1");
     expect(parsePrintedJson<{ session: { status: string; trust: { unique_agent_count: number } } }>(output.stdout))
       .toMatchObject({
         session: {
@@ -304,6 +337,38 @@ describe("agentbook CLI command group", () => {
           unique_agent_count: 2,
         },
       });
+  });
+
+  it("looks up trust with the signed agent session even when the local receipt file is missing", async () => {
+    writeAgentAuthState();
+    fs.rmSync(path.join(tempDir, ".regent", "identity", "receipt-v1.json"));
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          result: {
+            wallet_address: TEST_WALLET,
+            chain_id: 84532,
+            registry_address: TEST_REGISTRY,
+            token_id: "99",
+            connected: false,
+            world_human_id: null,
+            unique_agent_count: 0,
+            connected_at: null,
+            source: null,
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["agentbook", "lookup", "--config", configPath]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/lookup");
   });
 
   it("rejects non-positive interval values for sessions watch", async () => {

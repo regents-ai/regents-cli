@@ -70,7 +70,7 @@ interface AgentbookLookupResponse {
 
 const DEFAULT_PLATFORM_PHX_BASE_URL = "http://127.0.0.1:4000";
 const PLATFORM_PHX_BASE_URL_ENV = "PLATFORM_PHX_BASE_URL";
-const TERMINAL_SESSION_STATUSES = new Set(["proof_ready", "registered", "failed"]);
+const TERMINAL_SESSION_STATUSES = new Set(["registered", "failed"]);
 
 const platformPhxBaseUrl = (): string =>
   (process.env[PLATFORM_PHX_BASE_URL_ENV] ?? DEFAULT_PLATFORM_PHX_BASE_URL).replace(/\/+$/, "");
@@ -258,7 +258,6 @@ export async function runAgentbookSessionsWatch(args: ParsedCliArgs, configPath?
 }
 
 export async function runAgentbookLookup(_args: ParsedCliArgs, configPath?: string): Promise<void> {
-  requireSavedIdentityReceipt();
   requireAgentAuthState(configPath, { requireBoundIdentity: true });
 
   const payload = await requestPlatformJson<AgentbookLookupResponse>("GET", "/api/agentbook/lookup", {
