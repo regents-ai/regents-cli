@@ -24,7 +24,6 @@ interface AgentbookFrontendRequest {
   action: string;
   signal: string;
   rp_context: Record<string, unknown>;
-  allow_legacy_proofs: boolean;
 }
 
 interface AgentbookSessionPayload {

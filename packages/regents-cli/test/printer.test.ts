@@ -25,6 +25,8 @@ afterEach(() => {
 });
 
 describe("printer surface", () => {
+  const stripAnsi = (value: string): string => value.replace(/\x1b\[[0-9;]*m/g, "");
+
   it("renders a framed usage screen", () => {
     const output = renderUsageScreen("/tmp/regent.json");
 
@@ -49,7 +51,12 @@ describe("printer surface", () => {
     expect(output).toContain("regents techtree science-tasks list [--limit 20] [--stage draft]");
     expect(output).toContain("regents techtree science-tasks get <id>");
     expect(output).toContain("regents techtree science-tasks init --workspace-path ... --title ...");
+    expect(output).toContain("regents techtree science-tasks checklist --workspace-path ...");
+    expect(output).toContain("regents techtree science-tasks evidence --workspace-path ...");
     expect(output).toContain("regents techtree science-tasks export --workspace-path ... [--output-path ...]");
+    expect(output).toContain("regents techtree science-tasks submit --workspace-path ... --pr-url ...");
+    expect(output).toContain("regents techtree science-tasks review-update --workspace-path ... --pr-url ...");
+    expect(output).toContain("regents techtree science-tasks review-loop --workspace-path ... --pr-url ...");
     expect(output).toContain("regents techtree autoskill notebook pair [path]");
     expect(output).toContain("regents techtree autoskill buy <node-id>");
     expect(output).toContain("regents chatbox tail --webapp|--agent");
@@ -123,5 +130,37 @@ describe("printer surface", () => {
     expect(output.stderr).toContain("REGENT ERROR");
     expect(output.stderr).toContain("operator shell failed");
     expect(output.stderr).toContain("╭");
+  });
+
+  it("escapes terminal control characters in human summaries", async () => {
+    setStdoutTty(true);
+    delete process.env.NO_COLOR;
+
+    const output = await captureOutput(async () => {
+      printJson({
+        ok: true,
+        configPath: "/tmp/\x1b[31mred.json",
+      });
+    });
+
+    const visible = stripAnsi(output.stdout);
+
+    expect(visible).toContain("/tmp/\\u001b[31mred.json");
+    expect(visible).not.toContain("/tmp/\x1b[31mred.json");
+  });
+
+  it("keeps plain JSON output for non-human terminals", async () => {
+    setStdoutTty(false);
+    delete process.env.NO_COLOR;
+
+    const payload = {
+      ok: true,
+      configPath: "/tmp/regent.json",
+    };
+    const output = await captureOutput(async () => {
+      printJson(payload);
+    });
+
+    expect(output.stdout).toBe(`${JSON.stringify(payload, null, 2)}\n`);
   });
 });

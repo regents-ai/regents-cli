@@ -135,7 +135,6 @@ describe("agentbook CLI command group", () => {
                 expires_at: 1_712_000_300,
                 signature: "0xsig",
               },
-              allow_legacy_proofs: false,
             },
             tx_request: null,
             trust: {

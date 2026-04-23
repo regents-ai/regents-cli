@@ -115,14 +115,15 @@ const printPreparedOrSubmitted = async (
     return;
   }
 
-  const txRequest = payload.tx_request as Record<string, unknown> | undefined;
+  const data = payload.data as Record<string, unknown> | undefined;
+  const txRequest = data?.tx_request as Record<string, unknown> | undefined;
   if (!txRequest) {
     printJson(payload);
     return;
   }
 
   const txHash = await submitPreparedBaseTx(txRequest, configPath);
-  printJson({ ...payload, submitted: true, tx_hash: txHash });
+  printJson({ ...payload, data: { ...data, submitted: true, tx_hash: txHash } });
 };
 
 export async function runRegentStakingShow(configPath?: string): Promise<void> {

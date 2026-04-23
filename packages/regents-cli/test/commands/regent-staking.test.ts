@@ -150,7 +150,7 @@ describe("regent-staking CLI command group", () => {
   it("builds the direct stake request when shared sign-in is present", async () => {
     writeAgentAuthState();
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, tx_request: { data: "0x7acb7757" } }), {
+      new Response(JSON.stringify({ ok: true, data: { tx_request: { data: "0x7acb7757" } } }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
@@ -163,15 +163,15 @@ describe("regent-staking CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/regent/staking/stake`);
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
-    expect(parsePrintedJson<{ tx_request: { data: string } }>(output.stdout)).toMatchObject({
-      tx_request: { data: "0x7acb7757" },
+    expect(parsePrintedJson<{ data: { tx_request: { data: string } } }>(output.stdout)).toMatchObject({
+      data: { tx_request: { data: "0x7acb7757" } },
     });
   });
 
   it("claims USDC through the shared sign-in flow", async () => {
     writeAgentAuthState();
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, tx_request: { data: "0x42852610" } }), {
+      new Response(JSON.stringify({ ok: true, data: { tx_request: { data: "0x42852610" } } }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
@@ -184,8 +184,8 @@ describe("regent-staking CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/regent/staking/claim-usdc`);
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
-    expect(parsePrintedJson<{ tx_request: { data: string } }>(output.stdout)).toMatchObject({
-      tx_request: { data: "0x42852610" },
+    expect(parsePrintedJson<{ data: { tx_request: { data: string } } }>(output.stdout)).toMatchObject({
+      data: { tx_request: { data: "0x42852610" } },
     });
   });
 });
