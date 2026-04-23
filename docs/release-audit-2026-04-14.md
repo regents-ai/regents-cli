@@ -10,7 +10,9 @@
 
 ## Executive assessment
 
-Status: **Not release-ready**.
+Status at the time of this audit: **Not release-ready**.
+
+This document is retained as historical release evidence. It is not the current release checklist.
 
 There is at least one **release-blocking logic issue** in the `regent-staking` EVM submit path and one **critical contract/code drift** that can silently disable submission depending on backend envelope shape.
 
@@ -62,7 +64,7 @@ Impact:
 
 **Hold release** until:
 
-1. `regent-staking` submit handling is made envelope-shape-safe (`data.tx_request` + optional compatibility fallback).
+1. `regent-staking` submit handling uses the current shared-services envelope (`data.tx_request`).
 2. `regent-staking` submit validates/uses `tx_request.chain_id` before sending.
 3. Tests include contract-conformant prepared response fixtures.
 4. Full openapi and pack-smoke validations pass in a fully provisioned release environment.

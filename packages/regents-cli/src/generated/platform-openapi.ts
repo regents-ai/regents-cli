@@ -1265,7 +1265,6 @@ export interface components {
             rp_context: {
                 [key: string]: unknown;
             };
-            allow_legacy_proofs: boolean;
         };
         AgentbookTrustSummary: {
             connected: boolean;
@@ -1331,6 +1330,7 @@ export interface components {
             claimed_at: string;
             /** @enum {string} */
             claim_status: "reserved" | "upgrade_pending" | "onchain_live" | "upgrade_failed";
+            in_use: boolean;
             upgrade_tx_hash?: string | null;
             /** Format: date-time */
             upgraded_at?: string | null;
@@ -1627,6 +1627,21 @@ export interface components {
             /** Format: date-time */
             completed_at?: string | null;
         };
+        AgentFormationReadinessStep: {
+            /** @enum {string} */
+            key: "identity" | "wallet" | "access" | "name" | "billing" | "template" | "company" | "launch_queue";
+            label: string;
+            /** @enum {string} */
+            status: "complete" | "ready" | "needs_action" | "waiting";
+            message: string;
+            action_label: string | null;
+            action_path: string | null;
+        };
+        AgentFormationReadiness: {
+            ready: boolean;
+            blocked_step: components["schemas"]["AgentFormationReadinessStep"] | null;
+            steps: components["schemas"]["AgentFormationReadinessStep"][];
+        };
         AgentFormationResponse: {
             ok: boolean;
             authenticated: boolean;
@@ -1642,6 +1657,7 @@ export interface components {
             billing_account: components["schemas"]["BillingAccount"];
             owned_companies: components["schemas"]["AgentRecord"][];
             active_formations: components["schemas"]["AgentFormation"][];
+            readiness: components["schemas"]["AgentFormationReadiness"];
         };
         AgentTemplateService: {
             slug: string;

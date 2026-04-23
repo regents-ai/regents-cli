@@ -78,6 +78,7 @@ describe("API command ownership registry", () => {
         "techtree science-tasks export",
         "techtree science-tasks submit",
         "techtree science-tasks review-update",
+        "techtree science-tasks review-loop",
       ],
       pathTemplates: [
         "/v1/science-tasks",

@@ -1,58 +1,120 @@
 # `@regentslabs/cli`
 
-`@regentslabs/cli` publishes the `regent` command-line tool. Use it when the work starts on your machine: local setup, Techtree work, Autolaunch work, reporting, and repeatable runs.
+`@regentslabs/cli` publishes the `regents` command: the terminal control surface for Regent operators, researchers, and agents.
 
-Use the Regent website for guided account tasks such as wallet access checks, name claims, billing, and company launch.
+Use it for local setup, wallet and identity readiness, Techtree discovery, Science Tasks, BBH runs, Autolaunch work, Regent staking, XMTP setup, Agentbook sessions, chatbox activity, and reporting.
+
+If you do not have a Regent agent yet, start at [regents.sh](https://regents.sh). Use the web app for guided account setup, names, billing, and hosted company work. Use the CLI when the work belongs in a terminal, local runtime, or agent session.
 
 ## Install
 
 ```bash
 pnpm add -g @regentslabs/cli
-regent --help
+regents --help
 ```
 
-## Quick Start
+## First Run
 
 ```bash
-regent create init
-regent create wallet --write-env
-# paste the printed export line into your shell
-regent techtree start
-regent bug --summary "can't do xyz" --details "any more details here"
+regents init
+regents create wallet --write-env
+# Load the printed export line in your shell.
+regents status
+regents techtree start
 ```
 
-`regent techtree start` is the best first command for most CLI users. It creates or reuses local state, checks the local runtime, helps bind a Techtree identity, makes sure a Regent identity receipt exists, and points at the next useful command for the current machine.
-
-After that guided start, the usual next moves are:
-
-- read Techtree status, activity, and search results
-- create or comment on Techtree work
-- move into the BBH branch
-- switch into `regent autolaunch ...` when launch work is next
-
-## Reporting
+Recommended readiness loop:
 
 ```bash
-regent bug --summary "can't do xyz" --details "any more details here"
-regent security-report --summary "private vuln" --details "steps and impact" --contact "@xyz on telegram"
+regents status
+regents whoami
+regents balance
+regents doctor
 ```
 
-`regent bug` files a public report through Platform Phoenix and returns the confirmation payload, including the public bug ledger URL at `https://regents.sh/bug-report`.
-`regent security-report` files a private report through Platform Phoenix, stores the contact channel you provide, and returns a report id for private follow-up.
+## Common Workflows
 
-`regent identity ensure` creates the saved Regent identity receipt, uses Base by default, and can use `regent`, `moonpay`, `bankr`, or `privy` as the signer source.
+### Techtree
 
-## What Ships
+```bash
+regents techtree status
+regents techtree search --query "agent evaluation"
+regents techtree nodes list --limit 20
+regents techtree node get <node-id>
+```
 
-- `regent` binary entrypoint
-- bundled local runtime and daemon
-- Techtree and Autolaunch command groups
-- operator bug and security reporting commands
-- identity bootstrap, wallet, and config management
+### Science Tasks
+
+```bash
+regents techtree science-tasks init --workspace-path ./cell-task --title "Cell atlas benchmark"
+regents techtree science-tasks review-loop --workspace-path ./cell-task --pr-url https://github.com/.../pull/123
+regents techtree science-tasks export --workspace-path ./cell-task
+```
+
+### BBH
+
+```bash
+regents techtree bbh run exec ./bbh-run --lane climb
+regents techtree bbh notebook pair ./bbh-run
+regents techtree bbh run solve ./bbh-run --solver hermes
+regents techtree bbh submit ./bbh-run
+regents techtree bbh validate ./bbh-run
+```
+
+### Autolaunch
+
+```bash
+regents autolaunch prelaunch wizard
+regents autolaunch launch run
+regents autolaunch launch monitor --job <job-id> --watch
+```
+
+### Reporting
+
+```bash
+regents bug --summary "can't do xyz" --details "what happened"
+regents security-report --summary "private issue" --details "steps and impact" --contact "how to reach me"
+```
+
+## Safe Use
+
+- Run `regents status` before important work.
+- Use `regents whoami` before wallet, staking, launch, or identity-sensitive commands.
+- Treat wallet export lines, private keys, auth receipts, and local config paths as sensitive.
+- Do not paste secrets into issues, chat, pull requests, or reports.
+- Review prepared transaction output before sending anything on-chain.
+- Only use submit/send style flags when you intend to sign or broadcast the action.
+- Use `regents security-report` for private vulnerabilities or anything involving funds, identity, auth, or secrets.
+
+Human terminal output is formatted for reading. Non-interactive output is plain JSON, which is safer for scripts and agents to parse.
+
+## For Agents
+
+If you are an agent using this package:
+
+1. Start with read-only commands: `regents status`, `regents whoami`, and `regents doctor`.
+2. Prefer machine-readable output. When stdout is not a human terminal, `regents` prints plain JSON.
+3. Do not create wallets, rotate keys, sign in, submit staking actions, launch markets, rotate XMTP material, or send reports unless the user explicitly asked for that action.
+4. Do not read `.env` files. Use `.env.example` or docs when you need example configuration.
+5. Redact wallet secrets, auth receipts, private keys, connector URIs, local database paths, and report details from logs.
+6. Use only the current command names and response shapes.
+
+## Command Areas
+
+- `init`, `status`, `whoami`, `balance`, `search`: first-run and daily readiness commands.
+- `doctor`: local runtime, auth, Techtree, transport, and XMTP checks.
+- `techtree`: discovery, publishing, reviews, Science Tasks, BBH, watches, inbox, and opportunities.
+- `autolaunch`: agent launches, auctions, bids, positions, holdings, subjects, contracts, ENS, and trust.
+- `xmtp`: XMTP setup, policy, owners, trusted accounts, groups, rotations, and status.
+- `agentbook`: Agentbook registration, lookup, and session watching.
+- `regent-staking`: Regent staking status and staking actions.
+- `chatbox`: chatbox history, tailing, and posting.
+- `bug`, `security-report`: public and private reporting.
 
 ## Links
 
 - Workspace repository: https://github.com/regents-ai/regents-cli
 - Changelog: https://github.com/regents-ai/regents-cli/blob/main/CHANGELOG.md
+- Command list: https://github.com/regents-ai/regents-cli/blob/main/docs/regents-cli-command-list.md
 - Release runbook: https://github.com/regents-ai/regents-cli/blob/main/docs/release-runbook.md
 - API contract workflow: https://github.com/regents-ai/regents-cli/blob/main/docs/api-contract-workflow.md

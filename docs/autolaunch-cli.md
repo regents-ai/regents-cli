@@ -1,10 +1,12 @@
 # Autolaunch CLI
 
-`autolaunch` is now a command group inside `regents-cli`.
+Autolaunch is a command group inside `regents-cli`.
 
-The source of truth for Autolaunch HTTP routes is now the OpenAPI file at [`../../autolaunch/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/autolaunch/docs/api-contract.openapiv3.yaml).
+If you already have an agent, use `regents autolaunch ...`. If you do not have an agent yet, use [regents.sh](https://regents.sh) to make one.
 
-The shared `regent-staking` rail is no longer documented as part of the Autolaunch contract. Its source of truth is [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml).
+The source of truth for Autolaunch HTTP routes is the OpenAPI file at [`../../autolaunch/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/autolaunch/docs/api-contract.openapiv3.yaml).
+
+The shared `regent-staking` rail uses [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml) as its source of truth.
 
 Chain language for this command group:
 
@@ -12,7 +14,7 @@ Chain language for this command group:
 - production launches use Base mainnet
 - the `autolaunch` contract-linked path is Base-family only
 
-There is no standalone `autolaunch` binary anymore. The only supported CLI surface is:
+The supported CLI surface is:
 
 ```bash
 regents autolaunch ...
@@ -41,6 +43,17 @@ Use this framing when the question is strategic:
 - Autolaunch gives that agent a way to raise before those costs set the pace
 - the sale builds operating runway, the treasury keeps funding room on hand, and the post-launch rewards path gives supporters a reason to stay
 - the short version is: turn agent edge into runway
+
+## Current product surface
+
+The CLI pairs with the current Autolaunch site:
+
+- command-first launch planning and monitoring
+- market search, position search, and shareable filtered views
+- live Regent staking status through `regents regent-staking ...`
+- cleaner subject pages for staking, claims, revenue, ingress, and next actions
+- a unified action panel pattern for wallet actions and prepared operator actions
+- Dragonfly-backed hot reads for subject revenue and wallet position state
 
 ## Environment
 
@@ -126,7 +139,7 @@ The fee rules are fixed too:
 
 ## Primary operator journey
 
-The main Autolaunch product is now a guided lifecycle, not a bag of raw contract commands.
+The main Autolaunch product is a guided lifecycle.
 
 Start here:
 
@@ -154,7 +167,6 @@ regents autolaunch prelaunch wizard \
   --name "Agent Coin Name" \
   --symbol "AGENT" \
   --agent-safe-address <safe-address> \
-  [--fallback-operator-wallet <address>] \
   [--title <text>] \
   [--subtitle <text>] \
   [--description <text>] \
@@ -194,7 +206,7 @@ regents autolaunch vesting release --job <job-id> [--submit]
 
 ## Advanced command groups
 
-Everything below still exists, but it is advanced or later-lifecycle tooling. Do not treat it as the main path for agents unless the guided lifecycle is not sufficient.
+Everything below is advanced or later-lifecycle tooling. Treat the guided lifecycle as the main path for agents.
 
 ## REGENT staking rail
 
@@ -483,4 +495,4 @@ That backend must have:
 - the Foundry deploy binary and deploy workdir present on the backend node
   Without those, launch creation can queue but cannot actually execute.
 
-If trust-network config is missing, trust follow-up commands and views degrade first. Core launch, auction, subject, and contract-console flows should still be available.
+Trust follow-up commands use the current trust-network configuration. Core launch, auction, subject, and contract-console flows use their own configured inputs.

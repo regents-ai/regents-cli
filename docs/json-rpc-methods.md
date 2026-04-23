@@ -61,6 +61,7 @@ This file is generated from the current runtime method registry.
 - `techtree.scienceTasks.export`
 - `techtree.scienceTasks.submit`
 - `techtree.scienceTasks.reviewUpdate`
+- `techtree.scienceTasks.reviewLoop`
 - `techtree.autoskill.initSkill`
 - `techtree.autoskill.initEval`
 - `techtree.autoskill.notebook.pair`

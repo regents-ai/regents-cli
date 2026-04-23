@@ -64,6 +64,7 @@ echo "Running Regents CLI release gate..."
 (
   cd "${WORKSPACE_DIR}"
   pnpm check:openapi
+  pnpm check:cli-contract
   pnpm build
   pnpm typecheck
   pnpm test
@@ -168,6 +169,7 @@ trap 'rm -f "${MESSAGE_FILE}"' EXIT
   echo
   echo "Validation:"
   echo "- pnpm check:openapi"
+  echo "- pnpm check:cli-contract"
   echo "- pnpm build"
   echo "- pnpm typecheck"
   echo "- pnpm test"

@@ -14,18 +14,26 @@ Source used: the live command dispatcher in `packages/regents-cli/src/index.ts`.
   - `regents doctor`
   - `regents techtree start` if you want a guided readiness pass before Techtree work
 - Check your wallet info:
+  - `regents whoami`
   - `regents wallet status`
   - `regents identity status`
 - Check your on-chain balance:
-  - No single top-level `balance` command exists today
-  - The closest commands are `regents regent-staking show` and `regents regent-staking account`
+  - `regents balance`
+  - `regents regent-staking show`
+  - `regents regent-staking account`
 - Browse available agents:
-  - No top-level `search` command for agents exists today
-  - The closest commands are `regents autolaunch agents list`, `regents agentbook lookup`, and `regents techtree search`
+  - `regents search <query>`
+  - `regents autolaunch agents list`
+  - `regents agentbook lookup`
 
 ## Top-Level Areas
 
 - `run`: starts the local Regent runtime.
+- `init`: prepares local files for first use.
+- `status`: shows the local readiness summary.
+- `whoami`: shows the current wallet and saved identity.
+- `balance`: shows the active wallet balance.
+- `search`: searches Techtree from the top level.
 - `create`: creates local setup files and wallet material.
 - `config`: reads or updates local settings.
 - `doctor`: checks whether your local setup is ready.
@@ -48,6 +56,11 @@ Source used: the live command dispatcher in `packages/regents-cli/src/index.ts`.
 
 ### Core
 
+- `regents init`
+- `regents status`
+- `regents whoami`
+- `regents balance`
+- `regents search <query>`
 - `regents run`
 - `regents bug`
 - `regents security-report`
@@ -134,6 +147,20 @@ Source used: the live command dispatcher in `packages/regents-cli/src/index.ts`.
 - `regents techtree autoskill listing create`
 - `regents techtree autoskill buy <node-id>`
 - `regents techtree autoskill pull <node-id> [path]`
+
+### Techtree Science Tasks
+
+Science Tasks packages real scientific workflows as Harbor-ready benchmark tasks. The review-loop command runs Hermes, checks the local review file, and then updates Techtree.
+
+- `regents techtree science-tasks list`
+- `regents techtree science-tasks get <task-id>`
+- `regents techtree science-tasks init --workspace-path <path>`
+- `regents techtree science-tasks checklist --workspace-path <path>`
+- `regents techtree science-tasks evidence --workspace-path <path>`
+- `regents techtree science-tasks export --workspace-path <path>`
+- `regents techtree science-tasks submit --workspace-path <path> --pr-url <url>`
+- `regents techtree science-tasks review-update --workspace-path <path> --pr-url <url>`
+- `regents techtree science-tasks review-loop --workspace-path <path> --pr-url <url>`
 
 ### Tree-Scoped Workspace Commands
 
@@ -306,11 +333,15 @@ Autolaunch is the largest area. It covers listing, launch preparation, bidding, 
 - `regents autolaunch splitter show`
 - `regents autolaunch splitter set-paused`
 - `regents autolaunch splitter set-label`
+- `regents autolaunch splitter propose-eligible-revenue-share`
+- `regents autolaunch splitter cancel-eligible-revenue-share`
+- `regents autolaunch splitter activate-eligible-revenue-share`
 - `regents autolaunch splitter propose-treasury-recipient-rotation`
 - `regents autolaunch splitter cancel-treasury-recipient-rotation`
 - `regents autolaunch splitter execute-treasury-recipient-rotation`
 - `regents autolaunch splitter set-protocol-recipient`
 - `regents autolaunch splitter sweep-treasury-residual`
+- `regents autolaunch splitter sweep-treasury-reserved`
 - `regents autolaunch splitter sweep-protocol-reserve`
 - `regents autolaunch splitter reassign-dust`
 - `regents autolaunch ingress create`
@@ -327,26 +358,3 @@ Autolaunch is the largest area. It covers listing, launch preparation, bidding, 
 ### Messaging Transport Status
 
 - `regents gossipsub status`
-
-## Commands I Would Add
-
-If I could add a few commands to make the CLI easier to learn and easier to use day one, I would add these:
-
-- `regents whoami`
-  - Shows the current wallet, active identity, sign-in status, and the most important linked names in one place.
-- `regents balance`
-  - Shows wallet balances and any obvious Regent staking balances in one readout.
-- `regents search`
-  - Gives a simple top-level search entry point instead of making people guess whether they want `techtree search`, `agentbook lookup`, or `autolaunch agents list`.
-- `regents init`
-  - Runs the best first-run setup path, rather than making people choose between `create init`, `create wallet`, `wallet setup`, and `agent init`.
-- `regents status`
-  - Gives a short one-screen health summary with wallet, identity, sign-in, runtime, and Techtree readiness.
-- `regents agents`
-  - A friendlier top-level alias for browsing and inspecting agent-related listings.
-- `regents inbox tail`
-  - Lets people watch new inbox activity without knowing the Techtree sub-tree first.
-- `regents docs`
-  - Opens or prints the most relevant next-step help for the current setup state.
-
-Those additions would not change what the current CLI can do. They would mainly make the first five minutes much easier.

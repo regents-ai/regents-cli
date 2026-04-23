@@ -20,7 +20,8 @@ const cliContractFiles = {
 };
 
 const ownershipPath = resolve(root, "packages/regents-cli/src/contracts/api-ownership.ts");
-const cliIndexPath = resolve(root, "packages/regents-cli/src/index.ts");
+const cliRoutesDir = resolve(root, "packages/regents-cli/src/routes");
+const commandRegistryPath = resolve(root, "packages/regents-cli/src/command-registry.ts");
 
 const parseYaml = (file) => YAML.parse(fs.readFileSync(file, "utf8"));
 
@@ -48,6 +49,20 @@ const readOperationPaths = (file) => {
 };
 
 const extractStrings = (input) => Array.from(input.matchAll(/"([^"]+)"/g), (match) => match[1]);
+
+const readCommandRegistry = (source) => {
+  const registryStart = source.indexOf("export const CLI_COMMANDS = [");
+  if (registryStart < 0) {
+    throw new Error("Unable to find CLI_COMMANDS registry");
+  }
+
+  const registryEnd = source.indexOf("] as const", registryStart);
+  if (registryEnd < 0) {
+    throw new Error("Unable to parse CLI_COMMANDS registry");
+  }
+
+  return new Set(extractStrings(source.slice(registryStart, registryEnd)));
+};
 
 const extractOwnershipGroups = (source, exportName) => {
   const exportStart = source.indexOf(`export const ${exportName} = [`);
@@ -157,6 +172,16 @@ const flattenedContracts = Object.fromEntries(
   ]),
 );
 
+const shippedContractCommands = new Set([
+  ...flattenedContracts["shared-services"].commands,
+  ...flattenedContracts.techtree.commands,
+  ...flattenedContracts.autolaunch.commands,
+  ...Array.from(flattenedContracts.platform.commands).filter((command) =>
+    command.startsWith("agentbook "),
+  ),
+]);
+const registryCommands = readCommandRegistry(fs.readFileSync(commandRegistryPath, "utf8"));
+
 const allowedPathsByOwner = {
   platform: new Set(readPaths(openApiFiles.platform)),
   techtree: new Set(readPaths(openApiFiles.techtree)),
@@ -190,7 +215,31 @@ for (const [owner, groups] of Object.entries(expectedByOwner)) {
   }
 }
 
-const cliIndex = fs.readFileSync(cliIndexPath, "utf8");
+for (const command of shippedContractCommands) {
+  if (!registryCommands.has(command)) {
+    fail(`CLI command registry is missing contract command: ${command}`);
+  }
+}
+
+for (const command of registryCommands) {
+  if (!shippedContractCommands.has(command)) {
+    fail(`CLI command registry contains command missing from shipped contracts: ${command}`);
+  }
+}
+
+const readRouteSources = (dir) =>
+  fs
+    .readdirSync(dir, { withFileTypes: true })
+    .flatMap((entry) => {
+      const fullPath = resolve(dir, entry.name);
+      if (entry.isDirectory()) {
+        return readRouteSources(fullPath);
+      }
+      return entry.isFile() && entry.name.endsWith(".ts") ? [fs.readFileSync(fullPath, "utf8")] : [];
+    })
+    .join("\n");
+
+const cliRoutesSource = readRouteSources(cliRoutesDir);
 const requiredChatboxCommands = ["chatbox history", "chatbox tail", "chatbox post"];
 for (const command of requiredChatboxCommands) {
   if (!flattenedContracts.techtree.commands.has(command)) {
@@ -198,9 +247,9 @@ for (const command of requiredChatboxCommands) {
   }
 }
 
-for (const snippet of ['namespace === "chatbox" && subcommand === "history"', 'namespace === "chatbox" && subcommand === "tail"', 'namespace === "chatbox" && subcommand === "post"']) {
-  if (!cliIndex.includes(snippet)) {
-    fail(`CLI dispatcher is missing required chatbox branch: ${snippet}`);
+for (const snippet of ['route("chatbox history"', 'route("chatbox tail"', 'route("chatbox post"']) {
+  if (!cliRoutesSource.includes(snippet)) {
+    fail(`CLI dispatcher is missing required chatbox route: ${snippet}`);
   }
 }
 

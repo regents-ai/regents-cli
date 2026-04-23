@@ -289,8 +289,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LooseObject"
+        "400":
+          description: Invalid keyring request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
+          description: Keyring request body too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "415":
+          description: Unsupported keyring request content type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "422":
+          description: Wallet could not be created
           content:
             application/json:
               schema:
@@ -312,8 +336,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LooseObject"
+        "400":
+          description: Invalid keyring request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
+          description: Keyring request body too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "415":
+          description: Unsupported keyring request content type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "422":
+          description: Wallet presence could not be checked
           content:
             application/json:
               schema:
@@ -335,8 +383,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LooseObject"
+        "400":
+          description: Invalid keyring request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "404":
+          description: Wallet not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
+          description: Keyring request body too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "415":
+          description: Unsupported keyring request content type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "422":
+          description: Wallet address could not be read
           content:
             application/json:
               schema:
@@ -358,8 +436,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LooseObject"
+        "400":
+          description: Invalid message signing request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
+          description: Keyring request body too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "415":
+          description: Unsupported keyring request content type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "422":
+          description: Message could not be signed
           content:
             application/json:
               schema:
@@ -381,8 +483,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LooseObject"
+        "400":
+          description: Invalid raw-message signing request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
+          description: Keyring request body too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "415":
+          description: Unsupported keyring request content type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "422":
+          description: Raw message could not be signed
           content:
             application/json:
               schema:
@@ -404,8 +530,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LooseObject"
+        "400":
+          description: Invalid transaction signing request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
+          description: Keyring request body too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "415":
+          description: Unsupported keyring request content type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "422":
+          description: Transaction could not be signed
           content:
             application/json:
               schema:
@@ -427,8 +577,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LooseObject"
+        "400":
+          description: Invalid authorization signing request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "401":
           description: Internal signer authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "413":
+          description: Keyring request body too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "415":
+          description: Unsupported keyring request content type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "422":
+          description: Authorization payload could not be signed
           content:
             application/json:
               schema:

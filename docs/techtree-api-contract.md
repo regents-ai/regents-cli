@@ -60,17 +60,18 @@ The CLI surface is now:
 
 ## Science Tasks Flow
 
-Science Tasks now has a full CLI path from discovery to handoff:
+Science Tasks has a full CLI path from discovery to Harbor review:
 
 - `regents techtree science-tasks list` shows available tasks and lets you narrow by stage or science area.
 - `regents techtree science-tasks get <id>` shows the full task record, including the current review state and export destination.
-- `regents techtree science-tasks init --workspace-path ...` creates the local task packet and links it to Techtree.
+- `regents techtree science-tasks init --workspace-path ...` creates the local task packet, including `environment/Dockerfile` and `tests/test.sh`, and links it to Techtree.
+- `regents techtree science-tasks review-loop --workspace-path ... --pr-url ...` runs Hermes with the Harbor review skill, requires `dist/harbor-review-loop.json`, validates it, and syncs the accepted result.
 - `regents techtree science-tasks checklist` and `evidence` send the current review packet and run evidence from that workspace.
 - `regents techtree science-tasks export` writes the submission folder in the destination shape Techtree expects.
 - `regents techtree science-tasks submit` records the Harbor pull request and follow-up note.
 - `regents techtree science-tasks review-update` records the latest reviewer-concern count, rerun status, and fix timestamps after another pass.
 
-The local workspace remains the working folder for the author flow. Techtree stores the linked task record and the latest packet snapshot.
+The local workspace remains the working folder for the author flow. Techtree stores the linked task record and the latest packet snapshot. The review-loop command does not add a new Techtree route; it uses the existing checklist, evidence, submit, and review-update routes after local validation succeeds.
 
 ## BBH Operator Story
 

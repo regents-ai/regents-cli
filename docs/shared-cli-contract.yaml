@@ -1,6 +1,26 @@
 version: 1
 product: shared-services
 command_groups:
+  - name: operator
+    interface: runtime
+    auth_mode: none
+    output_envelope: operator-status-envelopes
+    commands:
+      - init
+      - status
+      - whoami
+      - balance
+      - run
+      - config read
+      - config write
+      - create init
+      - create wallet
+      - agent init
+      - agent status
+      - agent profile list
+      - agent profile show
+      - agent harness list
+      - gossipsub status
   - name: wallet
     interface: runtime
     auth_mode: none
