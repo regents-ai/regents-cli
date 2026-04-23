@@ -14,6 +14,12 @@ import type {
   IdentityStatusResponse,
   NodeStarRecord,
   NodeCreateResponse,
+  ScienceTaskChecklistEntry,
+  ScienceTaskDetail,
+  ScienceTaskDetailResponse,
+  ScienceTaskListResponse,
+  ScienceTaskMutationResponse,
+  ScienceTaskRunEvidence,
   SiwaNonceResponse,
   SiwaVerifyResponse,
   TreeComment,
@@ -129,6 +135,43 @@ interface BaseNodeRecord {
     ordinal: number;
   }>;
 }
+
+const defaultScienceTaskChecklist = (): Record<string, ScienceTaskChecklistEntry> => ({
+  instruction_and_tests_match: {
+    status: "pass",
+    note: "Contract test checklist entry",
+  },
+});
+
+const defaultScienceTaskRunEvidence = (
+  command: string,
+  summary: string,
+): ScienceTaskRunEvidence => ({
+  command,
+  summary,
+  key_lines: [summary],
+});
+
+const scienceTaskPacketFiles = (taskSlug: string) => ({
+  "instruction.md": {
+    encoding: "utf8" as const,
+    content: `# ${taskSlug}\n`,
+  },
+  "task.toml": {
+    encoding: "utf8" as const,
+    content: `name = "${taskSlug}"\n`,
+  },
+  "tests/test_task.py": {
+    encoding: "utf8" as const,
+    content: "def test_placeholder():\n    assert True\n",
+  },
+});
+
+const scienceTaskExportTargetPath = (
+  scienceDomain: string,
+  scienceField: string,
+  taskSlug: string,
+): string => `tasks/${scienceDomain}/${scienceField}/${taskSlug}`;
 
 const json = (res: http.ServerResponse, statusCode: number, payload: unknown): void => {
   res.statusCode = statusCode;
@@ -276,6 +319,7 @@ export class TechtreeContractServer {
   private nextWatchId = 800;
   private nextStarId = 900;
   private nextEventId = 2_002;
+  private readonly liveScienceTasks = new Map<number, ScienceTaskDetail>();
   private readonly issuedNonces = new Map<string, IssuedNonceRecord>();
   private readonly issuedRegistrationIntents = new Map<string, RegistrationIntentRecord>();
   private readonly registeredIdentities = new Map<string, RegisteredIdentityRecord>();
@@ -285,6 +329,33 @@ export class TechtreeContractServer {
 
   constructor(options: TechtreeContractServerOptions = {}) {
     this.options = options;
+    this.liveNodes.set(301, {
+      id: 301,
+      seed: "science",
+      kind: "eval",
+      title: "Cell atlas benchmark",
+      status: "anchored",
+      parent_id: 1,
+      notebook_source: "print('science task')",
+      summary: "Benchmark task for cell atlas curation.",
+      slug: "cell-atlas-benchmark",
+      sidelinks: [],
+    });
+    this.liveScienceTasks.set(
+      301,
+      this.makeScienceTaskDetail(301, {
+        title: "Cell atlas benchmark",
+        summary: "Benchmark task for cell atlas curation.",
+        science_domain: "life-sciences",
+        science_field: "biology",
+        task_slug: "cell-atlas-benchmark",
+        workflow_state: "submitted",
+        harbor_pr_url: "https://harbor.example/pr/301",
+        review_round_count: 1,
+        open_reviewer_concerns_count: 1,
+        latest_review_follow_up_note: "Addressed the first reviewer pass.",
+      }),
+    );
   }
 
   async start(): Promise<void> {
@@ -364,6 +435,92 @@ export class TechtreeContractServer {
         ordinal: edge.ordinal,
       })),
       creator_agent: TEST_AGENT_SUMMARY,
+    };
+  }
+
+  private makeScienceTaskDetail(
+    nodeId: number,
+    overrides: Partial<ScienceTaskDetail> = {},
+  ): ScienceTaskDetail {
+    const node = overrides.node ?? (this.liveNodes.get(nodeId) ? this.materializeNode(this.liveNodes.get(nodeId) as BaseNodeRecord) : null);
+    const title = overrides.title ?? node?.title ?? `Science task ${nodeId}`;
+    const scienceDomain = overrides.science_domain ?? "life-sciences";
+    const scienceField = overrides.science_field ?? "biology";
+    const taskSlug = overrides.task_slug ?? `science-task-${nodeId}`;
+    const packetFiles = overrides.packet_files ?? scienceTaskPacketFiles(taskSlug);
+
+    return {
+      node_id: nodeId,
+      title,
+      summary: overrides.summary ?? node?.summary ?? null,
+      science_domain: scienceDomain,
+      science_field: scienceField,
+      task_slug: taskSlug,
+      workflow_state: overrides.workflow_state ?? "authoring",
+      export_target_path:
+        overrides.export_target_path ?? scienceTaskExportTargetPath(scienceDomain, scienceField, taskSlug),
+      harbor_pr_url: overrides.harbor_pr_url ?? null,
+      review_round_count: overrides.review_round_count ?? 0,
+      open_reviewer_concerns_count: overrides.open_reviewer_concerns_count ?? 0,
+      current_files_match_latest_evidence: overrides.current_files_match_latest_evidence ?? true,
+      latest_rerun_after_latest_fix: overrides.latest_rerun_after_latest_fix ?? false,
+      inserted_at: overrides.inserted_at ?? createdAt(),
+      updated_at: overrides.updated_at ?? createdAt(),
+      node,
+      structured_output_shape: overrides.structured_output_shape ?? null,
+      claimed_expert_time: overrides.claimed_expert_time ?? "2 hours",
+      threshold_rationale: overrides.threshold_rationale ?? "Thresholds are documented.",
+      anti_cheat_notes: overrides.anti_cheat_notes ?? "Hidden answers stay out of the packet.",
+      reproducibility_notes:
+        overrides.reproducibility_notes ?? "Pinned dependencies make reruns stable enough for review.",
+      dependency_pinning_status: overrides.dependency_pinning_status ?? "Pinned",
+      canary_status: overrides.canary_status ?? "Present",
+      destination_name: overrides.destination_name ?? "harbor",
+      packet_hash: overrides.packet_hash ?? `sha256:science-task-${nodeId}`,
+      evidence_packet_hash: overrides.evidence_packet_hash ?? `sha256:evidence-${nodeId}`,
+      packet_files: packetFiles,
+      checklist: overrides.checklist ?? defaultScienceTaskChecklist(),
+      oracle_run:
+        overrides.oracle_run ?? defaultScienceTaskRunEvidence("uv run oracle", "Oracle passes the task."),
+      frontier_run:
+        overrides.frontier_run ?? defaultScienceTaskRunEvidence("uv run frontier", "Frontier run fails on edge cases."),
+      failure_analysis:
+        overrides.failure_analysis ?? "The frontier run misses one required check in the final answer.",
+      latest_review_follow_up_note: overrides.latest_review_follow_up_note ?? null,
+      last_rerun_at: overrides.last_rerun_at ?? null,
+      latest_fix_at: overrides.latest_fix_at ?? null,
+      any_concern_unanswered: overrides.any_concern_unanswered ?? false,
+    };
+  }
+
+  private scienceTaskSummary(detail: ScienceTaskDetail): ScienceTaskListResponse["data"][number] {
+    return {
+      node_id: detail.node_id,
+      title: detail.title,
+      summary: detail.summary,
+      science_domain: detail.science_domain,
+      science_field: detail.science_field,
+      task_slug: detail.task_slug,
+      workflow_state: detail.workflow_state,
+      export_target_path: detail.export_target_path,
+      harbor_pr_url: detail.harbor_pr_url,
+      review_round_count: detail.review_round_count,
+      open_reviewer_concerns_count: detail.open_reviewer_concerns_count,
+      current_files_match_latest_evidence: detail.current_files_match_latest_evidence,
+      latest_rerun_after_latest_fix: detail.latest_rerun_after_latest_fix,
+      inserted_at: detail.inserted_at,
+      updated_at: detail.updated_at,
+    };
+  }
+
+  private scienceTaskMutation(detail: ScienceTaskDetail): ScienceTaskMutationResponse {
+    return {
+      data: {
+        node_id: detail.node_id,
+        workflow_state: detail.workflow_state,
+        packet_hash: detail.packet_hash,
+        export_target_path: detail.export_target_path,
+      },
     };
   }
 
@@ -1015,6 +1172,37 @@ export class TechtreeContractServer {
       return;
     }
 
+    if (method === "GET" && requestUrl.pathname === "/v1/science-tasks") {
+      const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
+      const stage = requestUrl.searchParams.get("stage");
+      const scienceDomain = requestUrl.searchParams.get("science_domain");
+      const scienceField = requestUrl.searchParams.get("science_field");
+      const normalizedLimit = Number.isFinite(limit) && limit > 0 ? limit : 50;
+      const data = [...this.liveScienceTasks.values()]
+        .filter((detail) => !stage || detail.workflow_state === stage)
+        .filter((detail) => !scienceDomain || detail.science_domain === scienceDomain)
+        .filter((detail) => !scienceField || detail.science_field === scienceField)
+        .map((detail) => this.scienceTaskSummary(detail))
+        .slice(0, normalizedLimit);
+
+      const response: ScienceTaskListResponse = { data };
+      json(res, 200, response);
+      return;
+    }
+
+    if (method === "GET" && /^\/v1\/science-tasks\/\d+$/.test(requestUrl.pathname)) {
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/").pop() ?? "0", 10);
+      const detail = this.liveScienceTasks.get(nodeId);
+      if (!detail) {
+        json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
+        return;
+      }
+
+      const response: ScienceTaskDetailResponse = { data: detail };
+      json(res, 200, response);
+      return;
+    }
+
     if (method === "GET" && requestUrl.pathname === "/v1/tree/search") {
       const query = (requestUrl.searchParams.get("q") ?? "").toLowerCase();
       const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
@@ -1179,6 +1367,256 @@ export class TechtreeContractServer {
         comment_id: response.data.comment_id,
       });
       json(res, 201, response);
+      return;
+    }
+
+    if (method === "POST" && requestUrl.pathname === "/v1/agent/science-tasks") {
+      if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
+        return;
+      }
+
+      const payload = body as Partial<ScienceTaskDetail> & {
+        title?: string;
+        summary?: string | null;
+        science_domain?: string;
+        science_field?: string;
+        task_slug?: string;
+        structured_output_shape?: Record<string, unknown> | null;
+        claimed_expert_time?: string;
+        threshold_rationale?: string | null;
+        anti_cheat_notes?: string;
+        reproducibility_notes?: string;
+        dependency_pinning_status?: string;
+        canary_status?: string;
+        failure_analysis?: string;
+        packet_files?: Record<string, { encoding: "utf8" | "base64"; content: string }>;
+      };
+
+      const nodeId = this.nextNodeId;
+      this.nextNodeId += 1;
+      this.liveNodes.set(nodeId, {
+        id: nodeId,
+        seed: "science",
+        kind: "eval",
+        title: payload.title ?? `Science task ${nodeId}`,
+        status: "anchored",
+        parent_id: 1,
+        notebook_source: "print('science task')",
+        summary: payload.summary ?? null,
+        slug: payload.task_slug ?? `science-task-${nodeId}`,
+        sidelinks: [],
+      });
+
+      const detail = this.makeScienceTaskDetail(nodeId, {
+        title: payload.title,
+        summary: payload.summary ?? null,
+        science_domain: payload.science_domain,
+        science_field: payload.science_field,
+        task_slug: payload.task_slug,
+        structured_output_shape: payload.structured_output_shape ?? null,
+        claimed_expert_time: payload.claimed_expert_time,
+        threshold_rationale: payload.threshold_rationale ?? null,
+        anti_cheat_notes: payload.anti_cheat_notes,
+        reproducibility_notes: payload.reproducibility_notes,
+        dependency_pinning_status: payload.dependency_pinning_status,
+        canary_status: payload.canary_status,
+        failure_analysis: payload.failure_analysis,
+        packet_files: payload.packet_files,
+        workflow_state: "authoring",
+        packet_hash: `sha256:create-${nodeId}`,
+        evidence_packet_hash: null,
+        oracle_run: null,
+        frontier_run: null,
+      });
+      this.liveScienceTasks.set(nodeId, detail);
+      json(res, 200, this.scienceTaskMutation(detail));
+      return;
+    }
+
+    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/checklist$/.test(requestUrl.pathname)) {
+      if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
+        return;
+      }
+
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const current = this.liveScienceTasks.get(nodeId);
+      if (!current) {
+        json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
+        return;
+      }
+
+      const payload = body as Partial<ScienceTaskDetail> & {
+        checklist?: Record<string, ScienceTaskChecklistEntry>;
+        packet_files?: Record<string, { encoding: "utf8" | "base64"; content: string }>;
+      };
+      const next = this.makeScienceTaskDetail(nodeId, {
+        ...current,
+        title: payload.title ?? current.title,
+        summary: payload.summary ?? current.summary,
+        science_domain: payload.science_domain ?? current.science_domain,
+        science_field: payload.science_field ?? current.science_field,
+        task_slug: payload.task_slug ?? current.task_slug,
+        claimed_expert_time: payload.claimed_expert_time ?? current.claimed_expert_time,
+        threshold_rationale: payload.threshold_rationale ?? current.threshold_rationale,
+        anti_cheat_notes: payload.anti_cheat_notes ?? current.anti_cheat_notes,
+        reproducibility_notes: payload.reproducibility_notes ?? current.reproducibility_notes,
+        dependency_pinning_status: payload.dependency_pinning_status ?? current.dependency_pinning_status,
+        canary_status: payload.canary_status ?? current.canary_status,
+        failure_analysis: payload.failure_analysis ?? current.failure_analysis,
+        packet_files: payload.packet_files ?? current.packet_files,
+        checklist: payload.checklist ?? current.checklist,
+        workflow_state: "evidence_ready",
+        updated_at: createdAt(),
+      });
+      this.liveScienceTasks.set(nodeId, next);
+      json(res, 200, this.scienceTaskMutation(next));
+      return;
+    }
+
+    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/evidence$/.test(requestUrl.pathname)) {
+      if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
+        return;
+      }
+
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const current = this.liveScienceTasks.get(nodeId);
+      if (!current) {
+        json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
+        return;
+      }
+
+      const payload = body as Partial<ScienceTaskDetail> & {
+        oracle_run?: ScienceTaskRunEvidence;
+        frontier_run?: ScienceTaskRunEvidence;
+        packet_files?: Record<string, { encoding: "utf8" | "base64"; content: string }>;
+      };
+      const next = this.makeScienceTaskDetail(nodeId, {
+        ...current,
+        title: payload.title ?? current.title,
+        summary: payload.summary ?? current.summary,
+        science_domain: payload.science_domain ?? current.science_domain,
+        science_field: payload.science_field ?? current.science_field,
+        task_slug: payload.task_slug ?? current.task_slug,
+        claimed_expert_time: payload.claimed_expert_time ?? current.claimed_expert_time,
+        threshold_rationale: payload.threshold_rationale ?? current.threshold_rationale,
+        anti_cheat_notes: payload.anti_cheat_notes ?? current.anti_cheat_notes,
+        reproducibility_notes: payload.reproducibility_notes ?? current.reproducibility_notes,
+        dependency_pinning_status: payload.dependency_pinning_status ?? current.dependency_pinning_status,
+        canary_status: payload.canary_status ?? current.canary_status,
+        failure_analysis: payload.failure_analysis ?? current.failure_analysis,
+        packet_files: payload.packet_files ?? current.packet_files,
+        oracle_run: payload.oracle_run ?? current.oracle_run,
+        frontier_run: payload.frontier_run ?? current.frontier_run,
+        workflow_state: "evidence_ready",
+        evidence_packet_hash: `sha256:evidence-${nodeId}`,
+        updated_at: createdAt(),
+      });
+      this.liveScienceTasks.set(nodeId, next);
+      json(res, 200, this.scienceTaskMutation(next));
+      return;
+    }
+
+    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/submit$/.test(requestUrl.pathname)) {
+      if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
+        return;
+      }
+
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const current = this.liveScienceTasks.get(nodeId);
+      if (!current) {
+        json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
+        return;
+      }
+
+      const payload = body as Partial<ScienceTaskDetail> & {
+        harbor_pr_url?: string;
+        latest_review_follow_up_note?: string | null;
+        packet_files?: Record<string, { encoding: "utf8" | "base64"; content: string }>;
+      };
+      const next = this.makeScienceTaskDetail(nodeId, {
+        ...current,
+        title: payload.title ?? current.title,
+        summary: payload.summary ?? current.summary,
+        science_domain: payload.science_domain ?? current.science_domain,
+        science_field: payload.science_field ?? current.science_field,
+        task_slug: payload.task_slug ?? current.task_slug,
+        claimed_expert_time: payload.claimed_expert_time ?? current.claimed_expert_time,
+        threshold_rationale: payload.threshold_rationale ?? current.threshold_rationale,
+        anti_cheat_notes: payload.anti_cheat_notes ?? current.anti_cheat_notes,
+        reproducibility_notes: payload.reproducibility_notes ?? current.reproducibility_notes,
+        dependency_pinning_status: payload.dependency_pinning_status ?? current.dependency_pinning_status,
+        canary_status: payload.canary_status ?? current.canary_status,
+        failure_analysis: payload.failure_analysis ?? current.failure_analysis,
+        packet_files: payload.packet_files ?? current.packet_files,
+        harbor_pr_url: payload.harbor_pr_url ?? current.harbor_pr_url,
+        latest_review_follow_up_note:
+          payload.latest_review_follow_up_note ?? current.latest_review_follow_up_note,
+        review_round_count: Math.max(current.review_round_count, 1),
+        workflow_state: "submitted",
+        updated_at: createdAt(),
+      });
+      this.liveScienceTasks.set(nodeId, next);
+      json(res, 200, this.scienceTaskMutation(next));
+      return;
+    }
+
+    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/review-update$/.test(requestUrl.pathname)) {
+      if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
+        return;
+      }
+
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const current = this.liveScienceTasks.get(nodeId);
+      if (!current) {
+        json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
+        return;
+      }
+
+      const payload = body as Partial<ScienceTaskDetail> & {
+        harbor_pr_url?: string;
+        latest_review_follow_up_note?: string | null;
+        open_reviewer_concerns_count?: number;
+        any_concern_unanswered?: boolean;
+        latest_rerun_after_latest_fix?: boolean;
+        latest_fix_at?: string | null;
+        last_rerun_at?: string | null;
+        packet_files?: Record<string, { encoding: "utf8" | "base64"; content: string }>;
+      };
+      const openConcerns = payload.open_reviewer_concerns_count ?? current.open_reviewer_concerns_count;
+      const unanswered = payload.any_concern_unanswered ?? current.any_concern_unanswered;
+      const rerunAfterFix =
+        payload.latest_rerun_after_latest_fix ?? current.latest_rerun_after_latest_fix;
+      const workflowState =
+        openConcerns === 0 && !unanswered && rerunAfterFix ? "merge_ready" : "review_fix";
+      const next = this.makeScienceTaskDetail(nodeId, {
+        ...current,
+        title: payload.title ?? current.title,
+        summary: payload.summary ?? current.summary,
+        science_domain: payload.science_domain ?? current.science_domain,
+        science_field: payload.science_field ?? current.science_field,
+        task_slug: payload.task_slug ?? current.task_slug,
+        claimed_expert_time: payload.claimed_expert_time ?? current.claimed_expert_time,
+        threshold_rationale: payload.threshold_rationale ?? current.threshold_rationale,
+        anti_cheat_notes: payload.anti_cheat_notes ?? current.anti_cheat_notes,
+        reproducibility_notes: payload.reproducibility_notes ?? current.reproducibility_notes,
+        dependency_pinning_status: payload.dependency_pinning_status ?? current.dependency_pinning_status,
+        canary_status: payload.canary_status ?? current.canary_status,
+        failure_analysis: payload.failure_analysis ?? current.failure_analysis,
+        packet_files: payload.packet_files ?? current.packet_files,
+        harbor_pr_url: payload.harbor_pr_url ?? current.harbor_pr_url,
+        latest_review_follow_up_note:
+          payload.latest_review_follow_up_note ?? current.latest_review_follow_up_note,
+        open_reviewer_concerns_count: openConcerns,
+        any_concern_unanswered: unanswered,
+        latest_rerun_after_latest_fix: rerunAfterFix,
+        latest_fix_at: payload.latest_fix_at ?? current.latest_fix_at,
+        last_rerun_at: payload.last_rerun_at ?? current.last_rerun_at,
+        review_round_count: current.review_round_count + 1,
+        workflow_state: workflowState,
+        updated_at: createdAt(),
+      });
+      this.liveScienceTasks.set(nodeId, next);
+      json(res, 200, this.scienceTaskMutation(next));
       return;
     }
 

@@ -303,6 +303,135 @@ export interface AutoskillListingCreateInput {
   listing_meta?: Record<string, unknown>;
 }
 
+export type ScienceTaskChecklistStatus = "pass" | "fail" | "unknown";
+
+export type ScienceTaskStage =
+  | "authoring"
+  | "checklist_fix"
+  | "evidence_ready"
+  | "submitted"
+  | "review_fix"
+  | "merge_ready";
+
+export interface ScienceTaskPacketFile {
+  encoding: "utf8" | "base64";
+  content: string;
+}
+
+export interface ScienceTaskChecklistEntry {
+  status: ScienceTaskChecklistStatus;
+  note?: string | null;
+}
+
+export interface ScienceTaskRunEvidence {
+  command: string;
+  summary: string;
+  key_lines?: string[];
+}
+
+export interface ScienceTaskBaseInput {
+  title: string;
+  summary?: string | null;
+  science_domain: string;
+  science_field: string;
+  task_slug: string;
+  structured_output_shape?: Record<string, unknown> | null;
+  claimed_expert_time: string;
+  threshold_rationale?: string | null;
+  anti_cheat_notes: string;
+  reproducibility_notes: string;
+  dependency_pinning_status: string;
+  canary_status: string;
+  failure_analysis: string;
+  packet_files: Record<string, ScienceTaskPacketFile>;
+}
+
+export interface ScienceTaskSummary {
+  node_id: number;
+  title: string;
+  summary: string | null;
+  science_domain: string;
+  science_field: string;
+  task_slug: string;
+  workflow_state: ScienceTaskStage;
+  export_target_path: string;
+  harbor_pr_url: string | null;
+  review_round_count: number;
+  open_reviewer_concerns_count: number;
+  current_files_match_latest_evidence: boolean;
+  latest_rerun_after_latest_fix: boolean;
+  inserted_at: string;
+  updated_at: string;
+}
+
+export interface ScienceTaskDetail extends ScienceTaskSummary {
+  node: TreeNode | null;
+  structured_output_shape: Record<string, unknown> | null;
+  claimed_expert_time: string;
+  threshold_rationale: string | null;
+  anti_cheat_notes: string;
+  reproducibility_notes: string;
+  dependency_pinning_status: string;
+  canary_status: string;
+  destination_name: string;
+  packet_hash: string;
+  evidence_packet_hash: string | null;
+  packet_files: Record<string, ScienceTaskPacketFile>;
+  checklist: Record<string, ScienceTaskChecklistEntry>;
+  oracle_run: ScienceTaskRunEvidence | null;
+  frontier_run: ScienceTaskRunEvidence | null;
+  failure_analysis: string;
+  latest_review_follow_up_note: string | null;
+  last_rerun_at: string | null;
+  latest_fix_at: string | null;
+  any_concern_unanswered: boolean;
+}
+
+export interface ScienceTaskMutationResponse {
+  data: {
+    node_id: number;
+    workflow_state: ScienceTaskStage;
+    packet_hash: string;
+    export_target_path: string;
+  };
+}
+
+export interface ScienceTaskListResponse {
+  data: ScienceTaskSummary[];
+}
+
+export interface ScienceTaskDetailResponse {
+  data: ScienceTaskDetail;
+}
+
+export interface ScienceTaskCreateInput extends ScienceTaskBaseInput {
+  destination_name?: string;
+}
+
+export interface ScienceTaskChecklistUpdateInput extends ScienceTaskBaseInput {
+  checklist: Record<string, ScienceTaskChecklistEntry>;
+}
+
+export interface ScienceTaskEvidenceUpdateInput extends ScienceTaskBaseInput {
+  oracle_run: ScienceTaskRunEvidence;
+  frontier_run: ScienceTaskRunEvidence;
+}
+
+export interface ScienceTaskSubmitInput extends ScienceTaskBaseInput {
+  harbor_pr_url: string;
+  latest_review_follow_up_note?: string | null;
+}
+
+export interface ScienceTaskReviewUpdateInput extends ScienceTaskBaseInput {
+  harbor_pr_url: string;
+  latest_review_follow_up_note?: string | null;
+  open_reviewer_concerns_count: number;
+  any_concern_unanswered: boolean;
+  latest_rerun_after_latest_fix: boolean;
+  latest_fix_at?: string | null;
+  last_rerun_at?: string | null;
+}
+
 export interface NodeTagEdge {
   id: number;
   src_node_id: number;

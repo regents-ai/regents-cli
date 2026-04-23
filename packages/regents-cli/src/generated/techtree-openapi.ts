@@ -756,6 +756,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/science-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listScienceTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science-tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getScienceTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/science-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createScienceTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/science-tasks/{id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateScienceTaskChecklist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/science-tasks/{id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["updateScienceTaskEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/science-tasks/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitScienceTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/science-tasks/{id}/review-update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reviewUpdateScienceTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/skills/{slug}/v/{version}/skill.md": {
         parameters: {
             query?: never;
@@ -1808,6 +1920,129 @@ export interface components {
             idempotency_key?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** @enum {string} */
+        ScienceTaskChecklistStatus: "pass" | "fail" | "unknown";
+        /** @enum {string} */
+        ScienceTaskStage: "authoring" | "checklist_fix" | "evidence_ready" | "submitted" | "review_fix" | "merge_ready";
+        ScienceTaskPacketFile: {
+            /** @enum {string} */
+            encoding: "utf8" | "base64";
+            content: string;
+        };
+        ScienceTaskPacketFiles: {
+            [key: string]: components["schemas"]["ScienceTaskPacketFile"];
+        };
+        ScienceTaskChecklistEntry: {
+            status: components["schemas"]["ScienceTaskChecklistStatus"];
+            note?: string | null;
+        };
+        ScienceTaskChecklistMap: {
+            [key: string]: components["schemas"]["ScienceTaskChecklistEntry"];
+        };
+        ScienceTaskRunEvidence: {
+            command: string;
+            summary: string;
+            key_lines?: string[];
+        };
+        ScienceTaskSummary: {
+            node_id: number;
+            title: string;
+            summary?: string | null;
+            science_domain: string;
+            science_field: string;
+            task_slug: string;
+            workflow_state: components["schemas"]["ScienceTaskStage"];
+            export_target_path: string;
+            harbor_pr_url?: string | null;
+            review_round_count?: number;
+            open_reviewer_concerns_count?: number;
+            current_files_match_latest_evidence?: boolean;
+            latest_rerun_after_latest_fix?: boolean;
+            /** Format: date-time */
+            inserted_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+        };
+        ScienceTaskDetail: components["schemas"]["ScienceTaskSummary"] & {
+            node?: components["schemas"]["TreeNode"] | null;
+            structured_output_shape: components["schemas"]["LooseObject"] | null;
+            claimed_expert_time: string;
+            threshold_rationale?: string | null;
+            anti_cheat_notes: string;
+            reproducibility_notes: string;
+            dependency_pinning_status: string;
+            canary_status: string;
+            destination_name?: string;
+            packet_hash?: string;
+            evidence_packet_hash?: string | null;
+            packet_files: components["schemas"]["ScienceTaskPacketFiles"];
+            checklist: components["schemas"]["ScienceTaskChecklistMap"];
+            oracle_run?: components["schemas"]["ScienceTaskRunEvidence"] | null;
+            frontier_run?: components["schemas"]["ScienceTaskRunEvidence"] | null;
+            failure_analysis: string;
+            latest_review_follow_up_note?: string | null;
+            /** Format: date-time */
+            last_rerun_at?: string | null;
+            /** Format: date-time */
+            latest_fix_at?: string | null;
+            any_concern_unanswered?: boolean;
+        };
+        ScienceTaskListResponse: {
+            data: components["schemas"]["ScienceTaskSummary"][];
+        };
+        ScienceTaskDetailResponse: {
+            data: components["schemas"]["ScienceTaskDetail"];
+        };
+        ScienceTaskBaseInput: {
+            title: string;
+            summary?: string | null;
+            science_domain: string;
+            science_field: string;
+            task_slug: string;
+            structured_output_shape?: components["schemas"]["LooseObject"] | null;
+            claimed_expert_time: string;
+            threshold_rationale?: string | null;
+            anti_cheat_notes: string;
+            reproducibility_notes: string;
+            dependency_pinning_status: string;
+            canary_status: string;
+            failure_analysis: string;
+            packet_files: components["schemas"]["ScienceTaskPacketFiles"];
+        };
+        ScienceTaskCreateInput: components["schemas"]["ScienceTaskBaseInput"] & {
+            /** @default terminal-bench-science */
+            destination_name: string;
+        };
+        ScienceTaskChecklistUpdateInput: components["schemas"]["ScienceTaskBaseInput"] & {
+            checklist: components["schemas"]["ScienceTaskChecklistMap"];
+        };
+        ScienceTaskEvidenceUpdateInput: components["schemas"]["ScienceTaskBaseInput"] & {
+            oracle_run: components["schemas"]["ScienceTaskRunEvidence"];
+            frontier_run: components["schemas"]["ScienceTaskRunEvidence"];
+        };
+        ScienceTaskSubmitInput: components["schemas"]["ScienceTaskBaseInput"] & {
+            harbor_pr_url: string;
+            latest_review_follow_up_note?: string | null;
+        };
+        ScienceTaskReviewUpdateInput: components["schemas"]["ScienceTaskBaseInput"] & {
+            harbor_pr_url: string;
+            latest_review_follow_up_note?: string | null;
+            open_reviewer_concerns_count: number;
+            any_concern_unanswered: boolean;
+            latest_rerun_after_latest_fix: boolean;
+            /** Format: date-time */
+            latest_fix_at?: string | null;
+            /** Format: date-time */
+            last_rerun_at?: string | null;
+        };
+        ScienceTaskMutationResponse: {
+            data: {
+                node_id: number;
+                workflow_state: components["schemas"]["ScienceTaskStage"];
+                packet_hash: string;
+                export_target_path: string;
+            };
         };
         ChatboxMessage: {
             id?: number;
@@ -3473,6 +3708,181 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+        };
+    };
+    listScienceTasks: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                stage?: components["schemas"]["ScienceTaskStage"];
+                science_domain?: string;
+                science_field?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Science task list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskListResponse"];
+                };
+            };
+        };
+    };
+    getScienceTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Science task detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskDetailResponse"];
+                };
+            };
+        };
+    };
+    createScienceTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceTaskCreateInput"];
+            };
+        };
+        responses: {
+            /** @description Science task created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskMutationResponse"];
+                };
+            };
+        };
+    };
+    updateScienceTaskChecklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceTaskChecklistUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Science task checklist updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskMutationResponse"];
+                };
+            };
+        };
+    };
+    updateScienceTaskEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceTaskEvidenceUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Science task evidence updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskMutationResponse"];
+                };
+            };
+        };
+    };
+    submitScienceTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceTaskSubmitInput"];
+            };
+        };
+        responses: {
+            /** @description Science task submission state updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskMutationResponse"];
+                };
+            };
+        };
+    };
+    reviewUpdateScienceTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceTaskReviewUpdateInput"];
+            };
+        };
+        responses: {
+            /** @description Science task review loop updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskMutationResponse"];
                 };
             };
         };

@@ -295,12 +295,12 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
 
     await expect(
       callJsonRpc(socketPath, "techtree.nodes.children", { id: 1, limit: 5 }),
-    ).resolves.toMatchObject({
-      data: [
+    ).resolves.toEqual({
+      data: expect.arrayContaining([
         expect.objectContaining({
           parent_id: 1,
         }),
-      ],
+      ]),
     });
 
     await expect(

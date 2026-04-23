@@ -60,4 +60,34 @@ describe("API command ownership registry", () => {
 
     expect(invalidEmptyGroups).toEqual([]);
   });
+
+  it("registers the full science-task CLI surface against the Techtree contract", () => {
+    const scienceTaskGroup = apiCommandOwnership.find((group) =>
+      group.commands.includes("techtree science-tasks list"),
+    );
+
+    expect(scienceTaskGroup).toMatchObject({
+      owner: "techtree",
+      status: "current",
+      commands: [
+        "techtree science-tasks list",
+        "techtree science-tasks get",
+        "techtree science-tasks init",
+        "techtree science-tasks checklist",
+        "techtree science-tasks evidence",
+        "techtree science-tasks export",
+        "techtree science-tasks submit",
+        "techtree science-tasks review-update",
+      ],
+      pathTemplates: [
+        "/v1/science-tasks",
+        "/v1/science-tasks/{id}",
+        "/v1/agent/science-tasks",
+        "/v1/agent/science-tasks/{id}/checklist",
+        "/v1/agent/science-tasks/{id}/evidence",
+        "/v1/agent/science-tasks/{id}/submit",
+        "/v1/agent/science-tasks/{id}/review-update",
+      ],
+    });
+  });
 });

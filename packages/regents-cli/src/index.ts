@@ -147,6 +147,14 @@ import {
   runTechtreeStatus,
   runTechtreeUnstar,
   runTechtreeUnwatch,
+  runTechtreeScienceTasksChecklist,
+  runTechtreeScienceTasksEvidence,
+  runTechtreeScienceTasksExport,
+  runTechtreeScienceTasksGet,
+  runTechtreeScienceTasksInit,
+  runTechtreeScienceTasksList,
+  runTechtreeScienceTasksReviewUpdate,
+  runTechtreeScienceTasksSubmit,
   runTechtreeWatch,
   runTechtreeWatchList,
   runTechtreeWatchTail,
@@ -386,6 +394,46 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
 
     if (namespace === "techtree" && subcommand === "status") {
       await runTechtreeStatus(configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "list") {
+      await runTechtreeScienceTasksList(rawArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "get") {
+      await runTechtreeScienceTasksGet(rawArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "init") {
+      await runTechtreeScienceTasksInit(rawArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "checklist") {
+      await runTechtreeScienceTasksChecklist(rawArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "evidence") {
+      await runTechtreeScienceTasksEvidence(rawArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "export") {
+      await runTechtreeScienceTasksExport(rawArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "submit") {
+      await runTechtreeScienceTasksSubmit(rawArgs, configPath);
+      return 0;
+    }
+
+    if (namespace === "techtree" && subcommand === "science-tasks" && maybeThird === "review-update") {
+      await runTechtreeScienceTasksReviewUpdate(rawArgs, configPath);
       return 0;
     }
 

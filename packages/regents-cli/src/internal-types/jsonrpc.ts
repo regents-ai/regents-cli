@@ -66,6 +66,13 @@ import type {
   AutoskillCreateResultResponse,
   AutoskillCreateReviewResponse,
   AutoskillCreateSkillResponse,
+  ScienceTaskChecklistUpdateInput,
+  ScienceTaskDetailResponse,
+  ScienceTaskEvidenceUpdateInput,
+  ScienceTaskListResponse,
+  ScienceTaskMutationResponse,
+  ScienceTaskReviewUpdateInput,
+  ScienceTaskSubmitInput,
   AutoskillEvalPublishRequest,
   AutoskillListingCreateInput,
   AutoskillNotebookPairParams,
@@ -179,6 +186,14 @@ export type RegentRpcMethod =
   | "techtree.watch.list"
   | "techtree.stars.create"
   | "techtree.stars.delete"
+  | "techtree.scienceTasks.list"
+  | "techtree.scienceTasks.get"
+  | "techtree.scienceTasks.init"
+  | "techtree.scienceTasks.checklist"
+  | "techtree.scienceTasks.evidence"
+  | "techtree.scienceTasks.export"
+  | "techtree.scienceTasks.submit"
+  | "techtree.scienceTasks.reviewUpdate"
   | "techtree.autoskill.initSkill"
   | "techtree.autoskill.initEval"
   | "techtree.autoskill.notebook.pair"
@@ -282,6 +297,42 @@ export interface RegentRpcParamsMap {
   "techtree.watch.list": undefined;
   "techtree.stars.create": { nodeId: number };
   "techtree.stars.delete": { nodeId: number };
+  "techtree.scienceTasks.list":
+    | {
+        limit?: number;
+        stage?: string;
+        science_domain?: string;
+        science_field?: string;
+      }
+    | undefined;
+  "techtree.scienceTasks.get": { id: number };
+  "techtree.scienceTasks.init": {
+    workspace_path: string;
+    title?: string;
+    summary?: string;
+    science_domain?: string;
+    science_field?: string;
+    task_slug?: string;
+    claimed_expert_time?: string;
+  };
+  "techtree.scienceTasks.checklist": { workspace_path: string };
+  "techtree.scienceTasks.evidence": { workspace_path: string };
+  "techtree.scienceTasks.export": { workspace_path: string; output_path?: string };
+  "techtree.scienceTasks.submit": {
+    workspace_path: string;
+    harbor_pr_url?: string;
+    latest_review_follow_up_note?: string;
+  };
+  "techtree.scienceTasks.reviewUpdate": {
+    workspace_path: string;
+    harbor_pr_url?: string;
+    latest_review_follow_up_note?: string;
+    open_reviewer_concerns_count?: number;
+    any_concern_unanswered?: boolean;
+    latest_rerun_after_latest_fix?: boolean;
+    latest_fix_at?: string | null;
+    last_rerun_at?: string | null;
+  };
   "techtree.autoskill.initSkill": { workspace_path: string };
   "techtree.autoskill.initEval": { workspace_path: string };
   "techtree.autoskill.notebook.pair": AutoskillNotebookPairParams;
@@ -406,6 +457,30 @@ export interface RegentRpcResultMap {
   "techtree.watch.list": { data: WatchRecord[] };
   "techtree.stars.create": { data: NodeStarRecord };
   "techtree.stars.delete": { ok: true };
+  "techtree.scienceTasks.list": ScienceTaskListResponse;
+  "techtree.scienceTasks.get": ScienceTaskDetailResponse;
+  "techtree.scienceTasks.init": {
+    ok: true;
+    entrypoint: "science-tasks.init";
+    workspace_path: string;
+    node_id: number;
+    files: string[];
+    packet_hash: string;
+    export_target_path: string;
+  };
+  "techtree.scienceTasks.checklist": ScienceTaskMutationResponse;
+  "techtree.scienceTasks.evidence": ScienceTaskMutationResponse;
+  "techtree.scienceTasks.export": {
+    ok: true;
+    entrypoint: "science-tasks.export";
+    workspace_path: string;
+    node_id: number;
+    output_path: string;
+    files: string[];
+    export_target_path: string;
+  };
+  "techtree.scienceTasks.submit": ScienceTaskMutationResponse;
+  "techtree.scienceTasks.reviewUpdate": ScienceTaskMutationResponse;
   "techtree.autoskill.initSkill": {
     ok: true;
     entrypoint: "autoskill.init.skill";

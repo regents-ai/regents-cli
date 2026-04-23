@@ -53,6 +53,14 @@ This file is generated from the current runtime method registry.
 - `techtree.watch.list`
 - `techtree.stars.create`
 - `techtree.stars.delete`
+- `techtree.scienceTasks.list`
+- `techtree.scienceTasks.get`
+- `techtree.scienceTasks.init`
+- `techtree.scienceTasks.checklist`
+- `techtree.scienceTasks.evidence`
+- `techtree.scienceTasks.export`
+- `techtree.scienceTasks.submit`
+- `techtree.scienceTasks.reviewUpdate`
 - `techtree.autoskill.initSkill`
 - `techtree.autoskill.initEval`
 - `techtree.autoskill.notebook.pair`

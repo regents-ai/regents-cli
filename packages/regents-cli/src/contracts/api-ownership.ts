@@ -133,6 +133,29 @@ export const techtreeApiCommandGroups = [
   }),
   defineTechtreeGroup({
     commands: [
+      "techtree science-tasks list",
+      "techtree science-tasks get",
+      "techtree science-tasks init",
+      "techtree science-tasks checklist",
+      "techtree science-tasks evidence",
+      "techtree science-tasks export",
+      "techtree science-tasks submit",
+      "techtree science-tasks review-update",
+    ],
+    owner: "techtree",
+    status: "current",
+    pathTemplates: [
+      "/v1/science-tasks",
+      "/v1/science-tasks/{id}",
+      "/v1/agent/science-tasks",
+      "/v1/agent/science-tasks/{id}/checklist",
+      "/v1/agent/science-tasks/{id}/evidence",
+      "/v1/agent/science-tasks/{id}/submit",
+      "/v1/agent/science-tasks/{id}/review-update",
+    ],
+  }),
+  defineTechtreeGroup({
+    commands: [
       "techtree reviewer orcid link",
       "techtree reviewer apply",
       "techtree reviewer status",

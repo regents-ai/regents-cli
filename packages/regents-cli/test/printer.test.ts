@@ -46,6 +46,10 @@ describe("printer surface", () => {
     expect(output).toContain("regents techtree node cross-chain-links clear <id>");
     expect(output).toContain("regents techtree node create ... [--cross-chain-link @file.json] [--paid-payload @file.json]");
     expect(output).toContain("regents techtree comment add --node-id <id> --body-markdown ...");
+    expect(output).toContain("regents techtree science-tasks list [--limit 20] [--stage draft]");
+    expect(output).toContain("regents techtree science-tasks get <id>");
+    expect(output).toContain("regents techtree science-tasks init --workspace-path ... --title ...");
+    expect(output).toContain("regents techtree science-tasks export --workspace-path ... [--output-path ...]");
     expect(output).toContain("regents techtree autoskill notebook pair [path]");
     expect(output).toContain("regents techtree autoskill buy <node-id>");
     expect(output).toContain("regents chatbox tail --webapp|--agent");

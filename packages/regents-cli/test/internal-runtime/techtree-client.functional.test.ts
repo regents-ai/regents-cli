@@ -184,13 +184,13 @@ describeNetwork("TechtreeClient functional coverage", () => {
       },
     });
 
-    await expect(harness.client.getChildren(1, { limit: 5 })).resolves.toMatchObject({
-      data: [
+    await expect(harness.client.getChildren(1, { limit: 5 })).resolves.toEqual({
+      data: expect.arrayContaining([
         expect.objectContaining({
           id: 2,
           parent_id: 1,
         }),
-      ],
+      ]),
     });
 
     await expect(harness.client.getComments(1, { limit: 5 })).resolves.toMatchObject({
@@ -224,6 +224,130 @@ describeNetwork("TechtreeClient functional coverage", () => {
           }),
         ],
         comments: [],
+      },
+    });
+  });
+
+  it("covers science-task read and write flows", async () => {
+    const harness = createHarness(server.baseUrl);
+
+    await expect(
+      harness.client.listScienceTasks({
+        limit: 1,
+        stage: "submitted",
+        science_domain: "life-sciences",
+        science_field: "biology",
+      }),
+    ).resolves.toEqual({
+      data: [
+        expect.objectContaining({
+          node_id: 301,
+          task_slug: "cell-atlas-benchmark",
+          workflow_state: "submitted",
+        }),
+      ],
+    });
+
+    await expect(harness.client.getScienceTask(301)).resolves.toMatchObject({
+      data: {
+        node_id: 301,
+        task_slug: "cell-atlas-benchmark",
+        harbor_pr_url: "https://harbor.example/pr/301",
+      },
+    });
+
+    const listRequest = server.requests.find(
+      (request) =>
+        request.method === "GET" &&
+        request.pathname === "/v1/science-tasks" &&
+        request.search.includes("stage=submitted"),
+    );
+    expect(listRequest?.search).toContain("science_domain=life-sciences");
+    expect(listRequest?.search).toContain("science_field=biology");
+
+    await authenticate(harness);
+
+    const baseInput = {
+      title: "Protein folding benchmark",
+      summary: "Benchmark a protein folding review task.",
+      science_domain: "life-sciences",
+      science_field: "biology",
+      task_slug: "protein-folding-benchmark",
+      structured_output_shape: { answer: "string" },
+      claimed_expert_time: "3 hours",
+      threshold_rationale: "The task expects a fully justified result.",
+      anti_cheat_notes: "The answer key stays outside the packet.",
+      reproducibility_notes: "Pin the environment before each rerun.",
+      dependency_pinning_status: "Pinned",
+      canary_status: "Present",
+      failure_analysis: "Frontier models miss one structured output requirement.",
+      packet_files: {
+        "instruction.md": {
+          encoding: "utf8" as const,
+          content: "# Protein folding benchmark\n",
+        },
+        "tests/test_task.py": {
+          encoding: "utf8" as const,
+          content: "def test_task():\n    assert True\n",
+        },
+      },
+    };
+
+    const created = await harness.client.createScienceTask(baseInput);
+    expect(created.data.workflow_state).toBe("authoring");
+
+    const checklist = await harness.client.updateScienceTaskChecklist(created.data.node_id, {
+      ...baseInput,
+      checklist: {
+        instruction_and_tests_match: {
+          status: "pass",
+          note: "Checked in the functional test",
+        },
+      },
+    });
+    expect(checklist.data.workflow_state).toBe("evidence_ready");
+
+    const evidence = await harness.client.updateScienceTaskEvidence(created.data.node_id, {
+      ...baseInput,
+      oracle_run: {
+        command: "uv run oracle",
+        summary: "Oracle passes",
+      },
+      frontier_run: {
+        command: "uv run frontier",
+        summary: "Frontier misses a required field",
+      },
+    });
+    expect(evidence.data.workflow_state).toBe("evidence_ready");
+
+    const submitted = await harness.client.submitScienceTask(created.data.node_id, {
+      ...baseInput,
+      harbor_pr_url: "https://harbor.example/pr/999",
+      latest_review_follow_up_note: "Ready for Harbor review",
+    });
+    expect(submitted.data.workflow_state).toBe("submitted");
+
+    const reviewUpdated = await harness.client.reviewUpdateScienceTask(created.data.node_id, {
+      ...baseInput,
+      harbor_pr_url: "https://harbor.example/pr/999",
+      latest_review_follow_up_note: "All reviewer comments answered",
+      open_reviewer_concerns_count: 0,
+      any_concern_unanswered: false,
+      latest_rerun_after_latest_fix: true,
+      latest_fix_at: "2026-04-20T12:00:00.000Z",
+      last_rerun_at: "2026-04-20T13:00:00.000Z",
+    });
+    expect(reviewUpdated.data.workflow_state).toBe("merge_ready");
+
+    await expect(harness.client.getScienceTask(created.data.node_id)).resolves.toMatchObject({
+      data: {
+        node_id: created.data.node_id,
+        task_slug: "protein-folding-benchmark",
+        workflow_state: "merge_ready",
+        harbor_pr_url: "https://harbor.example/pr/999",
+        open_reviewer_concerns_count: 0,
+        any_concern_unanswered: false,
+        latest_rerun_after_latest_fix: true,
       },
     });
   });

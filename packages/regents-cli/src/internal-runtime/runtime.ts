@@ -54,6 +54,14 @@ import {
   handleTechtreeNodeLineageList,
   handleTechtreeNodeWorkPacket,
   handleTechtreeNodesList,
+  handleTechtreeScienceTasksGet,
+  handleTechtreeScienceTasksChecklist,
+  handleTechtreeScienceTasksEvidence,
+  handleTechtreeScienceTasksExport,
+  handleTechtreeScienceTasksInit,
+  handleTechtreeScienceTasksList,
+  handleTechtreeScienceTasksReviewUpdate,
+  handleTechtreeScienceTasksSubmit,
   handleTechtreeOpportunitiesList,
   handleTechtreeSearchQuery,
   handleTechtreeStarCreate,
@@ -447,6 +455,46 @@ export class RegentRuntime {
         return handleTechtreeStarCreate(ctx, params as Parameters<typeof handleTechtreeStarCreate>[1]);
       case "techtree.stars.delete":
         return handleTechtreeStarDelete(ctx, params as Parameters<typeof handleTechtreeStarDelete>[1]);
+      case "techtree.scienceTasks.list":
+        return handleTechtreeScienceTasksList(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksList>[1],
+        );
+      case "techtree.scienceTasks.get":
+        return handleTechtreeScienceTasksGet(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksGet>[1],
+        );
+      case "techtree.scienceTasks.init":
+        return handleTechtreeScienceTasksInit(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksInit>[1],
+        );
+      case "techtree.scienceTasks.checklist":
+        return handleTechtreeScienceTasksChecklist(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksChecklist>[1],
+        );
+      case "techtree.scienceTasks.evidence":
+        return handleTechtreeScienceTasksEvidence(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksEvidence>[1],
+        );
+      case "techtree.scienceTasks.export":
+        return handleTechtreeScienceTasksExport(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksExport>[1],
+        );
+      case "techtree.scienceTasks.submit":
+        return handleTechtreeScienceTasksSubmit(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksSubmit>[1],
+        );
+      case "techtree.scienceTasks.reviewUpdate":
+        return handleTechtreeScienceTasksReviewUpdate(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceTasksReviewUpdate>[1],
+        );
       case "techtree.autoskill.initSkill":
         return handleTechtreeAutoskillInitSkill(
           ctx,
