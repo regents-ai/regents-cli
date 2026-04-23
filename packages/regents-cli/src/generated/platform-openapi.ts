@@ -1342,11 +1342,6 @@ export interface components {
             claim_id?: number | null;
             name?: string | null;
             claim_status: ("reserved" | "upgrade_pending" | "onchain_live" | "upgrade_failed") | null;
-            ensip25_verified: boolean;
-            forward_resolution_verified: boolean;
-            reverse_resolution_verified: boolean;
-            primary_name_verified: boolean;
-            fully_synced: boolean;
         };
         PreparedTxRequest: {
             chain_id: number;
@@ -1375,6 +1370,16 @@ export interface components {
         };
         AttachEnsNameRequest: {
             claim_id: number;
+            include_reverse?: boolean;
+            registry_address?: string | null;
+            agent_id: number | string;
+            current_agent_uri?: string | null;
+        };
+        DetachEnsNameRequest: {
+            include_reverse?: boolean;
+            registry_address?: string | null;
+            agent_id: number | string;
+            current_agent_uri?: string | null;
         };
         EnsLinkPlanRequest: {
             include_reverse?: boolean;
@@ -1610,7 +1615,8 @@ export interface components {
             id: number;
             claimed_label?: string | null;
             status: string;
-            current_step: string;
+            /** @enum {string} */
+            current_step: "reserve_claim" | "create_sprite" | "bootstrap_sprite" | "bootstrap_workspace" | "verify_runtime" | "activate_subdomain" | "finalize";
             attempt_count: number;
             last_error_step?: string | null;
             last_error_message?: string | null;
@@ -1660,15 +1666,14 @@ export interface components {
         AgentRuntimeDefaults: {
             sprite_owner: string;
             sprite_service_name: string;
-            paperclip_deployment_mode: string;
-            paperclip_http_port: number;
+            workspace_http_port: number;
             hermes_adapter_type: string;
             hermes_model: string;
             hermes_persist_session: boolean;
             hermes_toolsets: string[];
             hermes_runtime_plugins: string[];
             hermes_shared_skills: string[];
-            paperclip_company_purpose: string;
+            company_purpose: string;
             hermes_worker_role: string;
             recommended_network_domains: string[];
             checkpoint_moments: string[];
@@ -1733,10 +1738,8 @@ export interface components {
             sprite_checkpoint_ref?: string | null;
             /** Format: date-time */
             sprite_created_at?: string | null;
-            paperclip_deployment_mode?: string | null;
-            paperclip_http_port?: number | null;
-            paperclip_company_id: string | null;
-            paperclip_agent_id: string | null;
+            workspace_url: string | null;
+            workspace_http_port: number | null;
             hermes_adapter_type?: string | null;
             hermes_model?: string | null;
             hermes_persist_session?: boolean;
@@ -1769,14 +1772,12 @@ export interface components {
                 desired_runtime_state: string;
                 observed_runtime_state: string;
             };
-            paperclip: {
-                company_id: string | null;
+            workspace: {
+                url: string | null;
                 status: string;
-                deployment_mode: string;
                 http_port: number;
             };
             hermes: {
-                agent_id: string | null;
                 status: string;
                 adapter_type: string;
                 model: string;
@@ -3346,7 +3347,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DetachEnsNameRequest"];
+            };
+        };
         responses: {
             /** @description Detached the current Regent ENS name from the selected agent and prepared the cleanup work for stale onchain links */
             200: {
