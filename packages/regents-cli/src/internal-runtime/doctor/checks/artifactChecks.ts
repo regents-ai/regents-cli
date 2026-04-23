@@ -62,7 +62,7 @@ export function artifactChecks(): DoctorCheckDefinition[] {
 
         return {
           status: "ok",
-          message: "Artifact workflows use the current workspace path; no separate legacy BBH bundle root remains",
+          message: "Artifact workflows use the current workspace path",
           details: {
             cwd: process.cwd(),
           },

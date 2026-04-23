@@ -1,6 +1,8 @@
 import { getCurrentAgentIdentity, getMissingAgentIdentityFields } from "../../agent/profile.js";
 import { buildBackendDetails, skipDueToMissingConfig } from "./shared.js";
-const buildProbeFailureDetails = (route, error) => {
+import type { DoctorCheckDefinition } from "../types.js";
+
+const buildProbeFailureDetails = (route: string, error: unknown): Record<string, unknown> => {
     const normalized = buildBackendDetails(error);
     return {
         route,
@@ -12,7 +14,8 @@ const buildProbeFailureDetails = (route, error) => {
         raw: normalized,
     };
 };
-export function techtreeChecks() {
+
+export function techtreeChecks(): DoctorCheckDefinition[] {
     return [
         {
             id: "techtree.health",
@@ -113,32 +116,6 @@ export function techtreeChecks() {
                 }
                 catch (error) {
                     const details = buildProbeFailureDetails("/v1/agent/opportunities", error);
-                    const routeMissing = typeof details.status === "number" && Number(details.status) === 404;
-                    if (routeMissing) {
-                        try {
-                            const inbox = await ctx.techtree.getInbox({ limit: 1 });
-                            return {
-                                status: "ok",
-                                message: "Authenticated read-only Techtree probe succeeded via /v1/agent/inbox",
-                                details: {
-                                    route: "/v1/agent/inbox",
-                                    eventCount: inbox.events.length,
-                                    fallbackFrom: "/v1/agent/opportunities",
-                                },
-                            };
-                        }
-                        catch (fallbackError) {
-                            return {
-                                status: "fail",
-                                message: "Authenticated Techtree probe failed on both preferred and fallback routes",
-                                details: {
-                                    preferred: details,
-                                    fallback: buildProbeFailureDetails("/v1/agent/inbox", fallbackError),
-                                },
-                                remediation: "Inspect auth headers and SIWA sidecar configuration",
-                            };
-                        }
-                    }
                     return {
                         status: "fail",
                         message: "Authenticated Techtree probe failed",

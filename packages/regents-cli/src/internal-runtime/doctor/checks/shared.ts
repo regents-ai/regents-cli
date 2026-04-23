@@ -6,22 +6,31 @@ import { RegentError, TechtreeApiError } from "../../errors.js";
 import { readIdentityReceipt } from "../../identity/cache.js";
 import { resolveIdentitySigner, resolveSignerFromReceipt } from "../../identity/providers.js";
 import { identityNetworkForChainId } from "../../identity/shared.js";
+import type { DoctorCheckContext, DoctorCheckOutcome } from "../types.js";
+
 const ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const POSITIVE_INTEGER_STRING_REGEX = /^[1-9][0-9]*$/;
-export function skipDueToMissingConfig() {
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+export function skipDueToMissingConfig(): DoctorCheckOutcome {
     return {
         status: "skip",
         message: "Config is unavailable; later checks were not attempted",
         remediation: "Fix the config load failure first",
     };
 }
-export function isValidAddress(value) {
+
+export function isValidAddress(value: string): boolean {
     return ADDRESS_REGEX.test(value);
 }
-export function isPositiveIntegerString(value) {
+
+export function isPositiveIntegerString(value: string): boolean {
     return POSITIVE_INTEGER_STRING_REGEX.test(value);
 }
-export async function deriveSignerWalletAddress(ctx) {
+
+export async function deriveSignerWalletAddress(ctx: DoctorCheckContext): Promise<`0x${string}` | null> {
     const receipt = readIdentityReceipt();
     if (receipt?.provider === "coinbase-cdp" && ctx.config) {
         return (await resolveSignerFromReceipt(receipt, {
@@ -46,12 +55,13 @@ export async function deriveSignerWalletAddress(ctx) {
     const privateKey = await ctx.walletSecretSource.getPrivateKeyHex();
     return deriveWalletAddress(privateKey);
 }
-export function buildBackendDetails(error) {
+
+export function buildBackendDetails(error: unknown): Record<string, unknown> {
     if (error instanceof TechtreeApiError) {
-        const payload = error.payload && typeof error.payload === "object" && !Array.isArray(error.payload)
+        const payload = isRecord(error.payload)
             ? error.payload
             : undefined;
-        const backendError = payload && typeof payload.error === "object" && payload.error && !Array.isArray(payload.error)
+        const backendError = isRecord(payload?.error)
             ? payload.error
             : undefined;
         const backend = backendError
@@ -61,16 +71,11 @@ export function buildBackendDetails(error) {
                 ...("details" in backendError ? { details: backendError.details } : {}),
             }
             : payload;
-        const sidecar = backend &&
-            typeof backend === "object" &&
+        const sidecar = isRecord(backend) &&
             "details" in backend &&
-            backend.details &&
-            typeof backend.details === "object" &&
-            !Array.isArray(backend.details) &&
+            isRecord(backend.details) &&
             "sidecar" in backend.details &&
-            backend.details.sidecar &&
-            typeof backend.details.sidecar === "object" &&
-            !Array.isArray(backend.details.sidecar)
+            isRecord(backend.details.sidecar)
             ? backend.details.sidecar
             : undefined;
         return {
@@ -96,13 +101,15 @@ export function buildBackendDetails(error) {
         message: String(error),
     };
 }
-export function ensureDirExists(dirPath) {
+
+export function ensureDirExists(dirPath: string): boolean {
     if (fs.existsSync(dirPath)) {
         return false;
     }
     fs.mkdirSync(dirPath, { recursive: true });
     return true;
 }
-export function uniquePaths(paths) {
+
+export function uniquePaths(paths: string[]): string[] {
     return [...new Set(paths.map((value) => path.resolve(value)))];
 }

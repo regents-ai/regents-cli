@@ -1,26 +1,35 @@
 import { runDoctor, runFullDoctor, runScopedDoctor } from "../internal-runtime/index.js";
-import { getBooleanFlag, getFlag, parseIntegerFlag } from "../parse.js";
+import type { DoctorReport, DoctorScope } from "../internal-types/index.js";
+import { getBooleanFlag, getFlag, parseIntegerFlag, type ParsedCliArgs } from "../parse.js";
 import { printJson, printText } from "../printer.js";
 import { renderDoctorReport } from "../printers/doctorPrinter.js";
-const DOCTOR_SCOPES = ["runtime", "auth", "techtree", "transports", "xmtp"];
-const DOCTOR_SCOPE_SET = new Set(DOCTOR_SCOPES);
-const reportHasInternalFailure = (report) => {
+
+const DOCTOR_SCOPES = ["runtime", "auth", "techtree", "transports", "xmtp"] as const satisfies readonly DoctorScope[];
+type DoctorCommandScope = (typeof DOCTOR_SCOPES)[number];
+
+const DOCTOR_SCOPE_SET = new Set<string>(DOCTOR_SCOPES);
+
+const reportHasInternalFailure = (report: DoctorReport): boolean => {
     return report.checks.some((check) => check.details?.internal === true);
 };
-const doctorExitCode = (report) => {
+
+const doctorExitCode = (report: DoctorReport): number => {
     if (reportHasInternalFailure(report)) {
         return 3;
     }
     return report.summary.fail > 0 ? 1 : 0;
 };
+
 export class CliUsageError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = "CliUsageError";
     }
 }
-const isDoctorScope = (value) => DOCTOR_SCOPE_SET.has(value);
-const resolveDoctorScope = (args) => {
+
+const isDoctorScope = (value: string): value is DoctorCommandScope => DOCTOR_SCOPE_SET.has(value);
+
+const resolveDoctorScope = (args: ParsedCliArgs): DoctorCommandScope | undefined => {
     const scopeCandidate = args.positionals[1];
     if (!scopeCandidate || scopeCandidate.startsWith("--")) {
         return undefined;
@@ -30,7 +39,8 @@ const resolveDoctorScope = (args) => {
     }
     return scopeCandidate;
 };
-const resolveDoctorParams = (args) => {
+
+const resolveDoctorParams = (args: ParsedCliArgs) => {
     const full = getBooleanFlag(args, "full");
     return {
         json: getBooleanFlag(args, "json"),
@@ -44,14 +54,15 @@ const resolveDoctorParams = (args) => {
         cleanupCommentBodyPrefix: getFlag(args, "cleanup-comment-body-prefix"),
     };
 };
-export async function runDoctorCommand(args, configPath) {
+
+export async function runDoctorCommand(args: ParsedCliArgs, configPath?: string): Promise<number> {
     const scope = resolveDoctorScope(args);
     const params = resolveDoctorParams(args);
     const { json, verbose, fix, full, quiet, onlyFailures, ci, knownParentId, cleanupCommentBodyPrefix } = params;
     if (scope && full) {
         throw new CliUsageError("`regents doctor --full` does not support scoped subcommands");
     }
-    let report;
+    let report: DoctorReport;
     if (full) {
         report = await runFullDoctor({
             json,

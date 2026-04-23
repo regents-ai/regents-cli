@@ -1,4 +1,5 @@
-import { CLI_PALETTE, renderKeyValuePanel, renderPanel, renderTablePanel } from "../printer.js";
+import type { DoctorCheckResult, DoctorReport, DoctorStatus } from "../internal-types/index.js";
+import { CLI_PALETTE, renderKeyValuePanel, renderPanel, renderTablePanel, type TableRow } from "../printer.js";
 
 const ANSI = {
     reset: "\x1b[0m",
@@ -9,14 +10,23 @@ const ANSI = {
     sunlitClay: CLI_PALETTE.accent,
     greyOlive: CLI_PALETTE.secondary,
 };
-const useColor = () => Boolean(process.stdout?.isTTY) && process.env.NO_COLOR !== "1";
-const tone = (value, color, bold = false) => {
+export interface RenderDoctorReportOptions {
+    verbose?: boolean;
+    quiet?: boolean;
+    onlyFailures?: boolean;
+    ci?: boolean;
+}
+
+const useColor = (): boolean => Boolean(process.stdout?.isTTY) && process.env.NO_COLOR !== "1";
+
+const tone = (value: string, color: string, bold = false): string => {
     if (!useColor()) {
         return value;
     }
     return `${bold ? ANSI.bold : ""}${color}${value}${ANSI.reset}`;
 };
-const reportState = (report) => {
+
+const reportState = (report: DoctorReport): "blocked" | "degraded" | "ready" => {
     if (report.summary.fail > 0) {
         return "blocked";
     }
@@ -25,7 +35,8 @@ const reportState = (report) => {
     }
     return "ready";
 };
-const statusMeta = (status) => {
+
+const statusMeta = (status: DoctorStatus): { glyph: string; label: string; color: string } => {
     switch (status) {
         case "ok":
             return { glyph: "●", label: "ready", color: ANSI.yaleBlue };
@@ -35,11 +46,10 @@ const statusMeta = (status) => {
             return { glyph: "◆", label: "block", color: ANSI.sunlitClay };
         case "skip":
             return { glyph: "○", label: "skip", color: ANSI.greyOlive };
-        default:
-            return { glyph: "•", label: status, color: ANSI.ivoryMist };
     }
 };
-const scopeLabel = (report) => {
+
+const scopeLabel = (report: DoctorReport): string => {
     if (report.mode === "scoped" && report.scope) {
         return `${report.scope} scope`;
     }
@@ -48,7 +58,8 @@ const scopeLabel = (report) => {
     }
     return "default sweep";
 };
-const renderSummaryBand = (report) => {
+
+const renderSummaryBand = (report: DoctorReport): string => {
     return renderTablePanel("◆ SUMMARY LEDGER", [
         { header: "metric", color: ANSI.greyOlive },
         { header: "count", align: "right", color: ANSI.greyOlive },
@@ -62,7 +73,8 @@ const renderSummaryBand = (report) => {
         titleColor: ANSI.ivoryMist,
     });
 };
-const formatCheckRow = (check, verbose) => {
+
+const formatCheckRow = (check: DoctorCheckResult, verbose: boolean): TableRow => {
     const status = statusMeta(check.status);
     return {
         cells: [
@@ -83,7 +95,8 @@ const formatCheckRow = (check, verbose) => {
         ],
     };
 };
-const renderCiReport = (report, checks) => {
+
+const renderCiReport = (report: DoctorReport, checks: DoctorCheckResult[]): string => {
     const scope = report.mode === "scoped" && report.scope ? ` ${report.scope}` : "";
     const stateColor = reportState(report) === "ready" ? ANSI.yaleBlue : ANSI.sunlitClay;
     const rows = checks.map((check) => {
@@ -125,7 +138,8 @@ const renderCiReport = (report, checks) => {
         titleColor: ANSI.ivoryMist,
     })] : [])].join("\n\n");
 };
-export function renderDoctorReport(report, options) {
+
+export function renderDoctorReport(report: DoctorReport, options?: RenderDoctorReportOptions): string {
     const selectedChecks = report.checks.filter((check) => {
         if (options?.onlyFailures) {
             return check.status === "fail";

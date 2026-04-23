@@ -1,3 +1,5 @@
+import type { DoctorCheckResult } from "../../internal-types/index.js";
+
 const CHECK_PRIORITY = {
     "runtime.config.load": 0,
     "runtime.wallet.source": 1,
@@ -21,15 +23,16 @@ const CHECK_PRIORITY = {
     "full.node.create": 19,
     "full.comment.add": 20,
     "full.comment.readback": 21,
-};
+} as const satisfies Record<string, number>;
 const STATUS_PRIORITY = {
     fail: 0,
     warn: 1,
     skip: 2,
     ok: 3,
-};
-export function deriveNextSteps(checks) {
-    const nextSteps = new Set();
+} as const;
+
+export function deriveNextSteps(checks: DoctorCheckResult[]): string[] {
+    const nextSteps = new Set<string>();
     const actionableChecks = [...checks]
         .filter((check) => check.status !== "ok" && check.remediation)
         .sort((left, right) => {
@@ -37,8 +40,8 @@ export function deriveNextSteps(checks) {
         if (byStatus !== 0) {
             return byStatus;
         }
-        const leftPriority = CHECK_PRIORITY[left.id] ?? Number.MAX_SAFE_INTEGER;
-        const rightPriority = CHECK_PRIORITY[right.id] ?? Number.MAX_SAFE_INTEGER;
+        const leftPriority = CHECK_PRIORITY[left.id as keyof typeof CHECK_PRIORITY] ?? Number.MAX_SAFE_INTEGER;
+        const rightPriority = CHECK_PRIORITY[right.id as keyof typeof CHECK_PRIORITY] ?? Number.MAX_SAFE_INTEGER;
         if (leftPriority !== rightPriority) {
             return leftPriority - rightPriority;
         }
