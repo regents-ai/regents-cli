@@ -9,11 +9,9 @@ import { printJson } from "../../printer.js";
 import type { JsonSuccessResponseFor } from "../../contracts/openapi-helpers.js";
 import {
   appendQuery,
-  extractPreparedTxRequest,
   requestJson,
   requestTypedJson,
   requirePositional,
-  submitPreparedTxRequest,
 } from "./shared.js";
 
 type AutolaunchAuctionsListResponse = JsonSuccessResponseFor<
@@ -41,94 +39,6 @@ const postBidMutation = async (
         requireAgentAuth: true,
       },
     ),
-  );
-};
-
-const loadTrackedPositions = async (
-  args: ParsedCliArgs,
-  configPath?: string,
-) =>
-  requestJson(
-    "GET",
-    appendQuery("/v1/agent/me/bids", {
-      auction: getFlag(args, "auction"),
-      status: getFlag(args, "status"),
-    }),
-    { requireAgentAuth: true, configPath },
-  );
-
-const requireTrackedPosition = async (
-  bidId: string,
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<Record<string, unknown>> => {
-  const payload = await loadTrackedPositions(args, configPath);
-  const items = Array.isArray(payload.items) ? payload.items : [];
-  const position = items.find(
-    (item) =>
-      typeof item === "object" &&
-      item &&
-      (item as Record<string, unknown>).bid_id === bidId,
-  );
-  if (!position || typeof position !== "object") {
-    throw new Error(`tracked bid not found: ${bidId}`);
-  }
-
-  return position as Record<string, unknown>;
-};
-
-const prepareOrSubmitPositionAction = async (
-  bidId: string,
-  kind: "return-usdc" | "exit" | "claim",
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> => {
-  const position = await requireTrackedPosition(bidId, args, configPath);
-
-  const prepared =
-    kind === "return-usdc"
-      ? (position.return_action as Record<string, unknown> | undefined)
-      : ((position.tx_actions as Record<string, unknown> | undefined)?.[
-          kind === "claim" ? "claim" : "exit"
-        ] as Record<string, unknown> | undefined);
-
-  if (!prepared) {
-    printJson({
-      ok: false,
-      error: `no ${kind} action is currently available`,
-      bid_id: bidId,
-      position,
-    });
-    return;
-  }
-
-  if (!getBooleanFlag(args, "submit")) {
-    printJson({ ok: true, bid_id: bidId, action: kind, prepared });
-    return;
-  }
-
-  const txRequest = extractPreparedTxRequest(prepared.tx_request);
-  if (!txRequest) {
-    printJson({
-      ok: false,
-      error: "prepared action did not include tx_request",
-      bid_id: bidId,
-    });
-    return;
-  }
-
-  const txHash = await submitPreparedTxRequest(txRequest, configPath);
-  const endpoint =
-    kind === "return-usdc"
-      ? `/v1/agent/bids/${encodeURIComponent(bidId)}/return-usdc`
-      : `/v1/agent/bids/${encodeURIComponent(bidId)}/${kind}`;
-
-  printJson(
-    await requestJson("POST", endpoint, {
-      body: { tx_hash: txHash },
-      requireAgentAuth: true,
-      configPath,
-    }),
   );
 };
 
@@ -210,22 +120,6 @@ export async function runAutolaunchBidsPlace(
   );
 }
 
-export async function runAutolaunchBidsMine(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  printJson(
-    await requestJson(
-      "GET",
-      appendQuery("/v1/agent/me/bids", {
-        auction: getFlag(args, "auction"),
-        status: getFlag(args, "status"),
-      }),
-      { requireAgentAuth: true, configPath },
-    ),
-  );
-}
-
 export async function runAutolaunchBidsExit(
   args: ParsedCliArgs,
 ): Promise<void> {
@@ -261,48 +155,5 @@ export async function runAutolaunchAuctionReturnsList(
       }),
       { requireAgentAuth: true, configPath },
     ),
-  );
-}
-
-export async function runAutolaunchPositionsList(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  printJson(await loadTrackedPositions(args, configPath));
-}
-
-export async function runAutolaunchPositionsReturnUsdc(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  await prepareOrSubmitPositionAction(
-    requirePositional(args, 3, "bid-id"),
-    "return-usdc",
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchPositionsExit(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  await prepareOrSubmitPositionAction(
-    requirePositional(args, 3, "bid-id"),
-    "exit",
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchPositionsClaim(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  await prepareOrSubmitPositionAction(
-    requirePositional(args, 3, "bid-id"),
-    "claim",
-    args,
-    configPath,
   );
 }

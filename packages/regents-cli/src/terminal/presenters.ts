@@ -137,7 +137,6 @@ export function renderUsageScreen(configPath: string): string {
       "regents autolaunch ...",
       "regents autolaunch safe wizard",
       "regents autolaunch safe create",
-      "regents autolaunch trust x-link --agent <id>",
       "regents regent-staking ...",
       "regents agentbook ...",
       "regents gossipsub status",

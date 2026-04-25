@@ -24,6 +24,7 @@ Today, the checked-in local release gate is:
 
 ```bash
 pnpm check:openapi
+pnpm check:cli-contract
 pnpm build
 pnpm typecheck
 pnpm test
@@ -36,6 +37,7 @@ Those commands are the current definition of "safe to release" for this repo.
 They prove:
 
 - the generated OpenAPI-backed types are in sync
+- the shipped command list still matches the CLI contracts
 - the package builds
 - the TypeScript surface still checks
 - the unit and integration tests pass
@@ -88,6 +90,7 @@ git switch main
 git pull --ff-only origin main
 pnpm install
 pnpm check:openapi
+pnpm check:cli-contract
 pnpm build
 pnpm typecheck
 pnpm test

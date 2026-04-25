@@ -1076,46 +1076,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/trust/x/start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Start the X-link browser flow
-         * @description Starts the X-link flow for one agent identity and returns a relative `redirect_path`. CLI and web clients should open that path in the browser. They should not implement OAuth or provider handshakes themselves.
-         */
-        post: operations["agentStartXLink"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/trust/x/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Save the completed X-link result
-         * @description Completes the browser-owned X-link flow and stores the linked X handle under the agent's trust summary.
-         */
-        post: operations["agentCompleteXLink"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/agent/subjects/{id}": {
         parameters: {
             query?: never;
@@ -1628,54 +1588,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/me/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["agentGetMyProfile"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/me/profile/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["agentRefreshMyProfile"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/me/holdings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["agentGetMyHoldings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/agent/auctions/{id}/bid_quote": {
         parameters: {
             query?: never;
@@ -1702,22 +1614,6 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["agentCreateAuctionBid"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/me/bids": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["agentListMyBids"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4256,54 +4152,6 @@ export interface operations {
             };
         };
     };
-    agentStartXLink: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["XLinkStartRequest"];
-            };
-        };
-        responses: {
-            /** @description X link start payload */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["XLinkStartEnvelope"];
-                };
-            };
-        };
-    };
-    agentCompleteXLink: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["XLinkCallbackRequest"];
-            };
-        };
-        responses: {
-            /** @description X link saved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AgentTrustEnvelope"];
-                };
-            };
-        };
-    };
     agentGetSubject: {
         parameters: {
             query?: never;
@@ -5122,66 +4970,6 @@ export interface operations {
             };
         };
     };
-    agentGetMyProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current user's cached token profile */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProfileSnapshotEnvelope"];
-                };
-            };
-        };
-    };
-    agentRefreshMyProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Profile refresh started */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProfileSnapshotEnvelope"];
-                };
-            };
-        };
-    };
-    agentGetMyHoldings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current user's actionable holdings */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HoldingsEnvelope"];
-                };
-            };
-        };
-    };
     agentQuoteAuctionBid: {
         parameters: {
             query?: never;
@@ -5230,29 +5018,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
-                };
-            };
-        };
-    };
-    agentListMyBids: {
-        parameters: {
-            query?: {
-                auction?: string;
-                status?: "active" | "borderline" | "inactive" | "claimable" | "exited" | "claimed" | "returnable";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current user's bids */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BidPositionListEnvelope"];
                 };
             };
         };

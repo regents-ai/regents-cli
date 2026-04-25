@@ -2,7 +2,6 @@ export {
   runAutolaunchAgentReadiness,
   runAutolaunchAgentsList,
   runAutolaunchAgentShow,
-  runAutolaunchTrustXLink,
 } from "./autolaunch/agents.js";
 export {
   runAutolaunchIdentitiesList,
@@ -59,19 +58,13 @@ export {
   runAutolaunchAuctionsList,
   runAutolaunchBidsClaim,
   runAutolaunchBidsExit,
-  runAutolaunchBidsMine,
   runAutolaunchBidsPlace,
   runAutolaunchBidsQuote,
-  runAutolaunchPositionsClaim,
-  runAutolaunchPositionsExit,
-  runAutolaunchPositionsList,
-  runAutolaunchPositionsReturnUsdc,
 } from "./autolaunch/markets.js";
 export {
   runAutolaunchHoldingsClaimAndStakeEmissions,
   runAutolaunchHoldingsClaimEmissions,
   runAutolaunchHoldingsClaimUsdc,
-  runAutolaunchHoldingsList,
   runAutolaunchHoldingsStake,
   runAutolaunchHoldingsSweepIngress,
   runAutolaunchHoldingsUnstake,

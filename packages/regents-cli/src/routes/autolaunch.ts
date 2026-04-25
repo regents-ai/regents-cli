@@ -10,13 +10,11 @@ import {
   runAutolaunchAuctionShow,
   runAutolaunchBidsClaim,
   runAutolaunchBidsExit,
-  runAutolaunchBidsMine,
   runAutolaunchBidsPlace,
   runAutolaunchBidsQuote,
   runAutolaunchHoldingsClaimAndStakeEmissions,
   runAutolaunchHoldingsClaimEmissions,
   runAutolaunchHoldingsClaimUsdc,
-  runAutolaunchHoldingsList,
   runAutolaunchHoldingsStake,
   runAutolaunchHoldingsSweepIngress,
   runAutolaunchHoldingsUnstake,
@@ -70,7 +68,6 @@ import {
   runAutolaunchStrategyMigrate,
   runAutolaunchStrategySweepCurrency,
   runAutolaunchStrategySweepToken,
-  runAutolaunchTrustXLink,
   runAutolaunchSubjectClaimUsdc,
   runAutolaunchSubjectClaimAndStakeEmissions,
   runAutolaunchSubjectClaimEmissions,
@@ -79,10 +76,6 @@ import {
   runAutolaunchSubjectStake,
   runAutolaunchSubjectSweepIngress,
   runAutolaunchSubjectUnstake,
-  runAutolaunchPositionsClaim,
-  runAutolaunchPositionsExit,
-  runAutolaunchPositionsList,
-  runAutolaunchPositionsReturnUsdc,
   runAutolaunchVestingCancelBeneficiaryRotation,
   runAutolaunchVestingExecuteBeneficiaryRotation,
   runAutolaunchVestingProposeBeneficiaryRotation,
@@ -105,10 +98,6 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchAgentShow(positionals[2] as string);
     return 0;
   }),
-  route("autolaunch trust x-link", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchTrustXLink(parsedArgs, configPath);
-    return 0;
-  }),
   route("autolaunch auctions list", async ({ parsedArgs }) => {
     await runAutolaunchAuctionsList(parsedArgs);
     return 0;
@@ -129,32 +118,12 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchBidsPlace(parsedArgs);
     return 0;
   }),
-  route("autolaunch bids mine", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchBidsMine(parsedArgs, configPath);
-    return 0;
-  }),
   route("autolaunch bids exit", async ({ parsedArgs }) => {
     await runAutolaunchBidsExit(parsedArgs);
     return 0;
   }),
   route("autolaunch bids claim", async ({ parsedArgs }) => {
     await runAutolaunchBidsClaim(parsedArgs);
-    return 0;
-  }),
-  route("autolaunch positions list", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchPositionsList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("autolaunch positions return-usdc", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchPositionsReturnUsdc(parsedArgs, configPath);
-    return 0;
-  }),
-  route("autolaunch positions exit", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchPositionsExit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("autolaunch positions claim", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchPositionsClaim(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch ens plan", async ({ parsedArgs, configPath }) => {
@@ -259,10 +228,6 @@ export const autolaunchRoutes: readonly CliRoute[] = [
   }),
   route("autolaunch subjects sweep-ingress", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSubjectSweepIngress(parsedArgs, configPath);
-    return 0;
-  }),
-  route("autolaunch holdings list", async ({ parsedArgs }) => {
-    await runAutolaunchHoldingsList(parsedArgs);
     return 0;
   }),
   route("autolaunch holdings stake", async ({ parsedArgs, configPath }) => {

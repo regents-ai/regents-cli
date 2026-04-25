@@ -11,7 +11,9 @@ import {
   loadConfig,
   writeInitialConfigIfMissing,
 } from "../internal-runtime/index.js";
-import { readIdentityReceipt } from "../internal-runtime/identity/cache.js";
+import { readIdentityReceipt, receiptMatchesRequest } from "../internal-runtime/identity/cache.js";
+import { identityNetworkForChainId } from "../internal-runtime/identity/shared.js";
+import type { RegentConfig } from "../internal-types/index.js";
 import { getFlag, parseCliArgs, type ParsedCliArgs } from "../parse.js";
 import {
   CLI_PALETTE,
@@ -56,6 +58,31 @@ const printOperatorPayload = (
   }
 
   printJson(payload);
+};
+
+const readCurrentIdentityReceipt = (
+  config: RegentConfig,
+  input: { walletAddress?: string },
+) => {
+  const receipt = readIdentityReceipt();
+  if (!receipt || !input.walletAddress) {
+    return null;
+  }
+
+  try {
+    const network = identityNetworkForChainId(config.auth.defaultChainId);
+    return receipt.provider === "coinbase-cdp" &&
+      receiptMatchesRequest({
+        receipt,
+        network,
+        regentBaseUrl: config.auth.baseUrl,
+        walletHint: input.walletAddress,
+      })
+      ? receipt
+      : null;
+  } catch {
+    return null;
+  }
 };
 
 export async function runOperatorInit(args: ParsedCliArgs, configPath?: string): Promise<number> {
@@ -110,7 +137,6 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
   const resolvedConfigPath = configPathFor(args, configPath);
   const configExists = fs.existsSync(resolvedConfigPath);
   const config = loadConfig(resolvedConfigPath);
-  const receipt = readIdentityReceipt();
   const wallet = await coinbaseStatus(config, {
     walletHint: getFlag(args, "wallet"),
   }).catch((error: unknown) => ({
@@ -119,6 +145,9 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
     identity_ready: false,
     error: error instanceof Error ? error.message : "Wallet check failed.",
   }));
+  const receipt = readCurrentIdentityReceipt(config, {
+    walletAddress: wallet.account?.address,
+  });
   const runtimeSocketReady = fs.existsSync(config.runtime.socketPath);
 
   const components = [
@@ -175,7 +204,9 @@ export async function runOperatorWhoami(args: ParsedCliArgs, configPath?: string
   const wallet = await coinbaseStatus(config, {
     walletHint: getFlag(args, "wallet"),
   });
-  const receipt = readIdentityReceipt();
+  const receipt = readCurrentIdentityReceipt(config, {
+    walletAddress: wallet.account?.address,
+  });
 
   const payload = {
     ok: Boolean(wallet.account),

@@ -22,16 +22,8 @@ const {
   getSafeAddressFromDeploymentTxMock: vi.fn(),
 }));
 
-const { execFileMock } = vi.hoisted(() => ({
-  execFileMock: vi.fn(),
-}));
-
 const { buildAgentAuthHeadersMock } = vi.hoisted(() => ({
   buildAgentAuthHeadersMock: vi.fn(),
-}));
-
-vi.mock("node:child_process", () => ({
-  execFile: execFileMock,
 }));
 
 vi.mock("../../src/commands/agent-auth.js", () => ({
@@ -84,12 +76,6 @@ vi.mock("@safe-global/protocol-kit", () => ({
 
 describe("autolaunch CLI command group", () => {
   const expectedBaseUrl = "http://127.0.0.1:4010";
-  const expectedBrowserCommand =
-    process.platform === "darwin"
-      ? "open"
-      : process.platform === "win32"
-        ? "cmd"
-        : "xdg-open";
   const originalEnv = { ...process.env };
   const fetchMock = vi.fn<typeof fetch>();
   const tempDirs: string[] = [];
@@ -153,7 +139,6 @@ describe("autolaunch CLI command group", () => {
     delete process.env.AUTOLAUNCH_ERC8004_SUBGRAPH_URL;
     delete process.env.AUTOLAUNCH_IDENTITY_REGISTRY_ADDRESS;
     fetchMock.mockReset();
-    execFileMock.mockReset();
     buildAgentAuthHeadersMock.mockReset();
     writeContractMock.mockReset();
     waitForReceiptMock.mockReset();
@@ -279,107 +264,6 @@ describe("autolaunch CLI command group", () => {
       }>(output.stdout),
     ).toMatchObject({
       items: [{ id: "auc_1", trust: { x: { handle: "atlas_agent" } } }],
-    });
-  });
-
-  it("starts an Autolaunch X link and opens the returned browser URL", async () => {
-    execFileMock.mockImplementation((_file, _args, callback) => {
-      callback?.(null, "", "");
-      return {} as never;
-    });
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          provider: "twitter",
-          trust_provider: "x",
-          agent_id: "84532:42",
-          redirect_path: "/trust/x/redirect?token=abc123",
-        }),
-        {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        },
-      ),
-    );
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "trust",
-        "x-link",
-        "--agent",
-        "84532:42",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/trust/x/start`,
-    );
-    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
-    assertAgentAuthHeaders(requestInit?.headers as Headers);
-    expect(JSON.parse(String(requestInit?.body))).toEqual({
-      agent_id: "84532:42",
-    });
-    expect(execFileMock).toHaveBeenCalledWith(
-      expectedBrowserCommand,
-      [`${expectedBaseUrl}/trust/x/redirect?token=abc123`],
-      expect.any(Function),
-    );
-    expect(
-      parsePrintedJson<{ browser_opened: boolean; redirect_url: string }>(
-        output.stdout,
-      ),
-    ).toMatchObject({
-      browser_opened: true,
-      redirect_url: `${expectedBaseUrl}/trust/x/redirect?token=abc123`,
-    });
-  });
-
-  it("prints the full X link URL when the browser cannot be opened", async () => {
-    execFileMock.mockImplementation((_file, _args, callback) => {
-      callback?.(new Error("open failed"));
-      return {} as never;
-    });
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          provider: "twitter",
-          trust_provider: "x",
-          agent_id: "84532:42",
-          redirect_path: "/trust/x/redirect?token=manual",
-        }),
-        {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        },
-      ),
-    );
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "trust",
-        "x-link",
-        "--agent",
-        "84532:42",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(
-      parsePrintedJson<{
-        browser_opened: boolean;
-        fallback: string;
-        manual_open_url: string;
-        message: string;
-      }>(output.stdout),
-    ).toMatchObject({
-      browser_opened: false,
-      fallback: "browser_open_failed",
-      manual_open_url: `${expectedBaseUrl}/trust/x/redirect?token=manual`,
-      message: `Open this URL manually: ${expectedBaseUrl}/trust/x/redirect?token=manual`,
     });
   });
 
@@ -996,32 +880,6 @@ describe("autolaunch CLI command group", () => {
       chain_id: 84532,
       token_name: "Agent Coin",
       token_symbol: "AGENT",
-    });
-  });
-
-  it("signs mine bids requests with the saved agent session", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, items: [] }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
-    const output = await captureOutput(() =>
-      runCliEntrypoint(["autolaunch", "bids", "mine", "--status", "active"]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/me/bids?status=active`,
-    );
-    const request = fetchMock.mock.calls[0]?.[1];
-    assertAgentAuthHeaders(request?.headers as Headers);
-    expect(
-      parsePrintedJson<{ ok: boolean; items: unknown[] }>(output.stdout),
-    ).toEqual({
-      ok: true,
-      items: [],
     });
   });
 

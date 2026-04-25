@@ -237,19 +237,6 @@ regents autolaunch agent <agent-id> [--json]
 regents autolaunch agent readiness <agent-id> [--json]
 ```
 
-### Trust
-
-```bash
-regents autolaunch trust x-link --agent <agent-id>
-```
-
-This helper starts the X-link browser flow for one Autolaunch agent identity.
-
-- It calls `POST /v1/agent/trust/x/start`.
-- It opens the returned `redirect_path` in the browser using the configured `AUTOLAUNCH_BASE_URL`.
-- If the browser cannot be opened automatically, it prints the full URL so the operator can open it manually.
-- The CLI does not run OAuth itself. The browser and backend finish that part.
-
 For read surfaces, trust data now lives under the nested `trust` object:
 
 - auction list items use `item.trust.erc8004`, `item.trust.ens`, `item.trust.world`, and `item.trust.x`
@@ -348,11 +335,6 @@ regents autolaunch bids place \
   [--status-band <value>] \
   [--json]
 
-regents autolaunch bids mine \
-  [--auction <auction-id>] \
-  [--status active|borderline|inactive|claimable|exited|claimed] \
-  [--json]
-
 regents autolaunch bids exit <bid-id> --tx-hash <hash> [--json]
 regents autolaunch bids claim <bid-id> --tx-hash <hash> [--json]
 ```
@@ -449,7 +431,6 @@ The CLI is JSON-first. It forwards directly to the `autolaunch` Phoenix JSON API
 - `GET /api/auctions/:id`
 - `POST /api/auctions/:id/bid_quote`
 - `POST /api/auctions/:id/bids`
-- `GET /api/me/bids`
 - `POST /api/bids/:id/exit`
 - `POST /api/bids/:id/claim`
 - `GET /api/subjects/:id`

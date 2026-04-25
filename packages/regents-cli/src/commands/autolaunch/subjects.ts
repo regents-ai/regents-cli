@@ -6,7 +6,6 @@ import {
 } from "../../parse.js";
 import { printJson } from "../../printer.js";
 import {
-  appendQuery,
   extractPreparedTxRequest,
   requestJson,
   requirePositional,
@@ -159,20 +158,6 @@ export async function runAutolaunchSubjectSweepIngress(
     {},
     args,
     configPath,
-  );
-}
-
-export async function runAutolaunchHoldingsList(
-  args: ParsedCliArgs,
-): Promise<void> {
-  printJson(
-    await requestJson(
-      "GET",
-      appendQuery("/v1/agent/me/holdings", {
-        subject: getFlag(args, "subject"),
-      }),
-      { requireAgentAuth: true },
-    ),
   );
 }
 
