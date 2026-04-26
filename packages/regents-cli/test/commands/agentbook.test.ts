@@ -68,7 +68,7 @@ describe("agentbook CLI command group", () => {
             keyId: TEST_WALLET.toLowerCase(),
             receipt: "agentbook-receipt",
             receiptExpiresAt: "2999-01-01T00:00:00.000Z",
-            audience: "techtree",
+            audience: "platform",
             registryAddress: TEST_REGISTRY,
             tokenId: "99",
           },

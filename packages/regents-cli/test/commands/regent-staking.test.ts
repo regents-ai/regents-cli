@@ -64,7 +64,7 @@ describe("regent-staking CLI command group", () => {
             keyId: testWallet.toLowerCase(),
             receipt: "staking-receipt",
             receiptExpiresAt: "2999-01-01T00:00:00.000Z",
-            audience: "techtree",
+            audience: "regent-services",
             registryAddress: testRegistry,
             tokenId: "99",
           },
@@ -144,7 +144,7 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(1);
-    expect(output.stderr).toContain("Run `regents auth login` before using this command.");
+    expect(output.stderr).toContain("Run `regents auth login --audience regent-services` before using this command.");
   });
 
   it("builds the direct stake request when shared sign-in is present", async () => {

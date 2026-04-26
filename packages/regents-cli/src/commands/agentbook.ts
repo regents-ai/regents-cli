@@ -106,11 +106,13 @@ const requestPlatformJson = async <TResponse>(
   endpointPath: string,
   input?: { body?: unknown; configPath?: string },
 ): Promise<TResponse> => {
+  const serializedBody = method === "POST" ? JSON.stringify(input?.body ?? {}) : undefined;
   const authHeaders = await buildAgentAuthHeaders({
     method,
     path: endpointPath,
+    ...(serializedBody === undefined ? {} : { body: serializedBody }),
     configPath: input?.configPath,
-    requireBoundIdentity: true,
+    audience: "platform",
   });
 
   const response = await fetch(`${platformPhxBaseUrl()}${endpointPath}`, {
@@ -120,7 +122,7 @@ const requestPlatformJson = async <TResponse>(
       ...(method === "POST" ? { "content-type": "application/json" } : {}),
       ...authHeaders,
     },
-    ...(method === "POST" ? { body: JSON.stringify(input?.body ?? {}) } : {}),
+    ...(serializedBody === undefined ? {} : { body: serializedBody }),
   });
 
   const text = await response.text();
@@ -191,7 +193,7 @@ const printApprovalHint = (session: AgentbookSessionPayload): void => {
 
 export async function runAgentbookRegister(args: ParsedCliArgs, configPath?: string): Promise<void> {
   requireSavedIdentityReceipt();
-  requireAgentAuthState(configPath, { requireBoundIdentity: true });
+  requireAgentAuthState(configPath, { audience: "platform" });
 
   const payload: CreateAgentbookTrustSessionRequest = {
     source: "regents-cli",
@@ -259,14 +261,14 @@ const watchAgentbookSession = async (
 
 export async function runAgentbookSessionsWatch(args: ParsedCliArgs, configPath?: string): Promise<void> {
   requireSavedIdentityReceipt();
-  requireAgentAuthState(configPath, { requireBoundIdentity: true });
+  requireAgentAuthState(configPath, { audience: "platform" });
 
   const sessionId = requirePositional(args, 3, "session-id");
   printJson(await watchAgentbookSession(sessionId, args, configPath));
 }
 
 export async function runAgentbookLookup(_args: ParsedCliArgs, configPath?: string): Promise<void> {
-  requireAgentAuthState(configPath, { requireBoundIdentity: true });
+  requireAgentAuthState(configPath, { audience: "platform" });
 
   const payload = await requestPlatformJson<AgentbookLookupResponse>("GET", "/api/agentbook/lookup", {
     configPath,

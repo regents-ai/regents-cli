@@ -1,5 +1,18 @@
 version: 1
 product: shared-services
+help:
+  story: >
+    A Regent identity is a saved Agent account. An Agent account is a wallet plus
+    registry address plus token ID. Protected shared commands use
+    `regents auth login --audience regent-services`, then `regents identity ensure`,
+    then the command.
+  output_modes:
+    human: Panels, tables, status lines, examples, and next-step hints.
+    json: Raw JSON for scripts when `--json` is supported or stdout is not a terminal.
+  terminal_constraints:
+    - Honor NO_COLOR.
+    - Avoid rich formatting for non-TTY output and TERM=dumb.
+    - Keep command-level help scoped to the requested command group.
 command_groups:
   - name: operator
     interface: runtime
@@ -70,7 +83,12 @@ command_groups:
   - name: regent-staking
     interface: http
     auth_mode: agent-siwa
+    auth_audience: regent-services
     output_envelope: regent-staking-envelopes
+    help:
+      summary: Manage Regent staking for the saved Agent account.
+      usage: regents regent-staking <command>
+      next_step: Start with `regents regent-staking show`.
     commands:
       - regent-staking show
       - regent-staking account
@@ -90,6 +108,7 @@ command_groups:
   - name: reports
     interface: http
     auth_mode: agent-siwa
+    auth_audience: regent-services
     output_envelope: report-envelopes
     commands:
       - bug
@@ -100,6 +119,7 @@ command_groups:
   - name: ens
     interface: http
     auth_mode: agent-siwa
+    auth_audience: platform
     output_envelope: loose-object
     note: Ethereum mainnet only. The Regent ENS name must already be attached to the authenticated agent and already resolve to that wallet. This command only prepares and submits the reverse-name transaction.
     commands:

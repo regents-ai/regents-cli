@@ -106,6 +106,17 @@ describeNetwork.sequential("CLI doctor command", () => {
     await captureOutput(async () =>
       runCliEntrypoint(["wallet", "setup", "--json", "--config", configPath]),
     );
+    await captureOutput(async () =>
+      runCliEntrypoint([
+        "identity",
+        "ensure",
+        "--json",
+        "--network",
+        "base-sepolia",
+        "--config",
+        configPath,
+      ]),
+    );
     await expect(
       callJsonRpc(socketPath, "auth.siwa.login", {
         chainId: 84532,
@@ -119,9 +130,9 @@ describeNetwork.sequential("CLI doctor command", () => {
       runCliEntrypoint(["doctor", "--json", "--config", configPath]),
     );
 
+    const report = JSON.parse(output.stdout);
     expect(output.result).toBe(0);
     expect(output.stderr).toBe("");
-    const report = JSON.parse(output.stdout);
     expect(report).toEqual(
       expect.objectContaining({
         mode: "default",

@@ -9,8 +9,8 @@ import { loadConfig, writeInitialConfig } from "../../src/internal-runtime/confi
 import { SessionStore } from "../../src/internal-runtime/store/session-store.js";
 import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 import { TechtreeClient } from "../../src/internal-runtime/techtree/client.js";
-import { buildAuthenticatedFetchInit } from "../../src/internal-runtime/techtree/request-builder.js";
-import { buildSiwaMessage } from "../../src/internal-runtime/techtree/siwa.js";
+import { buildAuthenticatedFetchInit } from "../../src/internal-runtime/siwa/request-builder.js";
+import { buildSiwaMessage } from "../../src/internal-runtime/siwa/siwa.js";
 import { writeFakeCdp } from "../support/fake-cdp.js";
 import { TechtreeContractServer } from "../../../../test-support/techtree-contract-server.js";
 import { describeNetwork } from "../../../../test-support/integration.js";
@@ -91,6 +91,8 @@ const authenticate = async ({ client, stateStore, sessionStore }: ClientHarness)
     uri: "https://regent.cx/login",
     walletAddress: TEST_WALLET,
     chainId: 84532,
+    registryAddress: TEST_REGISTRY,
+    tokenId: "99",
     nonce: nonce.data.nonce,
     issuedAt: "2026-03-10T00:00:00.000Z",
     statement: "Sign in to Regents CLI.",
@@ -526,6 +528,8 @@ describeNetwork("TechtreeClient functional coverage", () => {
       uri: "https://regent.cx/login",
       walletAddress: TEST_WALLET,
       chainId: 84532,
+      registryAddress: TEST_REGISTRY,
+      tokenId: "99",
       nonce: nonce.data.nonce,
       issuedAt: "2026-03-10T00:00:00.000Z",
       statement: "Sign in to Regents CLI.",
@@ -601,6 +605,8 @@ describeNetwork("TechtreeClient functional coverage", () => {
           uri: "https://regent.cx/login",
           walletAddress: TEST_WALLET,
           chainId: 84532,
+          registryAddress: TEST_REGISTRY,
+          tokenId: "99",
           nonce: "doctor-invalid-nonce",
           issuedAt: "2026-03-10T00:00:00.000Z",
           statement: "Sign in to Regents CLI.",

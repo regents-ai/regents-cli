@@ -2,6 +2,7 @@ import { agentbookRoutes } from "./agentbook.js";
 import { autolaunchRoutes } from "./autolaunch.js";
 import { chatboxRoutes } from "./chatbox.js";
 import { coreRoutes } from "./core.js";
+import { platformRoutes } from "./platform.js";
 import { regentStakingRoutes } from "./regent-staking.js";
 import { reportingRoutes } from "./reporting.js";
 import { assertRouteRegistryMatches, type CliRoute } from "./shared.js";
@@ -15,6 +16,7 @@ export const cliRoutes: readonly CliRoute[] = [
   ...coreRoutes,
   ...reportingRoutes,
   ...walletIdentityAuthRoutes,
+  ...platformRoutes,
   ...techtreeRoutes,
   ...regentStakingRoutes,
   ...xmtpRoutes,

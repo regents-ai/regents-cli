@@ -98,6 +98,6 @@ export interface SignedAgentRequestHeaders {
   signature: string;
   "x-agent-wallet-address": `0x${string}`;
   "x-agent-chain-id": string;
-  "x-agent-registry-address"?: `0x${string}`;
-  "x-agent-token-id"?: string;
+  "x-agent-registry-address": `0x${string}`;
+  "x-agent-token-id": string;
 }

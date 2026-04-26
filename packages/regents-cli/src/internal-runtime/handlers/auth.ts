@@ -14,7 +14,7 @@ import { identityNetworkForChainId } from "../identity/shared.js";
 import { receiptToIdentity } from "../identity/shared.js";
 import type { RuntimeContext } from "../runtime.js";
 import { requireAuthenticatedAgentContext } from "../techtree/auth.js";
-import { buildSiwaMessage, SiwaClient } from "../techtree/siwa.js";
+import { buildSiwaMessage, SiwaClient } from "../siwa/siwa.js";
 
 const normalizeAudience = (value: string): SiwaAudience => {
   switch (value) {
@@ -100,6 +100,8 @@ export async function handleAuthSiwaLogin(
     uri: "https://regent.cx/v1/agent/siwa/verify",
     walletAddress,
     chainId: identity.chainId,
+    registryAddress,
+    tokenId,
     nonce: nonceResponse.data.nonce,
     statement: "Sign in to Regents CLI.",
   });

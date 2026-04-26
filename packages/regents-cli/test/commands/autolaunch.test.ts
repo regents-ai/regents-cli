@@ -22,12 +22,14 @@ const {
   getSafeAddressFromDeploymentTxMock: vi.fn(),
 }));
 
-const { buildAgentAuthHeadersMock } = vi.hoisted(() => ({
+const { buildAgentAuthHeadersMock, requireAgentAuthStateMock } = vi.hoisted(() => ({
   buildAgentAuthHeadersMock: vi.fn(),
+  requireAgentAuthStateMock: vi.fn(),
 }));
 
 vi.mock("../../src/commands/agent-auth.js", () => ({
   buildAgentAuthHeaders: buildAgentAuthHeadersMock,
+  requireAgentAuthState: requireAgentAuthStateMock,
 }));
 
 vi.mock("viem/accounts", () => ({
@@ -124,6 +126,10 @@ describe("autolaunch CLI command group", () => {
     expect(headers?.get("x-key-id")).toBe(expectedAgentWallet);
     expect(headers?.get("x-agent-wallet-address")).toBe(expectedAgentWallet);
     expect(headers?.get("x-agent-chain-id")).toBe("84532");
+    expect(headers?.get("x-agent-registry-address")).toBe(
+      "0x3333333333333333333333333333333333333333",
+    );
+    expect(headers?.get("x-agent-token-id")).toBe("42");
     expect(headers?.get("signature")).toBe("sig1=:ZmFrZQ==:");
   };
 
@@ -140,6 +146,7 @@ describe("autolaunch CLI command group", () => {
     delete process.env.AUTOLAUNCH_IDENTITY_REGISTRY_ADDRESS;
     fetchMock.mockReset();
     buildAgentAuthHeadersMock.mockReset();
+    requireAgentAuthStateMock.mockReset();
     writeContractMock.mockReset();
     waitForReceiptMock.mockReset();
     sendTransactionMock.mockReset();
@@ -162,9 +169,33 @@ describe("autolaunch CLI command group", () => {
       "x-key-id": expectedAgentWallet,
       "x-agent-wallet-address": expectedAgentWallet,
       "x-agent-chain-id": "84532",
+      "x-agent-registry-address": "0x3333333333333333333333333333333333333333",
+      "x-agent-token-id": "42",
       "signature-input":
         'sig1=("@method" "@path");created=1700000000;expires=1700000120;nonce="sig-nonce-fixed";keyid="0x00000000000000000000000000000000000000aa"',
       signature: "sig1=:ZmFrZQ==:",
+    });
+    requireAgentAuthStateMock.mockReturnValue({
+      config: {
+        auth: {
+          baseUrl: "http://127.0.0.1:4000",
+          requestTimeoutMs: 10_000,
+        },
+      },
+      session: {
+        receipt: "receipt_123",
+        walletAddress: expectedAgentWallet,
+        chainId: 84532,
+        registryAddress: "0x3333333333333333333333333333333333333333",
+        tokenId: "42",
+        audience: "autolaunch",
+      },
+      identity: {
+        walletAddress: expectedAgentWallet,
+        chainId: 84532,
+        registryAddress: "0x3333333333333333333333333333333333333333",
+        tokenId: "42",
+      },
     });
     safeInitMock.mockResolvedValue({
       getAddress: vi
@@ -258,6 +289,7 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
       `${expectedBaseUrl}/v1/agent/auctions?sort=recently_launched&status=active`,
     );
+    assertAgentAuthHeaders(fetchMock.mock.calls[0]?.[1]?.headers as Headers);
     expect(
       parsePrintedJson<{
         items: Array<{ id: string; trust: { x: { handle: string | null } } }>;
@@ -299,6 +331,8 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock.mock.calls[1]?.[0]).toBe(
       `${expectedBaseUrl}/v1/agent/agents/agent%3Aalpha/readiness`,
     );
+    assertAgentAuthHeaders(fetchMock.mock.calls[0]?.[1]?.headers as Headers);
+    assertAgentAuthHeaders(fetchMock.mock.calls[1]?.[1]?.headers as Headers);
     expect(parsePrintedJson<{ ok: boolean }>(showOutput.stdout)).toMatchObject({
       ok: true,
     });
@@ -450,6 +484,10 @@ describe("autolaunch CLI command group", () => {
         "0x1111111111111111111111111111111111111111",
         "--wallet-address",
         "0x2222222222222222222222222222222222222222",
+        "--registry-address",
+        "0x3333333333333333333333333333333333333333",
+        "--token-id",
+        "42",
         "--nonce",
         "nonce_alpha",
         "--message",
@@ -475,6 +513,8 @@ describe("autolaunch CLI command group", () => {
       agent_safe_address: "0x1111111111111111111111111111111111111111",
       minimum_raise_usdc: "10000",
       wallet_address: "0x2222222222222222222222222222222222222222",
+      registry_address: "0x3333333333333333333333333333333333333333",
+      token_id: "42",
       nonce: "nonce_alpha",
       message: "message_alpha",
       signature: "signature_alpha",
@@ -944,6 +984,13 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
       `${expectedBaseUrl}/v1/agent/launch/jobs/job_123`,
     );
+    expect(buildAgentAuthHeadersMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "GET",
+        path: "/v1/agent/launch/jobs/job_123",
+        audience: "autolaunch",
+      }),
+    );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     assertAgentAuthHeaders(requestInit?.headers as Headers);
     expect(
@@ -1351,10 +1398,25 @@ describe("autolaunch CLI command group", () => {
         ),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: { nonce: "nonce_alpha" } }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
+        new Response(
+          JSON.stringify({
+            ok: true,
+            code: "nonce_issued",
+            data: {
+              nonce: "nonce_alpha",
+              walletAddress: "0x00000000000000000000000000000000000000aa",
+              chainId: 84532,
+              registryAddress: "0x3333333333333333333333333333333333333333",
+              tokenId: "42",
+              audience: "autolaunch",
+              expiresAt: "2026-03-27T00:05:00Z",
+            },
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -1397,17 +1459,28 @@ describe("autolaunch CLI command group", () => {
       `${expectedBaseUrl}/v1/agent/prelaunch/plans/plan_alpha`,
     );
     expect(fetchMock.mock.calls[2]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/siwa/nonce`,
+      `http://127.0.0.1:4000/v1/agent/siwa/nonce`,
     );
+    expect(requireAgentAuthStateMock).toHaveBeenCalledWith(configPath, {
+      audience: "autolaunch",
+    });
     const siwaNonceRequest = fetchMock.mock.calls[2]?.[1];
     expect(JSON.parse(String(siwaNonceRequest?.body))).toEqual({
       wallet_address: "0x00000000000000000000000000000000000000aa",
       chain_id: 84532,
+      registry_address: "0x3333333333333333333333333333333333333333",
+      token_id: "42",
       audience: "autolaunch",
     });
     expect(fetchMock.mock.calls[3]?.[0]).toBe(
       `${expectedBaseUrl}/v1/agent/prelaunch/plans/plan_alpha/launch`,
     );
+    expect(JSON.parse(String(fetchMock.mock.calls[3]?.[1]?.body))).toMatchObject({
+      wallet_address: "0x00000000000000000000000000000000000000aa",
+      registry_address: "0x3333333333333333333333333333333333333333",
+      token_id: "42",
+      nonce: "nonce_alpha",
+    });
     expect(fetchMock.mock.calls[4]?.[0]).toBe(
       `${expectedBaseUrl}/v1/agent/launch/jobs/job_alpha`,
     );

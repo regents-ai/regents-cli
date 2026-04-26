@@ -11,6 +11,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia, mainnet } from "viem/chains";
 
 import { loadConfig } from "../../internal-runtime/config.js";
+import type { SiwaAudience } from "../../internal-types/index.js";
 import {
   EnvWalletSecretSource,
   FileWalletSecretSource,
@@ -30,6 +31,7 @@ type JsonValue = string | number | boolean | null | JsonObject | JsonValue[];
 export interface RequestOptions {
   readonly body?: unknown;
   readonly requireAgentAuth?: boolean;
+  readonly authAudience?: SiwaAudience;
   readonly configPath?: string;
 }
 
@@ -60,61 +62,26 @@ export const failIfNotObject = (value: unknown): JsonObject => {
   return value as JsonObject;
 };
 
-export const requestJson = async (
-  method: string,
-  path: string,
-  options: RequestOptions = {},
-): Promise<JsonObject> => {
-  const headers = new Headers({ accept: "application/json" });
-
-  if (options.body) {
-    headers.set("content-type", "application/json");
-  }
-
-  if (options.requireAgentAuth) {
-    const authHeaders = await buildAgentAuthHeaders({
-      method,
-      path,
-      configPath: options.configPath,
-    });
-
-    for (const [key, value] of Object.entries(authHeaders)) {
-      headers.set(key, value);
-    }
-  }
-
-  const response = await fetch(`${baseUrl()}${path}`, {
-    method,
-    headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
-
-  const text = await response.text();
-  const parsed = text ? failIfNotObject(JSON.parse(text) as unknown) : {};
-
-  if (!response.ok) {
-    throw new Error(JSON.stringify(parsed, null, 2));
-  }
-
-  return parsed;
-};
-
-export const requestTypedJson = async <T>(
+const requestRawJson = async <T>(
   method: string,
   path: string,
   options: RequestOptions = {},
 ): Promise<T> => {
   const headers = new Headers({ accept: "application/json" });
+  const bodyText = options.body === undefined ? undefined : JSON.stringify(options.body);
 
-  if (options.body) {
+  if (bodyText !== undefined) {
     headers.set("content-type", "application/json");
   }
 
   if (options.requireAgentAuth) {
+    const authAudience = options.authAudience ?? "autolaunch";
     const authHeaders = await buildAgentAuthHeaders({
       method,
       path,
+      ...(bodyText === undefined ? {} : { body: bodyText }),
       configPath: options.configPath,
+      audience: authAudience,
     });
 
     for (const [key, value] of Object.entries(authHeaders)) {
@@ -125,7 +92,7 @@ export const requestTypedJson = async <T>(
   const response = await fetch(`${baseUrl()}${path}`, {
     method,
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: bodyText,
   });
 
   const text = await response.text();
@@ -137,6 +104,18 @@ export const requestTypedJson = async <T>(
 
   return parsed as T;
 };
+
+export const requestJson = async (
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+): Promise<JsonObject> => requestRawJson<JsonObject>(method, path, options);
+
+export const requestTypedJson = async <T>(
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> => requestRawJson<T>(method, path, options);
 
 export const appendQuery = (
   path: string,

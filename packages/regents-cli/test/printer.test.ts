@@ -2,9 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { captureOutput } from "../../../test-support/test-helpers.js";
 
-import { printError, printJson, renderUsageScreen } from "../src/printer.js";
+import { printError, printJson, renderUsageScreen, setRawJsonOutput } from "../src/printer.js";
 
 const originalNoColor = process.env.NO_COLOR;
+const originalTerm = process.env.TERM;
 const originalIsTTY = process.stdout.isTTY;
 
 const setStdoutTty = (value: boolean): void => {
@@ -21,6 +22,13 @@ afterEach(() => {
     process.env.NO_COLOR = originalNoColor;
   }
 
+  if (originalTerm === undefined) {
+    delete process.env.TERM;
+  } else {
+    process.env.TERM = originalTerm;
+  }
+
+  setRawJsonOutput(false);
   setStdoutTty(Boolean(originalIsTTY));
 });
 
@@ -81,6 +89,7 @@ describe("printer surface", () => {
   it("renders a receipt-style summary for setup records", async () => {
     setStdoutTty(true);
     delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
 
     const output = await captureOutput(async () => {
       printJson({
@@ -102,6 +111,7 @@ describe("printer surface", () => {
   it("renders framed JSON output for human terminals", async () => {
     setStdoutTty(true);
     delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
 
     const output = await captureOutput(async () => {
       printJson({
@@ -121,6 +131,7 @@ describe("printer surface", () => {
   it("renders a framed error for human terminals", async () => {
     setStdoutTty(true);
     delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
 
     const output = await captureOutput(async () => {
       printError(new Error("operator shell failed"));
@@ -134,6 +145,7 @@ describe("printer surface", () => {
   it("escapes terminal control characters in human summaries", async () => {
     setStdoutTty(true);
     delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
 
     const output = await captureOutput(async () => {
       printJson({
@@ -156,6 +168,45 @@ describe("printer surface", () => {
       ok: true,
       configPath: "/tmp/regent.json",
     };
+    const output = await captureOutput(async () => {
+      printJson(payload);
+    });
+
+    expect(output.stdout).toBe(`${JSON.stringify(payload, null, 2)}\n`);
+  });
+
+  it("keeps plain JSON output whenever NO_COLOR is set", async () => {
+    setStdoutTty(true);
+    process.env.NO_COLOR = "0";
+
+    const payload = { ok: true, mode: "no-color" };
+    const output = await captureOutput(async () => {
+      printJson(payload);
+    });
+
+    expect(output.stdout).toBe(`${JSON.stringify(payload, null, 2)}\n`);
+  });
+
+  it("keeps plain JSON output for dumb terminals", async () => {
+    setStdoutTty(true);
+    delete process.env.NO_COLOR;
+    process.env.TERM = "dumb";
+
+    const payload = { ok: true, mode: "dumb" };
+    const output = await captureOutput(async () => {
+      printJson(payload);
+    });
+
+    expect(output.stdout).toBe(`${JSON.stringify(payload, null, 2)}\n`);
+  });
+
+  it("keeps raw JSON output when script mode is requested", async () => {
+    setStdoutTty(true);
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
+    setRawJsonOutput(true);
+
+    const payload = { ok: true, mode: "json" };
     const output = await captureOutput(async () => {
       printJson(payload);
     });

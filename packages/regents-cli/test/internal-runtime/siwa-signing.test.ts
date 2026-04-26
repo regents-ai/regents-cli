@@ -4,16 +4,16 @@ import type { LocalAgentIdentity, SiwaSession } from "../../src/internal-types/i
 
 import {
   buildAuthenticatedFetchInit,
-  buildProtectedTechtreeAuthDebugSnapshot,
-} from "../../src/internal-runtime/techtree/request-builder.js";
-import { buildSiwaMessage } from "../../src/internal-runtime/techtree/siwa.js";
+  buildProtectedAgentAuthDebugSnapshot,
+} from "../../src/internal-runtime/siwa/request-builder.js";
+import { buildSiwaMessage } from "../../src/internal-runtime/siwa/siwa.js";
 import {
   coveredComponentsForAgentHeaders,
   buildHttpSignatureSigningMessage,
   buildSignatureInputString,
   buildSignedAgentHeaders,
   parseSignatureInputHeader,
-} from "../../src/internal-runtime/techtree/signing.js";
+} from "../../src/internal-runtime/siwa/signing.js";
 
 describe("siwa message construction", () => {
   it("builds the expected SIWA message", () => {
@@ -22,6 +22,8 @@ describe("siwa message construction", () => {
       uri: "https://regent.cx/login",
       walletAddress: "0x1111111111111111111111111111111111111111",
       chainId: 84532,
+      registryAddress: "0x2222222222222222222222222222222222222222",
+      tokenId: "99",
       nonce: "12345678deadbeef",
       issuedAt: "2026-03-10T00:00:00.000Z",
       statement: "Sign in to Regents CLI.",
@@ -29,13 +31,15 @@ describe("siwa message construction", () => {
 
     expect(message).toBe(
       [
-        "regent.cx wants you to sign in with your Ethereum account:",
+        "regent.cx wants you to sign in with your Agent account:",
         "0x1111111111111111111111111111111111111111",
         "",
         "Sign in to Regents CLI.",
         "",
         "URI: https://regent.cx/login",
         "Version: 1",
+        "Agent ID: 99",
+        "Agent Registry: eip155:84532:0x2222222222222222222222222222222222222222",
         "Chain ID: 84532",
         "Nonce: 12345678deadbeef",
         "Issued At: 2026-03-10T00:00:00.000Z",
@@ -48,8 +52,7 @@ describe("http signing", () => {
   it("formats signature-input exactly", () => {
     const signatureInput = buildSignatureInputString({
       coveredComponents: coveredComponentsForAgentHeaders({
-        includeRegistryBinding: true,
-        includeTokenBinding: true,
+        includeContentDigest: false,
       }),
       created: 1_700_000_000,
       expires: 1_700_000_120,
@@ -59,23 +62,6 @@ describe("http signing", () => {
 
     expect(signatureInput).toBe(
       'sig1=("@method" "@path" "x-siwa-receipt" "x-key-id" "x-timestamp" "x-agent-wallet-address" "x-agent-chain-id" "x-agent-registry-address" "x-agent-token-id");created=1700000000;expires=1700000120;nonce="sig-nonce-fixed";keyid="0xabc"',
-    );
-  });
-
-  it("formats signature-input without optional Techtree binding headers", () => {
-    const signatureInput = buildSignatureInputString({
-      coveredComponents: coveredComponentsForAgentHeaders({
-        includeRegistryBinding: false,
-        includeTokenBinding: false,
-      }),
-      created: 1_700_000_000,
-      expires: 1_700_000_120,
-      nonce: "sig-nonce-fixed",
-      keyId: "0xabc",
-    });
-
-    expect(signatureInput).toBe(
-      'sig1=("@method" "@path" "x-siwa-receipt" "x-key-id" "x-timestamp" "x-agent-wallet-address" "x-agent-chain-id");created=1700000000;expires=1700000120;nonce="sig-nonce-fixed";keyid="0xabc"',
     );
   });
 
@@ -110,6 +96,26 @@ describe("http signing", () => {
         '"@signature-params": ("@method" "@path" "x-siwa-receipt" "x-key-id" "x-timestamp" "x-agent-wallet-address" "x-agent-chain-id" "x-agent-registry-address" "x-agent-token-id");created=1700000000;expires=1700000120;nonce="sig-nonce-fixed";keyid="0xabc"',
       ].join("\n"),
     );
+  });
+
+  it("keeps the query string in the signed path", () => {
+    const signingMessage = buildHttpSignatureSigningMessage({
+      method: "GET",
+      path: "/v1/agent/agents?launchable=true",
+      headers: {
+        "x-siwa-receipt": "receipt-token",
+        "x-key-id": "0xabc",
+        "x-timestamp": "1700000000",
+        "x-agent-wallet-address": "0x1111111111111111111111111111111111111111",
+        "x-agent-chain-id": "84532",
+        "x-agent-registry-address": "0x2222222222222222222222222222222222222222",
+        "x-agent-token-id": "99",
+        "signature-input":
+          'sig1=("@method" "@path" "x-siwa-receipt" "x-key-id" "x-timestamp" "x-agent-wallet-address" "x-agent-chain-id" "x-agent-registry-address" "x-agent-token-id");created=1700000000;expires=1700000120;nonce="sig-nonce-fixed";keyid="0xabc"',
+      },
+    });
+
+    expect(signingMessage).toContain('"@path": /v1/agent/agents?launchable=true');
   });
 
   it("parses the signature-input parameters used by sidecar verification", () => {
@@ -167,6 +173,8 @@ describe("http signing", () => {
       receipt: "receipt-token",
       receiptExpiresAt: "2999-01-01T00:00:00.000Z",
       audience: "techtree",
+      registryAddress: "0x2222222222222222222222222222222222222222",
+      tokenId: "99",
     };
     const agentIdentity: LocalAgentIdentity = {
       walletAddress: "0x1111111111111111111111111111111111111111",
@@ -189,7 +197,7 @@ describe("http signing", () => {
     });
 
     expect(
-      buildProtectedTechtreeAuthDebugSnapshot({
+      buildProtectedAgentAuthDebugSnapshot({
         method: "POST",
         signedPath: request.urlPath,
         finalUrl: "https://techtree.example/v1/tree/nodes",

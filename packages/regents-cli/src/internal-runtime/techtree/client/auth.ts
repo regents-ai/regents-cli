@@ -4,7 +4,7 @@ import type {
   SiwaVerifyRequest,
   SiwaVerifyResponse,
 } from "../../../internal-types/index.js";
-import { SiwaClient } from "../siwa.js";
+import { SiwaClient } from "../../siwa/siwa.js";
 
 export class AuthResource {
   readonly siwaClient: SiwaClient;

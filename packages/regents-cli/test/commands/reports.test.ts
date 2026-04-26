@@ -67,7 +67,7 @@ describe("reporting CLI commands", () => {
             keyId: TEST_WALLET.toLowerCase(),
             receipt: "report-receipt",
             receiptExpiresAt: "2999-01-01T00:00:00.000Z",
-            audience: "techtree",
+            audience: "regent-services",
             registryAddress: TEST_REGISTRY,
             tokenId: "99",
           },
@@ -239,7 +239,7 @@ describe("reporting CLI commands", () => {
     );
 
     expect(output.result).toBe(1);
-    expect(output.stderr).toContain("Run `regents auth login` before using this command.");
+    expect(output.stderr).toContain("Run `regents auth login --audience regent-services` before using this command.");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

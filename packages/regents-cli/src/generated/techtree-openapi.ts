@@ -965,6 +965,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/chatbox/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["heartbeatWebappChatboxMembership"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/chatbox/messages/{id}/reactions": {
         parameters: {
             query?: never;
@@ -4036,6 +4052,30 @@ export interface operations {
         };
         responses: {
             /** @description Join request accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseDataEnvelope"];
+                };
+            };
+        };
+    };
+    heartbeatWebappChatboxMembership: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Room presence refreshed */
             200: {
                 headers: {
                     [name: string]: unknown;

@@ -1,7 +1,7 @@
 /**
- * Must remain compatible with the current `TechTreeWeb.Plugs.RequireAgentSiwa`
- * and SIWA sidecar `/v1/agent/siwa/http-verify` contract. Do not change covered header names,
- * casing assumptions, or canonical message construction without updating Techtree.
+ * Must remain compatible with the current SIWA request verification contract.
+ * Do not change covered header names, casing assumptions, or canonical message
+ * construction without updating the matching server-side verifier.
  */
 import crypto from "node:crypto";
 
@@ -20,10 +20,11 @@ export const HTTP_SIGNATURE_BASE_COMPONENTS = [
 export interface BuildSignedHeadersInput {
   method: string;
   path: string;
+  body?: string;
   walletAddress: `0x${string}`;
   chainId: number;
-  registryAddress?: `0x${string}`;
-  tokenId?: string;
+  registryAddress: `0x${string}`;
+  tokenId: string;
   receipt: string;
   privateKey: `0x${string}`;
   nowUnixSeconds?: number;
@@ -99,6 +100,11 @@ const toSig1SignatureHeader = (signatureHex: `0x${string}`): string => {
   return `sig1=:${signatureBase64}:`;
 };
 
+export function contentDigestForBody(body: string): string {
+  const digest = crypto.createHash("sha256").update(body).digest("base64");
+  return `sha-256=:${digest}:`;
+}
+
 export function buildSignatureInputString(input: {
   coveredComponents: readonly string[];
   created: number;
@@ -145,13 +151,13 @@ export function buildHttpSignatureSigningMessage(input: {
 }
 
 export function coveredComponentsForAgentHeaders(input: {
-  includeRegistryBinding: boolean;
-  includeTokenBinding: boolean;
+  includeContentDigest: boolean;
 }): string[] {
   return [
     ...HTTP_SIGNATURE_BASE_COMPONENTS,
-    ...(input.includeRegistryBinding ? ["x-agent-registry-address"] : []),
-    ...(input.includeTokenBinding ? ["x-agent-token-id"] : []),
+    ...(input.includeContentDigest ? ["content-digest"] : []),
+    "x-agent-registry-address",
+    "x-agent-token-id",
   ];
 }
 
@@ -171,6 +177,7 @@ export async function buildSignerBackedAgentHeaders(
   const expires = created + (input.expiresInSeconds ?? 120);
   const nonce = input.nonce ?? `sig-nonce-${crypto.randomUUID()}`;
   const keyId = input.walletAddress.toLowerCase();
+  const contentDigest = typeof input.body === "string" ? contentDigestForBody(input.body) : undefined;
 
   const unsignedHeaders: Record<string, string> = {
     "x-siwa-receipt": input.receipt,
@@ -178,12 +185,12 @@ export async function buildSignerBackedAgentHeaders(
     "x-timestamp": String(created),
     "x-agent-wallet-address": input.walletAddress,
     "x-agent-chain-id": String(input.chainId),
-    ...(input.registryAddress ? { "x-agent-registry-address": input.registryAddress } : {}),
-    ...(input.tokenId ? { "x-agent-token-id": input.tokenId } : {}),
+    "x-agent-registry-address": input.registryAddress,
+    "x-agent-token-id": input.tokenId,
+    ...(contentDigest ? { "content-digest": contentDigest } : {}),
   };
   const coveredComponents = coveredComponentsForAgentHeaders({
-    includeRegistryBinding: typeof input.registryAddress === "string",
-    includeTokenBinding: typeof input.tokenId === "string",
+    includeContentDigest: typeof contentDigest === "string",
   });
 
   const signatureInput = buildSignatureInputString({

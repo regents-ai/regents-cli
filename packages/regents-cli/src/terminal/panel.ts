@@ -1,4 +1,4 @@
-import { ANSI, CLI_PALETTE, escapePresentationLine, escapeTerminalText, padRight, stripAnsi, tone } from "./palette.js";
+import { ANSI, CLI_PALETTE, escapePresentationLine, escapeTerminalText, isHumanTerminal, padRight, stripAnsi, tone } from "./palette.js";
 
 const BORDER = {
   topLeft: "╭",
@@ -16,6 +16,10 @@ export const renderPanel = (
 ): string => {
   const safeTitle = escapeTerminalText(title);
   const safeLines = lines.map(escapePresentationLine);
+  if (!isHumanTerminal()) {
+    return [safeTitle, ...safeLines].join("\n");
+  }
+
   const contentWidth = Math.max(stripAnsi(safeTitle).length, ...safeLines.map((line) => stripAnsi(line).length), 24);
   const horizontal = BORDER.horizontal.repeat(contentWidth + 2);
   const borderColor = options?.borderColor ?? CLI_PALETTE.chrome;

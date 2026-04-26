@@ -2,6 +2,12 @@ import { renderPanel } from "./panel.js";
 import { CLI_PALETTE, isHumanTerminal, tone } from "./palette.js";
 import { renderKeyValuePanel, type KeyValueRow } from "./presenters.js";
 
+let rawJsonOutput = false;
+
+export function setRawJsonOutput(value: boolean): void {
+  rawJsonOutput = value;
+}
+
 const highlightJsonLine = (line: string): string => {
   let highlighted = line;
   highlighted = highlighted.replace(/^(\s*)"([^"]+)":/u, (_, indent: string, key: string) =>
@@ -146,7 +152,7 @@ const humanJson = (value: unknown): string => {
 };
 
 export function printJson(value: unknown): void {
-  if (isHumanTerminal()) {
+  if (isHumanTerminal() && !rawJsonOutput) {
     process.stdout.write(`${humanJson(value)}\n`);
     return;
   }

@@ -30,9 +30,9 @@ import type {
 
 import {
   buildHttpSignatureSigningMessage,
-  HTTP_SIGNATURE_BASE_COMPONENTS,
+  coveredComponentsForAgentHeaders,
   parseSignatureInputHeader,
-} from "../packages/regents-cli/src/internal-runtime/techtree/signing.js";
+} from "../packages/regents-cli/src/internal-runtime/siwa/signing.js";
 
 const REQUIRED_AUTH_HEADERS = [
   "x-siwa-receipt",
@@ -46,7 +46,9 @@ const REQUIRED_AUTH_HEADERS = [
   "x-agent-token-id",
 ] as const;
 
-const REQUIRED_SIGNATURE_COMPONENTS = [...HTTP_SIGNATURE_BASE_COMPONENTS] as const;
+const REQUIRED_SIGNATURE_COMPONENTS = coveredComponentsForAgentHeaders({
+  includeContentDigest: false,
+});
 
 const TEST_AGENT_WALLET = "0x1111111111111111111111111111111111111111" as const;
 const TEST_AGENT_REGISTRY = "0x2222222222222222222222222222222222222222" as const;

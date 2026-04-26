@@ -89,12 +89,16 @@ const extractOwnershipGroups = (source, exportName) => {
 };
 
 const normalizeCommandName = (command) => command.replace(/^regents?\s+/u, "");
+const currentAvailabilityValues = new Set(["current", "beta_disabled"]);
+const platformPublicCommand = (command) =>
+  command.startsWith("platform ") || command.startsWith("agentbook ");
 
 const flattenContract = (contract, operationPaths) => {
   if (Array.isArray(contract.commands)) {
     const commands = new Set();
     const paths = new Set();
     const rpcMethods = new Set();
+    const availabilityByCommand = new Map();
 
     for (const command of contract.commands) {
       if (!command || typeof command !== "object") {
@@ -102,7 +106,12 @@ const flattenContract = (contract, operationPaths) => {
       }
 
       if (typeof command.name === "string") {
-        commands.add(normalizeCommandName(command.name));
+        const normalizedCommand = normalizeCommandName(command.name);
+        commands.add(normalizedCommand);
+        availabilityByCommand.set(
+          normalizedCommand,
+          typeof command.availability === "string" ? command.availability : "current",
+        );
       }
 
       const transport = command.transport;
@@ -121,7 +130,7 @@ const flattenContract = (contract, operationPaths) => {
       }
     }
 
-    return { commands, paths, rpcMethods };
+    return { commands, paths, rpcMethods, availabilityByCommand };
   }
 
   const groups = contract.command_groups ?? [];
@@ -141,7 +150,7 @@ const flattenContract = (contract, operationPaths) => {
     }
   }
 
-  return { commands, paths, rpcMethods };
+  return { commands, paths, rpcMethods, availabilityByCommand: new Map() };
 };
 
 const fail = (message) => {
@@ -172,13 +181,25 @@ const flattenedContracts = Object.fromEntries(
   ]),
 );
 
+for (const [command, availability] of flattenedContracts.platform.availabilityByCommand) {
+  if (platformPublicCommand(command) && !currentAvailabilityValues.has(availability)) {
+    fail(
+      `Platform CLI command ${command} has unsupported availability ${availability}; use current or beta_disabled`,
+    );
+  }
+}
+
+const shippedPlatformCommands = Array.from(flattenedContracts.platform.commands).filter(
+  (command) =>
+    platformPublicCommand(command) &&
+    currentAvailabilityValues.has(flattenedContracts.platform.availabilityByCommand.get(command) ?? "current"),
+);
+
 const shippedContractCommands = new Set([
   ...flattenedContracts["shared-services"].commands,
   ...flattenedContracts.techtree.commands,
   ...flattenedContracts.autolaunch.commands,
-  ...Array.from(flattenedContracts.platform.commands).filter((command) =>
-    command.startsWith("agentbook "),
-  ),
+  ...shippedPlatformCommands,
 ]);
 const registryCommands = readCommandRegistry(fs.readFileSync(commandRegistryPath, "utf8"));
 

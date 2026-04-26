@@ -15,7 +15,7 @@ import {
   deriveWalletAddress,
   signPersonalMessage,
 } from "../../internal-runtime/agent/wallet.js";
-import { SiwaClient } from "../../internal-runtime/techtree/siwa.js";
+import { SiwaClient } from "../../internal-runtime/siwa/siwa.js";
 import {
   getFlag,
   getBooleanFlag,
@@ -30,7 +30,8 @@ import {
   renderPanel,
   tone,
 } from "../../printer.js";
-import { baseUrl, parsePollingIntervalSeconds, requestJson } from "./shared.js";
+import { requireAgentAuthState } from "../agent-auth.js";
+import { parsePollingIntervalSeconds, requestJson } from "./shared.js";
 
 interface LocalPlanRecord {
   readonly plan_id: string;
@@ -373,6 +374,9 @@ const requestSiwaLaunchBundle = async (
   walletAddress: `0x${string}`,
   configPath?: string,
 ) => {
+  const { config, identity } = requireAgentAuthState(configPath, {
+    audience: "autolaunch",
+  });
   const privateKey = await configuredPrivateKey(configPath);
   const derivedAddress = await deriveWalletAddress(privateKey);
   if (derivedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
@@ -381,34 +385,31 @@ const requestSiwaLaunchBundle = async (
     );
   }
 
-  const nonceResponse = await fetch(`${baseUrl()}/v1/agent/siwa/nonce`, {
-    method: "POST",
-    headers: { accept: "application/json", "content-type": "application/json" },
-    body: JSON.stringify({
-      wallet_address: walletAddress,
-      chain_id: AUTOLAUNCH_CHAIN_ID,
-      audience: "autolaunch",
-    }),
-  });
-
-  if (!nonceResponse.ok) {
+  if (identity.walletAddress.toLowerCase() !== walletAddress.toLowerCase()) {
     throw new Error(
-      `unable to request SIWA nonce: ${await nonceResponse.text()}`,
+      `wallet mismatch: saved Regent identity ${identity.walletAddress} does not match ${walletAddress}`,
     );
   }
 
-  const noncePayload = (await nonceResponse.json()) as {
-    data?: { nonce?: string };
-  };
-  const nonce = String(noncePayload.data?.nonce ?? "");
-  if (!nonce) {
-    throw new Error("SIWA nonce response did not include a nonce");
+  if (!identity.registryAddress || !identity.tokenId) {
+    throw new Error("This launch needs a bound Regent identity. Run `regents identity ensure` again.");
   }
 
+  const siwaClient = new SiwaClient(config.auth.baseUrl, config.auth.requestTimeoutMs);
+  const noncePayload = await siwaClient.requestNonce({
+    wallet_address: walletAddress,
+    chain_id: AUTOLAUNCH_CHAIN_ID,
+    registry_address: identity.registryAddress,
+    token_id: identity.tokenId,
+    audience: "autolaunch",
+  });
+  const nonce = noncePayload.data.nonce;
   const issuedAt = new Date().toISOString();
   const message = SiwaClient.defaultMessageInput({
     walletAddress,
     chainId: AUTOLAUNCH_CHAIN_ID,
+    registryAddress: identity.registryAddress,
+    tokenId: identity.tokenId,
     nonce,
     issuedAt,
     statement: "Authorize an Autolaunch launch.",
@@ -417,6 +418,8 @@ const requestSiwaLaunchBundle = async (
 
   return {
     wallet_address: walletAddress,
+    registry_address: identity.registryAddress,
+    token_id: identity.tokenId,
     nonce,
     message,
     signature,

@@ -87,9 +87,11 @@ export function buildBackendDetails(error: unknown): Record<string, unknown> {
         };
     }
     if (error instanceof RegentError) {
+        const status = isRecord(error) && typeof error.status === "number" ? error.status : undefined;
         return {
             code: error.code,
             message: error.message,
+            ...(status === undefined ? {} : { status }),
         };
     }
     if (error instanceof Error) {

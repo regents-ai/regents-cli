@@ -405,6 +405,28 @@ export const platformApiCommandGroups = [
       "/api/agentbook/lookup",
     ],
   }),
+  definePlatformGroup({
+    commands: [
+      "platform auth login",
+      "platform auth status",
+      "platform auth logout",
+      "platform formation status",
+      "platform billing account",
+      "platform billing usage",
+      "platform company runtime",
+    ],
+    owner: "platform",
+    status: "current",
+    pathTemplates: [
+      "/api/auth/privy/csrf",
+      "/api/auth/privy/session",
+      "/api/auth/privy/profile",
+      "/api/agent-platform/formation",
+      "/api/agent-platform/billing/account",
+      "/api/agent-platform/billing/usage",
+      "/api/agent-platform/agents/{slug}/runtime",
+    ],
+  }),
 ] as const;
 
 export const sharedServicesApiCommandGroups = [

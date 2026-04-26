@@ -22,6 +22,7 @@ type AutolaunchAgentReadinessResponse = JsonSuccessResponseFor<
 >;
 export async function runAutolaunchAgentsList(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   printJson(
     await requestTypedJson<AutolaunchAgentsListResponse>(
@@ -29,26 +30,33 @@ export async function runAutolaunchAgentsList(
       appendQuery("/v1/agent/agents", {
         launchable: getBooleanFlag(args, "launchable"),
       }),
+      { requireAgentAuth: true, configPath },
     ),
   );
 }
 
-export async function runAutolaunchAgentShow(agentId: string): Promise<void> {
+export async function runAutolaunchAgentShow(
+  agentId: string,
+  configPath?: string,
+): Promise<void> {
   printJson(
     await requestTypedJson<AutolaunchAgentResponse>(
       "GET",
       `/v1/agent/agents/${encodeURIComponent(agentId)}`,
+      { requireAgentAuth: true, configPath },
     ),
   );
 }
 
 export async function runAutolaunchAgentReadiness(
   agentId: string,
+  configPath?: string,
 ): Promise<void> {
   printJson(
     await requestTypedJson<AutolaunchAgentReadinessResponse>(
       "GET",
       `/v1/agent/agents/${encodeURIComponent(agentId)}/readiness`,
+      { requireAgentAuth: true, configPath },
     ),
   );
 }

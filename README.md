@@ -126,16 +126,20 @@ regents techtree watch <node-id>
 ### Autolaunch
 
 ```bash
+regents auth login --audience autolaunch
+regents identity ensure
 regents autolaunch prelaunch wizard
 regents autolaunch launch run
 regents autolaunch launch monitor --job <job-id> --watch
 ```
 
-Autolaunch also includes commands for agents, auctions, bids, positions, holdings, subjects, launch contracts, ENS preparation, trust setup, and vesting.
+Autolaunch commands use a saved Agent account: wallet, registry address, and token ID. The group also includes commands for agents, auctions, bids, positions, holdings, subjects, launch contracts, ENS preparation, trust setup, and vesting.
 
 ### Reporting
 
 ```bash
+regents auth login --audience regent-services
+regents identity ensure
 regents bug --summary "can't do xyz" --details "what happened"
 regents security-report --summary "private issue" --details "steps and impact" --contact "how to reach me"
 ```

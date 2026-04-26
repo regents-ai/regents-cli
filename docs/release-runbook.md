@@ -141,11 +141,12 @@ It does the full required gate:
 
 1. install dependencies
 2. run `pnpm check:openapi`
-3. run `pnpm build`
-4. run `pnpm typecheck`
-5. run `pnpm test`
-6. run `pnpm check:pack-cli-contents`
-7. run `pnpm test:pack-smoke`
+3. run `pnpm check:cli-contract`
+4. run `pnpm build`
+5. run `pnpm typecheck`
+6. run `pnpm test`
+7. run `pnpm check:pack-cli-contents`
+8. run `pnpm test:pack-smoke`
 
 If any of those fail, the branch should not be considered releasable.
 
@@ -164,9 +165,10 @@ The practical flow is:
 3. bump the package version in git
 4. create and push a matching tag like `v0.2.0`
 5. the publish workflow reruns the release gate
-6. the publish workflow rechecks the tarball contents
-7. the publish workflow publishes `@regentslabs/cli`
-8. the publish workflow creates a GitHub release with generated notes
+6. the publish workflow reruns `pnpm check:cli-contract`
+7. the publish workflow rechecks the tarball contents
+8. the publish workflow publishes `@regentslabs/cli`
+9. the publish workflow creates a GitHub release with generated notes
 
 The publish job should also prove that it is publishing the same package shape that passed `test:pack-smoke`.
 

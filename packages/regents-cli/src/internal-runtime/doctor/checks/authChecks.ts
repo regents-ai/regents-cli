@@ -1,11 +1,11 @@
 import { getCurrentAgentIdentity, getMissingAgentIdentityFields } from "../../agent/profile.js";
 import { resolveAuthenticatedAgentSigningContext } from "../../techtree/auth.js";
-import { buildAuthenticatedFetchInit } from "../../techtree/request-builder.js";
-import { buildSiwaMessage, SiwaClient } from "../../techtree/siwa.js";
+import { buildAuthenticatedFetchInit } from "../../siwa/request-builder.js";
+import { buildSiwaMessage, SiwaClient } from "../../siwa/siwa.js";
 import {
   coveredComponentsForAgentHeaders,
   parseSignatureInputHeader,
-} from "../../techtree/signing.js";
+} from "../../siwa/signing.js";
 import {
   buildBackendDetails,
   deriveSignerWalletAddress,
@@ -217,6 +217,8 @@ export function authChecks(): DoctorCheckDefinition[] {
           uri: "https://regent.cx/v1/agent/siwa/verify",
           walletAddress: identity.walletAddress,
           chainId: identity.chainId,
+          registryAddress: identity.registryAddress,
+          tokenId: identity.tokenId,
           nonce,
           statement: "Sign in to Regents CLI.",
         });
@@ -538,16 +540,15 @@ export function authChecks(): DoctorCheckDefinition[] {
             "signature",
             "x-agent-wallet-address",
             "x-agent-chain-id",
-            ...(identity.registryAddress ? ["x-agent-registry-address"] : []),
-            ...(identity.tokenId ? ["x-agent-token-id"] : []),
+            "x-agent-registry-address",
+            "x-agent-token-id",
           ];
           const missing = requiredHeaders.filter((headerName) => !headers[headerName]);
           const parsedSignatureInput = parseSignatureInputHeader(
             headers["signature-input"] ?? "",
           );
           const expectedCoveredComponents = coveredComponentsForAgentHeaders({
-            includeRegistryBinding: Boolean(identity.registryAddress),
-            includeTokenBinding: Boolean(identity.tokenId),
+            includeContentDigest: false,
           });
           const missingCoveredComponents = expectedCoveredComponents.filter(
             (component) => !parsedSignatureInput?.coveredComponents.includes(component),

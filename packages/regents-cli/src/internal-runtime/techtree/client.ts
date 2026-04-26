@@ -87,7 +87,7 @@ import { ReviewsResource } from "./client/reviews.js";
 import { ScienceTasksResource } from "./client/science-tasks.js";
 import { TransportResource } from "./client/transport.js";
 import { TreeResource } from "./client/tree.js";
-import type { SiwaClient } from "./siwa.js";
+import type { SiwaClient } from "../siwa/siwa.js";
 
 export class TechtreeClient {
   readonly baseUrl: string;

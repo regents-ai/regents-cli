@@ -130,6 +130,7 @@ export async function runRegentStakingShow(configPath?: string): Promise<void> {
   printJson(
     await requestTypedJson<RegentStakingOverviewResponse>("GET", "/v1/agent/regent/staking", {
       requireAgentAuth: true,
+      authAudience: "regent-services",
       configPath,
     }),
   );
@@ -146,6 +147,7 @@ export async function runRegentStakingAccount(
       `/v1/agent/regent/staking/account/${encodeURIComponent(address)}`,
       {
         requireAgentAuth: true,
+        authAudience: "regent-services",
         configPath,
       },
     ),
@@ -163,6 +165,7 @@ export async function runRegentStakingStake(
     await requestTypedJson<RegentStakingStakeResponse>("POST", "/v1/agent/regent/staking/stake", {
       body,
       requireAgentAuth: true,
+      authAudience: "regent-services",
       configPath,
     }),
   );
@@ -179,6 +182,7 @@ export async function runRegentStakingUnstake(
     await requestTypedJson<RegentStakingUnstakeResponse>("POST", "/v1/agent/regent/staking/unstake", {
       body,
       requireAgentAuth: true,
+      authAudience: "regent-services",
       configPath,
     }),
   );
@@ -191,6 +195,7 @@ export async function runRegentStakingClaimUsdc(
   const payload = await requestTypedJson<RegentStakingClaimResponse>("POST", "/v1/agent/regent/staking/claim-usdc", {
       body: {},
       requireAgentAuth: true,
+      authAudience: "regent-services",
       configPath,
     });
 
@@ -207,6 +212,7 @@ export async function runRegentStakingClaimRegent(
     {
       body: {},
       requireAgentAuth: true,
+      authAudience: "regent-services",
       configPath,
     },
   );
@@ -224,6 +230,7 @@ export async function runRegentStakingClaimAndRestakeRegent(
     {
       body: {},
       requireAgentAuth: true,
+      authAudience: "regent-services",
       configPath,
     },
   );

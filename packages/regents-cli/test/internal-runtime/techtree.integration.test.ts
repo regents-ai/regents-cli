@@ -9,7 +9,7 @@ import { loadConfig, writeInitialConfig } from "../../src/internal-runtime/confi
 import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 import { SessionStore } from "../../src/internal-runtime/store/session-store.js";
 import { TechtreeClient } from "../../src/internal-runtime/techtree/client.js";
-import { buildSiwaMessage } from "../../src/internal-runtime/techtree/siwa.js";
+import { buildSiwaMessage } from "../../src/internal-runtime/siwa/siwa.js";
 
 class StaticWalletSecretSource {
   readonly privateKey: `0x${string}`;
@@ -107,6 +107,8 @@ describe.skipIf(!integrationEnabled)("techtree integration", () => {
       uri: "https://regent.cx/login",
       walletAddress: wallet.address,
       chainId: 84532,
+      registryAddress,
+      tokenId,
       nonce: nonceResponse.data.nonce,
       statement: "Sign in to Regents CLI.",
     });

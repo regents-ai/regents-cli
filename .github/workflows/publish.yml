@@ -66,6 +66,9 @@ jobs:
       - name: Check generated OpenAPI files
         run: pnpm check:openapi
 
+      - name: Check CLI contract coverage
+        run: pnpm check:cli-contract
+
       - name: Build workspace
         run: pnpm build
 

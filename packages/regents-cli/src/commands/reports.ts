@@ -115,11 +115,13 @@ const requestPlatformJson = async <TResponse>(
   body: unknown,
   configPath?: string,
 ): Promise<TResponse> => {
+  const serializedBody = JSON.stringify(body);
   const authHeaders = await buildAgentAuthHeaders({
     method: "POST",
     path: endpointPath,
+    body: serializedBody,
     configPath,
-    requireBoundIdentity: true,
+    audience: "regent-services",
   });
   const response = await fetch(`${platformPhxBaseUrl()}${endpointPath}`, {
     method: "POST",
@@ -128,7 +130,7 @@ const requestPlatformJson = async <TResponse>(
       "content-type": "application/json",
       ...authHeaders,
     },
-    body: JSON.stringify(body),
+    body: serializedBody,
   });
 
   const text = await response.text();

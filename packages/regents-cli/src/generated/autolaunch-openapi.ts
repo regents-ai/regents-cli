@@ -1897,6 +1897,8 @@ export interface components {
         };
         LaunchPlanRequest: {
             wallet_address: components["schemas"]["Address"];
+            registry_address: components["schemas"]["Address"];
+            token_id: string;
             nonce: string;
             message: string;
             signature: string;
@@ -1958,6 +1960,8 @@ export interface components {
         };
         LaunchCreateRequest: components["schemas"]["LaunchPreviewRequest"] & {
             wallet_address: components["schemas"]["Address"];
+            registry_address: components["schemas"]["Address"];
+            token_id: string;
             nonce: string;
             message: string;
             signature: string;

@@ -4,9 +4,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { knownCliCommand } from "./command-registry.js";
+import { printScopedHelp } from "./help.js";
 import { defaultConfigPath, expandHome } from "./internal-runtime/index.js";
-import { getFlag, parseCliArgs } from "./parse.js";
-import { printError, printText, renderUsageScreen } from "./printer.js";
+import { getBooleanFlag, getFlag, parseCliArgs } from "./parse.js";
+import { printError, setRawJsonOutput } from "./printer.js";
 import { cliRoutes, dispatchRoute, type CliRouteContext } from "./routes/index.js";
 
 export const parseConfigPath = (args: string[]): string | undefined => {
@@ -14,18 +15,18 @@ export const parseConfigPath = (args: string[]): string | undefined => {
   return configFlag ? expandHome(configFlag) : undefined;
 };
 
-const usage = (configPath?: string): void => {
-  printText(renderUsageScreen(configPath ?? defaultConfigPath()));
-};
+const helpPositionals = (positionals: readonly string[]): string[] =>
+  positionals.filter((value) => value !== "-h" && value !== "--help");
 
 export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
   try {
     const parsedArgs = parseCliArgs(rawArgs);
     const configPath = parseConfigPath(rawArgs);
+    setRawJsonOutput(getBooleanFlag(parsedArgs, "json"));
     const [namespace] = parsedArgs.positionals;
 
     if (!namespace || rawArgs.includes("--help") || rawArgs.includes("-h")) {
-      usage(configPath);
+      printScopedHelp(helpPositionals(parsedArgs.positionals), configPath ?? defaultConfigPath());
       return 0;
     }
 

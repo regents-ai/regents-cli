@@ -22,8 +22,11 @@ export class ConfigError extends RegentError {
 }
 
 export class AuthError extends RegentError {
-  constructor(code: string, message: string, cause?: unknown) {
+  readonly status?: number;
+
+  constructor(code: string, message: string, cause?: unknown, options?: { status?: number }) {
     super(code, message, cause);
+    this.status = options?.status;
   }
 }
 

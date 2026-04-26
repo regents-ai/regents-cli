@@ -15,6 +15,7 @@ const requestPlatformJson = async (
   configPath?: string,
 ): Promise<JsonObject> => {
   const config = loadConfig(configPath);
+  const serializedBody = JSON.stringify(body);
   const headers = new Headers({
     accept: "application/json",
     "content-type": "application/json",
@@ -23,7 +24,9 @@ const requestPlatformJson = async (
   const authHeaders = await buildAgentAuthHeaders({
     method,
     path,
+    body: serializedBody,
     configPath,
+    audience: "platform",
   });
 
   for (const [key, value] of Object.entries(authHeaders)) {
@@ -33,7 +36,7 @@ const requestPlatformJson = async (
   const response = await fetch(`${config.auth.baseUrl.replace(/\/+$/u, "")}${path}`, {
     method,
     headers,
-    body: JSON.stringify(body),
+    body: serializedBody,
   });
 
   const text = await response.text();

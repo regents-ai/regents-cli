@@ -5,8 +5,7 @@ import type {
   SiwaVerifyResponse,
 } from "../../internal-types/index.js";
 
-import { AuthError, TechtreeApiError } from "../errors.js";
-import { parseTechtreeErrorResponse } from "./api-errors.js";
+import { AuthError } from "../errors.js";
 
 const DEFAULT_DOMAIN = "regent.cx";
 const DEFAULT_URI = "https://regent.cx/v1/agent/siwa/verify";
@@ -17,6 +16,8 @@ export function buildSiwaMessage(input: {
   uri: string;
   walletAddress: string;
   chainId: number;
+  registryAddress: string;
+  tokenId: string;
   nonce: string;
   issuedAt?: string;
   statement?: string;
@@ -25,13 +26,15 @@ export function buildSiwaMessage(input: {
   const statement = input.statement ?? DEFAULT_STATEMENT;
 
   return [
-    `${input.domain} wants you to sign in with your Ethereum account:`,
+    `${input.domain} wants you to sign in with your Agent account:`,
     input.walletAddress,
     "",
     statement,
     "",
     `URI: ${input.uri}`,
     "Version: 1",
+    `Agent ID: ${input.tokenId}`,
+    `Agent Registry: eip155:${input.chainId}:${input.registryAddress}`,
     `Chain ID: ${input.chainId}`,
     `Nonce: ${input.nonce}`,
     `Issued At: ${issuedAt}`,
@@ -54,6 +57,30 @@ const ensureOkEnvelope = <T extends { ok?: unknown; code?: unknown; data?: unkno
   return value as T;
 };
 
+const parseSiwaErrorResponse = async (response: Response): Promise<AuthError> => {
+  const text = await response.text();
+
+  try {
+    const parsed = JSON.parse(text) as { error?: { code?: unknown; message?: unknown }; message?: unknown };
+    const code = typeof parsed.error?.code === "string" ? parsed.error.code : "siwa_request_failed";
+    const message =
+      typeof parsed.error?.message === "string"
+        ? parsed.error.message
+        : typeof parsed.message === "string"
+          ? parsed.message
+          : `SIWA request failed with HTTP ${response.status}`;
+
+    return new AuthError(code, message, undefined, { status: response.status });
+  } catch {
+    return new AuthError(
+      "siwa_request_failed",
+      text || `SIWA request failed with HTTP ${response.status}`,
+      undefined,
+      { status: response.status },
+    );
+  }
+};
+
 export class SiwaClient {
   readonly baseUrl: string;
   readonly timeoutMs: number;
@@ -73,7 +100,7 @@ export class SiwaClient {
     });
 
     if (!res.ok) {
-      throw await parseTechtreeErrorResponse(res);
+      throw await parseSiwaErrorResponse(res);
     }
 
     const payload = ensureOkEnvelope<SiwaNonceResponse>(await res.json(), "nonce_issued");
@@ -90,7 +117,7 @@ export class SiwaClient {
     });
 
     if (!res.ok) {
-      throw await parseTechtreeErrorResponse(res);
+      throw await parseSiwaErrorResponse(res);
     }
 
     const payload = ensureOkEnvelope<SiwaVerifyResponse>(await res.json(), "siwa_verified");
@@ -100,6 +127,8 @@ export class SiwaClient {
   static defaultMessageInput(input: {
     walletAddress: string;
     chainId: number;
+    registryAddress: string;
+    tokenId: string;
     nonce: string;
     issuedAt?: string;
     statement?: string;
@@ -109,6 +138,8 @@ export class SiwaClient {
       uri: DEFAULT_URI,
       walletAddress: input.walletAddress,
       chainId: input.chainId,
+      registryAddress: input.registryAddress,
+      tokenId: input.tokenId,
       nonce: input.nonce,
       issuedAt: input.issuedAt,
       statement: input.statement,
@@ -126,16 +157,10 @@ export class SiwaClient {
       });
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        throw new TechtreeApiError(`request to ${url} timed out`, {
-          code: "siwa_timeout",
-          cause: error,
-        });
+        throw new AuthError("siwa_timeout", `request to ${url} timed out`, error);
       }
 
-      throw new TechtreeApiError(`request to ${url} failed`, {
-        code: "siwa_request_failed",
-        cause: error,
-      });
+      throw new AuthError("siwa_request_failed", `request to ${url} failed`, error);
     } finally {
       clearTimeout(timeout);
     }

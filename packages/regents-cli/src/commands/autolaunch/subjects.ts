@@ -22,6 +22,7 @@ const prepareOrSubmitWrite = async (
   const prepared = await requestJson(method, path, {
     body,
     requireAgentAuth: true,
+    configPath,
   });
 
   if (!getBooleanFlag(args, "submit")) {
@@ -41,6 +42,7 @@ const prepareOrSubmitWrite = async (
     await requestJson(method, path, {
       body: { ...body, tx_hash: txHash },
       requireAgentAuth: true,
+      configPath,
     }),
   );
 };

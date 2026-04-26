@@ -4,7 +4,7 @@ import type { SessionStore } from "../../store/session-store.js";
 import type { StateStore } from "../../store/state-store.js";
 import { parseTechtreeErrorResponse } from "../api-errors.js";
 import { resolveAuthenticatedAgentSigningContext } from "../auth.js";
-import { buildAuthenticatedFetchInit } from "../request-builder.js";
+import { buildAuthenticatedFetchInit } from "../../siwa/request-builder.js";
 
 export type TechtreeRequestMethod = "GET" | "POST" | "DELETE";
 export type ExpectedDataType = "array" | "object" | "object-or-null";
@@ -159,7 +159,7 @@ export class TechtreeRequestClient {
     );
     const { init } = await buildAuthenticatedFetchInit({
       method,
-      path: this.signedPath(path),
+      path,
       body,
       session,
       agentIdentity: identity,
@@ -221,11 +221,6 @@ export class TechtreeRequestClient {
         clearTimeout(timeout);
       }
     }
-  }
-
-  private signedPath(path: string): string {
-    const [signed] = path.split("?", 1);
-    return signed || path;
   }
 
   private async authedRequestJson<T>(

@@ -110,124 +110,142 @@ export async function runAutolaunchStrategyMigrate(
 
 export async function runAutolaunchStrategySweepToken(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareJobAction(args, "strategy", "sweep_token");
+  await postPrepareJobAction(args, "strategy", "sweep_token", {}, configPath);
 }
 
 export async function runAutolaunchStrategySweepCurrency(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareJobAction(args, "strategy", "sweep_currency");
+  await postPrepareJobAction(args, "strategy", "sweep_currency", {}, configPath);
 }
 
 export async function runAutolaunchVestingRelease(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareJobAction(args, "vesting", "release");
+  await postPrepareJobAction(args, "vesting", "release", {}, configPath);
 }
 
 export async function runAutolaunchVestingProposeBeneficiaryRotation(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareJobAction(args, "vesting", "propose_beneficiary_rotation", {
     beneficiary: requireArg(getFlag(args, "beneficiary"), "beneficiary"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchVestingCancelBeneficiaryRotation(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareJobAction(args, "vesting", "cancel_beneficiary_rotation");
+  await postPrepareJobAction(args, "vesting", "cancel_beneficiary_rotation", {}, configPath);
 }
 
 export async function runAutolaunchVestingExecuteBeneficiaryRotation(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareJobAction(args, "vesting", "execute_beneficiary_rotation");
+  await postPrepareJobAction(args, "vesting", "execute_beneficiary_rotation", {}, configPath);
 }
 
 export async function runAutolaunchFeeRegistryShow(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await runAutolaunchContractsJobShow(args);
+  await runAutolaunchContractsJobShow(args, configPath);
 }
 
 export async function runAutolaunchFeeVaultShow(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await runAutolaunchContractsJobShow(args);
+  await runAutolaunchContractsJobShow(args, configPath);
 }
 
 export async function runAutolaunchFeeVaultWithdrawTreasury(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareJobAction(args, "fee_vault", "withdraw_treasury", {
     currency: requireArg(getFlag(args, "currency"), "currency"),
     amount: requireArg(getFlag(args, "amount"), "amount"),
     recipient: requireArg(getFlag(args, "recipient"), "recipient"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchFeeVaultWithdrawRegent(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareJobAction(args, "fee_vault", "withdraw_regent_share", {
     currency: requireArg(getFlag(args, "currency"), "currency"),
     amount: requireArg(getFlag(args, "amount"), "amount"),
     recipient: requireArg(getFlag(args, "recipient"), "recipient"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterShow(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await runAutolaunchContractsSubjectShow(args);
+  await runAutolaunchContractsSubjectShow(args, configPath);
 }
 
 export async function runAutolaunchSplitterAcceptOwnership(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareSubjectAction(args, "revenue_splitter", "accept_ownership");
+  await postPrepareSubjectAction(args, "revenue_splitter", "accept_ownership", {}, configPath);
 }
 
 export async function runAutolaunchSplitterSetPaused(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "set_paused", {
     paused: requireArg(getFlag(args, "paused"), "paused"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterSetLabel(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "set_label", {
     label: requireArg(getFlag(args, "label"), "label"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterProposeEligibleRevenueShare(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "propose_eligible_revenue_share", {
     share_bps: requireArg(getFlag(args, "share-bps"), "share-bps"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterCancelEligibleRevenueShare(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareSubjectAction(args, "splitter", "cancel_eligible_revenue_share");
+  await postPrepareSubjectAction(args, "splitter", "cancel_eligible_revenue_share", {}, configPath);
 }
 
 export async function runAutolaunchSplitterActivateEligibleRevenueShare(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await postPrepareSubjectAction(args, "splitter", "activate_eligible_revenue_share");
+  await postPrepareSubjectAction(args, "splitter", "activate_eligible_revenue_share", {}, configPath);
 }
 
 export async function runAutolaunchSplitterProposeTreasuryRecipientRotation(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(
     args,
@@ -236,123 +254,142 @@ export async function runAutolaunchSplitterProposeTreasuryRecipientRotation(
     {
       recipient: requireArg(getFlag(args, "recipient"), "recipient"),
     },
+    configPath,
   );
 }
 
 export async function runAutolaunchSplitterCancelTreasuryRecipientRotation(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(
     args,
     "splitter",
     "cancel_treasury_recipient_rotation",
+    {},
+    configPath,
   );
 }
 
 export async function runAutolaunchSplitterExecuteTreasuryRecipientRotation(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(
     args,
     "splitter",
     "execute_treasury_recipient_rotation",
+    {},
+    configPath,
   );
 }
 
 export async function runAutolaunchSplitterSetProtocolRecipient(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "set_protocol_recipient", {
     recipient: requireArg(getFlag(args, "recipient"), "recipient"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterSweepTreasuryResidual(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "sweep_treasury_residual", {
     amount: requireArg(getFlag(args, "amount"), "amount"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterSweepTreasuryReserved(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "sweep_treasury_reserved", {
     amount: requireArg(getFlag(args, "amount"), "amount"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterSweepProtocolReserve(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "sweep_protocol_reserve", {
     amount: requireArg(getFlag(args, "amount"), "amount"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchSplitterReassignDust(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "reassign_dust", {
     amount: requireArg(getFlag(args, "amount"), "amount"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchIngressCreate(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "ingress_factory", "create", {
     label: requireArg(getFlag(args, "label"), "label"),
     make_default: getFlag(args, "make-default") ?? "false",
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchIngressSetDefault(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "ingress_factory", "set_default", {
     ingress_address: requireArg(getFlag(args, "address"), "address"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchIngressSetLabel(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "ingress_account", "set_label", {
     ingress_address: requireArg(getFlag(args, "address"), "address"),
     label: requireArg(getFlag(args, "label"), "label"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchIngressRescue(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "ingress_account", "rescue", {
     ingress_address: requireArg(getFlag(args, "address"), "address"),
     token: requireArg(getFlag(args, "token"), "token"),
     amount: requireArg(getFlag(args, "amount"), "amount"),
     recipient: requireArg(getFlag(args, "recipient"), "recipient"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchRegistryShow(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
-  await runAutolaunchContractsSubjectShow(args);
+  await runAutolaunchContractsSubjectShow(args, configPath);
 }
 
 export async function runAutolaunchRegistrySetSubjectManager(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "registry", "set_subject_manager", {
     account: requireArg(getFlag(args, "account"), "account"),
     enabled: requireArg(getFlag(args, "enabled"), "enabled"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchRegistryLinkIdentity(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "registry", "link_identity", {
     identity_chain_id: requireArg(
@@ -367,15 +404,16 @@ export async function runAutolaunchRegistryLinkIdentity(
       getFlag(args, "identity-agent-id"),
       "identity-agent-id",
     ),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchRegistryRotateSafe(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "registry", "rotate_safe", {
     new_safe: requireArg(getFlag(args, "new-safe"), "new-safe"),
-  });
+  }, configPath);
 }
 
 export async function runAutolaunchRevenueShareFactorySetAuthorizedCreator(
@@ -395,6 +433,7 @@ export async function runAutolaunchRevenueShareFactorySetAuthorizedCreator(
 
 export async function runAutolaunchRevenueIngressFactorySetAuthorizedCreator(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   await postPrepareAdminAction(
     "revenue_ingress_factory",
@@ -403,5 +442,6 @@ export async function runAutolaunchRevenueIngressFactorySetAuthorizedCreator(
       account: requireArg(getFlag(args, "account"), "account"),
       enabled: requireArg(getFlag(args, "enabled"), "enabled"),
     },
+    configPath,
   );
 }

@@ -46,13 +46,18 @@ export function requireAuthenticatedAgentContext(
     );
   }
 
+  if (!session.registryAddress || !session.tokenId) {
+    throw new AuthError(
+      "siwa_session_incomplete",
+      "active SIWA session is missing Agent account details; run `regents auth login` again",
+    );
+  }
+
   const mismatches = [
     session.walletAddress.toLowerCase() !== identity.walletAddress.toLowerCase() ? "walletAddress" : null,
     session.chainId !== identity.chainId ? "chainId" : null,
-    session.registryAddress && session.registryAddress.toLowerCase() !== identity.registryAddress.toLowerCase()
-      ? "registryAddress"
-      : null,
-    session.tokenId && session.tokenId !== identity.tokenId ? "tokenId" : null,
+    session.registryAddress.toLowerCase() !== identity.registryAddress.toLowerCase() ? "registryAddress" : null,
+    session.tokenId !== identity.tokenId ? "tokenId" : null,
   ].filter((value): value is string => value !== null);
 
   if (mismatches.length > 0) {

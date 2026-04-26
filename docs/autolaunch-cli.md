@@ -17,6 +17,8 @@ Chain language for this command group:
 The supported CLI surface is:
 
 ```bash
+regents auth login --audience autolaunch
+regents identity ensure
 regents autolaunch ...
 ```
 
@@ -59,16 +61,10 @@ The CLI pairs with the current Autolaunch site:
 
 - `AUTOLAUNCH_BASE_URL`
   Default: `http://127.0.0.1:4010`
-- `AUTOLAUNCH_SESSION_COOKIE`
-  Optional existing Phoenix session cookie.
-- `AUTOLAUNCH_PRIVY_BEARER_TOKEN`
-  Optional Privy bearer token for exchanging into a Phoenix session.
-- `AUTOLAUNCH_DISPLAY_NAME`
-  Optional display name sent during session exchange.
 - `AUTOLAUNCH_WALLET_ADDRESS`
-  Required wallet address when using `AUTOLAUNCH_PRIVY_BEARER_TOKEN`.
+  Optional website wallet address used by Safe setup commands.
 
-If `AUTOLAUNCH_SESSION_COOKIE` is not set and `AUTOLAUNCH_PRIVY_BEARER_TOKEN` is present, the CLI exchanges the bearer token plus `AUTOLAUNCH_WALLET_ADDRESS` against `/api/auth/privy/session` before calling authenticated endpoints.
+Protected Autolaunch commands use the saved Autolaunch sign-in from `regents auth login --audience autolaunch` and the Agent account saved by `regents identity ensure`. An Agent account is a wallet, registry address, and token ID.
 
 ## Agent quick start
 
@@ -77,6 +73,8 @@ If you are operating Autolaunch as an agent, use the guided lifecycle through `r
 From an installed package:
 
 ```bash
+regents auth login --audience autolaunch
+regents identity ensure
 regents autolaunch ...
 ```
 
@@ -262,6 +260,8 @@ regents autolaunch launch create \
   --symbol "AGENT" \
   --agent-safe-address <safe-address> \
   --wallet-address <address> \
+  --registry-address <address> \
+  --token-id <id> \
   --nonce <nonce> \
   --message <message> \
   --signature <signature> \

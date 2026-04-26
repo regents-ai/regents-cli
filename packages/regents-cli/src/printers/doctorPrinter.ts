@@ -1,5 +1,12 @@
 import type { DoctorCheckResult, DoctorReport, DoctorStatus } from "../internal-types/index.js";
-import { CLI_PALETTE, renderKeyValuePanel, renderPanel, renderTablePanel, type TableRow } from "../printer.js";
+import {
+    CLI_PALETTE,
+    isHumanTerminal,
+    renderKeyValuePanel,
+    renderPanel,
+    renderTablePanel,
+    type TableRow,
+} from "../printer.js";
 
 const ANSI = {
     reset: "\x1b[0m",
@@ -17,7 +24,7 @@ export interface RenderDoctorReportOptions {
     ci?: boolean;
 }
 
-const useColor = (): boolean => Boolean(process.stdout?.isTTY) && process.env.NO_COLOR !== "1";
+const useColor = (): boolean => isHumanTerminal();
 
 const tone = (value: string, color: string, bold = false): string => {
     if (!useColor()) {

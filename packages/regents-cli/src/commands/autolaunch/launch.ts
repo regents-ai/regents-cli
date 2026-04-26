@@ -95,6 +95,11 @@ export async function runAutolaunchLaunchCreate(
       getFlag(args, "wallet-address"),
       "wallet-address",
     ),
+    registry_address: requireArg(
+      getFlag(args, "registry-address"),
+      "registry-address",
+    ),
+    token_id: requireArg(getFlag(args, "token-id"), "token-id"),
     nonce: requireArg(getFlag(args, "nonce"), "nonce"),
     message: requireArg(getFlag(args, "message"), "message"),
     signature: requireArg(getFlag(args, "signature"), "signature"),

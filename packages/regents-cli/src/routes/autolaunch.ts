@@ -86,44 +86,44 @@ import { requireArg } from "../parse.js";
 import { route, type CliRoute } from "./shared.js";
 
 export const autolaunchRoutes: readonly CliRoute[] = [
-  route("autolaunch agents list", async ({ parsedArgs }) => {
-    await runAutolaunchAgentsList(parsedArgs);
+  route("autolaunch agents list", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchAgentsList(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch agent readiness <id>", async ({ positionals }) => {
-    await runAutolaunchAgentReadiness(requireArg(positionals[3], "agent-id"));
+  route("autolaunch agent readiness <id>", async ({ positionals, configPath }) => {
+    await runAutolaunchAgentReadiness(requireArg(positionals[3], "agent-id"), configPath);
     return 0;
   }),
-  route("autolaunch agent <id>", async ({ positionals }) => {
-    await runAutolaunchAgentShow(positionals[2] as string);
+  route("autolaunch agent <id>", async ({ positionals, configPath }) => {
+    await runAutolaunchAgentShow(positionals[2] as string, configPath);
     return 0;
   }),
-  route("autolaunch auctions list", async ({ parsedArgs }) => {
-    await runAutolaunchAuctionsList(parsedArgs);
+  route("autolaunch auctions list", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchAuctionsList(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch auction-returns list", async ({ parsedArgs, configPath }) => {
     await runAutolaunchAuctionReturnsList(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch auction <id>", async ({ positionals }) => {
-    await runAutolaunchAuctionShow(positionals[2] as string);
+  route("autolaunch auction <id>", async ({ positionals, configPath }) => {
+    await runAutolaunchAuctionShow(positionals[2] as string, configPath);
     return 0;
   }),
-  route("autolaunch bids quote", async ({ parsedArgs }) => {
-    await runAutolaunchBidsQuote(parsedArgs);
+  route("autolaunch bids quote", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchBidsQuote(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch bids place", async ({ parsedArgs }) => {
-    await runAutolaunchBidsPlace(parsedArgs);
+  route("autolaunch bids place", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchBidsPlace(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch bids exit", async ({ parsedArgs }) => {
-    await runAutolaunchBidsExit(parsedArgs);
+  route("autolaunch bids exit", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchBidsExit(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch bids claim", async ({ parsedArgs }) => {
-    await runAutolaunchBidsClaim(parsedArgs);
+  route("autolaunch bids claim", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchBidsClaim(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch ens plan", async ({ parsedArgs, configPath }) => {
@@ -258,160 +258,160 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchContractsAdminShow(configPath);
     return 0;
   }),
-  route("autolaunch contracts job", async ({ parsedArgs }) => {
-    await runAutolaunchContractsJobShow(parsedArgs);
+  route("autolaunch contracts job", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchContractsJobShow(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch contracts subject", async ({ parsedArgs }) => {
-    await runAutolaunchContractsSubjectShow(parsedArgs);
+  route("autolaunch contracts subject", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchContractsSubjectShow(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch strategy migrate", async ({ parsedArgs, configPath }) => {
     await runAutolaunchStrategyMigrate(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch strategy sweep-token", async ({ parsedArgs }) => {
-    await runAutolaunchStrategySweepToken(parsedArgs);
+  route("autolaunch strategy sweep-token", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchStrategySweepToken(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch strategy sweep-currency", async ({ parsedArgs }) => {
-    await runAutolaunchStrategySweepCurrency(parsedArgs);
+  route("autolaunch strategy sweep-currency", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchStrategySweepCurrency(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch vesting release", async ({ parsedArgs, configPath }) => {
     await runAutolaunchVestingRelease(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch vesting propose-beneficiary-rotation", async ({ parsedArgs }) => {
-    await runAutolaunchVestingProposeBeneficiaryRotation(parsedArgs);
+  route("autolaunch vesting propose-beneficiary-rotation", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchVestingProposeBeneficiaryRotation(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch vesting cancel-beneficiary-rotation", async ({ parsedArgs }) => {
-    await runAutolaunchVestingCancelBeneficiaryRotation(parsedArgs);
+  route("autolaunch vesting cancel-beneficiary-rotation", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchVestingCancelBeneficiaryRotation(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch vesting execute-beneficiary-rotation", async ({ parsedArgs }) => {
-    await runAutolaunchVestingExecuteBeneficiaryRotation(parsedArgs);
+  route("autolaunch vesting execute-beneficiary-rotation", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchVestingExecuteBeneficiaryRotation(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch vesting status", async ({ parsedArgs, configPath }) => {
     await runAutolaunchVestingStatus(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch fee-registry show", async ({ parsedArgs }) => {
-    await runAutolaunchFeeRegistryShow(parsedArgs);
+  route("autolaunch fee-registry show", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchFeeRegistryShow(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch fee-vault show", async ({ parsedArgs }) => {
-    await runAutolaunchFeeVaultShow(parsedArgs);
+  route("autolaunch fee-vault show", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchFeeVaultShow(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch fee-vault withdraw-treasury", async ({ parsedArgs }) => {
-    await runAutolaunchFeeVaultWithdrawTreasury(parsedArgs);
+  route("autolaunch fee-vault withdraw-treasury", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchFeeVaultWithdrawTreasury(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch fee-vault withdraw-regent", async ({ parsedArgs }) => {
-    await runAutolaunchFeeVaultWithdrawRegent(parsedArgs);
+  route("autolaunch fee-vault withdraw-regent", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchFeeVaultWithdrawRegent(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter show", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterShow(parsedArgs);
+  route("autolaunch splitter show", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterShow(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter accept-ownership", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterAcceptOwnership(parsedArgs);
+  route("autolaunch splitter accept-ownership", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterAcceptOwnership(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter set-paused", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterSetPaused(parsedArgs);
+  route("autolaunch splitter set-paused", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterSetPaused(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter set-label", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterSetLabel(parsedArgs);
+  route("autolaunch splitter set-label", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterSetLabel(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter propose-eligible-revenue-share", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterProposeEligibleRevenueShare(parsedArgs);
+  route("autolaunch splitter propose-eligible-revenue-share", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterProposeEligibleRevenueShare(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter cancel-eligible-revenue-share", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterCancelEligibleRevenueShare(parsedArgs);
+  route("autolaunch splitter cancel-eligible-revenue-share", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterCancelEligibleRevenueShare(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter activate-eligible-revenue-share", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterActivateEligibleRevenueShare(parsedArgs);
+  route("autolaunch splitter activate-eligible-revenue-share", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterActivateEligibleRevenueShare(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter propose-treasury-recipient-rotation", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterProposeTreasuryRecipientRotation(parsedArgs);
+  route("autolaunch splitter propose-treasury-recipient-rotation", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterProposeTreasuryRecipientRotation(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter cancel-treasury-recipient-rotation", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterCancelTreasuryRecipientRotation(parsedArgs);
+  route("autolaunch splitter cancel-treasury-recipient-rotation", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterCancelTreasuryRecipientRotation(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter execute-treasury-recipient-rotation", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterExecuteTreasuryRecipientRotation(parsedArgs);
+  route("autolaunch splitter execute-treasury-recipient-rotation", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterExecuteTreasuryRecipientRotation(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter set-protocol-recipient", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterSetProtocolRecipient(parsedArgs);
+  route("autolaunch splitter set-protocol-recipient", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterSetProtocolRecipient(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter sweep-treasury-residual", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterSweepTreasuryResidual(parsedArgs);
+  route("autolaunch splitter sweep-treasury-residual", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterSweepTreasuryResidual(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter sweep-treasury-reserved", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterSweepTreasuryReserved(parsedArgs);
+  route("autolaunch splitter sweep-treasury-reserved", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterSweepTreasuryReserved(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter sweep-protocol-reserve", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterSweepProtocolReserve(parsedArgs);
+  route("autolaunch splitter sweep-protocol-reserve", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterSweepProtocolReserve(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter reassign-dust", async ({ parsedArgs }) => {
-    await runAutolaunchSplitterReassignDust(parsedArgs);
+  route("autolaunch splitter reassign-dust", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterReassignDust(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch ingress create", async ({ parsedArgs }) => {
-    await runAutolaunchIngressCreate(parsedArgs);
+  route("autolaunch ingress create", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchIngressCreate(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch ingress set-default", async ({ parsedArgs }) => {
-    await runAutolaunchIngressSetDefault(parsedArgs);
+  route("autolaunch ingress set-default", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchIngressSetDefault(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch ingress set-label", async ({ parsedArgs }) => {
-    await runAutolaunchIngressSetLabel(parsedArgs);
+  route("autolaunch ingress set-label", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchIngressSetLabel(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch ingress rescue", async ({ parsedArgs }) => {
-    await runAutolaunchIngressRescue(parsedArgs);
+  route("autolaunch ingress rescue", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchIngressRescue(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch registry show", async ({ parsedArgs }) => {
-    await runAutolaunchRegistryShow(parsedArgs);
+  route("autolaunch registry show", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchRegistryShow(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch registry set-subject-manager", async ({ parsedArgs }) => {
-    await runAutolaunchRegistrySetSubjectManager(parsedArgs);
+  route("autolaunch registry set-subject-manager", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchRegistrySetSubjectManager(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch registry link-identity", async ({ parsedArgs }) => {
-    await runAutolaunchRegistryLinkIdentity(parsedArgs);
+  route("autolaunch registry link-identity", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchRegistryLinkIdentity(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch registry rotate-safe", async ({ parsedArgs }) => {
-    await runAutolaunchRegistryRotateSafe(parsedArgs);
+  route("autolaunch registry rotate-safe", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchRegistryRotateSafe(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch factory revenue-share set-authorized-creator", async ({ parsedArgs }) => {
-    await runAutolaunchRevenueShareFactorySetAuthorizedCreator(parsedArgs);
+  route("autolaunch factory revenue-share set-authorized-creator", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchRevenueShareFactorySetAuthorizedCreator(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch factory revenue-ingress set-authorized-creator", async ({ parsedArgs }) => {
-    await runAutolaunchRevenueIngressFactorySetAuthorizedCreator(parsedArgs);
+  route("autolaunch factory revenue-ingress set-authorized-creator", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchRevenueIngressFactorySetAuthorizedCreator(parsedArgs, configPath);
     return 0;
   }),
 ];

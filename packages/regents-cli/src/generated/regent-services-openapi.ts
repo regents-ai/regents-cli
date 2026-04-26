@@ -308,118 +308,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/regent/staking": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getRegentStakingOverview"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/regent/staking/account/{address}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getRegentStakingAccount"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/regent/staking/stake": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["stakeRegent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/regent/staking/unstake": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["unstakeRegent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/regent/staking/claim-usdc": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["claimRegentStakingUsdc"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/regent/staking/claim-regent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["claimRegentStakingRegent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/regent/staking/claim-and-restake-regent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["claimAndRestakeRegentStakingRegent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/agent/regent/staking": {
         parameters: {
             query?: never;
@@ -532,38 +420,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/regent/staking/deposit-usdc/prepare": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["prepareRegentStakingDepositUsdc"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/regent/staking/withdraw-treasury/prepare": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["prepareRegentStakingTreasuryWithdraw"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/agent/bug-report": {
         parameters: {
             query?: never;
@@ -659,6 +515,7 @@ export interface components {
         };
         IdentityRegistrationCompletionRequest: {
             intent_id: string;
+            /** @description Canonical SIWA message containing wallet address, chain id, registry address, token id, nonce, and issue time. */
             message?: string;
             signature: components["schemas"]["HexData"];
             address: components["schemas"]["Address"];
@@ -786,7 +643,9 @@ export interface components {
         };
         SiwaHttpVerifyRequest: {
             method: string;
+            /** @description Absolute signed path, including the query string when present. */
             path: string;
+            /** @description Signed Agent account headers. The current shape requires x-siwa-receipt, signature, signature-input, x-key-id, x-timestamp, x-agent-wallet-address, x-agent-chain-id, x-agent-registry-address, and x-agent-token-id. Requests with a body also require content-digest. */
             headers: {
                 [key: string]: string;
             };
@@ -881,15 +740,6 @@ export interface components {
         };
         AmountRequest: {
             amount: components["schemas"]["DecimalString"];
-        };
-        DepositUsdcRequest: {
-            amount: components["schemas"]["DecimalString"];
-            source_tag: string;
-            source_ref: string;
-        };
-        WithdrawTreasuryRequest: {
-            amount: components["schemas"]["DecimalString"];
-            recipient?: components["schemas"]["Address"];
         };
         TxRequest: {
             chain_id?: components["schemas"]["BaseChainId"];
@@ -1291,9 +1141,9 @@ export interface operations {
     verifySharedSiwaHttpEnvelope: {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Optional app audience that the SIWA receipt must match for this protected request */
-                "x-siwa-audience"?: string;
+            header: {
+                /** @description App audience that the SIWA receipt must match for this protected request */
+                "x-siwa-audience": string;
             };
             path?: never;
             cookie?: never;
@@ -1845,168 +1695,6 @@ export interface operations {
             };
         };
     };
-    getRegentStakingOverview: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Staking overview */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RegentStakingOverviewResponse"];
-                };
-            };
-        };
-    };
-    getRegentStakingAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                address: components["schemas"]["Address"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Account staking state */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RegentStakingAccountResponse"];
-                };
-            };
-        };
-    };
-    stakeRegent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AmountRequest"];
-            };
-        };
-        responses: {
-            /** @description Stake prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PreparedActionResponse"];
-                };
-            };
-        };
-    };
-    unstakeRegent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AmountRequest"];
-            };
-        };
-        responses: {
-            /** @description Unstake prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PreparedActionResponse"];
-                };
-            };
-        };
-    };
-    claimRegentStakingUsdc: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": Record<string, never>;
-            };
-        };
-        responses: {
-            /** @description Claim prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PreparedActionResponse"];
-                };
-            };
-        };
-    };
-    claimRegentStakingRegent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": Record<string, never>;
-            };
-        };
-        responses: {
-            /** @description Regent claim prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PreparedActionResponse"];
-                };
-            };
-        };
-    };
-    claimAndRestakeRegentStakingRegent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": Record<string, never>;
-            };
-        };
-        responses: {
-            /** @description Regent claim and restake prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PreparedActionResponse"];
-                };
-            };
-        };
-    };
     getAgentRegentStakingOverview: {
         parameters: {
             query?: never;
@@ -2159,54 +1847,6 @@ export interface operations {
         };
         responses: {
             /** @description Regent claim and restake prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PreparedActionResponse"];
-                };
-            };
-        };
-    };
-    prepareRegentStakingDepositUsdc: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DepositUsdcRequest"];
-            };
-        };
-        responses: {
-            /** @description Deposit prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PreparedActionResponse"];
-                };
-            };
-        };
-    };
-    prepareRegentStakingTreasuryWithdraw: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["WithdrawTreasuryRequest"];
-            };
-        };
-        responses: {
-            /** @description Treasury withdraw prepared */
             200: {
                 headers: {
                     [name: string]: unknown;

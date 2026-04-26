@@ -10,6 +10,7 @@ const AUTH_DEBUG_HEADER_NAMES = [
   "x-agent-chain-id",
   "x-agent-registry-address",
   "x-agent-token-id",
+  "content-digest",
   "signature-input",
   "signature",
   "content-type",
@@ -17,7 +18,7 @@ const AUTH_DEBUG_HEADER_NAMES = [
 
 type AuthDebugHeaderName = (typeof AUTH_DEBUG_HEADER_NAMES)[number];
 
-export interface ProtectedTechtreeAuthDebugSnapshot {
+export interface ProtectedAgentAuthDebugSnapshot {
   method: AuthenticatedRequestInput["method"];
   signedPath: string;
   finalUrl: string;
@@ -25,7 +26,7 @@ export interface ProtectedTechtreeAuthDebugSnapshot {
   authHeaders: Record<AuthDebugHeaderName, string | null>;
 }
 
-export interface ProtectedTechtreeAuthFailureDebugSnapshot {
+export interface ProtectedAgentAuthFailureDebugSnapshot {
   status: number;
   statusText: string;
   responseHeaders: Record<string, string>;
@@ -44,6 +45,24 @@ export interface AuthenticatedRequestInput {
 
 const serializeJsonBody = (body: unknown): string | undefined => (body === undefined ? undefined : JSON.stringify(body));
 
+const requireBoundAgentIdentity = (identity: LocalAgentIdentity): {
+  walletAddress: `0x${string}`;
+  chainId: number;
+  registryAddress: `0x${string}`;
+  tokenId: string;
+} => {
+  if (!identity.registryAddress || !identity.tokenId) {
+    throw new Error("This command needs a saved Agent account. Run `regents identity ensure` first.");
+  }
+
+  return {
+    walletAddress: identity.walletAddress,
+    chainId: identity.chainId,
+    registryAddress: identity.registryAddress,
+    tokenId: identity.tokenId,
+  };
+};
+
 const headerEntries = (headers: RequestInit["headers"]): [string, string][] => {
   if (headers instanceof Headers) {
     return [...headers.entries()];
@@ -60,13 +79,15 @@ export async function buildAuthenticatedFetchInit(
   input: AuthenticatedRequestInput,
 ): Promise<{ urlPath: string; serializedJsonBody?: string; init: RequestInit }> {
   const serializedBody = serializeJsonBody(input.body);
+  const agentIdentity = requireBoundAgentIdentity(input.agentIdentity);
   const sharedInput = {
     method: input.method,
     path: input.path,
-    walletAddress: input.agentIdentity.walletAddress,
-    chainId: input.agentIdentity.chainId,
-    registryAddress: input.agentIdentity.registryAddress,
-    tokenId: input.agentIdentity.tokenId,
+    ...(serializedBody === undefined ? {} : { body: serializedBody }),
+    walletAddress: agentIdentity.walletAddress,
+    chainId: agentIdentity.chainId,
+    registryAddress: agentIdentity.registryAddress,
+    tokenId: agentIdentity.tokenId,
     receipt: input.session.receipt,
   };
   const signedHeaders = input.signMessage
@@ -102,13 +123,13 @@ export const protectedWriteAuthDebugEnabled = (): boolean => {
   return process.env.REGENT_PROTECTED_WRITE_AUTH_DEBUG === "1";
 };
 
-export const buildProtectedTechtreeAuthDebugSnapshot = (input: {
+export const buildProtectedAgentAuthDebugSnapshot = (input: {
   method: AuthenticatedRequestInput["method"];
   signedPath: string;
   finalUrl: string;
   serializedJsonBody?: string;
   headers: RequestInit["headers"];
-}): ProtectedTechtreeAuthDebugSnapshot => {
+}): ProtectedAgentAuthDebugSnapshot => {
   const lowerCaseHeaders = new Map(
     headerEntries(input.headers).map(([key, value]) => [key.toLowerCase(), value]),
   );
@@ -120,7 +141,7 @@ export const buildProtectedTechtreeAuthDebugSnapshot = (input: {
     serializedJsonBody: input.serializedJsonBody ?? null,
     authHeaders: Object.fromEntries(
       AUTH_DEBUG_HEADER_NAMES.map((name) => [name, lowerCaseHeaders.get(name) ?? null]),
-    ) as ProtectedTechtreeAuthDebugSnapshot["authHeaders"],
+    ) as ProtectedAgentAuthDebugSnapshot["authHeaders"],
   };
 };
 
@@ -132,6 +153,6 @@ export const emitProtectedWriteAuthDebug = (_event: string, _payload: unknown): 
 
 export const captureProtectedWriteAuthFailureDebug = async (
   _response: Response,
-): Promise<ProtectedTechtreeAuthFailureDebugSnapshot | null> => {
+): Promise<ProtectedAgentAuthFailureDebugSnapshot | null> => {
   return null;
 };

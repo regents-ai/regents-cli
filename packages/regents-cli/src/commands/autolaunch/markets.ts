@@ -29,6 +29,7 @@ const postBidMutation = async (
   action: "exit" | "claim",
   bidId: string,
   txHash: string,
+  configPath?: string,
 ): Promise<void> => {
   printJson(
     await requestJson(
@@ -37,6 +38,7 @@ const postBidMutation = async (
       {
         body: { tx_hash: txHash },
         requireAgentAuth: true,
+        configPath,
       },
     ),
   );
@@ -44,6 +46,7 @@ const postBidMutation = async (
 
 export async function runAutolaunchAuctionsList(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   printJson(
     await requestTypedJson<AutolaunchAuctionsListResponse>(
@@ -54,23 +57,27 @@ export async function runAutolaunchAuctionsList(
         chain: getFlag(args, "chain"),
         mine_only: getBooleanFlag(args, "mine-only"),
       }),
+      { requireAgentAuth: true, configPath },
     ),
   );
 }
 
 export async function runAutolaunchAuctionShow(
   auctionId: string,
+  configPath?: string,
 ): Promise<void> {
   printJson(
     await requestTypedJson<AutolaunchAuctionResponse>(
       "GET",
       `/v1/agent/auctions/${encodeURIComponent(auctionId)}`,
+      { requireAgentAuth: true, configPath },
     ),
   );
 }
 
 export async function runAutolaunchBidsQuote(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   const auctionId = requireArg(getFlag(args, "auction"), "auction");
   const body = {
@@ -84,6 +91,8 @@ export async function runAutolaunchBidsQuote(
       `/v1/agent/auctions/${encodeURIComponent(auctionId)}/bid_quote`,
       {
         body,
+        requireAgentAuth: true,
+        configPath,
       },
     ),
   );
@@ -91,6 +100,7 @@ export async function runAutolaunchBidsQuote(
 
 export async function runAutolaunchBidsPlace(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   const auctionId = requireArg(getFlag(args, "auction"), "auction");
   const body = {
@@ -115,6 +125,7 @@ export async function runAutolaunchBidsPlace(
       {
         body,
         requireAgentAuth: true,
+        configPath,
       },
     ),
   );
@@ -122,23 +133,27 @@ export async function runAutolaunchBidsPlace(
 
 export async function runAutolaunchBidsExit(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   const bidId = requirePositional(args, 3, "bid-id");
   await postBidMutation(
     "exit",
     bidId,
     requireArg(getFlag(args, "tx-hash"), "tx-hash"),
+    configPath,
   );
 }
 
 export async function runAutolaunchBidsClaim(
   args: ParsedCliArgs,
+  configPath?: string,
 ): Promise<void> {
   const bidId = requirePositional(args, 3, "bid-id");
   await postBidMutation(
     "claim",
     bidId,
     requireArg(getFlag(args, "tx-hash"), "tx-hash"),
+    configPath,
   );
 }
 

@@ -26,9 +26,14 @@ const CONTROL_CHARACTER_PATTERN = /[\u0000-\u0008\u000B\u000C\u000D-\u001F\u007F
 
 export const stripAnsi = (value: string): string => value.replace(ANSI_PATTERN, "");
 
-export const isHumanTerminal = (): boolean => Boolean(process.stdout.isTTY) && process.env.NO_COLOR !== "1";
+export const isHumanTerminal = (): boolean =>
+  Boolean(process.stdout.isTTY) && process.env.NO_COLOR === undefined && process.env.TERM !== "dumb";
 
 export const tone = (value: string, color: string, bold = false): string => {
+  if (!isHumanTerminal()) {
+    return value;
+  }
+
   const prefix = `${bold ? ANSI.bold : ""}${color}`;
   return `${prefix}${value}${ANSI.reset}`;
 };
