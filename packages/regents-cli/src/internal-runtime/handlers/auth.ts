@@ -53,13 +53,17 @@ export async function handleAuthSiwaLogin(
     );
   }
   const audience = normalizeAudience(params.audience ?? ctx.config.auth.audience);
-  const authClient = new SiwaClient(ctx.config.auth.baseUrl, ctx.config.auth.requestTimeoutMs);
+  const authClient = new SiwaClient(
+    ctx.config.services.siwa.baseUrl,
+    ctx.config.services.siwa.requestTimeoutMs,
+    ctx.config,
+  );
 
   await ensureIdentity({
     network,
     forceRefresh: false,
     walletHint,
-    timeoutSeconds: Math.max(1, Math.ceil(ctx.config.auth.requestTimeoutMs / 1000)),
+    timeoutSeconds: Math.max(1, Math.ceil(ctx.config.services.siwa.requestTimeoutMs / 1000)),
     config: ctx.config,
   });
 
@@ -73,7 +77,7 @@ export async function handleAuthSiwaLogin(
 
   const signer = await resolveSignerFromReceipt(identityReceipt, {
     config: ctx.config,
-    timeoutMs: ctx.config.auth.requestTimeoutMs,
+    timeoutMs: ctx.config.services.siwa.requestTimeoutMs,
   });
   const identity = receiptToIdentity(identityReceipt);
   const walletAddress = signer.address;

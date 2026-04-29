@@ -8,40 +8,45 @@ import type { RegentConfig } from "../internal-types/index.js";
 import { ConfigError } from "./errors.js";
 import {
   defaultConfigPath as deriveDefaultConfigPath,
-  ensureParentDir,
+  ensureSecureDir,
   expandHome,
+  writeJsonFileAtomicSync,
 } from "./paths.js";
 
 const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 const xmtpEnvSchema = z.enum(["local", "dev", "production"]);
 const siwaAudienceSchema = z.enum(["platform", "autolaunch", "techtree", "regent-services"]);
+const serviceConfigSchema = z.object({
+  baseUrl: z.string().url(),
+  requestTimeoutMs: z.number().int().positive(),
+}).strict();
 
 const configSchema = z.object({
   runtime: z.object({
     socketPath: z.string().min(1),
     stateDir: z.string().min(1),
     logLevel: logLevelSchema,
-  }),
+  }).strict(),
   auth: z.object({
-    baseUrl: z.string().url(),
     audience: siwaAudienceSchema,
     defaultChainId: z.number().int().positive(),
-    requestTimeoutMs: z.number().int().positive(),
-  }),
-  techtree: z.object({
-    baseUrl: z.string().url(),
-    requestTimeoutMs: z.number().int().positive(),
-  }),
+  }).strict(),
+  services: z.object({
+    siwa: serviceConfigSchema,
+    platform: serviceConfigSchema,
+    autolaunch: serviceConfigSchema,
+    techtree: serviceConfigSchema,
+  }).strict(),
   wallet: z.object({
     privateKeyEnv: z.string().min(1),
     keystorePath: z.string().min(1),
-  }),
+  }).strict(),
   gossipsub: z.object({
     enabled: z.boolean(),
     listenAddrs: z.array(z.string()),
     bootstrap: z.array(z.string()),
     peerIdPath: z.string().min(1),
-  }),
+  }).strict(),
   xmtp: z.object({
     enabled: z.boolean(),
     env: xmtpEnvSchema,
@@ -55,8 +60,8 @@ const configSchema = z.object({
       owner: z.string().min(1),
       public: z.string().min(1),
       group: z.string().min(1),
-    }),
-  }),
+    }).strict(),
+  }).strict(),
   agents: z.object({
     defaultHarness: z.enum(["openclaw", "hermes", "claude_code", "custom"]),
     harnesses: z.record(
@@ -66,22 +71,30 @@ const configSchema = z.object({
         entrypoint: z.string().min(1),
         workspaceRoot: z.string().min(1),
         profiles: z.array(z.string().min(1)),
-      }),
+      }).strict(),
     ),
-  }),
+  }).strict(),
   workloads: z.object({
     bbh: z.object({
       workspaceRoot: z.string().min(1),
       defaultHarness: z.enum(["openclaw", "hermes", "claude_code", "custom"]),
       defaultProfile: z.string().min(1),
-    }),
-  }),
-});
+    }).strict(),
+  }).strict(),
+}).strict();
 
 const configOverrideSchema = z.object({
   runtime: configSchema.shape.runtime.partial().optional(),
   auth: configSchema.shape.auth.partial().optional(),
-  techtree: configSchema.shape.techtree.partial().optional(),
+  services: configSchema.shape.services
+    .extend({
+      siwa: serviceConfigSchema.partial().optional(),
+      platform: serviceConfigSchema.partial().optional(),
+      autolaunch: serviceConfigSchema.partial().optional(),
+      techtree: serviceConfigSchema.partial().optional(),
+    })
+    .partial()
+    .optional(),
   wallet: configSchema.shape.wallet.partial().optional(),
   gossipsub: configSchema.shape.gossipsub.partial().optional(),
   xmtp: configSchema.shape.xmtp
@@ -105,7 +118,7 @@ const configOverrideSchema = z.object({
     })
     .partial()
     .optional(),
-});
+}).strict();
 
 const normalizePath = (input: string, rootDir?: string): string => {
   const expanded = expandHome(input);
@@ -162,8 +175,11 @@ const normalizeConfig = (config: RegentConfig, configPath?: string): RegentConfi
     auth: {
       ...config.auth,
     },
-    techtree: {
-      ...config.techtree,
+    services: {
+      siwa: { ...config.services.siwa },
+      platform: { ...config.services.platform },
+      autolaunch: { ...config.services.autolaunch },
+      techtree: { ...config.services.techtree },
     },
     wallet: {
       ...config.wallet,
@@ -257,18 +273,18 @@ export const workloadDefaultsForRoot = (rootDir: string): RegentConfig["workload
 });
 
 const ensureConfigDirectories = (config: RegentConfig): void => {
-  fs.mkdirSync(config.runtime.stateDir, { recursive: true });
-  fs.mkdirSync(path.dirname(config.runtime.socketPath), { recursive: true });
-  fs.mkdirSync(path.dirname(config.wallet.keystorePath), { recursive: true });
-  fs.mkdirSync(path.dirname(config.gossipsub.peerIdPath), { recursive: true });
-  fs.mkdirSync(path.dirname(config.xmtp.dbPath), { recursive: true });
-  fs.mkdirSync(path.dirname(config.xmtp.dbEncryptionKeyPath), { recursive: true });
-  fs.mkdirSync(path.dirname(config.xmtp.walletKeyPath), { recursive: true });
-  fs.mkdirSync(path.dirname(config.xmtp.publicPolicyPath), { recursive: true });
+  ensureSecureDir(config.runtime.stateDir);
+  ensureSecureDir(path.dirname(config.runtime.socketPath));
+  ensureSecureDir(path.dirname(config.wallet.keystorePath));
+  ensureSecureDir(path.dirname(config.gossipsub.peerIdPath));
+  ensureSecureDir(path.dirname(config.xmtp.dbPath));
+  ensureSecureDir(path.dirname(config.xmtp.dbEncryptionKeyPath));
+  ensureSecureDir(path.dirname(config.xmtp.walletKeyPath));
+  ensureSecureDir(path.dirname(config.xmtp.publicPolicyPath));
   for (const harness of Object.values(config.agents.harnesses)) {
-    fs.mkdirSync(harness.workspaceRoot, { recursive: true });
+    ensureSecureDir(harness.workspaceRoot);
   }
-  fs.mkdirSync(config.workloads.bbh.workspaceRoot, { recursive: true });
+  ensureSecureDir(config.workloads.bbh.workspaceRoot);
 };
 
 export function defaultConfig(configPath?: string): RegentConfig {
@@ -281,14 +297,26 @@ export function defaultConfig(configPath?: string): RegentConfig {
       logLevel: "info",
     },
     auth: {
-      baseUrl: "http://127.0.0.1:4000",
       audience: "techtree",
       defaultChainId: 84532,
-      requestTimeoutMs: 10_000,
     },
-    techtree: {
-      baseUrl: "http://127.0.0.1:4001",
-      requestTimeoutMs: 10_000,
+    services: {
+      siwa: {
+        baseUrl: "http://127.0.0.1:4000",
+        requestTimeoutMs: 10_000,
+      },
+      platform: {
+        baseUrl: "http://127.0.0.1:4000",
+        requestTimeoutMs: 10_000,
+      },
+      autolaunch: {
+        baseUrl: "http://127.0.0.1:4010",
+        requestTimeoutMs: 10_000,
+      },
+      techtree: {
+        baseUrl: "http://127.0.0.1:4001",
+        requestTimeoutMs: 10_000,
+      },
     },
     wallet: {
       privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -359,9 +387,8 @@ export function writeConfigReplacement(configPath: string, nextConfig: unknown):
     throw new ConfigError(`normalized replacement config failed validation: ${validatedNormalized.error.message}`);
   }
 
-  ensureParentDir(resolvedConfigPath);
   ensureConfigDirectories(validatedNormalized.data);
-  fs.writeFileSync(resolvedConfigPath, `${JSON.stringify(validatedNormalized.data, null, 2)}\n`, "utf8");
+  writeJsonFileAtomicSync(resolvedConfigPath, validatedNormalized.data);
   return validatedNormalized.data;
 }
 
@@ -375,9 +402,8 @@ export function writeInitialConfig(configPath: string, overrides?: Partial<Regen
     throw new ConfigError(`initial config failed validation: ${validated.error.message}`);
   }
 
-  ensureParentDir(resolvedConfigPath);
   ensureConfigDirectories(validated.data);
-  fs.writeFileSync(resolvedConfigPath, `${JSON.stringify(validated.data, null, 2)}\n`, "utf8");
+  writeJsonFileAtomicSync(resolvedConfigPath, validated.data);
 }
 
 export function writeInitialConfigIfMissing(configPath: string, overrides?: Partial<RegentConfig>): boolean {

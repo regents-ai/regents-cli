@@ -8,7 +8,7 @@ import type { RegentConfig, RegentIdentityNetwork } from "../internal-types/inde
 import { CommandExitError } from "./errors.js";
 import { receiptMatchesRequest } from "./identity/cache.js";
 import { readIdentityReceipt } from "./identity/cache.js";
-import { ensureParentDir } from "./paths.js";
+import { writeJsonFileAtomicSync } from "./paths.js";
 
 const execFileAsync = promisify(execFile);
 const ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/u;
@@ -70,10 +70,7 @@ const readWalletState = (config: RegentConfig): CoinbaseWalletAccount | null => 
 
 const writeWalletState = (config: RegentConfig, account: CoinbaseWalletAccount): string => {
   const filePath = walletStatePath(config);
-  ensureParentDir(filePath);
-  const tempPath = `${filePath}.tmp`;
-  fs.writeFileSync(tempPath, `${JSON.stringify(account, null, 2)}\n`, "utf8");
-  fs.renameSync(tempPath, filePath);
+  writeJsonFileAtomicSync(filePath, account);
   return filePath;
 };
 
@@ -215,7 +212,7 @@ export const resolveCoinbaseAccount = async (
   config: RegentConfig,
   input?: { walletHint?: string; expectedAddress?: `0x${string}`; timeoutMs?: number },
 ): Promise<CoinbaseWalletAccount | null> => {
-  const timeoutMs = input?.timeoutMs ?? config.auth.requestTimeoutMs;
+  const timeoutMs = input?.timeoutMs ?? config.services.siwa.requestTimeoutMs;
   return resolveStoredOrNamedAccount(config, timeoutMs, input);
 };
 
@@ -266,7 +263,7 @@ const matchingReceiptForStatus = (
     !receiptMatchesRequest({
       receipt,
       network: input?.network ?? receipt.network,
-      regentBaseUrl: config.auth.baseUrl,
+      regentBaseUrl: config.services.siwa.baseUrl,
       walletHint: account.address,
     })
   ) {
@@ -297,7 +294,7 @@ export const coinbaseStatus = async (
   config: RegentConfig,
   input?: { walletHint?: string; network?: RegentIdentityNetwork; timeoutMs?: number },
 ): Promise<CoinbaseWalletStatus> => {
-  const timeoutMs = input?.timeoutMs ?? config.auth.requestTimeoutMs;
+  const timeoutMs = input?.timeoutMs ?? config.services.siwa.requestTimeoutMs;
   let cliAvailable = true;
   let account: CoinbaseWalletAccount | null = null;
   try {
@@ -348,7 +345,7 @@ export const setupCoinbaseWallet = async (
   state_path: string;
 }> => {
   requireCdpReadyForWrites();
-  const timeoutMs = input?.timeoutMs ?? config.auth.requestTimeoutMs;
+  const timeoutMs = input?.timeoutMs ?? config.services.siwa.requestTimeoutMs;
   const walletName = input?.walletName || DEFAULT_ACCOUNT_NAME;
 
   let wallet = await resolveStoredOrNamedAccount(config, timeoutMs, { walletHint: walletName });
@@ -378,7 +375,7 @@ export const signMessageWithCoinbase = async (
   input: { message: string; walletHint?: string; timeoutMs?: number; expectedAddress?: `0x${string}` },
 ): Promise<{ provider: typeof COINBASE_PROVIDER; address: `0x${string}`; walletHint?: string; signature: `0x${string}` }> => {
   requireCdpReadyForWrites();
-  const timeoutMs = input.timeoutMs ?? config.auth.requestTimeoutMs;
+  const timeoutMs = input.timeoutMs ?? config.services.siwa.requestTimeoutMs;
   const wallet = await resolveStoredOrNamedAccount(config, timeoutMs, {
     walletHint: input.walletHint,
     expectedAddress: input.expectedAddress,

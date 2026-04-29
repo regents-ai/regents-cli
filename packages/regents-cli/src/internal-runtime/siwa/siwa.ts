@@ -1,4 +1,5 @@
 import type {
+  RegentConfig,
   SiwaNonceRequest,
   SiwaNonceResponse,
   SiwaVerifyRequest,
@@ -6,10 +7,12 @@ import type {
 } from "../../internal-types/index.js";
 
 import { AuthError } from "../errors.js";
+import { ProductHttpError, requestProductResponse } from "../product-http-client.js";
 
 const DEFAULT_DOMAIN = "regent.cx";
 const DEFAULT_URI = "https://regent.cx/v1/agent/siwa/verify";
 const DEFAULT_STATEMENT = "Sign in to Regents CLI.";
+type SiwaRequestBody = NonNullable<Parameters<typeof fetch>[1]> extends { readonly body?: infer Body } ? Body : never;
 
 export function buildSiwaMessage(input: {
   domain: string;
@@ -84,10 +87,12 @@ const parseSiwaErrorResponse = async (response: Response): Promise<AuthError> =>
 export class SiwaClient {
   readonly baseUrl: string;
   readonly timeoutMs: number;
+  readonly config?: RegentConfig;
 
-  constructor(baseUrl: string, timeoutMs: number) {
+  constructor(baseUrl: string, timeoutMs: number, config?: RegentConfig) {
     this.baseUrl = baseUrl.replace(/\/+$/, "");
     this.timeoutMs = timeoutMs;
+    this.config = config;
   }
 
   async requestNonce(input: SiwaNonceRequest): Promise<SiwaNonceResponse> {
@@ -147,22 +152,41 @@ export class SiwaClient {
   }
 
   private async fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+    const parsedUrl = new URL(url);
 
     try {
-      return await fetch(url, {
-        ...init,
-        signal: controller.signal,
+      const { response } = await requestProductResponse({
+        service: "siwa",
+        method: init.method === "GET" || init.method === "DELETE" ? init.method : "POST",
+        path: `${parsedUrl.pathname}${parsedUrl.search}`,
+        config: this.config,
+        commandName: "regents siwa",
+        chainId: chainIdFromBody(init.body),
+        timeoutMs: this.timeoutMs,
+        headers: init.headers,
+        body: init.body,
+        baseUrlOverride: this.baseUrl,
       });
+      return response;
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
+      if (error instanceof ProductHttpError && error.timedOut) {
         throw new AuthError("siwa_timeout", `request to ${url} timed out`, error);
       }
 
       throw new AuthError("siwa_request_failed", `request to ${url} failed`, error);
-    } finally {
-      clearTimeout(timeout);
     }
   }
 }
+
+const chainIdFromBody = (body: SiwaRequestBody | null | undefined): number | undefined => {
+  if (typeof body !== "string") {
+    return undefined;
+  }
+
+  try {
+    const payload = JSON.parse(body) as { chain_id?: unknown };
+    return typeof payload.chain_id === "number" ? payload.chain_id : undefined;
+  } catch {
+    return undefined;
+  }
+};

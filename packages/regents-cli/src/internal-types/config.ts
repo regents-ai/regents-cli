@@ -9,16 +9,21 @@ export interface RegentRuntimeConfig {
   logLevel: RegentLogLevel;
 }
 
-export interface RegentTechtreeConfig {
+export interface RegentServiceConfig {
   baseUrl: string;
   requestTimeoutMs: number;
 }
 
+export interface RegentServicesConfig {
+  siwa: RegentServiceConfig;
+  platform: RegentServiceConfig;
+  autolaunch: RegentServiceConfig;
+  techtree: RegentServiceConfig;
+}
+
 export interface RegentAuthConfig {
-  baseUrl: string;
   audience: SiwaAudience;
   defaultChainId: number;
-  requestTimeoutMs: number;
 }
 
 export interface RegentWalletConfig {
@@ -75,7 +80,7 @@ export interface RegentWorkloadsConfig {
 export interface RegentConfig {
   runtime: RegentRuntimeConfig;
   auth: RegentAuthConfig;
-  techtree: RegentTechtreeConfig;
+  services: RegentServicesConfig;
   wallet: RegentWalletConfig;
   xmtp: RegentXmtpConfig;
   gossipsub: RegentGossipsubConfig;

@@ -102,6 +102,15 @@ export function requireArg(value: string | undefined, name: string): string {
   return value;
 }
 
+export function requirePositional(args: ParsedCliArgs, index: number, label: string): string {
+  const value = args.positionals[index];
+  if (!value) {
+    throw new Error(`missing required positional argument: ${label}`);
+  }
+
+  return value;
+}
+
 export function parsePositiveInteger(value: string, errorMessage: string): number {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0 || String(parsed) !== value) {

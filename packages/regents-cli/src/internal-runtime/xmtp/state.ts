@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -10,7 +9,7 @@ import type {
 } from "../../internal-types/index.js";
 
 import { errorMessage } from "../errors.js";
-import { ensureParentDir } from "../paths.js";
+import { writeJsonFileAtomicSync } from "../paths.js";
 
 export const MAX_RECENT_ERRORS = 10;
 export const MAX_RECENT_CONVERSATIONS = 20;
@@ -96,18 +95,7 @@ export const readXmtpRuntimeState = (config: RegentConfig["xmtp"]): XmtpRuntimeS
 
 export const writeXmtpRuntimeState = (config: RegentConfig["xmtp"], state: XmtpRuntimeState): XmtpRuntimeState => {
   const statePath = xmtpRuntimeStatePath(config);
-  ensureParentDir(statePath);
-  const tempPath = `${statePath}.${crypto.randomUUID()}.tmp`;
-  fs.writeFileSync(tempPath, `${JSON.stringify(state, null, 2)}\n`, "utf8");
-
-  const fileHandle = fs.openSync(tempPath, "r");
-  try {
-    fs.fsyncSync(fileHandle);
-  } finally {
-    fs.closeSync(fileHandle);
-  }
-
-  fs.renameSync(tempPath, statePath);
+  writeJsonFileAtomicSync(statePath, state);
   return state;
 };
 

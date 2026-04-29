@@ -9,10 +9,12 @@ import type {
   IdentitySiwaVerifyResponse,
   IdentityStatusRequest,
   IdentityStatusResponse,
+  RegentConfig,
 } from "../../internal-types/index.js";
 
 import { CommandExitError } from "../errors.js";
-import { normalizeRegentBaseUrl } from "./shared.js";
+import { ProductHttpError, requestProductResponse } from "../product-http-client.js";
+import { identityNetworkChainId, normalizeRegentBaseUrl } from "./shared.js";
 
 const ensureOkEnvelope = <T extends { ok?: boolean; error?: unknown }>(payload: unknown): T => {
   if (typeof payload !== "object" || payload === null || !("ok" in payload) || (payload as { ok?: boolean }).ok !== true) {
@@ -76,10 +78,12 @@ const parseError = async (response: Response): Promise<never> => {
 export class IdentityServiceClient {
   readonly baseUrl: string;
   readonly requestTimeoutMs: number;
+  readonly config?: RegentConfig;
 
-  constructor(baseUrl: string, requestTimeoutMs: number) {
+  constructor(baseUrl: string, requestTimeoutMs: number, config?: RegentConfig) {
     this.baseUrl = normalizeRegentBaseUrl(baseUrl);
     this.requestTimeoutMs = requestTimeoutMs;
+    this.config = config;
   }
 
   async status(input: IdentityStatusRequest): Promise<IdentityStatusResponse> {
@@ -105,17 +109,26 @@ export class IdentityServiceClient {
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs);
-
     try {
-      const response = await fetch(`${this.baseUrl}${path}`, {
+      const network =
+        typeof body === "object" && body !== null && "network" in body
+          ? (body as { network?: unknown }).network
+          : undefined;
+      const chainId = network === "base" || network === "base-sepolia" ? identityNetworkChainId(network) : undefined;
+      const { response } = await requestProductResponse({
+        service: "siwa",
         method: "POST",
+        path,
+        config: this.config,
+        commandName: "regents identity",
+        chainId,
         headers: {
           "content-type": "application/json",
+          accept: "application/json",
         },
         body: JSON.stringify(body),
-        signal: controller.signal,
+        timeoutMs: this.requestTimeoutMs,
+        baseUrlOverride: this.baseUrl,
       });
 
       if (!response.ok) {
@@ -129,7 +142,7 @@ export class IdentityServiceClient {
         throw error;
       }
 
-      if (error instanceof DOMException && error.name === "AbortError") {
+      if (error instanceof ProductHttpError && error.timedOut) {
         throw new CommandExitError(
           "SERVICE_UNAVAILABLE",
           `Shared Regent service timed out after ${this.requestTimeoutMs}ms.`,
@@ -140,8 +153,6 @@ export class IdentityServiceClient {
       throw new CommandExitError("SERVICE_UNAVAILABLE", "Shared Regent service unavailable.", 30, {
         cause: error,
       });
-    } finally {
-      clearTimeout(timeout);
     }
   }
 }

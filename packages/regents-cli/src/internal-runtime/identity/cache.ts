@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import crypto from "node:crypto";
 
 import type {
   RegentIdentityNetwork,
@@ -7,7 +6,7 @@ import type {
 } from "../../internal-types/index.js";
 
 import { CommandExitError } from "../errors.js";
-import { ensureParentDir } from "../paths.js";
+import { writeJsonFileAtomicSync } from "../paths.js";
 import { identityCachePath, isReceiptExpired, normalizeRegentBaseUrl } from "./shared.js";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -100,20 +99,9 @@ export const receiptMatchesRequest = (input: {
 
 export const writeIdentityReceipt = (receipt: RegentIdentityReceipt): string => {
   const cachePath = identityCachePath();
-  ensureParentDir(cachePath);
-
-  const tempPath = `${cachePath}.${crypto.randomUUID()}.tmp`;
-  const payload = `${JSON.stringify(receipt, null, 2)}\n`;
 
   try {
-    fs.writeFileSync(tempPath, payload, "utf8");
-    const fileHandle = fs.openSync(tempPath, "r");
-    try {
-      fs.fsyncSync(fileHandle);
-    } finally {
-      fs.closeSync(fileHandle);
-    }
-    fs.renameSync(tempPath, cachePath);
+    writeJsonFileAtomicSync(cachePath, receipt);
   } catch (error) {
     throw new CommandExitError("CACHE_WRITE_FAILED", "Could not save the Regent identity receipt.", 22, {
       cause: error,

@@ -129,7 +129,7 @@ export class TechtreeClient {
       sessionStore: args.sessionStore,
       stateStore: args.stateStore,
     });
-    this.auth = new AuthResource(this.baseUrl, this.requestTimeoutMs);
+    this.auth = new AuthResource(this.baseUrl, this.requestTimeoutMs, this.config);
     this.autoskill = new AutoskillResource(this.request);
     this.bbh = new BbhResource(this.request);
     this.chatbox = new ChatboxResource(this.request);

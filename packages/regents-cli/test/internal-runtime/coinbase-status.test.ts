@@ -58,7 +58,7 @@ describe("coinbaseStatus", () => {
     const config = loadConfig(path.join(tempDir, "regent.config.json"));
     writeReceipt(tempDir, {
       version: 1,
-      regent_base_url: config.auth.baseUrl,
+      regent_base_url: config.services.siwa.baseUrl,
       network: "base",
       provider: "coinbase-cdp",
       address: TEST_COINBASE_WALLET,
@@ -87,7 +87,7 @@ describe("coinbaseStatus", () => {
     const config = loadConfig(path.join(tempDir, "regent.config.json"));
     writeReceipt(tempDir, {
       version: 1,
-      regent_base_url: config.auth.baseUrl,
+      regent_base_url: config.services.siwa.baseUrl,
       network: "base",
       provider: "coinbase-cdp",
       address: OTHER_WALLET,
@@ -116,7 +116,7 @@ describe("coinbaseStatus", () => {
     const config = loadConfig(path.join(tempDir, "regent.config.json"));
     writeReceipt(tempDir, {
       version: 1,
-      regent_base_url: config.auth.baseUrl,
+      regent_base_url: config.services.siwa.baseUrl,
       network: "base",
       provider: "coinbase-cdp",
       address: TEST_COINBASE_WALLET,

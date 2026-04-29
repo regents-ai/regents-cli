@@ -37,8 +37,10 @@ describe("config loading", () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify({
-        techtree: {
-          baseUrl: "http://127.0.0.1:4100",
+        services: {
+          techtree: {
+            baseUrl: "http://127.0.0.1:4100",
+          },
         },
         runtime: {
           logLevel: "debug",
@@ -49,8 +51,8 @@ describe("config loading", () => {
 
     const config = loadConfig(configPath);
 
-    expect(config.techtree.baseUrl).toBe("http://127.0.0.1:4100");
-    expect(config.auth.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(config.services.techtree.baseUrl).toBe("http://127.0.0.1:4100");
+    expect(config.services.siwa.baseUrl).toBe("http://127.0.0.1:4000");
     expect(config.runtime.logLevel).toBe("debug");
     expect(path.isAbsolute(config.runtime.socketPath)).toBe(true);
     expect(config.wallet.privateKeyEnv).toBe(defaultConfig().wallet.privateKeyEnv);
@@ -61,14 +63,16 @@ describe("config loading", () => {
     const configPath = path.join(tempDir, "config.json");
 
     writeInitialConfig(configPath, {
-      techtree: {
-        ...defaultConfig().techtree,
-        baseUrl: "http://127.0.0.1:4200",
+      services: {
+        techtree: {
+          ...defaultConfig().services.techtree,
+          baseUrl: "http://127.0.0.1:4200",
+        },
       },
     });
 
     const written = JSON.parse(fs.readFileSync(configPath, "utf8")) as ReturnType<typeof defaultConfig>;
-    expect(written.techtree.baseUrl).toBe("http://127.0.0.1:4200");
+    expect(written.services.techtree.baseUrl).toBe("http://127.0.0.1:4200");
     expect(written.runtime.stateDir).toBe(path.join(tempDir, "state"));
     expect(written.runtime.socketPath).toBe(path.join(tempDir, "run", "regent.sock"));
     expect(written.wallet.keystorePath).toBe(path.join(tempDir, "keys", "agent-wallet.json"));
@@ -91,14 +95,26 @@ describe("config loading", () => {
         logLevel: "warn",
       },
       auth: {
-        baseUrl: "http://127.0.0.1:4000",
         audience: "techtree",
         defaultChainId: 8453,
-        requestTimeoutMs: 2_500,
       },
-      techtree: {
-        baseUrl: "http://127.0.0.1:4300",
-        requestTimeoutMs: 2_500,
+      services: {
+        siwa: {
+          baseUrl: "http://127.0.0.1:4000",
+          requestTimeoutMs: 2_500,
+        },
+        platform: {
+          baseUrl: "http://127.0.0.1:4000",
+          requestTimeoutMs: 2_500,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 2_500,
+        },
+        techtree: {
+          baseUrl: "http://127.0.0.1:4300",
+          requestTimeoutMs: 2_500,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -186,22 +202,26 @@ describe("config loading", () => {
     const configPath = path.join(tempDir, "config.json");
 
     writeInitialConfig(configPath, {
-      techtree: {
-        ...defaultConfig().techtree,
-        baseUrl: "http://127.0.0.1:4200",
+      services: {
+        techtree: {
+          ...defaultConfig().services.techtree,
+          baseUrl: "http://127.0.0.1:4200",
+        },
       },
     });
 
     const created = writeInitialConfigIfMissing(configPath, {
-      techtree: {
-        ...defaultConfig().techtree,
-        baseUrl: "http://127.0.0.1:4300",
+      services: {
+        techtree: {
+          ...defaultConfig().services.techtree,
+          baseUrl: "http://127.0.0.1:4300",
+        },
       },
     });
 
     expect(created).toBe(false);
     const written = JSON.parse(fs.readFileSync(configPath, "utf8")) as ReturnType<typeof defaultConfig>;
-    expect(written.techtree.baseUrl).toBe("http://127.0.0.1:4200");
+    expect(written.services.techtree.baseUrl).toBe("http://127.0.0.1:4200");
   });
 
   it("writes the initial config file when it is missing", () => {
@@ -209,16 +229,18 @@ describe("config loading", () => {
     const configPath = path.join(tempDir, "config.json");
 
     const created = writeInitialConfigIfMissing(configPath, {
-      techtree: {
-        ...defaultConfig().techtree,
-        baseUrl: "http://127.0.0.1:4400",
+      services: {
+        techtree: {
+          ...defaultConfig().services.techtree,
+          baseUrl: "http://127.0.0.1:4400",
+        },
       },
     });
 
     expect(created).toBe(true);
     expect(fs.existsSync(configPath)).toBe(true);
     const written = JSON.parse(fs.readFileSync(configPath, "utf8")) as ReturnType<typeof defaultConfig>;
-    expect(written.techtree.baseUrl).toBe("http://127.0.0.1:4400");
+    expect(written.services.techtree.baseUrl).toBe("http://127.0.0.1:4400");
   });
 
   it("fails fast on invalid JSON", () => {
@@ -237,8 +259,10 @@ describe("config loading", () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify({
-        techtree: {
-          requestTimeoutMs: 0,
+        services: {
+          techtree: {
+            requestTimeoutMs: 0,
+          },
         },
       }),
       "utf8",
@@ -270,8 +294,10 @@ describe("config loading", () => {
 
     expect(() =>
       writeConfigReplacement(configPath, {
-        techtree: {
-          baseUrl: "http://127.0.0.1:4300",
+        services: {
+          techtree: {
+            baseUrl: "http://127.0.0.1:4300",
+          },
         },
       }),
     ).toThrow(/replacement config failed validation/);

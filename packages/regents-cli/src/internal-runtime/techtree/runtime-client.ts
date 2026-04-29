@@ -3,6 +3,7 @@ import path from "node:path";
 
 import type {
   BbhLeaderboardResponse,
+  RegentConfig,
   TechtreeFetchRequest,
   TechtreeFetchResponse,
   TechtreePinRequest,
@@ -13,6 +14,7 @@ import type {
 
 import { loadConfig } from "../config.js";
 import { TechtreeApiError } from "../errors.js";
+import { ProductHttpError, requestProductResponse } from "../product-http-client.js";
 import { parseTechtreeErrorResponse } from "./api-errors.js";
 
 type NodeApiResponse = {
@@ -67,10 +69,12 @@ const materializeNode = async (
 export class TechtreeRuntimeClient {
   readonly baseUrl: string;
   readonly requestTimeoutMs: number;
+  readonly config?: RegentConfig;
 
-  constructor(args: { baseUrl: string; requestTimeoutMs: number }) {
+  constructor(args: { baseUrl: string; requestTimeoutMs: number; config?: RegentConfig }) {
     this.baseUrl = args.baseUrl.replace(/\/+$/, "");
     this.requestTimeoutMs = args.requestTimeoutMs;
+    this.config = args.config;
   }
 
   private async requestJson<TResponse>(
@@ -78,13 +82,20 @@ export class TechtreeRuntimeClient {
     path: string,
     body?: unknown,
   ): Promise<TResponse> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs);
-    const url = `${this.baseUrl}${path}`;
-    const init: RequestInit = { ...jsonRequestInit(method, body), signal: controller.signal };
+    const init = jsonRequestInit(method, body);
 
     try {
-      const response = await fetch(url, init);
+      const { response } = await requestProductResponse({
+        service: "techtree",
+        method,
+        path,
+        config: this.config,
+        commandName: "regents techtree runtime",
+        timeoutMs: this.requestTimeoutMs,
+        headers: init.headers,
+        body: init.body ?? null,
+        baseUrlOverride: this.baseUrl,
+      });
       if (!response.ok) {
         throw await parseTechtreeErrorResponse(response);
       }
@@ -99,7 +110,7 @@ export class TechtreeRuntimeClient {
         throw error;
       }
 
-      if (error instanceof Error && error.name === "AbortError") {
+      if (error instanceof ProductHttpError && error.timedOut) {
         throw new TechtreeApiError(`Techtree runtime request timed out after ${this.requestTimeoutMs}ms`, {
           code: "techtree_runtime_timeout",
           cause: error,
@@ -110,8 +121,6 @@ export class TechtreeRuntimeClient {
         code: "techtree_runtime_request_failed",
         cause: error,
       });
-    } finally {
-      clearTimeout(timeout);
     }
   }
 
@@ -144,7 +153,7 @@ export class TechtreeRuntimeClient {
         manifest_cid: string;
         payload_cid: string;
       };
-    }>("POST", "/v1/runtime/pin", {
+    }>("POST", "/v1/agent/runtime/pin", {
       path: input.dist_path ?? input.workspace_path,
       node_type: input.node_type,
     });
@@ -158,7 +167,7 @@ export class TechtreeRuntimeClient {
   }
 
   async publishNode(input: TechtreePublishRequest): Promise<TechtreePublishResponse> {
-    const response = await this.requestJson<NodeApiResponse>("POST", "/v1/runtime/publish/submit", {
+    const response = await this.requestJson<NodeApiResponse>("POST", "/v1/agent/runtime/publish/submit", {
       path: input.dist_path ?? input.workspace_path,
       node_type: input.node_type,
       manifest_cid: input.manifest_cid,
@@ -195,7 +204,8 @@ export class TechtreeRuntimeClient {
 export const loadTechtreeRuntimeClient = (configPath?: string): TechtreeRuntimeClient => {
   const config = loadConfig(configPath);
   return new TechtreeRuntimeClient({
-    baseUrl: config.techtree.baseUrl,
-    requestTimeoutMs: config.techtree.requestTimeoutMs,
+    baseUrl: config.services.techtree.baseUrl,
+    requestTimeoutMs: config.services.techtree.requestTimeoutMs,
+    config,
   });
 };

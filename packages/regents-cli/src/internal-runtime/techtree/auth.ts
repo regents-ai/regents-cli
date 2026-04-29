@@ -77,7 +77,7 @@ export async function resolveAuthenticatedAgentSigningContext(
   config: RegentConfig,
   sessionStore: SessionStore,
   stateStore: StateStore,
-  timeoutMs = config.auth.requestTimeoutMs,
+  timeoutMs = config.services.siwa.requestTimeoutMs,
 ): Promise<AuthenticatedAgentSigningContext> {
   const { session, identity } = requireAuthenticatedAgentContext(sessionStore, stateStore);
   const receipt = readIdentityReceipt();

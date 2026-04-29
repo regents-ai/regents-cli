@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
 
 import type {
   AppSiwaSession,
@@ -9,7 +8,7 @@ import type {
   SiwaSession,
 } from "../../internal-types/index.js";
 
-import { ensureParentDir } from "../paths.js";
+import { writeJsonFileAtomicSync } from "../paths.js";
 
 export interface PersistentState {
   siwa?: SiwaSession;
@@ -44,20 +43,7 @@ export class StateStore {
   }
 
   write(next: PersistentState): void {
-    ensureParentDir(this.stateFilePath);
-
-    const tempPath = `${this.stateFilePath}.${crypto.randomUUID()}.tmp`;
-    const payload = `${JSON.stringify(next, null, 2)}\n`;
-    fs.writeFileSync(tempPath, payload, "utf8");
-
-    const fileHandle = fs.openSync(tempPath, "r");
-    try {
-      fs.fsyncSync(fileHandle);
-    } finally {
-      fs.closeSync(fileHandle);
-    }
-
-    fs.renameSync(tempPath, this.stateFilePath);
+    writeJsonFileAtomicSync(this.stateFilePath, next);
   }
 
   patch(patch: Partial<PersistentState>): void {

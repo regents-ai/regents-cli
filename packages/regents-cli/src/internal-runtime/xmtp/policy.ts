@@ -8,7 +8,7 @@ import type {
 } from "../../internal-types/index.js";
 
 import { RegentError } from "../errors.js";
-import { ensureParentDir } from "../paths.js";
+import { writeFileAtomicSync } from "../paths.js";
 
 const DEFAULT_PUBLIC_POLICY = `You are representing your owner to a third party.
 Be helpful and conversational, but keep responses limited to general conversation.
@@ -21,8 +21,7 @@ export const ensureXmtpPolicyFile = (config: RegentConfig["xmtp"]): { created: b
     return { created: false, path: config.publicPolicyPath };
   }
 
-  ensureParentDir(config.publicPolicyPath);
-  fs.writeFileSync(config.publicPolicyPath, DEFAULT_PUBLIC_POLICY, "utf8");
+  writeFileAtomicSync(config.publicPolicyPath, DEFAULT_PUBLIC_POLICY);
   return { created: true, path: config.publicPolicyPath };
 };
 

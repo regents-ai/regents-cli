@@ -10,7 +10,7 @@ import type {
 
 import { generateWallet } from "../agent/wallet.js";
 import { RegentError } from "../errors.js";
-import { ensureParentDir } from "../paths.js";
+import { writeFileAtomicSync } from "../paths.js";
 import { runConnectedXmtpCliJson, runXmtpCli } from "./cli-adapter.js";
 import { ensureXmtpPolicyFile } from "./policy.js";
 import { MAX_RECENT_CONVERSATIONS, updateXmtpRuntimeState } from "./state.js";
@@ -66,9 +66,7 @@ export const parseXmtpInitOutput = (
 };
 
 const writeFileWithMode = (filePath: string, value: string, mode = SECRET_FILE_MODE): void => {
-  ensureParentDir(filePath);
-  fs.writeFileSync(filePath, `${value.trim()}\n`, "utf8");
-  fs.chmodSync(filePath, mode);
+  writeFileAtomicSync(filePath, `${value.trim()}\n`, mode);
 };
 
 const readOptionalFile = (filePath: string): string | null => {

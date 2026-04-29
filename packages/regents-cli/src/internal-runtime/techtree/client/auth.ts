@@ -1,4 +1,5 @@
 import type {
+  RegentConfig,
   SiwaNonceRequest,
   SiwaNonceResponse,
   SiwaVerifyRequest,
@@ -9,8 +10,8 @@ import { SiwaClient } from "../../siwa/siwa.js";
 export class AuthResource {
   readonly siwaClient: SiwaClient;
 
-  constructor(baseUrl: string, requestTimeoutMs: number) {
-    this.siwaClient = new SiwaClient(baseUrl, requestTimeoutMs);
+  constructor(baseUrl: string, requestTimeoutMs: number, config: RegentConfig) {
+    this.siwaClient = new SiwaClient(baseUrl, requestTimeoutMs, config);
   }
 
   async siwaNonce(input: SiwaNonceRequest): Promise<SiwaNonceResponse> {

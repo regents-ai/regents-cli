@@ -1,4 +1,5 @@
 import type { RegentConfig } from "../../../internal-types/index.js";
+import { requestProductResponse } from "../../product-http-client.js";
 import { TechtreeApiError } from "../../errors.js";
 import type { SessionStore } from "../../store/session-store.js";
 import type { StateStore } from "../../store/state-store.js";
@@ -203,6 +204,23 @@ export class TechtreeRequestClient {
     }
 
     try {
+      if (url.startsWith(`${this.baseUrl}/`)) {
+        const parsedUrl = new URL(url);
+        const { response } = await requestProductResponse({
+          service: "techtree",
+          method: (init.method ?? "GET") as TechtreeRequestMethod,
+          path: `${parsedUrl.pathname}${parsedUrl.search}`,
+          headers: init.headers,
+          body: init.body ?? null,
+          config: this.config,
+          commandName: "regents techtree",
+          timeoutMs,
+          baseUrlOverride: this.baseUrl,
+          signal: controller.signal,
+        });
+        return response;
+      }
+
       return await fetch(url, {
         ...init,
         signal: controller.signal,

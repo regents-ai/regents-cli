@@ -40,14 +40,14 @@ const buildConfig = (baseUrl: string, tempDir: string) => {
       logLevel: "debug",
     },
     auth: {
-      baseUrl,
       audience: "techtree",
       defaultChainId: 84532,
-      requestTimeoutMs: 1_000,
     },
-    techtree: {
-      baseUrl,
-      requestTimeoutMs: 1_000,
+    services: {
+      siwa: { baseUrl, requestTimeoutMs: 1_000 },
+      platform: { baseUrl, requestTimeoutMs: 1_000 },
+      autolaunch: { baseUrl: "http://127.0.0.1:4010", requestTimeoutMs: 1_000 },
+      techtree: { baseUrl, requestTimeoutMs: 1_000 },
     },
     wallet: {
       privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

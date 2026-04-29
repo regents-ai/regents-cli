@@ -14,11 +14,11 @@ import type {
 import type { RuntimeContext } from "../../runtime.js";
 
 export async function handleTechtreeStatus(ctx: RuntimeContext): Promise<{
-  config: typeof ctx.config.techtree;
+  config: typeof ctx.config.services.techtree;
   health: Record<string, unknown>;
 }> {
   return {
-    config: ctx.config.techtree,
+    config: ctx.config.services.techtree,
     health: await ctx.techtree.health(),
   };
 }

@@ -21,7 +21,7 @@ export interface EnsureIdentityOptions {
 
 export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<IdentityEnsureSuccess> => {
   const requestTimeoutMs = Math.max(1, options.timeoutSeconds) * 1000;
-  const regentBaseUrl = normalizeRegentBaseUrl(options.config.auth.baseUrl);
+  const regentBaseUrl = normalizeRegentBaseUrl(options.config.services.siwa.baseUrl);
   const signer = await resolveIdentitySigner({
     provider: "coinbase-cdp",
     network: options.network,
@@ -43,7 +43,7 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
   ) {
     return successFromReceipt(cachedReceipt, identityCachePath());
   }
-  const client = new IdentityServiceClient(regentBaseUrl, requestTimeoutMs);
+  const client = new IdentityServiceClient(regentBaseUrl, requestTimeoutMs, options.config);
 
   const status = await client.status({
     network: options.network,
