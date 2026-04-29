@@ -166,14 +166,12 @@ export async function runAutolaunchFeeVaultShow(
   await runAutolaunchContractsJobShow(args, configPath);
 }
 
-export async function runAutolaunchFeeVaultWithdrawTreasury(
+export async function runAutolaunchSplitterPullTreasuryShare(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  await postPrepareJobAction(args, "fee_vault", "withdraw_treasury", {
-    currency: requireArg(getFlag(args, "currency"), "currency"),
+  await postPrepareJobAction(args, "revenue_splitter", "pull_treasury_share", {
     amount: requireArg(getFlag(args, "amount"), "amount"),
-    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
   }, configPath);
 }
 

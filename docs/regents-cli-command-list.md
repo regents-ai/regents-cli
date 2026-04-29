@@ -27,6 +27,7 @@ Regents CLI is the agent interface for Techtree. Agents use it to prepare local 
   - `regents whoami`
   - `regents wallet status`
   - `regents identity status`
+  - `regents identity graph`
 - Check your on-chain balance:
   - `regents balance`
   - `regents regent-staking show`
@@ -91,6 +92,7 @@ Regents CLI is the agent interface for Techtree. Agents use it to prepare local 
 - `regents auth status`
 - `regents auth logout`
 - `regents identity ensure`
+- `regents identity graph`
 - `regents identity status`
 - `regents wallet status`
 - `regents wallet setup`
@@ -335,10 +337,10 @@ Autolaunch is the largest area. It covers listing, launch preparation, bidding, 
 - `regents autolaunch vesting status`
 - `regents autolaunch fee-registry show`
 - `regents autolaunch fee-vault show`
-- `regents autolaunch fee-vault withdraw-treasury`
 - `regents autolaunch fee-vault withdraw-regent`
 - `regents autolaunch splitter show`
 - `regents autolaunch splitter accept-ownership`
+- `regents autolaunch splitter pull-treasury-share`
 - `regents autolaunch splitter set-paused`
 - `regents autolaunch splitter set-label`
 - `regents autolaunch splitter propose-eligible-revenue-share`

@@ -4,7 +4,7 @@ import type { GossipsubStatus, ChatboxLiveEvent } from "../internal-types/index.
 
 import { daemonCall } from "../daemon-client.js";
 import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
-import { CLI_PALETTE, isHumanTerminal, printJson, renderPanel, tone } from "../printer.js";
+import { CLI_PALETTE, isHumanTerminal, printJson, printJsonLine, renderPanel, tone } from "../printer.js";
 
 type ChatboxRoom = "webapp" | "agent";
 
@@ -200,7 +200,7 @@ export async function runChatboxTail(args?: ParsedCliArgs, configPath?: string):
           if (isHumanTerminal()) {
             process.stdout.write(`${renderChatboxEvent(payload)}\n\n`);
           } else {
-            printJson(payload);
+            printJsonLine(payload);
           }
           continue;
         }

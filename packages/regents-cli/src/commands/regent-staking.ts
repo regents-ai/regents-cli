@@ -1,136 +1,107 @@
-import { createPublicClient, createWalletClient, http, type Hex } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia } from "viem/chains";
+import type { paths as PlatformPaths } from "../generated/platform-openapi.js";
 
-import type { paths as RegentServicePaths } from "../generated/regent-services-openapi.js";
-
-import { loadConfig } from "../internal-runtime/config.js";
-import { FileWalletSecretSource, EnvWalletSecretSource } from "../internal-runtime/agent/key-store.js";
-import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, getFlag, requireArg, requirePositional, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 import type {
   JsonRequestBodyFor,
   JsonSuccessResponseFor,
 } from "../contracts/openapi-helpers.js";
-import { requestTypedJson, requirePositional } from "./shared-services.js";
+import { extractPreparedTxRequest, submitPreparedTxRequest } from "./autolaunch/shared.js";
+import { requestProductJson } from "./product-http.js";
 
 type RegentStakingOverviewResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking",
   "get"
 >;
 type RegentStakingAccountResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/account/{address}",
   "get"
 >;
 type RegentStakingStakeBody = JsonRequestBodyFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/stake",
   "post"
 >;
 type RegentStakingStakeResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/stake",
   "post"
 >;
 type RegentStakingUnstakeBody = JsonRequestBodyFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/unstake",
   "post"
 >;
 type RegentStakingUnstakeResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/unstake",
   "post"
 >;
 type RegentStakingClaimResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/claim-usdc",
   "post"
 >;
 type RegentStakingClaimRegentResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/claim-regent",
   "post"
 >;
 type RegentStakingClaimAndRestakeRegentResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/regent/staking/claim-and-restake-regent",
   "post"
 >;
 
-const configuredPrivateKey = async (configPath?: string): Promise<`0x${string}`> => {
-  const config = loadConfig(configPath);
-  const secretSource =
-    process.env[config.wallet.privateKeyEnv]
-      ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
-      : new FileWalletSecretSource(config.wallet.keystorePath);
-
-  return await secretSource.getPrivateKeyHex();
-};
-
-const submitPreparedBaseTx = async (
-  txRequest: Record<string, unknown>,
-  configPath?: string,
-): Promise<`0x${string}`> => {
-  const chainId = Number(txRequest.chain_id);
-  const chain =
-    chainId === 84532 ? baseSepolia : chainId === 8453 ? base : null;
-  const rpcUrl =
-    chainId === 84532
-      ? process.env.BASE_SEPOLIA_RPC_URL
-      : chainId === 8453
-        ? process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL
-        : null;
-
-  if (!chain || !rpcUrl) {
-    throw new Error(
-      "missing Base-family RPC URL for submit mode or unsupported tx_request.chain_id",
-    );
-  }
-
-  const account = privateKeyToAccount(await configuredPrivateKey(configPath));
-  const walletClient = createWalletClient({ account, chain, transport: http(rpcUrl) });
-  const publicClient = createPublicClient({ chain, transport: http(rpcUrl) });
-  const txHash = await walletClient.sendTransaction({
-    account,
-    chain,
-    to: String(txRequest.to) as `0x${string}`,
-    data: String(txRequest.data) as Hex,
-    value: BigInt(String(txRequest.value ?? "0x0")),
+const requestStakingJson = async <TResponse>(
+  method: "GET" | "POST",
+  endpointPath: string,
+  options: {
+    readonly body?: unknown;
+    readonly configPath?: string;
+  } = {},
+): Promise<TResponse> =>
+  requestProductJson<TResponse>(method, endpointPath, {
+    body: options.body,
+    configPath: options.configPath,
+    requireAgentAuth: true,
+    authAudience: "regent-services",
+    service: "siwa",
+    commandName: "regents regent-staking",
   });
 
-  await publicClient.waitForTransactionReceipt({ hash: txHash });
-  return txHash;
+type StakingPreparedPayload = Record<string, unknown> & {
+  readonly prepared?: { readonly tx_request?: unknown; readonly expected_signer?: unknown };
 };
 
 const printPreparedOrSubmitted = async (
-  payload: Record<string, unknown>,
+  payload: StakingPreparedPayload,
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> => {
+  const txRequest = extractPreparedTxRequest(
+    payload.prepared?.tx_request,
+    payload.prepared?.expected_signer,
+  );
+
   if (!getBooleanFlag(args, "submit")) {
     printJson(payload);
     return;
   }
 
-  const data = payload.data as Record<string, unknown> | undefined;
-  const txRequest = data?.tx_request as Record<string, unknown> | undefined;
   if (!txRequest) {
-    printJson(payload);
-    return;
+    throw new Error("This staking action did not include a transaction to submit.");
   }
 
-  const txHash = await submitPreparedBaseTx(txRequest, configPath);
-  printJson({ ...payload, data: { ...data, submitted: true, tx_hash: txHash } });
+  const txHash = await submitPreparedTxRequest(txRequest, configPath);
+  printJson({ ...payload, submitted: true, tx_hash: txHash });
 };
 
 export async function runRegentStakingShow(configPath?: string): Promise<void> {
   printJson(
-    await requestTypedJson<RegentStakingOverviewResponse>("GET", "/v1/agent/regent/staking", {
-      requireAgentAuth: true,
-      authAudience: "regent-services",
+    await requestStakingJson<RegentStakingOverviewResponse>("GET", "/v1/agent/regent/staking", {
       configPath,
     }),
   );
@@ -142,12 +113,10 @@ export async function runRegentStakingAccount(
 ): Promise<void> {
   const address = requirePositional(args, 2, "address");
   printJson(
-    await requestTypedJson<RegentStakingAccountResponse>(
+    await requestStakingJson<RegentStakingAccountResponse>(
       "GET",
       `/v1/agent/regent/staking/account/${encodeURIComponent(address)}`,
       {
-        requireAgentAuth: true,
-        authAudience: "regent-services",
         configPath,
       },
     ),
@@ -161,13 +130,13 @@ export async function runRegentStakingStake(
   const body: RegentStakingStakeBody = {
     amount: requireArg(getFlag(args, "amount"), "amount"),
   };
-  printJson(
-    await requestTypedJson<RegentStakingStakeResponse>("POST", "/v1/agent/regent/staking/stake", {
+  await printPreparedOrSubmitted(
+    await requestStakingJson<RegentStakingStakeResponse>("POST", "/v1/agent/regent/staking/stake", {
       body,
-      requireAgentAuth: true,
-      authAudience: "regent-services",
       configPath,
     }),
+    args,
+    configPath,
   );
 }
 
@@ -178,13 +147,13 @@ export async function runRegentStakingUnstake(
   const body: RegentStakingUnstakeBody = {
     amount: requireArg(getFlag(args, "amount"), "amount"),
   };
-  printJson(
-    await requestTypedJson<RegentStakingUnstakeResponse>("POST", "/v1/agent/regent/staking/unstake", {
+  await printPreparedOrSubmitted(
+    await requestStakingJson<RegentStakingUnstakeResponse>("POST", "/v1/agent/regent/staking/unstake", {
       body,
-      requireAgentAuth: true,
-      authAudience: "regent-services",
       configPath,
     }),
+    args,
+    configPath,
   );
 }
 
@@ -192,48 +161,43 @@ export async function runRegentStakingClaimUsdc(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  const payload = await requestTypedJson<RegentStakingClaimResponse>("POST", "/v1/agent/regent/staking/claim-usdc", {
-      body: {},
-      requireAgentAuth: true,
-      authAudience: "regent-services",
+  const payload = await requestStakingJson<RegentStakingClaimResponse>(
+    "POST",
+    "/v1/agent/regent/staking/claim-usdc",
+    {
       configPath,
-    });
+    },
+  );
 
-  await printPreparedOrSubmitted(payload as Record<string, unknown>, args, configPath);
+  await printPreparedOrSubmitted(payload as StakingPreparedPayload, args, configPath);
 }
 
 export async function runRegentStakingClaimRegent(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  const payload = await requestTypedJson<RegentStakingClaimRegentResponse>(
+  const payload = await requestStakingJson<RegentStakingClaimRegentResponse>(
     "POST",
     "/v1/agent/regent/staking/claim-regent",
     {
-      body: {},
-      requireAgentAuth: true,
-      authAudience: "regent-services",
       configPath,
     },
   );
 
-  await printPreparedOrSubmitted(payload as Record<string, unknown>, args, configPath);
+  await printPreparedOrSubmitted(payload as StakingPreparedPayload, args, configPath);
 }
 
 export async function runRegentStakingClaimAndRestakeRegent(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  const payload = await requestTypedJson<RegentStakingClaimAndRestakeRegentResponse>(
+  const payload = await requestStakingJson<RegentStakingClaimAndRestakeRegentResponse>(
     "POST",
     "/v1/agent/regent/staking/claim-and-restake-regent",
     {
-      body: {},
-      requireAgentAuth: true,
-      authAudience: "regent-services",
       configPath,
     },
   );
 
-  await printPreparedOrSubmitted(payload as Record<string, unknown>, args, configPath);
+  await printPreparedOrSubmitted(payload as StakingPreparedPayload, args, configPath);
 }

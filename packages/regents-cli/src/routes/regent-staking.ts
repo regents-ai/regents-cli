@@ -17,7 +17,7 @@ export const regentStakingRoutes: readonly CliRoute[] = [
   route("regent-staking account", async ({ parsedArgs, configPath }) => {
     await runRegentStakingAccount(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("regent-staking stake", async ({ parsedArgs, configPath }) => {
     await runRegentStakingStake(parsedArgs, configPath);
     return 0;

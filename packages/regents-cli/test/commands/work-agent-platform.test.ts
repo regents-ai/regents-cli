@@ -141,10 +141,26 @@ describe("work and agent platform commands", () => {
     );
     writeInitialConfig(configPath, {
       auth: {
-        baseUrl: "http://127.0.0.1:4010",
         audience: "platform",
         defaultChainId: 8453,
-        requestTimeoutMs: 1_000,
+      },
+      services: {
+        siwa: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1_000,
+        },
+        platform: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1_000,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1_000,
+        },
+        techtree: {
+          baseUrl: "http://127.0.0.1:4001",
+          requestTimeoutMs: 1_000,
+        },
       },
     });
     fetchMock.mockReset();
@@ -354,6 +370,65 @@ describe("work and agent platform commands", () => {
     expect(fs.readFileSync(printed.openclaw.skillFile, "utf8")).toContain("--worker-id 789");
   });
 
+  it("connects Hermes through the local bridge and writes connector files", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          agent_profile: agentProfile({ agent_kind: "hermes", default_runner_kind: "hermes_local_manager" }),
+          worker: worker({
+            name: "Hermes desk",
+            agent_kind: "hermes",
+            worker_role: "manager",
+            runner_kind: "hermes_local_manager",
+          }),
+        }),
+        {
+          status: 201,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "agent",
+        "connect",
+        "hermes",
+        "--company-id",
+        "company_123",
+        "--role",
+        "manager",
+        "--name",
+        "Hermes desk",
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+      JSON.stringify({
+        company_id: "company_123",
+        agent_kind: "hermes",
+        worker_role: "manager",
+        execution_surface: "local_bridge",
+        runner_kind: "hermes_local_manager",
+        billing_mode: "user_local",
+        trust_scope: "local_user_controlled",
+        reported_usage_policy: "self_reported",
+        display_name: "Hermes desk",
+        endpoint_url: null,
+      }),
+    );
+
+    const printed = parsePrintedJson<{ hermes: { configFile: string; skillFile: string } }>(output.stdout);
+    expect(printed.hermes.configFile).toBe(path.join(homeDir, ".hermes", "connectors", "regents-work.json"));
+    expect(printed.hermes.skillFile).toBe(path.join(homeDir, ".hermes", "skills", "regents-work", "SKILL.md"));
+    expect(fs.readFileSync(printed.hermes.configFile, "utf8")).toContain('"worker_id": "789"');
+    expect(fs.readFileSync(printed.hermes.skillFile, "utf8")).toContain("Do not upload secrets, private memory");
+  });
+
   it("renders OpenClaw connection details for human terminals", async () => {
     useHumanTerminal();
     fetchMock.mockResolvedValue(
@@ -521,6 +596,7 @@ describe("work and agent platform commands", () => {
         "run_123",
         "--company-id",
         "company_123",
+        "--once",
         "--session-file",
         sessionFile,
       ]),
@@ -531,6 +607,213 @@ describe("work and agent platform commands", () => {
       "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_123/events",
     );
     expect(parsePrintedJson<{ result: { events: unknown[] } }>(output.stdout).result.events).toHaveLength(1);
+  });
+
+  it("keeps checking run events when asked to watch progress", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            run_id: 456,
+            events: [{ id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP }],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            run_id: 456,
+            events: [
+              { id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP },
+              { id: 2, run_id: 456, sequence: 2, kind: "running", payload: {}, occurred_at: TIMESTAMP },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "work",
+        "watch",
+        "run_123",
+        "--company-id",
+        "company_123",
+        "--max-polls",
+        "2",
+        "--poll-ms",
+        "1",
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_123/events",
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_123/events",
+    ]);
+    const lines = output.stdout.trim().split("\n").map((line) => JSON.parse(line));
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatchObject({ command: "regents work watch", result: { events: [{ kind: "queued" }] } });
+    expect(lines[1]).toMatchObject({ command: "regents work watch", result: { events: [{ kind: "queued" }, { kind: "running" }] } });
+  });
+
+  it("shows only new run updates in a terminal timeline", async () => {
+    useHumanTerminal();
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            run_id: 456,
+            events: [{ id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP }],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            run_id: 456,
+            events: [
+              { id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP },
+              { id: 2, run_id: 456, sequence: 2, kind: "running", payload: {}, occurred_at: TIMESTAMP },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "work",
+        "watch",
+        "run_123",
+        "--company-id",
+        "company_123",
+        "--max-polls",
+        "2",
+        "--poll-ms",
+        "1",
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    const visible = stripAnsi(output.stdout);
+    expect(output.result).toBe(0);
+    expect(visible).toContain("UPDATE TIMELINE");
+    expect(visible.match(/queued/g)).toHaveLength(1);
+    expect(visible.match(/running/g)).toHaveLength(1);
+  });
+
+  it("lets a local worker claim work, record updates, upload approved artifacts, delegate, and complete", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true, worker: worker() }), { status: 200 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            assignments: [{ id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "available" }],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "claimed" },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true, event: { id: 1 } }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true, artifact: { id: 2 } }), { status: 201 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true, target_worker: worker({ id: 790 }), child_runs: [runRecord({ id: 457 })] }), {
+          status: 201,
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "completed" },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "work",
+        "local-loop",
+        "--company-id",
+        "company_123",
+        "--worker-id",
+        "worker_123",
+        "--once",
+        "--artifact-title",
+        "Approved note",
+        "--artifact-body",
+        "Only this approved note is uploaded.",
+        "--delegate-runner",
+        "codex_exec",
+        "--delegate-title",
+        "Review final answer",
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/workers/worker_123/heartbeat",
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/workers/worker_123/assignments",
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/assignments/11/claim",
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/456/events",
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/456/artifacts",
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/456/delegations",
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/assignments/11/complete",
+    ]);
+    expect(fetchMock.mock.calls[3]?.[1]?.body).toBe(
+      JSON.stringify({
+        company_id: "company_123",
+        run_id: 456,
+        kind: "local_worker_checked_assignment",
+        payload: { worker_id: "worker_123" },
+        visibility: "operator",
+        sensitivity: "normal",
+      }),
+    );
+    expect(fetchMock.mock.calls[4]?.[1]?.body).toBe(
+      JSON.stringify({
+        company_id: "company_123",
+        run_id: 456,
+        artifact_type: "note",
+        title: "Approved note",
+        body: "Only this approved note is uploaded.",
+        visibility: "operator",
+      }),
+    );
+    expect(fetchMock.mock.calls[5]?.[1]?.body).toBe(
+      JSON.stringify({
+        company_id: "company_123",
+        run_id: 456,
+        requested_runner_kind: "codex_exec",
+        tasks: [{ title: "Review final answer" }],
+      }),
+    );
+    expect(parsePrintedJson<{ ok: boolean; command: string }>(output.stdout)).toEqual({
+      ok: true,
+      command: "regents work local-loop",
+    });
   });
 
   it("lists a manager execution pool through the current route", async () => {

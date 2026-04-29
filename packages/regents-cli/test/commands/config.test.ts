@@ -16,8 +16,10 @@ describe("config commands", () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify({
-        techtree: {
-          baseUrl: "http://127.0.0.1:4100",
+        services: {
+          techtree: {
+            baseUrl: "http://127.0.0.1:4100",
+          },
         },
       }),
       "utf8",
@@ -26,8 +28,13 @@ describe("config commands", () => {
     const { stdout } = await captureOutput(() => runConfigRead(parseCliArgs(["--config", configPath])));
     const printed = parsePrintedJson<{
       runtime: { socketPath: string; stateDir: string; logLevel: string };
-      auth: { baseUrl: string; audience: string; defaultChainId: number; requestTimeoutMs: number };
-      techtree: { baseUrl: string; requestTimeoutMs: number };
+      auth: { audience: string; defaultChainId: number };
+      services: {
+        siwa: { baseUrl: string; requestTimeoutMs: number };
+        platform: { baseUrl: string; requestTimeoutMs: number };
+        autolaunch: { baseUrl: string; requestTimeoutMs: number };
+        techtree: { baseUrl: string; requestTimeoutMs: number };
+      };
       xmtp: { dbPath: string; publicPolicyPath: string; env: string };
       agents: { defaultHarness: string; harnesses: { hermes: { workspaceRoot: string } } };
       workloads: { bbh: { workspaceRoot: string; defaultHarness: string; defaultProfile: string } };
@@ -37,12 +44,10 @@ describe("config commands", () => {
     expect(printed.runtime.stateDir).toBe(path.join(tempDir, "state"));
     expect(printed.runtime.logLevel).toBe("info");
     expect(printed.auth).toEqual({
-      baseUrl: "http://127.0.0.1:4000",
       audience: "techtree",
       defaultChainId: 84532,
-      requestTimeoutMs: 10_000,
     });
-    expect(printed.techtree).toEqual({
+    expect(printed.services.techtree).toEqual({
       baseUrl: "http://127.0.0.1:4100",
       requestTimeoutMs: 10_000,
     });
@@ -84,14 +89,26 @@ describe("config commands", () => {
           logLevel: "error",
         },
         auth: {
-          baseUrl: "http://127.0.0.1:4000",
           audience: "techtree",
           defaultChainId: 8453,
-          requestTimeoutMs: 3500,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:4300",
-          requestTimeoutMs: 3500,
+        services: {
+          siwa: {
+            baseUrl: "http://127.0.0.1:4000",
+            requestTimeoutMs: 3500,
+          },
+          platform: {
+            baseUrl: "http://127.0.0.1:4000",
+            requestTimeoutMs: 3500,
+          },
+          autolaunch: {
+            baseUrl: "http://127.0.0.1:4010",
+            requestTimeoutMs: 3500,
+          },
+          techtree: {
+            baseUrl: "http://127.0.0.1:4300",
+            requestTimeoutMs: 3500,
+          },
         },
         wallet: {
           privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -165,8 +182,8 @@ describe("config commands", () => {
       ok: boolean;
       configPath: string;
       config: {
-        auth: { baseUrl: string; audience: string; defaultChainId: number; requestTimeoutMs: number };
-        techtree: { baseUrl: string; requestTimeoutMs: number };
+        auth: { audience: string; defaultChainId: number };
+        services: { techtree: { baseUrl: string; requestTimeoutMs: number } };
         runtime: { logLevel: string };
         agents: { defaultHarness: string };
         workloads: { bbh: { defaultProfile: string } };
@@ -179,12 +196,10 @@ describe("config commands", () => {
     expect(printed.config.agents.defaultHarness).toBe("hermes");
     expect(printed.config.workloads.bbh.defaultProfile).toBe("bbh");
     expect(printed.config.auth).toEqual({
-      baseUrl: "http://127.0.0.1:4000",
       audience: "techtree",
       defaultChainId: 8453,
-      requestTimeoutMs: 3500,
     });
-    expect(printed.config.techtree).toEqual({
+    expect(printed.config.services.techtree).toEqual({
       baseUrl: "http://127.0.0.1:4300",
       requestTimeoutMs: 3500,
     });

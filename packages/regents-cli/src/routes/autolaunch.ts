@@ -25,7 +25,6 @@ import {
   runAutolaunchFeeRegistryShow,
   runAutolaunchFeeVaultShow,
   runAutolaunchFeeVaultWithdrawRegent,
-  runAutolaunchFeeVaultWithdrawTreasury,
   runAutolaunchIdentitiesList,
   runAutolaunchIdentitiesMint,
   runAutolaunchIngressCreate,
@@ -55,6 +54,7 @@ import {
   runAutolaunchSplitterCancelEligibleRevenueShare,
   runAutolaunchSplitterCancelTreasuryRecipientRotation,
   runAutolaunchSplitterExecuteTreasuryRecipientRotation,
+  runAutolaunchSplitterPullTreasuryShare,
   runAutolaunchSplitterProposeEligibleRevenueShare,
   runAutolaunchSplitterProposeTreasuryRecipientRotation,
   runAutolaunchSplitterReassignDust,
@@ -189,7 +189,7 @@ export const autolaunchRoutes: readonly CliRoute[] = [
   route("autolaunch launch monitor", async ({ parsedArgs, configPath }) => {
     await runAutolaunchLaunchMonitor(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("autolaunch launch finalize", async ({ parsedArgs, configPath }) => {
     await runAutolaunchLaunchFinalize(parsedArgs, configPath);
     return 0;
@@ -197,11 +197,11 @@ export const autolaunchRoutes: readonly CliRoute[] = [
   route("autolaunch jobs watch", async ({ parsedArgs, configPath }) => {
     await runAutolaunchJobsWatch(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("autolaunch subjects show", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSubjectShow(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("autolaunch subjects ingress", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSubjectIngress(parsedArgs, configPath);
     return 0;
@@ -306,10 +306,6 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchFeeVaultShow(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch fee-vault withdraw-treasury", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchFeeVaultWithdrawTreasury(parsedArgs, configPath);
-    return 0;
-  }),
   route("autolaunch fee-vault withdraw-regent", async ({ parsedArgs, configPath }) => {
     await runAutolaunchFeeVaultWithdrawRegent(parsedArgs, configPath);
     return 0;
@@ -320,6 +316,10 @@ export const autolaunchRoutes: readonly CliRoute[] = [
   }),
   route("autolaunch splitter accept-ownership", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSplitterAcceptOwnership(parsedArgs, configPath);
+    return 0;
+  }),
+  route("autolaunch splitter pull-treasury-share", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSplitterPullTreasuryShare(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch splitter set-paused", async ({ parsedArgs, configPath }) => {

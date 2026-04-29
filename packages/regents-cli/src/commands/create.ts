@@ -1,12 +1,12 @@
-import fs from "node:fs";
 import path from "node:path";
 
 import {
   defaultConfigPath,
   loadConfig,
-  ensureParentDir,
+  ensureSecureDir,
   expandHome,
   generateWallet,
+  writeJsonFileAtomicSync,
   writeInitialConfigIfMissing,
 } from "../internal-runtime/index.js";
 
@@ -15,7 +15,7 @@ import { printJson } from "../printer.js";
 
 const ensureDirectories = (paths: readonly string[]): void => {
   for (const targetPath of paths) {
-    fs.mkdirSync(targetPath, { recursive: true });
+    ensureSecureDir(targetPath);
   }
 };
 
@@ -49,8 +49,7 @@ export async function runCreateWallet(args: string[] | ParsedCliArgs): Promise<v
   const resolvedDevFile = devFile ? path.resolve(expandHome(devFile)) : undefined;
 
   if (resolvedDevFile) {
-    ensureParentDir(resolvedDevFile);
-    fs.writeFileSync(resolvedDevFile, `${JSON.stringify({ privateKey: wallet.privateKey }, null, 2)}\n`, "utf8");
+    writeJsonFileAtomicSync(resolvedDevFile, { privateKey: wallet.privateKey });
   }
 
   printJson({

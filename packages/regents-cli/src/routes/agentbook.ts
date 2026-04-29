@@ -9,7 +9,7 @@ export const agentbookRoutes: readonly CliRoute[] = [
   route("agentbook sessions watch", async ({ parsedArgs, configPath }) => {
     await runAgentbookSessionsWatch(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("agentbook lookup", async ({ parsedArgs, configPath }) => {
     await runAgentbookLookup(parsedArgs, configPath);
     return 0;

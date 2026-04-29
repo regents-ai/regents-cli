@@ -20,8 +20,15 @@ describe("reporting CLI commands", () => {
   let tempDir = "";
   let configPath = "";
 
-  const writeAgentAuthState = () => {
+  const writeAgentAuthState = (baseUrl = "http://127.0.0.1:4000") => {
     writeInitialConfig(configPath);
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
+      services: { siwa: { baseUrl: string }; platform: { baseUrl: string } };
+    };
+    config.services.siwa.baseUrl = baseUrl;
+    config.services.platform.baseUrl = baseUrl;
+    fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+
     const receiptPath = path.join(tempDir, ".regent", "identity", "receipt-v1.json");
     const statePath = path.join(tempDir, "state", "runtime-state.json");
     fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
@@ -90,7 +97,6 @@ describe("reporting CLI commands", () => {
     process.env.CDP_KEY_ID = "test-key";
     process.env.CDP_KEY_SECRET = "test-secret";
     process.env.CDP_WALLET_SECRET = "test-wallet-secret";
-    delete process.env.PLATFORM_PHX_BASE_URL;
     process.env.REGENT_WALLET_PRIVATE_KEY = TEST_PRIVATE_KEY;
     fetchMock.mockReset();
   });
@@ -142,9 +148,7 @@ describe("reporting CLI commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/v1/agent/bug-report");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>)["x-siwa-receipt"]).toBe(
-      "report-receipt",
-    );
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       summary: "can't do xyz",
       details: "any more details here",
@@ -162,9 +166,8 @@ describe("reporting CLI commands", () => {
     });
   });
 
-  it("submits a security report and honors the Platform Phoenix base URL override", async () => {
-    writeAgentAuthState();
-    process.env.PLATFORM_PHX_BASE_URL = "https://reports.regents.sh/";
+  it("submits a security report to the configured product base URL", async () => {
+    writeAgentAuthState("https://reports.regents.sh/");
     fetchMock.mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -205,9 +208,7 @@ describe("reporting CLI commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe("https://reports.regents.sh/v1/agent/security-report");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>)["x-siwa-receipt"]).toBe(
-      "report-receipt",
-    );
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       summary: "private vuln",
       details: "steps and impact",

@@ -1,6 +1,7 @@
 import {
   runWorkCreate,
   runWorkList,
+  runWorkLocalLoop,
   runWorkRun,
   runWorkShow,
   runWorkWatch,
@@ -16,16 +17,20 @@ export const workRoutes: readonly CliRoute[] = [
     await runWorkList(parsedArgs);
     return 0;
   }),
+  route("work local-loop", async ({ parsedArgs }) => {
+    await runWorkLocalLoop(parsedArgs);
+    return 0;
+  }),
   route("work show", async ({ parsedArgs }) => {
     await runWorkShow(parsedArgs);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("work run", async ({ parsedArgs }) => {
     await runWorkRun(parsedArgs);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("work watch", async ({ parsedArgs }) => {
     await runWorkWatch(parsedArgs);
     return 0;
-  }),
+  }, { variadicTail: true }),
 ];

@@ -57,11 +57,15 @@ describe("techtree start wizard", () => {
         stateDir: path.join(tempDir, "state"),
         logLevel: "info",
       },
-      techtree: {
-        baseUrl: "http://127.0.0.1:4001",
+      auth: {
         audience: "techtree",
         defaultChainId: 84532,
-        requestTimeoutMs: 1_000,
+      },
+      services: {
+        techtree: {
+          baseUrl: "http://127.0.0.1:4001",
+          requestTimeoutMs: 1_000,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

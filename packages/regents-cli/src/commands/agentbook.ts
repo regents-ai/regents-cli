@@ -3,9 +3,19 @@ import {
   updateIdentityReceipt,
 } from "../internal-runtime/identity/cache.js";
 import { getBooleanFlag, type ParsedCliArgs } from "../parse.js";
-import { CLI_PALETTE, printJson, renderPanel, tone } from "../printer.js";
+import {
+  CLI_PALETTE,
+  isHumanTerminal,
+  printJson,
+  printJsonLine,
+  printText,
+  renderKeyValuePanel,
+  renderPanel,
+  tone,
+} from "../printer.js";
 import { parsePollingIntervalSeconds, requirePositional } from "./autolaunch/shared.js";
-import { buildAgentAuthHeaders, requireAgentAuthState } from "./agent-auth.js";
+import { requireAgentAuthState } from "./agent-auth.js";
+import { requestProductJson } from "./product-http.js";
 
 interface CreateAgentbookTrustSessionRequest {
   source: string;
@@ -67,12 +77,7 @@ interface AgentbookLookupResponse {
   result: AgentbookLookupResult;
 }
 
-const DEFAULT_PLATFORM_PHX_BASE_URL = "http://127.0.0.1:4000";
-const PLATFORM_PHX_BASE_URL_ENV = "PLATFORM_PHX_BASE_URL";
 const TERMINAL_SESSION_STATUSES = new Set(["registered", "failed"]);
-
-const platformPhxBaseUrl = (): string =>
-  (process.env[PLATFORM_PHX_BASE_URL_ENV] ?? DEFAULT_PLATFORM_PHX_BASE_URL).replace(/\/+$/, "");
 
 const watchInterval = async (seconds: number): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -80,58 +85,19 @@ const watchInterval = async (seconds: number): Promise<void> => {
 
 const shouldWatch = (args: ParsedCliArgs): boolean => getBooleanFlag(args, "watch");
 
-const parsePlatformError = (text: string, status: number): string => {
-  if (!text.trim()) {
-    return `Platform request failed (${status}).`;
-  }
-
-  try {
-    const parsed = JSON.parse(text) as Record<string, unknown>;
-    const statusMessage = typeof parsed.statusMessage === "string" ? parsed.statusMessage : undefined;
-    const errorMessage =
-      parsed.error &&
-      typeof parsed.error === "object" &&
-      typeof (parsed.error as { message?: unknown }).message === "string"
-        ? String((parsed.error as { message: string }).message)
-        : undefined;
-
-    return statusMessage ?? errorMessage ?? `Platform request failed (${status}).`;
-  } catch {
-    return text;
-  }
-};
-
-const requestPlatformJson = async <TResponse>(
+const requestAgentbookJson = async <TResponse>(
   method: "GET" | "POST",
   endpointPath: string,
   input?: { body?: unknown; configPath?: string },
-): Promise<TResponse> => {
-  const serializedBody = method === "POST" ? JSON.stringify(input?.body ?? {}) : undefined;
-  const authHeaders = await buildAgentAuthHeaders({
-    method,
-    path: endpointPath,
-    ...(serializedBody === undefined ? {} : { body: serializedBody }),
+): Promise<TResponse> =>
+  requestProductJson<TResponse>(method, endpointPath, {
+    body: method === "POST" ? input?.body ?? {} : undefined,
     configPath: input?.configPath,
-    audience: "platform",
+    requireAgentAuth: true,
+    authAudience: "platform",
+    service: "platform",
+    commandName: "regents agentbook",
   });
-
-  const response = await fetch(`${platformPhxBaseUrl()}${endpointPath}`, {
-    method,
-    headers: {
-      accept: "application/json",
-      ...(method === "POST" ? { "content-type": "application/json" } : {}),
-      ...authHeaders,
-    },
-    ...(serializedBody === undefined ? {} : { body: serializedBody }),
-  });
-
-  const text = await response.text();
-  if (!response.ok) {
-    throw new Error(parsePlatformError(text, response.status));
-  }
-
-  return JSON.parse(text) as TResponse;
-};
 
 const requireSavedIdentityReceipt = () => {
   const receipt = readIdentityReceipt();
@@ -191,6 +157,26 @@ const printApprovalHint = (session: AgentbookSessionPayload): void => {
   }
 };
 
+const printSessionWatchUpdate = (args: ParsedCliArgs, payload: AgentbookSessionResponse): void => {
+  if (isHumanTerminal() && !getBooleanFlag(args, "json")) {
+    const session = payload.session;
+    printText(
+      renderKeyValuePanel("◆ TRUST SESSION", [
+        { label: "session", value: session.session_id, valueColor: CLI_PALETTE.emphasis },
+        { label: "status", value: session.status, valueColor: CLI_PALETTE.emphasis },
+        { label: "chain", value: String(session.chain_id) },
+        ...(session.error_text ? [{ label: "note", value: session.error_text }] : []),
+        ...(session.trust.connected
+          ? [{ label: "human check", value: "connected", valueColor: CLI_PALETTE.emphasis }]
+          : []),
+      ]),
+    );
+    return;
+  }
+
+  printJsonLine(payload);
+};
+
 export async function runAgentbookRegister(args: ParsedCliArgs, configPath?: string): Promise<void> {
   requireSavedIdentityReceipt();
   requireAgentAuthState(configPath, { audience: "platform" });
@@ -199,7 +185,7 @@ export async function runAgentbookRegister(args: ParsedCliArgs, configPath?: str
     source: "regents-cli",
   };
 
-  const created = await requestPlatformJson<AgentbookSessionResponse>("POST", "/api/agentbook/sessions", {
+  const created = await requestAgentbookJson<AgentbookSessionResponse>("POST", "/api/agentbook/sessions", {
     body: payload,
     configPath,
   });
@@ -235,11 +221,12 @@ const watchAgentbookSession = async (
   sessionId: string,
   args: ParsedCliArgs,
   configPath?: string,
+  onPoll?: (payload: AgentbookSessionResponse) => void,
 ): Promise<AgentbookSessionResponse> => {
   const intervalSeconds = parsePollingIntervalSeconds(args);
 
   for (;;) {
-    const payload = await requestPlatformJson<AgentbookSessionResponse>(
+    const payload = await requestAgentbookJson<AgentbookSessionResponse>(
       "GET",
       `/api/agentbook/sessions/${encodeURIComponent(sessionId)}`,
       { configPath },
@@ -249,6 +236,7 @@ const watchAgentbookSession = async (
 
     if (session) {
       syncWorldTrustFromSession(session);
+      onPoll?.(payload);
       const status = typeof session.status === "string" ? session.status : "";
       if (TERMINAL_SESSION_STATUSES.has(status)) {
         return payload;
@@ -264,13 +252,13 @@ export async function runAgentbookSessionsWatch(args: ParsedCliArgs, configPath?
   requireAgentAuthState(configPath, { audience: "platform" });
 
   const sessionId = requirePositional(args, 3, "session-id");
-  printJson(await watchAgentbookSession(sessionId, args, configPath));
+  await watchAgentbookSession(sessionId, args, configPath, (payload) => printSessionWatchUpdate(args, payload));
 }
 
 export async function runAgentbookLookup(_args: ParsedCliArgs, configPath?: string): Promise<void> {
   requireAgentAuthState(configPath, { audience: "platform" });
 
-  const payload = await requestPlatformJson<AgentbookLookupResponse>("GET", "/api/agentbook/lookup", {
+  const payload = await requestAgentbookJson<AgentbookLookupResponse>("GET", "/api/agentbook/lookup", {
     configPath,
   });
 

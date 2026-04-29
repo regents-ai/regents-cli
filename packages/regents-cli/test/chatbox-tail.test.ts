@@ -122,21 +122,13 @@ describe("chatbox tail", () => {
     expect(socket.destroyed).toBe(true);
 
     expect(output.stdout).toBe(
-      `${JSON.stringify(
-        {
-          event: "message.created",
-          message: { id: 1, body: "first event" },
-        },
-        null,
-        2,
-      )}\n${JSON.stringify(
-        {
-          event: "reaction.updated",
-          message: { id: 1, body: "first event", reactions: { ":+1:": 1 } },
-        },
-        null,
-        2,
-      )}\n`,
+      `${JSON.stringify({
+        event: "message.created",
+        message: { id: 1, body: "first event" },
+      })}\n${JSON.stringify({
+        event: "reaction.updated",
+        message: { id: 1, body: "first event", reactions: { ":+1:": 1 } },
+      })}\n`,
     );
   });
 

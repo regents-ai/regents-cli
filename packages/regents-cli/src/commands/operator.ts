@@ -14,7 +14,7 @@ import {
 import { readIdentityReceipt, receiptMatchesRequest } from "../internal-runtime/identity/cache.js";
 import { identityNetworkForChainId } from "../internal-runtime/identity/shared.js";
 import type { RegentConfig } from "../internal-types/index.js";
-import { getFlag, parseCliArgs, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, getFlag, parseCliArgs, type ParsedCliArgs } from "../parse.js";
 import {
   CLI_PALETTE,
   isHumanTerminal,
@@ -25,6 +25,7 @@ import {
   renderTablePanel,
 } from "../printer.js";
 import { runTechtreeSearch } from "./techtree.js";
+import { loadResolvedPlatformSession, requestPlatformSessionJson } from "./platform.js";
 
 const ensureDirectories = (paths: readonly string[]): void => {
   for (const targetPath of paths) {
@@ -75,7 +76,7 @@ const readCurrentIdentityReceipt = (
       receiptMatchesRequest({
         receipt,
         network,
-        regentBaseUrl: config.auth.baseUrl,
+        regentBaseUrl: config.services.siwa.baseUrl,
         walletHint: input.walletAddress,
       })
       ? receipt
@@ -159,7 +160,7 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
     ),
     component("identity", receipt ? "ready" : "waiting", receipt ? `${receipt.network}:${receipt.agent_id}` : "Run regents identity ensure"),
     component("runtime", runtimeSocketReady ? "ready" : "waiting", config.runtime.socketPath),
-    component("techtree", "ready", config.techtree.baseUrl),
+    component("techtree", "ready", config.services.techtree.baseUrl),
     component("chatbox", runtimeSocketReady ? "ready" : "waiting"),
     component("xmtp", config.xmtp.enabled ? "ready" : "waiting", config.xmtp.env),
   ];
@@ -201,12 +202,29 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
 
 export async function runOperatorWhoami(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const config = loadConfig(configPathFor(args, configPath));
+  const full = getBooleanFlag(args, "full");
   const wallet = await coinbaseStatus(config, {
     walletHint: getFlag(args, "wallet"),
   });
   const receipt = readCurrentIdentityReceipt(config, {
     walletAddress: wallet.account?.address,
   });
+  const platformProjection = full
+    ? await (async () => {
+        const { origin, session } = await loadResolvedPlatformSession(args);
+        const { data } = await requestPlatformSessionJson({
+          origin,
+          session,
+          method: "GET",
+          path: "/api/agent-platform/projection",
+          commandName: "regents whoami --full",
+          configPath: configPathFor(args, configPath),
+          chainId: config.auth.defaultChainId,
+        });
+
+        return data;
+      })()
+    : null;
 
   const payload = {
     ok: Boolean(wallet.account),
@@ -227,6 +245,21 @@ export async function runOperatorWhoami(args: ParsedCliArgs, configPath?: string
         }
       : null,
     chain_id: config.auth.defaultChainId,
+    ...(full
+      ? {
+          identity_graph: {
+            agent_id: receipt?.agent_id ?? null,
+            local_identity: receipt
+              ? {
+                  network: receipt.network,
+                  address: receipt.address,
+                  agent_id: receipt.agent_id,
+                }
+              : null,
+            platform_projection: platformProjection,
+          },
+        }
+      : {}),
   };
 
   printOperatorPayload(payload, () =>
@@ -237,6 +270,7 @@ export async function runOperatorWhoami(args: ParsedCliArgs, configPath?: string
         { label: "address", value: wallet.account?.address ?? "not ready" },
         { label: "identity", value: receipt ? `${receipt.network}:${receipt.agent_id}` : "not ready" },
         { label: "chain", value: String(config.auth.defaultChainId) },
+        ...(full ? [{ label: "platform", value: platformProjection ? "loaded" : "not loaded" }] : []),
       ]),
     ].join("\n\n"),
   );

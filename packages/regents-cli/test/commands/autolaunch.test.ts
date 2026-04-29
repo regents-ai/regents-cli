@@ -12,12 +12,16 @@ const {
   writeContractMock,
   waitForReceiptMock,
   sendTransactionMock,
+  callMock,
+  estimateGasMock,
   safeInitMock,
   getSafeAddressFromDeploymentTxMock,
 } = vi.hoisted(() => ({
   writeContractMock: vi.fn(),
   waitForReceiptMock: vi.fn(),
   sendTransactionMock: vi.fn(),
+  callMock: vi.fn(),
+  estimateGasMock: vi.fn(),
   safeInitMock: vi.fn(),
   getSafeAddressFromDeploymentTxMock: vi.fn(),
 }));
@@ -57,6 +61,8 @@ vi.mock("viem", () => ({
     sendTransaction: sendTransactionMock,
   }),
   createPublicClient: () => ({
+    call: callMock,
+    estimateGas: estimateGasMock,
     waitForTransactionReceipt: waitForReceiptMock,
   }),
   parseEventLogs: () => [
@@ -150,6 +156,8 @@ describe("autolaunch CLI command group", () => {
     writeContractMock.mockReset();
     waitForReceiptMock.mockReset();
     sendTransactionMock.mockReset();
+    callMock.mockReset();
+    estimateGasMock.mockReset();
     safeInitMock.mockReset();
     getSafeAddressFromDeploymentTxMock.mockReset();
 
@@ -157,6 +165,8 @@ describe("autolaunch CLI command group", () => {
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     );
     waitForReceiptMock.mockResolvedValue({ logs: [] });
+    callMock.mockResolvedValue({ data: "0x" });
+    estimateGasMock.mockResolvedValue(21_000n);
     getSafeAddressFromDeploymentTxMock.mockReturnValue(
       "0x4444444444444444444444444444444444444444",
     );
@@ -178,8 +188,14 @@ describe("autolaunch CLI command group", () => {
     requireAgentAuthStateMock.mockReturnValue({
       config: {
         auth: {
-          baseUrl: "http://127.0.0.1:4000",
-          requestTimeoutMs: 10_000,
+          audience: "autolaunch",
+          defaultChainId: 84532,
+        },
+        services: {
+          siwa: {
+            baseUrl: "http://127.0.0.1:4000",
+            requestTimeoutMs: 10_000,
+          },
         },
       },
       session: {
@@ -579,6 +595,16 @@ describe("autolaunch CLI command group", () => {
           subject: {
             subject_id: "0xabc",
             splitter_address: "0x9999999999999999999999999999999999999999",
+            recognized_revenue_proof: {
+              source: "onchain_splitter",
+              chain_id: 84532,
+              ingress: "0x7777777777777777777777777777777777777777",
+              revsplit: "0x9999999999999999999999999999999999999999",
+              block_number: 123456,
+              amount: "125",
+              recipient_lane: "subject_revenue",
+              status: "fresh",
+            },
           },
         }),
         {
@@ -596,9 +622,35 @@ describe("autolaunch CLI command group", () => {
       `${expectedBaseUrl}/v1/agent/subjects/0xabc`,
     );
     expect(
-      parsePrintedJson<{ subject: { subject_id: string } }>(output.stdout),
+      parsePrintedJson<{
+        subject: {
+          subject_id: string;
+          recognized_revenue_proof: {
+            source: string;
+            chain_id: number;
+            ingress: string;
+            revsplit: string;
+            block_number: number;
+            amount: string;
+            recipient_lane: string;
+            status: string;
+          };
+        };
+      }>(output.stdout),
     ).toMatchObject({
-      subject: { subject_id: "0xabc" },
+      subject: {
+        subject_id: "0xabc",
+        recognized_revenue_proof: {
+          source: "onchain_splitter",
+          chain_id: 84532,
+          ingress: "0x7777777777777777777777777777777777777777",
+          revsplit: "0x9999999999999999999999999999999999999999",
+          block_number: 123456,
+          amount: "125",
+          recipient_lane: "subject_revenue",
+          status: "fresh",
+        },
+      },
     });
   });
 
@@ -637,6 +689,53 @@ describe("autolaunch CLI command group", () => {
       parsePrintedJson<{ prepared: { action: string } }>(output.stdout),
     ).toMatchObject({
       prepared: { action: "migrate" },
+    });
+  });
+
+  it("prepares treasury share pulls through the revenue splitter", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          prepared: {
+            resource: "revenue_splitter",
+            action: "pull_treasury_share",
+            tx_request: { data: "0x94af8446" },
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "splitter",
+        "pull-treasury-share",
+        "--job",
+        "job_123",
+        "--amount",
+        "7000000",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/v1/agent/contracts/jobs/job_123/revenue_splitter/pull_treasury_share/prepare`,
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      amount: "7000000",
+    });
+    expect(
+      parsePrintedJson<{ prepared: { resource: string; action: string } }>(output.stdout),
+    ).toMatchObject({
+      prepared: {
+        resource: "revenue_splitter",
+        action: "pull_treasury_share",
+      },
     });
   });
 
@@ -881,7 +980,7 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
-  it("maps Base-family chain names to chain ids and signs launch preview requests", async () => {
+  it("maps Base chain names to chain ids and signs launch preview requests", async () => {
     fetchMock.mockResolvedValue(
       new Response(
         JSON.stringify({ ok: true, preview: { launch_ready: true } }),

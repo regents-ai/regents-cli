@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import type { paths as RegentServicePaths } from "../generated/regent-services-openapi.js";
+import type { paths as PlatformPaths } from "../generated/platform-openapi.js";
 
 import type {
   JsonRequestBodyFor,
@@ -9,36 +9,30 @@ import type {
 import { loadConfig, StateStore } from "../internal-runtime/index.js";
 import { readIdentityReceipt } from "../internal-runtime/identity/cache.js";
 import { receiptToIdentity } from "../internal-runtime/identity/shared.js";
-import { buildAgentAuthHeaders } from "./agent-auth.js";
 import { getFlag, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
+import { requestProductJson } from "./product-http.js";
 
 type BugReportRequest = JsonRequestBodyFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/bug-report",
   "post"
 >;
 type BugReportResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/bug-report",
   "post"
 >;
 type SecurityReportRequest = JsonRequestBodyFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/security-report",
   "post"
 >;
 type SecurityReportResponse = JsonSuccessResponseFor<
-  RegentServicePaths,
+  PlatformPaths,
   "/v1/agent/security-report",
   "post"
 >;
-
-const DEFAULT_PLATFORM_PHX_BASE_URL = "http://127.0.0.1:4000";
-const PLATFORM_PHX_BASE_URL_ENV = "PLATFORM_PHX_BASE_URL";
-
-const platformPhxBaseUrl = (): string =>
-  (process.env[PLATFORM_PHX_BASE_URL_ENV] ?? DEFAULT_PLATFORM_PHX_BASE_URL).replace(/\/+$/, "");
 
 const readLocalAgentIdentity = (configPath?: string): NonNullable<BugReportRequest["reporting_agent"]> => {
   const config = loadConfig(configPath);
@@ -63,7 +57,7 @@ const readLocalAgentIdentity = (configPath?: string): NonNullable<BugReportReque
 
   if (identity.chainId !== 84532 && identity.chainId !== 8453) {
     throw new Error(
-      "This machine does not have a Base-family Regent identity yet. Run `regents identity ensure` first.",
+      "This machine does not have a Base Regent identity yet. Run `regents identity ensure` first.",
     );
   }
 
@@ -89,58 +83,6 @@ const requireTextFlag = (
   return value;
 };
 
-const parsePlatformError = (text: string, status: number): string => {
-  if (!text.trim()) {
-    return `Platform server request failed (${status}).`;
-  }
-
-  try {
-    const parsed = JSON.parse(text) as Record<string, unknown>;
-    const statusMessage = typeof parsed.statusMessage === "string" ? parsed.statusMessage : undefined;
-    const errorMessage =
-      parsed.error &&
-      typeof parsed.error === "object" &&
-      typeof (parsed.error as { message?: unknown }).message === "string"
-        ? String((parsed.error as { message: string }).message)
-        : undefined;
-
-    return statusMessage ?? errorMessage ?? `Platform server request failed (${status}).`;
-  } catch {
-    return text;
-  }
-};
-
-const requestPlatformJson = async <TResponse>(
-  endpointPath: string,
-  body: unknown,
-  configPath?: string,
-): Promise<TResponse> => {
-  const serializedBody = JSON.stringify(body);
-  const authHeaders = await buildAgentAuthHeaders({
-    method: "POST",
-    path: endpointPath,
-    body: serializedBody,
-    configPath,
-    audience: "regent-services",
-  });
-  const response = await fetch(`${platformPhxBaseUrl()}${endpointPath}`, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-      ...authHeaders,
-    },
-    body: serializedBody,
-  });
-
-  const text = await response.text();
-  if (!response.ok) {
-    throw new Error(parsePlatformError(text, response.status));
-  }
-
-  return JSON.parse(text) as TResponse;
-};
-
 export async function runBugReport(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const summary = requireTextFlag(
     args,
@@ -159,7 +101,16 @@ export async function runBugReport(args: ParsedCliArgs, configPath?: string): Pr
     reporting_agent: readLocalAgentIdentity(configPath),
   };
 
-  printJson(await requestPlatformJson<BugReportResponse>("/v1/agent/bug-report", payload, configPath));
+  printJson(
+    await requestProductJson<BugReportResponse>("POST", "/v1/agent/bug-report", {
+      body: payload,
+      configPath,
+      requireAgentAuth: true,
+      authAudience: "regent-services",
+      service: "platform",
+      commandName: "regents bug",
+    }),
+  );
 }
 
 export async function runSecurityReport(args: ParsedCliArgs, configPath?: string): Promise<void> {
@@ -187,6 +138,13 @@ export async function runSecurityReport(args: ParsedCliArgs, configPath?: string
   };
 
   printJson(
-    await requestPlatformJson<SecurityReportResponse>("/v1/agent/security-report", payload, configPath),
+    await requestProductJson<SecurityReportResponse>("POST", "/v1/agent/security-report", {
+      body: payload,
+      configPath,
+      requireAgentAuth: true,
+      authAudience: "regent-services",
+      service: "platform",
+      commandName: "regents security-report",
+    }),
   );
 }

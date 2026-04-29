@@ -1,12 +1,12 @@
 import os from "node:os";
 import path from "node:path";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 
-import { expandHome } from "../internal-runtime/index.js";
+import { expandHome, loadConfig, writeJsonFileAtomicSync } from "../internal-runtime/index.js";
+import { requestProductResponse } from "../internal-runtime/product-http-client.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
-const DEFAULT_ORIGIN = "https://regents.sh";
 const DEFAULT_IDENTITY_TOKEN_ENV = "REGENT_PLATFORM_IDENTITY_TOKEN";
 const DEFAULT_SESSION_FILE = path.join(os.homedir(), ".regent", "platform", "session.json");
 
@@ -28,6 +28,9 @@ export interface PlatformRequestOptions {
   readonly session: PlatformSessionState;
   readonly body?: JsonObject;
   readonly authorization?: string;
+  readonly commandName?: string;
+  readonly configPath?: string;
+  readonly chainId?: number;
 }
 
 export async function runPlatformAuthLogin(args: ParsedCliArgs): Promise<void> {
@@ -43,6 +46,8 @@ export async function runPlatformAuthLogin(args: ParsedCliArgs): Promise<void> {
     session: bootstrap,
     authorization: `Bearer ${identityToken}`,
     body: displayName ? { display_name: displayName } : {},
+    commandName: "regents platform auth login",
+    configPath: getFlag(args, "config"),
   });
 
   await saveSession(sessionFile, session);
@@ -63,6 +68,8 @@ export async function runPlatformAuthStatus(args: ParsedCliArgs): Promise<void> 
     path: "/api/auth/privy/profile",
     method: "GET",
     session,
+    commandName: "regents platform auth status",
+    configPath: getFlag(args, "config"),
   });
 
   printJson({
@@ -81,6 +88,8 @@ export async function runPlatformAuthLogout(args: ParsedCliArgs): Promise<void> 
     path: "/api/auth/privy/session",
     method: "DELETE",
     session,
+    commandName: "regents platform auth logout",
+    configPath: getFlag(args, "config"),
   });
   await rm(sessionFile, { force: true });
 
@@ -99,6 +108,8 @@ export async function runPlatformFormationStatus(args: ParsedCliArgs): Promise<v
     path: "/api/agent-platform/formation",
     method: "GET",
     session,
+    commandName: "regents platform formation status",
+    configPath: getFlag(args, "config"),
   });
 
   printJson({
@@ -109,6 +120,44 @@ export async function runPlatformFormationStatus(args: ParsedCliArgs): Promise<v
   });
 }
 
+export async function runPlatformFormationDoctor(args: ParsedCliArgs): Promise<void> {
+  const { origin, session } = await loadResolvedPlatformSession(args);
+  const { data } = await requestPlatformSessionJson({
+    origin,
+    path: "/api/agent-platform/formation/doctor",
+    method: "GET",
+    session,
+    commandName: "regents platform formation doctor",
+    configPath: getFlag(args, "config"),
+  });
+
+  printJson({
+    ok: true,
+    command: "regents platform formation doctor",
+    origin,
+    doctor: data,
+  });
+}
+
+export async function runPlatformProjection(args: ParsedCliArgs): Promise<void> {
+  const { origin, session } = await loadResolvedPlatformSession(args);
+  const { data } = await requestPlatformSessionJson({
+    origin,
+    path: "/api/agent-platform/projection",
+    method: "GET",
+    session,
+    commandName: "regents platform projection",
+    configPath: getFlag(args, "config"),
+  });
+
+  printJson({
+    ok: true,
+    command: "regents platform projection",
+    origin,
+    projection: data,
+  });
+}
+
 export async function runPlatformBillingAccount(args: ParsedCliArgs): Promise<void> {
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
@@ -116,6 +165,8 @@ export async function runPlatformBillingAccount(args: ParsedCliArgs): Promise<vo
     path: "/api/agent-platform/billing/account",
     method: "GET",
     session,
+    commandName: "regents platform billing account",
+    configPath: getFlag(args, "config"),
   });
 
   printJson({
@@ -133,6 +184,8 @@ export async function runPlatformBillingUsage(args: ParsedCliArgs): Promise<void
     path: "/api/agent-platform/billing/usage",
     method: "GET",
     session,
+    commandName: "regents platform billing usage",
+    configPath: getFlag(args, "config"),
   });
 
   printJson({
@@ -151,6 +204,8 @@ export async function runPlatformCompanyRuntime(args: ParsedCliArgs): Promise<vo
     path: `/api/agent-platform/agents/${encodeURIComponent(slug)}/runtime`,
     method: "GET",
     session,
+    commandName: "regents platform company runtime",
+    configPath: getFlag(args, "config"),
   });
 
   printJson({
@@ -172,7 +227,11 @@ export function printPlatformUnavailable(command: string): void {
 }
 
 const resolveOrigin = (args: ParsedCliArgs): string =>
-  normalizeOrigin(getFlag(args, "origin") ?? process.env.REGENT_PLATFORM_ORIGIN ?? DEFAULT_ORIGIN);
+  normalizeOrigin(
+    getFlag(args, "origin") ??
+      process.env.REGENT_PLATFORM_ORIGIN ??
+      loadConfig(getFlag(args, "config")).services.platform.baseUrl,
+  );
 
 const resolveOptionalOrigin = (args: ParsedCliArgs): string | null => {
   const raw = getFlag(args, "origin") ?? process.env.REGENT_PLATFORM_ORIGIN;
@@ -198,7 +257,12 @@ const resolveIdentityToken = (args: ParsedCliArgs): string => {
 };
 
 const bootstrapCsrf = async (origin: string): Promise<PlatformSessionState> => {
-  const response = await fetch(`${origin}/api/auth/privy/csrf`, {
+  const { response } = await requestProductResponse({
+    service: "platform",
+    method: "GET",
+    path: "/api/auth/privy/csrf",
+    baseUrlOverride: origin,
+    commandName: "regents platform auth login",
     headers: { accept: "application/json" },
   });
   const data = await parseJsonResponse(response);
@@ -238,10 +302,16 @@ export const requestPlatformSessionJson = async (
     headers.set("x-csrf-token", options.session.csrfToken);
   }
 
-  const response = await fetch(`${options.origin}${options.path}`, {
+  const { response } = await requestProductResponse({
+    service: "platform",
     method: options.method,
+    path: options.path,
+    configPath: options.configPath,
+    commandName: options.commandName,
+    chainId: options.chainId,
     headers,
     body: options.method === "GET" ? undefined : JSON.stringify(options.body ?? {}),
+    baseUrlOverride: options.origin,
   });
   const data = await parseJsonResponse(response);
   if (!response.ok) {
@@ -292,8 +362,7 @@ const loadSession = async (sessionFile: string): Promise<PlatformSessionState> =
 };
 
 const saveSession = async (sessionFile: string, session: PlatformSessionState): Promise<void> => {
-  await mkdir(path.dirname(sessionFile), { recursive: true });
-  await writeFile(sessionFile, `${JSON.stringify(session, null, 2)}\n`, "utf8");
+  writeJsonFileAtomicSync(sessionFile, session);
 };
 
 const isPlatformSessionState = (value: unknown): value is PlatformSessionState => {

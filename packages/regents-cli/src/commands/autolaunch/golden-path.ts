@@ -2,11 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
 
-import { createPublicClient, createWalletClient, http, type Hex } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia } from "viem/chains";
-
 import { loadConfig } from "../../internal-runtime/config.js";
+import { ensureSecureDir, writeJsonFileAtomicSync } from "../../internal-runtime/paths.js";
 import {
   FileWalletSecretSource,
   EnvWalletSecretSource,
@@ -31,7 +28,12 @@ import {
   tone,
 } from "../../printer.js";
 import { requireAgentAuthState } from "../agent-auth.js";
-import { parsePollingIntervalSeconds, requestJson } from "./shared.js";
+import {
+  extractPreparedTxRequest,
+  parsePollingIntervalSeconds,
+  requestJson,
+  submitPreparedTxRequest,
+} from "./shared.js";
 
 interface LocalPlanRecord {
   readonly plan_id: string;
@@ -56,7 +58,7 @@ const stateDir = (configPath?: string): string =>
 
 const planDir = (configPath?: string): string => {
   const resolved = path.join(stateDir(configPath), PRELAUNCH_DIR);
-  fs.mkdirSync(resolved, { recursive: true });
+  ensureSecureDir(resolved);
   return resolved;
 };
 
@@ -78,11 +80,7 @@ const saveLocalPlan = (
     remote_plan: plan,
   };
 
-  fs.writeFileSync(
-    planPath(planId, configPath),
-    `${JSON.stringify(record, null, 2)}\n`,
-    "utf8",
-  );
+  writeJsonFileAtomicSync(planPath(planId, configPath), record);
   return record;
 };
 
@@ -374,9 +372,10 @@ const requestSiwaLaunchBundle = async (
   walletAddress: `0x${string}`,
   configPath?: string,
 ) => {
-  const { config, identity } = requireAgentAuthState(configPath, {
+  const { identity } = requireAgentAuthState(configPath, {
     audience: "autolaunch",
   });
+  const config = loadConfig(configPath);
   const privateKey = await configuredPrivateKey(configPath);
   const derivedAddress = await deriveWalletAddress(privateKey);
   if (derivedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
@@ -395,7 +394,7 @@ const requestSiwaLaunchBundle = async (
     throw new Error("This launch needs a bound Regent identity. Run `regents identity ensure` again.");
   }
 
-  const siwaClient = new SiwaClient(config.auth.baseUrl, config.auth.requestTimeoutMs);
+  const siwaClient = new SiwaClient(config.services.siwa.baseUrl, config.services.siwa.requestTimeoutMs, config);
   const noncePayload = await siwaClient.requestNonce({
     wallet_address: walletAddress,
     chain_id: AUTOLAUNCH_CHAIN_ID,
@@ -619,58 +618,6 @@ export async function runAutolaunchLaunchMonitor(
   }
 }
 
-const walletClientForSubmit = async (
-  chainId: number,
-  configPath?: string,
-) => {
-  const privateKey = await configuredPrivateKey(configPath);
-  const account = privateKeyToAccount(privateKey);
-
-  if (chainId === 84532) {
-    const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL;
-    if (!rpcUrl) {
-      throw new Error("missing BASE_SEPOLIA_RPC_URL for submit mode");
-    }
-
-    return {
-      chain: baseSepolia,
-      walletClient: createWalletClient({
-        account,
-        chain: baseSepolia,
-        transport: http(rpcUrl),
-      }),
-      publicClient: createPublicClient({
-        chain: baseSepolia,
-        transport: http(rpcUrl),
-      }),
-      account,
-    };
-  }
-
-  if (chainId === 8453) {
-    const rpcUrl = process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL;
-    if (!rpcUrl) {
-      throw new Error("missing BASE_MAINNET_RPC_URL or BASE_RPC_URL for submit mode");
-    }
-
-    return {
-      chain: base,
-      walletClient: createWalletClient({
-        account,
-        chain: base,
-        transport: http(rpcUrl),
-      }),
-      publicClient: createPublicClient({
-        chain: base,
-        transport: http(rpcUrl),
-      }),
-      account,
-    };
-  }
-
-  throw new Error(`unsupported chain for submit mode: ${chainId}`);
-};
-
 export async function runAutolaunchLaunchFinalize(
   args: ParsedCliArgs,
   configPath?: string,
@@ -687,25 +634,17 @@ export async function runAutolaunchLaunchFinalize(
     return;
   }
 
-  const txRequest = (prepared.prepared as Record<string, unknown> | undefined)
-    ?.tx_request as Record<string, unknown> | undefined;
+  const preparedAction = prepared.prepared as Record<string, unknown> | undefined;
+  const txRequest = extractPreparedTxRequest(
+    preparedAction?.tx_request,
+    preparedAction?.expected_signer,
+  );
   if (!txRequest) {
     printJson(prepared);
     return;
   }
 
-  const chainId = Number(txRequest.chain_id);
-  const { chain, walletClient, publicClient, account } =
-    await walletClientForSubmit(chainId, configPath);
-  const txHash = await (walletClient as any).sendTransaction({
-    account,
-    to: String(txRequest.to) as `0x${string}`,
-    data: String(txRequest.data) as Hex,
-    value: BigInt(0),
-    chain,
-  });
-
-  await (publicClient as any).waitForTransactionReceipt({ hash: txHash });
+  const txHash = await submitPreparedTxRequest(txRequest, configPath);
 
   const registered = await requestJson(
     "POST",
@@ -755,25 +694,18 @@ export async function runAutolaunchVestingRelease(
     `/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}/vesting/release/prepare`,
     { body: {}, requireAgentAuth: true, configPath },
   );
-  const txRequest = (prepared.prepared as Record<string, unknown> | undefined)
-    ?.tx_request as Record<string, unknown> | undefined;
+  const preparedAction = prepared.prepared as Record<string, unknown> | undefined;
+  const txRequest = extractPreparedTxRequest(
+    preparedAction?.tx_request,
+    preparedAction?.expected_signer,
+  );
 
   if (!txRequest) {
     printJson(prepared);
     return;
   }
 
-  const chainId = Number(txRequest.chain_id);
-  const { chain, walletClient, publicClient, account } =
-    await walletClientForSubmit(chainId, configPath);
-  const txHash = await (walletClient as any).sendTransaction({
-    account,
-    to: String(txRequest.to) as `0x${string}`,
-    data: String(txRequest.data) as Hex,
-    value: BigInt(0),
-    chain,
-  });
-  await (publicClient as any).waitForTransactionReceipt({ hash: txHash });
+  const txHash = await submitPreparedTxRequest(txRequest, configPath);
 
   printJson({ ok: true, tx_hash: txHash, mode: "submitted" });
 }

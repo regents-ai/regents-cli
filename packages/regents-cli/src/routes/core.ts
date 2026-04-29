@@ -7,7 +7,7 @@ import {
 } from "../commands/agent.js";
 import { runConfigRead, runConfigWrite } from "../commands/config.js";
 import { runCreateInit, runCreateWallet } from "../commands/create.js";
-import { runDoctorCommand } from "../commands/doctor.js";
+import { runDoctorCommand, runDoctorContractsCommand } from "../commands/doctor.js";
 import { runGossipsubStatus } from "../commands/gossipsub.js";
 import { runMcpExportHermes } from "../commands/mcp.js";
 import {
@@ -25,7 +25,7 @@ export const coreRoutes: readonly CliRoute[] = [
   route("status", async ({ parsedArgs, configPath }) => runOperatorStatus(parsedArgs, configPath)),
   route("whoami", async ({ parsedArgs, configPath }) => runOperatorWhoami(parsedArgs, configPath)),
   route("balance", async ({ parsedArgs, configPath }) => runOperatorBalance(parsedArgs, configPath)),
-  route("search", async ({ parsedArgs, configPath }) => runOperatorSearch(parsedArgs, configPath)),
+  route("search", async ({ parsedArgs, configPath }) => runOperatorSearch(parsedArgs, configPath), { variadicTail: true }),
   route("run", async ({ configPath }) => {
     await runRuntime(configPath);
     return 0;
@@ -46,7 +46,13 @@ export const coreRoutes: readonly CliRoute[] = [
     await runConfigWrite(parsedArgs);
     return 0;
   }),
-  route("doctor", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
+  route("doctor runtime", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
+  route("doctor auth", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
+  route("doctor techtree", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
+  route("doctor transports", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
+  route("doctor xmtp", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
+  route("doctor contracts", async ({ parsedArgs, configPath }) => runDoctorContractsCommand(parsedArgs, configPath)),
+  route("doctor", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath), { variadicTail: true }),
   route("mcp export hermes", async ({ parsedArgs }) => {
     await runMcpExportHermes(parsedArgs);
     return 0;

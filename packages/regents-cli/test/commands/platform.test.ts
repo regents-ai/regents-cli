@@ -120,6 +120,65 @@ describe("platform CLI command group", () => {
     });
   });
 
+  it("reads the Platform formation doctor", async () => {
+    writeSession();
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, status: "blocked", blockers: [{ reason: "billing_needed" }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "formation",
+        "doctor",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/formation/doctor");
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
+    expect(parsePrintedJson<{ command: string; doctor: { status: string } }>(output.stdout)).toMatchObject({
+      command: "regents platform formation doctor",
+      doctor: { status: "blocked" },
+    });
+  });
+
+  it("reads the Platform projection", async () => {
+    writeSession();
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, agent_id: "agent_123", companies: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "projection",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/projection");
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
+    expect(parsePrintedJson<{ command: string; projection: { agent_id: string } }>(output.stdout)).toMatchObject({
+      command: "regents platform projection",
+      projection: { agent_id: "agent_123" },
+    });
+  });
+
   it("returns the canonical beta-disabled response without calling Platform", async () => {
     const output = await captureOutput(() =>
       runCliEntrypoint(["platform", "billing", "topup", "--amount-usd-cents", "800"]),

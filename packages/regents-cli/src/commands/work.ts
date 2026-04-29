@@ -1,15 +1,18 @@
-import { getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { runLocalWorkerLoop, type LocalWorkerAssignment } from "../agents/bridge/local-worker-loop.js";
+import { printJson } from "../printer.js";
 import {
   printWorkCreateResult,
   printWorkListResult,
   printWorkRunResult,
   printWorkShowResult,
-  printWorkWatchResult,
+  printWorkWatchTimelineResult,
 } from "./rwr-presenters.js";
 import {
   loadResolvedPlatformSession,
   requestPlatformSessionJson,
 } from "./platform.js";
+import { requestProductJson } from "./product-http.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -28,10 +31,31 @@ const requestWorkJson = async (
     session,
     method: input.method,
     path: input.path,
+    commandName: "regents work",
+    configPath: getFlag(args, "config"),
     ...(input.body === undefined ? {} : { body: input.body }),
   });
 
   return { origin, data };
+};
+
+const sleep = async (ms: number): Promise<void> => {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+const requestAgentWorkJson = async (
+  args: ParsedCliArgs,
+  input: { method: "GET" | "POST"; path: string; body?: JsonObject },
+): Promise<JsonObject> => {
+  const configPath = getFlag(args, "config");
+  return requestProductJson<JsonObject>(input.method, input.path, {
+    body: input.body,
+    configPath,
+    requireAgentAuth: true,
+    authAudience: "platform",
+    service: "platform",
+    commandName: "regents work",
+  });
 };
 
 export async function runWorkCreate(args: ParsedCliArgs): Promise<void> {
@@ -96,10 +120,129 @@ export async function runWorkRun(args: ParsedCliArgs): Promise<void> {
 export async function runWorkWatch(args: ParsedCliArgs): Promise<void> {
   const resolvedCompanyId = companyId(args);
   const runId = positional(args, 2, "run_id");
-  const { origin, data } = await requestWorkJson(args, {
-    method: "GET",
-    path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(runId)}/events`,
+  const pollMs = parseIntegerFlag(args, "poll-ms") ?? 2_000;
+  const maxPolls = getBooleanFlag(args, "once") ? 1 : parseIntegerFlag(args, "max-polls");
+  let polls = 0;
+  const seenEventKeys = new Set<string>();
+
+  while (maxPolls === undefined || polls < maxPolls) {
+    const { origin, data } = await requestWorkJson(args, {
+      method: "GET",
+      path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(runId)}/events`,
+    });
+
+    printWorkWatchTimelineResult(args, { ok: true, command: "regents work watch", origin, result: data }, {
+      seenEventKeys,
+    });
+    polls += 1;
+
+    if (maxPolls !== undefined && polls >= maxPolls) {
+      break;
+    }
+
+    await sleep(pollMs);
+  }
+}
+
+export async function runWorkLocalLoop(args: ParsedCliArgs): Promise<void> {
+  const resolvedCompanyId = companyId(args);
+  const workerId = requireArg(getFlag(args, "worker-id"), "worker-id");
+  const once = getBooleanFlag(args, "once");
+  let remaining = once ? 1 : Number.POSITIVE_INFINITY;
+  const baseWorkerPath = `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers/${encodeURIComponent(workerId)}`;
+  const assignmentPath = (assignmentId: string | number, action: string): string =>
+    `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/assignments/${encodeURIComponent(String(assignmentId))}/${action}`;
+  const runPath = (assignment: LocalWorkerAssignment, suffix: string): string =>
+    `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(String(assignment.work_run_id))}/${suffix}`;
+
+  await runLocalWorkerLoop<LocalWorkerAssignment>({
+    shouldContinue: () => remaining-- > 0,
+    sleepMs: once ? 0 : Number(getFlag(args, "sleep-ms") ?? "5000"),
+    heartbeat: async () => {
+      await requestAgentWorkJson(args, { method: "POST", path: `${baseWorkerPath}/heartbeat` });
+    },
+    listAssignments: async () => {
+      const data = await requestAgentWorkJson(args, { method: "GET", path: `${baseWorkerPath}/assignments` });
+      return Array.isArray(data.assignments) ? (data.assignments as LocalWorkerAssignment[]) : [];
+    },
+    claimAssignment: async (assignment) => {
+      const data = await requestAgentWorkJson(args, {
+        method: "POST",
+        path: assignmentPath(assignment.id, "claim"),
+      });
+      return (data.assignment as LocalWorkerAssignment | undefined) ?? null;
+    },
+    appendRunEvent: async (assignment, event) => {
+      await requestAgentWorkJson(args, {
+        method: "POST",
+        path: runPath(assignment, "events"),
+        body: {
+          company_id: resolvedCompanyId,
+          run_id: assignment.work_run_id,
+          kind: event.kind,
+          payload: event.payload ?? {},
+          visibility: event.visibility ?? "operator",
+          sensitivity: event.sensitivity ?? "normal",
+        },
+      });
+    },
+    uploadArtifact: async (assignment, artifact) => {
+      await requestAgentWorkJson(args, {
+        method: "POST",
+        path: runPath(assignment, "artifacts"),
+        body: {
+          company_id: resolvedCompanyId,
+          run_id: assignment.work_run_id,
+          ...artifact,
+        },
+      });
+    },
+    requestDelegation: async (assignment, delegation) => {
+      await requestAgentWorkJson(args, {
+        method: "POST",
+        path: runPath(assignment, "delegations"),
+        body: {
+          company_id: resolvedCompanyId,
+          run_id: assignment.work_run_id,
+          ...delegation,
+        },
+      });
+    },
+    releaseAssignment: async (assignment) => {
+      await requestAgentWorkJson(args, { method: "POST", path: assignmentPath(assignment.id, "release") });
+    },
+    completeAssignment: async (assignment) => {
+      await requestAgentWorkJson(args, { method: "POST", path: assignmentPath(assignment.id, "complete") });
+    },
+    handleAssignment: async () => ({
+      events: [
+        {
+          kind: "local_worker_checked_assignment",
+          payload: { worker_id: workerId },
+          visibility: "operator",
+          sensitivity: "normal",
+        },
+      ],
+      artifacts:
+        getFlag(args, "artifact-title") && getFlag(args, "artifact-body")
+          ? [
+              {
+                artifact_type: "note",
+                title: String(getFlag(args, "artifact-title")),
+                body: String(getFlag(args, "artifact-body")),
+                visibility: "operator",
+              },
+            ]
+          : [],
+      delegation: getFlag(args, "delegate-runner")
+        ? {
+            requested_runner_kind: String(getFlag(args, "delegate-runner")),
+            tasks: [{ title: getFlag(args, "delegate-title") ?? "Delegated work" }],
+          }
+        : undefined,
+      complete: true,
+    }),
   });
 
-  printWorkWatchResult(args, { ok: true, command: "regents work watch", origin, result: data });
+  printJson({ ok: true, command: "regents work local-loop" });
 }

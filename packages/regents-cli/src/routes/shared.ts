@@ -13,23 +13,63 @@ export type CliRouteHandler = (context: CliRouteContext) => Promise<number>;
 export type CliRoute = {
   command: string;
   pattern: readonly string[];
+  variadicTail: boolean;
   handler: CliRouteHandler;
 };
 
-export const route = (pattern: string, handler: CliRouteHandler): CliRoute => ({
+export const route = (
+  pattern: string,
+  handler: CliRouteHandler,
+  options?: { readonly variadicTail?: boolean },
+): CliRoute => ({
   command: pattern,
   pattern: pattern.split(" "),
+  variadicTail: options?.variadicTail ?? false,
   handler,
 });
 
-export const routeMatches = (routePattern: readonly string[], positionals: readonly string[]): boolean => {
-  if (routePattern.length > positionals.length) {
+const isPlaceholderPart = (part: string): boolean => part.startsWith("<") && part.endsWith(">");
+
+const inputIsReservedLiteralCommandPrefix = (
+  candidate: CliRoute,
+  positionals: readonly string[],
+): boolean =>
+  CLI_COMMANDS.some((command) => {
+    if (command === candidate.command) {
+      return false;
+    }
+
+    const commandParts = command.split(" ");
+    if (commandParts.length < positionals.length) {
+      return false;
+    }
+
+    return positionals.every((part, index) => {
+      const commandPart = commandParts[index];
+      return commandPart !== undefined && !isPlaceholderPart(commandPart) && commandPart === part;
+    });
+  });
+
+export const routeMatches = (candidate: CliRoute, positionals: readonly string[]): boolean => {
+  if (candidate.pattern.length > positionals.length) {
     return false;
   }
 
-  return routePattern.every((part, index) => {
+  if (!candidate.variadicTail && candidate.pattern.length !== positionals.length) {
+    return false;
+  }
+
+  return candidate.pattern.every((part, index) => {
     const input = positionals[index];
-    return part.startsWith("<") && part.endsWith(">") ? Boolean(input) : part === input;
+    if (!isPlaceholderPart(part)) {
+      return part === input;
+    }
+
+    if (!input) {
+      return false;
+    }
+
+    return !inputIsReservedLiteralCommandPrefix(candidate, positionals.slice(0, index + 1));
   });
 };
 
@@ -37,7 +77,7 @@ export const dispatchRoute = async (
   routes: readonly CliRoute[],
   context: CliRouteContext,
 ): Promise<number | undefined> => {
-  const matchedRoute = routes.find((candidate) => routeMatches(candidate.pattern, context.positionals));
+  const matchedRoute = routes.find((candidate) => routeMatches(candidate, context.positionals));
   return matchedRoute ? matchedRoute.handler(context) : undefined;
 };
 
@@ -49,7 +89,7 @@ export const assertRouteRegistryMatches = (routes: readonly CliRoute[]): void =>
     routeCommands.map((command) =>
       command
         .split(" ")
-        .filter((part) => !(part.startsWith("<") && part.endsWith(">")))
+        .filter((part) => !isPlaceholderPart(part))
         .join(" "),
     ),
   );
@@ -60,7 +100,7 @@ export const assertRouteRegistryMatches = (routes: readonly CliRoute[]): void =>
   const missingRegistryEntries = routeCommands.filter((command) => {
     const commandWithoutPlaceholders = command
       .split(" ")
-      .filter((part) => !(part.startsWith("<") && part.endsWith(">")))
+      .filter((part) => !isPlaceholderPart(part))
       .join(" ");
     return !registryCommandSet.has(command) && !registryCommandSet.has(commandWithoutPlaceholders);
   });

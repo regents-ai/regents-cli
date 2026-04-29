@@ -424,7 +424,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
 
   startWizardDeps.printText(stepPanel("◆ LOCAL READY", [
     createdConfig ? "Created a fresh local Regent config." : "Reused the existing local Regent config.",
-    `${tone("backend", CLI_PALETTE.secondary)} ${config.techtree.baseUrl}`,
+    `${tone("backend", CLI_PALETTE.secondary)} ${config.services.techtree.baseUrl}`,
     `${tone("wallet env", CLI_PALETTE.secondary)} ${config.wallet.privateKeyEnv}`,
   ]));
 
@@ -443,7 +443,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
       createdConfig,
       daemonStarted: false,
       configPath: resolvedConfigPath,
-      baseUrl: config.techtree.baseUrl,
+      baseUrl: config.services.techtree.baseUrl,
       walletEnvName: config.wallet.privateKeyEnv,
       selectedIdentity: null,
     };
@@ -471,7 +471,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
         createdConfig,
         daemonStarted: false,
         configPath: resolvedConfigPath,
-        baseUrl: config.techtree.baseUrl,
+        baseUrl: config.services.techtree.baseUrl,
         walletEnvName: config.wallet.privateKeyEnv,
         selectedIdentity: null,
       };
@@ -492,7 +492,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
       createdConfig,
       daemonStarted,
       configPath: resolvedConfigPath,
-      baseUrl: config.techtree.baseUrl,
+      baseUrl: config.services.techtree.baseUrl,
       walletEnvName: config.wallet.privateKeyEnv,
       selectedIdentity: null,
     };
@@ -528,7 +528,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
         createdConfig,
         daemonStarted,
         configPath: resolvedConfigPath,
-        baseUrl: config.techtree.baseUrl,
+        baseUrl: config.services.techtree.baseUrl,
         walletEnvName: config.wallet.privateKeyEnv,
         selectedIdentity: identity,
       };
@@ -548,7 +548,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
       createdConfig,
       daemonStarted,
       configPath: resolvedConfigPath,
-      baseUrl: config.techtree.baseUrl,
+      baseUrl: config.services.techtree.baseUrl,
       walletEnvName: config.wallet.privateKeyEnv,
       selectedIdentity: identity,
     };
@@ -567,7 +567,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
       createdConfig,
       daemonStarted,
       configPath: resolvedConfigPath,
-      baseUrl: config.techtree.baseUrl,
+      baseUrl: config.services.techtree.baseUrl,
       walletEnvName: config.wallet.privateKeyEnv,
       selectedIdentity: identity,
     };
@@ -589,7 +589,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
     createdConfig,
     daemonStarted,
     configPath: resolvedConfigPath,
-    baseUrl: config.techtree.baseUrl,
+    baseUrl: config.services.techtree.baseUrl,
     walletEnvName: config.wallet.privateKeyEnv,
     selectedIdentity: identity,
   };

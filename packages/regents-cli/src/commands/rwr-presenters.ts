@@ -2,6 +2,7 @@ import {
   CLI_PALETTE,
   isHumanTerminal,
   printJson,
+  printJsonLine,
   printText,
   renderKeyValuePanel,
   renderPanel,
@@ -27,6 +28,13 @@ type RwrOpenClawPayload = RwrPayload & {
   };
 };
 
+type RwrHermesPayload = RwrPayload & {
+  readonly hermes: {
+    readonly configFile: string | null;
+    readonly skillFile: string | null;
+  };
+};
+
 const asRecord = (value: unknown, label: string): JsonObject => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`Regent returned ${label} that this command cannot show.`);
@@ -48,6 +56,16 @@ const displayValue = (value: unknown): string | null => {
   return null;
 };
 
+const displayLabel = (value: unknown): string | null => {
+  const raw = displayValue(value);
+  return raw ? raw.replace(/_/gu, " ") : null;
+};
+
+const eventKey = (event: JsonObject): string =>
+  [displayValue(event.id), displayValue(event.sequence), displayValue(event.occurred_at), displayValue(event.kind)]
+    .filter(Boolean)
+    .join(":");
+
 const idValue = (record: JsonObject): string => {
   const id = displayValue(record.id);
   if (!id) {
@@ -66,7 +84,7 @@ const nextPanel = (lines: readonly string[]): string =>
 
 const printRwrPayload = (
   args: ParsedCliArgs,
-  payload: RwrPayload | RwrOpenClawPayload,
+  payload: RwrPayload | RwrOpenClawPayload | RwrHermesPayload,
   renderHuman: () => string,
 ): void => {
   if (isHumanTerminal() && !getBooleanFlag(args, "json")) {
@@ -87,6 +105,32 @@ const workerFromPayload = (payload: RwrPayload): JsonObject =>
 
 const relationshipFromPayload = (payload: RwrPayload): JsonObject =>
   asRecord(payload.result.relationship, "a work link");
+
+const runtimeFromPayload = (payload: RwrPayload): JsonObject =>
+  asRecord(payload.result.runtime, "a runtime");
+
+const checkpointFromPayload = (payload: RwrPayload): JsonObject =>
+  asRecord(payload.result.checkpoint, "a checkpoint");
+
+const runtimeRows = (runtime: JsonObject): KeyValueRow[] => [
+  { label: "runtime id", value: idValue(runtime), valueColor: CLI_PALETTE.emphasis },
+  { label: "name", value: displayValue(runtime.name) ?? "unnamed runtime" },
+  { label: "status", value: displayLabel(runtime.status) ?? "unknown", valueColor: CLI_PALETTE.emphasis },
+  { label: "runner", value: displayLabel(runtime.runner_kind) ?? "unknown" },
+  { label: "runs on", value: displayLabel(runtime.execution_surface) ?? "unknown" },
+  { label: "billing", value: displayLabel(runtime.billing_mode) ?? "unknown" },
+  ...(displayValue(runtime.platform_agent_id)
+    ? [{ label: "agent id", value: String(runtime.platform_agent_id), valueColor: CLI_PALETTE.emphasis }]
+    : []),
+];
+
+const checkpointRows = (checkpoint: JsonObject): KeyValueRow[] => [
+  { label: "checkpoint id", value: idValue(checkpoint), valueColor: CLI_PALETTE.emphasis },
+  { label: "reference", value: displayValue(checkpoint.checkpoint_ref) ?? "unnamed checkpoint" },
+  { label: "status", value: displayLabel(checkpoint.status) ?? "unknown", valueColor: CLI_PALETTE.emphasis },
+  { label: "saved at", value: displayValue(checkpoint.captured_at) ?? displayValue(checkpoint.created_at) ?? "not saved yet" },
+  { label: "protected", value: displayValue(checkpoint.protected) ?? "false" },
+];
 
 const workRows = (workItem: JsonObject): KeyValueRow[] => [
   { label: "work id", value: idValue(workItem), valueColor: CLI_PALETTE.emphasis },
@@ -233,18 +277,44 @@ export const printWorkRunResult = (args: ParsedCliArgs, payload: RwrPayload): vo
   });
 
 export const printWorkWatchResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
-  printRwrPayload(args, payload, () => {
+  printWorkWatchTimelineResult(args, payload);
+
+export const printWorkWatchTimelineResult = (
+  args: ParsedCliArgs,
+  payload: RwrPayload,
+  options: { readonly seenEventKeys?: Set<string> } = {},
+): void => {
+  if (!isHumanTerminal() || getBooleanFlag(args, "json")) {
+    printJsonLine(payload);
+    return;
+  }
+
+  printText(
+    (() => {
     const runId = displayValue(payload.result.run_id) ?? "<run-id>";
     const companyId = getFlag(args, "company-id") ?? "<id>";
-    const events = Array.isArray(payload.result.events)
+    const allEvents = Array.isArray(payload.result.events)
       ? payload.result.events.map((event) => asRecord(event, "a run update"))
       : [];
+    const seenEventKeys = options.seenEventKeys;
+    const events = seenEventKeys
+      ? allEvents.filter((event) => {
+          const key = eventKey(event);
+          if (key && seenEventKeys.has(key)) {
+            return false;
+          }
+          if (key) {
+            seenEventKeys.add(key);
+          }
+          return true;
+        })
+      : allEvents;
 
     if (events.length === 0) {
       return [
         renderKeyValuePanel("◆ RUN UPDATES", [
           { label: "run id", value: runId, valueColor: CLI_PALETTE.emphasis },
-          { label: "updates", value: "0" },
+          { label: "new updates", value: "0" },
         ]),
         nextPanel([`Check again with ${commandValue(`regents work watch ${runId} --company-id ${companyId}`)}.`]),
       ].join("\n\n");
@@ -253,10 +323,10 @@ export const printWorkWatchResult = (args: ParsedCliArgs, payload: RwrPayload): 
     return [
       renderKeyValuePanel("◆ RUN UPDATES", [
         { label: "run id", value: runId, valueColor: CLI_PALETTE.emphasis },
-        { label: "updates", value: String(events.length), valueColor: CLI_PALETTE.emphasis },
+        { label: "new updates", value: String(events.length), valueColor: CLI_PALETTE.emphasis },
         { label: "latest", value: displayValue(events.at(-1)?.occurred_at) ?? "unknown" },
       ]),
-      renderTablePanel("◆ UPDATE LIST", [
+      renderTablePanel("◆ UPDATE TIMELINE", [
         { header: "#", align: "right", color: CLI_PALETTE.secondary },
         { header: "update", color: CLI_PALETTE.secondary },
         { header: "actor", color: CLI_PALETTE.secondary },
@@ -276,22 +346,165 @@ export const printWorkWatchResult = (args: ParsedCliArgs, payload: RwrPayload): 
         ],
       }))),
     ].join("\n\n");
-  });
+    })(),
+  );
+};
 
-export const printAgentConnectHermesResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
+export const printAgentConnectHermesResult = (args: ParsedCliArgs, payload: RwrHermesPayload): void =>
   printRwrPayload(args, payload, () => {
     const worker = workerFromPayload(payload);
     const workerId = idValue(worker);
     const companyId = displayValue(worker.company_id) ?? "<id>";
 
     return [
-      renderKeyValuePanel("◆ HERMES CONNECTED", workerRows(worker), {
+      renderKeyValuePanel("◆ HERMES CONNECTED", [
+        ...workerRows(worker),
+        ...(payload.hermes.configFile
+          ? [{ label: "connector file", value: payload.hermes.configFile, valueColor: CLI_PALETTE.emphasis }]
+          : []),
+        ...(payload.hermes.skillFile
+          ? [{ label: "skill file", value: payload.hermes.skillFile, valueColor: CLI_PALETTE.emphasis }]
+          : []),
+      ], {
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,
       }),
       nextPanel([
-        `Choose who can receive work with ${commandValue(`regents agent link --company-id ${companyId} --manager-worker-id ${workerId} --executor-worker-id <worker-id> --relationship can_delegate_to`)}.`,
+        payload.hermes.configFile
+          ? `Hermes can now use ${tone("regents-work", CLI_PALETTE.emphasis, true)} from ${payload.hermes.configFile}.`
+          : "Hermes was connected. No local connector files were written.",
+        `Check available work with ${commandValue(`regents work local-loop --company-id ${companyId} --worker-id ${workerId} --once`)}.`,
       ]),
+    ].join("\n\n");
+  });
+
+export const printRuntimeResult = (
+  args: ParsedCliArgs,
+  payload: RwrPayload,
+  title: "created" | "status" | "paused" | "resumed",
+): void =>
+  printRwrPayload(args, payload, () => {
+    const runtime = runtimeFromPayload(payload);
+    const runtimeId = idValue(runtime);
+    const companyId = displayValue(runtime.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const titleByState = {
+      created: "◆ RUNTIME CREATED",
+      status: "◆ RUNTIME STATUS",
+      paused: "◆ RUNTIME PAUSED",
+      resumed: "◆ RUNTIME RESUMED",
+    } satisfies Record<typeof title, string>;
+
+    return [
+      renderKeyValuePanel(titleByState[title], runtimeRows(runtime), {
+        borderColor: CLI_PALETTE.chrome,
+        titleColor: CLI_PALETTE.title,
+      }),
+      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+    ].join("\n\n");
+  });
+
+export const printRuntimeCheckpointResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
+  printRwrPayload(args, payload, () => {
+    const checkpoint = checkpointFromPayload(payload);
+    const runtimeId = args.positionals[2] ?? displayValue(checkpoint.runtime_profile_id) ?? "<runtime-id>";
+    const companyId = displayValue(checkpoint.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+
+    return [
+      renderKeyValuePanel("◆ CHECKPOINT SAVED", checkpointRows(checkpoint), {
+        borderColor: CLI_PALETTE.chrome,
+        titleColor: CLI_PALETTE.title,
+      }),
+      nextPanel([
+        `Restore it with ${commandValue(`regents runtime restore ${runtimeId} --company-id ${companyId} --checkpoint-id ${idValue(checkpoint)}`)}.`,
+      ]),
+    ].join("\n\n");
+  });
+
+export const printRuntimeRestoreResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
+  printRwrPayload(args, payload, () => {
+    const runtime = runtimeFromPayload(payload);
+    const checkpoint = checkpointFromPayload(payload);
+    const restore = asRecord(payload.result.restore, "a restore result");
+    const runtimeId = idValue(runtime);
+    const companyId = displayValue(runtime.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+
+    return [
+      renderKeyValuePanel("◆ RESTORE ACCEPTED", [
+        { label: "runtime id", value: runtimeId, valueColor: CLI_PALETTE.emphasis },
+        { label: "runtime", value: displayValue(runtime.name) ?? "unnamed runtime" },
+        { label: "checkpoint id", value: idValue(checkpoint), valueColor: CLI_PALETTE.emphasis },
+        { label: "checkpoint", value: displayValue(checkpoint.checkpoint_ref) ?? "unnamed checkpoint" },
+        { label: "status", value: displayLabel(restore.status) ?? "accepted", valueColor: CLI_PALETTE.emphasis },
+      ], {
+        borderColor: CLI_PALETTE.chrome,
+        titleColor: CLI_PALETTE.title,
+      }),
+      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+    ].join("\n\n");
+  });
+
+export const printRuntimeServicesResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
+  printRwrPayload(args, payload, () => {
+    const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const runtimeId = displayValue(payload.result.runtime_id) ?? args.positionals[2] ?? "<runtime-id>";
+    const services = Array.isArray(payload.result.services)
+      ? payload.result.services.map((service) => asRecord(service, "a runtime service"))
+      : [];
+
+    if (services.length === 0) {
+      return [
+        renderKeyValuePanel("◆ RUNTIME SERVICES", [
+          { label: "runtime id", value: runtimeId, valueColor: CLI_PALETTE.emphasis },
+          { label: "services", value: "0" },
+        ]),
+        nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+      ].join("\n\n");
+    }
+
+    return [
+      renderTablePanel("◆ RUNTIME SERVICES", [
+        { header: "id", color: CLI_PALETTE.secondary },
+        { header: "name", color: CLI_PALETTE.secondary },
+        { header: "kind", color: CLI_PALETTE.secondary },
+        { header: "status", color: CLI_PALETTE.secondary },
+        { header: "endpoint", color: CLI_PALETTE.secondary },
+      ], services.map((service) => ({
+        cells: [
+          idValue(service),
+          displayValue(service.name) ?? "unnamed service",
+          displayLabel(service.service_kind) ?? "service",
+          displayLabel(service.status) ?? "unknown",
+          displayValue(service.endpoint_url) ?? "not published",
+        ],
+        colors: [
+          CLI_PALETTE.emphasis,
+          CLI_PALETTE.primary,
+          CLI_PALETTE.primary,
+          CLI_PALETTE.emphasis,
+          CLI_PALETTE.secondary,
+        ],
+      }))),
+      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+    ].join("\n\n");
+  });
+
+export const printRuntimeHealthResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
+  printRwrPayload(args, payload, () => {
+    const health = asRecord(payload.result.health, "runtime health");
+    const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const runtimeId = displayValue(payload.result.runtime_id) ?? args.positionals[2] ?? "<runtime-id>";
+
+    return [
+      renderKeyValuePanel("◆ RUNTIME HEALTH", [
+        { label: "runtime id", value: runtimeId, valueColor: CLI_PALETTE.emphasis },
+        { label: "status", value: displayLabel(health.status) ?? "unknown", valueColor: CLI_PALETTE.emphasis },
+        { label: "available", value: health.available === true ? "yes" : "no" },
+        { label: "metering", value: displayLabel(health.metering_status) ?? "unknown" },
+      ], {
+        borderColor: CLI_PALETTE.chrome,
+        titleColor: CLI_PALETTE.title,
+      }),
+      nextPanel([`List services with ${commandValue(`regents runtime services ${runtimeId} --company-id ${companyId}`)}.`]),
     ].join("\n\n");
   });
 

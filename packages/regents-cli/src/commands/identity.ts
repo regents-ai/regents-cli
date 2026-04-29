@@ -4,7 +4,7 @@ import { coinbaseStatus, ensureIdentity, IdentityServiceClient, loadConfig } fro
 import { CommandExitError } from "../internal-runtime/errors.js";
 import { readIdentityReceipt } from "../internal-runtime/identity/cache.js";
 import { getBooleanFlag, getFlag, parseIntegerFlag, type ParsedCliArgs } from "../parse.js";
-import { CLI_PALETTE, printError, printJson, printText, renderKeyValuePanel, renderPanel, tone } from "../printer.js";
+import { CLI_PALETTE, printError, printJson, printText, renderKeyValuePanel, renderPanel, renderTablePanel, tone } from "../printer.js";
 
 const parseNetwork = (value: string | undefined): RegentIdentityNetwork => {
   if (!value || value === "base") {
@@ -76,6 +76,97 @@ const renderHumanStatus = (result: {
         ]
       : []),
   ].join("\n\n");
+
+const buildIdentityGraph = () => {
+  const receipt = readIdentityReceipt();
+
+  if (!receipt) {
+    return {
+      ok: false,
+      command: "identity graph",
+      status: "waiting",
+      agent_id: null,
+      wallet_tuple: null,
+      local_receipt: null,
+      product_links: {
+        platform: null,
+        autolaunch: null,
+        techtree: null,
+        mobile: null,
+        erc8004_agentbook: null,
+      },
+      gaps: ["Run regents identity ensure to create the local identity receipt."],
+    };
+  }
+
+  return {
+    ok: true,
+    command: "identity graph",
+    status: "ready",
+    agent_id: String(receipt.agent_id),
+    wallet_tuple: {
+      wallet_address: receipt.address,
+      chain_id: receipt.network === "base" ? 8453 : 84532,
+      registry_address: receipt.agent_registry,
+      token_id: String(receipt.agent_id),
+    },
+    local_receipt: {
+      provider: receipt.provider,
+      network: receipt.network,
+      verified: receipt.verified,
+      receipt_expires_at: receipt.receipt_expires_at,
+    },
+    product_links: {
+      platform: null,
+      autolaunch: null,
+      techtree: null,
+      mobile: null,
+      erc8004_agentbook: {
+        agent_id: String(receipt.agent_id),
+        registry_address: receipt.agent_registry,
+        token_id: String(receipt.agent_id),
+      },
+    },
+    gaps: [
+      "Platform, Autolaunch, Techtree, and mobile links must come from their owning product APIs.",
+    ],
+  };
+};
+
+const renderHumanGraph = (graph: ReturnType<typeof buildIdentityGraph>): string => {
+  const rows = [
+    { cells: ["agent id", graph.agent_id ?? "not ready"] },
+    { cells: ["wallet", graph.wallet_tuple?.wallet_address ?? "not ready"] },
+    { cells: ["chain", graph.wallet_tuple ? String(graph.wallet_tuple.chain_id) : "not ready"] },
+    { cells: ["registry", graph.wallet_tuple?.registry_address ?? "not ready"] },
+    { cells: ["token", graph.wallet_tuple?.token_id ?? "not ready"] },
+  ];
+
+  return [
+    renderKeyValuePanel("◆ IDENTITY GRAPH", [
+      { label: "status", value: graph.status, valueColor: graph.ok ? CLI_PALETTE.emphasis : CLI_PALETTE.error },
+      { label: "source", value: graph.local_receipt ? "local receipt" : "missing" },
+    ], {
+      borderColor: CLI_PALETTE.chrome,
+      titleColor: CLI_PALETTE.title,
+    }),
+    renderTablePanel("◆ CURRENT MAPPING", [{ header: "field" }, { header: "value" }], rows),
+    ...(graph.gaps.length > 0 ? [renderPanel("◆ NEXT", graph.gaps)] : []),
+  ].join("\n\n");
+};
+
+export async function runIdentityGraph(args: readonly string[] | ParsedCliArgs): Promise<number> {
+  const json = getBooleanFlag(args, "json");
+  const graph = buildIdentityGraph();
+
+  if (json) {
+    printJson(graph);
+  } else {
+    printText(renderHumanGraph(graph));
+  }
+
+  return graph.ok ? 0 : 1;
+}
 
 export async function runIdentityStatus(
   args: readonly string[] | ParsedCliArgs,
@@ -149,7 +240,7 @@ export async function runIdentityStatus(
       return 0;
     }
 
-    const client = new IdentityServiceClient(config.auth.baseUrl, timeoutSeconds * 1000);
+    const client = new IdentityServiceClient(config.services.siwa.baseUrl, timeoutSeconds * 1000, config);
     const remoteStatus: IdentityStatusResponse = await client.status({
       network,
       address: wallet.account.address,

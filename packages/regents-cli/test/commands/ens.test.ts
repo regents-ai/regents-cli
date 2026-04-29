@@ -12,9 +12,11 @@ const { buildAgentAuthHeadersMock } = vi.hoisted(() => ({
   buildAgentAuthHeadersMock: vi.fn(),
 }));
 
-const { sendTransactionMock, waitForReceiptMock } = vi.hoisted(() => ({
+const { sendTransactionMock, waitForReceiptMock, callMock, estimateGasMock } = vi.hoisted(() => ({
   sendTransactionMock: vi.fn(),
   waitForReceiptMock: vi.fn(),
+  callMock: vi.fn(),
+  estimateGasMock: vi.fn(),
 }));
 
 vi.mock("../../src/commands/agent-auth.js", () => ({
@@ -42,6 +44,8 @@ vi.mock("viem", () => ({
     sendTransaction: sendTransactionMock,
   }),
   createPublicClient: () => ({
+    call: callMock,
+    estimateGas: estimateGasMock,
     waitForTransactionReceipt: waitForReceiptMock,
   }),
 }));
@@ -60,14 +64,26 @@ describe("ENS CLI command group", () => {
 
     writeInitialConfig(configPath, {
       auth: {
-        baseUrl: "https://regent.example",
         audience: "platform",
         defaultChainId: 8453,
-        requestTimeoutMs: 1_000,
       },
-      techtree: {
-        baseUrl: "https://regent.example",
-        requestTimeoutMs: 1_000,
+      services: {
+        siwa: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
+        platform: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1_000,
+        },
+        techtree: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -83,6 +99,8 @@ describe("ENS CLI command group", () => {
     buildAgentAuthHeadersMock.mockReset();
     sendTransactionMock.mockReset();
     waitForReceiptMock.mockReset();
+    callMock.mockReset();
+    estimateGasMock.mockReset();
 
     buildAgentAuthHeadersMock.mockResolvedValue({
       "x-siwa-receipt": "receipt_123",
@@ -97,6 +115,8 @@ describe("ENS CLI command group", () => {
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     );
     waitForReceiptMock.mockResolvedValue({ status: "success" });
+    callMock.mockResolvedValue({ data: "0x" });
+    estimateGasMock.mockResolvedValue(21_000n);
   });
 
   afterEach(() => {
@@ -117,11 +137,18 @@ describe("ENS CLI command group", () => {
             chain_id: 1,
             ens_name: "tempo.regent.eth",
             caller_wallet_address: "0x00000000000000000000000000000000000000aa",
-            tx_request: {
+            wallet_action: {
+              action_id: "ens_primary_1",
+              resource: "ens",
+              action: "set_primary_name",
               chain_id: 1,
               to: "0xa58e81fe9b61b5c3fe2afd33cf304c454abfc7cb",
               value: "0",
               data: "0x1234",
+              expected_signer: "0x00000000000000000000000000000000000000aa",
+              expires_at: "2999-01-01T00:00:00.000Z",
+              idempotency_key: "idem_ens_primary_1",
+              risk_copy: "Sets this wallet's primary ENS name.",
             },
           },
         }),
@@ -162,6 +189,20 @@ describe("ENS CLI command group", () => {
     const [, requestInit] = fetchMock.mock.calls[0]!;
     expect(JSON.parse(String(requestInit?.body))).toEqual({ ens_name: "tempo.regent.eth" });
 
+    expect(callMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "0xa58e81fe9b61b5c3fe2afd33cf304c454abfc7cb",
+        data: "0x1234",
+        value: 0n,
+      }),
+    );
+    expect(estimateGasMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "0xa58e81fe9b61b5c3fe2afd33cf304c454abfc7cb",
+        data: "0x1234",
+        value: 0n,
+      }),
+    );
     expect(sendTransactionMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "0xa58e81fe9b61b5c3fe2afd33cf304c454abfc7cb",

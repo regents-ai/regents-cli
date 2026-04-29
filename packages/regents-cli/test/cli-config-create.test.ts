@@ -89,14 +89,26 @@ describe("CLI config and create flows", () => {
           logLevel: "debug",
         },
         auth: {
-          baseUrl: "http://127.0.0.1:4999",
           audience: "techtree",
           defaultChainId: 84532,
-          requestTimeoutMs: 2500,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:5555",
-          requestTimeoutMs: 2500,
+        services: {
+          siwa: {
+            baseUrl: "http://127.0.0.1:4999",
+            requestTimeoutMs: 2500,
+          },
+          platform: {
+            baseUrl: "http://127.0.0.1:4999",
+            requestTimeoutMs: 2500,
+          },
+          autolaunch: {
+            baseUrl: "http://127.0.0.1:4010",
+            requestTimeoutMs: 2500,
+          },
+          techtree: {
+            baseUrl: "http://127.0.0.1:5555",
+            requestTimeoutMs: 2500,
+          },
         },
         wallet: {
           privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -151,7 +163,7 @@ describe("CLI config and create flows", () => {
     fs.writeFileSync(
       harness.configPath,
       JSON.stringify({
-        techtree: { baseUrl: "http://127.0.0.1:4100" },
+        services: { techtree: { baseUrl: "http://127.0.0.1:4100" } },
         runtime: { logLevel: "debug" },
       }),
       "utf8",
@@ -169,14 +181,26 @@ describe("CLI config and create flows", () => {
         logLevel: "debug",
       },
       auth: {
-        baseUrl: "http://127.0.0.1:4000",
         audience: "techtree",
         defaultChainId: 84532,
-        requestTimeoutMs: 10_000,
       },
-      techtree: {
-        baseUrl: "http://127.0.0.1:4100",
-        requestTimeoutMs: 10_000,
+      services: {
+        siwa: {
+          baseUrl: "http://127.0.0.1:4000",
+          requestTimeoutMs: 10_000,
+        },
+        platform: {
+          baseUrl: "http://127.0.0.1:4000",
+          requestTimeoutMs: 10_000,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 10_000,
+        },
+        techtree: {
+          baseUrl: "http://127.0.0.1:4100",
+          requestTimeoutMs: 10_000,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -253,14 +277,26 @@ describe("CLI config and create flows", () => {
           logLevel: "warn",
         },
         auth: {
-          baseUrl: "http://127.0.0.1:4999",
           audience: "techtree",
           defaultChainId: 8453,
-          requestTimeoutMs: 2500,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:4455",
-          requestTimeoutMs: 2500,
+        services: {
+          siwa: {
+            baseUrl: "http://127.0.0.1:4999",
+            requestTimeoutMs: 2500,
+          },
+          platform: {
+            baseUrl: "http://127.0.0.1:4999",
+            requestTimeoutMs: 2500,
+          },
+          autolaunch: {
+            baseUrl: "http://127.0.0.1:4010",
+            requestTimeoutMs: 2500,
+          },
+          techtree: {
+            baseUrl: "http://127.0.0.1:4455",
+            requestTimeoutMs: 2500,
+          },
         },
         wallet: {
           privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -348,14 +384,26 @@ describe("CLI config and create flows", () => {
           logLevel: "warn",
         },
         auth: {
-          baseUrl: "http://127.0.0.1:4999",
           audience: "techtree",
           defaultChainId: 8453,
-          requestTimeoutMs: 2500,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:4455",
-          requestTimeoutMs: 2500,
+        services: {
+          siwa: {
+            baseUrl: "http://127.0.0.1:4999",
+            requestTimeoutMs: 2500,
+          },
+          platform: {
+            baseUrl: "http://127.0.0.1:4999",
+            requestTimeoutMs: 2500,
+          },
+          autolaunch: {
+            baseUrl: "http://127.0.0.1:4010",
+            requestTimeoutMs: 2500,
+          },
+          techtree: {
+            baseUrl: "http://127.0.0.1:4455",
+            requestTimeoutMs: 2500,
+          },
         },
         wallet: {
           privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

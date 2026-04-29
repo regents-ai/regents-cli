@@ -93,7 +93,6 @@ describe("agentbook CLI command group", () => {
     process.env.CDP_KEY_SECRET = "test-secret";
     process.env.CDP_WALLET_SECRET = "test-wallet-secret";
     process.env.REGENT_WALLET_PRIVATE_KEY = TEST_PRIVATE_KEY;
-    delete process.env.PLATFORM_PHX_BASE_URL;
     fetchMock.mockReset();
   });
 
@@ -156,9 +155,7 @@ describe("agentbook CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/sessions");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Record<string, string>)["x-siwa-receipt"]).toBe(
-      "agentbook-receipt",
-    );
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("agentbook-receipt");
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({ source: "regents-cli" });
     expect(parsePrintedJson<{ session: { approval_url: string } }>(output.stdout)).toMatchObject({
       session: { approval_url: "https://platform.regents.sh/app/trust?session_id=sess_1&token=tok_1" },
@@ -381,5 +378,57 @@ describe("agentbook CLI command group", () => {
       ),
     ).rejects.toThrow("--interval must be a positive number");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("prints session watch updates as one JSON object per line outside a terminal", async () => {
+    writeAgentAuthState();
+    const { runAgentbookSessionsWatch } = await import("../../src/commands/agentbook.js");
+
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          session: {
+            session_id: "sess_1",
+            status: "registered",
+            approval_url: null,
+            wallet_address: TEST_WALLET,
+            chain_id: 84532,
+            registry_address: TEST_REGISTRY,
+            token_id: "99",
+            network: "world",
+            source: "regents-cli",
+            expires_at: "2026-04-21T20:00:00Z",
+            connector_uri: null,
+            deep_link_uri: null,
+            error_text: null,
+            frontend_request: null,
+            tx_request: null,
+            trust: {
+              connected: true,
+              world_human_id: "0x1234",
+              unique_agent_count: 2,
+              connected_at: "2026-04-21T19:40:00Z",
+              source: "regents-cli",
+            },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runAgentbookSessionsWatch(
+        parseCliArgs(["agentbook", "sessions", "watch", "sess_1", "--interval", "1"]),
+        configPath,
+      ),
+    );
+
+    expect(JSON.parse(output.stdout.trim())).toMatchObject({
+      session: {
+        session_id: "sess_1",
+        status: "registered",
+      },
+    });
   });
 });

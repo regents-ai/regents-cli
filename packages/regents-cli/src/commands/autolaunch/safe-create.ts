@@ -1,9 +1,8 @@
 import { randomBytes } from "node:crypto";
 
-import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { baseSepolia } from "viem/chains";
 
+import { sendValidatedTransaction } from "../../internal-runtime/base-contract-client.js";
 import type { ParsedCliArgs } from "../../parse.js";
 import { getFlag } from "../../parse.js";
 import { printJson } from "../../printer.js";
@@ -126,25 +125,14 @@ export async function runAutolaunchSafeCreate(
   }
 
   const deploymentTx = await protocolKit.createSafeDeploymentTransaction();
-  const walletClient = createWalletClient({
-    account,
-    chain: baseSepolia,
-    transport: http(rpcUrl),
-  });
-  const publicClient = createPublicClient({
-    chain: baseSepolia,
-    transport: http(rpcUrl),
-  });
-
-  const txHash = await walletClient.sendTransaction({
-    account,
-    chain: baseSepolia,
+  const { txHash, receipt } = await sendValidatedTransaction(account, {
+    chain_id: 84532,
     to: deploymentTx.to as `0x${string}`,
     data: deploymentTx.data as `0x${string}`,
-    value: BigInt(deploymentTx.value),
-  });
+    value: deploymentTx.value,
+    expected_signer: account.address,
+  }, rpcUrl);
 
-  const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
   const deployedSafeAddress = protocolKitModule.getSafeAddressFromDeploymentTx(
     receipt,
     protocolKit.getContractVersion() as never,

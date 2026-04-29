@@ -30,7 +30,7 @@ const prepareOrSubmitWrite = async (
     return;
   }
 
-  const txRequest = extractPreparedTxRequest(prepared.tx_request);
+  const txRequest = extractPreparedTxRequest(prepared.tx_request, prepared.expected_signer);
 
   if (!txRequest) {
     printJson(prepared);

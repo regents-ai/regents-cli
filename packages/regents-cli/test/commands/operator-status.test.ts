@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 
@@ -49,14 +50,26 @@ describe("top-level operator status commands", () => {
         logLevel: "debug",
       },
       auth: {
-        baseUrl: "https://regent.example",
         audience: "techtree",
         defaultChainId: 84532,
-        requestTimeoutMs: 1_000,
       },
-      techtree: {
-        baseUrl: "https://regent.example",
-        requestTimeoutMs: 1_000,
+      services: {
+        siwa: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
+        platform: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1_000,
+        },
+        techtree: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -95,7 +108,8 @@ describe("top-level operator status commands", () => {
       runCliEntrypoint(["status", "--config", configPath]),
     );
 
-    expect(output.result).toBe(0);
+    expect(output.stderr).toBe("");
+    expect(output).toMatchObject({ result: 0 });
     expect(output.stderr).toBe("");
     expect(JSON.parse(output.stdout)).toMatchObject({
       ok: true,
@@ -133,7 +147,7 @@ describe("top-level operator status commands", () => {
       runCliEntrypoint(["whoami", "--config", configPath]),
     );
 
-    expect(output.result).toBe(0);
+    expect(output).toMatchObject({ result: 0 });
     expect(output.stderr).toBe("");
     expect(JSON.parse(output.stdout)).toMatchObject({
       ok: true,
@@ -144,6 +158,68 @@ describe("top-level operator status commands", () => {
       },
       identity: null,
       chain_id: 84532,
+    });
+  });
+
+  it("includes the Platform projection in whoami --full", async () => {
+    writeReceipt(tempDir, {
+      version: 1,
+      regent_base_url: "https://regent.example",
+      network: "base-sepolia",
+      provider: "coinbase-cdp",
+      address: TEST_WALLET,
+      agent_id: 99,
+      agent_registry: "0x2222222222222222222222222222222222222222",
+      signer_type: "evm_personal_sign",
+      verified: "onchain",
+      receipt: "receipt-valid",
+      receipt_issued_at: "2026-04-17T00:00:00.000Z",
+      receipt_expires_at: "2999-01-01T00:00:00.000Z",
+      cached_at: "2026-04-17T00:00:00.000Z",
+      wallet_hint: "main",
+    });
+    const sessionFile = path.join(tempDir, ".regent", "platform", "session.json");
+    fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
+    const seenPaths: string[] = [];
+    const server = http.createServer((request, response) => {
+      seenPaths.push(request.url ?? "");
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ ok: true, agent_id: 99, companies: [] }));
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") {
+      throw new Error("Platform test server did not start.");
+    }
+    const origin = `http://127.0.0.1:${address.port}`;
+    fs.writeFileSync(
+      sessionFile,
+      `${JSON.stringify({
+        version: 1,
+        origin,
+        cookie: "_platform_phx_key=session-cookie",
+        csrfToken: "csrf-token",
+        savedAt: "2026-04-01T00:00:00.000Z",
+      })}\n`,
+      "utf8",
+    );
+
+    const output = await captureOutput(async () =>
+      runCliEntrypoint(["whoami", "--full", "--config", configPath, "--session-file", sessionFile]),
+    );
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(output).toMatchObject({ result: 0 });
+    expect(seenPaths).toEqual(["/api/agent-platform/projection"]);
+    expect(JSON.parse(output.stdout)).toMatchObject({
+      ok: true,
+      command: "whoami",
+      identity_graph: {
+        agent_id: 99,
+        platform_projection: {
+          agent_id: 99,
+        },
+      },
     });
   });
 });

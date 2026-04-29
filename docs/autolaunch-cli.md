@@ -12,7 +12,7 @@ Chain language for this command group:
 
 - test and rehearsal launches use Base Sepolia
 - production launches use Base mainnet
-- the `autolaunch` contract-linked path is Base-family only
+- the `autolaunch` contract-linked path is Base only
 
 The supported CLI surface is:
 
@@ -30,12 +30,13 @@ regents regent-staking ...
 
 The product rules for this CLI surface are:
 
-- recognized subject revenue is the configured Base-family USDC only
+- recognized subject revenue is the configured Base USDC only
 - that revenue only counts once it reaches the subject splitter
 - launch operators should use the CLI-first flow
 - launch participants should use the browser for auctions, claims, staking, and subject rewards
 - ingress is a receive-and-sweep wrapper, not a second accounting system
 - the Regent-side fee lane is a treasury payout path, not part of the active launch rewards path
+- subject output includes public revenue proof when available: source, chain, ingress account, revsplit contract, block number, amount, recipient lane, and whether the proof is fresh or stale
 
 ## Why Autolaunch exists
 
@@ -226,6 +227,7 @@ Operational rule for v1:
 - Treasury A bridges that income manually to Base USDC
 - treasury-side deposits and treasury withdrawals are done through the safe or the deployment script flow, not through the CLI
 - the staking contract pays the configured staker share to `$REGENT` stakers and leaves the rest accruing for treasury withdrawal
+- staked `$REGENT` participates in deposits made to this separate pool; it is not a guaranteed yield claim
 
 ### Agents
 
@@ -239,7 +241,7 @@ For read surfaces, trust data now lives under the nested `trust` object:
 
 - auction list items use `item.trust.erc8004`, `item.trust.ens`, `item.trust.world`, and `item.trust.x`
 - single auction detail uses `auction.trust.erc8004`, `auction.trust.ens`, `auction.trust.world`, and `auction.trust.x`
-- direct agent trust reads use `GET /api/trust/agents/:id`
+- direct agent trust reads use `GET /v1/agent/trust/agents/{id}`
 
 ### Low-level launches
 
@@ -373,10 +375,10 @@ regents autolaunch vesting release --job <job-id> [--json]
 regents autolaunch fee-registry show --job <job-id> [--json]
 
 regents autolaunch fee-vault show --job <job-id> [--json]
-regents autolaunch fee-vault withdraw-treasury --job <job-id> --currency <address> --amount <raw-units> --recipient <address> [--json]
 regents autolaunch fee-vault withdraw-regent --job <job-id> --currency <address> --amount <raw-units> --recipient <address> [--json]
 
 regents autolaunch splitter show --subject <subject-id> [--json]
+regents autolaunch splitter pull-treasury-share --job <job-id> --amount <raw-units> [--json]
 regents autolaunch splitter set-paused --subject <subject-id> --paused true|false [--json]
 regents autolaunch splitter set-label --subject <subject-id> --label <text> [--json]
 regents autolaunch splitter propose-treasury-recipient-rotation --subject <subject-id> --recipient <address> [--json]
@@ -407,44 +409,48 @@ These commands do not sign or broadcast. They return prepared transaction payloa
 
 The CLI is JSON-first. It forwards directly to the `autolaunch` Phoenix JSON API:
 
-- `GET /api/agents`
-- `GET /api/agents/:id`
-- `GET /api/agents/:id/readiness`
-- `GET /api/prelaunch/plans`
-- `POST /api/prelaunch/plans`
-- `GET /api/prelaunch/plans/:id`
-- `PATCH /api/prelaunch/plans/:id`
-- `POST /api/prelaunch/plans/:id/validate`
-- `POST /api/prelaunch/plans/:id/publish`
-- `POST /api/prelaunch/plans/:id/launch`
-- `POST /api/prelaunch/assets`
-- `POST /api/prelaunch/plans/:id/metadata`
-- `GET /api/prelaunch/plans/:id/metadata-preview`
-- `POST /api/launch/preview`
-- `POST /api/launch/jobs`
-- `GET /api/launch/jobs/:id`
-- `GET /api/lifecycle/jobs/:id`
-- `POST /api/lifecycle/jobs/:id/finalize/prepare`
-- `POST /api/lifecycle/jobs/:id/finalize/register`
-- `GET /api/lifecycle/jobs/:id/vesting`
-- `GET /api/auctions`
-- `GET /api/auctions/:id`
-- `POST /api/auctions/:id/bid_quote`
-- `POST /api/auctions/:id/bids`
-- `POST /api/bids/:id/exit`
-- `POST /api/bids/:id/claim`
-- `GET /api/subjects/:id`
-- `GET /api/subjects/:id/ingress`
-- `POST /api/subjects/:id/stake`
-- `POST /api/subjects/:id/unstake`
-- `POST /api/subjects/:id/claim-usdc`
-- `POST /api/subjects/:id/ingress/:address/sweep`
-- `GET /api/contracts/admin`
-- `GET /api/contracts/jobs/:id`
-- `GET /api/contracts/subjects/:id`
-- `POST /api/contracts/jobs/:id/:resource/:action/prepare`
-- `POST /api/contracts/subjects/:id/:resource/:action/prepare`
-- `POST /api/contracts/admin/:resource/:action/prepare`
+- `GET /v1/agent/agents`
+- `GET /v1/agent/agents/{id}`
+- `GET /v1/agent/agents/{id}/readiness`
+- `GET /v1/agent/prelaunch/plans`
+- `POST /v1/agent/prelaunch/plans`
+- `GET /v1/agent/prelaunch/plans/{id}`
+- `PATCH /v1/agent/prelaunch/plans/{id}`
+- `POST /v1/agent/prelaunch/plans/{id}/validate`
+- `POST /v1/agent/prelaunch/plans/{id}/publish`
+- `POST /v1/agent/prelaunch/plans/{id}/launch`
+- `POST /v1/agent/prelaunch/assets`
+- `POST /v1/agent/prelaunch/plans/{id}/metadata`
+- `GET /v1/agent/prelaunch/plans/{id}/metadata-preview`
+- `POST /v1/agent/launch/preview`
+- `POST /v1/agent/launch/jobs`
+- `GET /v1/agent/launch/jobs/{id}`
+- `GET /v1/agent/lifecycle/jobs/{id}`
+- `POST /v1/agent/lifecycle/jobs/{id}/finalize/prepare`
+- `POST /v1/agent/lifecycle/jobs/{id}/finalize/register`
+- `GET /v1/agent/lifecycle/jobs/{id}/vesting`
+- `GET /v1/agent/auctions`
+- `GET /v1/agent/auction-returns`
+- `GET /v1/agent/auctions/{id}`
+- `POST /v1/agent/auctions/{id}/bid_quote`
+- `POST /v1/agent/auctions/{id}/bids`
+- `POST /v1/agent/bids/{id}/return-usdc`
+- `POST /v1/agent/bids/{id}/exit`
+- `POST /v1/agent/bids/{id}/claim`
+- `GET /v1/agent/subjects/{id}`
+- `GET /v1/agent/subjects/{id}/ingress`
+- `POST /v1/agent/subjects/{id}/stake`
+- `POST /v1/agent/subjects/{id}/unstake`
+- `POST /v1/agent/subjects/{id}/claim-usdc`
+- `POST /v1/agent/subjects/{id}/claim-emissions`
+- `POST /v1/agent/subjects/{id}/claim-and-stake-emissions`
+- `POST /v1/agent/subjects/{id}/ingress/{address}/sweep`
+- `GET /v1/agent/contracts/admin`
+- `GET /v1/agent/contracts/jobs/{id}`
+- `GET /v1/agent/contracts/subjects/{id}`
+- `POST /v1/agent/contracts/jobs/{id}/{resource}/{action}/prepare`
+- `POST /v1/agent/contracts/subjects/{id}/{resource}/{action}/prepare`
+- `POST /v1/agent/contracts/admin/{resource}/{action}/prepare`
 
 State-changing bid commands do not submit wallet transactions themselves. They register confirmed onchain actions with the Phoenix app, so callers must provide the real transaction hash via `--tx-hash`.
 

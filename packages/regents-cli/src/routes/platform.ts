@@ -6,7 +6,9 @@ import {
   runPlatformBillingAccount,
   runPlatformBillingUsage,
   runPlatformCompanyRuntime,
+  runPlatformFormationDoctor,
   runPlatformFormationStatus,
+  runPlatformProjection,
 } from "../commands/platform.js";
 import { route, type CliRoute } from "./shared.js";
 
@@ -25,6 +27,14 @@ export const platformRoutes: readonly CliRoute[] = [
   }),
   route("platform formation status", async ({ parsedArgs }) => {
     await runPlatformFormationStatus(parsedArgs);
+    return 0;
+  }),
+  route("platform formation doctor", async ({ parsedArgs }) => {
+    await runPlatformFormationDoctor(parsedArgs);
+    return 0;
+  }),
+  route("platform projection", async ({ parsedArgs }) => {
+    await runPlatformProjection(parsedArgs);
     return 0;
   }),
   route("platform billing account", async ({ parsedArgs }) => {

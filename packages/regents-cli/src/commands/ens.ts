@@ -1,52 +1,30 @@
-import { loadConfig } from "../internal-runtime/config.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
-import { buildAgentAuthHeaders } from "./agent-auth.js";
 import {
-  extractPreparedTxRequest,
+  txRequestFromWalletAction,
   submitPreparedTxRequest,
   type JsonObject,
 } from "./autolaunch/shared.js";
+import { requestProductJson } from "./product-http.js";
 
 const requestPlatformJson = async (
-  method: string,
+  method: "POST",
   path: string,
   body: Record<string, unknown>,
   configPath?: string,
 ): Promise<JsonObject> => {
-  const config = loadConfig(configPath);
-  const serializedBody = JSON.stringify(body);
-  const headers = new Headers({
-    accept: "application/json",
-    "content-type": "application/json",
-  });
-
-  const authHeaders = await buildAgentAuthHeaders({
+  return requestProductJson<JsonObject>(
     method,
     path,
-    body: serializedBody,
-    configPath,
-    audience: "platform",
-  });
-
-  for (const [key, value] of Object.entries(authHeaders)) {
-    headers.set(key, value);
-  }
-
-  const response = await fetch(`${config.auth.baseUrl.replace(/\/+$/u, "")}${path}`, {
-    method,
-    headers,
-    body: serializedBody,
-  });
-
-  const text = await response.text();
-  const parsed = text ? (JSON.parse(text) as JsonObject) : {};
-
-  if (!response.ok) {
-    throw new Error(JSON.stringify(parsed, null, 2));
-  }
-
-  return parsed;
+    {
+      body,
+      configPath,
+      requireAgentAuth: true,
+      authAudience: "platform",
+      service: "platform",
+      commandName: "regents ens set-primary",
+    },
+  );
 };
 export async function runEnsSetPrimary(
   args: ParsedCliArgs,
@@ -64,7 +42,7 @@ export async function runEnsSetPrimary(
     payload.prepared && typeof payload.prepared === "object"
       ? (payload.prepared as JsonObject)
       : null;
-  const txRequest = extractPreparedTxRequest(prepared?.tx_request);
+  const txRequest = txRequestFromWalletAction(prepared?.wallet_action);
 
   if (!txRequest) {
     printJson(payload);

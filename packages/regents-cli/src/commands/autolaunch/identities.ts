@@ -139,7 +139,7 @@ const rpcUrlForChain = (chainId: AutolaunchChainId, args: ParsedCliArgs): string
     }
   }
 
-  throw new Error("missing Base-family RPC URL (--rpc-url or BASE_SEPOLIA_RPC_URL / BASE_MAINNET_RPC_URL)");
+  throw new Error("missing Base RPC URL (--rpc-url or BASE_SEPOLIA_RPC_URL / BASE_MAINNET_RPC_URL)");
 };
 
 const privateKeyForCommand = (args: ParsedCliArgs): Hex => {

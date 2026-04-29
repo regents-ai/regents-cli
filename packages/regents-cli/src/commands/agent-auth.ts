@@ -129,7 +129,7 @@ export const buildAgentAuthHeaders = async (
     config,
     sessionStore,
     stateStore,
-    config.auth.requestTimeoutMs,
+    config.services.siwa.requestTimeoutMs,
   );
   requireSessionAudience(session, input.audience);
   if (!identity.registryAddress || !identity.tokenId) {

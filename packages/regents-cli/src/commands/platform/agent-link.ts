@@ -1,5 +1,7 @@
+import { writeHermesRegentsWorkConnector } from "../../agents/hermes/connect.js";
 import { writeOpenClawRegentsWorkSkill } from "../../agents/openclaw/connect.js";
 import { loadConfig } from "../../internal-runtime/index.js";
+import { productBaseUrl } from "../../internal-runtime/product-http-client.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import {
   printAgentConnectHermesResult,
@@ -7,15 +9,13 @@ import {
   printAgentExecutionPoolResult,
   printAgentLinkResult,
 } from "../rwr-presenters.js";
-import { buildAgentAuthHeaders } from "../agent-auth.js";
 import {
   loadResolvedPlatformSession,
   requestPlatformSessionJson,
 } from "../platform.js";
+import { requestProductJson } from "../product-http.js";
 
 type JsonObject = Record<string, unknown>;
-
-const normalizeOrigin = (origin: string): string => origin.replace(/\/+$/u, "");
 
 const companyId = (args: ParsedCliArgs): string => requireArg(getFlag(args, "company-id"), "company-id");
 
@@ -46,6 +46,11 @@ const writeSkillEnabled = (args: ParsedCliArgs): boolean => {
   return value === undefined || value === "true" || value === "1" || value === "yes";
 };
 
+const writeConnectorEnabled = (args: ParsedCliArgs): boolean => {
+  const value = getFlag(args, "write-connector");
+  return value === undefined || value === "true" || value === "1" || value === "yes";
+};
+
 const registeredWorkerId = (data: JsonObject): string => {
   const worker = data.worker;
 
@@ -66,37 +71,22 @@ const requestAgentPlatformJson = async (
   configPath: string | undefined,
   input: { method: "GET" | "POST"; path: string; body?: JsonObject },
 ): Promise<{ origin: string; data: JsonObject }> => {
-  const origin = normalizeOrigin(loadConfig(configPath).auth.baseUrl);
-  const serializedBody = input.body === undefined ? undefined : JSON.stringify(input.body);
-  const authHeaders = await buildAgentAuthHeaders({
-    method: input.method,
-    path: input.path,
-    ...(serializedBody === undefined ? {} : { body: serializedBody }),
+  const data = await requestProductJson<JsonObject>(input.method, input.path, {
+    body: input.body,
     configPath,
-    audience: "platform",
+    requireAgentAuth: true,
+    authAudience: "platform",
+    service: "platform",
+    commandName: "regents agent platform",
   });
-  const response = await fetch(`${origin}${input.path}`, {
-    method: input.method,
-    headers: {
-      accept: "application/json",
-      ...(serializedBody === undefined ? {} : { "content-type": "application/json" }),
-      ...authHeaders,
-    },
-    ...(serializedBody === undefined ? {} : { body: serializedBody }),
-  });
-  const data = await parseJsonResponse(response);
 
-  if (!response.ok) {
-    throw new Error(extractErrorMessage(data, response.status));
-  }
-
-  return { origin, data };
+  return { origin: productBaseUrl(loadConfig(configPath), "platform"), data };
 };
 
 export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const resolvedCompanyId = companyId(args);
   const role = requireArg(getFlag(args, "role"), "role");
-  const displayName = getFlag(args, "name") ?? null;
+  const displayName = getFlag(args, "name") ?? "Hermes local worker";
   const { origin, data } = await requestAgentPlatformJson(configPath, {
     method: "POST",
     path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
@@ -104,17 +94,33 @@ export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: st
       company_id: resolvedCompanyId,
       agent_kind: "hermes",
       worker_role: role,
-      execution_surface: role === "manager" ? "hosted_sprite" : "local_bridge",
-      runner_kind: role === "manager" ? "hermes_hosted_manager" : "hermes_local_manager",
-      billing_mode: role === "manager" ? "platform_hosted" : "user_local",
-      trust_scope: role === "manager" ? "platform_hosted" : "local_user_controlled",
-      reported_usage_policy: role === "manager" ? "platform_metered" : "self_reported",
+      execution_surface: "local_bridge",
+      runner_kind: "hermes_local_manager",
+      billing_mode: "user_local",
+      trust_scope: "local_user_controlled",
+      reported_usage_policy: "self_reported",
       display_name: displayName,
       endpoint_url: null,
     },
   });
+  const connector = writeConnectorEnabled(args)
+    ? await writeHermesRegentsWorkConnector({
+        companyId: resolvedCompanyId,
+        workerId: registeredWorkerId(data),
+        workerName: displayName,
+      })
+    : null;
 
-  printAgentConnectHermesResult(args, { ok: true, command: "regents agent connect hermes", origin, result: data });
+  printAgentConnectHermesResult(args, {
+    ok: true,
+    command: "regents agent connect hermes",
+    origin,
+    result: data,
+    hermes: {
+      configFile: connector?.configPath ?? null,
+      skillFile: connector?.skillPath ?? null,
+    },
+  });
 }
 
 export async function runAgentConnectOpenClaw(args: ParsedCliArgs, configPath?: string): Promise<void> {
@@ -203,28 +209,3 @@ export async function runAgentExecutionPool(args: ParsedCliArgs): Promise<void> 
 
   printAgentExecutionPoolResult(args, { ok: true, command: "regents agent execution-pool", origin, result: data });
 }
-
-const parseJsonResponse = async (response: Response): Promise<JsonObject> => {
-  const text = await response.text();
-  if (text === "") {
-    return {};
-  }
-
-  const parsed = JSON.parse(text) as unknown;
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error(`Platform returned a non-object response with status ${response.status}.`);
-  }
-
-  return parsed as JsonObject;
-};
-
-const extractErrorMessage = (data: JsonObject, status: number): string => {
-  for (const key of ["statusMessage", "message", "error"]) {
-    const value = data[key];
-    if (typeof value === "string" && value !== "") {
-      return value;
-    }
-  }
-
-  return `Platform request failed with status ${status}.`;
-};

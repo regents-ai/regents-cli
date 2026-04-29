@@ -4,7 +4,7 @@ import {
   runAuthSiwaStatus,
 } from "../commands/auth.js";
 import { runEnsSetPrimary } from "../commands/ens.js";
-import { runIdentityEnsure, runIdentityStatus } from "../commands/identity.js";
+import { runIdentityEnsure, runIdentityGraph, runIdentityStatus } from "../commands/identity.js";
 import { runWalletSetup, runWalletStatus } from "../commands/wallet.js";
 import { route, type CliRoute } from "./shared.js";
 
@@ -23,6 +23,7 @@ export const walletIdentityAuthRoutes: readonly CliRoute[] = [
   }),
   route("identity ensure", async ({ parsedArgs, configPath }) => runIdentityEnsure(parsedArgs, configPath)),
   route("identity status", async ({ parsedArgs, configPath }) => runIdentityStatus(parsedArgs, configPath)),
+  route("identity graph", async ({ parsedArgs }) => runIdentityGraph(parsedArgs)),
   route("wallet status", async ({ parsedArgs, configPath }) => runWalletStatus(parsedArgs, configPath)),
   route("wallet setup", async ({ parsedArgs, configPath }) => runWalletSetup(parsedArgs, configPath)),
   route("ens set-primary", async ({ parsedArgs, configPath }) => {

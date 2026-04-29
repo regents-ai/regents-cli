@@ -1,5 +1,5 @@
 export { printError } from "./terminal/errors.js";
-export { printJson, setRawJsonOutput } from "./terminal/json.js";
+export { printJson, printJsonLine, setRawJsonOutput } from "./terminal/json.js";
 export { renderPanel } from "./terminal/panel.js";
 export { CLI_PALETTE, isHumanTerminal, tone } from "./terminal/palette.js";
 export {

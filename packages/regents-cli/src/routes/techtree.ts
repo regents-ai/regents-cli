@@ -120,15 +120,15 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
   route("techtree bbh run exec", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhRunExec(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh run solve", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhRunSolve(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh notebook pair", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhNotebookPair(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh capsules list", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhCapsulesList(parsedArgs, configPath);
     return 0;
@@ -136,7 +136,7 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
   route("techtree bbh capsules get", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhCapsulesGet(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh submit", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhSubmit(parsedArgs, configPath);
     return 0;
@@ -152,11 +152,11 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
   route("techtree bbh draft init", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhDraftInit(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh draft create", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhDraftCreate(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh draft list", async ({ configPath }) => {
     await runTechtreeBbhDraftList(configPath);
     return 0;
@@ -164,11 +164,11 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
   route("techtree bbh draft pull", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhDraftPull(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh draft propose", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhDraftPropose(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh draft proposals", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhDraftProposals(parsedArgs, configPath);
     return 0;
@@ -176,27 +176,27 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
   route("techtree bbh draft apply", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhDraftApply(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh draft ready", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhDraftReady(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh genome init", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhGenomeInit(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh genome score", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhGenomeScore(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh genome improve", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhGenomeImprove(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh genome propose", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhGenomePropose(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh sync", async ({ parsedArgs, configPath }) => {
     await runTechtreeBbhSync(parsedArgs, configPath);
     return 0;
@@ -204,43 +204,43 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
   route("techtree main artifact init", async ({ parsedArgs, configPath }) => {
     await runTechtreeArtifactInit("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main artifact compile", async ({ parsedArgs, configPath }) => {
     await runTechtreeArtifactCompile("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main artifact pin", async ({ parsedArgs, configPath }) => {
     await runTechtreeArtifactPin("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main artifact publish", async ({ parsedArgs, configPath }) => {
     await runTechtreeArtifactPublish("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main run init", async ({ parsedArgs, configPath }) => {
     await runTechtreeRunInit("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main run exec", async ({ parsedArgs, configPath }) => {
     await runTechtreeRunExec("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main run compile", async ({ parsedArgs, configPath }) => {
     await runTechtreeRunCompile("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main run pin", async ({ parsedArgs, configPath }) => {
     await runTechtreeRunPin("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main run publish", async ({ parsedArgs, configPath }) => {
     await runTechtreeRunPublish("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main review init", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewInit("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main review exec", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewExec("main", parsedArgs, configPath);
     return 0;
@@ -248,31 +248,31 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
   route("techtree main review compile", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewCompile("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main review pin", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewPin("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main review publish", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewPublish("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main fetch", async ({ parsedArgs, configPath }) => {
     await runTechtreeFetch("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree main verify", async ({ parsedArgs, configPath }) => {
     await runTechtreeVerify("main", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh fetch", async ({ parsedArgs, configPath }) => {
     await runTechtreeFetch("bbh", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree bbh verify", async ({ parsedArgs, configPath }) => {
     await runTechtreeVerify("bbh", parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
 ];
 
 export const techtreeRoutes: readonly CliRoute[] = [
@@ -287,7 +287,7 @@ export const techtreeRoutes: readonly CliRoute[] = [
   route("techtree science-tasks get", async ({ parsedArgs, configPath }) => {
     await runTechtreeScienceTasksGet(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree science-tasks init", async ({ parsedArgs, configPath }) => {
     await runTechtreeScienceTasksInit(parsedArgs, configPath);
     return 0;
@@ -323,27 +323,27 @@ export const techtreeRoutes: readonly CliRoute[] = [
   route("techtree autoskill init skill", async ({ parsedArgs, configPath }) => {
     await runAutoskillInitSkill(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree autoskill init eval", async ({ parsedArgs, configPath }) => {
     await runAutoskillInitEval(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree autoskill notebook pair", async ({ parsedArgs, configPath }) => {
     await runAutoskillNotebookPair(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree autoskill publish skill", async ({ parsedArgs, configPath }) => {
     await runAutoskillPublishSkill(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree autoskill publish eval", async ({ parsedArgs, configPath }) => {
     await runAutoskillPublishEval(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree autoskill publish result", async ({ parsedArgs, configPath }) => {
     await runAutoskillPublishResult(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree autoskill review", async ({ parsedArgs, configPath }) => {
     await runAutoskillReview(parsedArgs, configPath);
     return 0;
@@ -355,11 +355,11 @@ export const techtreeRoutes: readonly CliRoute[] = [
   route("techtree autoskill buy", async ({ parsedArgs, configPath }) => {
     await runAutoskillBuy(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree autoskill pull", async ({ parsedArgs, configPath }) => {
     await runAutoskillPull(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree reviewer orcid link", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewerOrcidLink(parsedArgs, configPath);
     return 0;
@@ -379,19 +379,19 @@ export const techtreeRoutes: readonly CliRoute[] = [
   route("techtree review claim", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewClaim(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree review pull", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewPull(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree review submit", async ({ parsedArgs, configPath }) => {
     await runTechtreeReviewSubmit(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree certificate verify", async ({ parsedArgs, configPath }) => {
     await runTechtreeCertificateVerify(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree activity", async ({ parsedArgs, configPath }) => {
     await runTechtreeActivity(parsedArgs, configPath);
     return 0;
@@ -419,27 +419,27 @@ export const techtreeRoutes: readonly CliRoute[] = [
   route("techtree node lineage list", async ({ parsedArgs, configPath }) => {
     await runTechtreeNodeLineageList(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree node lineage claim", async ({ parsedArgs, configPath }) => {
     await runTechtreeNodeLineageClaim(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree node lineage withdraw", async ({ parsedArgs, configPath }) => {
     await runTechtreeNodeLineageWithdraw(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree node cross-chain-links list", async ({ parsedArgs, configPath }) => {
     await runTechtreeNodeCrossChainLinksList(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree node cross-chain-links create", async ({ parsedArgs, configPath }) => {
     await runTechtreeNodeCrossChainLinksCreate(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree node cross-chain-links clear", async ({ parsedArgs, configPath }) => {
     await runTechtreeNodeCrossChainLinksClear(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("techtree node create", async ({ rawArgs, configPath }) => {
     await runTechtreeNodeCreate(rawArgs, configPath);
     return 0;

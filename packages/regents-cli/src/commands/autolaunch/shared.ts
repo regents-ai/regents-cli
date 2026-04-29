@@ -1,15 +1,16 @@
 import {
-  createPublicClient,
-  createWalletClient,
-  http,
   isAddress,
   isHex,
   type Address,
   type Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia, mainnet } from "viem/chains";
 
+import {
+  submitValidatedTransaction,
+  type SupportedTransactionChainId,
+  type TransactionRequest,
+} from "../../internal-runtime/base-contract-client.js";
 import { loadConfig } from "../../internal-runtime/config.js";
 import type { SiwaAudience } from "../../internal-types/index.js";
 import {
@@ -17,9 +18,8 @@ import {
   FileWalletSecretSource,
 } from "../../internal-runtime/agent/key-store.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
-import { buildAgentAuthHeaders } from "../agent-auth.js";
+import { requestProductJson } from "../product-http.js";
 
-const DEFAULT_BASE_URL = "http://127.0.0.1:4010";
 export const AGENT_PRIVATE_KEY_ENV = "AUTOLAUNCH_AGENT_PRIVATE_KEY";
 
 export interface JsonObject {
@@ -33,13 +33,23 @@ export interface RequestOptions {
   readonly requireAgentAuth?: boolean;
   readonly authAudience?: SiwaAudience;
   readonly configPath?: string;
+  readonly chainId?: number;
 }
 
-export interface PreparedTxRequest {
-  readonly chain_id: 1 | 8453 | 84532;
+export interface PreparedTxRequest extends TransactionRequest {}
+
+export interface WalletAction {
+  readonly action_id: string;
+  readonly resource: string;
+  readonly action: string;
+  readonly chain_id: SupportedTransactionChainId;
   readonly to: Address;
+  readonly value: string;
   readonly data: Hex;
-  readonly value?: string | number | bigint | null;
+  readonly expected_signer: Address;
+  readonly expires_at: string;
+  readonly idempotency_key: string;
+  readonly risk_copy: string;
 }
 
 export type AutolaunchChainId = "84532" | "8453";
@@ -50,8 +60,8 @@ const AUTOLAUNCH_CHAIN_IDS: Readonly<Record<string, string>> = {
   "base-mainnet": "8453",
 };
 
-export const baseUrl = (): string => {
-  return (process.env.AUTOLAUNCH_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
+export const baseUrl = (configPath?: string): string => {
+  return (process.env.AUTOLAUNCH_BASE_URL ?? loadConfig(configPath).services.autolaunch.baseUrl).replace(/\/+$/, "");
 };
 
 export const failIfNotObject = (value: unknown): JsonObject => {
@@ -63,56 +73,31 @@ export const failIfNotObject = (value: unknown): JsonObject => {
 };
 
 const requestRawJson = async <T>(
-  method: string,
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   options: RequestOptions = {},
 ): Promise<T> => {
-  const headers = new Headers({ accept: "application/json" });
-  const bodyText = options.body === undefined ? undefined : JSON.stringify(options.body);
-
-  if (bodyText !== undefined) {
-    headers.set("content-type", "application/json");
-  }
-
-  if (options.requireAgentAuth) {
-    const authAudience = options.authAudience ?? "autolaunch";
-    const authHeaders = await buildAgentAuthHeaders({
-      method,
-      path,
-      ...(bodyText === undefined ? {} : { body: bodyText }),
-      configPath: options.configPath,
-      audience: authAudience,
-    });
-
-    for (const [key, value] of Object.entries(authHeaders)) {
-      headers.set(key, value);
-    }
-  }
-
-  const response = await fetch(`${baseUrl()}${path}`, {
-    method,
-    headers,
-    body: bodyText,
+  const payload = await requestProductJson<unknown>(method, path, {
+    body: options.body,
+    configPath: options.configPath,
+    requireAgentAuth: options.requireAgentAuth,
+    authAudience: options.authAudience ?? "autolaunch",
+    service: "autolaunch",
+    commandName: "regents autolaunch",
+    chainId: options.chainId,
   });
 
-  const text = await response.text();
-  const parsed = text ? failIfNotObject(JSON.parse(text) as unknown) : {};
-
-  if (!response.ok) {
-    throw new Error(JSON.stringify(parsed, null, 2));
-  }
-
-  return parsed as T;
+  return failIfNotObject(payload) as T;
 };
 
 export const requestJson = async (
-  method: string,
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   options: RequestOptions = {},
 ): Promise<JsonObject> => requestRawJson<JsonObject>(method, path, options);
 
 export const requestTypedJson = async <T>(
-  method: string,
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   options: RequestOptions = {},
 ): Promise<T> => requestRawJson<T>(method, path, options);
@@ -178,54 +163,6 @@ export const configuredPrivateKey = async (
   return await secretSource.getPrivateKeyHex();
 };
 
-interface ChainWalletClients {
-  readonly chain: typeof mainnet | typeof base | typeof baseSepolia;
-  readonly rpcUrl: string;
-}
-
-const walletClientsForPreparedTxChain = async (
-  chainId: PreparedTxRequest["chain_id"],
-): Promise<ChainWalletClients> => {
-  if (chainId === 1) {
-    const rpcUrl =
-      process.env.ETH_MAINNET_RPC_URL ?? process.env.ETHEREUM_RPC_URL;
-    if (!rpcUrl) {
-      throw new Error(
-        "missing ETH_MAINNET_RPC_URL or ETHEREUM_RPC_URL for Ethereum mainnet submit mode",
-      );
-    }
-
-    return {
-      chain: mainnet,
-      rpcUrl,
-    };
-  }
-
-  if (chainId === 8453) {
-    const rpcUrl = process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL;
-    if (!rpcUrl) {
-      throw new Error(
-        "missing BASE_MAINNET_RPC_URL or BASE_RPC_URL for Base mainnet submit mode",
-      );
-    }
-
-    return {
-      chain: base,
-      rpcUrl,
-    };
-  }
-
-  const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL;
-  if (!rpcUrl) {
-    throw new Error("missing BASE_SEPOLIA_RPC_URL for Base Sepolia submit mode");
-  }
-
-  return {
-    chain: baseSepolia,
-    rpcUrl,
-  };
-};
-
 const requirePreparedTxChainId = (
   value: unknown,
 ): PreparedTxRequest["chain_id"] => {
@@ -237,8 +174,83 @@ const requirePreparedTxChainId = (
   throw new Error(`unsupported chain for submit mode: ${String(value)}`);
 };
 
+const requireStringField = (
+  value: unknown,
+  field: string,
+): string => {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`prepared wallet_action.${field} is missing or invalid`);
+  }
+
+  return value;
+};
+
+const requireAddressField = (
+  value: unknown,
+  field: string,
+): Address => {
+  if (typeof value !== "string" || !isAddress(value)) {
+    throw new Error(`prepared wallet_action.${field} is missing or invalid`);
+  }
+
+  return value;
+};
+
+const requireHexField = (
+  value: unknown,
+  field: string,
+): Hex => {
+  if (typeof value !== "string" || !isHex(value)) {
+    throw new Error(`prepared wallet_action.${field} is missing or invalid`);
+  }
+
+  return value;
+};
+
+export const extractWalletAction = (
+  value: unknown,
+): WalletAction | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const walletAction = value as Record<string, unknown>;
+
+  return {
+    action_id: requireStringField(walletAction.action_id, "action_id"),
+    resource: requireStringField(walletAction.resource, "resource"),
+    action: requireStringField(walletAction.action, "action"),
+    chain_id: requirePreparedTxChainId(walletAction.chain_id),
+    to: requireAddressField(walletAction.to, "to"),
+    value: requireStringField(walletAction.value, "value"),
+    data: requireHexField(walletAction.data, "data"),
+    expected_signer: requireAddressField(walletAction.expected_signer, "expected_signer"),
+    expires_at: requireStringField(walletAction.expires_at, "expires_at"),
+    idempotency_key: requireStringField(walletAction.idempotency_key, "idempotency_key"),
+    risk_copy: requireStringField(walletAction.risk_copy, "risk_copy"),
+  };
+};
+
+export const txRequestFromWalletAction = (
+  value: unknown,
+): TransactionRequest | null => {
+  const walletAction = extractWalletAction(value);
+  if (!walletAction) {
+    return null;
+  }
+
+  return {
+    chain_id: walletAction.chain_id,
+    to: walletAction.to,
+    value: walletAction.value,
+    data: walletAction.data,
+    expected_signer: walletAction.expected_signer,
+  };
+};
+
 export const extractPreparedTxRequest = (
   value: unknown,
+  expectedSignerValue: unknown,
 ): PreparedTxRequest | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
@@ -272,6 +284,7 @@ export const extractPreparedTxRequest = (
     to,
     data,
     value: txRequest.value,
+    expected_signer: requireAddressField(expectedSignerValue, "expected_signer"),
   };
 };
 
@@ -280,28 +293,7 @@ export const submitPreparedTxRequest = async (
   configPath?: string,
 ): Promise<`0x${string}`> => {
   const account = privateKeyToAccount(await configuredPrivateKey(configPath));
-  const { chain, rpcUrl } = await walletClientsForPreparedTxChain(
-    txRequest.chain_id,
-  );
-  const walletClient = createWalletClient({
-    account,
-    chain,
-    transport: http(rpcUrl),
-  });
-  const publicClient = createPublicClient({
-    chain,
-    transport: http(rpcUrl),
-  });
-  const txHash = await walletClient.sendTransaction({
-    account,
-    chain,
-    to: txRequest.to,
-    data: txRequest.data,
-    value: BigInt(String(txRequest.value ?? "0x0")),
-  });
-
-  await publicClient.waitForTransactionReceipt({ hash: txHash });
-  return txHash;
+  return submitValidatedTransaction(account, txRequest);
 };
 
 export const requireLaunchIdentity = (args: ParsedCliArgs) => {

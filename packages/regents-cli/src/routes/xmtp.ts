@@ -92,15 +92,15 @@ export const xmtpRoutes: readonly CliRoute[] = [
   route("xmtp group create", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupCreate(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group add-member", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupAddMember(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group remove-member", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupRemoveMember(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group list", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupList(parsedArgs, configPath);
     return 0;
@@ -108,39 +108,39 @@ export const xmtpRoutes: readonly CliRoute[] = [
   route("xmtp group members", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupMembers(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group permissions", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupPermissions(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group update-permission", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupUpdatePermission(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group admins", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupAdmins(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group super-admins", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupSuperAdmins(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group add-admin", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupAddAdmin(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group remove-admin", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupRemoveAdmin(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group add-super-admin", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupAddSuperAdmin(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp group remove-super-admin", async ({ parsedArgs, configPath }) => {
     await runXmtpGroupRemoveSuperAdmin(parsedArgs, configPath);
     return 0;
-  }),
+  }, { variadicTail: true }),
   route("xmtp revoke-other-installations", async ({ configPath }) => {
     await runXmtpRevokeOtherInstallations(configPath);
     return 0;

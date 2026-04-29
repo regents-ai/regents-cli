@@ -50,14 +50,26 @@ describe("identity status command", () => {
         logLevel: "debug",
       },
       auth: {
-        baseUrl: "https://regent.example",
         audience: "techtree",
         defaultChainId: 8453,
-        requestTimeoutMs: 1_000,
       },
-      techtree: {
-        baseUrl: "https://regent.example",
-        requestTimeoutMs: 1_000,
+      services: {
+        siwa: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
+        platform: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1_000,
+        },
+        techtree: {
+          baseUrl: "https://regent.example",
+          requestTimeoutMs: 1_000,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -121,6 +133,70 @@ describe("identity status command", () => {
         next_action: expect.objectContaining({
           command: "regents identity ensure",
         }),
+      }),
+    );
+  });
+
+  it("prints the local identity graph from the saved receipt", async () => {
+    writeReceipt(tempDir, {
+      version: 1,
+      regent_base_url: "https://regent.example",
+      network: "base",
+      provider: "coinbase-cdp",
+      address: TEST_WALLET,
+      agent_id: 99,
+      agent_registry: "0x2222222222222222222222222222222222222222",
+      signer_type: "evm_personal_sign",
+      verified: "onchain",
+      receipt: "receipt-valid",
+      receipt_issued_at: "2026-04-17T00:00:00.000Z",
+      receipt_expires_at: "2999-01-01T00:00:00.000Z",
+      cached_at: "2026-04-17T00:00:00.000Z",
+      wallet_hint: "main",
+    });
+
+    const output = await captureOutput(async () =>
+      runCliEntrypoint(["identity", "graph", "--json", "--config", configPath]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(JSON.parse(output.stdout)).toEqual(
+      expect.objectContaining({
+        ok: true,
+        command: "identity graph",
+        agent_id: "99",
+        wallet_tuple: {
+          wallet_address: TEST_WALLET,
+          chain_id: 8453,
+          registry_address: "0x2222222222222222222222222222222222222222",
+          token_id: "99",
+        },
+        product_links: expect.objectContaining({
+          platform: null,
+          autolaunch: null,
+          techtree: null,
+          mobile: null,
+          erc8004_agentbook: expect.objectContaining({
+            agent_id: "99",
+          }),
+        }),
+      }),
+    );
+  });
+
+  it("explains that the identity graph is waiting when no receipt exists", async () => {
+    const output = await captureOutput(async () =>
+      runCliEntrypoint(["identity", "graph", "--json", "--config", configPath]),
+    );
+
+    expect(output.result).toBe(1);
+    expect(JSON.parse(output.stdout)).toEqual(
+      expect.objectContaining({
+        ok: false,
+        command: "identity graph",
+        status: "waiting",
+        agent_id: null,
+        wallet_tuple: null,
       }),
     );
   });
