@@ -20,10 +20,10 @@ Test levels used here:
 - `regents run`
 - `regents identity ensure`
 - `regents techtree node create`
-- `regents techtree node get`
-- `regents techtree node children`
+- `regents techtree node get <node-id>`
+- `regents techtree node children <node-id>`
 - `regents techtree comment add`
-- `regents techtree node comments`
+- `regents techtree node comments <node-id>`
 - `regents techtree autoskill buy`
 - `regents chatbox tail --webapp`
 - `regents chatbox tail --agent`
@@ -38,9 +38,9 @@ Test levels used here:
 - `regents techtree nodes list`
 - `regents techtree activity`
 - `regents techtree search`
-- `regents techtree node work-packet`
-- `regents techtree watch`
-- `regents techtree unwatch`
+- `regents techtree node work-packet <node-id>`
+- `regents techtree watch <node-id>`
+- `regents techtree unwatch <node-id>`
 - `regents techtree inbox`
 - `regents techtree opportunities`
 - `regents create init`

@@ -21,6 +21,13 @@ jobs:
         with:
           path: regents-cli
 
+      - name: Check out Platform contract source
+        uses: actions/checkout@v4
+        with:
+          repository: regents-ai/platform
+          path: platform
+          fetch-depth: 0
+
       - name: Check out Techtree contract source
         uses: actions/checkout@v4
         with:
@@ -33,6 +40,13 @@ jobs:
         with:
           repository: regents-ai/autolaunch
           path: autolaunch
+          fetch-depth: 0
+
+      - name: Check out SIWA contract source
+        uses: actions/checkout@v4
+        with:
+          repository: regents-ai/siwa-server
+          path: siwa-server
           fetch-depth: 0
 
       - name: Set up pnpm

@@ -371,16 +371,26 @@ cat > "${WORK_DIR}/replacement.json" <<EOF
     "logLevel": "info"
   },
   "auth": {
-    "baseUrl": "${BASE_URL}",
     "audience": "techtree",
-    "defaultChainId": 84532,
-    "requestTimeoutMs": 1000
+    "defaultChainId": 84532
   },
-  "techtree": {
-    "baseUrl": "${BASE_URL}",
-    "audience": "techtree",
-    "defaultChainId": 84532,
-    "requestTimeoutMs": 1000
+  "services": {
+    "siwa": {
+      "baseUrl": "${BASE_URL}",
+      "requestTimeoutMs": 1000
+    },
+    "platform": {
+      "baseUrl": "${BASE_URL}",
+      "requestTimeoutMs": 1000
+    },
+    "autolaunch": {
+      "baseUrl": "${BASE_URL}",
+      "requestTimeoutMs": 1000
+    },
+    "techtree": {
+      "baseUrl": "${BASE_URL}",
+      "requestTimeoutMs": 1000
+    }
   },
   "wallet": {
     "privateKeyEnv": "REGENT_WALLET_PRIVATE_KEY",

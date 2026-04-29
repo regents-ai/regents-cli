@@ -35,6 +35,9 @@ importers:
       viem:
         specifier: ^2.38.2
         version: 2.47.1(typescript@5.9.3)(zod@4.3.6)
+      yaml:
+        specifier: ^2.8.1
+        version: 2.8.3
       zod:
         specifier: ^4.1.11
         version: 4.3.6
@@ -428,6 +431,7 @@ packages:
 
   '@worldcoin/idkit-core@4.0.15':
     resolution: {integrity: sha512-FlA+cBaioqXx0I2FhKbYhfIgErU70RwupjvYr8cM5GVIxbEkjkA9kwZfmfLa7cYzqWiUVQnMpbOV94eK+7l1aA==}
+    deprecated: Old-versions moved to new ones
 
   '@worldcoin/idkit-server@1.0.0':
     resolution: {integrity: sha512-ZCyXJFexxLjPtG7lxTntf6oiwF0pzoUIsVFIAAgFyXav5KmUnVlrvVoeGrgpiDFRznH2B4/Iv5xv+SkEHxOdXQ==}
