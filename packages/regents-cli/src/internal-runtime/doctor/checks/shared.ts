@@ -35,7 +35,7 @@ export async function deriveSignerWalletAddress(ctx: DoctorCheckContext): Promis
     if (receipt?.provider === "coinbase-cdp" && ctx.config) {
         return (await resolveSignerFromReceipt(receipt, {
             config: ctx.config,
-            timeoutMs: ctx.config.auth.requestTimeoutMs,
+            timeoutMs: ctx.config.services.siwa.requestTimeoutMs,
         })).address;
     }
     const identity = ctx.stateStore ? getCurrentAgentIdentity(ctx.stateStore) : null;
@@ -45,7 +45,7 @@ export async function deriveSignerWalletAddress(ctx: DoctorCheckContext): Promis
             network: identityNetworkForChainId(identity.chainId),
             walletHint: identity.walletAddress,
             config: ctx.config,
-            timeoutMs: ctx.config.auth.requestTimeoutMs,
+            timeoutMs: ctx.config.services.siwa.requestTimeoutMs,
             expectedAddress: identity.walletAddress,
         })).address;
     }

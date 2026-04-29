@@ -72,11 +72,15 @@ describe("doctor check runner", () => {
         stateDir: path.join(tempDir, "state"),
         logLevel: "debug",
       },
-      techtree: {
-        baseUrl: "http://127.0.0.1:4999",
+      auth: {
         audience: "techtree",
         defaultChainId: 84532,
-        requestTimeoutMs: 250,
+      },
+      services: {
+        techtree: {
+          baseUrl: "http://127.0.0.1:4999",
+          requestTimeoutMs: 250,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

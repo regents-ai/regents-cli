@@ -111,8 +111,8 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
         const walletSecretSource = createWalletSecretSource(config);
         const techtree = new TechtreeClient({
           config,
-          baseUrl: config.techtree.baseUrl,
-          requestTimeoutMs: config.techtree.requestTimeoutMs,
+          baseUrl: config.services.techtree.baseUrl,
+          requestTimeoutMs: config.services.techtree.requestTimeoutMs,
           sessionStore,
           walletSecretSource,
           stateStore,

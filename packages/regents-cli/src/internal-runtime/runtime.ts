@@ -196,8 +196,8 @@ export class RegentRuntime {
     this.walletSecretSource = createWalletSecretSource(this.config);
     this.techtree = new TechtreeClient({
       config: this.config,
-      baseUrl: this.config.techtree.baseUrl,
-      requestTimeoutMs: this.config.techtree.requestTimeoutMs,
+      baseUrl: this.config.services.techtree.baseUrl,
+      requestTimeoutMs: this.config.services.techtree.requestTimeoutMs,
       sessionStore: this.sessionStore,
       walletSecretSource: this.walletSecretSource,
       stateStore: this.stateStore,
@@ -205,8 +205,9 @@ export class RegentRuntime {
     this.techtreePublisher = new TechtreeV1PublisherAdapter(
       this.techtree,
       new TechtreeRuntimeClient({
-        baseUrl: this.config.techtree.baseUrl,
-        requestTimeoutMs: this.config.techtree.requestTimeoutMs,
+        baseUrl: this.config.services.techtree.baseUrl,
+        requestTimeoutMs: this.config.services.techtree.requestTimeoutMs,
+        config: this.config,
       }),
     );
     this.xmtp = new ManagedXmtpAdapter(this.config.xmtp);
@@ -277,14 +278,14 @@ export class RegentRuntime {
       const payload = await this.techtree.health();
       health = {
         ok: true,
-        baseUrl: this.config.techtree.baseUrl,
+        baseUrl: this.config.services.techtree.baseUrl,
         latencyMs: Date.now() - startedAt,
         payload,
       };
     } catch (error) {
       health = {
         ok: false,
-        baseUrl: this.config.techtree.baseUrl,
+        baseUrl: this.config.services.techtree.baseUrl,
         latencyMs: null,
         error: error instanceof Error ? error.message : "health check failed",
       };

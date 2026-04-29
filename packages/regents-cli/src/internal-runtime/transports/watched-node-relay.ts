@@ -13,16 +13,19 @@ export class WatchedNodeRelay {
   private polling = false;
   private primed = false;
   private cursor: number | null = null;
+  private stopped = false;
 
   constructor(techtree: TechtreeClient) {
     this.techtree = techtree;
   }
 
   async start(): Promise<void> {
+    this.stopped = false;
     return;
   }
 
   async stop(): Promise<void> {
+    this.stopped = true;
     this.listeners.clear();
     this.clearPollTimer();
     this.polling = false;
@@ -31,6 +34,7 @@ export class WatchedNodeRelay {
   }
 
   async subscribe(listener: WatchedNodeListener): Promise<() => void> {
+    this.stopped = false;
     this.listeners.add(listener);
     this.schedulePoll(0);
 
@@ -47,13 +51,17 @@ export class WatchedNodeRelay {
   }
 
   private schedulePoll(delayMs: number): void {
-    if (this.pollTimer || this.listeners.size === 0) {
+    if (this.stopped || this.pollTimer || this.listeners.size === 0) {
       return;
     }
 
     this.pollTimer = setTimeout(() => {
       this.pollTimer = null;
-      void this.pollOnce();
+      void this.pollOnce().catch(() => {
+        if (!this.stopped && this.listeners.size > 0) {
+          this.schedulePoll(WATCH_POLL_MS);
+        }
+      });
     }, delayMs);
   }
 
@@ -67,7 +75,7 @@ export class WatchedNodeRelay {
   }
 
   private async pollOnce(): Promise<void> {
-    if (this.polling || this.listeners.size === 0) {
+    if (this.stopped || this.polling || this.listeners.size === 0) {
       return;
     }
 
@@ -81,6 +89,10 @@ export class WatchedNodeRelay {
         const prime = await this.techtree.getInbox({ limit: 1 });
         this.cursor = prime.next_cursor;
         this.primed = true;
+        await this.emitMatchingEvents(
+          prime.events.filter((event) => event.event_type.startsWith("node.")),
+          watchedNodeIds,
+        );
         nextDelayMs = 0;
         return;
       }
@@ -96,39 +108,48 @@ export class WatchedNodeRelay {
           ? await this.techtree.getInbox({ limit: 50 })
           : await this.techtree.getInbox({ cursor: this.cursor, limit: 50 });
 
-      const workPacketCache = new Map<number, WorkPacketResponse>();
-
-      for (const event of inbox.events) {
-        if (event.subject_node_id === null || !watchedNodeIds.has(event.subject_node_id)) {
-          continue;
-        }
-
-        let workPacket = workPacketCache.get(event.subject_node_id);
-
-        if (!workPacket) {
-          try {
-            const response = await this.techtree.getWorkPacket(event.subject_node_id);
-            workPacket = response.data;
-            workPacketCache.set(event.subject_node_id, workPacket);
-          } catch {
-            continue;
-          }
-        }
-
-        const payload: WatchedNodeLiveEvent = {
-          event,
-          data: workPacket,
-        };
-
-        for (const listener of this.listeners) {
-          listener(payload);
-        }
-      }
+      await this.emitMatchingEvents(inbox.events, watchedNodeIds);
 
       this.cursor = inbox.next_cursor;
     } finally {
       this.polling = false;
-      this.schedulePoll(nextDelayMs);
+      if (!this.stopped) {
+        this.schedulePoll(nextDelayMs);
+      }
+    }
+  }
+
+  private async emitMatchingEvents(
+    events: Awaited<ReturnType<TechtreeClient["getInbox"]>>["events"],
+    watchedNodeIds: Set<number>,
+  ): Promise<void> {
+    const workPacketCache = new Map<number, WorkPacketResponse>();
+
+    for (const event of events) {
+      if (event.subject_node_id === null || !watchedNodeIds.has(event.subject_node_id)) {
+        continue;
+      }
+
+      let workPacket = workPacketCache.get(event.subject_node_id);
+
+      if (!workPacket) {
+        try {
+          const response = await this.techtree.getWorkPacket(event.subject_node_id);
+          workPacket = response.data;
+          workPacketCache.set(event.subject_node_id, workPacket);
+        } catch {
+          continue;
+        }
+      }
+
+      const payload: WatchedNodeLiveEvent = {
+        event,
+        data: workPacket,
+      };
+
+      for (const listener of this.listeners) {
+        listener(payload);
+      }
     }
   }
 }

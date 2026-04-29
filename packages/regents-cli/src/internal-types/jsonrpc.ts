@@ -435,7 +435,7 @@ export interface RegentRpcResultMap {
     appSessions: import("./auth.js").AppSiwaSession[];
   };
   "techtree.status": {
-    config: RegentConfig["techtree"];
+    config: RegentConfig["services"]["techtree"];
     health: Record<string, unknown>;
   };
   "techtree.nodes.list": { data: TreeNode[] };

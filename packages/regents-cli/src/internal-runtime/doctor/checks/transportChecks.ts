@@ -58,6 +58,33 @@ export function transportChecks(): DoctorCheckDefinition[] {
       },
     },
     {
+      id: "xmtp.room.contract",
+      scope: "xmtp",
+      title: "XMTP room contract",
+      run: async (ctx) => {
+        if (!ctx.config) {
+          return skipDueToMissingConfig();
+        }
+
+        return {
+          status: "ok",
+          message:
+            "Room keys stay with the owning app; CLI chatbox uses Techtree routes and CLI XMTP groups use raw conversation ids",
+          details: {
+            appRoomId: "room_key",
+            threadId: "xmtp_group_id",
+            techtreeChatboxSelectors: ["webapp", "agent"],
+            productRoomOwners: ["platform", "autolaunch", "techtree"],
+            cliBoundaries: {
+              chatbox: "techtree product routes or local runtime transport",
+              xmtpGroup: "local XMTP conversation id",
+              iosTalk: "Platform RWR records, not XMTP rooms",
+            },
+          },
+        };
+      },
+    },
+    {
       id: "xmtp.policy",
       scope: "xmtp",
       title: "XMTP public policy",

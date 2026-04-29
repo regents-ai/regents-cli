@@ -60,14 +60,26 @@ describe("auth envelope doctor check", () => {
           logLevel: "debug",
         },
         auth: {
-          baseUrl: "http://127.0.0.1:4000",
           audience: "techtree",
           defaultChainId: 84532,
-          requestTimeoutMs: 1_000,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:4000",
-          requestTimeoutMs: 1_000,
+        services: {
+          siwa: {
+            baseUrl: "http://127.0.0.1:4000",
+            requestTimeoutMs: 1_000,
+          },
+          platform: {
+            baseUrl: "http://127.0.0.1:4000",
+            requestTimeoutMs: 1_000,
+          },
+          autolaunch: {
+            baseUrl: "http://127.0.0.1:4010",
+            requestTimeoutMs: 1_000,
+          },
+          techtree: {
+            baseUrl: "http://127.0.0.1:4000",
+            requestTimeoutMs: 1_000,
+          },
         },
         wallet: {
           privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

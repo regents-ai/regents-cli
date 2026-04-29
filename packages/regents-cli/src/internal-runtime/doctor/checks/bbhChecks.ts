@@ -7,8 +7,9 @@ import { buildBackendDetails, skipDueToMissingConfig } from "./shared.js";
 
 const createClient = (ctx: Parameters<DoctorCheckDefinition["run"]>[0]) =>
   new TechtreeRuntimeClient({
-    baseUrl: ctx.config!.techtree.baseUrl,
-    requestTimeoutMs: ctx.config!.techtree.requestTimeoutMs,
+    baseUrl: ctx.config!.services.techtree.baseUrl,
+    requestTimeoutMs: ctx.config!.services.techtree.requestTimeoutMs,
+    config: ctx.config!,
   });
 
 export function bbhChecks(): DoctorCheckDefinition[] {

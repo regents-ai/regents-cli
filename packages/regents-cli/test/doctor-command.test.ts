@@ -55,14 +55,26 @@ describeNetwork.sequential("CLI doctor command", () => {
         logLevel: "debug",
       },
       auth: {
-        baseUrl: server.baseUrl,
         audience: "techtree",
         defaultChainId: 84532,
-        requestTimeoutMs: 1_000,
       },
-      techtree: {
-        baseUrl: server.baseUrl,
-        requestTimeoutMs: 1_000,
+      services: {
+        siwa: {
+          baseUrl: server.baseUrl,
+          requestTimeoutMs: 1_000,
+        },
+        platform: {
+          baseUrl: server.baseUrl,
+          requestTimeoutMs: 1_000,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1_000,
+        },
+        techtree: {
+          baseUrl: server.baseUrl,
+          requestTimeoutMs: 1_000,
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

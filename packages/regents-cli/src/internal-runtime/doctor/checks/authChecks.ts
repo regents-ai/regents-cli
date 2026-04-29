@@ -149,8 +149,9 @@ export function authChecks(): DoctorCheckDefinition[] {
 
         try {
           const authClient = new SiwaClient(
-            ctx.config.auth.baseUrl,
-            ctx.config.auth.requestTimeoutMs,
+            ctx.config.services.siwa.baseUrl,
+            ctx.config.services.siwa.requestTimeoutMs,
+            ctx.config,
           );
           const identity = getCurrentAgentIdentity(ctx.stateStore);
           const missingFields = getMissingAgentIdentityFields(ctx.stateStore);
@@ -225,8 +226,9 @@ export function authChecks(): DoctorCheckDefinition[] {
 
         try {
           const authClient = new SiwaClient(
-            ctx.config.auth.baseUrl,
-            ctx.config.auth.requestTimeoutMs,
+            ctx.config.services.siwa.baseUrl,
+            ctx.config.services.siwa.requestTimeoutMs,
+            ctx.config,
           );
           const response = await authClient.verify({
             wallet_address: identity.walletAddress,
@@ -479,7 +481,7 @@ export function authChecks(): DoctorCheckDefinition[] {
             ctx.config,
             ctx.sessionStore,
             ctx.stateStore,
-            ctx.config.auth.requestTimeoutMs,
+            ctx.config.services.siwa.requestTimeoutMs,
           );
         } catch (error) {
           const code =
