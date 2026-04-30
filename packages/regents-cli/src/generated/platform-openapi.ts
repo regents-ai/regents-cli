@@ -568,6 +568,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/privy/xmtp/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["privyXmtpComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/privy/csrf": {
         parameters: {
             query?: never;
@@ -1058,6 +1074,86 @@ export interface paths {
         get: operations["openSeaRedeemStats"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/xmtp/shards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["internalXmtpListShards"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/xmtp/rooms/ensure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["internalXmtpEnsureRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/xmtp/messages/ingest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["internalXmtpIngestMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/xmtp/commands/lease": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["internalXmtpLeaseCommand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/internal/xmtp/commands/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["internalXmtpResolveCommand"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1655,6 +1751,51 @@ export interface components {
                 message: string;
                 next_steps?: string | null;
             };
+        };
+        InternalXmtpRoom: {
+            id: number;
+            room_key: string;
+            xmtp_group_id: string | null;
+            name: string;
+            status: string;
+            presence_ttl_seconds: number;
+            /** @enum {integer} */
+            capacity: 200;
+        };
+        InternalXmtpRoomShard: components["schemas"]["InternalXmtpRoom"] & {
+            active_members: number;
+            joinable: boolean;
+        };
+        InternalXmtpEnsureRoomRequest: {
+            room_key: string;
+            xmtp_group_id?: string;
+            name: string;
+            status?: string;
+            presence_ttl_seconds?: number;
+            /** @enum {integer} */
+            capacity?: 200;
+        };
+        InternalXmtpMessageIngestRequest: {
+            room_key: string;
+            xmtp_message_id: string;
+            sender_inbox_id: string;
+            sender_wallet_address?: string;
+            sender_label?: string;
+            /** @enum {string} */
+            sender_type: "human" | "agent" | "system";
+            body: string;
+            /** Format: date-time */
+            sent_at: string;
+            raw_payload?: Record<string, never>;
+            moderation_state?: string;
+            reply_to_message_id?: number;
+            reactions?: Record<string, never>;
+        };
+        InternalXmtpMembershipCommand: {
+            id: number;
+            /** @enum {string} */
+            op: "add_member" | "remove_member";
+            xmtp_inbox_id: string;
         };
         /** @enum {string} */
         AgentKind: "hermes" | "openclaw" | "codex" | "custom" | "human_operator" | "regent_bridge";
@@ -2398,6 +2539,26 @@ export interface components {
         PrivySessionRequest: {
             display_name?: string | null;
         };
+        PrivyXmtpCompleteRequest: {
+            wallet_address: string;
+            client_id: string;
+            signature_request_id: string;
+            signature: string;
+        };
+        PrivyXmtpState: {
+            /** @enum {string} */
+            status: "ready";
+            inbox_id: string;
+            wallet_address: string;
+        } | {
+            /** @enum {string} */
+            status: "signature_required";
+            inbox_id: null;
+            wallet_address: string;
+            client_id: string;
+            signature_request_id: string;
+            signature_text: string;
+        } | null;
         PrivySessionCsrf: {
             ok: boolean;
             csrf_token: string;
@@ -2774,6 +2935,7 @@ export interface components {
             privy_user_id: string;
             wallet_address?: string | null;
             wallet_addresses: string[];
+            xmtp_inbox_id: string | null;
             display_name?: string | null;
             avatar: components["schemas"]["AvatarSelection"] | null;
             billing_account: components["schemas"]["BillingAccount"];
@@ -2784,6 +2946,7 @@ export interface components {
             human?: components["schemas"]["CurrentHuman"] | null;
             claimed_names: components["schemas"]["ClaimedName"][];
             agents: components["schemas"]["AgentRecord"][];
+            xmtp: components["schemas"]["PrivyXmtpState"];
         };
         AgentFormation: {
             id: number;
@@ -3152,6 +3315,15 @@ export interface components {
         };
         /** @description Conflict */
         StatusMessage409: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["StatusMessage"];
+            };
+        };
+        /** @description Unprocessable entity */
+        StatusMessage422: {
             headers: {
                 [name: string]: unknown;
             };
@@ -4133,6 +4305,32 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
         };
     };
+    privyXmtpComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrivyXmtpCompleteRequest"];
+            };
+        };
+        responses: {
+            /** @description XMTP identity saved for the signed-in human */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentHumanProfile"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            422: components["responses"]["StatusMessage422"];
+        };
+    };
     privySessionCsrf: {
         parameters: {
             query?: never;
@@ -4977,6 +5175,152 @@ export interface operations {
             429: components["responses"]["StatusMessage429"];
             502: components["responses"]["StatusMessage502"];
             503: components["responses"]["StatusMessage503"];
+        };
+    };
+    internalXmtpListShards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active mirrored XMTP rooms available to the internal worker */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InternalXmtpRoomShard"][];
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+        };
+    };
+    internalXmtpEnsureRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InternalXmtpEnsureRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description Mirrored XMTP room record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InternalXmtpRoom"];
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            422: components["responses"]["StatusMessage422"];
+        };
+    };
+    internalXmtpIngestMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InternalXmtpMessageIngestRequest"];
+            };
+        };
+        responses: {
+            /** @description Saved mirrored message id */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            422: components["responses"]["StatusMessage422"];
+        };
+    };
+    internalXmtpLeaseCommand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    room_key: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Next membership command for the room, or null */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InternalXmtpMembershipCommand"] | null;
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            422: components["responses"]["StatusMessage422"];
+        };
+    };
+    internalXmtpResolveCommand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "done" | "failed";
+                    error?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Membership command resolution accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            422: components["responses"]["StatusMessage422"];
         };
     };
     rwrAccount: {
