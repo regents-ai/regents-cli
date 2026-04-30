@@ -1,0 +1,444 @@
+version: 1
+name: regent-portfolio
+owner: regents-cli
+summary: Versioned release contract for the Regent product family.
+
+release_groups:
+  public_beta:
+    required: true
+    description: Required surfaces for public beta release checks.
+  ops_preview:
+    required: false
+    description: Tracked operator preview surfaces that do not block public beta.
+
+repos:
+  platform:
+    path: ../platform
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: platform
+    owns:
+      - human_identity
+      - billing
+      - formation
+      - public_regent_records
+    api_contracts:
+      - id: platform_api
+        owner: platform
+        path: api-contract.openapiv3.yaml
+        include_in_cli_command_check: true
+        x-regent-capability:
+          status: beta
+          owner: platform
+          money_path: true
+          cli_surface: true
+          mobile_surface: false
+        generated_bindings:
+          - path: packages/regents-cli/src/generated/platform-openapi.ts
+            generator: openapi-typescript
+    cli_contracts:
+      - id: platform_cli
+        owner: platform
+        path: cli-contract.yaml
+        include_in_cli_command_check: true
+    local_path_dependencies: []
+    acceptance_commands:
+      - cwd: ../platform
+        command: mix precommit
+
+  techtree:
+    path: ../techtree
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: techtree
+    owns:
+      - research_tree
+      - bbh
+      - reviews
+      - paid_payloads
+      - rooms
+    api_contracts:
+      - id: techtree_api
+        owner: techtree
+        path: docs/api-contract.openapiv3.yaml
+        include_in_cli_command_check: true
+        x-regent-capability:
+          status: beta
+          owner: techtree
+          money_path: true
+          cli_surface: true
+          mobile_surface: false
+        generated_bindings:
+          - path: packages/regents-cli/src/generated/techtree-openapi.ts
+            generator: openapi-typescript
+    cli_contracts:
+      - id: techtree_cli
+        owner: techtree
+        path: docs/cli-contract.yaml
+        include_in_cli_command_check: true
+    local_path_dependencies: []
+    acceptance_commands:
+      - cwd: ../techtree
+        command: mix precommit
+
+  autolaunch:
+    path: ../autolaunch
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: autolaunch
+    owns:
+      - launches
+      - auctions
+      - subjects
+      - revenue_lanes
+      - regent_staking_surface
+    api_contracts:
+      - id: autolaunch_api
+        owner: autolaunch
+        path: docs/api-contract.openapiv3.yaml
+        include_in_cli_command_check: true
+        x-regent-capability:
+          status: beta
+          owner: autolaunch
+          money_path: true
+          cli_surface: true
+          mobile_surface: false
+        generated_bindings:
+          - path: packages/regents-cli/src/generated/autolaunch-openapi.ts
+            generator: openapi-typescript
+    cli_contracts:
+      - id: autolaunch_cli
+        owner: autolaunch
+        path: docs/cli-contract.yaml
+        include_in_cli_command_check: true
+    local_path_dependencies:
+      - contracts
+    acceptance_commands:
+      - cwd: ../autolaunch
+        command: mix precommit
+
+  regents-cli:
+    path: .
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: regents-cli
+    owns:
+      - operator_control_surface
+      - generated_bindings
+      - local_runtime
+      - portfolio_release_checks
+    api_contracts:
+      - id: shared_services_api
+        owner: shared-services
+        path: docs/regent-services-contract.openapiv3.yaml
+        include_in_cli_command_check: true
+        x-regent-capability:
+          status: beta
+          owner: shared-services
+          money_path: true
+          cli_surface: true
+          mobile_surface: false
+        generated_bindings:
+          - path: packages/regents-cli/src/generated/regent-services-openapi.ts
+            generator: openapi-typescript
+    cli_contracts:
+      - id: shared_cli
+        owner: shared-services
+        path: docs/shared-cli-contract.yaml
+        include_in_cli_command_check: true
+    local_path_dependencies: []
+    acceptance_commands:
+      - cwd: .
+        command: pnpm check:workspace
+      - cwd: .
+        command: pnpm check:openapi
+      - cwd: .
+        command: pnpm check:cli-contract
+      - cwd: .
+        command: pnpm build
+      - cwd: .
+        command: pnpm typecheck
+      - cwd: .
+        command: pnpm test
+      - cwd: .
+        command: pnpm test:pack-smoke
+
+  siwa-server:
+    path: ../siwa-server
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: siwa-server
+    owns:
+      - shared_siwa_http
+      - nonce_state
+      - replay_state
+      - internal_keyring_surface
+    shared_contracts:
+      - id: shared_services_served
+        owner: shared-services
+        path: priv/static/regent-services-contract.openapiv3.yaml
+    local_path_dependencies:
+      - ../elixir-utils/siwa/siwa-elixir
+    acceptance_commands:
+      - cwd: ../siwa-server
+        command: mix precommit
+
+  elixir-utils:
+    path: ../elixir-utils
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: elixir-utils
+    owns:
+      - siwa_library
+      - ens_library
+      - xmtp_library
+      - agentbook_helpers
+    package_paths:
+      - cache
+      - ens
+      - siwa/siwa-elixir
+      - world/agentbook
+      - xmtp
+    acceptance_commands:
+      - cwd: ../elixir-utils/cache
+        command: mix test
+      - cwd: ../elixir-utils/ens
+        command: mix test
+      - cwd: ../elixir-utils/siwa/siwa-elixir
+        command: mix test
+      - cwd: ../elixir-utils/world/agentbook
+        command: mix test
+      - cwd: ../elixir-utils/xmtp
+        command: mix test
+
+  ios:
+    path: ../ios
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: ios
+    owns:
+      - mobile_wallet
+      - mobile_action_signing
+      - mobile_regent_records
+    api_contracts:
+      - id: ios_api
+        owner: ios
+        path: api-contract.openapiv3.yaml
+        include_in_cli_command_check: false
+        x-regent-capability:
+          status: beta
+          owner: ios
+          money_path: true
+          cli_surface: false
+          mobile_surface: true
+      - id: ios_shared_services_api
+        owner: ios
+        path: regent-services-contract.openapiv3.yaml
+        include_in_cli_command_check: false
+        x-regent-capability:
+          status: beta
+          owner: ios
+          money_path: true
+          cli_surface: false
+          mobile_surface: true
+    acceptance_commands:
+      - cwd: ../ios
+        command: npm run check:app
+      - cwd: ../ios
+        command: npm run test:app
+      - cwd: ../ios/server
+        command: npm test
+
+  design-system:
+    path: ../design-system
+    required_for_public_beta: true
+    release_group: public_beta
+    owner: design-system
+    owns:
+      - shared_visual_language
+      - tokens
+      - money_action_risk_panels
+      - status_badges
+    package_paths:
+      - regent_ui
+    acceptance_commands:
+      - cwd: ../design-system/regent_ui
+        command: mix test
+
+  fly-sentinel:
+    path: ../fly-sentinel
+    required_for_public_beta: false
+    release_group: ops_preview
+    owner: fly-sentinel
+    owns:
+      - fly_observability
+      - operator_preview_checks
+    api_contracts:
+      - id: fly_sentinel_api
+        owner: fly-sentinel
+        path: api-contract.openapiv3.yaml
+        include_in_cli_command_check: false
+        x-regent-capability:
+          status: preview
+          owner: fly-sentinel
+          money_path: false
+          cli_surface: false
+          mobile_surface: false
+    acceptance_commands: []
+
+shared_contract_pairs:
+  - id: shared_services_contract
+    source:
+      repo: regents-cli
+      path: docs/regent-services-contract.openapiv3.yaml
+    mirror:
+      repo: siwa-server
+      path: priv/static/regent-services-contract.openapiv3.yaml
+
+schemas:
+  wallet_action:
+    path: docs/schemas/wallet-action.schema.yaml
+    version: 1
+
+money_movement:
+  - id: platform_staking_prepare
+    owner_product: platform
+    route_class: prepare
+    signer: wallet
+    beneficiary: staking_contract
+    source_of_truth: chain
+    confirmation_rule: receipt_and_contract_read
+  - id: autolaunch_bid
+    owner_product: autolaunch
+    route_class: prepare
+    signer: bidder_wallet
+    beneficiary: auction_contract
+    source_of_truth: chain
+    confirmation_rule: receipt_and_auction_state
+  - id: subject_revenue_ingress
+    owner_product: autolaunch
+    route_class: contract_defined
+    signer: revenue_payer_or_operator
+    beneficiary: ingress_or_splitter_contract
+    source_of_truth: chain
+    confirmation_rule: splitter_accounting_read
+  - id: regent_staking_claim
+    owner_product: platform
+    route_class: prepare
+    signer: staker_wallet
+    beneficiary: staker_wallet
+    source_of_truth: chain
+    confirmation_rule: receipt_and_claimable_read
+  - id: shared_services_ens_primary
+    owner_product: shared-services
+    route_class: prepare
+    signer: agent_wallet
+    beneficiary: ens_reverse_registry
+    source_of_truth: chain
+    confirmation_rule: receipt_and_ens_resolution_read
+  - id: techtree_paid_payload
+    owner_product: techtree
+    route_class: verify
+    signer: purchaser_wallet
+    beneficiary: payload_seller_or_contract
+    source_of_truth: chain
+    confirmation_rule: receipt_and_entitlement_read
+  - id: ios_wallet_action
+    owner_product: ios
+    route_class: prepare
+    signer: mobile_wallet
+    beneficiary: contract_defined
+    source_of_truth: chain
+    confirmation_rule: receipt_and_owner_product_read
+  - id: cli_operator_action
+    owner_product: regents-cli
+    route_class: local_prepare
+    signer: operator_wallet
+    beneficiary: contract_defined
+    source_of_truth: chain
+    confirmation_rule: simulation_and_receipt
+
+revenue_provenance:
+  owner_product: autolaunch
+  source_of_truth: chain
+  fields:
+    - revenue_event_id
+    - source_product
+    - agent_id
+    - subject_id
+    - payer_wallet
+    - chain_id
+    - tx_hash
+    - ingress_contract
+    - splitter_contract
+    - gross_usdc
+    - regent_skim_usdc
+    - agent_lane_usdc
+    - source_type
+    - observed_block
+    - recognized_at
+
+known_release_gaps:
+  - id: wallet_action_shape_cutover
+    status: open
+    required_for_public_beta: false
+    owner_repo: regents-cli
+    affected_repos:
+      - platform
+      - autolaunch
+      - ios
+      - regents-cli
+    title: Cut Platform, Autolaunch, iOS, and CLI wallet actions to the shared WalletAction schema.
+    summary: >
+      The shared WalletAction schema is now versioned in this workspace manifest,
+      but Autolaunch and iOS still expose product-specific prepared-action shapes.
+      Cut the product OpenAPI contracts, producers, consumers, fixtures, and CLI
+      readers to one WalletAction response shape, then remove the product-specific
+      prepared-action envelopes.
+    acceptance:
+      - Platform, Autolaunch, iOS, and Platform-owned Regent staking OpenAPI contracts use docs/schemas/wallet-action.schema.yaml.
+      - Backend wallet-action builders emit action_id, owner_product, resource, resource_id, action, chain_id, to, value, data, expected_signer, expires_at, idempotency_key, simulation, and risk_copy.
+      - CLI readers consume WalletAction only, with no tx_request-only prepared-action path.
+      - Route and generated OpenAPI checks fail if a money-adjacent prepared action omits the shared fields.
+
+incident_classes:
+  - id: identity
+    owner_repo: siwa-server
+    recovery_command: regents doctor identity
+    requires_reconciliation_job: true
+  - id: auth_replay
+    owner_repo: siwa-server
+    recovery_command: regents doctor auth
+    requires_reconciliation_job: true
+  - id: billing
+    owner_repo: platform
+    recovery_command: regents doctor contracts
+    requires_reconciliation_job: true
+  - id: launch_deployment
+    owner_repo: autolaunch
+    recovery_command: regents autolaunch launch verify
+    requires_reconciliation_job: true
+  - id: auction
+    owner_repo: autolaunch
+    recovery_command: regents autolaunch auction status
+    requires_reconciliation_job: true
+  - id: revenue_ingress
+    owner_repo: autolaunch
+    recovery_command: regents autolaunch subject revenue
+    requires_reconciliation_job: true
+  - id: staking_claims
+    owner_repo: platform
+    recovery_command: regents regent-staking show
+    requires_reconciliation_job: true
+  - id: paid_payload_entitlement
+    owner_repo: techtree
+    recovery_command: regents techtree autoskill pull
+    requires_reconciliation_job: true
+  - id: mobile_wallet
+    owner_repo: ios
+    recovery_command: regents doctor workspace
+    requires_reconciliation_job: true
+  - id: runtime_provisioning
+    owner_repo: platform
+    recovery_command: regents platform formation doctor
+    requires_reconciliation_job: true

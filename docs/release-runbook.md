@@ -23,6 +23,7 @@ If you remember only one thing, remember this:
 Today, the checked-in local release gate is:
 
 ```bash
+pnpm check:workspace
 pnpm check:openapi
 pnpm check:cli-contract
 pnpm build
@@ -37,6 +38,7 @@ Those commands are the current definition of "safe to release" for this repo.
 They prove:
 
 - the generated OpenAPI-backed types are in sync
+- the required release repos, contracts, generated bindings, shared contract mirror, money rows, and incident rows are visible
 - the shipped command list still matches the CLI contracts
 - the package builds
 - the TypeScript surface still checks
@@ -72,10 +74,11 @@ Before treating a release candidate as publishable, confirm these conditions:
 
 1. The Techtree backend contract changes, if any, are already merged and stable.
 2. The Autolaunch backend contract changes, if any, are already merged and stable.
-3. `pnpm check:openapi` passes with no generated-file drift.
-4. `pnpm check:pack-cli-contents` proves the tarball only contains the intended package files.
-5. `pnpm test:pack-smoke` passes from the package tarball, not just the workspace build.
-6. The release notes are clear about operator-facing changes.
+3. `pnpm check:workspace` passes with every required release repo present.
+4. `pnpm check:openapi` passes with no generated-file drift.
+5. `pnpm check:pack-cli-contents` proves the tarball only contains the intended package files.
+6. `pnpm test:pack-smoke` passes from the package tarball, not just the workspace build.
+7. The release notes are clear about operator-facing changes.
 
 If the CLI contract changed, do not publish until the owning backend contract and generated CLI types agree.
 
@@ -89,6 +92,7 @@ This is the current human-operated path.
 git switch main
 git pull --ff-only origin main
 pnpm install
+pnpm check:workspace
 pnpm check:openapi
 pnpm check:cli-contract
 pnpm build

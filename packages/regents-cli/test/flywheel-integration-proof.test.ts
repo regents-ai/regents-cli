@@ -11,14 +11,15 @@ type OpenApiDocument = {
   paths?: Record<string, Record<string, { operationId?: string; security?: unknown }>>;
 };
 
-type InterfaceRegistry = {
-  interfaces?: Record<
+type WorkspaceManifest = {
+  repos?: Record<
     string,
     {
-      api_contracts?: string[];
-      cli_contracts?: string[];
-      generated_bindings?: Array<{ path?: string; source_contract?: string }>;
-      minimum_ci_checkout?: { repos?: string[] };
+      path?: string;
+      required_for_public_beta?: boolean;
+      api_contracts?: Array<{ path?: string }>;
+      cli_contracts?: Array<{ path?: string }>;
+      acceptance_commands?: Array<{ cwd?: string; command?: string }>;
     }
   >;
 };
@@ -36,49 +37,10 @@ const files = {
   iosApi: path.join(regentRoot, "ios/api-contract.openapiv3.yaml"),
   sharedApi: path.join(workspaceRoot, "docs/regent-services-contract.openapiv3.yaml"),
   sharedCli: path.join(workspaceRoot, "docs/shared-cli-contract.yaml"),
+  workspaceManifest: path.join(workspaceRoot, "docs/regent-workspace.yaml"),
 };
 
 const loadYaml = <T>(file: string): T => parse(fs.readFileSync(file, "utf8")) as T;
-
-const registryFixture = (): InterfaceRegistry => ({
-  interfaces: {
-    platform: {
-      api_contracts: [files.platformApi],
-      cli_contracts: [files.platformCli],
-      generated_bindings: [{ path: path.join(workspaceRoot, "packages/regents-cli/src/generated/platform-openapi.ts"), source_contract: files.platformApi }],
-      minimum_ci_checkout: { repos: ["platform", "regents-cli"] },
-    },
-    techtree: {
-      api_contracts: [files.techtreeApi],
-      cli_contracts: [files.techtreeCli],
-      generated_bindings: [{ path: path.join(workspaceRoot, "packages/regents-cli/src/generated/techtree-openapi.ts"), source_contract: files.techtreeApi }],
-      minimum_ci_checkout: { repos: ["techtree", "regents-cli"] },
-    },
-    autolaunch: {
-      api_contracts: [files.autolaunchApi],
-      cli_contracts: [files.autolaunchCli],
-      generated_bindings: [{ path: path.join(workspaceRoot, "packages/regents-cli/src/generated/autolaunch-openapi.ts"), source_contract: files.autolaunchApi }],
-      minimum_ci_checkout: { repos: ["autolaunch", "regents-cli"] },
-    },
-    ios: {
-      api_contracts: [files.iosApi],
-      cli_contracts: [],
-      generated_bindings: [],
-      minimum_ci_checkout: { repos: ["ios", "platform"] },
-    },
-    regents_cli: {
-      api_contracts: [files.sharedApi],
-      cli_contracts: [files.sharedCli, files.platformCli, files.techtreeCli, files.autolaunchCli],
-      generated_bindings: [
-        { path: path.join(workspaceRoot, "packages/regents-cli/src/generated/platform-openapi.ts"), source_contract: files.platformApi },
-        { path: path.join(workspaceRoot, "packages/regents-cli/src/generated/techtree-openapi.ts"), source_contract: files.techtreeApi },
-        { path: path.join(workspaceRoot, "packages/regents-cli/src/generated/autolaunch-openapi.ts"), source_contract: files.autolaunchApi },
-        { path: path.join(workspaceRoot, "packages/regents-cli/src/generated/regent-services-openapi.ts"), source_contract: files.sharedApi },
-      ],
-      minimum_ci_checkout: { repos: ["regents-cli", "platform", "techtree", "autolaunch", "ios"] },
-    },
-  },
-});
 
 const operation = (document: OpenApiDocument, pathTemplate: string, method: string) => {
   const methods = document.paths?.[pathTemplate];
@@ -262,33 +224,25 @@ const samplePayloads = {
 } as const;
 
 describe("Regent flywheel integration proof", () => {
-  it("loads the cross-repo contracts, generated bindings, and checkout requirements needed for the loop", () => {
-    const registry = registryFixture();
-    const interfaces = registry.interfaces ?? {};
+  it("loads the cross-repo contracts and checks needed for the loop", () => {
+    const manifest = loadYaml<WorkspaceManifest>(files.workspaceManifest);
+    const repos = manifest.repos ?? {};
 
-    for (const owner of ["platform", "techtree", "autolaunch", "ios", "regents_cli"] as const) {
-      expect(interfaces[owner], owner).toBeDefined();
-      expect(interfaces[owner]?.api_contracts?.length ?? 0, owner).toBeGreaterThan(0);
+    for (const owner of ["platform", "techtree", "autolaunch", "ios", "regents-cli", "design-system"] as const) {
+      expect(repos[owner], owner).toBeDefined();
+      expect(repos[owner]?.required_for_public_beta, owner).toBe(true);
+      expect(repos[owner]?.acceptance_commands?.length ?? 0, owner).toBeGreaterThan(0);
     }
 
-    expect(interfaces.platform?.cli_contracts).toContain(files.platformCli);
-    expect(interfaces.techtree?.cli_contracts).toContain(files.techtreeCli);
-    expect(interfaces.autolaunch?.cli_contracts).toContain(files.autolaunchCli);
-    expect(interfaces.regents_cli?.cli_contracts).toEqual(
-      expect.arrayContaining([files.platformCli, files.techtreeCli, files.autolaunchCli, files.sharedCli]),
+    expect(repos.platform?.api_contracts?.[0]).toEqual(expect.objectContaining({ path: "api-contract.openapiv3.yaml" }));
+    expect(repos.platform?.cli_contracts?.[0]).toEqual(expect.objectContaining({ path: "cli-contract.yaml" }));
+    expect(repos.techtree?.api_contracts?.[0]).toEqual(expect.objectContaining({ path: "docs/api-contract.openapiv3.yaml" }));
+    expect(repos.autolaunch?.api_contracts?.[0]).toEqual(expect.objectContaining({ path: "docs/api-contract.openapiv3.yaml" }));
+    expect(repos["regents-cli"]?.api_contracts?.[0]).toEqual(
+      expect.objectContaining({ path: "docs/regent-services-contract.openapiv3.yaml" }),
     );
-
-    expect(interfaces.regents_cli?.generated_bindings).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ source_contract: files.platformApi }),
-        expect.objectContaining({ source_contract: files.techtreeApi }),
-        expect.objectContaining({ source_contract: files.autolaunchApi }),
-        expect.objectContaining({ source_contract: files.sharedApi }),
-      ]),
-    );
-
-    expect(interfaces.ios?.minimum_ci_checkout?.repos).toEqual(
-      expect.arrayContaining(["ios", "platform"]),
+    expect(repos["regents-cli"]?.cli_contracts?.[0]).toEqual(
+      expect.objectContaining({ path: "docs/shared-cli-contract.yaml" }),
     );
   });
 

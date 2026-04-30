@@ -7,7 +7,7 @@ import {
 } from "../commands/agent.js";
 import { runConfigRead, runConfigWrite } from "../commands/config.js";
 import { runCreateInit, runCreateWallet } from "../commands/create.js";
-import { runDoctorCommand, runDoctorContractsCommand } from "../commands/doctor.js";
+import { runDoctorCommand, runDoctorContractsCommand, runDoctorWorkspaceCommand } from "../commands/doctor.js";
 import { runGossipsubStatus } from "../commands/gossipsub.js";
 import { runMcpExportHermes } from "../commands/mcp.js";
 import {
@@ -52,6 +52,7 @@ export const coreRoutes: readonly CliRoute[] = [
   route("doctor transports", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
   route("doctor xmtp", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
   route("doctor contracts", async ({ parsedArgs, configPath }) => runDoctorContractsCommand(parsedArgs, configPath)),
+  route("doctor workspace", async ({ parsedArgs, configPath }) => runDoctorWorkspaceCommand(parsedArgs, configPath)),
   route("doctor", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath), { variadicTail: true }),
   route("mcp export hermes", async ({ parsedArgs }) => {
     await runMcpExportHermes(parsedArgs);

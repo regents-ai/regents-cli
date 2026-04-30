@@ -1,67 +1,25 @@
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
+import { loadYaml } from "./dependency-preflight.mjs";
+import {
+  readWorkspaceManifest,
+  requiredWorkspaceFiles,
+} from "../packages/regents-cli/src/workspace/manifest.js";
 
 const root = resolve(import.meta.dirname, "..");
+const YAML = await loadYaml(root);
+const manifest = readWorkspaceManifest(root, YAML);
 
-const requiredFiles = [
-  {
-    label: "Platform OpenAPI contract",
-    path: resolve(root, "../platform/api-contract.openapiv3.yaml"),
-  },
-  {
-    label: "Platform CLI contract",
-    path: resolve(root, "../platform/cli-contract.yaml"),
-  },
-  {
-    label: "Techtree OpenAPI contract",
-    path: resolve(root, "../techtree/docs/api-contract.openapiv3.yaml"),
-  },
-  {
-    label: "Techtree CLI contract",
-    path: resolve(root, "../techtree/docs/cli-contract.yaml"),
-  },
-  {
-    label: "Autolaunch OpenAPI contract",
-    path: resolve(root, "../autolaunch/docs/api-contract.openapiv3.yaml"),
-  },
-  {
-    label: "Autolaunch CLI contract",
-    path: resolve(root, "../autolaunch/docs/cli-contract.yaml"),
-  },
-  {
-    label: "Regent shared services contract",
-    path: resolve(root, "docs/regent-services-contract.openapiv3.yaml"),
-  },
-  {
-    label: "SIWA served shared services contract",
-    path: resolve(root, "../siwa-server/priv/static/regent-services-contract.openapiv3.yaml"),
-  },
-  {
-    label: "Shared CLI contract",
-    path: resolve(root, "docs/shared-cli-contract.yaml"),
-  },
-  {
-    label: "Generated Platform OpenAPI types",
-    path: resolve(root, "packages/regents-cli/src/generated/platform-openapi.ts"),
-  },
-  {
-    label: "Generated Techtree OpenAPI types",
-    path: resolve(root, "packages/regents-cli/src/generated/techtree-openapi.ts"),
-  },
-  {
-    label: "Generated Autolaunch OpenAPI types",
-    path: resolve(root, "packages/regents-cli/src/generated/autolaunch-openapi.ts"),
-  },
-  {
-    label: "Generated Regent shared services OpenAPI types",
-    path: resolve(root, "packages/regents-cli/src/generated/regent-services-openapi.ts"),
-  },
-];
+const requiredFiles = requiredWorkspaceFiles(manifest, root);
 
-const missingFiles = requiredFiles.filter(({ path }) => {
+const missingFiles = requiredFiles.filter(({ path, kind }) => {
   try {
-    return !existsSync(path) || !statSync(path).isFile();
+    if (!existsSync(path)) {
+      return true;
+    }
+    const stats = statSync(path);
+    return kind === "dir" ? !stats.isDirectory() : !stats.isFile();
   } catch {
     return true;
   }

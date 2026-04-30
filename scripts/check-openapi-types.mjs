@@ -3,32 +3,18 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { loadYaml } from "./dependency-preflight.mjs";
+import {
+  openApiGenerationTargets,
+  readWorkspaceManifest,
+} from "../packages/regents-cli/src/workspace/manifest.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const root = resolve(scriptDir, "..");
+const YAML = await loadYaml(root);
+const manifest = readWorkspaceManifest(root, YAML);
 
-const targets = [
-  {
-    label: "Platform",
-    input: resolve(root, "../platform/api-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/platform-openapi.ts"),
-  },
-  {
-    label: "Techtree",
-    input: resolve(root, "../techtree/docs/api-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/techtree-openapi.ts"),
-  },
-  {
-    label: "Autolaunch",
-    input: resolve(root, "../autolaunch/docs/api-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/autolaunch-openapi.ts"),
-  },
-  {
-    label: "Shared services",
-    input: resolve(root, "docs/regent-services-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/regent-services-openapi.ts"),
-  },
-];
+const targets = openApiGenerationTargets(manifest, root);
 
 const failures = [];
 

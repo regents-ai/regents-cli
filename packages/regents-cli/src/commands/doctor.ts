@@ -13,14 +13,25 @@ import { getBooleanFlag, getFlag, parseIntegerFlag, type ParsedCliArgs } from ".
 import { printJson, printText } from "../printer.js";
 import { renderDoctorReport } from "../printers/doctorPrinter.js";
 import { renderTablePanel } from "../terminal/table.js";
+import {
+    allContractEntries,
+    defaultWorkspaceManifestPath,
+    incidentClasses,
+    knownReleaseGaps,
+    moneyMovementRows,
+    readWorkspaceManifest,
+    repoEntries,
+    sharedContractPairs,
+    walletActionSchemaPath,
+} from "../workspace/manifest.js";
 
 const DOCTOR_SCOPES = ["runtime", "auth", "techtree", "transports", "xmtp"] as const satisfies readonly DoctorScope[];
-type DoctorCommandScope = (typeof DOCTOR_SCOPES)[number] | "contracts";
+type DoctorCommandScope = (typeof DOCTOR_SCOPES)[number] | "contracts" | "workspace";
 
-const DOCTOR_SCOPE_SET = new Set<string>([...DOCTOR_SCOPES, "contracts"]);
+const DOCTOR_SCOPE_SET = new Set<string>([...DOCTOR_SCOPES, "contracts", "workspace"]);
 
 type ContractOwner = string;
-type ContractKind = "api" | "cli";
+type ContractKind = "api" | "cli" | "shared";
 type BaseUrlKey = "platform" | "techtree" | "autolaunch" | "siwa";
 
 interface ContractManifestEntry {
@@ -51,7 +62,7 @@ interface ContractDoctorReport {
     readonly ok: boolean;
     readonly command: "regents doctor contracts";
     readonly root: string;
-    readonly registryPath: string;
+    readonly manifestPath: string;
     readonly files: readonly ContractDoctorFileResult[];
     readonly summary: {
         readonly loaded: number;
@@ -63,37 +74,57 @@ interface ContractDoctorReport {
 }
 
 interface BuildContractDoctorReportOptions {
-    readonly registryPath?: string;
+    readonly manifestPath?: string;
 }
 
-interface RegistryDocument {
-    readonly interfaces: Readonly<Record<string, RegistryInterface>>;
+interface WorkspaceDoctorRepoResult {
+    readonly name: string;
+    readonly owner: string;
+    readonly path: string;
+    readonly loaded: boolean;
+    readonly requiredForPublicBeta: boolean;
+    readonly releaseGroup: string;
+    readonly ownedDomainCount: number;
+    readonly contractCount: number;
+    readonly acceptanceCommandCount: number;
 }
 
-interface RegistryInterface {
-    readonly repo?: string;
-    readonly repos?: readonly string[];
-    readonly api_contracts: readonly string[];
-    readonly cli_contracts: readonly string[];
-    readonly generated_bindings: readonly RegistryGeneratedBinding[];
-    readonly release_artifacts: readonly string[];
-    readonly minimum_ci_checkout?: {
-        readonly repos?: readonly string[];
+interface WorkspaceDoctorReport {
+    readonly ok: boolean;
+    readonly command: "regents doctor workspace";
+    readonly root: string;
+    readonly manifestPath: string;
+    readonly repos: readonly WorkspaceDoctorRepoResult[];
+    readonly sharedContractPairs: readonly {
+        readonly id: string;
+        readonly source: string;
+        readonly mirror: string;
+        readonly matches: boolean;
+    }[];
+    readonly walletActionSchemaPath: string;
+    readonly walletActionSchemaLoaded: boolean;
+    readonly moneyMovementRows: number;
+    readonly incidentClasses: number;
+    readonly openReleaseGaps: number;
+    readonly summary: {
+        readonly requiredRepos: number;
+        readonly missingRequiredRepos: number;
+        readonly contracts: number;
+        readonly acceptanceCommands: number;
     };
 }
 
-interface RegistryGeneratedBinding {
-    readonly path: string;
-    readonly source_contract: string;
+interface BuildWorkspaceDoctorReportOptions {
+    readonly manifestPath?: string;
 }
 
-const BASE_URL_BY_REGISTRY_KEY: Readonly<Record<string, BaseUrlKey | null>> = {
+const BASE_URL_BY_OWNER: Readonly<Record<string, BaseUrlKey | null>> = {
     autolaunch: "autolaunch",
     ios: null,
     platform: "platform",
-    regents_cli: "siwa",
-    shared_services: "siwa",
-    siwa_server: "siwa",
+    "regents-cli": "siwa",
+    "shared-services": "siwa",
+    "siwa-server": "siwa",
     techtree: "techtree",
 };
 
@@ -136,118 +167,26 @@ const findRepoRoot = (): string => {
     return process.cwd();
 };
 
-const defaultRegistryPath = (repoRoot: string): string =>
-    path.resolve(repoRoot, "..", "docs", "regent-interface-registry.yaml");
-
-const requireString = (value: unknown, field: string): string => {
-    if (typeof value !== "string" || value.trim() === "") {
-        throw new Error(`Regent interface registry has an invalid ${field}.`);
-    }
-
-    return value.trim();
-};
-
-const requireStringArray = (value: unknown, field: string): readonly string[] => {
-    if (!Array.isArray(value)) {
-        throw new Error(`Regent interface registry has an invalid ${field}.`);
-    }
-
-    return value.map((item, index) => requireString(item, `${field}[${index}]`));
-};
-
-const parseRegistryDocument = (registryPath: string): RegistryDocument => {
-    const parsed = YAML.parse(fs.readFileSync(registryPath, "utf8")) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        throw new Error("Regent interface registry must be a YAML object.");
-    }
-
-    const interfaces = (parsed as { interfaces?: unknown }).interfaces;
-    if (!interfaces || typeof interfaces !== "object" || Array.isArray(interfaces)) {
-        throw new Error("Regent interface registry must define interfaces.");
-    }
-
-    return {
-        interfaces: Object.fromEntries(Object.entries(interfaces).map(([key, entry]): [string, RegistryInterface] => {
-            if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-                throw new Error(`Regent interface registry has an invalid interfaces.${key} entry.`);
-            }
-
-            const record = entry as Record<string, unknown>;
-            const generatedBindings = record.generated_bindings;
-            if (!Array.isArray(generatedBindings)) {
-                throw new Error(`Regent interface registry has an invalid interfaces.${key}.generated_bindings.`);
-            }
-
-            const registryInterface = {
-                ...(typeof record.repo === "string" ? { repo: record.repo } : {}),
-                ...(Array.isArray(record.repos) ? { repos: requireStringArray(record.repos, `interfaces.${key}.repos`) } : {}),
-                api_contracts: requireStringArray(record.api_contracts, `interfaces.${key}.api_contracts`),
-                cli_contracts: requireStringArray(record.cli_contracts, `interfaces.${key}.cli_contracts`),
-                generated_bindings: generatedBindings.map((binding, index): RegistryGeneratedBinding => {
-                    if (!binding || typeof binding !== "object" || Array.isArray(binding)) {
-                        throw new Error(`Regent interface registry has an invalid interfaces.${key}.generated_bindings[${index}].`);
-                    }
-                    const bindingRecord = binding as Record<string, unknown>;
-                    return {
-                        path: requireString(bindingRecord.path, `interfaces.${key}.generated_bindings[${index}].path`),
-                        source_contract: requireString(bindingRecord.source_contract, `interfaces.${key}.generated_bindings[${index}].source_contract`),
-                    };
-                }),
-                release_artifacts: requireStringArray(record.release_artifacts, `interfaces.${key}.release_artifacts`),
-                ...(record.minimum_ci_checkout && typeof record.minimum_ci_checkout === "object" && !Array.isArray(record.minimum_ci_checkout)
-                    ? {
-                        minimum_ci_checkout: {
-                            repos: requireStringArray(
-                                (record.minimum_ci_checkout as { repos?: unknown }).repos,
-                                `interfaces.${key}.minimum_ci_checkout.repos`,
-                            ),
-                        },
-                    }
-                    : {}),
-            };
-
-            return [key, registryInterface];
-        })),
-    };
-};
-
-const registryEntries = (registryPath: string): readonly ContractManifestEntry[] => {
-    if (!fs.existsSync(registryPath)) {
-        throw new Error(
-            `Regent interface registry is missing: ${registryPath}. Add docs/regent-interface-registry.yaml, then run this again.`,
-        );
-    }
-
-    const registry = parseRegistryDocument(registryPath);
-    return Object.entries(registry.interfaces).flatMap(([key, entry]): ContractManifestEntry[] => {
-        const sourceRepo = entry.repo ?? entry.repos?.join(", ") ?? key;
-        const baseUrlKey = BASE_URL_BY_REGISTRY_KEY[key] ?? null;
-        const generatedBindingsForContract = (contractPath: string): readonly string[] =>
-            entry.generated_bindings
-                .filter((binding) => path.resolve(binding.source_contract) === path.resolve(contractPath))
-                .map((binding) => binding.path);
-        const common = {
-            owner: key,
-            sourceRepo,
-            releaseArtifactPaths: entry.release_artifacts,
-            ciCheckoutRequired: (entry.minimum_ci_checkout?.repos?.length ?? 0) > 0,
-            baseUrlKey,
-        };
-        return [
-            ...entry.api_contracts.map((contractPath) => ({
-                    ...common,
-                    kind: "api" as const,
-                    contractPath,
-                    generatedBindings: generatedBindingsForContract(contractPath),
-                })),
-            ...entry.cli_contracts.map((contractPath) => ({
-                    ...common,
-                    kind: "cli" as const,
-                    contractPath,
-                    generatedBindings: generatedBindingsForContract(contractPath),
-                })),
-        ];
-    }).sort((left, right) =>
+const manifestEntries = (repoRoot: string, manifestPath: string): readonly ContractManifestEntry[] => {
+    const manifest = readWorkspaceManifest(repoRoot, YAML, manifestPath);
+    return allContractEntries(manifest, repoRoot).map((entry: {
+        owner: string;
+        kind: ContractKind;
+        sourceRepo: string;
+        path: string;
+        resolvedPath: string;
+        generatedBindings: readonly { resolvedPath: string }[];
+        requiredForPublicBeta: boolean;
+    }) => ({
+        owner: entry.owner,
+        kind: entry.kind,
+        sourceRepo: entry.sourceRepo,
+        contractPath: entry.resolvedPath,
+        generatedBindings: entry.generatedBindings.map((binding) => binding.resolvedPath),
+        releaseArtifactPaths: [],
+        ciCheckoutRequired: entry.requiredForPublicBeta,
+        baseUrlKey: BASE_URL_BY_OWNER[entry.owner] ?? null,
+    })).sort((left, right) =>
         `${left.owner}:${left.kind}:${left.contractPath}`.localeCompare(`${right.owner}:${right.kind}:${right.contractPath}`),
     );
 };
@@ -327,14 +266,11 @@ const baseUrls = (configPath?: string): Record<BaseUrlKey, string> => {
 };
 
 const contractFileResult = (
-    regentRoot: string,
     entry: ContractManifestEntry,
     urls: Record<BaseUrlKey, string>,
 ): ContractDoctorFileResult => {
-    const filePath = path.isAbsolute(entry.contractPath) ? entry.contractPath : path.resolve(regentRoot, entry.contractPath);
-    const generatedPaths = entry.generatedBindings.map((bindingPath) =>
-        path.isAbsolute(bindingPath) ? bindingPath : path.resolve(regentRoot, bindingPath),
-    );
+    const filePath = entry.contractPath;
+    const generatedPaths = entry.generatedBindings;
     const sourceExists = fs.existsSync(filePath);
     const generatedStatus = generatedPaths.length > 0
         ? generatedPaths.some((generatedPath) => !fs.existsSync(generatedPath))
@@ -384,10 +320,9 @@ export const buildContractDoctorReport = (
     options: BuildContractDoctorReportOptions = {},
 ): ContractDoctorReport => {
     const root = findRepoRoot();
-    const regentRoot = path.resolve(root, "..");
-    const registryPath = options.registryPath ?? defaultRegistryPath(root);
+    const manifestPath = options.manifestPath ?? defaultWorkspaceManifestPath(root);
     const urls = baseUrls(configPath);
-    const files = registryEntries(registryPath).map((entry) => contractFileResult(regentRoot, entry, urls));
+    const files = manifestEntries(root, manifestPath).map((entry) => contractFileResult(entry, urls));
     const missingGeneratedBindings = files.filter((file) => file.generatedStatus === "missing").length;
     const staleGeneratedBindings = files.filter((file) => file.generatedStatus === "stale").length;
     const missingCommands = files.reduce((count, file) => count + file.missingCommands.length, 0);
@@ -397,7 +332,7 @@ export const buildContractDoctorReport = (
         ok: missingFiles === 0 && missingGeneratedBindings === 0 && staleGeneratedBindings === 0 && missingCommands === 0,
         command: "regents doctor contracts",
         root,
-        registryPath,
+        manifestPath,
         files,
         summary: {
             loaded: files.filter((file) => file.loaded).length,
@@ -414,7 +349,7 @@ const renderContractDoctorReport = (report: ContractDoctorReport): string => {
         cells: [
             file.owner,
             file.kind,
-            path.isAbsolute(file.contractPath) ? path.relative(path.resolve(report.root, ".."), file.contractPath) : file.contractPath,
+            path.isAbsolute(file.contractPath) ? path.relative(report.root, file.contractPath) : file.contractPath,
             file.version ?? "unknown",
             file.hash ?? "missing",
             file.generatedPaths.length > 0
@@ -494,6 +429,171 @@ export const runDoctorContractsCommand = (args: ParsedCliArgs, configPath?: stri
     return report.ok ? 0 : 1;
 };
 
+const fileExists = (filePath: string): boolean => {
+    try {
+        return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+    }
+    catch {
+        return false;
+    }
+};
+
+const dirExists = (dirPath: string): boolean => {
+    try {
+        return fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory();
+    }
+    catch {
+        return false;
+    }
+};
+
+export const buildWorkspaceDoctorReport = (
+    _configPath?: string,
+    options: BuildWorkspaceDoctorReportOptions = {},
+): WorkspaceDoctorReport => {
+    const root = findRepoRoot();
+    const manifestPath = options.manifestPath ?? defaultWorkspaceManifestPath(root);
+    const manifest = readWorkspaceManifest(root, YAML, manifestPath);
+    const contracts = allContractEntries(manifest, root);
+    const repos = repoEntries(manifest, root).map((repo: {
+        name: string;
+        owner: string;
+        resolvedPath: string;
+        requiredForPublicBeta: boolean;
+        releaseGroup: string;
+        owns: readonly string[];
+        acceptanceCommands: readonly unknown[];
+    }): WorkspaceDoctorRepoResult => ({
+        name: repo.name,
+        owner: repo.owner,
+        path: repo.resolvedPath,
+        loaded: dirExists(repo.resolvedPath),
+        requiredForPublicBeta: repo.requiredForPublicBeta,
+        releaseGroup: repo.releaseGroup,
+        ownedDomainCount: repo.owns.length,
+        contractCount: contracts.filter((contract: { repo: string }) => contract.repo === repo.name).length,
+        acceptanceCommandCount: repo.acceptanceCommands.length,
+    }));
+
+    const pairs = sharedContractPairs(manifest, root).map((pair: { id: string; source: string; mirror: string }) => ({
+        id: pair.id,
+        source: pair.source,
+        mirror: pair.mirror,
+        matches: fileExists(pair.source) && fileExists(pair.mirror) && fs.readFileSync(pair.source).equals(fs.readFileSync(pair.mirror)),
+    }));
+    const schemaPath = walletActionSchemaPath(manifest, root);
+    const missingRequiredRepos = repos.filter((repo) => repo.requiredForPublicBeta && !repo.loaded).length;
+    const acceptanceCommands = repos.reduce((count, repo) => count + repo.acceptanceCommandCount, 0);
+    const pairFailures = pairs.filter((pair) => !pair.matches).length;
+
+    return {
+        ok: missingRequiredRepos === 0 && pairFailures === 0 && fileExists(schemaPath),
+        command: "regents doctor workspace",
+        root,
+        manifestPath,
+        repos,
+        sharedContractPairs: pairs,
+        walletActionSchemaPath: schemaPath,
+        walletActionSchemaLoaded: fileExists(schemaPath),
+        moneyMovementRows: moneyMovementRows(manifest).length,
+        incidentClasses: incidentClasses(manifest).length,
+        openReleaseGaps: knownReleaseGaps(manifest).filter((gap: { status: string }) => gap.status !== "done").length,
+        summary: {
+            requiredRepos: repos.filter((repo) => repo.requiredForPublicBeta).length,
+            missingRequiredRepos,
+            contracts: contracts.length,
+            acceptanceCommands,
+        },
+    };
+};
+
+const renderWorkspaceDoctorReport = (report: WorkspaceDoctorReport): string => {
+    return [
+        renderTablePanel(
+            "WORKSPACE",
+            [
+                { header: "repo" },
+                { header: "group" },
+                { header: "required" },
+                { header: "present" },
+                { header: "contracts", align: "right" },
+                { header: "checks", align: "right" },
+                { header: "path" },
+            ],
+            report.repos.map((repo) => ({
+                cells: [
+                    repo.name,
+                    repo.releaseGroup,
+                    repo.requiredForPublicBeta ? "yes" : "no",
+                    repo.loaded ? "yes" : "no",
+                    String(repo.contractCount),
+                    String(repo.acceptanceCommandCount),
+                    path.relative(report.root, repo.path),
+                ],
+            })),
+        ),
+        renderTablePanel(
+            "SHARED CONTRACTS",
+            [
+                { header: "pair" },
+                { header: "matches" },
+                { header: "source" },
+                { header: "mirror" },
+            ],
+            report.sharedContractPairs.map((pair) => ({
+                cells: [
+                    pair.id,
+                    pair.matches ? "yes" : "no",
+                    path.relative(report.root, pair.source),
+                    path.relative(report.root, pair.mirror),
+                ],
+            })),
+        ),
+        renderTablePanel(
+            "SUMMARY",
+            [
+                { header: "required repos", align: "right" },
+                { header: "missing repos", align: "right" },
+                { header: "contracts", align: "right" },
+                { header: "checks", align: "right" },
+                { header: "money rows", align: "right" },
+                { header: "incidents", align: "right" },
+                { header: "open gaps", align: "right" },
+                { header: "WalletAction" },
+                { header: "ready" },
+            ],
+            [
+                {
+                    cells: [
+                        String(report.summary.requiredRepos),
+                        String(report.summary.missingRequiredRepos),
+                        String(report.summary.contracts),
+                        String(report.summary.acceptanceCommands),
+                        String(report.moneyMovementRows),
+                        String(report.incidentClasses),
+                        String(report.openReleaseGaps),
+                        report.walletActionSchemaLoaded ? "present" : "missing",
+                        report.ok ? "yes" : "no",
+                    ],
+                },
+            ],
+        ),
+    ].join("\n\n");
+};
+
+export const runDoctorWorkspaceCommand = (args: ParsedCliArgs, configPath?: string): number => {
+    const json = getBooleanFlag(args, "json");
+    const report = buildWorkspaceDoctorReport(configPath);
+    if (json) {
+        printJson(report);
+    }
+    else {
+        printText(renderWorkspaceDoctorReport(report));
+    }
+
+    return report.ok ? 0 : 1;
+};
+
 const resolveDoctorScope = (args: ParsedCliArgs): DoctorCommandScope | undefined => {
     const scopeCandidate = args.positionals[1];
     if (!scopeCandidate || scopeCandidate.startsWith("--")) {
@@ -529,6 +629,9 @@ export async function runDoctorCommand(args: ParsedCliArgs, configPath?: string)
     }
     if (scope === "contracts") {
         return runDoctorContractsCommand(args, configPath);
+    }
+    if (scope === "workspace") {
+        return runDoctorWorkspaceCommand(args, configPath);
     }
     let report: DoctorReport;
     if (full) {

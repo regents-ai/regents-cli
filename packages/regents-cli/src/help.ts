@@ -87,6 +87,15 @@ const commandHelp: Record<string, HelpEntry> = {
     output: "Shows contract files, hashes, generated files, command coverage, and service URLs.",
     nextStep: "Run this before release checks or when an operator needs to confirm which contracts are loaded.",
   },
+  "doctor workspace": {
+    summary: "Show the release repos, contracts, and checks the CLI can see.",
+    usage: "regents doctor workspace [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents doctor workspace", "regents doctor workspace --json"],
+    auth: "No saved sign-in is needed.",
+    output: "Shows repo presence, shared contract agreement, release checks, and workspace readiness.",
+    nextStep: "Run this before public beta release checks or when moving the workspace to a new machine.",
+  },
   "platform auth login": {
     summary: "Save a Regent website sign-in for platform account commands.",
     usage:

@@ -1,5 +1,11 @@
 version: 1
 product: shared-services
+x-regent-capability:
+  status: beta
+  owner: shared-services
+  money_path: true
+  cli_surface: true
+  mobile_surface: false
 help:
   story: >
     A Regent identity is a saved Agent account. An Agent account is a wallet plus
@@ -98,6 +104,7 @@ command_groups:
       - doctor transports
       - doctor xmtp
       - doctor contracts
+      - doctor workspace
   - name: ens
     interface: http
     auth_mode: agent-siwa

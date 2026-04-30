@@ -1,24 +1,20 @@
 import fs from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
-import YAML from "yaml";
 import { checkCliCommandMetadata } from "./generate-cli-command-metadata.mjs";
+import { loadYaml } from "./dependency-preflight.mjs";
+import {
+  cliCommandContractFiles,
+  cliCommandOpenApiFiles,
+  moneyMovementRows,
+  readWorkspaceManifest,
+} from "../packages/regents-cli/src/workspace/manifest.js";
 
 const root = resolve(import.meta.dirname, "..");
-
-const openApiFiles = {
-  platform: resolve(root, "../platform/api-contract.openapiv3.yaml"),
-  techtree: resolve(root, "../techtree/docs/api-contract.openapiv3.yaml"),
-  autolaunch: resolve(root, "../autolaunch/docs/api-contract.openapiv3.yaml"),
-  "shared-services": resolve(root, "docs/regent-services-contract.openapiv3.yaml"),
-};
-
-const cliContractFiles = {
-  platform: resolve(root, "../platform/cli-contract.yaml"),
-  techtree: resolve(root, "../techtree/docs/cli-contract.yaml"),
-  autolaunch: resolve(root, "../autolaunch/docs/cli-contract.yaml"),
-  "shared-services": resolve(root, "docs/shared-cli-contract.yaml"),
-};
+const YAML = await loadYaml(root);
+const manifest = readWorkspaceManifest(root, YAML);
+const openApiFiles = cliCommandOpenApiFiles(manifest, root);
+const cliContractFiles = cliCommandContractFiles(manifest, root);
 
 const ownershipPath = resolve(root, "packages/regents-cli/src/contracts/api-ownership.ts");
 const cliRoutesDir = resolve(root, "packages/regents-cli/src/routes");
@@ -168,6 +164,31 @@ const fail = (message) => {
   console.error(message);
   process.exitCode = 1;
 };
+
+for (const owner of ["platform", "techtree", "autolaunch", "shared-services"]) {
+  if (!openApiFiles[owner]) {
+    fail(`Regent workspace manifest is missing ${owner} OpenAPI contract for CLI checks`);
+  }
+  if (!cliContractFiles[owner]) {
+    fail(`Regent workspace manifest is missing ${owner} CLI contract for CLI checks`);
+  }
+}
+
+const moneyPrepareOwners = new Set(
+  moneyMovementRows(manifest)
+    .filter((row) => row.routeClass.includes("prepare"))
+    .map((row) => row.ownerProduct),
+);
+
+for (const owner of ["platform", "techtree", "autolaunch", "shared-services"]) {
+  if (!moneyPrepareOwners.has(owner) && owner !== "techtree") {
+    fail(`Regent workspace manifest is missing a money prepare row for ${owner}`);
+  }
+}
+
+if (process.exitCode) {
+  process.exit(process.exitCode);
+}
 
 const ownershipSource = fs.readFileSync(ownershipPath, "utf8");
 const expectedByOwner = {

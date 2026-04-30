@@ -4,6 +4,12 @@ This is the hard-cutover contract-first workflow for the shipped Regents CLI sur
 
 ## Source Of Truth
 
+The portfolio release contract lives in:
+
+- [`regent-workspace.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-workspace.yaml)
+
+That file declares the required repos, owned domains, contract files, generated bindings, release checks, shared contract mirrors, money-movement rows, and incident classes. Cross-repo release checks read from that file instead of keeping separate path lists.
+
 Backend HTTP contracts now live in exactly four OpenAPI files:
 
 - [`../../platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/api-contract.openapiv3.yaml)
@@ -26,8 +32,8 @@ If a shipped command changes, the owning CLI contract file changes first. If the
 
 - `techtree` owns Techtree HTTP routes, including the public `/v1/runtime/*` read endpoints and agent-authenticated `/v1/agent/runtime/*` publish endpoints, the BBH stack, reviewer routes, and certificate verification.
 - `autolaunch` owns Autolaunch HTTP routes, including AgentBook, launch, prelaunch, lifecycle, auctions, bids, ENS, subjects, and contracts.
-- `platform` owns Platform HTTP routes, including AgentBook trust sessions and platform-managed ENS preparation.
-- `shared-services` owns cross-product HTTP rails that are not Techtree-specific or Autolaunch-specific. This includes shared SIWA auth and `regent-staking`.
+- `platform` owns Platform HTTP routes, including AgentBook trust sessions, platform-managed ENS preparation, and `regent-staking`.
+- `shared-services` owns shared SIWA auth, signed request verification, health, metrics, contract discovery, and internal keyring routes.
 
 The shared SIWA codebase is [`/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir`](/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir). Product repos may host adapters or route mounts, but they do not own the shared SIWA contract.
 
@@ -51,10 +57,11 @@ pnpm generate:openapi
 Check that the repo is in sync with the contract files with:
 
 ```bash
+pnpm check:workspace
 pnpm check:openapi
 ```
 
-The release helper now treats `pnpm check:openapi` as a release gate.
+The release helper now treats `pnpm check:workspace` and `pnpm check:openapi` as release gates.
 
 ## Required Change Order
 
@@ -66,7 +73,7 @@ When you change an HTTP-backed CLI command or backend route:
 4. Update backend code to match the contract.
 5. Update CLI code to match the contract.
 6. Update or add tests.
-7. Run `pnpm check:openapi`, `pnpm check:cli-contract`, `pnpm typecheck`, and the relevant test slices.
+7. Run `pnpm check:workspace`, `pnpm check:openapi`, `pnpm check:cli-contract`, `pnpm typecheck`, and the relevant test slices.
 
 ## Not In OpenAPI
 

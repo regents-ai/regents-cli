@@ -3,19 +3,30 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import YAML from "yaml";
+import { loadYaml } from "./dependency-preflight.mjs";
+import {
+  openApiGenerationTargets,
+  readWorkspaceManifest,
+  sharedContractPairs,
+} from "../packages/regents-cli/src/workspace/manifest.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const root = resolve(scriptDir, "..");
-const sourceContractPath = resolve(root, "docs/regent-services-contract.openapiv3.yaml");
-const servedContractPath = resolve(
-  root,
-  "../siwa-server/priv/static/regent-services-contract.openapiv3.yaml",
-);
-const generatedContractPath = resolve(
-  root,
-  "packages/regents-cli/src/generated/regent-services-openapi.ts",
-);
+const YAML = await loadYaml(root);
+const manifest = readWorkspaceManifest(root, YAML);
+const sharedPair = sharedContractPairs(manifest, root).find((pair) => pair.id === "shared_services_contract");
+if (!sharedPair) {
+  console.error("Regent workspace manifest is missing shared_services_contract.");
+  process.exit(1);
+}
+const sourceContractPath = sharedPair.source;
+const servedContractPath = sharedPair.mirror;
+const sharedTarget = openApiGenerationTargets(manifest, root).find((target) => target.input === sourceContractPath);
+if (!sharedTarget) {
+  console.error(`Regent workspace manifest is missing generated binding for ${sourceContractPath}.`);
+  process.exit(1);
+}
+const generatedContractPath = sharedTarget.output;
 
 const read = (path) => readFileSync(path);
 const readText = (path) => readFileSync(path, "utf8");

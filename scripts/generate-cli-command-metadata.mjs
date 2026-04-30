@@ -1,17 +1,17 @@
 import fs from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
-import YAML from "yaml";
+import { loadYaml } from "./dependency-preflight.mjs";
+import {
+  cliCommandContractFiles,
+  readWorkspaceManifest,
+} from "../packages/regents-cli/src/workspace/manifest.js";
 
 const root = resolve(import.meta.dirname, "..");
+const YAML = await loadYaml(root);
 const outputPath = resolve(root, "packages/regents-cli/src/generated/cli-command-metadata.ts");
-
-const cliContractFiles = {
-  platform: resolve(root, "../platform/cli-contract.yaml"),
-  techtree: resolve(root, "../techtree/docs/cli-contract.yaml"),
-  autolaunch: resolve(root, "../autolaunch/docs/cli-contract.yaml"),
-  "shared-services": resolve(root, "docs/shared-cli-contract.yaml"),
-};
+const manifest = readWorkspaceManifest(root, YAML);
+const cliContractFiles = cliCommandContractFiles(manifest, root);
 
 const currentAvailabilityValues = new Set(["current", "beta_disabled"]);
 const platformPublicCommand = (command) =>

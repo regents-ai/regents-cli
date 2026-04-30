@@ -2,28 +2,18 @@ import { existsSync, mkdirSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { loadYaml } from "./dependency-preflight.mjs";
+import {
+  openApiGenerationTargets,
+  readWorkspaceManifest,
+} from "../packages/regents-cli/src/workspace/manifest.js";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const root = resolve(scriptDir, "..");
+const YAML = await loadYaml(root);
+const manifest = readWorkspaceManifest(root, YAML);
 
-const targets = [
-  {
-    input: resolve(root, "../platform/api-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/platform-openapi.ts"),
-  },
-  {
-    input: resolve(root, "../techtree/docs/api-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/techtree-openapi.ts"),
-  },
-  {
-    input: resolve(root, "../autolaunch/docs/api-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/autolaunch-openapi.ts"),
-  },
-  {
-    input: resolve(root, "docs/regent-services-contract.openapiv3.yaml"),
-    output: resolve(root, "packages/regents-cli/src/generated/regent-services-openapi.ts"),
-  },
-];
+const targets = openApiGenerationTargets(manifest, root);
 
 for (const target of targets) {
   if (!existsSync(target.input) || !statSync(target.input).isFile()) {
