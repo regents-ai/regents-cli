@@ -37,6 +37,7 @@ import {
   runX402Prepare,
   runX402Quote,
   runX402ReceiptsGet,
+  runX402Refund,
   runX402Search,
 } from "../commands/x402.js";
 import { route, type CliRoute } from "./shared.js";
@@ -112,6 +113,7 @@ export const coreRoutes: readonly CliRoute[] = [
   route("x402 quote", async ({ parsedArgs, configPath }) => runX402Quote(parsedArgs, configPath)),
   route("x402 prepare", async ({ parsedArgs, configPath }) => runX402Prepare(parsedArgs, configPath)),
   route("x402 fetch", async ({ parsedArgs, configPath }) => runX402Fetch(parsedArgs, configPath)),
+  route("x402 refund", async ({ parsedArgs, configPath }) => runX402Refund(parsedArgs, configPath)),
   route("x402 pay", async ({ parsedArgs, configPath }) => runX402Pay(parsedArgs, configPath), { pattern: "x402 pay <url>" }),
   route("x402 receipts get", async ({ parsedArgs, configPath }) => runX402ReceiptsGet(parsedArgs, configPath)),
   route("budget grant", async ({ parsedArgs, configPath }) => runBudgetGrant(parsedArgs, configPath)),

@@ -43,7 +43,8 @@ command_groups:
       input_mode: args-and-flags
       examples:
         - regents status
-        - regents setup --runtime auto --install-plugin
+        - regents plugin install --runtime auto
+        - regents setup --runtime auto
         - regents setup skills
         - regents plugin status --runtime auto
         - regents runtime status --json
@@ -55,14 +56,14 @@ command_groups:
           category: local-setup
           prompt_behavior: never_prompt
           json_support: supported
-          mutation_class: local-write
+          mutation_class: local-read
           retry_behavior: safe
           pagination: none
           async_behavior: synchronous
           input_mode: flags
           examples:
-            - regents setup --runtime auto --install-plugin
-            - regents setup --runtime hermes --install-plugin
+            - regents setup --runtime auto
+            - regents setup --runtime hermes
         setup skills:
           category: local-setup
           prompt_behavior: never_prompt
@@ -109,6 +110,7 @@ command_groups:
           async_behavior: synchronous
           input_mode: flags
           examples:
+            - regents plugin install --runtime auto
             - regents plugin install --runtime hermes
             - regents plugin install --runtime openclaw
         plugin doctor:
@@ -164,11 +166,7 @@ command_groups:
           type: enum
           enum: [auto, hermes, openclaw]
           required: true
-          description: Choose the local agent runtime to prepare.
-        - name: --install-plugin
-          type: boolean
-          required: false
-          description: Install the Regent plugin bridge for the chosen runtime.
+          description: Choose the local agent runtime to inspect before starting. This reports readiness only; it does not install the Hermes or OpenClaw Regent tools.
       run:
         - name: --json
           type: boolean
@@ -184,19 +182,19 @@ command_groups:
           type: enum
           enum: [auto, hermes, openclaw]
           required: false
-          description: Runtime to inspect. Defaults to auto.
+          description: Runtime to inspect. Use auto to inspect both Hermes and OpenClaw. Use hermes or openclaw when checking whether one specific agent app can see Regent.
       plugin install:
         - name: --runtime
           type: enum
-          enum: [hermes, openclaw]
+          enum: [auto, hermes, openclaw]
           required: true
-          description: Runtime that should receive the Regent plugin bridge.
+          description: Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Installing the wrong one is harmless, but the intended app will not see Regent until its matching runtime is installed.
       plugin doctor:
         - name: --runtime
           type: enum
           enum: [auto, hermes, openclaw]
           required: false
-          description: Runtime to diagnose. Defaults to auto.
+          description: Runtime to diagnose. Use auto to diagnose both runtimes. Use hermes or openclaw when the agent app says Regent tools are missing.
   - name: wallet
     interface: runtime
     auth_mode: none
@@ -388,6 +386,7 @@ command_groups:
         - regents x402 quote --url https://api.example.com/paid --json
         - regents x402 prepare --url https://api.example.com/paid --approve --json
         - regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json
+        - regents x402 refund --url https://api.example.com/paid --json
         - regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json
         - regents x402 receipts get --id x402_receipt_... --json
     commands:
@@ -396,6 +395,7 @@ command_groups:
       - x402 quote
       - x402 prepare
       - x402 fetch
+      - x402 refund
       - x402 pay
       - x402 receipts get
     flags:
@@ -408,6 +408,10 @@ command_groups:
           type: decimal-usd
           required: true
           description: Maximum USDC to spend on this x402 request.
+        - name: --max-deposit-amount
+          type: string
+          required: false
+          description: Maximum atomic token amount the operator allows the CLI to escrow for batch-settlement payments.
         - name: --rail
           type: enum
           enum: [regent-wallet, agentic-wallet]
@@ -492,6 +496,16 @@ command_groups:
         - name: header
           required: false
           description: Repeatable request header in Name/value form.
+      x402 refund:
+        - name: url
+          required: true
+          description: Protected resource URL for the channel to refund.
+        - name: header
+          required: false
+          description: Repeatable request header in Name/value form.
+        - name: amount
+          required: false
+          description: Token base-unit amount to return. Omit to return the full unused channel balance.
       x402 receipts get:
         - name: id
           required: true

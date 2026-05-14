@@ -103,6 +103,19 @@ incident_classes:
     expect(report.moneyMovementRows).toBeGreaterThan(0);
   });
 
+  it("finds the workspace manifest when launched from the package directory", () => {
+    const previousCwd = process.cwd();
+    process.chdir(path.join(workspaceRoot, "packages/regents-cli"));
+    try {
+      const report = buildWorkspaceDoctorReport();
+
+      expect(report.root).toBe(workspaceRoot);
+      expect(report.manifestPath).toBe(path.join(workspaceRoot, "docs/regent-workspace.yaml"));
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
   it("reports a clear failure when the workspace manifest is missing", () => {
     const manifestPath = path.join(os.tmpdir(), "regent-missing-workspace.yaml");
 

@@ -216,6 +216,19 @@ export async function runAutoskillBuy(args: ParsedCliArgs, configPath?: string):
   );
 }
 
+export async function runAutoskillRefund(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  printJson(
+    await daemonCall(
+      "techtree.autoskill.refund",
+      {
+        node_id: parseNodeId(getFlag(args, "node-id") ?? args.positionals[3], "node-id"),
+        ...(getFlag(args, "amount") ? { amount: getFlag(args, "amount") } : {}),
+      },
+      configPath,
+    ),
+  );
+}
+
 export async function runAutoskillPull(args: ParsedCliArgs, configPath?: string): Promise<void> {
   printJson(
     await daemonCall(

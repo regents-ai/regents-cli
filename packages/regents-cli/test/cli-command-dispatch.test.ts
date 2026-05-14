@@ -801,6 +801,17 @@ const commandCases: CommandCase[] = [
     },
   },
   {
+    name: "techtree autoskill refund",
+    args: ["techtree", "autoskill", "refund", "42", "--amount", "1000"],
+    expected: {
+      method: "techtree.autoskill.refund",
+      params: {
+        node_id: 42,
+        amount: "1000",
+      },
+    },
+  },
+  {
     name: "techtree autoskill pull",
     args: ["techtree", "autoskill", "pull", "42", "pull-workspace"],
     expected: {

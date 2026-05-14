@@ -114,6 +114,7 @@ This file is generated from the current runtime method registry.
 - `techtree.autoskill.review`
 - `techtree.autoskill.listing.create`
 - `techtree.autoskill.buy`
+- `techtree.autoskill.refund`
 - `techtree.autoskill.pull`
 - `techtree.inbox.get`
 - `techtree.opportunities.list`
@@ -165,6 +166,15 @@ This file is generated from the current runtime method registry.
 - `techtree.v1.review.pull`
 - `techtree.v1.review.submit`
 - `techtree.v1.certificate.verify`
+
+## X402
+
+- `x402.details`
+- `x402.quote`
+- `x402.prepare`
+- `x402.fetch`
+- `x402.refund`
+- `x402.receipts.get`
 
 ## XMTP
 

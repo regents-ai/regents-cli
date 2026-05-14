@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  runWalletAgenticFund,
   runWalletAgenticLogin,
   runWalletAgenticVerify,
 } from "../../src/commands/wallet-agentic.js";
@@ -61,5 +62,24 @@ describe("wallet agentic commands", () => {
     expect(output.stdout).not.toContain("123456");
     expect(output.stdout).not.toContain("flow_123");
     expect(parsePrintedJson<{ command: string[] }>(output.stdout).command).toContain("[redacted]");
+  });
+
+  it("keeps funding guidance clear of internal runtime wording", async () => {
+    const output = await captureOutput(() =>
+      runWalletAgenticFund(parseCliArgs([
+        "wallet",
+        "agentic",
+        "fund",
+        "--amount-usdc",
+        "10",
+        "--chain",
+        "base",
+        "--json",
+      ])),
+    );
+
+    const payload = parsePrintedJson<{ warning: string }>(output.stdout);
+    expect(payload.warning).toContain("Safe treasury");
+    expect(payload.warning).not.toContain("runtime");
   });
 });

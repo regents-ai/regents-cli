@@ -6,6 +6,7 @@ const SECTION_ORDER = [
   { title: "Doctor", prefix: "doctor." },
   { title: "Auth", prefix: "auth." },
   { title: "Techtree", prefix: "techtree." },
+  { title: "X402", prefix: "x402." },
   { title: "XMTP", prefix: "xmtp." },
   { title: "Transports", prefix: "gossipsub." },
 ] as const;

@@ -59,6 +59,7 @@ describe("contract command route matching", () => {
       "techtree autoskill publish result",
       "techtree autoskill publish skill",
       "techtree autoskill pull",
+      "techtree autoskill refund",
       "techtree bbh capsules get",
       "techtree bbh draft apply",
       "techtree bbh draft create",

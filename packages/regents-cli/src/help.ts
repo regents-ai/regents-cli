@@ -10,9 +10,11 @@ interface HelpEntry {
   readonly usage: string;
   readonly flags?: readonly string[];
   readonly examples?: readonly string[];
+  readonly prerequisites?: readonly string[];
   readonly auth: string;
   readonly output: string;
   readonly nextStep: string;
+  readonly ifItFails?: readonly string[];
 }
 
 interface HelpGroup {
@@ -57,7 +59,74 @@ const commandDetailsByCommand = CLI_COMMAND_DETAILS_BY_COMMAND as unknown as Rea
 const globalNextStep =
   "Install the Regents agent skills with `regents setup skills`, then run `regents status`.";
 
+const localRuntimePrerequisites = [
+  "Install the matching runtime tools with `regents plugin install --runtime hermes`, `regents plugin install --runtime openclaw`, or `regents plugin install --runtime auto`.",
+  "Keep `regents run` open in another terminal for commands that need local Regent access.",
+];
+
+const agentIdentityPrerequisites = [
+  "Run `regents run` in another terminal.",
+  "Run `regents auth login --audience <audience>` for the product you are using.",
+  "Run `regents identity ensure` so signed agent requests have wallet, chain, registry, and token details.",
+];
+
+const autolaunchPrerequisites = [
+  "Run `regents run` in another terminal.",
+  "Run `regents auth login --audience autolaunch`.",
+  "Run `regents identity ensure`.",
+];
+
+const techtreePrerequisites = [
+  "Run `regents run` in another terminal.",
+  "Run `regents auth login --audience techtree` for write, publish, and reward commands.",
+  "Run `regents identity ensure` before signed Techtree agent actions.",
+];
+
+const platformPrerequisites = [
+  "Run `regents platform auth login` with a Regent website identity token.",
+  "Use the correct company id or slug from the Regent website.",
+];
+
+const walletPrerequisites = [
+  "Use `regents wallet status` to see whether a local wallet source is already configured.",
+  "Do not paste private keys into shared logs or public prompts.",
+];
+
+const paymentPrerequisites = [
+  "Run `regents wallet agentic status` before paid x402 work.",
+  "Run `regents budget status` and make sure the named budget has enough remaining allowance.",
+];
+
+const autolaunchFailureChecks = [
+  "If the command says auth is missing, run `regents auth login --audience autolaunch` and `regents identity ensure`.",
+  "If a wallet or signer is missing, run `regents wallet status` and use the exact missing flag named in the error.",
+  "If the result is not ready, run the read/status command shown in the output before trying the next write.",
+];
+
+const techtreeFailureChecks = [
+  "If the command cannot connect locally, start `regents run` in another terminal.",
+  "If the command says auth is missing, run `regents auth login --audience techtree` and `regents identity ensure`.",
+  "If a workspace path is missing, create or pass the same folder path through the whole Techtree flow.",
+];
+
 const commandHelp: Record<string, HelpEntry> = {
+  setup: {
+    summary: "Check local Regent readiness for Hermes, OpenClaw, or both.",
+    usage: "regents setup --runtime <auto|hermes|openclaw>",
+    flags: [
+      "--runtime auto checks both Hermes and OpenClaw readiness.",
+      "--runtime hermes checks the Hermes side only.",
+      "--runtime openclaw checks the OpenClaw side only.",
+      "--json",
+      "--config <path>",
+    ],
+    examples: ["regents setup --runtime auto", "regents setup --runtime hermes"],
+    auth: "No saved sign-in is needed.",
+    output:
+      "Shows whether the selected runtime looks ready and prints the next commands to run. It does not install the Hermes or OpenClaw Regent tools.",
+    nextStep:
+      "Install the matching runtime tools with `regents plugin install --runtime hermes`, `regents plugin install --runtime openclaw`, or `regents plugin install --runtime auto`.",
+  },
   "setup skills": {
     summary: "Install the Regents agent skills for supported agent clients.",
     usage: "regents setup skills [--project]",
@@ -66,6 +135,69 @@ const commandHelp: Record<string, HelpEntry> = {
     auth: "No saved sign-in is needed.",
     output: "Shows which Regents skills were installed and where they came from.",
     nextStep: "Open your agent client and use the Regents, Platform, Autolaunch, and Techtree skills.",
+  },
+  "plugin install": {
+    summary: "Install the Regent tools into Hermes, OpenClaw, or both.",
+    usage: "regents plugin install --runtime <auto|hermes|openclaw>",
+    flags: [
+      "--runtime hermes installs only the Hermes tools. Use this for a Hermes agent.",
+      "--runtime openclaw installs only the OpenClaw tools. Use this for an OpenClaw agent.",
+      "--runtime auto installs both sets of tools. Use this when the machine may run either Hermes or OpenClaw.",
+      "--json",
+      "--config <path>",
+    ],
+    examples: [
+      "regents plugin install --runtime hermes",
+      "regents plugin install --runtime openclaw",
+      "regents plugin install --runtime auto",
+    ],
+    auth: "No saved sign-in is needed.",
+    output:
+      "Shows which runtime was selected and which tool files were written. If you installed the wrong runtime, nothing dangerous happened; run this command again with the runtime used by the agent app.",
+    nextStep:
+      "Run `regents plugin status --runtime hermes` or `regents plugin status --runtime openclaw` to confirm the intended agent app can see Regent, then start Regent with `regents run`.",
+  },
+  "plugin status": {
+    summary: "Check whether Hermes, OpenClaw, or both can see the Regent tools.",
+    usage: "regents plugin status [--runtime <auto|hermes|openclaw>]",
+    flags: [
+      "--runtime auto checks both Hermes and OpenClaw.",
+      "--runtime hermes checks only Hermes.",
+      "--runtime openclaw checks only OpenClaw.",
+      "--json",
+      "--config <path>",
+    ],
+    examples: [
+      "regents plugin status --runtime auto",
+      "regents plugin status --runtime hermes",
+      "regents plugin status --runtime openclaw",
+    ],
+    auth: "No saved sign-in is needed.",
+    output:
+      "Shows each selected runtime, whether its Regent tools are installed, and the local path that was checked.",
+    nextStep:
+      "If the intended runtime is missing, run `regents plugin install --runtime hermes` or `regents plugin install --runtime openclaw`.",
+  },
+  "plugin doctor": {
+    summary: "Diagnose missing Regent tools for Hermes, OpenClaw, or both.",
+    usage: "regents plugin doctor [--runtime <auto|hermes|openclaw>]",
+    flags: [
+      "--runtime auto diagnoses both Hermes and OpenClaw.",
+      "--runtime hermes diagnoses only Hermes.",
+      "--runtime openclaw diagnoses only OpenClaw.",
+      "--json",
+      "--config <path>",
+    ],
+    examples: [
+      "regents plugin doctor --runtime auto",
+      "regents plugin doctor --runtime hermes",
+      "regents plugin doctor --runtime openclaw",
+    ],
+    auth: "No saved sign-in is needed.",
+    output:
+      "Shows which runtimes are ready and which ones are missing Regent tools. This is the command to run when Hermes or OpenClaw says Regent tools are unavailable.",
+    nextStep:
+      "Install the missing runtime with `regents plugin install --runtime hermes`, `regents plugin install --runtime openclaw`, or `regents plugin install --runtime auto`.",
   },
   feynman: {
     summary: "Open the Feynman research shell from Regents CLI.",
@@ -858,11 +990,17 @@ const renderEntry = (title: string, entry: HelpEntry): string =>
       `${tone("output", CLI_PALETTE.secondary, true)} ${entry.output}`,
       `${tone("next", CLI_PALETTE.secondary, true)} ${entry.nextStep}`,
     ]),
+    entry.prerequisites?.length
+      ? renderPanel("◆ BEFORE YOU RUN THIS", entry.prerequisites.map((prerequisite) => prerequisite))
+      : undefined,
     entry.flags?.length
       ? renderPanel("◆ FLAGS", entry.flags.map((flag) => flag))
       : undefined,
     entry.examples?.length
       ? renderPanel("◆ EXAMPLES", entry.examples.map((example) => example))
+      : undefined,
+    entry.ifItFails?.length
+      ? renderPanel("◆ IF THIS FAILS", entry.ifItFails.map((failure) => failure))
       : undefined,
   ]
     .filter((part): part is string => Boolean(part))

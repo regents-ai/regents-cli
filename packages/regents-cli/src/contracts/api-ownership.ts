@@ -128,6 +128,7 @@ export const techtreeApiCommandGroups = [
       "techtree autoskill review",
       "techtree autoskill listing create",
       "techtree autoskill buy",
+      "techtree autoskill refund",
       "techtree autoskill pull",
     ],
     owner: "techtree",

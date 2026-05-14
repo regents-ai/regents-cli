@@ -24,6 +24,12 @@ export interface X402ReceiptGetParams {
   id: string;
 }
 
+export interface X402RefundParams {
+  url: string;
+  headers?: Record<string, string>;
+  amount?: string;
+}
+
 export interface X402SelectedPaymentRequirement {
   scheme: string;
   network: string;
@@ -121,4 +127,11 @@ export interface X402FetchResponse {
 export interface X402ReceiptGetResponse {
   ok: true;
   receipt: X402ReceiptRecord | null;
+}
+
+export interface X402RefundResponse {
+  ok: true;
+  url: string;
+  amount: string | null;
+  settlement: Record<string, unknown>;
 }

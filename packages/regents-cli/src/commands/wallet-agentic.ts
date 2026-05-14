@@ -77,7 +77,7 @@ export async function runWalletAgenticFund(args: ParsedCliArgs): Promise<number>
       "Open Fund in the Agentic Wallet screen.",
       "Choose Base USDC and complete the funding step yourself.",
     ],
-    warning: "Keep meaningful funds in a Safe treasury, not in the local runtime wallet.",
+    warning: "Keep meaningful funds in a Safe treasury, not in Agentic Wallet.",
   };
 
   if (getBooleanFlag(args, "json")) {

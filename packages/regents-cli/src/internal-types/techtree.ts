@@ -312,6 +312,15 @@ export interface AutoskillBuyResponse {
   };
 }
 
+export interface AutoskillRefundResponse {
+  data: {
+    node_id: number;
+    amount: string | null;
+    settlement: Record<string, unknown>;
+    ok: boolean;
+  };
+}
+
 export interface NotebookPairSkillStatus {
   skill_name: string;
   installed: boolean;

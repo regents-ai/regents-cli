@@ -130,6 +130,28 @@ describe("autolaunch CLI command group", () => {
       },
     };
   };
+  const preparedContractAction = (
+    data: `0x${string}`,
+    resource: string,
+    action: string,
+    resourceId = "job_123",
+  ) => {
+    const base = preparedSubjectAction(data, resourceId);
+    return {
+      ...base,
+      resource,
+      resource_id: resourceId,
+      action,
+      risk_copy: `Prepares ${action}.`,
+      wallet_action: {
+        ...base.wallet_action,
+        resource,
+        resource_id: resourceId,
+        action,
+        risk_copy: `Prepares ${action}.`,
+      },
+    };
+  };
 
   const createConfigPath = () => {
     const tempDir = fs.mkdtempSync(
@@ -208,6 +230,7 @@ describe("autolaunch CLI command group", () => {
     delete process.env.AUTOLAUNCH_AGENT_PRIVATE_KEY;
     delete process.env.REGENT_PRIVATE_KEY;
     delete process.env.REGENT_WALLET_PRIVATE_KEY;
+    delete process.env.BASE_MAINNET_RPC_URL;
     delete process.env.BASE_SEPOLIA_RPC_URL;
     delete process.env.AUTOLAUNCH_ERC8004_SUBGRAPH_URL;
     delete process.env.AUTOLAUNCH_IDENTITY_REGISTRY_ADDRESS;
@@ -623,7 +646,7 @@ describe("autolaunch CLI command group", () => {
         "--agent",
         "1:42",
         "--chain-id",
-        "84532",
+        "8453",
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -643,7 +666,7 @@ describe("autolaunch CLI command group", () => {
     const [, previewRequest] = fetchMock.mock.calls[0] ?? [];
     assertLaunchRequestBody(previewRequest?.body, {
       agent_id: "1:42",
-      chain_id: 84532,
+      chain_id: 8453,
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
       agent_safe_address: "0x1111111111111111111111111111111111111111",
@@ -681,7 +704,7 @@ describe("autolaunch CLI command group", () => {
         "--agent",
         "1:42",
         "--chain-id",
-        "84532",
+        "8453",
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -715,7 +738,7 @@ describe("autolaunch CLI command group", () => {
     const [, createRequest] = fetchMock.mock.calls[0] ?? [];
     assertLaunchRequestBody(createRequest?.body, {
       agent_id: "1:42",
-      chain_id: 84532,
+      chain_id: 8453,
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
       agent_safe_address: "0x1111111111111111111111111111111111111111",
@@ -755,7 +778,7 @@ describe("autolaunch CLI command group", () => {
         "--ens",
         "vitalik.eth",
         "--chain-id",
-        "84532",
+        "8453",
         "--agent-id",
         "42",
       ]),
@@ -1165,11 +1188,7 @@ describe("autolaunch CLI command group", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          prepared: {
-            resource: "strategy",
-            action: "migrate",
-            tx_request: { data: "0x8fd3ab80" },
-          },
+          prepared: preparedContractAction("0x8fd3ab80", "strategy", "migrate"),
         }),
         {
           status: 200,
@@ -1203,11 +1222,11 @@ describe("autolaunch CLI command group", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          prepared: {
-            resource: "revenue_splitter",
-            action: "pull_treasury_share",
-            tx_request: { data: "0x94af8446" },
-          },
+          prepared: preparedContractAction(
+            "0x94af8446",
+            "revenue_splitter",
+            "pull_treasury_share",
+          ),
         }),
         {
           status: 200,
@@ -1250,11 +1269,12 @@ describe("autolaunch CLI command group", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          prepared: {
-            resource: "revenue_share_factory",
-            action: "set_authorized_creator",
-            tx_request: { data: "0xe1434f4e" },
-          },
+          prepared: preparedContractAction(
+            "0xe1434f4e",
+            "revenue_share_factory",
+            "set_authorized_creator",
+            "admin",
+          ),
         }),
         {
           status: 200,
@@ -1419,7 +1439,7 @@ describe("autolaunch CLI command group", () => {
   it("mints an ERC-8004 identity and reports the new agent id", async () => {
     process.env.AUTOLAUNCH_AGENT_PRIVATE_KEY =
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    process.env.BASE_SEPOLIA_RPC_URL = "https://rpc.sepolia.example";
+    process.env.BASE_MAINNET_RPC_URL = "https://rpc.base.example";
     writeContractMock.mockResolvedValue("0xfeed");
     waitForReceiptMock.mockResolvedValue({
       status: "success",
@@ -1432,7 +1452,7 @@ describe("autolaunch CLI command group", () => {
         "identities",
         "mint",
         "--chain",
-        "base-sepolia",
+        "base-mainnet",
         "--agent-uri",
         "https://agents.example/alpha.json",
       ]),
@@ -1446,8 +1466,8 @@ describe("autolaunch CLI command group", () => {
       ),
     ).toMatchObject({
       ok: true,
-      chain_id: 84532,
-      agent_id: "84532:42",
+      chain_id: 8453,
+      agent_id: "8453:42",
       owner_address: "0x00000000000000000000000000000000000000aa",
       agent_uri: "https://agents.example/alpha.json",
     });
@@ -1456,7 +1476,7 @@ describe("autolaunch CLI command group", () => {
   it("does not report identity mint success when the receipt failed", async () => {
     process.env.AUTOLAUNCH_AGENT_PRIVATE_KEY =
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    process.env.BASE_SEPOLIA_RPC_URL = "https://rpc.sepolia.example";
+    process.env.BASE_MAINNET_RPC_URL = "https://rpc.base.example";
     writeContractMock.mockResolvedValue("0xfeed");
     waitForReceiptMock.mockResolvedValue({
       status: "reverted",
@@ -1465,7 +1485,7 @@ describe("autolaunch CLI command group", () => {
     });
 
     const output = await captureOutput(() =>
-      runCliEntrypoint(["autolaunch", "identities", "mint", "--chain", "base-sepolia"]),
+      runCliEntrypoint(["autolaunch", "identities", "mint", "--chain", "base-mainnet"]),
     );
 
     expect(output.result).toBe(1);
@@ -1476,10 +1496,10 @@ describe("autolaunch CLI command group", () => {
     delete process.env.REGENT_WALLET_PRIVATE_KEY;
     process.env.REGENT_PRIVATE_KEY =
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    process.env.BASE_SEPOLIA_RPC_URL = "https://rpc.sepolia.example";
+    process.env.BASE_MAINNET_RPC_URL = "https://rpc.base.example";
 
     const output = await captureOutput(() =>
-      runCliEntrypoint(["autolaunch", "identities", "mint", "--chain", "base-sepolia"]),
+      runCliEntrypoint(["autolaunch", "identities", "mint", "--chain", "base-mainnet"]),
     );
 
     expect(output.result).toBe(1);
@@ -1542,7 +1562,7 @@ describe("autolaunch CLI command group", () => {
         "--agent",
         "ag_123",
         "--chain-id",
-        "84532",
+        "8453",
         "--name",
         "Agent Coin",
         "--symbol",
@@ -1560,20 +1580,73 @@ describe("autolaunch CLI command group", () => {
     assertAgentAuthHeaders(requestInit?.headers as Headers);
     expect(JSON.parse(String(requestInit?.body))).toMatchObject({
       agent_id: "ag_123",
-      chain_id: 84532,
+      chain_id: 8453,
       token_name: "Agent Coin",
       token_symbol: "AGENT",
     });
   });
 
-  it("stops the prelaunch wizard on Base mainnet with Base Sepolia guidance", async () => {
+  it("runs the prelaunch wizard on Base mainnet", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_mainnet",
+              state: "draft",
+              agent_id: "8453:42",
+              metadata_draft: { title: "Atlas Coin" },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_mainnet",
+              state: "launchable",
+              validation_summary: { launchable: true },
+            },
+            validation: { launchable: true, blockers: [], warnings: [] },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "prelaunch",
+        "wizard",
+        "--agent",
+        "8453:42",
+        "--name",
+        "Atlas Coin",
+        "--symbol",
+        "ATLAS",
+        "--minimum-raise-usdc",
+        "10000",
+        "--agent-safe-address",
+        "0x1111111111111111111111111111111111111111",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops the prelaunch wizard when a chain flag is passed", async () => {
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "autolaunch",
         "prelaunch",
         "wizard",
         "--chain",
-        "base",
+        "base-mainnet",
         "--agent",
         "8453:42",
         "--name",
@@ -1591,36 +1664,7 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(questionMock).not.toHaveBeenCalled();
     expect(output.stderr).toContain(
-      "Autolaunch prelaunch wizard currently supports Base Sepolia only. Use --chain base-sepolia.",
-    );
-  });
-
-  it("stops the prelaunch wizard on unsupported chains with Base chain guidance", async () => {
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "prelaunch",
-        "wizard",
-        "--chain",
-        "optimism",
-        "--agent",
-        "10:42",
-        "--name",
-        "Atlas Coin",
-        "--symbol",
-        "ATLAS",
-        "--minimum-raise-usdc",
-        "10000",
-        "--agent-safe-address",
-        "0x1111111111111111111111111111111111111111",
-      ]),
-    );
-
-    expect(output.result).toBe(1);
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(questionMock).not.toHaveBeenCalled();
-    expect(output.stderr).toContain(
-      "Autolaunch supports only Base and Base Sepolia. Use --chain base-sepolia for the prelaunch wizard.",
+      "Autolaunch launches on Base mainnet. Run `regents autolaunch prelaunch wizard` without a chain flag.",
     );
   });
 
@@ -1734,7 +1778,7 @@ describe("autolaunch CLI command group", () => {
             plan: {
               plan_id: "plan_alpha",
               state: "draft",
-              agent_id: "84532:42",
+              agent_id: "8453:42",
               metadata_draft: { title: "Atlas Launch" },
             },
           }),
@@ -1792,7 +1836,7 @@ describe("autolaunch CLI command group", () => {
         "--config",
         configPath,
         "--agent",
-        "84532:42",
+        "8453:42",
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -1821,7 +1865,7 @@ describe("autolaunch CLI command group", () => {
       `${expectedBaseUrl}/v1/agent/prelaunch/plans/plan_alpha/validate`,
     );
     assertLaunchRequestBody(fetchMock.mock.calls[0]?.[1]?.body, {
-      agent_id: "84532:42",
+      agent_id: "8453:42",
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
       minimum_raise_usdc: "10000",
@@ -1990,13 +2034,13 @@ describe("autolaunch CLI command group", () => {
     expect(humanOutput).toContain("hardware wallet is best for mainnet");
   });
 
-  it("creates a Safe on Base Sepolia through the autolaunch CLI", async () => {
+  it("creates a Safe on Base mainnet through the autolaunch CLI", async () => {
     const configPath = createConfigPath();
     process.env.REGENT_WALLET_PRIVATE_KEY =
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     process.env.AUTOLAUNCH_WALLET_ADDRESS =
       "0x2222222222222222222222222222222222222222";
-    process.env.BASE_SEPOLIA_RPC_URL = "https://rpc.sepolia.example";
+    process.env.BASE_MAINNET_RPC_URL = "https://rpc.base.example";
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "autolaunch",
@@ -2013,7 +2057,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(safeInitMock).toHaveBeenCalledWith({
-      provider: "https://rpc.sepolia.example",
+      provider: "https://rpc.base.example",
       signer:
         "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       predictedSafe: {
@@ -2040,8 +2084,8 @@ describe("autolaunch CLI command group", () => {
     expect(parsePrintedJson(output.stdout)).toMatchObject({
       ok: true,
       status: "created",
-      network: "base-sepolia",
-      chain_id: 84532,
+      network: "base-mainnet",
+      chain_id: 8453,
       threshold: "2-of-3",
       safe_address: "0x4444444444444444444444444444444444444444",
       deployment_tx_hash:
@@ -2055,7 +2099,7 @@ describe("autolaunch CLI command group", () => {
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     process.env.AUTOLAUNCH_WALLET_ADDRESS =
       "0x2222222222222222222222222222222222222222";
-    process.env.BASE_SEPOLIA_RPC_URL = "https://rpc.sepolia.example";
+    process.env.BASE_MAINNET_RPC_URL = "https://rpc.base.example";
 
     safeInitMock.mockResolvedValueOnce({
       getAddress: vi
@@ -2084,6 +2128,8 @@ describe("autolaunch CLI command group", () => {
     expect(parsePrintedJson(output.stdout)).toMatchObject({
       ok: true,
       status: "already_deployed",
+      network: "base-mainnet",
+      chain_id: 8453,
       safe_address: "0x4444444444444444444444444444444444444444",
       deployment_tx_hash: null,
     });
@@ -2099,7 +2145,7 @@ describe("autolaunch CLI command group", () => {
         "--config",
         configPath,
         "--agent",
-        "84532:42",
+        "8453:42",
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -2240,7 +2286,7 @@ describe("autolaunch CLI command group", () => {
     const siwaNonceRequest = fetchMock.mock.calls[2]?.[1];
     expect(JSON.parse(String(siwaNonceRequest?.body))).toEqual({
       wallet_address: "0x00000000000000000000000000000000000000aa",
-      chain_id: 84532,
+      chain_id: 8453,
       registry_address: "0x3333333333333333333333333333333333333333",
       token_id: "42",
       audience: "autolaunch",
@@ -2284,10 +2330,7 @@ describe("autolaunch CLI command group", () => {
           JSON.stringify({
             ok: true,
             recommended_action: "migrate",
-            prepared: {
-              action: "migrate",
-              tx_request: { data: "0x8fd3ab80" },
-            },
+            prepared: preparedContractAction("0x8fd3ab80", "strategy", "migrate"),
           }),
           { status: 200, headers: { "content-type": "application/json" } },
         ),

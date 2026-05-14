@@ -5,6 +5,7 @@ import type {
   X402PrepareParams,
   X402QuoteParams,
   X402ReceiptGetParams,
+  X402RefundParams,
   X402RequestInput,
 } from "../internal-types/index.js";
 import { RegentKernel } from "../internal-runtime/runtime.js";
@@ -70,6 +71,17 @@ const fetchInput = (args: ParsedCliArgs): X402FetchParams => ({
 const receiptGetInput = (args: ParsedCliArgs): X402ReceiptGetParams => ({
   id: requireArg(getFlag(args, "id"), "--id"),
 });
+
+const refundInput = (args: ParsedCliArgs): X402RefundParams => {
+  const headers = parseHeaders(args);
+  const amount = getFlag(args, "amount");
+
+  return {
+    url: requireArg(getFlag(args, "url"), "--url"),
+    ...(headers ? { headers } : {}),
+    ...(amount ? { amount } : {}),
+  };
+};
 
 const x402Query = (args: ParsedCliArgs): string => requireArg(args.positionals.slice(2).join(" "), "query");
 
@@ -198,6 +210,22 @@ export async function runX402Fetch(args: ParsedCliArgs, configPath?: string): Pr
   return result.ok ? 0 : 1;
 }
 
+export async function runX402Refund(args: ParsedCliArgs, configPath?: string): Promise<number> {
+  const result = await withKernel(configPath, (kernel) => kernel.call("x402.refund", refundInput(args)));
+  if (getBooleanFlag(args, "json")) {
+    printJson(result);
+    return 0;
+  }
+
+  printText(
+    renderKeyValuePanel("◆ X402 REFUND", [
+      { label: "url", value: result.url },
+      { label: "amount", value: result.amount ?? "full unused balance", valueColor: CLI_PALETTE.emphasis },
+    ]),
+  );
+  return 0;
+}
+
 export async function runX402Pay(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const config = loadConfig(configPath);
   const budgetId = requireArg(getFlag(args, "budget"), "--budget");
@@ -230,7 +258,12 @@ export async function runX402Pay(args: ParsedCliArgs, configPath?: string): Prom
     spentUsdc = maxUsdc;
   } else {
     const regentWalletPayment = await withKernel(configPath, async (kernel) => {
-      const prepared = await kernel.call("x402.prepare", { ...request, max_amount: maxAtomic, approve: true });
+      const prepared = await kernel.call("x402.prepare", {
+        ...request,
+        max_amount: maxAtomic,
+        max_deposit_amount: getFlag(args, "max-deposit-amount"),
+        approve: true,
+      });
       const fetched = await kernel.call("x402.fetch", {
         ...request,
         intent_id: prepared.intent.intent_id,

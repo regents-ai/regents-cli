@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { renderRuntimeRunScreen } from "../../src/commands/run.js";
+import { pluginRuntimeCapabilities, renderRuntimeRunScreen } from "../../src/commands/run.js";
 
 const originalNoColor = process.env.NO_COLOR;
 const originalTerm = process.env.TERM;
@@ -41,6 +41,38 @@ afterEach(() => {
 });
 
 describe("regents run presenter", () => {
+  it("reports Hermes and OpenClaw plugin readiness separately", () => {
+    expect(pluginRuntimeCapabilities({
+      ok: true,
+      selectedRuntime: "auto",
+      runtimes: [
+        {
+          runtime: "hermes",
+          installed: true,
+          pluginPath: "/Users/example/.hermes/plugins/regent",
+          skillsPath: "/Users/example/.hermes/plugins/regent/skills",
+        },
+        {
+          runtime: "openclaw",
+          installed: false,
+          pluginPath: "/Users/example/.openclaw/plugins/regent",
+          skillsPath: "/Users/example/.openclaw/plugins/regent/skills",
+        },
+      ],
+    })).toEqual([
+      {
+        state: "ready",
+        label: "Hermes Regent tools installed",
+        detail: "Hermes can see Regent tools at /Users/example/.hermes/plugins/regent.",
+      },
+      {
+        state: "waiting",
+        label: "OpenClaw Regent tools missing",
+        detail: "Run regents plugin install --runtime openclaw. Checked /Users/example/.openclaw/plugins/regent.",
+      },
+    ]);
+  });
+
   it("explains what local Regent access makes available", () => {
     setStdoutTty(true);
     setStdoutColumns(88);

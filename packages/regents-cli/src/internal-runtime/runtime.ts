@@ -38,6 +38,7 @@ import {
   handleTechtreeAutoskillPublishEval,
   handleTechtreeAutoskillPublishResult,
   handleTechtreeAutoskillPublishSkill,
+  handleTechtreeAutoskillRefund,
   handleTechtreeAutoskillPull,
   handleTechtreeAutoskillReview,
   handleTechtreeBenchmarksCapsuleInit,
@@ -169,6 +170,7 @@ import {
   handleX402Prepare,
   handleX402Quote,
   handleX402ReceiptGet,
+  handleX402Refund,
 } from "./handlers/x402.js";
 import { handleXmtpStatus } from "./handlers/xmtp.js";
 import { JsonRpcServer } from "./jsonrpc/server.js";
@@ -784,6 +786,11 @@ export class RegentKernel {
           ctx,
           params as Parameters<typeof handleTechtreeAutoskillBuy>[1],
         );
+      case "techtree.autoskill.refund":
+        return handleTechtreeAutoskillRefund(
+          ctx,
+          params as Parameters<typeof handleTechtreeAutoskillRefund>[1],
+        );
       case "techtree.autoskill.pull":
         return handleTechtreeAutoskillPull(
           ctx,
@@ -927,6 +934,8 @@ export class RegentKernel {
         return handleX402Prepare(ctx, params as Parameters<typeof handleX402Prepare>[1]);
       case "x402.fetch":
         return handleX402Fetch(ctx, params as Parameters<typeof handleX402Fetch>[1]);
+      case "x402.refund":
+        return handleX402Refund(ctx, params as Parameters<typeof handleX402Refund>[1]);
       case "x402.receipts.get":
         return handleX402ReceiptGet(ctx, params as Parameters<typeof handleX402ReceiptGet>[1]);
       case "xmtp.status":

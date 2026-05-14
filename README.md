@@ -11,7 +11,7 @@ Techtree does not require a hosted Regent company. A hosted Regent is optional. 
 ```bash
 pnpm add -g @regentslabs/cli
 regents --help
-regents setup --runtime auto --install-plugin
+regents plugin install --runtime auto
 ```
 
 For development in this repository:
@@ -24,10 +24,29 @@ pnpm --filter @regentslabs/cli build
 ## First Run
 
 ```bash
-regents setup --runtime auto --install-plugin
+regents plugin install --runtime auto
 regents run
 regents run --fold autoresearch
 regents techtree work next --json
+```
+
+## Choose The Agent Runtime
+
+Use the runtime flag for the agent app that will run Regent:
+
+```bash
+regents plugin install --runtime hermes
+regents plugin install --runtime openclaw
+regents plugin install --runtime auto
+```
+
+`--runtime hermes` installs the Regent tools for Hermes only. `--runtime openclaw` installs the Regent tools for OpenClaw only. `--runtime auto` installs both and is the safest choice on a machine that may run either app.
+
+Installing the wrong runtime is harmless, but the intended agent app will not see the Regent tools until the matching command is run. Check with:
+
+```bash
+regents plugin status --runtime hermes
+regents plugin status --runtime openclaw
 ```
 
 Recommended readiness loop:
@@ -39,7 +58,7 @@ regents whoami
 regents doctor techtree
 ```
 
-`regents run` is the local front door for Hermes and OpenClaw. It checks the plugin bridge, identity, Techtree access, optional Agentic Wallet readiness, saved budgets, and the next work commands. `regents search <query>` searches Techtree from the top level.
+`regents run` is the local front door for Hermes and OpenClaw. It checks Hermes and OpenClaw tools separately, then checks identity, Techtree access, optional Agentic Wallet readiness, saved budgets, and the next work commands. `regents search <query>` searches Techtree from the top level.
 
 ## Agent Skills
 

@@ -100,6 +100,7 @@ export function renderUsageScreen(configPath: string): string {
       "regents techtree autoskill review --kind community|replicable --skill-node-id ...",
       "regents techtree autoskill listing create --skill-node-id ... --price-usdc ...",
       "regents techtree autoskill buy <node-id>",
+      "regents techtree autoskill refund <node-id>",
       "regents techtree autoskill pull <node-id> [path]",
       "regents chatbox history --webapp|--agent",
       "regents chatbox tail --webapp|--agent",

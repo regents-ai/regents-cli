@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runBudgetGrant } from "../../src/commands/budget.js";
 import { runReceiptShareDraft } from "../../src/commands/receipt.js";
-import { runX402Pay } from "../../src/commands/x402.js";
+import { runX402Pay, runX402Refund } from "../../src/commands/x402.js";
 import { writeInitialConfig } from "../../src/internal-runtime/index.js";
 import { parseCliArgs } from "../../src/parse.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
@@ -355,5 +355,36 @@ describe("budget, guarded x402, and local receipts", () => {
       ),
     ).rejects.toThrow("Paid service budgets require --approve before payment.");
     expect(runAwalJsonMock).not.toHaveBeenCalled();
+  });
+
+  it("runs x402 refund through the local runtime", async () => {
+    kernelCallMock.mockResolvedValueOnce({
+      ok: true,
+      url: "https://api.example.com/paid",
+      amount: "1000",
+      settlement: { success: true },
+    });
+
+    const configPath = makeConfigPath();
+    const refundOutput = await captureOutput(() =>
+      runX402Refund(
+        parseCliArgs([
+          "x402",
+          "refund",
+          "--url",
+          "https://api.example.com/paid",
+          "--amount",
+          "1000",
+          "--json",
+        ]),
+        configPath,
+      ),
+    );
+
+    expect(kernelCallMock).toHaveBeenCalledWith("x402.refund", {
+      url: "https://api.example.com/paid",
+      amount: "1000",
+    });
+    expect(parsePrintedJson<{ ok: boolean }>(refundOutput.stdout).ok).toBe(true);
   });
 });

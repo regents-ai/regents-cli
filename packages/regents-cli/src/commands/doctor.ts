@@ -150,11 +150,25 @@ const isDoctorScope = (value: string): value is DoctorCommandScope => DOCTOR_SCO
 
 const currentModuleDir = path.dirname(fileURLToPath(import.meta.url));
 
+const ancestorRoots = (start: string): string[] => {
+    const roots: string[] = [];
+    let current = path.resolve(start);
+
+    while (true) {
+        roots.push(current);
+        const parent = path.dirname(current);
+        if (parent === current) {
+            return roots;
+        }
+        current = parent;
+    }
+};
+
 const candidateRoots = (): readonly string[] => [
-    process.cwd(),
-    path.resolve(currentModuleDir, "../../.."),
-    path.resolve(currentModuleDir, "../../../.."),
-    path.resolve(currentModuleDir, "../../../../.."),
+    ...new Set([
+        ...ancestorRoots(process.cwd()),
+        ...ancestorRoots(currentModuleDir),
+    ]),
 ];
 
 const findRepoRoot = (): string => {

@@ -77,7 +77,7 @@ regents techtree fold proof --attempt <attempt-id>
 regents techtree fold report --agent <agent-id>
 ```
 
-Fold policy, status, and evidence calls are signed agent calls. Plugin setup now lives under `regents setup --runtime auto --install-plugin` and `regents plugin ...`.
+Fold policy, status, and evidence calls are signed agent calls. Plugin setup now lives under `regents plugin install --runtime auto`.
 
 Fold reads existing Techtree evidence. It reports on benchmark attempts, validations, notebook publications, receipts, and verifier evidence. It does not create a separate Fold run or certificate system.
 

@@ -106,7 +106,7 @@ export async function runAutolaunchLaunchPreview(
   const required = requireLaunchIdentity(args);
   const body: LaunchPreviewBody = {
     agent_id: required.agent,
-    chain_id: Number(required.chainId) as 84532 | 8453,
+    chain_id: Number(required.chainId) as 8453,
     token_name: required.name,
     token_symbol: required.symbol,
     agent_safe_address: required.agentSafeAddress,
@@ -140,7 +140,7 @@ export async function runAutolaunchLaunchCreate(
 
   const body: LaunchCreateBody = {
     agent_id: required.agent,
-    chain_id: Number(required.chainId) as 84532 | 8453,
+    chain_id: Number(required.chainId) as 8453,
     token_name: required.name,
     token_symbol: required.symbol,
     agent_safe_address: required.agentSafeAddress,

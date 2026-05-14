@@ -44,33 +44,14 @@ interface LocalPlanRecord {
 }
 
 const PRELAUNCH_DIR = "autolaunch-plans";
-const AUTOLAUNCH_CHAIN_ID = 84_532;
+const AUTOLAUNCH_CHAIN_ID = 8_453;
 
-const wizardChainChoice = (args: ParsedCliArgs): string => {
-  const explicitChainId = normalizeText(getFlag(args, "chain-id"));
-  if (explicitChainId) {
-    return explicitChainId;
-  }
-
-  return normalizeText(getFlag(args, "chain"))?.toLowerCase() ?? "base-sepolia";
-};
-
-const requireBaseSepoliaPrelaunchWizard = (args: ParsedCliArgs): void => {
-  const chain = wizardChainChoice(args);
-
-  if (chain === "base-sepolia" || chain === "84532") {
-    return;
-  }
-
-  if (chain === "base" || chain === "base-mainnet" || chain === "8453") {
+const rejectPrelaunchWizardChainFlags = (args: ParsedCliArgs): void => {
+  if (getFlag(args, "chain") || getFlag(args, "chain-id")) {
     throw new Error(
-      "Autolaunch prelaunch wizard currently supports Base Sepolia only. Use --chain base-sepolia.",
+      "Autolaunch launches on Base mainnet. Run `regents autolaunch prelaunch wizard` without a chain flag.",
     );
   }
-
-  throw new Error(
-    "Autolaunch supports only Base and Base Sepolia. Use --chain base-sepolia for the prelaunch wizard.",
-  );
 };
 
 const normalizeText = (value: string | undefined): string | undefined => {
@@ -503,7 +484,7 @@ export async function runAutolaunchPrelaunchWizard(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  requireBaseSepoliaPrelaunchWizard(args);
+  rejectPrelaunchWizardChainFlags(args);
   printAlphaFundsWarning();
   const plan = await createOrUpdateRemotePlan(args, configPath);
   const validation = await requestJson(

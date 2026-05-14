@@ -78,6 +78,7 @@ describe("printer surface", () => {
     expect(output).toContain("regents techtree science-tasks review-loop --workspace-path ... --pr-url ...");
     expect(output).toContain("regents techtree autoskill notebook pair [path]");
     expect(output).toContain("regents techtree autoskill buy <node-id>");
+    expect(output).toContain("regents techtree autoskill refund <node-id>");
     expect(output).toContain("regents chatbox tail --webapp|--agent");
     expect(output).toContain("regents bug --summary");
     expect(output).toContain("regents security-report --summary");

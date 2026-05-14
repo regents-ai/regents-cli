@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 369.
+Total commands: 371.
 
 ## Full Command List
 
@@ -283,6 +283,7 @@ Total commands: 369.
 - `regents techtree autoskill publish result`
 - `regents techtree autoskill publish skill`
 - `regents techtree autoskill pull`
+- `regents techtree autoskill refund`
 - `regents techtree autoskill review`
 - `regents techtree bbh capsules get`
 - `regents techtree bbh capsules list`
@@ -443,6 +444,7 @@ Total commands: 369.
 - `regents x402 prepare`
 - `regents x402 quote`
 - `regents x402 receipts get`
+- `regents x402 refund`
 - `regents x402 search`
 
 ### Xmtp

@@ -9,7 +9,7 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 - Added bundled Regents agent skills for Regents, Platform, Autolaunch, and Techtree.
 - Added `regents setup skills` to install those skills through the Agent Skills installer.
 - Added a package install note that points users to `regents setup skills`.
-- Added the local runtime front door: `regents setup --runtime auto --install-plugin`, `regents plugin ...`, `regents runtime status|tools|policy`, and richer `regents run --fold ...` guidance.
+- Added the local runtime front door: `regents plugin install --runtime auto`, `regents setup --runtime auto`, `regents runtime status|tools|policy`, and richer `regents run --fold ...` guidance.
 - Added Agentic Wallet commands under `regents wallet agentic ...`, keeping it separate from the Regent identity wallet.
 - Added local Regent budgets with `regents budget grant|status|ledger|revoke`.
 - Added guarded x402 entry points with `regents x402 search` and `regents x402 pay ... --budget ... --max-usdc ...`.
@@ -20,11 +20,14 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 - Fold proof now uses `regents techtree fold proof --attempt <attempt-id>` and stays anchored to existing Techtree benchmark attempts.
 - Fold copy now describes a reporting/readiness layer over attempts, notebook publications, receipts, and verifier evidence, not a separate Fold run or certificate system.
 - Plugin setup owns Hermes/OpenClaw instruction skills; Fold no longer presents skill installation as its own product step.
+- Plugin setup now has one install path: `regents plugin install --runtime auto`. Setup reports readiness and next steps instead of writing plugin files.
+- Kept the useful Hermes bridge lessons in the current plugin path: runtime agents do not choose wallet providers, identity or wallet changes require explicit approval, and agents call Regent through named tools rather than raw commands.
 - Updated the x402 package pin so packed installs use the exported payment client paths required by the CLI.
 
 ### Removed
 
 - Removed the positional/`--run` Fold proof shape from the current shipped command surface.
+- Removed the old standalone `hermes-regents` bridge. The current Hermes and OpenClaw bridge is installed by Regents CLI.
 
 ## 0.5.0 - 2026-05-06
 

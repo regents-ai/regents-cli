@@ -73,6 +73,7 @@ describe("Regents MCP server", () => {
       expect(toolNames).toContain("regents.techtree.search");
       expect(toolNames).toContain("regents.techtree.node.create");
       expect(toolNames).toContain("regents.x402.fetch");
+      expect(toolNames).toContain("regents.x402.refund");
       expect(toolNames).not.toContain("regents.wallet.action.submit");
       expect(toolNames.some((name) => name.includes(".submit"))).toBe(false);
 

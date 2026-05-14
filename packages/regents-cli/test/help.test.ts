@@ -42,6 +42,17 @@ describe("scoped CLI help", () => {
     expect(output.stdout).toContain("--project");
   });
 
+  it("overexplains runtime plugin install choices", async () => {
+    const output = await captureOutput(() => runCliEntrypoint(["plugin", "install", "--help"]));
+
+    expect(output.result).toBe(0);
+    expect(output.stdout).toContain("PLUGIN INSTALL HELP");
+    expect(output.stdout).toContain("regents plugin install --runtime <auto|hermes|openclaw>");
+    expect(output.stdout).toContain("--runtime hermes installs only the Hermes tools");
+    expect(output.stdout).toContain("--runtime openclaw installs only the OpenClaw tools");
+    expect(output.stdout).toContain("If you installed the wrong runtime, nothing dangerous happened");
+  });
+
   it("renders command-level help when a required value is omitted", async () => {
     const output = await captureOutput(() => runCliEntrypoint(["autolaunch", "agent", "--help"]));
 

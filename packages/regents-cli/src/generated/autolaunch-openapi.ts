@@ -2238,6 +2238,8 @@ export interface components {
         AddressOrEnsName: string;
         /** @enum {integer} */
         AutolaunchChainId: 84532 | 8453;
+        /** @enum {integer} */
+        ActiveAutolaunchLaunchChainId: 8453;
         DecimalString: string;
         /** Format: date-time */
         DateTime: string;
@@ -2499,7 +2501,7 @@ export interface components {
             resource: string;
             resource_id: string;
             action: string;
-            chain_id: components["schemas"]["AutolaunchChainId"];
+            chain_id: components["schemas"]["ActiveAutolaunchLaunchChainId"];
             expected_signer: components["schemas"]["Address"];
             expires_at: components["schemas"]["DateTime"];
             idempotency_key: string;
@@ -2547,13 +2549,23 @@ export interface components {
             existing_token?: {
                 [key: string]: unknown;
             } | null;
-            supported_chains: string[];
+            supported_chains: components["schemas"]["AutolaunchSupportedChain"][];
             readiness: {
                 [key: string]: unknown;
             };
             supporting_evidence: components["schemas"]["SupportingEvidence"][];
         } & {
             [key: string]: unknown;
+        };
+        AutolaunchSupportedChain: {
+            id: components["schemas"]["AutolaunchChainId"];
+            /** @enum {string} */
+            key: "base-sepolia" | "base-mainnet";
+            /** @enum {string} */
+            family: "base";
+            label: string;
+            short_label: string;
+            "testnet?": boolean;
         };
         PrelaunchMetadataDraft: {
             title?: string | null;
@@ -2658,7 +2670,7 @@ export interface components {
         };
         LaunchPreviewRequest: {
             agent_id: string;
-            chain_id: components["schemas"]["AutolaunchChainId"];
+            chain_id: components["schemas"]["ActiveAutolaunchLaunchChainId"];
             token_name: string;
             token_symbol: string;
             agent_safe_address: components["schemas"]["Address"];

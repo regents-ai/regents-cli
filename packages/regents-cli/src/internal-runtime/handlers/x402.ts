@@ -3,6 +3,7 @@ import type {
   X402PrepareParams,
   X402QuoteParams,
   X402ReceiptGetParams,
+  X402RefundParams,
   X402RequestInput,
 } from "../../internal-types/index.js";
 import type { RuntimeContext } from "../runtime.js";
@@ -25,6 +26,9 @@ export const handleX402Prepare = (ctx: RuntimeContext, params: X402PrepareParams
 
 export const handleX402Fetch = (ctx: RuntimeContext, params: X402FetchParams) =>
   clientForContext(ctx).fetchApproved(params);
+
+export const handleX402Refund = (ctx: RuntimeContext, params: X402RefundParams) =>
+  clientForContext(ctx).refund(params);
 
 export const handleX402ReceiptGet = (ctx: RuntimeContext, params: X402ReceiptGetParams) =>
   clientForContext(ctx).receiptGet(params);

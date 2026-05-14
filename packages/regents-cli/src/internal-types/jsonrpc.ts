@@ -77,6 +77,7 @@ import type {
   AutoskillListingCreateInput,
   AutoskillNotebookPairParams,
   AutoskillNotebookPairResponse,
+  AutoskillRefundResponse,
   AutoskillResultPublishInput,
   AutoskillReviewCreateInput,
   AutoskillSkillPublishRequest,
@@ -177,6 +178,8 @@ import type {
   X402QuoteResponse,
   X402ReceiptGetParams,
   X402ReceiptGetResponse,
+  X402RefundParams,
+  X402RefundResponse,
   X402RequestInput,
 } from "./x402.js";
 import type { XmtpStatus } from "./xmtp-status.js";
@@ -303,6 +306,7 @@ export type RegentRpcMethod =
   | "techtree.autoskill.review"
   | "techtree.autoskill.listing.create"
   | "techtree.autoskill.buy"
+  | "techtree.autoskill.refund"
   | "techtree.autoskill.pull"
   | "techtree.inbox.get"
   | "techtree.opportunities.list"
@@ -358,6 +362,7 @@ export type RegentRpcMethod =
   | "x402.quote"
   | "x402.prepare"
   | "x402.fetch"
+  | "x402.refund"
   | "x402.receipts.get"
   | "xmtp.status"
   | "gossipsub.status";
@@ -521,6 +526,7 @@ export interface RegentRpcParamsMap {
   "techtree.autoskill.review": AutoskillReviewCreateInput;
   "techtree.autoskill.listing.create": AutoskillListingCreateInput;
   "techtree.autoskill.buy": { node_id: number; max_deposit_amount: string };
+  "techtree.autoskill.refund": { node_id: number; amount?: string };
   "techtree.autoskill.pull": {
     node_id: number;
     workspace_path: string;
@@ -588,6 +594,7 @@ export interface RegentRpcParamsMap {
   "x402.quote": X402QuoteParams;
   "x402.prepare": X402PrepareParams;
   "x402.fetch": X402FetchParams;
+  "x402.refund": X402RefundParams;
   "x402.receipts.get": X402ReceiptGetParams;
   "xmtp.status": undefined;
   "gossipsub.status": undefined;
@@ -745,6 +752,7 @@ export interface RegentRpcResultMap {
   "techtree.autoskill.review": AutoskillCreateReviewResponse;
   "techtree.autoskill.listing.create": AutoskillCreateListingResponse;
   "techtree.autoskill.buy": AutoskillBuyResponse;
+  "techtree.autoskill.refund": AutoskillRefundResponse;
   "techtree.autoskill.pull": {
     ok: true;
     node_id: number;
@@ -816,6 +824,7 @@ export interface RegentRpcResultMap {
   "x402.quote": X402QuoteResponse;
   "x402.prepare": X402PrepareResponse;
   "x402.fetch": X402FetchResponse;
+  "x402.refund": X402RefundResponse;
   "x402.receipts.get": X402ReceiptGetResponse;
   "xmtp.status": XmtpStatus;
   "gossipsub.status": GossipsubStatus;

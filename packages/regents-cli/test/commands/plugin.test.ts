@@ -1,0 +1,56 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import { runPluginInstall } from "../../src/commands/plugin.js";
+import { runSetup } from "../../src/commands/setup.js";
+import { parseCliArgs } from "../../src/parse.js";
+import { captureOutput, parsePrintedJson } from "../helpers/output.js";
+
+describe("plugin setup commands", () => {
+  let originalHome: string | undefined;
+  let tempHome = "";
+
+  beforeEach(() => {
+    originalHome = process.env.HOME;
+    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "regents-plugin-command-"));
+    process.env.HOME = tempHome;
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempHome, { recursive: true, force: true });
+
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
+  });
+
+  it("installs both runtime plugins when auto is selected", async () => {
+    const output = await captureOutput(() => runPluginInstall(parseCliArgs(["--runtime", "auto"])));
+    const payload = parsePrintedJson(output.stdout) as {
+      selectedRuntime: string;
+      installed_plugins: Array<{ runtime: string }>;
+    };
+
+    expect(payload.selectedRuntime).toBe("auto");
+    expect(payload.installed_plugins.map((entry) => entry.runtime)).toEqual(["hermes", "openclaw"]);
+    expect(fs.existsSync(path.join(tempHome, ".hermes", "plugins", "regent", "plugin.yaml"))).toBe(true);
+    expect(fs.existsSync(path.join(tempHome, ".openclaw", "plugins", "regent", "openclaw.plugin.json"))).toBe(true);
+  });
+
+  it("keeps setup as a readiness report instead of an installer", async () => {
+    const output = await captureOutput(() => runSetup(parseCliArgs(["--runtime", "hermes"])));
+    const payload = parsePrintedJson(output.stdout) as {
+      installed_plugins?: unknown;
+      next: string[];
+    };
+
+    expect(payload.installed_plugins).toBeUndefined();
+    expect(payload.next[0]).toBe("regents plugin install --runtime auto");
+    expect(fs.existsSync(path.join(tempHome, ".hermes", "plugins", "regent"))).toBe(false);
+  });
+});

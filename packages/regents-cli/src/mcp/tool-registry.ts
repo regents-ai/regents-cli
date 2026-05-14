@@ -145,6 +145,15 @@ export const REGENTS_MCP_TOOL_DEFINITIONS: readonly RegentMcpToolDefinition[] = 
     rpcMethod: "x402.fetch",
   },
   {
+    name: "regents.x402.refund",
+    title: "Refund x402 channel",
+    description: "Return unused funds from a batch-settlement x402 channel.",
+    riskClass: "write",
+    owner: "shared-services",
+    authMode: "local",
+    rpcMethod: "x402.refund",
+  },
+  {
     name: "regents.x402.receipt.get",
     title: "Read x402 receipt",
     description: "Read one saved local x402 receipt.",

@@ -251,7 +251,7 @@ For read surfaces, trust data now lives under the nested `trust` object:
 ```bash
 regents autolaunch launch preview \
   --agent <agent-id> \
-  --chain-id <84532> \
+  --chain-id <8453> \
   --name "Agent Coin Name" \
   --symbol "AGENT" \
   --agent-safe-address <safe-address> \
@@ -260,7 +260,7 @@ regents autolaunch launch preview \
 
 regents autolaunch launch create \
   --agent <agent-id> \
-  --chain-id <84532> \
+  --chain-id <8453> \
   --name "Agent Coin Name" \
   --symbol "AGENT" \
   --agent-safe-address <safe-address> \

@@ -281,6 +281,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
         headers: z.record(z.string(), z.string()).optional(),
         body: z.string().optional(),
         max_amount: z.string().regex(/^\d+$/).optional(),
+        max_deposit_amount: z.string().regex(/^\d+$/).optional(),
       },
       annotations: toolAnnotations(x402Quote.riskClass),
     },
@@ -299,6 +300,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
         headers: z.record(z.string(), z.string()).optional(),
         body: z.string().optional(),
         max_amount: z.string().regex(/^\d+$/).optional(),
+        max_deposit_amount: z.string().regex(/^\d+$/).optional(),
       },
       annotations: toolAnnotations(x402IntentPrepare.riskClass),
     },
@@ -321,6 +323,22 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       annotations: toolAnnotations(x402Fetch.riskClass),
     },
     async (input) => textResult(await kernel.call("x402.fetch", input)),
+  );
+
+  const x402Refund = toolDefinition("regents.x402.refund");
+  server.registerTool(
+    x402Refund.name,
+    {
+      title: x402Refund.title,
+      description: x402Refund.description,
+      inputSchema: {
+        url: z.string().url(),
+        headers: z.record(z.string(), z.string()).optional(),
+        amount: z.string().regex(/^\d+$/).optional(),
+      },
+      annotations: toolAnnotations(x402Refund.riskClass),
+    },
+    async (input) => textResult(await kernel.call("x402.refund", input)),
   );
 
   const x402ReceiptGet = toolDefinition("regents.x402.receipt.get");

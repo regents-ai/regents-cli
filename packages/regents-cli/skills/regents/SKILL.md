@@ -19,6 +19,11 @@ Do not move money, stake tokens, submit transactions, create paid work, or publi
 - Show active account: `regents whoami`
 - Show machine-readable command context: `regents agent-context`
 - Install these skills again: `regents setup skills`
+- Install Regent tools for Hermes: `regents plugin install --runtime hermes`
+- Install Regent tools for OpenClaw: `regents plugin install --runtime openclaw`
+- Install both runtime tool sets: `regents plugin install --runtime auto`
+
+If the wrong runtime is installed, run the matching command for the agent app. The wrong install is not dangerous; it just means that the intended app will not see Regent until its own runtime is installed.
 
 ## Product Routing
 

@@ -16,6 +16,7 @@ The Regent dependency skills are installed in `/Users/sean/Documents/regent/.age
 
 - Hard cutover only. Do not add backwards compatibility shims, migration glue, or dual paths unless explicitly requested.
 - Regents CLI live transport flows are daemon-owned. Do not add direct CLI-to-Phoenix socket paths.
+- Runtime plugin install has one command family: use `regents plugin install --runtime hermes` for Hermes, `regents plugin install --runtime openclaw` for OpenClaw, and `regents plugin install --runtime auto` when both should be prepared. `regents setup --runtime ...` is a readiness report, not an installer.
 - For API <-> backend functionality, the Regents CLI contract surface is the source of truth.
 - Contract file meanings:
   - `api-contract.openapiv3.yaml` is the source of truth for a product's HTTP backend contract, including routes, auth, request bodies, response shapes, and stable error envelopes.
@@ -35,6 +36,7 @@ The Regent dependency skills are installed in `/Users/sean/Documents/regent/.age
   - `/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/`
 - Do not treat backend route files or old markdown notes as the source of truth for HTTP behavior. Change the CLI-owned contract surface first, then make backend code and CLI command code match it.
 - For Techtree Fold work, keep CLI commands, Techtree contracts, generated OpenAPI, `README.md`, `docs/techtree-api-contract.md`, and `packages/regents-cli/skills/regents-techtree/SKILL.md` aligned. Fold installs local Hermes/OpenClaw skills and checks proof; it must not touch Platform worker registration.
+- When Platform public copy names Regents CLI commands, run `pnpm check:platform-public-cli-copy`. This check compares Platform's published CLI examples against the Platform, Techtree, Autolaunch, and shared CLI contracts, and it is included in `pnpm check:cli-contract`.
 - Shared SIWA code lives in `/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir`. Do not present Platform, Techtree, or Autolaunch as the code owner for shared SIWA behavior.
 - If work changes code in `/Users/sean/Documents/regent/techtree`, `/Users/sean/Documents/regent/regents-cli`, or `/Users/sean/Documents/regent/techtree/contracts`, it is not done until validation has been run in all three repos. Run `mix precommit` in `techtree`, `pnpm build`, `pnpm typecheck`, `pnpm test`, and `pnpm test:pack-smoke` in `regents-cli`, and `forge test --offline` from `/Users/sean/Documents/regent/techtree/contracts` for the Techtree contracts workspace.
 - Prefer repository-local, versioned docs over off-repo context.
@@ -44,6 +46,7 @@ The Regent dependency skills are installed in `/Users/sean/Documents/regent/.age
 ```bash
 cd /Users/sean/Documents/regent/regents-cli
 pnpm check:openapi
+pnpm check:cli-contract
 pnpm build
 pnpm typecheck
 pnpm test

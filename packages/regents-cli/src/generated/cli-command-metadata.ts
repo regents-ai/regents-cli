@@ -191,6 +191,7 @@ export const CLI_COMMANDS = [
   "techtree autoskill publish result",
   "techtree autoskill publish skill",
   "techtree autoskill pull",
+  "techtree autoskill refund",
   "techtree autoskill review",
   "techtree bbh capsules get",
   "techtree bbh capsules list",
@@ -339,6 +340,7 @@ export const CLI_COMMANDS = [
   "x402 prepare",
   "x402 quote",
   "x402 receipts get",
+  "x402 refund",
   "x402 search",
   "xmtp doctor",
   "xmtp group add-admin",
@@ -620,6 +622,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree autoskill publish result",
     "techtree autoskill publish skill",
     "techtree autoskill pull",
+    "techtree autoskill refund",
     "techtree autoskill review",
     "techtree bbh capsules get",
     "techtree bbh capsules list",
@@ -776,6 +779,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "x402 prepare",
     "x402 quote",
     "x402 receipts get",
+    "x402 refund",
     "x402 search"
   ],
   "xmtp": [
@@ -1001,7 +1005,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -1029,7 +1034,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -1143,7 +1149,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -1171,7 +1178,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -1199,7 +1207,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -1227,7 +1236,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -2089,8 +2099,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
     "examples": [
-      "regents autolaunch identities list --chain base-sepolia",
-      "regents autolaunch identities mint --chain base-sepolia"
+      "regents autolaunch identities list --chain base-mainnet",
+      "regents autolaunch identities mint --chain base-mainnet"
     ],
     "agent_metadata": {
       "category": "identity",
@@ -2111,8 +2121,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
     "examples": [
-      "regents autolaunch identities list --chain base-sepolia",
-      "regents autolaunch identities mint --chain base-sepolia"
+      "regents autolaunch identities list --chain base-mainnet",
+      "regents autolaunch identities mint --chain base-mainnet"
     ],
     "agent_metadata": {
       "category": "identity",
@@ -2234,7 +2244,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2263,7 +2273,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2292,7 +2302,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2321,7 +2331,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2350,7 +2360,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2379,7 +2389,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2446,7 +2456,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2475,7 +2485,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2504,7 +2514,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -2534,16 +2544,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "launch-envelopes",
     "flags": [
       {
-        "name": "--chain",
-        "type": "enum",
-        "required": false,
-        "enum": [
-          "base-sepolia"
-        ],
-        "default": "base-sepolia",
-        "description": "Chain for the prelaunch wizard. Base is the only enabled wizard chain for now."
-      },
-      {
         "name": "--agent-safe-address",
         "type": "evm-address",
         "required": true,
@@ -2551,7 +2551,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       }
     ],
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -3657,7 +3657,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -3686,7 +3686,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -3715,7 +3715,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -3744,7 +3744,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -3773,7 +3773,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "examples": [
-      "regents autolaunch prelaunch wizard --chain base-sepolia",
+      "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
       "regents autolaunch prelaunch validate --plan <id>",
       "regents autolaunch jobs watch <job_id>"
@@ -3802,7 +3802,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -4114,7 +4115,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -4142,7 +4144,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -4170,7 +4173,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -4198,7 +4202,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -4453,7 +4458,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -4555,7 +4561,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -5372,7 +5379,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "openclaw"
         ],
         "required": false,
-        "description": "Runtime to diagnose. Defaults to auto."
+        "description": "Runtime to diagnose. Use auto to diagnose both runtimes. Use hermes or openclaw when the agent app says Regent tools are missing."
       }
     ],
     "examples": [
@@ -5401,14 +5408,16 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--runtime",
         "type": "enum",
         "enum": [
+          "auto",
           "hermes",
           "openclaw"
         ],
         "required": true,
-        "description": "Runtime that should receive the Regent plugin bridge."
+        "description": "Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Installing the wrong one is harmless, but the intended app will not see Regent until its matching runtime is installed."
       }
     ],
     "examples": [
+      "regents plugin install --runtime auto",
       "regents plugin install --runtime hermes",
       "regents plugin install --runtime openclaw"
     ],
@@ -5440,7 +5449,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "openclaw"
         ],
         "required": false,
-        "description": "Runtime to inspect. Defaults to auto."
+        "description": "Runtime to inspect. Use auto to inspect both Hermes and OpenClaw. Use hermes or openclaw when checking whether one specific agent app can see Regent."
       }
     ],
     "examples": [
@@ -6569,24 +6578,18 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "openclaw"
         ],
         "required": true,
-        "description": "Choose the local agent runtime to prepare."
-      },
-      {
-        "name": "--install-plugin",
-        "type": "boolean",
-        "required": false,
-        "description": "Install the Regent plugin bridge for the chosen runtime."
+        "description": "Choose the local agent runtime to inspect before starting. This reports readiness only; it does not install the Hermes or OpenClaw Regent tools."
       }
     ],
     "examples": [
-      "regents setup --runtime auto --install-plugin",
-      "regents setup --runtime hermes --install-plugin"
+      "regents setup --runtime auto",
+      "regents setup --runtime hermes"
     ],
     "agent_metadata": {
       "category": "local-setup",
       "prompt_behavior": "never_prompt",
       "json_support": "supported",
-      "mutation_class": "local-write",
+      "mutation_class": "local-read",
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
@@ -6638,7 +6641,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -6905,6 +6909,35 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "examples": [
+      "regents techtree autoskill init skill",
+      "regents techtree autoskill publish skill"
+    ],
+    "agent_metadata": {
+      "category": "autoskill",
+      "prompt_behavior": "confirm_before_publish_or_purchase",
+      "json_support": "supported",
+      "mutation_class": "local-and-http-write",
+      "retry_behavior": "retry_reads_and_local_packaging",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    }
+  },
+  "techtree autoskill refund": {
+    "command": "techtree autoskill refund",
+    "owner": "techtree",
+    "group": "autoskill",
+    "interface": "mixed",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--amount",
+        "type": "atomic-token-amount",
+        "required": false
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -10271,7 +10304,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents status",
-      "regents setup --runtime auto --install-plugin",
+      "regents plugin install --runtime auto",
+      "regents setup --runtime auto",
       "regents setup skills",
       "regents plugin status --runtime auto",
       "regents runtime status --json",
@@ -10756,6 +10790,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
       "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
@@ -10810,6 +10845,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
       "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
@@ -10845,6 +10881,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "description": "Maximum USDC to spend on this x402 request."
       },
       {
+        "name": "--max-deposit-amount",
+        "type": "string",
+        "required": false,
+        "description": "Maximum atomic token amount the operator allows the CLI to escrow for batch-settlement payments."
+      },
+      {
         "name": "--rail",
         "type": "enum",
         "enum": [
@@ -10873,6 +10915,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
       "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
@@ -10937,6 +10980,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
       "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
@@ -10996,6 +11040,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
       "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
@@ -11030,6 +11075,52 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
+      "regents x402 receipts get --id x402_receipt_... --json"
+    ],
+    "agent_metadata": {
+      "category": "paid-api",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "payment-prepare-or-fetch",
+      "retry_behavior": "never_retry_payments",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "x402 refund": {
+    "command": "x402 refund",
+    "owner": "shared-services",
+    "group": "x402",
+    "interface": "runtime",
+    "auth_mode": "local-wallet",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "url",
+        "required": true,
+        "description": "Protected resource URL for the channel to refund."
+      },
+      {
+        "name": "header",
+        "required": false,
+        "description": "Repeatable request header in Name/value form."
+      },
+      {
+        "name": "amount",
+        "required": false,
+        "description": "Token base-unit amount to return. Omit to return the full unused channel balance."
+      }
+    ],
+    "examples": [
+      "regents x402 search \"research data\" --json",
+      "regents x402 details --url https://api.example.com/paid --json",
+      "regents x402 quote --url https://api.example.com/paid --json",
+      "regents x402 prepare --url https://api.example.com/paid --approve --json",
+      "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
       "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
@@ -11057,6 +11148,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 refund --url https://api.example.com/paid --json",
       "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],

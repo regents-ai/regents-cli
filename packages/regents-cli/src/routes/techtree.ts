@@ -7,6 +7,7 @@ import {
   runAutoskillPublishEval,
   runAutoskillPublishResult,
   runAutoskillPublishSkill,
+  runAutoskillRefund,
   runAutoskillPull,
   runAutoskillReview,
 } from "../commands/autoskill.js";
@@ -571,6 +572,10 @@ export const techtreeRoutes: readonly CliRoute[] = [
   }),
   route("techtree autoskill buy", async ({ parsedArgs, configPath }) => {
     await runAutoskillBuy(parsedArgs, configPath);
+    return 0;
+  }, { variadicTail: true }),
+  route("techtree autoskill refund", async ({ parsedArgs, configPath }) => {
+    await runAutoskillRefund(parsedArgs, configPath);
     return 0;
   }, { variadicTail: true }),
   route("techtree autoskill pull", async ({ parsedArgs, configPath }) => {

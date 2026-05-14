@@ -199,6 +199,55 @@ describe("Regent x402 wrapper", () => {
     expect(prepared.intent.max_deposit_amount).toBe("5000");
   });
 
+  it("requires an explicit RPC URL before a batch-settlement payment", async () => {
+    const originalRpcEnv = {
+      X402_BASE_MAINNET_RPC_URL: process.env.X402_BASE_MAINNET_RPC_URL,
+      BASE_MAINNET_RPC_URL: process.env.BASE_MAINNET_RPC_URL,
+      BASE_RPC_URL: process.env.BASE_RPC_URL,
+    };
+    delete process.env.X402_BASE_MAINNET_RPC_URL;
+    delete process.env.BASE_MAINNET_RPC_URL;
+    delete process.env.BASE_RPC_URL;
+
+    const url = "https://example.test/paid";
+    const client = new RegentX402Client({
+      stateDir: tempDir,
+      walletSecretSource: createWalletSource(),
+      fetch: async () =>
+        new Response("{}", {
+          status: 402,
+          headers: {
+            "payment-required": encodeHeader(createPaymentRequired(url, "1000", [createBatchRequirement("1000")])),
+          },
+        }),
+    });
+
+    try {
+      const prepared = await client.prepare({
+        url,
+        approve: true,
+        max_deposit_amount: "5000",
+      });
+
+      await expect(
+        client.fetchApproved({
+          intent_id: prepared.intent.intent_id,
+          url,
+        }),
+      ).rejects.toMatchObject({
+        code: "x402_rpc_url_required",
+      });
+    } finally {
+      for (const [key, value] of Object.entries(originalRpcEnv)) {
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
+      }
+    }
+  });
+
   it("does not pay when the prepared intent has not been approved", async () => {
     const paidServer = await startPaidServer();
     const client = new RegentX402Client({

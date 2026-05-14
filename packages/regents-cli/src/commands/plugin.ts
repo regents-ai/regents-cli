@@ -4,7 +4,7 @@ import { printJson } from "../printer.js";
 import {
   installPlugin,
   pluginStatus,
-  type RegentAgentRuntime,
+  selectedRuntimes,
   type RegentAgentRuntimeSelector,
 } from "../internal-runtime/plugin-bridge.js";
 
@@ -19,13 +19,13 @@ const parseRuntimeSelector = (value: string | undefined): RegentAgentRuntimeSele
   });
 };
 
-const parseInstallRuntime = (value: string | undefined): RegentAgentRuntime => {
-  if (value === "hermes" || value === "openclaw") {
+const parseInstallRuntimeSelector = (value: string | undefined): RegentAgentRuntimeSelector => {
+  if (value === "auto" || value === "hermes" || value === "openclaw") {
     return value;
   }
   throw new CliUsageError({
     code: "invalid_flag_value",
-    message: "--runtime must be hermes or openclaw.",
+    message: "--runtime must be auto, hermes, or openclaw.",
   });
 };
 
@@ -35,7 +35,13 @@ export async function runPluginStatus(args: ParsedCliArgs): Promise<number> {
 }
 
 export async function runPluginInstall(args: ParsedCliArgs): Promise<number> {
-  printJson(installPlugin(parseInstallRuntime(getFlag(args, "runtime"))));
+  const runtime = parseInstallRuntimeSelector(getFlag(args, "runtime"));
+
+  printJson({
+    ok: true,
+    selectedRuntime: runtime,
+    installed_plugins: selectedRuntimes(runtime).map((entry) => installPlugin(entry)),
+  });
   return 0;
 }
 

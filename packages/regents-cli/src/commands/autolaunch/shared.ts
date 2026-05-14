@@ -64,6 +64,7 @@ export interface WalletAction {
 }
 
 export type AutolaunchChainId = "84532" | "8453";
+export type ActiveAutolaunchLaunchChainId = "8453";
 
 const AUTOLAUNCH_CHAIN_IDS: Readonly<Record<string, string>> = {
   "base-sepolia": "84532",
@@ -150,7 +151,7 @@ export const launchChainId = (args: ParsedCliArgs): string => {
     return explicit;
   }
 
-  const chain = (getFlag(args, "chain") ?? "base-sepolia").toLowerCase();
+  const chain = (getFlag(args, "chain") ?? "base-mainnet").toLowerCase();
   return AUTOLAUNCH_CHAIN_IDS[chain] ?? chain;
 };
 
@@ -163,13 +164,13 @@ export const autolaunchChainId = (args: ParsedCliArgs): AutolaunchChainId => {
   throw new Error("autolaunch only supports Base Sepolia (84532) and Base mainnet (8453)");
 };
 
-export const requireLaunchChainId = (args: ParsedCliArgs): AutolaunchChainId => {
+export const requireLaunchChainId = (args: ParsedCliArgs): ActiveAutolaunchLaunchChainId => {
   const resolved = requireArg(getFlag(args, "chain-id"), "chain-id");
-  if (resolved === "84532" || resolved === "8453") {
+  if (resolved === "8453") {
     return resolved;
   }
 
-  throw new Error("autolaunch launch supports only Base Sepolia (84532) and Base mainnet (8453)");
+  throw new Error("autolaunch launch supports Base mainnet (8453)");
 };
 
 export const configuredPrivateKey = async (

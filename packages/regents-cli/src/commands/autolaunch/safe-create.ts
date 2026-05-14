@@ -15,7 +15,7 @@ import {
 } from "./safe-shared.js";
 import { printAgentSafeExplainer } from "./safe-explainer.js";
 
-const BASE_SEPOLIA_RPC_ENV = "BASE_SEPOLIA_RPC_URL";
+const BASE_MAINNET_RPC_ENV = "BASE_MAINNET_RPC_URL";
 
 interface PredictedSafeKit {
   getAddress(): Promise<string>;
@@ -28,13 +28,13 @@ interface PredictedSafeKit {
   getContractVersion(): unknown;
 }
 
-const requireBaseSepoliaRpcUrl = (args: ParsedCliArgs): string => {
+const requireBaseMainnetRpcUrl = (args: ParsedCliArgs): string => {
   const explicit = normalizeText(getFlag(args, "rpc-url"));
-  const envValue = normalizeText(process.env[BASE_SEPOLIA_RPC_ENV]);
+  const envValue = normalizeText(process.env[BASE_MAINNET_RPC_ENV]);
   const resolved = explicit ?? envValue;
   if (!resolved) {
     throw new Error(
-      `Base Sepolia RPC URL is required. Pass --rpc-url <url> or set ${BASE_SEPOLIA_RPC_ENV}.`,
+      `Base mainnet RPC URL is required. Pass --rpc-url <url> or set ${BASE_MAINNET_RPC_ENV}.`,
     );
   }
 
@@ -85,7 +85,7 @@ export async function runAutolaunchSafeCreate(
     throw new Error("Safe owners must be three distinct wallet addresses.");
   }
 
-  const rpcUrl = requireBaseSepoliaRpcUrl(args);
+  const rpcUrl = requireBaseMainnetRpcUrl(args);
   const privateKey = await configuredPrivateKey(configPath);
   const account = privateKeyToAccount(privateKey);
   const saltNonce = resolveSaltNonce(args);
@@ -113,8 +113,8 @@ export async function runAutolaunchSafeCreate(
     printJson({
       ok: true,
       status: "already_deployed",
-      network: "base-sepolia",
-      chain_id: 84532,
+      network: "base-mainnet",
+      chain_id: 8453,
       threshold: "2-of-3",
       signer_wallet_address: account.address.toLowerCase(),
       owners: uniqueOwners,
@@ -128,7 +128,7 @@ export async function runAutolaunchSafeCreate(
 
   const deploymentTx = await protocolKit.createSafeDeploymentTransaction();
   const { txHash, receipt } = await sendValidatedTransaction(account, {
-    chain_id: 84532,
+    chain_id: 8453,
     to: deploymentTx.to as `0x${string}`,
     data: deploymentTx.data as `0x${string}`,
     value: deploymentTx.value,
@@ -144,8 +144,8 @@ export async function runAutolaunchSafeCreate(
   printJson({
     ok: true,
     status: "created",
-    network: "base-sepolia",
-    chain_id: 84532,
+    network: "base-mainnet",
+    chain_id: 8453,
     threshold: "2-of-3",
     signer_wallet_address: account.address.toLowerCase(),
     owners: uniqueOwners,

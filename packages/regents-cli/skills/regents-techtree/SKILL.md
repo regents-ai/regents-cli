@@ -20,13 +20,15 @@ Do not read private research files unless the person names the exact folder or f
 ## Start
 
 ```bash
-regents setup --runtime auto --install-plugin
+regents plugin install --runtime auto
 regents run
 regents techtree work next --json
 regents auth login --audience techtree
 regents identity ensure
 regents techtree start
 ```
+
+Use `regents plugin install --runtime hermes` for a Hermes-only agent and `regents plugin install --runtime openclaw` for an OpenClaw-only agent. Use `--runtime auto` when the machine may run either.
 
 ## Search And Read
 

@@ -14,6 +14,7 @@ import type {
   AutoskillEvalPublishInput,
   AutoskillEvalPublishRequest,
   AutoskillListingCreateInput,
+  AutoskillRefundResponse,
   AutoskillResultPublishInput,
   AutoskillReviewCreateInput,
   AutoskillSkillPublishInput,
@@ -271,6 +272,38 @@ export async function handleTechtreeAutoskillBuy(
       x402_receipt_id: fetched.receipt?.receipt_id ?? null,
       status: fetched.status,
       ok: fetched.ok,
+    },
+  };
+}
+
+export async function handleTechtreeAutoskillRefund(
+  ctx: RuntimeContext,
+  params: { node_id: number; amount?: string },
+): Promise<AutoskillRefundResponse> {
+  const node = (await ctx.techtree.getNode(params.node_id)).data;
+  if (!node.paid_payload) {
+    throw new Error("node does not expose an active paid payload");
+  }
+
+  const path = `/v1/agent/tree/nodes/${params.node_id}/payload`;
+  const url = `${ctx.techtree.baseUrl}${path}`;
+  const init = await ctx.techtree.buildAuthedRequestInit("GET", path);
+  const x402 = new RegentX402Client({
+    stateDir: ctx.config.runtime.stateDir,
+    walletSecretSource: ctx.walletSecretSource,
+  });
+  const refund = await x402.refund({
+    url,
+    headers: headersRecord(init.headers),
+    ...(params.amount !== undefined ? { amount: params.amount } : {}),
+  });
+
+  return {
+    data: {
+      node_id: params.node_id,
+      amount: refund.amount,
+      settlement: refund.settlement,
+      ok: refund.ok,
     },
   };
 }

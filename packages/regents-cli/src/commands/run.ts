@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { CliUsageError } from "../cli-usage-error.js";
 import { readBudgetFile } from "../internal-runtime/budget-store.js";
 import { RegentRuntime, defaultConfigPath } from "../internal-runtime/index.js";
-import { pluginStatus } from "../internal-runtime/plugin-bridge.js";
+import { pluginStatus, type PluginRuntimeStatus } from "../internal-runtime/plugin-bridge.js";
 import type { RegentConfig } from "../internal-types/index.js";
 import { getBooleanFlag, getFlag, type ParsedCliArgs } from "../parse.js";
 import { CLI_PALETTE, isHumanTerminal, printJson, printText, renderPanel, tone } from "../printer.js";
@@ -97,6 +97,24 @@ const enabledHarnessNames = (config: RegentConfig): string[] =>
     .filter(([, harness]) => harness.enabled)
     .map(([name]) => name);
 
+const runtimeDisplayName = (runtime: PluginRuntimeStatus["runtime"]): string =>
+  runtime === "hermes" ? "Hermes" : "OpenClaw";
+
+export const pluginRuntimeCapabilities = (
+  plugin: ReturnType<typeof pluginStatus>,
+): readonly RuntimeCapability[] =>
+  plugin.runtimes.map((runtime) => {
+    const name = runtimeDisplayName(runtime.runtime);
+
+    return {
+      state: runtime.installed ? "ready" : "waiting",
+      label: `${name} Regent tools ${runtime.installed ? "installed" : "missing"}`,
+      detail: runtime.installed
+        ? `${name} can see Regent tools at ${runtime.pluginPath}.`
+        : `Run regents plugin install --runtime ${runtime.runtime}. Checked ${runtime.pluginPath}.`,
+    };
+  });
+
 const parseFoldTrack = (value: string | undefined): "starter" | "autoresearch" | "bbh-public-v1" | null => {
   if (value === undefined) {
     return null;
@@ -187,13 +205,7 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
           ? `${session.audience} sign-in is saved until ${session.receiptExpiresAt}.`
           : "Run regents auth login --audience <platform|autolaunch|techtree|regent-services>.",
       },
-      {
-        state: plugin.runtimes.some((entry) => entry.installed) ? "ready" : "waiting",
-        label: "Hermes/OpenClaw bridge checked",
-        detail: plugin.runtimes.some((entry) => entry.installed)
-          ? `Installed bridge: ${plugin.runtimes.filter((entry) => entry.installed).map((entry) => entry.runtime).join(", ")}.`
-          : "Run regents setup --runtime auto --install-plugin.",
-      },
+      ...pluginRuntimeCapabilities(plugin),
       {
         state: "ready",
         label: "Techtree work tools loaded",
