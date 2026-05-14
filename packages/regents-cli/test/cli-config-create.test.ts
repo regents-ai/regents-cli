@@ -8,7 +8,7 @@ import { setupCliEntrypointHarness } from "./helpers/cli-entrypoint-support.js";
 
 const harness = setupCliEntrypointHarness();
 
-describe("CLI config and create flows", () => {
+describe("CLI config flows", () => {
   it("writes initial config and directories without exposing overwrite semantics", async () => {
     const initPath = path.join(harness.tempDir, "nested", "regent.config.json");
     const originalHome = process.env.HOME;
@@ -24,7 +24,7 @@ describe("CLI config and create flows", () => {
 
     try {
       output = await captureOutput(async () =>
-        harness.runCliEntrypoint(["create", "init", "--config", initPath]),
+        harness.runCliEntrypoint(["init", "--config", initPath]),
       );
     } finally {
       process.env.HOME = originalHome;
@@ -33,20 +33,22 @@ describe("CLI config and create flows", () => {
     expect(output).toBeDefined();
 
     if (!output) {
-      throw new Error("expected create init output");
+      throw new Error("expected init output");
     }
 
     expect(output.result).toBe(0);
 
     const payload = JSON.parse(output.stdout) as {
-      configPath: string;
-      configCreated: boolean;
-      stateDir: string;
-      socketDir: string;
-      keystoreDir: string;
-      gossipsubDir: string;
-      xmtpDir: string;
-      xmtpPolicyDir: string;
+      config_path: string;
+      config_created: boolean;
+      directories: {
+        state: string;
+        socket: string;
+        wallet: string;
+        gossipsub: string;
+        xmtp: string;
+        xmtpPolicy: string;
+      };
     };
 
     const writtenConfig = JSON.parse(fs.readFileSync(initPath, "utf8")) as {
@@ -56,28 +58,28 @@ describe("CLI config and create flows", () => {
       xmtp: { dbPath: string; publicPolicyPath: string };
     };
 
-    expect(fs.existsSync(payload.configPath)).toBe(true);
-    expect(payload.configCreated).toBe(true);
-    expect(fs.existsSync(payload.stateDir)).toBe(true);
+    expect(fs.existsSync(payload.config_path)).toBe(true);
+    expect(payload.config_created).toBe(true);
+    expect(fs.existsSync(payload.directories.state)).toBe(true);
     expect(writtenConfig.runtime.stateDir).toBe(path.join(harness.tempDir, "nested", "state"));
     expect(writtenConfig.runtime.socketPath).toBe(path.join(harness.tempDir, "nested", "run", "regent.sock"));
     expect(writtenConfig.wallet.keystorePath).toBe(path.join(harness.tempDir, "nested", "keys", "agent-wallet.json"));
     expect(writtenConfig.gossipsub.peerIdPath).toBe(path.join(harness.tempDir, "nested", "p2p", "peer-id.json"));
     expect(writtenConfig.xmtp.dbPath).toBe(path.join(harness.tempDir, "nested", "xmtp", "production", "client.db"));
     expect(writtenConfig.xmtp.publicPolicyPath).toBe(path.join(harness.tempDir, "nested", "policies", "xmtp-public.md"));
-    expect(payload.socketDir).toBe(path.dirname(writtenConfig.runtime.socketPath));
-    expect(payload.keystoreDir).toBe(path.dirname(writtenConfig.wallet.keystorePath));
-    expect(payload.gossipsubDir).toBe(path.dirname(writtenConfig.gossipsub.peerIdPath));
-    expect(payload.xmtpDir).toBe(path.dirname(writtenConfig.xmtp.dbPath));
-    expect(payload.xmtpPolicyDir).toBe(path.dirname(writtenConfig.xmtp.publicPolicyPath));
-    expect(fs.existsSync(payload.socketDir)).toBe(true);
-    expect(fs.existsSync(payload.keystoreDir)).toBe(true);
-    expect(fs.existsSync(payload.gossipsubDir)).toBe(true);
-    expect(fs.existsSync(payload.xmtpDir)).toBe(true);
-    expect(fs.existsSync(payload.xmtpPolicyDir)).toBe(true);
+    expect(payload.directories.socket).toBe(path.dirname(writtenConfig.runtime.socketPath));
+    expect(payload.directories.wallet).toBe(path.dirname(writtenConfig.wallet.keystorePath));
+    expect(payload.directories.gossipsub).toBe(path.dirname(writtenConfig.gossipsub.peerIdPath));
+    expect(payload.directories.xmtp).toBe(path.dirname(writtenConfig.xmtp.dbPath));
+    expect(payload.directories.xmtpPolicy).toBe(path.dirname(writtenConfig.xmtp.publicPolicyPath));
+    expect(fs.existsSync(payload.directories.socket)).toBe(true);
+    expect(fs.existsSync(payload.directories.wallet)).toBe(true);
+    expect(fs.existsSync(payload.directories.gossipsub)).toBe(true);
+    expect(fs.existsSync(payload.directories.xmtp)).toBe(true);
+    expect(fs.existsSync(payload.directories.xmtpPolicy)).toBe(true);
   });
 
-  it("does not overwrite an existing config file during create init", async () => {
+  it("does not overwrite an existing config file during init", async () => {
     const initPath = path.join(harness.tempDir, "existing", "regent.config.json");
     fs.mkdirSync(path.dirname(initPath), { recursive: true });
     fs.writeFileSync(
@@ -141,20 +143,25 @@ describe("CLI config and create flows", () => {
 
     const originalContents = fs.readFileSync(initPath, "utf8");
     const output = await captureOutput(async () =>
-      harness.runCliEntrypoint(["create", "init", "--config", initPath]),
+      harness.runCliEntrypoint(["init", "--config", initPath]),
     );
 
     expect(output.result).toBe(0);
     expect(JSON.parse(output.stdout)).toEqual({
       ok: true,
-      configPath: initPath,
-      configCreated: false,
-      stateDir: path.join(harness.tempDir, "custom-state"),
-      socketDir: path.join(harness.tempDir, "custom-runtime"),
-      keystoreDir: path.join(harness.tempDir, "custom-keys"),
-      gossipsubDir: path.join(harness.tempDir, "custom-p2p"),
-      xmtpDir: path.join(harness.tempDir, "custom-xmtp"),
-      xmtpPolicyDir: path.join(harness.tempDir, "custom-policies"),
+      command: "init",
+      status: "ready",
+      config_path: initPath,
+      config_created: false,
+      directories: {
+        state: path.join(harness.tempDir, "custom-state"),
+        socket: path.join(harness.tempDir, "custom-runtime"),
+        wallet: path.join(harness.tempDir, "custom-keys"),
+        gossipsub: path.join(harness.tempDir, "custom-p2p"),
+        xmtp: path.join(harness.tempDir, "custom-xmtp"),
+        xmtpPolicy: path.join(harness.tempDir, "custom-policies"),
+      },
+      next_actions: ["regents status", "regents identity ensure"],
     });
     expect(fs.readFileSync(initPath, "utf8")).toBe(originalContents);
   });
@@ -471,52 +478,12 @@ describe("CLI config and create flows", () => {
     expect(JSON.parse(fs.readFileSync(harness.configPath, "utf8"))).toEqual(payload.config);
   });
 
-  it("returns a JSON error when create init cannot create the config parent directory", async () => {
+  it("returns a JSON error when init cannot create the config parent directory", async () => {
     const blockingFile = path.join(harness.tempDir, "blocked-parent");
     fs.writeFileSync(blockingFile, "not-a-directory\n", "utf8");
 
     const output = await captureOutput(async () =>
-      harness.runCliEntrypoint(["create", "init", "--config", path.join(blockingFile, "regent.config.json")]),
-    );
-
-    expect(output.result).toBe(1);
-    expect(output.stdout).toBe("");
-    expect(JSON.parse(output.stderr)).toEqual({
-      error: {
-        message: expect.stringMatching(/EEXIST|ENOTDIR/),
-      },
-    });
-  });
-
-  it("creates a wallet and writes a dev file", async () => {
-    const devFilePath = path.join(harness.tempDir, "wallet.json");
-    const output = await captureOutput(async () =>
-      harness.runCliEntrypoint(["create", "wallet", "--write-env", "--dev-file", devFilePath]),
-    );
-
-    expect(output.result).toBe(0);
-
-    const payload = JSON.parse(output.stdout) as {
-      address: string;
-      export: string;
-      devFile: string;
-    };
-
-    const written = JSON.parse(fs.readFileSync(devFilePath, "utf8")) as { privateKey: string };
-
-    expect(payload.address).toMatch(/^0x[0-9a-fA-F]{40}$/);
-    expect("privateKey" in payload).toBe(false);
-    expect(payload.export).toBe(`export REGENT_WALLET_PRIVATE_KEY=${written.privateKey}`);
-    expect(payload.devFile).toBe(devFilePath);
-    expect(written.privateKey).toMatch(/^0x[0-9a-fA-F]{64}$/);
-  });
-
-  it("returns a JSON error when create wallet cannot write the dev file", async () => {
-    const blockingFile = path.join(harness.tempDir, "wallet-parent");
-    fs.writeFileSync(blockingFile, "not-a-directory\n", "utf8");
-
-    const output = await captureOutput(async () =>
-      harness.runCliEntrypoint(["create", "wallet", "--dev-file", path.join(blockingFile, "wallet.json")]),
+      harness.runCliEntrypoint(["init", "--config", path.join(blockingFile, "regent.config.json")]),
     );
 
     expect(output.result).toBe(1);

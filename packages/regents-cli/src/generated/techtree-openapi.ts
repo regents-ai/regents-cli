@@ -36,6 +36,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ramp/coinbase/buy/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCoinbaseRampBuyConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/buy/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCoinbaseRampBuyOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/onramp/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createCoinbaseRampOnrampSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/sell/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCoinbaseRampSellConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/sell/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCoinbaseRampSellOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/offramp/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createCoinbaseRampOfframpSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/offramp/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createCoinbaseRampOfframpQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/apple-pay/contact/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["startCoinbaseRampApplePayContactVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/apple-pay/contact/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmCoinbaseRampApplePayContactVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ramp/coinbase/apple-pay/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createCoinbaseRampApplePayOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/internal/v1/published-nodes/ingest": {
         parameters: {
             query?: never;
@@ -2627,6 +2787,85 @@ export interface components {
         LooseObject: {
             [key: string]: unknown;
         };
+        CoinbaseRampLooseDataResponse: {
+            data: {
+                [key: string]: unknown;
+            };
+        };
+        CoinbaseRampSessionRequest: {
+            wallet_address: components["schemas"]["Address"];
+            country: string;
+            subdivision?: string | null;
+            asset: string;
+            network: string;
+            amount: string;
+            payment_currency: string;
+            payment_method: string;
+        };
+        CoinbaseRampOfframpQuoteRequest: {
+            wallet_address: components["schemas"]["Address"];
+            country: string;
+            subdivision?: string | null;
+            asset: string;
+            network: string;
+            amount: string;
+            cashout_currency: string;
+            payment_method: string;
+        };
+        CoinbaseRampContactStartRequest: {
+            /** Format: email */
+            email: string;
+            phone_number: string;
+        };
+        CoinbaseRampContactConfirmRequest: {
+            /** Format: email */
+            email: string;
+            phone_number: string;
+            email_code: string;
+            phone_code: string;
+        };
+        CoinbaseRampApplePayOrderRequest: {
+            wallet_address: components["schemas"]["Address"];
+            /** Format: email */
+            email: string;
+            phone_number: string;
+            asset: string;
+            network: string;
+            amount: string;
+            payment_currency: string;
+            /** @enum {boolean} */
+            accepted_terms: true;
+        };
+        CoinbaseRampActionResponse: {
+            data: {
+                /** Format: uri */
+                url: string;
+                quote?: components["schemas"]["LooseObject"] | null;
+            };
+        };
+        CoinbaseRampContactResponse: {
+            data: {
+                verified: boolean;
+                email_sent?: boolean | null;
+                phone_sent?: boolean | null;
+                /** Format: date-time */
+                email_verified_at?: string | null;
+                /** Format: date-time */
+                phone_verified_at?: string | null;
+            };
+        };
+        CoinbaseRampApplePayOrderResponse: {
+            data: {
+                order_id?: string | null;
+                status?: string | null;
+                /** Format: uri */
+                payment_link_url: string;
+                payment_total?: string | null;
+                payment_currency?: string | null;
+                purchase_amount?: string | null;
+                purchase_currency?: string | null;
+            };
+        };
         ErrorEnvelope: {
             error: {
                 code: string;
@@ -4483,6 +4722,428 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getCoinbaseRampBuyConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Coinbase buy countries and payment methods */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getCoinbaseRampBuyOptions: {
+        parameters: {
+            query: {
+                country: string;
+                subdivision?: string;
+                networks?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Coinbase buy assets and fiat currencies */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createCoinbaseRampOnrampSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoinbaseRampSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Coinbase hosted buy URL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampActionResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getCoinbaseRampSellConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Coinbase sell countries and cashout methods */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getCoinbaseRampSellOptions: {
+        parameters: {
+            query: {
+                country: string;
+                subdivision?: string;
+                networks?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Coinbase sell assets and fiat currencies */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createCoinbaseRampOfframpSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoinbaseRampSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Coinbase hosted sell URL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampActionResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createCoinbaseRampOfframpQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoinbaseRampOfframpQuoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Coinbase sell quote and hosted sell URL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampActionResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    startCoinbaseRampApplePayContactVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoinbaseRampContactStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Contact verification started */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampContactResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Contact verification failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    confirmCoinbaseRampApplePayContactVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoinbaseRampContactConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Contact verification confirmed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampContactResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Contact verification failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createCoinbaseRampApplePayOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoinbaseRampApplePayOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description Coinbase Apple Pay order and payment link */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinbaseRampApplePayOrderResponse"];
+                };
+            };
+            /** @description Privy sign-in required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Coinbase ramp request failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];

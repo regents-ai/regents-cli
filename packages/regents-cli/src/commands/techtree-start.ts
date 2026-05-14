@@ -413,7 +413,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
     startWizardDeps.printText(renderProgressPanel(["config"], "runtime"));
     startWizardDeps.printText(blockerPanel("wallet", runtimeBlocking.message, [
       `Fix now: set ${config.wallet.privateKeyEnv} before rerunning the guided start.`,
-      `If you need a throwaway wallet file first, run \`regents create wallet --write-env\`.`,
+      `If you need a local wallet first, run \`regents wallet setup\`.`,
       `Rerun: ${configRerunCommand(resolvedConfigPath)}`,
     ]));
     startWizardDeps.printText(doctorFailures(runtimeReport));

@@ -179,19 +179,4 @@ describe("platform CLI command group", () => {
     });
   });
 
-  it("returns the canonical beta-disabled response without calling Platform", async () => {
-    const output = await captureOutput(() =>
-      runCliEntrypoint(["platform", "billing", "topup", "--amount-usd-cents", "800"]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(parsePrintedJson(output.stdout)).toEqual({
-      ok: false,
-      command: "regents platform billing topup",
-      status: "unavailable",
-      statusMessage:
-        "This action is not open during the public beta. Regent staking is live now, and hosted company controls will reopen after the beta checks pass.",
-    });
-  });
 });

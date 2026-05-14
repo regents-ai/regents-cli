@@ -51,10 +51,10 @@ mix phx.server
 ## 3. Initialize local config
 
 ```bash
-pnpm --filter @regentslabs/cli exec regents create init
+pnpm --filter @regentslabs/cli exec regents init
 ```
 
-`create init` only writes the config file when it does not already exist. Re-running it reuses the existing config and recreates missing local directories.
+`init` writes the local config when needed. Re-running it keeps the existing config and recreates missing local directories.
 
 ## 4. Start the runtime
 

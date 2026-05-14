@@ -245,25 +245,6 @@ exit 1
     );
   }, 15_000);
 
-  it("exports the Hermes MCP fragment for Coinbase only", async () => {
-    const output = await captureOutput(async () =>
-      runCliEntrypoint(["mcp", "export", "hermes", "--json", "--config", configPath]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(JSON.parse(output.stdout)).toEqual({
-      ok: true,
-      provider: "coinbase-cdp",
-      mcpServers: {
-        "coinbase-cdp": {
-          transport: "stdio",
-          command: "cdp",
-          args: ["mcp"],
-        },
-      },
-    });
-  });
-
   it("fails cleanly when the Coinbase command line tool is not available", async () => {
     process.env.PATH = path.join(tempDir, "empty-bin");
     fs.mkdirSync(process.env.PATH, { recursive: true });

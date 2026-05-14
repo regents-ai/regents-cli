@@ -683,76 +683,6 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
-  it("passes through the launch create body with the agent safe address", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          launch: { job_id: "job_alpha" },
-        }),
-        {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        },
-      ),
-    );
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "launch",
-        "create",
-        "--agent",
-        "1:42",
-        "--chain-id",
-        "8453",
-        "--name",
-        "Atlas Coin",
-        "--symbol",
-        "ATLAS",
-        "--minimum-raise-usdc",
-        "10000",
-        "--agent-safe-address",
-        "0x1111111111111111111111111111111111111111",
-        "--wallet-address",
-        "0x2222222222222222222222222222222222222222",
-        "--registry-address",
-        "0x3333333333333333333333333333333333333333",
-        "--token-id",
-        "42",
-        "--nonce",
-        "nonce_alpha",
-        "--message",
-        "message_alpha",
-        "--signature",
-        "signature_alpha",
-        "--issued-at",
-        "2026-03-29T12:00:00Z",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/launch/jobs`,
-    );
-    const [, createRequest] = fetchMock.mock.calls[0] ?? [];
-    assertLaunchRequestBody(createRequest?.body, {
-      agent_id: "1:42",
-      chain_id: 8453,
-      token_name: "Atlas Coin",
-      token_symbol: "ATLAS",
-      agent_safe_address: "0x1111111111111111111111111111111111111111",
-      minimum_raise_usdc: "10000",
-      wallet_address: "0x2222222222222222222222222222222222222222",
-      registry_address: "0x3333333333333333333333333333333333333333",
-      token_id: "42",
-      nonce: "nonce_alpha",
-      message: "message_alpha",
-      signature: "signature_alpha",
-      issued_at: "2026-03-29T12:00:00Z",
-    });
-  });
-
   it("prepares bidirectional ENS link transactions through autolaunch", async () => {
     fetchMock.mockResolvedValue(
       new Response(
@@ -1115,72 +1045,6 @@ describe("autolaunch CLI command group", () => {
       receiver,
     });
     expect(questionMock).not.toHaveBeenCalled();
-  });
-
-  it("submits a holdings claim from the nested prepared action", async () => {
-    const configPath = createConfigPath();
-    process.env.REGENT_WALLET_PRIVATE_KEY =
-      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    process.env.BASE_SEPOLIA_RPC_URL = "https://base-sepolia.example";
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            subject_id: "subject_456",
-            prepared: preparedSubjectAction("0xe1434f4e", "subject_456"),
-          }),
-          {
-            status: 200,
-            headers: { "content-type": "application/json" },
-          },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            subject_id: "subject_456",
-            submitted: true,
-          }),
-          {
-            status: 200,
-            headers: { "content-type": "application/json" },
-          },
-        ),
-      );
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "holdings",
-        "claim-usdc",
-        "subject_456",
-        "--submit",
-        "--config",
-        configPath,
-      ]),
-    );
-
-    expect(output.result, output.stderr).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/subjects/subject_456/claim-usdc`,
-    );
-    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
-      tx_hash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    });
-    expect(sendTransactionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: "0x5555555555555555555555555555555555555555",
-        data: "0xe1434f4e",
-        value: 0n,
-      }),
-    );
-    expect(parsePrintedJson(output.stdout)).toMatchObject({
-      ok: true,
-      submitted: true,
-    });
   });
 
   it("prepares strategy migration through the contracts API", async () => {
@@ -1637,16 +1501,109 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect(JSON.parse(String(requestInit?.body))).toMatchObject({
+      agent_id: "8453:42",
+      token_name: "Atlas Coin",
+      token_symbol: "ATLAS",
+      minimum_raise_usdc: "10000",
+      agent_safe_address: "0x1111111111111111111111111111111111111111",
+    });
   });
 
-  it("stops the prelaunch wizard when a chain flag is passed", async () => {
+  it("defaults the prelaunch minimum raise to zero", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_zero",
+              state: "draft",
+              agent_id: "8453:42",
+              metadata_draft: { title: "Atlas Coin" },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_zero",
+              state: "validated",
+              validation_summary: { launchable: false },
+            },
+            validation: { launchable: false, blockers: ["Add an image."], warnings: [] },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "autolaunch",
         "prelaunch",
         "wizard",
-        "--chain",
-        "base-mainnet",
+        "--agent",
+        "8453:42",
+        "--name",
+        "Atlas Coin",
+        "--symbol",
+        "ATLAS",
+        "--agent-safe-address",
+        "0x1111111111111111111111111111111111111111",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect(JSON.parse(String(requestInit?.body))).toMatchObject({
+      minimum_raise_usdc: "0",
+    });
+  });
+
+  it.each([
+    { flag: "--name", value: "AT", error: "Token name must be 3 to 15 characters." },
+    { flag: "--name", value: "Atlas Token Name", error: "Token name must be 3 to 15 characters." },
+    { flag: "--symbol", value: "A", error: "Token symbol must be 2 to 10 characters." },
+    { flag: "--symbol", value: "ATLASCOINXX", error: "Token symbol must be 2 to 10 characters." },
+    { flag: "--minimum-raise-usdc", value: "-1", error: "Minimum USDC raise must be a whole number, 0 or greater." },
+    { flag: "--minimum-raise-usdc", value: "1.5", error: "Minimum USDC raise must be a whole number, 0 or greater." },
+  ])("rejects unsafe prelaunch input for $flag", async ({ flag, value, error }) => {
+    const args = [
+      "autolaunch",
+      "prelaunch",
+      "wizard",
+      "--agent",
+      "8453:42",
+      "--name",
+      "Atlas Coin",
+      "--symbol",
+      "ATLAS",
+      "--minimum-raise-usdc",
+      "0",
+      "--agent-safe-address",
+      "0x1111111111111111111111111111111111111111",
+    ];
+    const index = args.indexOf(flag);
+    args[index + 1] = value;
+
+    const output = await captureOutput(() => runCliEntrypoint(args));
+
+    expect(output.result).toBe(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(output.stderr).toContain(error);
+  });
+
+  it("requires interactive confirmation for a high prelaunch minimum raise", async () => {
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "prelaunch",
+        "wizard",
         "--agent",
         "8453:42",
         "--name",
@@ -1654,7 +1611,7 @@ describe("autolaunch CLI command group", () => {
         "--symbol",
         "ATLAS",
         "--minimum-raise-usdc",
-        "10000",
+        "50001",
         "--agent-safe-address",
         "0x1111111111111111111111111111111111111111",
       ]),
@@ -1662,10 +1619,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(1);
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(questionMock).not.toHaveBeenCalled();
-    expect(output.stderr).toContain(
-      "Autolaunch launches on Base mainnet. Run `regents autolaunch prelaunch wizard` without a chain flag.",
-    );
+    expect(output.stderr).toContain("Minimum USDC raise above 50000 requires confirmation.");
   });
 
   it("shows the alpha funds warning at the start of the prelaunch wizard", async () => {

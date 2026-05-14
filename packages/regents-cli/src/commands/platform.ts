@@ -216,16 +216,6 @@ export async function runPlatformCompanyRuntime(args: ParsedCliArgs): Promise<vo
   });
 }
 
-export function printPlatformUnavailable(command: string): void {
-  printJson({
-    ok: false,
-    command,
-    status: "unavailable",
-    statusMessage:
-      "This action is not open during the public beta. Regent staking is live now, and hosted company controls will reopen after the beta checks pass.",
-  });
-}
-
 const resolveOrigin = (args: ParsedCliArgs): string =>
   normalizeOrigin(
     getFlag(args, "origin") ??

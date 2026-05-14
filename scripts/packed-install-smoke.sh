@@ -401,8 +401,7 @@ BASE_URL="http://127.0.0.1:$(cat "${SERVER_PORT_FILE}")"
 
 write_fake_cdp
 
-pnpm --dir "${WORK_DIR}" exec regents create init --config "${CONFIG_PATH}" >/dev/null
-pnpm --dir "${WORK_DIR}" exec regents create wallet --dev-file "${WORK_DIR}/wallet.json" >/dev/null
+pnpm --dir "${WORK_DIR}" exec regents init --config "${CONFIG_PATH}" >/dev/null
 
 cat > "${WORK_DIR}/replacement.json" <<EOF
 {

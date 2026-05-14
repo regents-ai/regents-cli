@@ -412,20 +412,4 @@ export const signMessageWithCoinbase = async (
   };
 };
 
-export const exportHermesMcp = (): {
-  ok: true;
-  provider: typeof COINBASE_PROVIDER;
-  mcpServers: Record<string, { transport: "stdio"; command: string; args: string[] }>;
-} => ({
-  ok: true,
-  provider: COINBASE_PROVIDER,
-  mcpServers: {
-    "coinbase-cdp": {
-      transport: "stdio",
-      command: CDP_BIN,
-      args: ["mcp"],
-    },
-  },
-});
-
 export const coinbaseProviderName = (): typeof COINBASE_PROVIDER => COINBASE_PROVIDER;

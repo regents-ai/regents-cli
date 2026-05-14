@@ -40,10 +40,6 @@ export const CLI_COMMANDS = [
   "autolaunch fee-registry get",
   "autolaunch fee-vault get",
   "autolaunch fee-vault withdraw-regent",
-  "autolaunch holdings claim-usdc",
-  "autolaunch holdings stake",
-  "autolaunch holdings sweep-ingress",
-  "autolaunch holdings unstake",
   "autolaunch identities list",
   "autolaunch identities mint",
   "autolaunch ingress create",
@@ -51,7 +47,6 @@ export const CLI_COMMANDS = [
   "autolaunch ingress set-default",
   "autolaunch ingress set-label",
   "autolaunch jobs watch",
-  "autolaunch launch create",
   "autolaunch launch finalize",
   "autolaunch launch monitor",
   "autolaunch launch preview",
@@ -103,7 +98,6 @@ export const CLI_COMMANDS = [
   "autolaunch vesting propose-beneficiary-rotation",
   "autolaunch vesting release",
   "autolaunch vesting status",
-  "balance",
   "budget grant",
   "budget ledger",
   "budget revoke",
@@ -114,8 +108,6 @@ export const CLI_COMMANDS = [
   "chatbox tail",
   "config get",
   "config write",
-  "create init",
-  "create wallet",
   "doctor",
   "doctor auth",
   "doctor contracts",
@@ -123,7 +115,6 @@ export const CLI_COMMANDS = [
   "doctor techtree",
   "doctor transports",
   "doctor workspace",
-  "doctor xmtp",
   "ens set-primary",
   "feynman",
   "gossipsub status",
@@ -133,23 +124,17 @@ export const CLI_COMMANDS = [
   "init",
   "mcp doctor",
   "mcp export codex",
-  "mcp export hermes",
   "mcp serve",
   "mcp tools list",
   "platform auth login",
   "platform auth logout",
   "platform auth status",
   "platform billing account",
-  "platform billing setup",
-  "platform billing topup",
   "platform billing usage",
-  "platform company create",
   "platform company runtime",
   "platform formation doctor",
   "platform formation status",
   "platform projection",
-  "platform sprite pause",
-  "platform sprite resume",
   "plugin doctor",
   "plugin install",
   "plugin status",
@@ -176,7 +161,6 @@ export const CLI_COMMANDS = [
   "runtime services",
   "runtime status",
   "runtime tools",
-  "search",
   "security-report",
   "setup",
   "setup skills",
@@ -203,7 +187,6 @@ export const CLI_COMMANDS = [
   "techtree bbh draft propose",
   "techtree bbh draft pull",
   "techtree bbh draft ready",
-  "techtree bbh fetch",
   "techtree bbh genome improve",
   "techtree bbh genome init",
   "techtree bbh genome propose",
@@ -215,7 +198,6 @@ export const CLI_COMMANDS = [
   "techtree bbh submit",
   "techtree bbh sync",
   "techtree bbh validate",
-  "techtree bbh verify",
   "techtree benchmarks capsule init",
   "techtree benchmarks capsule pack",
   "techtree benchmarks capsule submit",
@@ -236,21 +218,7 @@ export const CLI_COMMANDS = [
   "techtree identities list",
   "techtree identities mint",
   "techtree inbox",
-  "techtree main artifact compile",
-  "techtree main artifact init",
-  "techtree main artifact pin",
-  "techtree main artifact publish",
   "techtree main fetch",
-  "techtree main review compile",
-  "techtree main review exec",
-  "techtree main review init",
-  "techtree main review pin",
-  "techtree main review publish",
-  "techtree main run compile",
-  "techtree main run exec",
-  "techtree main run init",
-  "techtree main run pin",
-  "techtree main run publish",
   "techtree main verify",
   "techtree node children <id>",
   "techtree node comments <id>",
@@ -318,10 +286,8 @@ export const CLI_COMMANDS = [
   "techtree work list",
   "techtree work next",
   "techtree work publish",
-  "wallet agentic address",
   "wallet agentic balance",
   "wallet agentic fund",
-  "wallet agentic get",
   "wallet agentic login",
   "wallet agentic status",
   "wallet agentic verify",
@@ -423,10 +389,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch fee-registry get",
     "autolaunch fee-vault get",
     "autolaunch fee-vault withdraw-regent",
-    "autolaunch holdings claim-usdc",
-    "autolaunch holdings stake",
-    "autolaunch holdings sweep-ingress",
-    "autolaunch holdings unstake",
     "autolaunch identities list",
     "autolaunch identities mint",
     "autolaunch ingress create",
@@ -434,7 +396,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch ingress set-default",
     "autolaunch ingress set-label",
     "autolaunch jobs watch",
-    "autolaunch launch create",
     "autolaunch launch finalize",
     "autolaunch launch monitor",
     "autolaunch launch preview",
@@ -487,9 +448,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch vesting release",
     "autolaunch vesting status"
   ],
-  "balance": [
-    "balance"
-  ],
   "budget": [
     "budget grant",
     "budget ledger",
@@ -508,10 +466,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "config get",
     "config write"
   ],
-  "create": [
-    "create init",
-    "create wallet"
-  ],
   "doctor": [
     "doctor",
     "doctor auth",
@@ -519,8 +473,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "doctor runtime",
     "doctor techtree",
     "doctor transports",
-    "doctor workspace",
-    "doctor xmtp"
+    "doctor workspace"
   ],
   "ens": [
     "ens set-primary"
@@ -542,7 +495,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   "mcp": [
     "mcp doctor",
     "mcp export codex",
-    "mcp export hermes",
     "mcp serve",
     "mcp tools list"
   ],
@@ -551,16 +503,11 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "platform auth logout",
     "platform auth status",
     "platform billing account",
-    "platform billing setup",
-    "platform billing topup",
     "platform billing usage",
-    "platform company create",
     "platform company runtime",
     "platform formation doctor",
     "platform formation status",
-    "platform projection",
-    "platform sprite pause",
-    "platform sprite resume"
+    "platform projection"
   ],
   "plugin": [
     "plugin doctor",
@@ -598,9 +545,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "runtime status",
     "runtime tools"
   ],
-  "search": [
-    "search"
-  ],
   "security-report": [
     "security-report"
   ],
@@ -634,7 +578,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree bbh draft propose",
     "techtree bbh draft pull",
     "techtree bbh draft ready",
-    "techtree bbh fetch",
     "techtree bbh genome improve",
     "techtree bbh genome init",
     "techtree bbh genome propose",
@@ -646,7 +589,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree bbh submit",
     "techtree bbh sync",
     "techtree bbh validate",
-    "techtree bbh verify",
     "techtree benchmarks capsule init",
     "techtree benchmarks capsule pack",
     "techtree benchmarks capsule submit",
@@ -667,21 +609,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree identities list",
     "techtree identities mint",
     "techtree inbox",
-    "techtree main artifact compile",
-    "techtree main artifact init",
-    "techtree main artifact pin",
-    "techtree main artifact publish",
     "techtree main fetch",
-    "techtree main review compile",
-    "techtree main review exec",
-    "techtree main review init",
-    "techtree main review pin",
-    "techtree main review publish",
-    "techtree main run compile",
-    "techtree main run exec",
-    "techtree main run init",
-    "techtree main run pin",
-    "techtree main run publish",
     "techtree main verify",
     "techtree node children <id>",
     "techtree node comments <id>",
@@ -751,10 +679,8 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree work publish"
   ],
   "wallet": [
-    "wallet agentic address",
     "wallet agentic balance",
     "wallet agentic fund",
-    "wallet agentic get",
     "wallet agentic login",
     "wallet agentic status",
     "wallet agentic verify",
@@ -1023,7 +949,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List harness."
   },
   "agent init": {
     "command": "agent init",
@@ -1052,7 +979,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up agent."
   },
   "agent link": {
     "command": "agent link",
@@ -1167,7 +1095,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show profile."
   },
   "agent profile list": {
     "command": "agent profile list",
@@ -1196,7 +1125,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List profile."
   },
   "agent status": {
     "command": "agent status",
@@ -1225,7 +1155,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show agent status."
   },
   "agent-context": {
     "command": "agent-context",
@@ -1254,7 +1185,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Print the safe command and setup context for another agent."
   },
   "agentbook lookup": {
     "command": "agentbook lookup",
@@ -1389,7 +1321,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Sign in for protected Regent commands."
   },
   "auth logout": {
     "command": "auth logout",
@@ -1411,7 +1344,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Sign out on this machine."
   },
   "auth status": {
     "command": "auth status",
@@ -1433,7 +1367,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show the current saved sign-in."
   },
   "autolaunch agent <id>": {
     "command": "autolaunch agent <id>",
@@ -1457,7 +1392,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "List and inspect launchable Agent account projects.",
+    "summary": "Show Autolaunch agent.",
     "usage": "regents autolaunch agents list",
     "next_step": "Use `regents autolaunch agent readiness <id>`."
   },
@@ -1483,7 +1418,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "List and inspect launchable Agent account projects.",
+    "summary": "Show agent readiness.",
     "usage": "regents autolaunch agents list",
     "next_step": "Use `regents autolaunch agent readiness <id>`."
   },
@@ -1509,7 +1444,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "List and inspect launchable Agent account projects.",
+    "summary": "List agents.",
     "usage": "regents autolaunch agents list",
     "next_step": "Use `regents autolaunch agent readiness <id>`."
   },
@@ -1535,7 +1470,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch auction."
   },
   "autolaunch auction-returns list": {
     "command": "autolaunch auction-returns list",
@@ -1559,7 +1495,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List auction returns."
   },
   "autolaunch auctions list": {
     "command": "autolaunch auctions list",
@@ -1583,7 +1520,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List auctions."
   },
   "autolaunch bids claim": {
     "command": "autolaunch bids claim",
@@ -1607,7 +1545,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Claim bids."
   },
   "autolaunch bids exit": {
     "command": "autolaunch bids exit",
@@ -1631,7 +1570,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Exit bids."
   },
   "autolaunch bids place": {
     "command": "autolaunch bids place",
@@ -1655,7 +1595,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Place bids."
   },
   "autolaunch bids quote": {
     "command": "autolaunch bids quote",
@@ -1679,7 +1620,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Quote bids."
   },
   "autolaunch contracts admin": {
     "command": "autolaunch contracts admin",
@@ -1704,7 +1646,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch contracts admin."
   },
   "autolaunch contracts job": {
     "command": "autolaunch contracts job",
@@ -1729,7 +1672,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch contracts job."
   },
   "autolaunch contracts subject": {
     "command": "autolaunch contracts subject",
@@ -1754,7 +1698,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch contracts subject."
   },
   "autolaunch ens plan": {
     "command": "autolaunch ens plan",
@@ -1779,7 +1724,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch ENS plan."
   },
   "autolaunch ens prepare-bidirectional": {
     "command": "autolaunch ens prepare-bidirectional",
@@ -1804,7 +1750,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Prepare bidirectional for ENS."
   },
   "autolaunch ens prepare-ensip25": {
     "command": "autolaunch ens prepare-ensip25",
@@ -1829,7 +1776,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Prepare ensip25 for ENS."
   },
   "autolaunch ens prepare-erc8004": {
     "command": "autolaunch ens prepare-erc8004",
@@ -1854,7 +1802,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Prepare erc8004 for ENS."
   },
   "autolaunch factory revenue-ingress set-authorized-creator": {
     "command": "autolaunch factory revenue-ingress set-authorized-creator",
@@ -1879,7 +1828,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set authorized creator for factory revenue ingress."
   },
   "autolaunch factory revenue-share set-authorized-creator": {
     "command": "autolaunch factory revenue-share set-authorized-creator",
@@ -1904,7 +1854,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set authorized creator for factory revenue share."
   },
   "autolaunch fee-registry get": {
     "command": "autolaunch fee-registry get",
@@ -1929,7 +1880,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show fee registry."
   },
   "autolaunch fee-vault get": {
     "command": "autolaunch fee-vault get",
@@ -1954,7 +1906,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show fee vault."
   },
   "autolaunch fee-vault withdraw-regent": {
     "command": "autolaunch fee-vault withdraw-regent",
@@ -1979,117 +1932,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
-  },
-  "autolaunch holdings claim-usdc": {
-    "command": "autolaunch holdings claim-usdc",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "autolaunch holdings stake": {
-    "command": "autolaunch holdings stake",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--amount",
-        "type": "string",
-        "required": true,
-        "description": "Amount of subject tokens to stake."
-      },
-      {
-        "name": "--receiver",
-        "type": "string",
-        "required": false,
-        "description": "Optional wallet address or ENS name that receives the stake position."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "autolaunch holdings sweep-ingress": {
-    "command": "autolaunch holdings sweep-ingress",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "autolaunch holdings unstake": {
-    "command": "autolaunch holdings unstake",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Withdraw fee vault."
   },
   "autolaunch identities list": {
     "command": "autolaunch identities list",
@@ -2111,7 +1955,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List identities."
   },
   "autolaunch identities mint": {
     "command": "autolaunch identities mint",
@@ -2133,7 +1978,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create identities."
   },
   "autolaunch ingress create": {
     "command": "autolaunch ingress create",
@@ -2158,7 +2004,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create ingress."
   },
   "autolaunch ingress rescue": {
     "command": "autolaunch ingress rescue",
@@ -2183,7 +2030,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Rescue ingress."
   },
   "autolaunch ingress set-default": {
     "command": "autolaunch ingress set-default",
@@ -2208,7 +2056,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set default for ingress."
   },
   "autolaunch ingress set-label": {
     "command": "autolaunch ingress set-label",
@@ -2233,7 +2082,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set label for ingress."
   },
   "autolaunch jobs watch": {
     "command": "autolaunch jobs watch",
@@ -2260,36 +2110,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
-    "usage": "regents autolaunch prelaunch <command>",
-    "next_step": "Use `regents autolaunch jobs watch <job-id>`."
-  },
-  "autolaunch launch create": {
-    "command": "autolaunch launch create",
-    "owner": "autolaunch",
-    "group": "prelaunch-launch",
-    "interface": "mixed",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "launch-envelopes",
-    "examples": [
-      "regents autolaunch prelaunch wizard",
-      "regents autolaunch prelaunch get --plan <id>",
-      "regents autolaunch prelaunch validate --plan <id>",
-      "regents autolaunch jobs watch <job_id>"
-    ],
-    "agent_metadata": {
-      "category": "launch",
-      "prompt_behavior": "confirm_before_publish_or_submit",
-      "json_support": "supported",
-      "mutation_class": "workflow-write",
-      "retry_behavior": "retry_status_and_prepare_only",
-      "pagination": "bounded",
-      "async_behavior": "job_or_polling",
-      "input_mode": "mixed",
-      "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
-    },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Watch jobs.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2318,7 +2139,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Finalize launch.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2347,7 +2168,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Watch launch.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2376,7 +2197,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Preview launch.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2405,7 +2226,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Run launch.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2443,7 +2264,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "synchronous",
       "input_mode": "flags"
     },
-    "summary": "Connect this local Agent account to an Autolaunch Profile.",
+    "summary": "Pair Autolaunch.",
     "usage": "regents autolaunch pair --code <pairing-code>",
     "next_step": "Open Profile in Autolaunch to review the connected agent."
   },
@@ -2472,7 +2293,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Show prelaunch.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2501,7 +2322,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Publish prelaunch.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2530,7 +2351,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Check prelaunch.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2543,6 +2364,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
     "flags": [
+      {
+        "name": "--agent",
+        "type": "string",
+        "required": true,
+        "description": "Agent identity to launch. Create or refresh it with `regents identity ensure`."
+      },
+      {
+        "name": "--name",
+        "type": "string",
+        "required": true,
+        "description": "Token name, 3 to 15 characters."
+      },
+      {
+        "name": "--symbol",
+        "type": "string",
+        "required": true,
+        "description": "Token symbol, 2 to 10 characters."
+      },
+      {
+        "name": "--minimum-raise-usdc",
+        "type": "integer",
+        "required": false,
+        "description": "Minimum USDC raise. Use a whole number; 0 is allowed."
+      },
       {
         "name": "--agent-safe-address",
         "type": "evm-address",
@@ -2567,7 +2412,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Open prelaunch wizard.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -2594,7 +2439,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show registry."
   },
   "autolaunch registry link-identity": {
     "command": "autolaunch registry link-identity",
@@ -2619,7 +2465,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Link identity for registry."
   },
   "autolaunch registry rotate-safe": {
     "command": "autolaunch registry rotate-safe",
@@ -2644,7 +2491,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Rotate safe for registry."
   },
   "autolaunch registry set-subject-manager": {
     "command": "autolaunch registry set-subject-manager",
@@ -2669,7 +2517,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set subject manager for registry."
   },
   "autolaunch safe create": {
     "command": "autolaunch safe create",
@@ -2707,7 +2556,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "interactive",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare the Agent Safe used to protect an Autolaunch launch.",
+    "summary": "Create safe.",
     "usage": "regents autolaunch safe <wizard|create>",
     "next_step": "Use the Safe address in `regents autolaunch prelaunch wizard`."
   },
@@ -2759,7 +2608,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "interactive",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare the Agent Safe used to protect an Autolaunch launch.",
+    "summary": "Open safe wizard.",
     "usage": "regents autolaunch safe <wizard|create>",
     "next_step": "Use the Safe address in `regents autolaunch prelaunch wizard`."
   },
@@ -2786,7 +2635,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Accept ownership for splitter."
   },
   "autolaunch splitter activate-eligible-revenue-share": {
     "command": "autolaunch splitter activate-eligible-revenue-share",
@@ -2811,7 +2661,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Activate eligible revenue share for splitter."
   },
   "autolaunch splitter cancel-eligible-revenue-share": {
     "command": "autolaunch splitter cancel-eligible-revenue-share",
@@ -2836,7 +2687,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Cancel eligible revenue share for splitter."
   },
   "autolaunch splitter cancel-treasury-recipient-rotation": {
     "command": "autolaunch splitter cancel-treasury-recipient-rotation",
@@ -2861,7 +2713,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Cancel treasury recipient rotation for splitter."
   },
   "autolaunch splitter execute-treasury-recipient-rotation": {
     "command": "autolaunch splitter execute-treasury-recipient-rotation",
@@ -2886,7 +2739,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Execute treasury recipient rotation for splitter."
   },
   "autolaunch splitter get": {
     "command": "autolaunch splitter get",
@@ -2911,7 +2765,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show splitter."
   },
   "autolaunch splitter propose-eligible-revenue-share": {
     "command": "autolaunch splitter propose-eligible-revenue-share",
@@ -2936,7 +2791,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Propose eligible revenue share splitter."
   },
   "autolaunch splitter propose-treasury-recipient-rotation": {
     "command": "autolaunch splitter propose-treasury-recipient-rotation",
@@ -2961,7 +2817,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Propose treasury recipient rotation splitter."
   },
   "autolaunch splitter pull-treasury-share": {
     "command": "autolaunch splitter pull-treasury-share",
@@ -2986,7 +2843,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Fetch splitter."
   },
   "autolaunch splitter reassign-dust": {
     "command": "autolaunch splitter reassign-dust",
@@ -3011,7 +2869,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch splitter reassign dust."
   },
   "autolaunch splitter set-label": {
     "command": "autolaunch splitter set-label",
@@ -3036,7 +2895,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set label for splitter."
   },
   "autolaunch splitter set-paused": {
     "command": "autolaunch splitter set-paused",
@@ -3061,7 +2921,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set paused for splitter."
   },
   "autolaunch splitter set-protocol-recipient": {
     "command": "autolaunch splitter set-protocol-recipient",
@@ -3086,7 +2947,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set protocol recipient for splitter."
   },
   "autolaunch splitter sweep-protocol-reserve": {
     "command": "autolaunch splitter sweep-protocol-reserve",
@@ -3111,7 +2973,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Sweep protocol reserve for splitter."
   },
   "autolaunch splitter sweep-treasury-reserved": {
     "command": "autolaunch splitter sweep-treasury-reserved",
@@ -3136,7 +2999,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Sweep treasury reserved for splitter."
   },
   "autolaunch splitter sweep-treasury-residual": {
     "command": "autolaunch splitter sweep-treasury-residual",
@@ -3161,7 +3025,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Sweep treasury residual for splitter."
   },
   "autolaunch strategy migrate": {
     "command": "autolaunch strategy migrate",
@@ -3186,7 +3051,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Migrate strategy."
   },
   "autolaunch strategy sweep-currency": {
     "command": "autolaunch strategy sweep-currency",
@@ -3211,7 +3077,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Sweep currency for strategy."
   },
   "autolaunch strategy sweep-token": {
     "command": "autolaunch strategy sweep-token",
@@ -3236,7 +3103,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Sweep token for strategy."
   },
   "autolaunch subjects by-token": {
     "command": "autolaunch subjects by-token",
@@ -3268,7 +3136,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch subjects by token."
   },
   "autolaunch subjects claim-usdc": {
     "command": "autolaunch subjects claim-usdc",
@@ -3292,7 +3161,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Claim USDC for subjects."
   },
   "autolaunch subjects create-deferred-autolaunch": {
     "command": "autolaunch subjects create-deferred-autolaunch",
@@ -3326,12 +3196,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "address",
         "required": true,
         "description": "Treasury that receives vested tokens and revenue."
-      },
-      {
-        "name": "--token-factory",
-        "type": "address",
-        "required": true,
-        "description": "Token factory address."
       },
       {
         "name": "--token-factory-data",
@@ -3384,7 +3248,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create deferred Autolaunch for subjects."
   },
   "autolaunch subjects create-existing-token": {
     "command": "autolaunch subjects create-existing-token",
@@ -3440,7 +3305,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create existing token for subjects."
   },
   "autolaunch subjects get": {
     "command": "autolaunch subjects get",
@@ -3464,7 +3330,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show subjects."
   },
   "autolaunch subjects ingress": {
     "command": "autolaunch subjects ingress",
@@ -3488,7 +3355,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch subjects ingress."
   },
   "autolaunch subjects protocol-fee-settlements": {
     "command": "autolaunch subjects protocol-fee-settlements",
@@ -3512,7 +3380,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch subjects protocol fee settlements."
   },
   "autolaunch subjects regent-emissions": {
     "command": "autolaunch subjects regent-emissions",
@@ -3536,7 +3405,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch subjects REGENT emissions."
   },
   "autolaunch subjects stake": {
     "command": "autolaunch subjects stake",
@@ -3574,7 +3444,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Stake subjects."
   },
   "autolaunch subjects staking": {
     "command": "autolaunch subjects staking",
@@ -3598,7 +3469,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Autolaunch subjects staking."
   },
   "autolaunch subjects sweep-ingress": {
     "command": "autolaunch subjects sweep-ingress",
@@ -3622,7 +3494,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Sweep ingress for subjects."
   },
   "autolaunch subjects unstake": {
     "command": "autolaunch subjects unstake",
@@ -3646,7 +3519,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Unstake subjects."
   },
   "autolaunch vesting cancel-beneficiary-rotation": {
     "command": "autolaunch vesting cancel-beneficiary-rotation",
@@ -3673,7 +3547,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Cancel beneficiary rotation for vesting.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -3702,7 +3576,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Execute beneficiary rotation for vesting.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -3731,7 +3605,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Propose beneficiary rotation vesting.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -3760,7 +3634,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Release vesting.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
@@ -3789,38 +3663,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "mixed",
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
-    "summary": "Prepare, validate, publish, and launch an Agent account project.",
+    "summary": "Show vesting status.",
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
-  },
-  "balance": {
-    "command": "balance",
-    "owner": "shared-services",
-    "group": "operator",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "operator-status-envelopes",
-    "examples": [
-      "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
-      "regents setup skills",
-      "regents plugin status --runtime auto",
-      "regents runtime status --json",
-      "regents agent-context",
-      "regents config get",
-      "regents agent profile get"
-    ],
-    "agent_metadata": {
-      "category": "local-control",
-      "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "local-read-or-write",
-      "retry_behavior": "safe_for_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
   },
   "budget grant": {
     "command": "budget grant",
@@ -3895,7 +3740,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Give an agent a spending budget."
   },
   "budget ledger": {
     "command": "budget ledger",
@@ -3926,7 +3772,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show budget activity."
   },
   "budget revoke": {
     "command": "budget revoke",
@@ -3957,7 +3804,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Revoke an agent budget."
   },
   "budget status": {
     "command": "budget status",
@@ -3994,7 +3842,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show the current budget state."
   },
   "bug": {
     "command": "bug",
@@ -4060,7 +3909,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show chatbox message history."
   },
   "chatbox post": {
     "command": "chatbox post",
@@ -4082,7 +3932,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Post a chatbox message."
   },
   "chatbox tail": {
     "command": "chatbox tail",
@@ -4104,7 +3955,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Watch new chatbox messages."
   },
   "config get": {
     "command": "config get",
@@ -4133,7 +3985,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show local Regent configuration."
   },
   "config write": {
     "command": "config write",
@@ -4162,65 +4015,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
-  },
-  "create init": {
-    "command": "create init",
-    "owner": "shared-services",
-    "group": "operator",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "operator-status-envelopes",
-    "examples": [
-      "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
-      "regents setup skills",
-      "regents plugin status --runtime auto",
-      "regents runtime status --json",
-      "regents agent-context",
-      "regents config get",
-      "regents agent profile get"
-    ],
-    "agent_metadata": {
-      "category": "local-control",
-      "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "local-read-or-write",
-      "retry_behavior": "safe_for_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "create wallet": {
-    "command": "create wallet",
-    "owner": "shared-services",
-    "group": "operator",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "operator-status-envelopes",
-    "examples": [
-      "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
-      "regents setup skills",
-      "regents plugin status --runtime auto",
-      "regents runtime status --json",
-      "regents agent-context",
-      "regents config get",
-      "regents agent profile get"
-    ],
-    "agent_metadata": {
-      "category": "local-control",
-      "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "local-read-or-write",
-      "retry_behavior": "safe_for_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Save local Regent configuration."
   },
   "doctor": {
     "command": "doctor",
@@ -4231,7 +4027,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
-      "regents doctor xmtp"
+      "regents xmtp doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -4242,7 +4038,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Check local Regent readiness."
   },
   "doctor auth": {
     "command": "doctor auth",
@@ -4253,7 +4050,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
-      "regents doctor xmtp"
+      "regents xmtp doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -4264,7 +4061,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Show doctor auth."
   },
   "doctor contracts": {
     "command": "doctor contracts",
@@ -4275,7 +4073,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
-      "regents doctor xmtp"
+      "regents xmtp doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -4286,7 +4084,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Show doctor contracts."
   },
   "doctor runtime": {
     "command": "doctor runtime",
@@ -4297,7 +4096,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
-      "regents doctor xmtp"
+      "regents xmtp doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -4308,7 +4107,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Show doctor runtime."
   },
   "doctor techtree": {
     "command": "doctor techtree",
@@ -4319,7 +4119,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
-      "regents doctor xmtp"
+      "regents xmtp doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -4330,7 +4130,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Show doctor Techtree."
   },
   "doctor transports": {
     "command": "doctor transports",
@@ -4341,7 +4142,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
-      "regents doctor xmtp"
+      "regents xmtp doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -4352,7 +4153,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Show doctor transports."
   },
   "doctor workspace": {
     "command": "doctor workspace",
@@ -4363,7 +4165,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
-      "regents doctor xmtp"
+      "regents xmtp doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -4374,29 +4176,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
-  },
-  "doctor xmtp": {
-    "command": "doctor xmtp",
-    "owner": "shared-services",
-    "group": "doctor",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents doctor",
-      "regents doctor xmtp"
-    ],
-    "agent_metadata": {
-      "category": "diagnostics",
-      "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "local-read",
-      "retry_behavior": "safe",
-      "pagination": "none",
-      "async_behavior": "synchronous",
-      "input_mode": "args"
-    }
+    },
+    "summary": "Show doctor workspace."
   },
   "ens set-primary": {
     "command": "ens set-primary",
@@ -4426,7 +4207,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Set the primary ENS name."
   },
   "feynman": {
     "command": "feynman",
@@ -4447,7 +4229,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "interactive",
       "input_mode": "interactive"
-    }
+    },
+    "summary": "Open the Feynman research shell."
   },
   "gossipsub status": {
     "command": "gossipsub status",
@@ -4476,7 +4259,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show gossipsub status."
   },
   "identity ensure": {
     "command": "identity ensure",
@@ -4498,7 +4282,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Set up or confirm the local Agent identity."
   },
   "identity graph": {
     "command": "identity graph",
@@ -4528,7 +4313,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show linked identity records."
   },
   "identity status": {
     "command": "identity status",
@@ -4550,7 +4336,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show local identity readiness."
   },
   "init": {
     "command": "init",
@@ -4579,7 +4366,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up the local Regents config and working folders."
   },
   "mcp doctor": {
     "command": "mcp doctor",
@@ -4589,7 +4377,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
-      "regents mcp export hermes",
       "regents mcp export codex",
       "regents mcp tools list --json",
       "regents mcp doctor --json",
@@ -4604,7 +4391,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Check MCP setup."
   },
   "mcp export codex": {
     "command": "mcp export codex",
@@ -4614,7 +4402,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
-      "regents mcp export hermes",
       "regents mcp export codex",
       "regents mcp tools list --json",
       "regents mcp doctor --json",
@@ -4629,32 +4416,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
-  },
-  "mcp export hermes": {
-    "command": "mcp export hermes",
-    "owner": "shared-services",
-    "group": "mcp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents mcp export hermes",
-      "regents mcp export codex",
-      "regents mcp tools list --json",
-      "regents mcp doctor --json",
-      "regents mcp serve --transport stdio"
-    ],
-    "agent_metadata": {
-      "category": "integration",
-      "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "local-read",
-      "retry_behavior": "safe",
-      "pagination": "none",
-      "async_behavior": "synchronous",
-      "input_mode": "args"
-    }
+    },
+    "summary": "Print MCP setup for Codex."
   },
   "mcp serve": {
     "command": "mcp serve",
@@ -4664,7 +4427,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
-      "regents mcp export hermes",
       "regents mcp export codex",
       "regents mcp tools list --json",
       "regents mcp doctor --json",
@@ -4679,7 +4441,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "Start the Regents MCP server."
   },
   "mcp tools list": {
     "command": "mcp tools list",
@@ -4689,7 +4452,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
-      "regents mcp export hermes",
       "regents mcp export codex",
       "regents mcp tools list --json",
       "regents mcp doctor --json",
@@ -4704,7 +4466,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args"
-    }
+    },
+    "summary": "List tools."
   },
   "platform auth login": {
     "command": "platform auth login",
@@ -4901,100 +4664,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show the billing account tied to the saved platform session."
   },
-  "platform billing setup": {
-    "command": "platform billing setup",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "beta-disabled",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "args": [],
-    "flags": [
-      {
-        "name": "--claimed-label",
-        "type": "string",
-        "required": false,
-        "description": "Optional claimed name to carry into the hosted billing return link."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Open billing setup for the saved platform account."
-  },
-  "platform billing topup": {
-    "command": "platform billing topup",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "beta-disabled",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "args": [],
-    "flags": [
-      {
-        "name": "--amount-usd-cents",
-        "type": "integer",
-        "required": true,
-        "description": "Runtime credit amount in US cents."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Open runtime credit checkout for the saved platform account."
-  },
   "platform billing usage": {
     "command": "platform billing usage",
     "owner": "platform",
@@ -5038,53 +4707,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show shared runtime credit and company usage from the saved platform session."
-  },
-  "platform company create": {
-    "command": "platform company create",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "beta-disabled",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "args": [],
-    "flags": [
-      {
-        "name": "--claimed-label",
-        "type": "string",
-        "required": true,
-        "description": "Claimed name label to launch as a company."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Launch a company for one claimed name from the saved platform account."
   },
   "platform company runtime": {
     "command": "platform company runtime",
@@ -5268,100 +4890,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show the canonical Platform projection for product and mobile clients."
   },
-  "platform sprite pause": {
-    "command": "platform sprite pause",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "beta-disabled",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "args": [],
-    "flags": [
-      {
-        "name": "--slug",
-        "type": "string",
-        "required": true,
-        "description": "Company slug to pause."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Pause one owned company runtime from the saved platform session."
-  },
-  "platform sprite resume": {
-    "command": "platform sprite resume",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "beta-disabled",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "args": [],
-    "flags": [
-      {
-        "name": "--slug",
-        "type": "string",
-        "required": true,
-        "description": "Company slug to resume."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Resume one owned company runtime from the saved platform session."
-  },
   "plugin doctor": {
     "command": "plugin doctor",
     "owner": "shared-services",
@@ -5394,7 +4922,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Check plugin setup."
   },
   "plugin install": {
     "command": "plugin install",
@@ -5430,7 +4959,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Install a Regent plugin for the selected runtime."
   },
   "plugin status": {
     "command": "plugin status",
@@ -5464,7 +4994,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show installed Regent plugins."
   },
   "receipt create": {
     "command": "receipt create",
@@ -5513,7 +5044,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Create a payment receipt record."
   },
   "receipt get": {
     "command": "receipt get",
@@ -5544,7 +5076,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show receipt."
   },
   "receipt list": {
     "command": "receipt list",
@@ -5567,7 +5100,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "List receipt."
   },
   "receipt share-draft": {
     "command": "receipt share-draft",
@@ -5598,7 +5132,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Draft shareable receipt details."
   },
   "regent-staking account": {
     "command": "regent-staking account",
@@ -5905,7 +5440,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "long_running",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Start local Regent access for agents and terminal commands."
   },
   "runtime checkpoint": {
     "command": "runtime checkpoint",
@@ -6263,7 +5799,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show runtime policy settings."
   },
   "runtime restore": {
     "command": "runtime restore",
@@ -6463,7 +6000,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show runtime status."
   },
   "runtime tools": {
     "command": "runtime tools",
@@ -6486,30 +6024,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
-  },
-  "search": {
-    "command": "search",
-    "owner": "techtree",
-    "group": "tree",
-    "interface": "http",
-    "auth_mode": "mixed",
-    "output_envelope": "tree-envelopes",
-    "examples": [
-      "regents techtree search \"alignment\"",
-      "regents techtree node get <id>",
-      "regents techtree inbox"
-    ],
-    "agent_metadata": {
-      "category": "tree",
-      "prompt_behavior": "never_prompt_for_reads",
-      "json_support": "supported",
-      "mutation_class": "read-or-tree-write",
-      "retry_behavior": "retry_reads_only",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List runtime tools."
   },
   "security-report": {
     "command": "security-report",
@@ -6594,7 +6110,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show setup guidance."
   },
   "setup skills": {
     "command": "setup skills",
@@ -6630,7 +6147,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Install recommended Regent skills."
   },
   "status": {
     "command": "status",
@@ -6659,7 +6177,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show whether this machine is ready to use Regent."
   },
   "techtree activity": {
     "command": "techtree activity",
@@ -6682,7 +6201,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show recent Techtree activity."
   },
   "techtree autoskill buy": {
     "command": "techtree autoskill buy",
@@ -6711,7 +6231,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Buy autoskill."
   },
   "techtree autoskill init eval": {
     "command": "techtree autoskill init eval",
@@ -6733,7 +6254,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up autoskill eval."
   },
   "techtree autoskill init skill": {
     "command": "techtree autoskill init skill",
@@ -6755,7 +6277,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up autoskill skill."
   },
   "techtree autoskill listing create": {
     "command": "techtree autoskill listing create",
@@ -6812,7 +6335,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create autoskill listing."
   },
   "techtree autoskill notebook pair": {
     "command": "techtree autoskill notebook pair",
@@ -6834,7 +6358,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Pair autoskill notebook."
   },
   "techtree autoskill publish eval": {
     "command": "techtree autoskill publish eval",
@@ -6856,7 +6381,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Publish autoskill eval."
   },
   "techtree autoskill publish result": {
     "command": "techtree autoskill publish result",
@@ -6878,7 +6404,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Publish autoskill result."
   },
   "techtree autoskill publish skill": {
     "command": "techtree autoskill publish skill",
@@ -6900,7 +6427,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Publish autoskill skill."
   },
   "techtree autoskill pull": {
     "command": "techtree autoskill pull",
@@ -6922,7 +6450,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Fetch autoskill."
   },
   "techtree autoskill refund": {
     "command": "techtree autoskill refund",
@@ -6951,7 +6480,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Refund autoskill."
   },
   "techtree autoskill review": {
     "command": "techtree autoskill review",
@@ -6973,7 +6503,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Review an autoskill package."
   },
   "techtree bbh capsules get": {
     "command": "techtree bbh capsules get",
@@ -6996,7 +6527,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show BBH capsules."
   },
   "techtree bbh capsules list": {
     "command": "techtree bbh capsules list",
@@ -7019,7 +6551,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List BBH capsules."
   },
   "techtree bbh draft apply": {
     "command": "techtree bbh draft apply",
@@ -7042,7 +6575,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Apply BBH draft."
   },
   "techtree bbh draft create": {
     "command": "techtree bbh draft create",
@@ -7065,7 +6599,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create BBH draft."
   },
   "techtree bbh draft init": {
     "command": "techtree bbh draft init",
@@ -7088,7 +6623,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up BBH draft."
   },
   "techtree bbh draft list": {
     "command": "techtree bbh draft list",
@@ -7111,7 +6647,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List BBH draft."
   },
   "techtree bbh draft proposals": {
     "command": "techtree bbh draft proposals",
@@ -7134,7 +6671,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List BBH draft proposals."
   },
   "techtree bbh draft propose": {
     "command": "techtree bbh draft propose",
@@ -7157,7 +6695,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Propose BBH draft."
   },
   "techtree bbh draft pull": {
     "command": "techtree bbh draft pull",
@@ -7180,7 +6719,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Fetch BBH draft."
   },
   "techtree bbh draft ready": {
     "command": "techtree bbh draft ready",
@@ -7203,29 +6743,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
-  },
-  "techtree bbh fetch": {
-    "command": "techtree bbh fetch",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Mark BBH draft ready."
   },
   "techtree bbh genome improve": {
     "command": "techtree bbh genome improve",
@@ -7248,7 +6767,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Improve BBH genome."
   },
   "techtree bbh genome init": {
     "command": "techtree bbh genome init",
@@ -7271,7 +6791,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up BBH genome."
   },
   "techtree bbh genome propose": {
     "command": "techtree bbh genome propose",
@@ -7294,7 +6815,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Propose BBH genome."
   },
   "techtree bbh genome score": {
     "command": "techtree bbh genome score",
@@ -7317,7 +6839,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Score BBH genome."
   },
   "techtree bbh leaderboard": {
     "command": "techtree bbh leaderboard",
@@ -7340,7 +6863,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show BBH leaderboard."
   },
   "techtree bbh notebook pair": {
     "command": "techtree bbh notebook pair",
@@ -7363,7 +6887,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Pair BBH notebook."
   },
   "techtree bbh run exec": {
     "command": "techtree bbh run exec",
@@ -7386,7 +6911,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Run BBH exec."
   },
   "techtree bbh run solve": {
     "command": "techtree bbh run solve",
@@ -7409,7 +6935,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Solve BBH run."
   },
   "techtree bbh submit": {
     "command": "techtree bbh submit",
@@ -7432,7 +6959,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Submit BBH."
   },
   "techtree bbh sync": {
     "command": "techtree bbh sync",
@@ -7455,7 +6983,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Sync BBH."
   },
   "techtree bbh validate": {
     "command": "techtree bbh validate",
@@ -7478,29 +7007,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
-  },
-  "techtree bbh verify": {
-    "command": "techtree bbh verify",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Check BBH."
   },
   "techtree benchmarks capsule init": {
     "command": "techtree benchmarks capsule init",
@@ -7522,7 +7030,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up benchmarks capsule."
   },
   "techtree benchmarks capsule pack": {
     "command": "techtree benchmarks capsule pack",
@@ -7544,7 +7053,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Pack benchmarks capsule."
   },
   "techtree benchmarks capsule submit": {
     "command": "techtree benchmarks capsule submit",
@@ -7566,7 +7076,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Submit benchmarks capsule."
   },
   "techtree benchmarks get <capsule_id>": {
     "command": "techtree benchmarks get <capsule_id>",
@@ -7588,7 +7099,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show benchmarks."
   },
   "techtree benchmarks list": {
     "command": "techtree benchmarks list",
@@ -7610,7 +7122,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List benchmarks."
   },
   "techtree benchmarks reliability <capsule_id>": {
     "command": "techtree benchmarks reliability <capsule_id>",
@@ -7632,7 +7145,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Techtree benchmarks reliability."
   },
   "techtree benchmarks run materialize": {
     "command": "techtree benchmarks run materialize",
@@ -7654,7 +7168,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Materialize benchmarks run."
   },
   "techtree benchmarks run repeat": {
     "command": "techtree benchmarks run repeat",
@@ -7676,7 +7191,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Repeat benchmarks run."
   },
   "techtree benchmarks run submit": {
     "command": "techtree benchmarks run submit",
@@ -7698,7 +7214,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Submit benchmarks run."
   },
   "techtree benchmarks scoreboard <capsule_id>": {
     "command": "techtree benchmarks scoreboard <capsule_id>",
@@ -7720,7 +7237,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Techtree benchmarks scoreboard."
   },
   "techtree benchmarks validate": {
     "command": "techtree benchmarks validate",
@@ -7742,7 +7260,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Check benchmarks."
   },
   "techtree certificate verify": {
     "command": "techtree certificate verify",
@@ -7765,7 +7284,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Check certificate."
   },
   "techtree comment add": {
     "command": "techtree comment add",
@@ -7788,7 +7308,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Add comment."
   },
   "techtree fold policy init": {
     "command": "techtree fold policy init",
@@ -7876,7 +7397,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up fold policy."
   },
   "techtree fold proof": {
     "command": "techtree fold proof",
@@ -7907,7 +7429,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show fold proof."
   },
   "techtree fold report": {
     "command": "techtree fold report",
@@ -7938,7 +7461,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create fold report."
   },
   "techtree fold status": {
     "command": "techtree fold status",
@@ -7969,7 +7493,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show fold status."
   },
   "techtree identities list": {
     "command": "techtree identities list",
@@ -7992,7 +7517,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List identities."
   },
   "techtree identities mint": {
     "command": "techtree identities mint",
@@ -8015,7 +7541,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create identities."
   },
   "techtree inbox": {
     "command": "techtree inbox",
@@ -8038,95 +7565,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main artifact compile": {
-    "command": "techtree main artifact compile",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main artifact init": {
-    "command": "techtree main artifact init",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main artifact pin": {
-    "command": "techtree main artifact pin",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main artifact publish": {
-    "command": "techtree main artifact publish",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show your Techtree inbox."
   },
   "techtree main fetch": {
     "command": "techtree main fetch",
@@ -8136,8 +7576,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "local-or-http",
     "output_envelope": "runtime-workspace-envelopes",
     "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
+      "regents techtree main fetch --node <id>",
+      "regents techtree main verify --node <id>"
     ],
     "agent_metadata": {
       "category": "runtime-workspace",
@@ -8148,227 +7588,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "local_run_or_synchronous",
       "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main review compile": {
-    "command": "techtree main review compile",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main review exec": {
-    "command": "techtree main review exec",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main review init": {
-    "command": "techtree main review init",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main review pin": {
-    "command": "techtree main review pin",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main review publish": {
-    "command": "techtree main review publish",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main run compile": {
-    "command": "techtree main run compile",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main run exec": {
-    "command": "techtree main run exec",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main run init": {
-    "command": "techtree main run init",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main run pin": {
-    "command": "techtree main run pin",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
-  },
-  "techtree main run publish": {
-    "command": "techtree main run publish",
-    "owner": "techtree",
-    "group": "runtime-workspace",
-    "interface": "mixed",
-    "auth_mode": "local-or-http",
-    "output_envelope": "runtime-workspace-envelopes",
-    "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
-    ],
-    "agent_metadata": {
-      "category": "runtime-workspace",
-      "prompt_behavior": "confirm_before_publish",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_local_builds_and_reads",
-      "pagination": "bounded",
-      "async_behavior": "local_run_or_synchronous",
-      "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Fetch main."
   },
   "techtree main verify": {
     "command": "techtree main verify",
@@ -8378,8 +7599,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "local-or-http",
     "output_envelope": "runtime-workspace-envelopes",
     "examples": [
-      "regents techtree main artifact init",
-      "regents techtree main run exec"
+      "regents techtree main fetch --node <id>",
+      "regents techtree main verify --node <id>"
     ],
     "agent_metadata": {
       "category": "runtime-workspace",
@@ -8390,7 +7611,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "local_run_or_synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Check main."
   },
   "techtree node children <id>": {
     "command": "techtree node children <id>",
@@ -8413,7 +7635,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Techtree node children."
   },
   "techtree node comments <id>": {
     "command": "techtree node comments <id>",
@@ -8436,7 +7659,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Techtree node comments."
   },
   "techtree node create": {
     "command": "techtree node create",
@@ -8459,7 +7683,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create node."
   },
   "techtree node cross-chain-links clear": {
     "command": "techtree node cross-chain-links clear",
@@ -8482,7 +7707,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Remove node cross chain links."
   },
   "techtree node cross-chain-links create": {
     "command": "techtree node cross-chain-links create",
@@ -8505,7 +7731,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create node cross chain links."
   },
   "techtree node cross-chain-links list": {
     "command": "techtree node cross-chain-links list",
@@ -8528,7 +7755,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List node cross chain links."
   },
   "techtree node get <id>": {
     "command": "techtree node get <id>",
@@ -8551,7 +7779,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show node."
   },
   "techtree node lineage claim": {
     "command": "techtree node lineage claim",
@@ -8574,7 +7803,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Claim node lineage."
   },
   "techtree node lineage list": {
     "command": "techtree node lineage list",
@@ -8597,7 +7827,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List node lineage."
   },
   "techtree node lineage withdraw": {
     "command": "techtree node lineage withdraw",
@@ -8620,7 +7851,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Withdraw node lineage."
   },
   "techtree node work-packet <id>": {
     "command": "techtree node work-packet <id>",
@@ -8643,7 +7875,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Techtree node work packet."
   },
   "techtree nodes list": {
     "command": "techtree nodes list",
@@ -8666,7 +7899,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List nodes."
   },
   "techtree notebooks init": {
     "command": "techtree notebooks init",
@@ -8715,7 +7949,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up notebooks."
   },
   "techtree notebooks pair": {
     "command": "techtree notebooks pair",
@@ -8750,7 +7985,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Pair notebooks."
   },
   "techtree notebooks publish": {
     "command": "techtree notebooks publish",
@@ -8785,7 +8021,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Publish notebooks."
   },
   "techtree opportunities": {
     "command": "techtree opportunities",
@@ -8808,7 +8045,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show available Techtree opportunities."
   },
   "techtree review claim": {
     "command": "techtree review claim",
@@ -8831,7 +8069,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Claim review."
   },
   "techtree review list": {
     "command": "techtree review list",
@@ -8854,7 +8093,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List review."
   },
   "techtree review pull": {
     "command": "techtree review pull",
@@ -8877,7 +8117,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Fetch review."
   },
   "techtree review submit": {
     "command": "techtree review submit",
@@ -8900,7 +8141,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Submit review."
   },
   "techtree reviewer apply": {
     "command": "techtree reviewer apply",
@@ -8923,7 +8165,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Apply reviewer."
   },
   "techtree reviewer orcid link": {
     "command": "techtree reviewer orcid link",
@@ -8946,7 +8189,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Link reviewer ORCID."
   },
   "techtree reviewer status": {
     "command": "techtree reviewer status",
@@ -8969,7 +8213,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous_or_local_run",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show reviewer status."
   },
   "techtree runbook answer attach-paid-solution <answer_id>": {
     "command": "techtree runbook answer attach-paid-solution <answer_id>",
@@ -8991,7 +8236,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Attach paid solution for runbook answer."
   },
   "techtree runbook answer post <question_id>": {
     "command": "techtree runbook answer post <question_id>",
@@ -9013,7 +8259,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Post runbook answer."
   },
   "techtree runbook answer vote <answer_id>": {
     "command": "techtree runbook answer vote <answer_id>",
@@ -9035,7 +8282,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Vote on runbook answer."
   },
   "techtree runbook invite-request <question_id>": {
     "command": "techtree runbook invite-request <question_id>",
@@ -9057,7 +8305,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Invite help on a Runbook question."
   },
   "techtree runbook mark-solved <question_id>": {
     "command": "techtree runbook mark-solved <question_id>",
@@ -9079,7 +8328,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Mark a Runbook question solved."
   },
   "techtree runbook payment-address set": {
     "command": "techtree runbook payment-address set",
@@ -9101,7 +8351,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set runbook payment address."
   },
   "techtree runbook question post": {
     "command": "techtree runbook question post",
@@ -9123,7 +8374,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Post runbook question."
   },
   "techtree runbook questions get <id>": {
     "command": "techtree runbook questions get <id>",
@@ -9145,7 +8397,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show a Runbook question."
   },
   "techtree runbook questions list": {
     "command": "techtree runbook questions list",
@@ -9167,7 +8420,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List runbook questions."
   },
   "techtree runbook unlock <answer_id>": {
     "command": "techtree runbook unlock <answer_id>",
@@ -9189,7 +8443,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Unlock a paid Runbook answer."
   },
   "techtree science-tasks checklist": {
     "command": "techtree science-tasks checklist",
@@ -9211,7 +8466,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show science tasks checklist."
   },
   "techtree science-tasks evidence": {
     "command": "techtree science-tasks evidence",
@@ -9233,7 +8489,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show science tasks evidence."
   },
   "techtree science-tasks export": {
     "command": "techtree science-tasks export",
@@ -9255,7 +8512,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Export science tasks."
   },
   "techtree science-tasks get": {
     "command": "techtree science-tasks get",
@@ -9277,7 +8535,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show science tasks."
   },
   "techtree science-tasks init": {
     "command": "techtree science-tasks init",
@@ -9299,7 +8558,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up science tasks."
   },
   "techtree science-tasks list": {
     "command": "techtree science-tasks list",
@@ -9321,7 +8581,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List science tasks."
   },
   "techtree science-tasks review-loop": {
     "command": "techtree science-tasks review-loop",
@@ -9343,7 +8604,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Run the science-task review loop."
   },
   "techtree science-tasks review-update": {
     "command": "techtree science-tasks review-update",
@@ -9365,7 +8627,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Update a science-task review."
   },
   "techtree science-tasks submit": {
     "command": "techtree science-tasks submit",
@@ -9387,7 +8650,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Submit science tasks."
   },
   "techtree search": {
     "command": "techtree search",
@@ -9410,7 +8674,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Search Techtree."
   },
   "techtree star <id>": {
     "command": "techtree star <id>",
@@ -9433,7 +8698,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Star a Techtree node."
   },
   "techtree start": {
     "command": "techtree start",
@@ -9456,7 +8722,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Open the Techtree start flow."
   },
   "techtree status": {
     "command": "techtree status",
@@ -9479,7 +8746,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show Techtree status."
   },
   "techtree tech epochs current": {
     "command": "techtree tech epochs current",
@@ -9503,7 +8771,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show current TECH epochs."
   },
   "techtree tech leaderboards confirm": {
     "command": "techtree tech leaderboards confirm",
@@ -9527,7 +8796,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Confirm TECH leaderboards."
   },
   "techtree tech leaderboards list": {
     "command": "techtree tech leaderboards list",
@@ -9551,7 +8821,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List TECH leaderboards."
   },
   "techtree tech leaderboards register": {
     "command": "techtree tech leaderboards register",
@@ -9575,7 +8846,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create TECH leaderboards."
   },
   "techtree tech rewards claim": {
     "command": "techtree tech rewards claim",
@@ -9599,7 +8871,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Claim TECH rewards."
   },
   "techtree tech rewards list": {
     "command": "techtree tech rewards list",
@@ -9623,7 +8896,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List TECH rewards."
   },
   "techtree tech rewards proof": {
     "command": "techtree tech rewards proof",
@@ -9647,7 +8921,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show TECH rewards proof."
   },
   "techtree tech rewards root confirm": {
     "command": "techtree tech rewards root confirm",
@@ -9671,7 +8946,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Confirm TECH rewards root."
   },
   "techtree tech rewards root prepare": {
     "command": "techtree tech rewards root prepare",
@@ -9695,7 +8971,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Prepare TECH rewards root."
   },
   "techtree tech status": {
     "command": "techtree tech status",
@@ -9719,7 +8996,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show TECH status."
   },
   "techtree tech withdraw": {
     "command": "techtree tech withdraw",
@@ -9743,7 +9021,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Withdraw TECH."
   },
   "techtree unstar <id>": {
     "command": "techtree unstar <id>",
@@ -9766,7 +9045,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Remove a Techtree node star."
   },
   "techtree unwatch <id>": {
     "command": "techtree unwatch <id>",
@@ -9789,7 +9069,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Stop watching a Techtree node."
   },
   "techtree watch <id>": {
     "command": "techtree watch <id>",
@@ -9812,7 +9093,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Watch a Techtree node."
   },
   "techtree watch list": {
     "command": "techtree watch list",
@@ -9835,7 +9117,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List watch."
   },
   "techtree watch tail": {
     "command": "techtree watch tail",
@@ -9858,7 +9141,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "cursor",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Watch updates from followed Techtree nodes."
   },
   "techtree work accept": {
     "command": "techtree work accept",
@@ -9894,7 +9178,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Accept work."
   },
   "techtree work list": {
     "command": "techtree work list",
@@ -9942,7 +9227,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List work."
   },
   "techtree work next": {
     "command": "techtree work next",
@@ -9985,7 +9271,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show the next work."
   },
   "techtree work publish": {
     "command": "techtree work publish",
@@ -10016,30 +9303,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
-  },
-  "wallet agentic address": {
-    "command": "wallet agentic address",
-    "owner": "shared-services",
-    "group": "wallet",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents wallet status",
-      "regents wallet agentic status --json",
-      "regents wallet agentic fund --amount-usdc 10 --chain base"
-    ],
-    "agent_metadata": {
-      "category": "wallet",
-      "prompt_behavior": "prompt_when_creating_wallet",
-      "json_support": "supported",
-      "mutation_class": "local-read-or-write",
-      "retry_behavior": "safe_for_status",
-      "pagination": "none",
-      "async_behavior": "synchronous",
-      "input_mode": "flags"
-    }
+    },
+    "summary": "Publish work."
   },
   "wallet agentic balance": {
     "command": "wallet agentic balance",
@@ -10073,7 +9338,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show the Agent wallet balance."
   },
   "wallet agentic fund": {
     "command": "wallet agentic fund",
@@ -10113,30 +9379,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
-  },
-  "wallet agentic get": {
-    "command": "wallet agentic get",
-    "owner": "shared-services",
-    "group": "wallet",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents wallet status",
-      "regents wallet agentic status --json",
-      "regents wallet agentic fund --amount-usdc 10 --chain base"
-    ],
-    "agent_metadata": {
-      "category": "wallet",
-      "prompt_behavior": "prompt_when_creating_wallet",
-      "json_support": "supported",
-      "mutation_class": "local-read-or-write",
-      "retry_behavior": "safe_for_status",
-      "pagination": "none",
-      "async_behavior": "synchronous",
-      "input_mode": "flags"
-    }
+    },
+    "summary": "Show how to fund the Agent wallet."
   },
   "wallet agentic login": {
     "command": "wallet agentic login",
@@ -10173,7 +9417,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Sign in with the Agent wallet."
   },
   "wallet agentic status": {
     "command": "wallet agentic status",
@@ -10196,7 +9441,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show Agent wallet readiness."
   },
   "wallet agentic verify": {
     "command": "wallet agentic verify",
@@ -10239,7 +9485,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Verify the Agent wallet sign-in."
   },
   "wallet setup": {
     "command": "wallet setup",
@@ -10262,7 +9509,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Set up the local wallet path."
   },
   "wallet status": {
     "command": "wallet status",
@@ -10285,7 +9533,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show wallet readiness."
   },
   "whoami": {
     "command": "whoami",
@@ -10322,7 +9571,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show the local Agent account and saved sign-in context."
   },
   "work create": {
     "command": "work create",
@@ -10803,7 +10053,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show paid endpoint details."
   },
   "x402 fetch": {
     "command": "x402 fetch",
@@ -10858,7 +10109,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Fetch a paid x402 result."
   },
   "x402 pay": {
     "command": "x402 pay",
@@ -10928,7 +10180,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Pay an x402 endpoint."
   },
   "x402 prepare": {
     "command": "x402 prepare",
@@ -10993,7 +10246,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Prepare an x402 paid request."
   },
   "x402 quote": {
     "command": "x402 quote",
@@ -11053,7 +10307,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Quote an x402 paid request."
   },
   "x402 receipts get": {
     "command": "x402 receipts get",
@@ -11088,7 +10343,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Show receipts."
   },
   "x402 refund": {
     "command": "x402 refund",
@@ -11133,7 +10389,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Request an x402 refund."
   },
   "x402 search": {
     "command": "x402 search",
@@ -11161,7 +10418,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags"
-    }
+    },
+    "summary": "Search for x402 services."
   },
   "xmtp doctor": {
     "command": "xmtp doctor",
@@ -11184,7 +10442,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Check XMTP readiness."
   },
   "xmtp group add-admin": {
     "command": "xmtp group add-admin",
@@ -11207,7 +10466,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Add admin to group."
   },
   "xmtp group add-member": {
     "command": "xmtp group add-member",
@@ -11230,7 +10490,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Add member to group."
   },
   "xmtp group add-super-admin": {
     "command": "xmtp group add-super-admin",
@@ -11253,7 +10514,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Add super admin to group."
   },
   "xmtp group admins": {
     "command": "xmtp group admins",
@@ -11276,7 +10538,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List group admins."
   },
   "xmtp group create": {
     "command": "xmtp group create",
@@ -11299,7 +10562,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Create group."
   },
   "xmtp group list": {
     "command": "xmtp group list",
@@ -11322,7 +10586,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List group."
   },
   "xmtp group members": {
     "command": "xmtp group members",
@@ -11345,7 +10610,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List group members."
   },
   "xmtp group permissions": {
     "command": "xmtp group permissions",
@@ -11368,7 +10634,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List group permissions."
   },
   "xmtp group remove-admin": {
     "command": "xmtp group remove-admin",
@@ -11391,7 +10658,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Remove admin from group."
   },
   "xmtp group remove-member": {
     "command": "xmtp group remove-member",
@@ -11414,7 +10682,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Remove member from group."
   },
   "xmtp group remove-super-admin": {
     "command": "xmtp group remove-super-admin",
@@ -11437,7 +10706,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Remove super admin from group."
   },
   "xmtp group super-admins": {
     "command": "xmtp group super-admins",
@@ -11460,7 +10730,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List group super admins."
   },
   "xmtp group update-permission": {
     "command": "xmtp group update-permission",
@@ -11483,7 +10754,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Update permission for group."
   },
   "xmtp init": {
     "command": "xmtp init",
@@ -11506,7 +10778,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up local XMTP identity."
   },
   "xmtp owner add": {
     "command": "xmtp owner add",
@@ -11529,7 +10802,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Add owner."
   },
   "xmtp owner list": {
     "command": "xmtp owner list",
@@ -11552,7 +10826,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List owner."
   },
   "xmtp owner remove": {
     "command": "xmtp owner remove",
@@ -11575,7 +10850,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Remove owner."
   },
   "xmtp policy edit": {
     "command": "xmtp policy edit",
@@ -11598,7 +10874,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Edit policy."
   },
   "xmtp policy get": {
     "command": "xmtp policy get",
@@ -11621,7 +10898,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show policy."
   },
   "xmtp policy init": {
     "command": "xmtp policy init",
@@ -11644,7 +10922,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Set up policy."
   },
   "xmtp policy validate": {
     "command": "xmtp policy validate",
@@ -11667,7 +10946,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Check policy."
   },
   "xmtp resolve": {
     "command": "xmtp resolve",
@@ -11690,7 +10970,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Resolve an XMTP identity."
   },
   "xmtp revoke-other-installations": {
     "command": "xmtp revoke-other-installations",
@@ -11713,7 +10994,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Revoke other XMTP installations."
   },
   "xmtp rotate-db-key": {
     "command": "xmtp rotate-db-key",
@@ -11736,7 +11018,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Rotate the XMTP database key."
   },
   "xmtp rotate-wallet": {
     "command": "xmtp rotate-wallet",
@@ -11759,7 +11042,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Rotate the XMTP wallet."
   },
   "xmtp status": {
     "command": "xmtp status",
@@ -11782,7 +11066,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Show XMTP readiness."
   },
   "xmtp test dm": {
     "command": "xmtp test dm",
@@ -11805,7 +11090,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Send a test XMTP direct message."
   },
   "xmtp trusted add": {
     "command": "xmtp trusted add",
@@ -11828,7 +11114,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Add trusted."
   },
   "xmtp trusted list": {
     "command": "xmtp trusted list",
@@ -11851,7 +11138,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "List trusted."
   },
   "xmtp trusted remove": {
     "command": "xmtp trusted remove",
@@ -11874,6 +11162,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
-    }
+    },
+    "summary": "Remove trusted."
   }
 } as const;

@@ -33,6 +33,32 @@ describe("scoped CLI help", () => {
     expect(output.stdout).toContain("--interval <seconds>");
   });
 
+  it("renders prerequisite and failure guidance for common Autolaunch commands", async () => {
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "launch", "run", "--help"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(output.stdout).toContain("AUTOLAUNCH LAUNCH RUN HELP");
+    expect(output.stdout).toContain("BEFORE YOU RUN THIS");
+    expect(output.stdout).toContain("regents auth login --audience autolaunch");
+    expect(output.stdout).toContain("IF THIS FAILS");
+    expect(output.stdout).toContain("regents autolaunch prelaunch validate --plan <plan-id>");
+  });
+
+  it("renders prerequisite and failure guidance for common Techtree commands", async () => {
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["techtree", "work", "next", "--help"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(output.stdout).toContain("TECHTREE WORK NEXT HELP");
+    expect(output.stdout).toContain("BEFORE YOU RUN THIS");
+    expect(output.stdout).toContain("regents auth login --audience techtree");
+    expect(output.stdout).toContain("IF THIS FAILS");
+    expect(output.stdout).toContain("regents techtree work accept --work-unit <id>");
+  });
+
   it("renders setup skills help", async () => {
     const output = await captureOutput(() => runCliEntrypoint(["setup", "skills", "--help"]));
 
@@ -120,19 +146,33 @@ describe("scoped CLI help", () => {
     expect(renderScopedHelp(["autolaunch", "jobs", "watch"], "/tmp/regent.json"))
       .toMatchInlineSnapshot(`
         "◆ AUTOLAUNCH JOBS WATCH HELP
-        Watch a launch job until it reaches a final state.
+        Watch an Autolaunch job until it reaches a final state.
 
-        usage regents autolaunch jobs watch <job-id> [--interval seconds]
-        auth Needs \`regents auth login --audience autolaunch\` and \`regents identity ensure\`.
-        output Shows the latest job status each time it changes.
-        next When the job is ready, continue with the next command shown in the output.
+        usage regents autolaunch jobs watch <job-id> [--watch] [--interval <seconds>] [--json]
+        auth Needs Autolaunch sign-in and a saved Agent account.
+        output Shows the latest job status and stops when the job is ready, failed, or blocked unless asked to keep watching.
+        next Run the next command shown in the job output, usually launch monitor or finalize.
+
+        ◆ BEFORE YOU RUN THIS
+        Run \`regents run\` in another terminal.
+        Run \`regents auth login --audience autolaunch\`.
+        Run \`regents identity ensure\`.
+        Start this after a command prints a launch job id.
 
         ◆ FLAGS
+        <job-id> - Job id from launch run.
+        --watch
         --interval <seconds>
+        --json
         --config <path>
 
         ◆ EXAMPLES
-        regents autolaunch jobs watch job_123 --interval 5"
+        regents autolaunch jobs watch job_123 --watch --interval 5
+
+        ◆ IF THIS FAILS
+        If the command says auth is missing, run \`regents auth login --audience autolaunch\` and \`regents identity ensure\`.
+        If a wallet or signer is missing, run \`regents wallet status\` and use the exact missing flag named in the error.
+        If the result is not ready, run the read/status command shown in the output before trying the next write."
       `);
   });
 });

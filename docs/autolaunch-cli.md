@@ -255,23 +255,15 @@ regents autolaunch launch preview \
   --name "Agent Coin Name" \
   --symbol "AGENT" \
   --agent-safe-address <safe-address> \
+  --minimum-raise-usdc <amount> \
   [--launch-notes <text>] \
   [--json]
 
-regents autolaunch launch create \
-  --agent <agent-id> \
-  --chain-id <8453> \
-  --name "Agent Coin Name" \
-  --symbol "AGENT" \
-  --agent-safe-address <safe-address> \
-  --wallet-address <address> \
-  --registry-address <address> \
-  --token-id <id> \
-  --nonce <nonce> \
-  --message <message> \
-  --signature <signature> \
-  --issued-at <iso8601> \
-  [--launch-notes <text>] \
+regents autolaunch launch run \
+  [--plan <id>] \
+  [--wallet-address <address>] \
+  [--watch] \
+  [--interval <seconds>] \
   [--json]
 
 regents autolaunch jobs watch <job-id> [--watch] [--interval <seconds>] [--json]

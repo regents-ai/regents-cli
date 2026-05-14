@@ -35,17 +35,6 @@ type LaunchPreviewResponse = JsonSuccessResponseFor<
   "/v1/agent/launch/preview",
   "post"
 >;
-type LaunchCreateBody = JsonRequestBodyFor<
-  AutolaunchPaths,
-  "/v1/agent/launch/jobs",
-  "post"
->;
-type LaunchCreateResponse = JsonSuccessResponseFor<
-  AutolaunchPaths,
-  "/v1/agent/launch/jobs",
-  "post"
->;
-
 const AGENT_LAUNCH_TOTAL_SUPPLY = "100000000000000000000000000000";
 
 const displayValue = (value: unknown): string | null => {
@@ -129,49 +118,6 @@ export async function runAutolaunchLaunchPreview(
         chainId: body.chain_id,
       },
     ),
-  );
-}
-
-export async function runAutolaunchLaunchCreate(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const required = requireLaunchIdentity(args);
-
-  const body: LaunchCreateBody = {
-    agent_id: required.agent,
-    chain_id: Number(required.chainId) as 8453,
-    token_name: required.name,
-    token_symbol: required.symbol,
-    agent_safe_address: required.agentSafeAddress,
-    minimum_raise_usdc: requireArg(
-      getFlag(args, "minimum-raise-usdc"),
-      "minimum-raise-usdc",
-    ),
-    total_supply: AGENT_LAUNCH_TOTAL_SUPPLY,
-    launch_notes: getFlag(args, "launch-notes"),
-    wallet_address: requireArg(
-      getFlag(args, "wallet-address"),
-      "wallet-address",
-    ),
-    registry_address: requireArg(
-      getFlag(args, "registry-address"),
-      "registry-address",
-    ),
-    token_id: requireArg(getFlag(args, "token-id"), "token-id"),
-    nonce: requireArg(getFlag(args, "nonce"), "nonce"),
-    message: requireArg(getFlag(args, "message"), "message"),
-    signature: requireArg(getFlag(args, "signature"), "signature"),
-    issued_at: requireArg(getFlag(args, "issued-at"), "issued-at"),
-  };
-
-  printJson(
-    await requestTypedJson<LaunchCreateResponse>("POST", "/v1/agent/launch/jobs", {
-      body,
-      requireAgentAuth: true,
-      configPath,
-      chainId: body.chain_id,
-    }),
   );
 }
 

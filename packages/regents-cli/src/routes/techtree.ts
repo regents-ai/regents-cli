@@ -114,26 +114,12 @@ import {
 } from "../commands/techtree-v1-bbh-genome.js";
 import { runTechtreeCertificateVerify } from "../commands/techtree-v1-certificate.js";
 import {
-  runTechtreeArtifactCompile,
-  runTechtreeArtifactInit,
-  runTechtreeArtifactPin,
-  runTechtreeArtifactPublish,
   runTechtreeBbhRunExec,
   runTechtreeBbhNotebookPair,
   runTechtreeBbhRunSolve,
   runTechtreeBbhSubmit,
   runTechtreeBbhValidate,
   runTechtreeFetch,
-  runTechtreeReviewCompile,
-  runTechtreeReviewExec,
-  runTechtreeReviewInit,
-  runTechtreeReviewPin,
-  runTechtreeReviewPublish,
-  runTechtreeRunCompile,
-  runTechtreeRunExec,
-  runTechtreeRunInit,
-  runTechtreeRunPin,
-  runTechtreeRunPublish,
   runTechtreeBbhCapsulesGet,
   runTechtreeBbhCapsulesList,
   runTechtreeBbhLeaderboard,
@@ -247,76 +233,12 @@ export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
     await runTechtreeBbhSync(parsedArgs, configPath);
     return 0;
   }),
-  route("techtree main artifact init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeArtifactInit("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main artifact compile", async ({ parsedArgs, configPath }) => {
-    await runTechtreeArtifactCompile("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main artifact pin", async ({ parsedArgs, configPath }) => {
-    await runTechtreeArtifactPin("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main artifact publish", async ({ parsedArgs, configPath }) => {
-    await runTechtreeArtifactPublish("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main run init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunInit("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main run exec", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunExec("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main run compile", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunCompile("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main run pin", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunPin("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main run publish", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunPublish("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main review init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewInit("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main review exec", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewExec("main", parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree main review compile", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewCompile("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main review pin", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewPin("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main review publish", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewPublish("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
   route("techtree main fetch", async ({ parsedArgs, configPath }) => {
     await runTechtreeFetch("main", parsedArgs, configPath);
     return 0;
   }, { variadicTail: true }),
   route("techtree main verify", async ({ parsedArgs, configPath }) => {
     await runTechtreeVerify("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh fetch", async ({ parsedArgs, configPath }) => {
-    await runTechtreeFetch("bbh", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh verify", async ({ parsedArgs, configPath }) => {
-    await runTechtreeVerify("bbh", parsedArgs, configPath);
     return 0;
   }, { variadicTail: true }),
 ];

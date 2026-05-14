@@ -69,7 +69,7 @@ const buildResult = (
       signers,
       next_steps: [
         "Create one Safe with these three signer wallets and a 2-of-3 threshold.",
-        "Use `regents autolaunch safe create` to deploy that Safe on Sepolia.",
+        "Use `regents autolaunch safe create` to deploy that Safe on Base.",
         "Once the Safe exists, rerun this wizard with --agent-safe-address <safe> or pass that Safe into the launch wizard.",
       ],
       post_launch_safe_batch: postLaunchSafeBatch(),

@@ -12,10 +12,6 @@ import {
   runAutolaunchBidsExit,
   runAutolaunchBidsPlace,
   runAutolaunchBidsQuote,
-  runAutolaunchHoldingsClaimUsdc,
-  runAutolaunchHoldingsStake,
-  runAutolaunchHoldingsSweepIngress,
-  runAutolaunchHoldingsUnstake,
   runAutolaunchEnsPlan,
   runAutolaunchEnsPrepareBidirectional,
   runAutolaunchEnsPrepareErc8004,
@@ -31,7 +27,6 @@ import {
   runAutolaunchIngressSetLabel,
   runAutolaunchJobsWatch,
   runAutolaunchPair,
-  runAutolaunchLaunchCreate,
   runAutolaunchLaunchFinalize,
   runAutolaunchLaunchMonitor,
   runAutolaunchLaunchPreview,
@@ -185,10 +180,6 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchLaunchPreview(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch launch create", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchLaunchCreate(parsedArgs, configPath);
-    return 0;
-  }),
   route("autolaunch launch run", async ({ parsedArgs, configPath }) => {
     await runAutolaunchLaunchRun(parsedArgs, configPath);
     return 0;
@@ -253,22 +244,6 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchSubjectRegentEmissions(parsedArgs, configPath);
     return 0;
   }, { pattern: "autolaunch subjects regent-emissions <subject-id>" }),
-  route("autolaunch holdings stake", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchHoldingsStake(parsedArgs, configPath);
-    return 0;
-  }, { pattern: "autolaunch holdings stake <subject-id>" }),
-  route("autolaunch holdings unstake", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchHoldingsUnstake(parsedArgs, configPath);
-    return 0;
-  }, { pattern: "autolaunch holdings unstake <subject-id>" }),
-  route("autolaunch holdings claim-usdc", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchHoldingsClaimUsdc(parsedArgs, configPath);
-    return 0;
-  }, { pattern: "autolaunch holdings claim-usdc <subject-id>" }),
-  route("autolaunch holdings sweep-ingress", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchHoldingsSweepIngress(parsedArgs, configPath);
-    return 0;
-  }, { pattern: "autolaunch holdings sweep-ingress <subject-id>" }),
   route("autolaunch contracts admin", async ({ configPath }) => {
     await runAutolaunchContractsAdminShow(configPath);
     return 0;

@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 371.
+Total commands: 337.
 
 ## Full Command List
 
@@ -13,16 +13,16 @@ Total commands: 371.
 - `regents agent connect hermes` - Connect a Hermes worker to one Regent company.
 - `regents agent connect openclaw` - Connect a local OpenClaw worker to one Regent company.
 - `regents agent execution-pool` - List the workers available to one manager.
-- `regents agent harness list`
-- `regents agent init`
+- `regents agent harness list` - List harness.
+- `regents agent init` - Set up agent.
 - `regents agent link` - Link one manager to one worker for a Regent company.
-- `regents agent profile get`
-- `regents agent profile list`
-- `regents agent status`
+- `regents agent profile get` - Show profile.
+- `regents agent profile list` - List profile.
+- `regents agent status` - Show agent status.
 
 ### Agent Context
 
-- `regents agent-context`
+- `regents agent-context` - Print the safe command and setup context for another agent.
 
 ### Agentbook
 
@@ -32,108 +32,99 @@ Total commands: 371.
 
 ### Auth
 
-- `regents auth login`
-- `regents auth logout`
-- `regents auth status`
+- `regents auth login` - Sign in for protected Regent commands.
+- `regents auth logout` - Sign out on this machine.
+- `regents auth status` - Show the current saved sign-in.
 
 ### Autolaunch
 
-- `regents autolaunch agent <id>` - List and inspect launchable Agent account projects.
-- `regents autolaunch agent readiness <id>` - List and inspect launchable Agent account projects.
-- `regents autolaunch agents list` - List and inspect launchable Agent account projects.
-- `regents autolaunch auction <id>`
-- `regents autolaunch auction-returns list`
-- `regents autolaunch auctions list`
-- `regents autolaunch bids claim`
-- `regents autolaunch bids exit`
-- `regents autolaunch bids place`
-- `regents autolaunch bids quote`
-- `regents autolaunch contracts admin`
-- `regents autolaunch contracts job`
-- `regents autolaunch contracts subject`
-- `regents autolaunch ens plan`
-- `regents autolaunch ens prepare-bidirectional`
-- `regents autolaunch ens prepare-ensip25`
-- `regents autolaunch ens prepare-erc8004`
-- `regents autolaunch factory revenue-ingress set-authorized-creator`
-- `regents autolaunch factory revenue-share set-authorized-creator`
-- `regents autolaunch fee-registry get`
-- `regents autolaunch fee-vault get`
-- `regents autolaunch fee-vault withdraw-regent`
-- `regents autolaunch holdings claim-usdc`
-- `regents autolaunch holdings stake`
-- `regents autolaunch holdings sweep-ingress`
-- `regents autolaunch holdings unstake`
-- `regents autolaunch identities list`
-- `regents autolaunch identities mint`
-- `regents autolaunch ingress create`
-- `regents autolaunch ingress rescue`
-- `regents autolaunch ingress set-default`
-- `regents autolaunch ingress set-label`
-- `regents autolaunch jobs watch` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch launch create` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch launch finalize` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch launch monitor` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch launch preview` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch launch run` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch pair` - Connect this local Agent account to an Autolaunch Profile.
-- `regents autolaunch prelaunch get` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch prelaunch publish` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch prelaunch validate` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch prelaunch wizard` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch registry get`
-- `regents autolaunch registry link-identity`
-- `regents autolaunch registry rotate-safe`
-- `regents autolaunch registry set-subject-manager`
-- `regents autolaunch safe create` - Prepare the Agent Safe used to protect an Autolaunch launch.
-- `regents autolaunch safe wizard` - Prepare the Agent Safe used to protect an Autolaunch launch.
-- `regents autolaunch splitter accept-ownership`
-- `regents autolaunch splitter activate-eligible-revenue-share`
-- `regents autolaunch splitter cancel-eligible-revenue-share`
-- `regents autolaunch splitter cancel-treasury-recipient-rotation`
-- `regents autolaunch splitter execute-treasury-recipient-rotation`
-- `regents autolaunch splitter get`
-- `regents autolaunch splitter propose-eligible-revenue-share`
-- `regents autolaunch splitter propose-treasury-recipient-rotation`
-- `regents autolaunch splitter pull-treasury-share`
-- `regents autolaunch splitter reassign-dust`
-- `regents autolaunch splitter set-label`
-- `regents autolaunch splitter set-paused`
-- `regents autolaunch splitter set-protocol-recipient`
-- `regents autolaunch splitter sweep-protocol-reserve`
-- `regents autolaunch splitter sweep-treasury-reserved`
-- `regents autolaunch splitter sweep-treasury-residual`
-- `regents autolaunch strategy migrate`
-- `regents autolaunch strategy sweep-currency`
-- `regents autolaunch strategy sweep-token`
-- `regents autolaunch subjects by-token`
-- `regents autolaunch subjects claim-usdc`
-- `regents autolaunch subjects create-deferred-autolaunch`
-- `regents autolaunch subjects create-existing-token`
-- `regents autolaunch subjects get`
-- `regents autolaunch subjects ingress`
-- `regents autolaunch subjects protocol-fee-settlements`
-- `regents autolaunch subjects regent-emissions`
-- `regents autolaunch subjects stake`
-- `regents autolaunch subjects staking`
-- `regents autolaunch subjects sweep-ingress`
-- `regents autolaunch subjects unstake`
-- `regents autolaunch vesting cancel-beneficiary-rotation` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch vesting execute-beneficiary-rotation` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch vesting propose-beneficiary-rotation` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch vesting release` - Prepare, validate, publish, and launch an Agent account project.
-- `regents autolaunch vesting status` - Prepare, validate, publish, and launch an Agent account project.
-
-### Balance
-
-- `regents balance`
+- `regents autolaunch agent <id>` - Show Autolaunch agent.
+- `regents autolaunch agent readiness <id>` - Show agent readiness.
+- `regents autolaunch agents list` - List agents.
+- `regents autolaunch auction <id>` - Show Autolaunch auction.
+- `regents autolaunch auction-returns list` - List auction returns.
+- `regents autolaunch auctions list` - List auctions.
+- `regents autolaunch bids claim` - Claim bids.
+- `regents autolaunch bids exit` - Exit bids.
+- `regents autolaunch bids place` - Place bids.
+- `regents autolaunch bids quote` - Quote bids.
+- `regents autolaunch contracts admin` - Show Autolaunch contracts admin.
+- `regents autolaunch contracts job` - Show Autolaunch contracts job.
+- `regents autolaunch contracts subject` - Show Autolaunch contracts subject.
+- `regents autolaunch ens plan` - Show Autolaunch ENS plan.
+- `regents autolaunch ens prepare-bidirectional` - Prepare bidirectional for ENS.
+- `regents autolaunch ens prepare-ensip25` - Prepare ensip25 for ENS.
+- `regents autolaunch ens prepare-erc8004` - Prepare erc8004 for ENS.
+- `regents autolaunch factory revenue-ingress set-authorized-creator` - Set authorized creator for factory revenue ingress.
+- `regents autolaunch factory revenue-share set-authorized-creator` - Set authorized creator for factory revenue share.
+- `regents autolaunch fee-registry get` - Show fee registry.
+- `regents autolaunch fee-vault get` - Show fee vault.
+- `regents autolaunch fee-vault withdraw-regent` - Withdraw fee vault.
+- `regents autolaunch identities list` - List identities.
+- `regents autolaunch identities mint` - Create identities.
+- `regents autolaunch ingress create` - Create ingress.
+- `regents autolaunch ingress rescue` - Rescue ingress.
+- `regents autolaunch ingress set-default` - Set default for ingress.
+- `regents autolaunch ingress set-label` - Set label for ingress.
+- `regents autolaunch jobs watch` - Watch jobs.
+- `regents autolaunch launch finalize` - Finalize launch.
+- `regents autolaunch launch monitor` - Watch launch.
+- `regents autolaunch launch preview` - Preview launch.
+- `regents autolaunch launch run` - Run launch.
+- `regents autolaunch pair` - Pair Autolaunch.
+- `regents autolaunch prelaunch get` - Show prelaunch.
+- `regents autolaunch prelaunch publish` - Publish prelaunch.
+- `regents autolaunch prelaunch validate` - Check prelaunch.
+- `regents autolaunch prelaunch wizard` - Open prelaunch wizard.
+- `regents autolaunch registry get` - Show registry.
+- `regents autolaunch registry link-identity` - Link identity for registry.
+- `regents autolaunch registry rotate-safe` - Rotate safe for registry.
+- `regents autolaunch registry set-subject-manager` - Set subject manager for registry.
+- `regents autolaunch safe create` - Create safe.
+- `regents autolaunch safe wizard` - Open safe wizard.
+- `regents autolaunch splitter accept-ownership` - Accept ownership for splitter.
+- `regents autolaunch splitter activate-eligible-revenue-share` - Activate eligible revenue share for splitter.
+- `regents autolaunch splitter cancel-eligible-revenue-share` - Cancel eligible revenue share for splitter.
+- `regents autolaunch splitter cancel-treasury-recipient-rotation` - Cancel treasury recipient rotation for splitter.
+- `regents autolaunch splitter execute-treasury-recipient-rotation` - Execute treasury recipient rotation for splitter.
+- `regents autolaunch splitter get` - Show splitter.
+- `regents autolaunch splitter propose-eligible-revenue-share` - Propose eligible revenue share splitter.
+- `regents autolaunch splitter propose-treasury-recipient-rotation` - Propose treasury recipient rotation splitter.
+- `regents autolaunch splitter pull-treasury-share` - Fetch splitter.
+- `regents autolaunch splitter reassign-dust` - Show Autolaunch splitter reassign dust.
+- `regents autolaunch splitter set-label` - Set label for splitter.
+- `regents autolaunch splitter set-paused` - Set paused for splitter.
+- `regents autolaunch splitter set-protocol-recipient` - Set protocol recipient for splitter.
+- `regents autolaunch splitter sweep-protocol-reserve` - Sweep protocol reserve for splitter.
+- `regents autolaunch splitter sweep-treasury-reserved` - Sweep treasury reserved for splitter.
+- `regents autolaunch splitter sweep-treasury-residual` - Sweep treasury residual for splitter.
+- `regents autolaunch strategy migrate` - Migrate strategy.
+- `regents autolaunch strategy sweep-currency` - Sweep currency for strategy.
+- `regents autolaunch strategy sweep-token` - Sweep token for strategy.
+- `regents autolaunch subjects by-token` - Show Autolaunch subjects by token.
+- `regents autolaunch subjects claim-usdc` - Claim USDC for subjects.
+- `regents autolaunch subjects create-deferred-autolaunch` - Create deferred Autolaunch for subjects.
+- `regents autolaunch subjects create-existing-token` - Create existing token for subjects.
+- `regents autolaunch subjects get` - Show subjects.
+- `regents autolaunch subjects ingress` - Show Autolaunch subjects ingress.
+- `regents autolaunch subjects protocol-fee-settlements` - Show Autolaunch subjects protocol fee settlements.
+- `regents autolaunch subjects regent-emissions` - Show Autolaunch subjects REGENT emissions.
+- `regents autolaunch subjects stake` - Stake subjects.
+- `regents autolaunch subjects staking` - Show Autolaunch subjects staking.
+- `regents autolaunch subjects sweep-ingress` - Sweep ingress for subjects.
+- `regents autolaunch subjects unstake` - Unstake subjects.
+- `regents autolaunch vesting cancel-beneficiary-rotation` - Cancel beneficiary rotation for vesting.
+- `regents autolaunch vesting execute-beneficiary-rotation` - Execute beneficiary rotation for vesting.
+- `regents autolaunch vesting propose-beneficiary-rotation` - Propose beneficiary rotation vesting.
+- `regents autolaunch vesting release` - Release vesting.
+- `regents autolaunch vesting status` - Show vesting status.
 
 ### Budget
 
-- `regents budget grant`
-- `regents budget ledger`
-- `regents budget revoke`
-- `regents budget status`
+- `regents budget grant` - Give an agent a spending budget.
+- `regents budget ledger` - Show budget activity.
+- `regents budget revoke` - Revoke an agent budget.
+- `regents budget status` - Show the current budget state.
 
 ### Bug
 
@@ -141,60 +132,53 @@ Total commands: 371.
 
 ### Chatbox
 
-- `regents chatbox history`
-- `regents chatbox post`
-- `regents chatbox tail`
+- `regents chatbox history` - Show chatbox message history.
+- `regents chatbox post` - Post a chatbox message.
+- `regents chatbox tail` - Watch new chatbox messages.
 
 ### Config
 
-- `regents config get`
-- `regents config write`
-
-### Create
-
-- `regents create init`
-- `regents create wallet`
+- `regents config get` - Show local Regent configuration.
+- `regents config write` - Save local Regent configuration.
 
 ### Doctor
 
-- `regents doctor`
-- `regents doctor auth`
-- `regents doctor contracts`
-- `regents doctor runtime`
-- `regents doctor techtree`
-- `regents doctor transports`
-- `regents doctor workspace`
-- `regents doctor xmtp`
+- `regents doctor` - Check local Regent readiness.
+- `regents doctor auth` - Show doctor auth.
+- `regents doctor contracts` - Show doctor contracts.
+- `regents doctor runtime` - Show doctor runtime.
+- `regents doctor techtree` - Show doctor Techtree.
+- `regents doctor transports` - Show doctor transports.
+- `regents doctor workspace` - Show doctor workspace.
 
 ### Ens
 
-- `regents ens set-primary`
+- `regents ens set-primary` - Set the primary ENS name.
 
 ### Feynman
 
-- `regents feynman`
+- `regents feynman` - Open the Feynman research shell.
 
 ### Gossipsub
 
-- `regents gossipsub status`
+- `regents gossipsub status` - Show gossipsub status.
 
 ### Identity
 
-- `regents identity ensure`
-- `regents identity graph`
-- `regents identity status`
+- `regents identity ensure` - Set up or confirm the local Agent identity.
+- `regents identity graph` - Show linked identity records.
+- `regents identity status` - Show local identity readiness.
 
 ### Init
 
-- `regents init`
+- `regents init` - Set up the local Regents config and working folders.
 
 ### Mcp
 
-- `regents mcp doctor`
-- `regents mcp export codex`
-- `regents mcp export hermes`
-- `regents mcp serve`
-- `regents mcp tools list`
+- `regents mcp doctor` - Check MCP setup.
+- `regents mcp export codex` - Print MCP setup for Codex.
+- `regents mcp serve` - Start the Regents MCP server.
+- `regents mcp tools list` - List tools.
 
 ### Platform
 
@@ -202,29 +186,24 @@ Total commands: 371.
 - `regents platform auth logout` - Delete the saved platform session and sign out from platform commands.
 - `regents platform auth status` - Show who is signed in through the saved platform session.
 - `regents platform billing account` - Show the billing account tied to the saved platform session.
-- `regents platform billing setup` - Open billing setup for the saved platform account.
-- `regents platform billing topup` - Open runtime credit checkout for the saved platform account.
 - `regents platform billing usage` - Show shared runtime credit and company usage from the saved platform session.
-- `regents platform company create` - Launch a company for one claimed name from the saved platform account.
 - `regents platform company runtime` - Show runtime state for one owned company from the saved platform session.
 - `regents platform formation doctor` - Explain why company opening is blocked or what is ready next.
 - `regents platform formation status` - Show launch readiness from the saved session, including claimed names, billing, and owned companies.
 - `regents platform projection` - Show the canonical Platform projection for product and mobile clients.
-- `regents platform sprite pause` - Pause one owned company runtime from the saved platform session.
-- `regents platform sprite resume` - Resume one owned company runtime from the saved platform session.
 
 ### Plugin
 
-- `regents plugin doctor`
-- `regents plugin install`
-- `regents plugin status`
+- `regents plugin doctor` - Check plugin setup.
+- `regents plugin install` - Install a Regent plugin for the selected runtime.
+- `regents plugin status` - Show installed Regent plugins.
 
 ### Receipt
 
-- `regents receipt create`
-- `regents receipt get`
-- `regents receipt list`
-- `regents receipt share-draft`
+- `regents receipt create` - Create a payment receipt record.
+- `regents receipt get` - Show receipt.
+- `regents receipt list` - List receipt.
+- `regents receipt share-draft` - Draft shareable receipt details.
 
 ### Regent Staking
 
@@ -238,7 +217,7 @@ Total commands: 371.
 
 ### Run
 
-- `regents run`
+- `regents run` - Start local Regent access for agents and terminal commands.
 
 ### Runtime
 
@@ -247,16 +226,12 @@ Total commands: 371.
 - `regents runtime get` - Show one runtime for a Regent company.
 - `regents runtime health` - Show health for one runtime.
 - `regents runtime pause` - Pause one runtime for a Regent company.
-- `regents runtime policy`
+- `regents runtime policy` - Show runtime policy settings.
 - `regents runtime restore` - Restore one runtime from a checkpoint.
 - `regents runtime resume` - Resume one runtime for a Regent company.
 - `regents runtime services` - List services for one runtime.
-- `regents runtime status`
-- `regents runtime tools`
-
-### Search
-
-- `regents search`
+- `regents runtime status` - Show runtime status.
+- `regents runtime tools` - List runtime tools.
 
 ### Security Report
 
@@ -264,168 +239,150 @@ Total commands: 371.
 
 ### Setup
 
-- `regents setup`
-- `regents setup skills`
+- `regents setup` - Show setup guidance.
+- `regents setup skills` - Install recommended Regent skills.
 
 ### Status
 
-- `regents status`
+- `regents status` - Show whether this machine is ready to use Regent.
 
 ### Techtree
 
-- `regents techtree activity`
-- `regents techtree autoskill buy`
-- `regents techtree autoskill init eval`
-- `regents techtree autoskill init skill`
-- `regents techtree autoskill listing create`
-- `regents techtree autoskill notebook pair`
-- `regents techtree autoskill publish eval`
-- `regents techtree autoskill publish result`
-- `regents techtree autoskill publish skill`
-- `regents techtree autoskill pull`
-- `regents techtree autoskill refund`
-- `regents techtree autoskill review`
-- `regents techtree bbh capsules get`
-- `regents techtree bbh capsules list`
-- `regents techtree bbh draft apply`
-- `regents techtree bbh draft create`
-- `regents techtree bbh draft init`
-- `regents techtree bbh draft list`
-- `regents techtree bbh draft proposals`
-- `regents techtree bbh draft propose`
-- `regents techtree bbh draft pull`
-- `regents techtree bbh draft ready`
-- `regents techtree bbh fetch`
-- `regents techtree bbh genome improve`
-- `regents techtree bbh genome init`
-- `regents techtree bbh genome propose`
-- `regents techtree bbh genome score`
-- `regents techtree bbh leaderboard`
-- `regents techtree bbh notebook pair`
-- `regents techtree bbh run exec`
-- `regents techtree bbh run solve`
-- `regents techtree bbh submit`
-- `regents techtree bbh sync`
-- `regents techtree bbh validate`
-- `regents techtree bbh verify`
-- `regents techtree benchmarks capsule init`
-- `regents techtree benchmarks capsule pack`
-- `regents techtree benchmarks capsule submit`
-- `regents techtree benchmarks get <capsule_id>`
-- `regents techtree benchmarks list`
-- `regents techtree benchmarks reliability <capsule_id>`
-- `regents techtree benchmarks run materialize`
-- `regents techtree benchmarks run repeat`
-- `regents techtree benchmarks run submit`
-- `regents techtree benchmarks scoreboard <capsule_id>`
-- `regents techtree benchmarks validate`
-- `regents techtree certificate verify`
-- `regents techtree comment add`
-- `regents techtree fold policy init`
-- `regents techtree fold proof`
-- `regents techtree fold report`
-- `regents techtree fold status`
-- `regents techtree identities list`
-- `regents techtree identities mint`
-- `regents techtree inbox`
-- `regents techtree main artifact compile`
-- `regents techtree main artifact init`
-- `regents techtree main artifact pin`
-- `regents techtree main artifact publish`
-- `regents techtree main fetch`
-- `regents techtree main review compile`
-- `regents techtree main review exec`
-- `regents techtree main review init`
-- `regents techtree main review pin`
-- `regents techtree main review publish`
-- `regents techtree main run compile`
-- `regents techtree main run exec`
-- `regents techtree main run init`
-- `regents techtree main run pin`
-- `regents techtree main run publish`
-- `regents techtree main verify`
-- `regents techtree node children <id>`
-- `regents techtree node comments <id>`
-- `regents techtree node create`
-- `regents techtree node cross-chain-links clear`
-- `regents techtree node cross-chain-links create`
-- `regents techtree node cross-chain-links list`
-- `regents techtree node get <id>`
-- `regents techtree node lineage claim`
-- `regents techtree node lineage list`
-- `regents techtree node lineage withdraw`
-- `regents techtree node work-packet <id>`
-- `regents techtree nodes list`
-- `regents techtree notebooks init`
-- `regents techtree notebooks pair`
-- `regents techtree notebooks publish`
-- `regents techtree opportunities`
-- `regents techtree review claim`
-- `regents techtree review list`
-- `regents techtree review pull`
-- `regents techtree review submit`
-- `regents techtree reviewer apply`
-- `regents techtree reviewer orcid link`
-- `regents techtree reviewer status`
-- `regents techtree runbook answer attach-paid-solution <answer_id>`
-- `regents techtree runbook answer post <question_id>`
-- `regents techtree runbook answer vote <answer_id>`
-- `regents techtree runbook invite-request <question_id>`
-- `regents techtree runbook mark-solved <question_id>`
-- `regents techtree runbook payment-address set`
-- `regents techtree runbook question post`
-- `regents techtree runbook questions get <id>`
-- `regents techtree runbook questions list`
-- `regents techtree runbook unlock <answer_id>`
-- `regents techtree science-tasks checklist`
-- `regents techtree science-tasks evidence`
-- `regents techtree science-tasks export`
-- `regents techtree science-tasks get`
-- `regents techtree science-tasks init`
-- `regents techtree science-tasks list`
-- `regents techtree science-tasks review-loop`
-- `regents techtree science-tasks review-update`
-- `regents techtree science-tasks submit`
-- `regents techtree search`
-- `regents techtree star <id>`
-- `regents techtree start`
-- `regents techtree status`
-- `regents techtree tech epochs current`
-- `regents techtree tech leaderboards confirm`
-- `regents techtree tech leaderboards list`
-- `regents techtree tech leaderboards register`
-- `regents techtree tech rewards claim`
-- `regents techtree tech rewards list`
-- `regents techtree tech rewards proof`
-- `regents techtree tech rewards root confirm`
-- `regents techtree tech rewards root prepare`
-- `regents techtree tech status`
-- `regents techtree tech withdraw`
-- `regents techtree unstar <id>`
-- `regents techtree unwatch <id>`
-- `regents techtree watch <id>`
-- `regents techtree watch list`
-- `regents techtree watch tail`
-- `regents techtree work accept`
-- `regents techtree work list`
-- `regents techtree work next`
-- `regents techtree work publish`
+- `regents techtree activity` - Show recent Techtree activity.
+- `regents techtree autoskill buy` - Buy autoskill.
+- `regents techtree autoskill init eval` - Set up autoskill eval.
+- `regents techtree autoskill init skill` - Set up autoskill skill.
+- `regents techtree autoskill listing create` - Create autoskill listing.
+- `regents techtree autoskill notebook pair` - Pair autoskill notebook.
+- `regents techtree autoskill publish eval` - Publish autoskill eval.
+- `regents techtree autoskill publish result` - Publish autoskill result.
+- `regents techtree autoskill publish skill` - Publish autoskill skill.
+- `regents techtree autoskill pull` - Fetch autoskill.
+- `regents techtree autoskill refund` - Refund autoskill.
+- `regents techtree autoskill review` - Review an autoskill package.
+- `regents techtree bbh capsules get` - Show BBH capsules.
+- `regents techtree bbh capsules list` - List BBH capsules.
+- `regents techtree bbh draft apply` - Apply BBH draft.
+- `regents techtree bbh draft create` - Create BBH draft.
+- `regents techtree bbh draft init` - Set up BBH draft.
+- `regents techtree bbh draft list` - List BBH draft.
+- `regents techtree bbh draft proposals` - List BBH draft proposals.
+- `regents techtree bbh draft propose` - Propose BBH draft.
+- `regents techtree bbh draft pull` - Fetch BBH draft.
+- `regents techtree bbh draft ready` - Mark BBH draft ready.
+- `regents techtree bbh genome improve` - Improve BBH genome.
+- `regents techtree bbh genome init` - Set up BBH genome.
+- `regents techtree bbh genome propose` - Propose BBH genome.
+- `regents techtree bbh genome score` - Score BBH genome.
+- `regents techtree bbh leaderboard` - Show BBH leaderboard.
+- `regents techtree bbh notebook pair` - Pair BBH notebook.
+- `regents techtree bbh run exec` - Run BBH exec.
+- `regents techtree bbh run solve` - Solve BBH run.
+- `regents techtree bbh submit` - Submit BBH.
+- `regents techtree bbh sync` - Sync BBH.
+- `regents techtree bbh validate` - Check BBH.
+- `regents techtree benchmarks capsule init` - Set up benchmarks capsule.
+- `regents techtree benchmarks capsule pack` - Pack benchmarks capsule.
+- `regents techtree benchmarks capsule submit` - Submit benchmarks capsule.
+- `regents techtree benchmarks get <capsule_id>` - Show benchmarks.
+- `regents techtree benchmarks list` - List benchmarks.
+- `regents techtree benchmarks reliability <capsule_id>` - Show Techtree benchmarks reliability.
+- `regents techtree benchmarks run materialize` - Materialize benchmarks run.
+- `regents techtree benchmarks run repeat` - Repeat benchmarks run.
+- `regents techtree benchmarks run submit` - Submit benchmarks run.
+- `regents techtree benchmarks scoreboard <capsule_id>` - Show Techtree benchmarks scoreboard.
+- `regents techtree benchmarks validate` - Check benchmarks.
+- `regents techtree certificate verify` - Check certificate.
+- `regents techtree comment add` - Add comment.
+- `regents techtree fold policy init` - Set up fold policy.
+- `regents techtree fold proof` - Show fold proof.
+- `regents techtree fold report` - Create fold report.
+- `regents techtree fold status` - Show fold status.
+- `regents techtree identities list` - List identities.
+- `regents techtree identities mint` - Create identities.
+- `regents techtree inbox` - Show your Techtree inbox.
+- `regents techtree main fetch` - Fetch main.
+- `regents techtree main verify` - Check main.
+- `regents techtree node children <id>` - Show Techtree node children.
+- `regents techtree node comments <id>` - Show Techtree node comments.
+- `regents techtree node create` - Create node.
+- `regents techtree node cross-chain-links clear` - Remove node cross chain links.
+- `regents techtree node cross-chain-links create` - Create node cross chain links.
+- `regents techtree node cross-chain-links list` - List node cross chain links.
+- `regents techtree node get <id>` - Show node.
+- `regents techtree node lineage claim` - Claim node lineage.
+- `regents techtree node lineage list` - List node lineage.
+- `regents techtree node lineage withdraw` - Withdraw node lineage.
+- `regents techtree node work-packet <id>` - Show Techtree node work packet.
+- `regents techtree nodes list` - List nodes.
+- `regents techtree notebooks init` - Set up notebooks.
+- `regents techtree notebooks pair` - Pair notebooks.
+- `regents techtree notebooks publish` - Publish notebooks.
+- `regents techtree opportunities` - Show available Techtree opportunities.
+- `regents techtree review claim` - Claim review.
+- `regents techtree review list` - List review.
+- `regents techtree review pull` - Fetch review.
+- `regents techtree review submit` - Submit review.
+- `regents techtree reviewer apply` - Apply reviewer.
+- `regents techtree reviewer orcid link` - Link reviewer ORCID.
+- `regents techtree reviewer status` - Show reviewer status.
+- `regents techtree runbook answer attach-paid-solution <answer_id>` - Attach paid solution for runbook answer.
+- `regents techtree runbook answer post <question_id>` - Post runbook answer.
+- `regents techtree runbook answer vote <answer_id>` - Vote on runbook answer.
+- `regents techtree runbook invite-request <question_id>` - Invite help on a Runbook question.
+- `regents techtree runbook mark-solved <question_id>` - Mark a Runbook question solved.
+- `regents techtree runbook payment-address set` - Set runbook payment address.
+- `regents techtree runbook question post` - Post runbook question.
+- `regents techtree runbook questions get <id>` - Show a Runbook question.
+- `regents techtree runbook questions list` - List runbook questions.
+- `regents techtree runbook unlock <answer_id>` - Unlock a paid Runbook answer.
+- `regents techtree science-tasks checklist` - Show science tasks checklist.
+- `regents techtree science-tasks evidence` - Show science tasks evidence.
+- `regents techtree science-tasks export` - Export science tasks.
+- `regents techtree science-tasks get` - Show science tasks.
+- `regents techtree science-tasks init` - Set up science tasks.
+- `regents techtree science-tasks list` - List science tasks.
+- `regents techtree science-tasks review-loop` - Run the science-task review loop.
+- `regents techtree science-tasks review-update` - Update a science-task review.
+- `regents techtree science-tasks submit` - Submit science tasks.
+- `regents techtree search` - Search Techtree.
+- `regents techtree star <id>` - Star a Techtree node.
+- `regents techtree start` - Open the Techtree start flow.
+- `regents techtree status` - Show Techtree status.
+- `regents techtree tech epochs current` - Show current TECH epochs.
+- `regents techtree tech leaderboards confirm` - Confirm TECH leaderboards.
+- `regents techtree tech leaderboards list` - List TECH leaderboards.
+- `regents techtree tech leaderboards register` - Create TECH leaderboards.
+- `regents techtree tech rewards claim` - Claim TECH rewards.
+- `regents techtree tech rewards list` - List TECH rewards.
+- `regents techtree tech rewards proof` - Show TECH rewards proof.
+- `regents techtree tech rewards root confirm` - Confirm TECH rewards root.
+- `regents techtree tech rewards root prepare` - Prepare TECH rewards root.
+- `regents techtree tech status` - Show TECH status.
+- `regents techtree tech withdraw` - Withdraw TECH.
+- `regents techtree unstar <id>` - Remove a Techtree node star.
+- `regents techtree unwatch <id>` - Stop watching a Techtree node.
+- `regents techtree watch <id>` - Watch a Techtree node.
+- `regents techtree watch list` - List watch.
+- `regents techtree watch tail` - Watch updates from followed Techtree nodes.
+- `regents techtree work accept` - Accept work.
+- `regents techtree work list` - List work.
+- `regents techtree work next` - Show the next work.
+- `regents techtree work publish` - Publish work.
 
 ### Wallet
 
-- `regents wallet agentic address`
-- `regents wallet agentic balance`
-- `regents wallet agentic fund`
-- `regents wallet agentic get`
-- `regents wallet agentic login`
-- `regents wallet agentic status`
-- `regents wallet agentic verify`
-- `regents wallet setup`
-- `regents wallet status`
+- `regents wallet agentic balance` - Show the Agent wallet balance.
+- `regents wallet agentic fund` - Show how to fund the Agent wallet.
+- `regents wallet agentic login` - Sign in with the Agent wallet.
+- `regents wallet agentic status` - Show Agent wallet readiness.
+- `regents wallet agentic verify` - Verify the Agent wallet sign-in.
+- `regents wallet setup` - Set up the local wallet path.
+- `regents wallet status` - Show wallet readiness.
 
 ### Whoami
 
-- `regents whoami`
+- `regents whoami` - Show the local Agent account and saved sign-in context.
 
 ### Work
 
@@ -438,45 +395,45 @@ Total commands: 371.
 
 ### X402
 
-- `regents x402 details`
-- `regents x402 fetch`
-- `regents x402 pay`
-- `regents x402 prepare`
-- `regents x402 quote`
-- `regents x402 receipts get`
-- `regents x402 refund`
-- `regents x402 search`
+- `regents x402 details` - Show paid endpoint details.
+- `regents x402 fetch` - Fetch a paid x402 result.
+- `regents x402 pay` - Pay an x402 endpoint.
+- `regents x402 prepare` - Prepare an x402 paid request.
+- `regents x402 quote` - Quote an x402 paid request.
+- `regents x402 receipts get` - Show receipts.
+- `regents x402 refund` - Request an x402 refund.
+- `regents x402 search` - Search for x402 services.
 
 ### Xmtp
 
-- `regents xmtp doctor`
-- `regents xmtp group add-admin`
-- `regents xmtp group add-member`
-- `regents xmtp group add-super-admin`
-- `regents xmtp group admins`
-- `regents xmtp group create`
-- `regents xmtp group list`
-- `regents xmtp group members`
-- `regents xmtp group permissions`
-- `regents xmtp group remove-admin`
-- `regents xmtp group remove-member`
-- `regents xmtp group remove-super-admin`
-- `regents xmtp group super-admins`
-- `regents xmtp group update-permission`
-- `regents xmtp init`
-- `regents xmtp owner add`
-- `regents xmtp owner list`
-- `regents xmtp owner remove`
-- `regents xmtp policy edit`
-- `regents xmtp policy get`
-- `regents xmtp policy init`
-- `regents xmtp policy validate`
-- `regents xmtp resolve`
-- `regents xmtp revoke-other-installations`
-- `regents xmtp rotate-db-key`
-- `regents xmtp rotate-wallet`
-- `regents xmtp status`
-- `regents xmtp test dm`
-- `regents xmtp trusted add`
-- `regents xmtp trusted list`
-- `regents xmtp trusted remove`
+- `regents xmtp doctor` - Check XMTP readiness.
+- `regents xmtp group add-admin` - Add admin to group.
+- `regents xmtp group add-member` - Add member to group.
+- `regents xmtp group add-super-admin` - Add super admin to group.
+- `regents xmtp group admins` - List group admins.
+- `regents xmtp group create` - Create group.
+- `regents xmtp group list` - List group.
+- `regents xmtp group members` - List group members.
+- `regents xmtp group permissions` - List group permissions.
+- `regents xmtp group remove-admin` - Remove admin from group.
+- `regents xmtp group remove-member` - Remove member from group.
+- `regents xmtp group remove-super-admin` - Remove super admin from group.
+- `regents xmtp group super-admins` - List group super admins.
+- `regents xmtp group update-permission` - Update permission for group.
+- `regents xmtp init` - Set up local XMTP identity.
+- `regents xmtp owner add` - Add owner.
+- `regents xmtp owner list` - List owner.
+- `regents xmtp owner remove` - Remove owner.
+- `regents xmtp policy edit` - Edit policy.
+- `regents xmtp policy get` - Show policy.
+- `regents xmtp policy init` - Set up policy.
+- `regents xmtp policy validate` - Check policy.
+- `regents xmtp resolve` - Resolve an XMTP identity.
+- `regents xmtp revoke-other-installations` - Revoke other XMTP installations.
+- `regents xmtp rotate-db-key` - Rotate the XMTP database key.
+- `regents xmtp rotate-wallet` - Rotate the XMTP wallet.
+- `regents xmtp status` - Show XMTP readiness.
+- `regents xmtp test dm` - Send a test XMTP direct message.
+- `regents xmtp trusted add` - Add trusted.
+- `regents xmtp trusted list` - List trusted.
+- `regents xmtp trusted remove` - Remove trusted.

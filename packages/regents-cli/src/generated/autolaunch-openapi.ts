@@ -2448,7 +2448,6 @@ export interface components {
             token_symbol: string;
             total_supply: string;
             treasury: components["schemas"]["Address"];
-            token_factory: components["schemas"]["Address"];
             token_factory_data?: components["schemas"]["HexData"];
             token_factory_salt?: components["schemas"]["HexData"];
             subject_label: string;
@@ -2584,7 +2583,7 @@ export interface components {
             launch_notes?: string | null;
             metadata_draft?: components["schemas"]["PrelaunchMetadataDraft"] | null;
             techtree_evidence_packet_ref?: string | null;
-            minimum_raise_usdc: components["schemas"]["DecimalString"];
+            minimum_raise_usdc: string;
             minimum_raise_usdc_raw: string;
             status?: string | null;
         } & {

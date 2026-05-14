@@ -6,10 +6,8 @@ import {
 import { runEnsSetPrimary } from "../commands/ens.js";
 import { runIdentityEnsure, runIdentityGraph, runIdentityStatus } from "../commands/identity.js";
 import {
-  runWalletAgenticAddress,
   runWalletAgenticBalance,
   runWalletAgenticFund,
-  runWalletAgenticGet,
   runWalletAgenticLogin,
   runWalletAgenticStatus,
   runWalletAgenticVerify,
@@ -38,9 +36,7 @@ export const walletIdentityAuthRoutes: readonly CliRoute[] = [
   route("wallet agentic status", async ({ parsedArgs }) => runWalletAgenticStatus(parsedArgs)),
   route("wallet agentic login", async ({ parsedArgs }) => runWalletAgenticLogin(parsedArgs)),
   route("wallet agentic verify", async ({ parsedArgs }) => runWalletAgenticVerify(parsedArgs)),
-  route("wallet agentic address", async ({ parsedArgs }) => runWalletAgenticAddress(parsedArgs)),
   route("wallet agentic balance", async ({ parsedArgs }) => runWalletAgenticBalance(parsedArgs)),
-  route("wallet agentic get", async ({ parsedArgs }) => runWalletAgenticGet(parsedArgs)),
   route("wallet agentic fund", async ({ parsedArgs }) => runWalletAgenticFund(parsedArgs)),
   route("ens set-primary", async ({ parsedArgs, configPath }) => {
     await runEnsSetPrimary(parsedArgs, configPath);

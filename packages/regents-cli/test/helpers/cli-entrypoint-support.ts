@@ -12,7 +12,6 @@ const cliMocks = vi.hoisted(() => ({
   ensureIdentityMock: vi.fn(),
   coinbaseStatusMock: vi.fn(),
   setupCoinbaseWalletMock: vi.fn(),
-  exportHermesMcpMock: vi.fn(),
   runDoctorMock: vi.fn(),
   runScopedDoctorMock: vi.fn(),
   runFullDoctorMock: vi.fn(),
@@ -57,7 +56,6 @@ export const {
   ensureIdentityMock,
   coinbaseStatusMock,
   setupCoinbaseWalletMock,
-  exportHermesMcpMock,
   runDoctorMock,
   runScopedDoctorMock,
   runFullDoctorMock,
@@ -1017,7 +1015,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
         ensureIdentity: ensureIdentityMock,
         coinbaseStatus: coinbaseStatusMock,
         setupCoinbaseWallet: setupCoinbaseWalletMock,
-        exportHermesMcp: exportHermesMcpMock,
         runDoctor: runDoctorMock,
         runScopedDoctor: runScopedDoctorMock,
         runFullDoctor: runFullDoctorMock,
@@ -1104,13 +1101,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
       created: false,
       state_path: path.join(tempDir, "state", "coinbase-wallet.json"),
     }));
-
-    exportHermesMcpMock.mockReset();
-    exportHermesMcpMock.mockReturnValue({
-      server: "cdp",
-      command: "cdp",
-      args: ["mcp"],
-    });
 
     runDoctorMock.mockReset();
     runDoctorMock.mockImplementation(async () => doctorReport("default"));
@@ -1467,7 +1457,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
     daemonCallMock.mockClear();
     coinbaseStatusMock.mockClear();
     setupCoinbaseWalletMock.mockClear();
-    exportHermesMcpMock.mockClear();
     runDoctorMock.mockClear();
     runScopedDoctorMock.mockClear();
     runFullDoctorMock.mockClear();

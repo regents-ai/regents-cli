@@ -84,7 +84,7 @@ export function runtimeChecks(): DoctorCheckDefinition[] {
             details: {
               configPath: ctx.configPath || defaultConfigPath(),
             },
-            remediation: "Run `regents create init`",
+            remediation: "Run `regents init`",
           };
         }
 
@@ -160,7 +160,7 @@ export function runtimeChecks(): DoctorCheckDefinition[] {
           details: {
             missing,
           },
-          remediation: "Run `regents doctor --fix` or `regents create init`",
+          remediation: "Run `regents doctor --fix` or `regents init`",
         };
       },
     },

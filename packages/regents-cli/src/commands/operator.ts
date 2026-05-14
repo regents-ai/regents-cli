@@ -1,9 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { createPublicClient, formatEther, http } from "viem";
-import { base, baseSepolia } from "viem/chains";
-
 import {
   coinbaseStatus,
   defaultConfigPath,
@@ -14,7 +11,7 @@ import {
 import { readIdentityReceipt, receiptMatchesRequest } from "../internal-runtime/identity/cache.js";
 import { identityNetworkForChainId } from "../internal-runtime/identity/shared.js";
 import type { RegentConfig } from "../internal-types/index.js";
-import { getBooleanFlag, getFlag, parseCliArgs, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, getFlag, type ParsedCliArgs } from "../parse.js";
 import {
   CLI_PALETTE,
   isHumanTerminal,
@@ -24,7 +21,6 @@ import {
   renderPanel,
   renderTablePanel,
 } from "../printer.js";
-import { runTechtreeSearch } from "./techtree.js";
 import { loadResolvedPlatformSession, requestPlatformSessionJson } from "./platform.js";
 
 const ensureDirectories = (paths: readonly string[]): void => {
@@ -275,76 +271,4 @@ export async function runOperatorWhoami(args: ParsedCliArgs, configPath?: string
     ].join("\n\n"),
   );
   return wallet.account ? 0 : 1;
-}
-
-export async function runOperatorBalance(args: ParsedCliArgs, configPath?: string): Promise<number> {
-  const config = loadConfig(configPathFor(args, configPath));
-  const chainId = config.auth.defaultChainId;
-  const chain = chainId === 8453 ? base : chainId === 84532 ? baseSepolia : null;
-  const rpcUrl =
-    chainId === 8453
-      ? process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL
-      : chainId === 84532
-        ? process.env.BASE_SEPOLIA_RPC_URL
-        : undefined;
-  const wallet = await coinbaseStatus(config, {
-    walletHint: getFlag(args, "wallet"),
-  });
-
-  if (!wallet.account || !chain || !rpcUrl) {
-    const payload = {
-      ok: false,
-      command: "balance",
-      status: "waiting",
-      chain_id: chainId,
-      address: wallet.account?.address ?? null,
-      next_actions: wallet.account ? ["Set the Base RPC URL for this chain."] : ["regents wallet setup"],
-    };
-    printOperatorPayload(payload, () =>
-      [
-        renderKeyValuePanel("◆ WALLET BALANCE", [
-          { label: "status", value: "waiting", valueColor: CLI_PALETTE.accent },
-          { label: "chain", value: String(chainId) },
-          { label: "address", value: wallet.account?.address ?? "not ready" },
-        ]),
-        renderPanel("◆ NEXT", payload.next_actions),
-      ].join("\n\n"),
-    );
-    return 1;
-  }
-
-  const account = wallet.account;
-  const client = createPublicClient({ chain, transport: http(rpcUrl) });
-  const balance = await client.getBalance({ address: account.address });
-  const payload = {
-    ok: true,
-    command: "balance",
-    status: "ready",
-    chain_id: chainId,
-    address: account.address,
-    eth: formatEther(balance),
-    wei: balance.toString(),
-  };
-  printOperatorPayload(payload, () =>
-    renderKeyValuePanel("◆ WALLET BALANCE", [
-      { label: "status", value: "ready", valueColor: CLI_PALETTE.emphasis },
-      { label: "address", value: account.address },
-      { label: "chain", value: String(chainId) },
-      { label: "ETH", value: payload.eth, valueColor: CLI_PALETTE.emphasis },
-    ]),
-  );
-  return 0;
-}
-
-export async function runOperatorSearch(args: ParsedCliArgs, configPath?: string): Promise<number> {
-  const query = getFlag(args, "query") ?? getFlag(args, "q") ?? args.positionals.slice(1).join(" ").trim();
-  const searchArgs = parseCliArgs([
-    "techtree",
-    "search",
-    "--query",
-    query,
-    ...(getFlag(args, "limit") ? ["--limit", getFlag(args, "limit") as string] : []),
-  ]);
-  await runTechtreeSearch(searchArgs, configPath);
-  return 0;
 }

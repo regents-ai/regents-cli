@@ -116,7 +116,7 @@ describe("regents run presenter", () => {
           },
           {
             label: "Techtree search",
-            command: "regents search <query>",
+            command: "regents techtree search --query <query>",
             when: "search Techtree.",
           },
         ],
@@ -143,7 +143,7 @@ describe("regents run presenter", () => {
     expect(output).toContain("Agent identity checked");
     expect(output).toContain("RUN THESE IN ANOTHER TERMINAL");
     expect(output).toContain("regents auth login --audience regent-services");
-    expect(output).toContain("regents search <query>");
+    expect(output).toContain("regents techtree search --query <query>");
     expect(output).toContain("It does not start hosted Regent.");
     expect(output).toContain("It does not move funds.");
     expect(output).not.toContain("local runtime");

@@ -1,5 +1,4 @@
 import {
-  printPlatformUnavailable,
   runPlatformAuthLogin,
   runPlatformAuthLogout,
   runPlatformAuthStatus,
@@ -45,28 +44,8 @@ export const platformRoutes: readonly CliRoute[] = [
     await runPlatformBillingUsage(parsedArgs);
     return 0;
   }),
-  route("platform billing setup", async () => {
-    printPlatformUnavailable("regents platform billing setup");
-    return 0;
-  }),
-  route("platform billing topup", async () => {
-    printPlatformUnavailable("regents platform billing topup");
-    return 0;
-  }),
-  route("platform company create", async () => {
-    printPlatformUnavailable("regents platform company create");
-    return 0;
-  }),
   route("platform company runtime", async ({ parsedArgs }) => {
     await runPlatformCompanyRuntime(parsedArgs);
-    return 0;
-  }),
-  route("platform sprite pause", async () => {
-    printPlatformUnavailable("regents platform sprite pause");
-    return 0;
-  }),
-  route("platform sprite resume", async () => {
-    printPlatformUnavailable("regents platform sprite resume");
     return 0;
   }),
 ];

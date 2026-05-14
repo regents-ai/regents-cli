@@ -67,7 +67,8 @@ export function printError(error: unknown): void {
     };
 
     if (isHumanTerminal()) {
-      process.stderr.write(`${renderErrorPanel(error.message, error.code, details)}\n`);
+      const nextSteps = error.command ? [`${error.command} --help`] : undefined;
+      process.stderr.write(`${renderErrorPanel(error.message, error.code, details, nextSteps)}\n`);
       return;
     }
 

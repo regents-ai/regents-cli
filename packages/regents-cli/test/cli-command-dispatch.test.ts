@@ -107,21 +107,6 @@ const commandCases: CommandCase[] = [
     }),
   },
   {
-    name: "mcp export hermes",
-    args: ["mcp", "export", "hermes", "--json"],
-    expected: {
-      ok: true,
-      provider: "coinbase-cdp",
-      mcpServers: {
-        "coinbase-cdp": {
-          transport: "stdio",
-          command: "cdp",
-          args: ["mcp"],
-        },
-      },
-    },
-  },
-  {
     name: "agent init",
     args: ["agent", "init"],
     expected: expect.objectContaining({
@@ -823,68 +808,6 @@ const commandCases: CommandCase[] = [
     },
   },
   {
-    name: "techtree main artifact init",
-    args: ["techtree", "main", "artifact", "init", "artifact-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      entrypoint: "artifact.init",
-      input: {
-        tree: "main",
-        workspace_path: path.resolve("artifact-workspace"),
-      },
-      workspace_path: path.resolve("artifact-workspace"),
-    },
-  },
-  {
-    name: "techtree main artifact compile",
-    args: ["techtree", "main", "artifact", "compile", "--path", "artifact-workspace"],
-    expected: expect.objectContaining({
-      ok: true,
-      entrypoint: "artifact.compile",
-      input: {
-        tree: "main",
-        workspace_path: path.resolve("artifact-workspace"),
-      },
-      workspace_path: path.resolve("artifact-workspace"),
-      dist_path: path.resolve("artifact-workspace", "dist"),
-      manifest_path: path.resolve("artifact-workspace", "dist", "artifact.manifest.json"),
-      payload_index_path: path.resolve("artifact-workspace", "dist", "payload.index.json"),
-      node_header_path: path.resolve("artifact-workspace", "dist", "node-header.json"),
-      checksums_path: path.resolve("artifact-workspace", "dist", "checksums.txt"),
-      node_header: expect.objectContaining({
-        nodeType: 1,
-        schemaVersion: 1,
-      }),
-    }),
-  },
-  {
-    name: "techtree main artifact pin",
-    args: ["techtree", "main", "artifact", "pin", "artifact-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      node_id: expect.stringMatching(/^0xartifact0+$/),
-      manifest_cid: "bafy-artifact-manifest",
-      payload_cid: "bafy-artifact-payload",
-      compiled: expect.objectContaining({
-        dist_path: expect.any(String),
-      }),
-    },
-  },
-  {
-    name: "techtree main artifact publish",
-    args: ["techtree", "main", "artifact", "publish", "artifact-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      node_id: expect.stringMatching(/^0xartifact0+$/),
-      manifest_cid: "bafy-artifact-manifest",
-      payload_cid: "bafy-artifact-payload",
-      tx_hash: `0x${"ab".repeat(32)}`,
-    },
-  },
-  {
     name: "techtree bbh draft init",
     args: ["techtree", "bbh", "draft", "init", "draft-workspace"],
     expected: {
@@ -961,85 +884,6 @@ const commandCases: CommandCase[] = [
           proposal_id: "proposal_test",
           capsule_id: "capsule_draft_test",
         }),
-      },
-    },
-  },
-  {
-    name: "techtree main run init",
-    args: ["techtree", "main", "run", "init", "--artifact", "0x1234000000000000000000000000000000000000000000000000000000000000", "run-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      entrypoint: "run.init",
-      input: {
-        tree: "main",
-        workspace_path: path.resolve("run-workspace"),
-        artifact_id: "0x1234000000000000000000000000000000000000000000000000000000000000",
-      },
-      workspace_path: path.resolve("run-workspace"),
-    },
-  },
-  {
-    name: "techtree main run exec",
-    args: [
-      "techtree",
-      "main",
-      "run",
-      "exec",
-      "run-workspace",
-      "--executor-harness-kind",
-      "hermes",
-      "--executor-harness-profile",
-      "researcher",
-      "--executor-harness-entrypoint",
-      "analysis.py",
-      "--origin-kind",
-      "api",
-      "--origin-transport",
-      "api",
-      "--origin-session-id",
-      "session-123",
-      "--origin-trigger-ref",
-      "trigger-9",
-    ],
-    expected: {
-      ok: true,
-      tree: "main",
-      entrypoint: "run.exec",
-      input: {
-        tree: "main",
-        workspace_path: path.resolve("run-workspace"),
-        metadata: {
-          executor_harness: {
-            kind: "hermes",
-            profile: "researcher",
-            entrypoint: "analysis.py",
-          },
-          origin: {
-            kind: "api",
-            transport: "api",
-            session_id: "session-123",
-            trigger_ref: "trigger-9",
-          },
-        },
-      },
-      workspace_path: path.resolve("run-workspace"),
-      resolved_metadata: {
-        resolved_at: "2026-03-20T00:00:00.000Z",
-        executor_harness: {
-          kind: "hermes",
-          profile: "researcher",
-          entrypoint: "analysis.py",
-        },
-        origin: {
-          kind: "api",
-          transport: "api",
-          session_id: "session-123",
-          trigger_ref: "trigger-9",
-        },
-        executor_harness_kind: "hermes",
-        executor_harness_profile: "researcher",
-        origin_session_id: "session-123",
       },
     },
   },
@@ -1136,105 +980,6 @@ const commandCases: CommandCase[] = [
         capsule_id: "capsule_draft_test",
         status: "active",
       }),
-    },
-  },
-  {
-    name: "techtree main run compile",
-    args: ["techtree", "main", "run", "compile", "run-workspace"],
-    expected: expect.objectContaining({
-      ok: true,
-      entrypoint: "run.compile",
-      workspace_path: path.resolve("run-workspace"),
-      dist_path: path.resolve("run-workspace", "dist"),
-      manifest_path: path.resolve("run-workspace", "dist", "run.manifest.json"),
-      payload_index_path: path.resolve("run-workspace", "dist", "payload.index.json"),
-      node_header_path: path.resolve("run-workspace", "dist", "node-header.json"),
-      checksums_path: path.resolve("run-workspace", "dist", "checksums.txt"),
-      node_header: expect.objectContaining({ nodeType: 2 }),
-    }),
-  },
-  {
-    name: "techtree main run pin",
-    args: ["techtree", "main", "run", "pin", "run-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      node_id: expect.stringMatching(/^0xrun0+$/),
-      manifest_cid: "bafy-run-manifest",
-      payload_cid: "bafy-run-payload",
-      compiled: expect.objectContaining({
-        dist_path: path.resolve("run-workspace", "dist"),
-        node_header: expect.objectContaining({ nodeType: 2 }),
-      }),
-    },
-  },
-  {
-    name: "techtree main run publish",
-    args: ["techtree", "main", "run", "publish", "run-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      node_id: expect.stringMatching(/^0xrun0+$/),
-      manifest_cid: "bafy-run-manifest",
-      payload_cid: "bafy-run-payload",
-      tx_hash: `0x${"ab".repeat(32)}`,
-    },
-  },
-  {
-    name: "techtree main review init",
-    args: ["techtree", "main", "review", "init", "--target", "0x5678000000000000000000000000000000000000000000000000000000000000", "review-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      entrypoint: "review.init",
-      input: {
-        tree: "main",
-        workspace_path: path.resolve("review-workspace"),
-        target_id: "0x5678000000000000000000000000000000000000000000000000000000000000",
-      },
-      workspace_path: path.resolve("review-workspace"),
-    },
-  },
-  {
-    name: "techtree main review compile",
-    args: ["techtree", "main", "review", "compile", "review-workspace"],
-    expected: expect.objectContaining({
-      ok: true,
-      entrypoint: "review.compile",
-      workspace_path: path.resolve("review-workspace"),
-      dist_path: path.resolve("review-workspace", "dist"),
-      manifest_path: path.resolve("review-workspace", "dist", "review.manifest.json"),
-      payload_index_path: path.resolve("review-workspace", "dist", "payload.index.json"),
-      node_header_path: path.resolve("review-workspace", "dist", "node-header.json"),
-      checksums_path: path.resolve("review-workspace", "dist", "checksums.txt"),
-      node_header: expect.objectContaining({ nodeType: 3 }),
-    }),
-  },
-  {
-    name: "techtree main review pin",
-    args: ["techtree", "main", "review", "pin", "review-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      node_id: expect.stringMatching(/^0xreview0+$/),
-      manifest_cid: "bafy-review-manifest",
-      payload_cid: "bafy-review-payload",
-      compiled: expect.objectContaining({
-        dist_path: path.resolve("review-workspace", "dist"),
-        node_header: expect.objectContaining({ nodeType: 3 }),
-      }),
-    },
-  },
-  {
-    name: "techtree main review publish",
-    args: ["techtree", "main", "review", "publish", "review-workspace"],
-    expected: {
-      ok: true,
-      tree: "main",
-      node_id: expect.stringMatching(/^0xreview0+$/),
-      manifest_cid: "bafy-review-manifest",
-      payload_cid: "bafy-review-payload",
-      tx_hash: `0x${"ab".repeat(32)}`,
     },
   },
   {
@@ -1536,18 +1281,6 @@ describe("CLI command dispatch", () => {
     });
   });
 
-  it("routes the top-level search command to Techtree search", async () => {
-    const output = await captureOutput(async () =>
-      harness.runCliEntrypoint(["search", "node", "query", "--limit", "3", "--config", harness.configPath]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(output.stderr).toBe("");
-    expect(JSON.parse(output.stdout)).toEqual({
-      method: "techtree.search.query",
-      params: { q: "node query", limit: 3 },
-    });
-  });
 
   it("returns an error for unknown commands", async () => {
     const output = await captureOutput(async () =>
@@ -1631,82 +1364,7 @@ describe("CLI command dispatch", () => {
     );
   });
 
-  it("dispatches the new artifact/run/review/fetch/verify command family", async () => {
-    const artifactInit = await captureOutput(async () =>
-      harness.runCliEntrypoint(["techtree", "main", "artifact", "init", "artifact-workspace", "--config", harness.configPath]),
-    );
-    expect(artifactInit.result).toBe(0);
-    expect(JSON.parse(artifactInit.stdout)).toEqual({
-      ok: true,
-      tree: "main",
-      entrypoint: "artifact.init",
-      input: {
-        tree: "main",
-        workspace_path: path.resolve("artifact-workspace"),
-      },
-      workspace_path: path.resolve("artifact-workspace"),
-    });
-
-    const artifactCompile = await captureOutput(async () =>
-      harness.runCliEntrypoint([
-        "techtree",
-        "main",
-        "artifact",
-        "compile",
-        "--path",
-        "artifact-workspace",
-        "--config",
-        harness.configPath,
-      ]),
-    );
-    expect(artifactCompile.result).toBe(0);
-    expect(JSON.parse(artifactCompile.stdout)).toEqual(
-      expect.objectContaining({
-        ok: true,
-        entrypoint: "artifact.compile",
-        dist_path: path.resolve("artifact-workspace", "dist"),
-        node_header: expect.objectContaining({ nodeType: 1, schemaVersion: 1 }),
-      }),
-    );
-
-    const runPin = await captureOutput(async () =>
-      harness.runCliEntrypoint(["techtree", "main", "run", "pin", "run-workspace", "--config", harness.configPath]),
-    );
-    expect(runPin.result).toBe(0);
-    expect(JSON.parse(runPin.stdout)).toEqual(
-      expect.objectContaining({
-        ok: true,
-        tree: "main",
-        manifest_cid: "bafy-run-manifest",
-        payload_cid: "bafy-run-payload",
-        compiled: expect.objectContaining({
-          node_header: expect.objectContaining({ nodeType: 2 }),
-        }),
-      }),
-    );
-
-    const reviewPublish = await captureOutput(async () =>
-      harness.runCliEntrypoint([
-        "techtree",
-        "main",
-        "review",
-        "publish",
-        "review-workspace",
-        "--config",
-        harness.configPath,
-      ]),
-    );
-    expect(reviewPublish.result).toBe(0);
-    expect(JSON.parse(reviewPublish.stdout)).toEqual(
-      expect.objectContaining({
-        ok: true,
-        tree: "main",
-        manifest_cid: "bafy-review-manifest",
-        payload_cid: "bafy-review-payload",
-        tx_hash: `0x${"ab".repeat(32)}`,
-      }),
-    );
-
+  it("dispatches the Techtree main fetch and verify commands", async () => {
     const fetchOutput = await captureOutput(async () =>
       harness.runCliEntrypoint([
         "techtree",
@@ -1788,7 +1446,7 @@ describe("CLI command dispatch", () => {
       error: expect.objectContaining({
         code: "missing_required_argument",
         command: "regents techtree search",
-        usage: "regents techtree search",
+        usage: "regents techtree search --query <text> [--limit <n>] [--json]",
         missing: ["--query"],
         message: "--query is required.",
       }),
@@ -1848,14 +1506,12 @@ describe("CLI command dispatch", () => {
     const output = await captureOutput(async () =>
       harness.runCliEntrypoint([
         "techtree",
-        "main",
-        "run",
-        "init",
+        "search",
         "--config",
         harness.configPath,
-        "--artifact",
-        "--path",
-        "run-workspace",
+        "--query",
+        "--limit",
+        "2",
       ]),
     );
 
@@ -1863,10 +1519,10 @@ describe("CLI command dispatch", () => {
     expect(JSON.parse(output.stderr)).toEqual({
       error: expect.objectContaining({
         code: "missing_required_argument",
-        command: "regents techtree main run init",
-        usage: "regents techtree main run init",
-        missing: ["--artifact or --artifact-id"],
-        message: "--artifact or --artifact-id is required.",
+        command: "regents techtree search",
+        usage: "regents techtree search --query <text> [--limit <n>] [--json]",
+        missing: ["--query"],
+        message: "--query is required.",
       }),
     });
   });

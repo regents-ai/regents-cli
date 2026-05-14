@@ -30,7 +30,7 @@ The current Techtree API contract already exposes:
 
 `regents doctor` v0.1 must not:
 - mutate Techtree state by default
-- create wallets silently
+- set up wallets silently
 - perform SIWA login silently without user intent
 - create nodes/comments unless the user explicitly requests a full proof pass
 
@@ -53,7 +53,7 @@ regents doctor runtime
 regents doctor auth
 regents doctor techtree
 regents doctor transports
-regents doctor xmtp
+regents xmtp doctor
 ```
 
 ### 3.3 Semantics
@@ -63,7 +63,8 @@ regents doctor xmtp
 - `regents doctor --verbose` includes structured check details.
 - `regents doctor --fix` may apply safe local remediations.
 - `regents doctor --full` may perform a real authenticated write proof.
-- `regents doctor runtime|auth|techtree|transports|xmtp` runs only the named scope.
+- `regents doctor runtime|auth|techtree|transports` runs only the named scope.
+- `regents xmtp doctor` runs the XMTP checks.
 
 ## 4. Architecture placement
 
@@ -272,7 +273,7 @@ Fail when:
 - required fields structurally invalid
 
 Possible remediation:
-- `regents create init`
+- `regents init`
 
 #### `runtime.paths.ensure`
 Checks:
@@ -556,7 +557,7 @@ Extend parser:
 - `regents doctor auth`
 - `regents doctor techtree`
 - `regents doctor transports`
-- `regents doctor xmtp`
+- `regents xmtp doctor`
 - flags `--json`, `--verbose`, `--fix`, `--full`
 
 ## 13. Detailed method behavior
@@ -666,7 +667,7 @@ For milestone proof, run against true local Phoenix + shared SIWA verification a
 ## 17. Recommended default next-step messages
 
 Examples:
-- missing config -> `Run \`regents create init\``
+- missing config -> `Run \`regents init\``
 - missing wallet source -> `Set AGENT_WALLET_KEY or configure a wallet file`
 - no SIWA session -> `Run \`regents identity ensure\``
 - runtime not running -> `Run \`regents run\``

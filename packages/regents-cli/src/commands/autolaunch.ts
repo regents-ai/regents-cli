@@ -50,7 +50,6 @@ export {
 } from "./autolaunch/contracts.js";
 export {
   runAutolaunchJobsWatch,
-  runAutolaunchLaunchCreate,
   runAutolaunchLaunchPreview,
 } from "./autolaunch/launch.js";
 export {
@@ -63,10 +62,6 @@ export {
   runAutolaunchBidsQuote,
 } from "./autolaunch/markets.js";
 export {
-  runAutolaunchHoldingsClaimUsdc,
-  runAutolaunchHoldingsStake,
-  runAutolaunchHoldingsSweepIngress,
-  runAutolaunchHoldingsUnstake,
   runAutolaunchSubjectByToken,
   runAutolaunchSubjectClaimUsdc,
   runAutolaunchSubjectCreateDeferredAutolaunch,

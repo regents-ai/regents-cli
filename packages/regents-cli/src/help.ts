@@ -103,10 +103,22 @@ const autolaunchFailureChecks = [
   "If the result is not ready, run the read/status command shown in the output before trying the next write.",
 ];
 
+const autolaunchWalletActionPrerequisites = [
+  ...autolaunchPrerequisites,
+  "Use a wallet that can review and sign the prepared action before any onchain submit step.",
+  "Check that the wallet has enough token balance and network fees before a bid, claim, release, or finalize command.",
+];
+
 const techtreeFailureChecks = [
   "If the command cannot connect locally, start `regents run` in another terminal.",
   "If the command says auth is missing, run `regents auth login --audience techtree` and `regents identity ensure`.",
   "If a workspace path is missing, create or pass the same folder path through the whole Techtree flow.",
+];
+
+const techtreeWorkspacePrerequisites = [
+  ...techtreePrerequisites,
+  "Use the same `--workspace-path` for accept, local work, notebook pairing, and publish commands.",
+  "Keep private data out of the workspace before publishing public Techtree artifacts.",
 ];
 
 const commandHelp: Record<string, HelpEntry> = {
@@ -674,6 +686,934 @@ const commandHelp: Record<string, HelpEntry> = {
   },
 };
 
+Object.assign(commandHelp, {
+  status: {
+    summary: "Show whether this machine is ready to use Regent.",
+    usage: "regents status [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents status", "regents status --json"],
+    prerequisites: ["No setup is required, but the result is more useful after `regents run` has been started once."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows local runtime, wallet, identity, sign-in, Techtree, chatbox, and XMTP readiness.",
+    nextStep: "Fix the first waiting item shown in the output, then run `regents status` again.",
+    ifItFails: [
+      "If config cannot load, run `regents init` or pass the right `--config <path>`.",
+      "If local runtime is waiting, start `regents run` in another terminal.",
+    ],
+  },
+  whoami: {
+    summary: "Show the wallet, Agent account, chain, and saved sign-in used by Regent.",
+    usage: "regents whoami [--full] [--json]",
+    flags: ["--full - Include the saved Regent website account when present.", "--json", "--config <path>"],
+    examples: ["regents whoami", "regents whoami --full --json"],
+    prerequisites: ["Run `regents identity ensure` when the output says no Agent account is saved."],
+    auth: "No saved sign-in is needed for the local read.",
+    output: "Shows the active local identity state without moving funds or changing account data.",
+    nextStep: "Use this before a signed command to confirm which Agent account will act.",
+    ifItFails: [
+      "If identity is missing, run `regents identity ensure`.",
+      "If the wrong wallet appears, check `regents wallet status` and the config path being used.",
+    ],
+  },
+  "agent-context": {
+    summary: "Print the command map and local context that another agent can safely read.",
+    usage: "regents agent-context [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents agent-context --json"],
+    prerequisites: ["No sign-in is needed. Run this when an agent needs to discover the current command surface."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows commands, command groups, output behavior, and safe local profile/config summaries.",
+    nextStep: "Give the JSON output to the agent that needs to choose the next Regent command.",
+    ifItFails: ["If the config cannot load, pass the intended `--config <path>`."],
+  },
+  run: {
+    summary: "Start local Regent access for this machine.",
+    usage: "regents run [--fold starter|autoresearch|bbh-public-v1] [--json]",
+    flags: ["--fold <preset> - Start with a Techtree Fold work track.", "--json", "--config <path>"],
+    examples: ["regents run", "regents run --fold autoresearch", "regents run --json"],
+    prerequisites: localRuntimePrerequisites,
+    auth: "No saved sign-in is needed to start local Regent access.",
+    output: "Shows separate Hermes and OpenClaw tool readiness, local records, wallet, identity, sign-in, Techtree, budget, and relay checks.",
+    nextStep: "Keep this terminal open, then run other Regent commands from another terminal.",
+    ifItFails: [
+      "If a port or socket is already active, stop the older Regent process or run the status command in the terminal that owns it.",
+      "If Hermes or OpenClaw tools are missing, run the matching `regents plugin install --runtime ...` command.",
+    ],
+  },
+  doctor: {
+    summary: "Run the broad local Regent diagnostic.",
+    usage: "regents doctor [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents doctor", "regents doctor --json"],
+    prerequisites: ["Run this before deeper product-specific doctor commands when the failure source is unclear."],
+    auth: "No saved sign-in is needed for local checks. Signed remote checks may report missing auth.",
+    output: "Shows local setup, runtime, wallet, identity, and service readiness with next moves.",
+    nextStep: "Follow the first failing remediation, then run the doctor again.",
+    ifItFails: [
+      "If the doctor itself cannot read config, run `regents init` or pass `--config <path>`.",
+      "If a remote check is unauthorized, run the product-specific `regents auth login --audience ...` command.",
+    ],
+  },
+  "doctor runtime": {
+    summary: "Diagnose local Regent runtime access.",
+    usage: "regents doctor runtime [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents doctor runtime", "regents doctor runtime --json"],
+    prerequisites: ["Run this when a command says it cannot connect to local Regent."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows local socket, runtime process, and local transport readiness.",
+    nextStep: "Start `regents run` if the local runtime is not available.",
+    ifItFails: ["If the socket path is stale, stop old Regent processes and start `regents run` again."],
+  },
+  "doctor techtree": {
+    summary: "Diagnose Techtree access, identity, and signed agent readiness.",
+    usage: "regents doctor techtree [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents doctor techtree", "regents doctor techtree --json"],
+    prerequisites: techtreePrerequisites,
+    auth: "Public reads are open. Signed checks need Techtree sign-in and Agent identity.",
+    output: "Shows whether local Regent can reach Techtree and produce signed Techtree agent requests.",
+    nextStep: "Run `regents techtree start` after the doctor is clean.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "auth login": {
+    summary: "Save an Agent account sign-in for one Regent product.",
+    usage: "regents auth login --audience <platform|autolaunch|techtree|regent-services>",
+    flags: ["--audience <name>", "--wallet-address <address>", "--chain-id <id>", "--json", "--config <path>"],
+    examples: [
+      "regents auth login --audience techtree",
+      "regents auth login --audience autolaunch",
+      "regents auth login --audience regent-services",
+    ],
+    prerequisites: ["Start `regents run` in another terminal when the command says local Regent is unavailable."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows the saved product audience, wallet, chain, and expiry.",
+    nextStep: "Run `regents identity ensure` after sign-in so signed agent commands can work.",
+    ifItFails: [
+      "If the audience is wrong, rerun with the audience named by the product command.",
+      "If the local runtime is unavailable, start `regents run` and retry.",
+    ],
+  },
+  "auth status": {
+    summary: "Show saved product sign-ins and their expiry.",
+    usage: "regents auth status [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents auth status --json"],
+    prerequisites: ["No setup is required. Use this before a product write command."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows which product sessions are saved and whether they are still current.",
+    nextStep: "Run `regents auth login --audience <product>` for any missing or expired product session.",
+    ifItFails: ["If the config path is wrong, pass the same `--config <path>` used by your other commands."],
+  },
+  "auth logout": {
+    summary: "Remove a saved product sign-in from this machine.",
+    usage: "regents auth logout --audience <platform|autolaunch|techtree|regent-services>",
+    flags: ["--audience <name>", "--json", "--config <path>"],
+    examples: ["regents auth logout --audience techtree"],
+    prerequisites: ["Use `regents auth status` first when you are not sure which audience is saved."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows which saved sign-in was removed.",
+    nextStep: "Run `regents auth login --audience <product>` when you need that product again.",
+    ifItFails: ["If the audience is missing, pass the exact audience named in `regents auth status`."],
+  },
+  "identity ensure": {
+    summary: "Create or refresh the saved Agent account on this machine.",
+    usage: "regents identity ensure [--network base-sepolia|base]",
+    flags: ["--network <name>", "--wallet-address <address>", "--json", "--config <path>"],
+    examples: ["regents identity ensure --network base-sepolia", "regents identity ensure --network base"],
+    prerequisites: [
+      "Run `regents auth login --audience <product>` for the product you plan to use.",
+      "Make sure `regents wallet status` shows the wallet you expect.",
+    ],
+    auth: "Uses the local wallet configured for Regent.",
+    output: "Shows the wallet, chain, registry, token, and saved status.",
+    nextStep: "Run the product command that needs the Agent account.",
+    ifItFails: [
+      "If the wallet source is missing, run `regents wallet setup` or set the configured wallet environment variable.",
+      "If the chain is wrong, rerun with the intended `--network` value.",
+    ],
+  },
+  "identity status": {
+    summary: "Read the saved Agent account without changing it.",
+    usage: "regents identity status [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents identity status --json"],
+    prerequisites: ["Run this before product writes when you need to confirm the saved Agent account."],
+    auth: "No saved sign-in is needed for the local read.",
+    output: "Shows the saved wallet, registry, token, and chain if present.",
+    nextStep: "Run `regents identity ensure` if any required identity field is missing.",
+    ifItFails: ["If identity is missing, run `regents identity ensure`."],
+  },
+  "wallet status": {
+    summary: "Show the local wallet source Regent will use.",
+    usage: "regents wallet status [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents wallet status", "regents wallet status --json"],
+    prerequisites: walletPrerequisites,
+    auth: "No saved sign-in is needed.",
+    output: "Shows whether Regent sees an environment wallet, local wallet file, or missing wallet source.",
+    nextStep: "Run `regents wallet setup` only when you need to create or configure a local wallet source.",
+    ifItFails: ["If the wallet shown is not the one you expect, check the config path and shell environment."],
+  },
+  "wallet setup": {
+    summary: "Set up the local wallet source used by Regent.",
+    usage: "regents wallet setup",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents wallet setup"],
+    prerequisites: ["Run `regents wallet status` first so you know whether setup is actually needed."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows where the local wallet source was created or configured.",
+    nextStep: "Run `regents identity ensure` after the wallet source is ready.",
+    ifItFails: [
+      "If setup refuses to overwrite an existing wallet source, inspect `regents wallet status`.",
+      "If the terminal is non-interactive, provide the required wallet source through config or environment.",
+    ],
+  },
+  "wallet agentic status": {
+    summary: "Show whether Agentic Wallet is connected for paid x402 flows.",
+    usage: "regents wallet agentic status [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents wallet agentic status --json"],
+    prerequisites: ["Agentic Wallet is optional until paid x402 spend or earn flows are needed."],
+    auth: "No saved sign-in is needed for the local status check.",
+    output: "Shows login state and the Agentic Wallet address when connected.",
+    nextStep: "Run `regents wallet agentic login --email <email>` when paid x402 access is needed.",
+    ifItFails: ["If no wallet is connected, start the login and verify flow before trying paid x402 commands."],
+  },
+  "wallet agentic login": {
+    summary: "Start Agentic Wallet email login for paid x402 flows.",
+    usage: "regents wallet agentic login --email <email>",
+    flags: ["--email <email>", "--json", "--config <path>"],
+    examples: ["regents wallet agentic login --email agent@example.com"],
+    prerequisites: ["Use this only when an agent needs paid x402 spend or earn flows."],
+    auth: "No saved Regent sign-in is needed.",
+    output: "Shows the verification flow id and the next verify command.",
+    nextStep: "Run `regents wallet agentic verify --flow-id <id> --otp <code>`.",
+    ifItFails: ["If the email is wrong, rerun login with the correct email."],
+  },
+  "wallet agentic verify": {
+    summary: "Finish Agentic Wallet login with the one-time code.",
+    usage: "regents wallet agentic verify --flow-id <id> --otp <code>",
+    flags: ["--flow-id <id>", "--otp <code>", "--json", "--config <path>"],
+    examples: ["regents wallet agentic verify --flow-id flow_123 --otp 123456"],
+    prerequisites: ["Run `regents wallet agentic login --email <email>` first."],
+    auth: "No saved Regent sign-in is needed.",
+    output: "Shows the connected Agentic Wallet address and saves the local connection.",
+    nextStep: "Run `regents wallet agentic balance --chain base` or create a Regent budget.",
+    ifItFails: ["If the code expired, rerun `regents wallet agentic login --email <email>`."],
+  },
+  "wallet agentic fund": {
+    summary: "Show the guided funding path for Agentic Wallet.",
+    usage: "regents wallet agentic fund --amount-usdc <amount> --chain base",
+    flags: ["--amount-usdc <amount>", "--chain base", "--json", "--config <path>"],
+    examples: ["regents wallet agentic fund --amount-usdc 10 --chain base"],
+    prerequisites: ["Connect Agentic Wallet with login and verify first."],
+    auth: "Uses the saved Agentic Wallet connection.",
+    output: "Shows funding instructions for the connected Agentic Wallet.",
+    nextStep: "After funding, run `regents wallet agentic balance --chain base`.",
+    ifItFails: ["If no Agentic Wallet is connected, run login and verify first."],
+  },
+  "config get": {
+    summary: "Show the current Regent config path and safe config values.",
+    usage: "regents config get [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents config get --json"],
+    prerequisites: ["No setup is required."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows safe config values and avoids printing secrets.",
+    nextStep: "Pass `--config <path>` to other commands if this is not the config you meant to use.",
+    ifItFails: ["If config is missing, run `regents init`."],
+  },
+  "budget grant": {
+    summary: "Create a capped local budget for agent paid calls.",
+    usage: "regents budget grant --agent <agent-id> --amount-usdc <amount> --max-payment-usdc <amount> --mode <mode>",
+    flags: ["--agent <id>", "--amount-usdc <amount>", "--max-payment-usdc <amount>", "--mode <mode>", "--expires <duration>", "--json", "--config <path>"],
+    examples: ["regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --expires 7d"],
+    prerequisites: paymentPrerequisites,
+    auth: "No saved product sign-in is needed; this writes local budget policy.",
+    output: "Shows the saved budget id, limit, per-payment cap, mode, and expiry.",
+    nextStep: "Use the budget id with `regents x402 pay ... --budget <budget-id>`.",
+    ifItFails: ["If the agent id is unknown, run `regents whoami` or inspect the target agent record first."],
+  },
+  "budget status": {
+    summary: "Show saved Regent budgets and remaining spend.",
+    usage: "regents budget status [--budget <id>] [--agent <id>] [--json]",
+    flags: ["--budget <id>", "--agent <id>", "--json", "--config <path>"],
+    examples: ["regents budget status --json", "regents budget status --budget bud_123"],
+    prerequisites: ["Run this before paid x402 commands."],
+    auth: "No saved product sign-in is needed.",
+    output: "Shows budget limits, spent amounts, per-payment cap, mode, status, and expiry.",
+    nextStep: "Grant, revoke, or use the budget depending on the remaining allowance.",
+    ifItFails: ["If the budget id is missing, run `regents budget status --json` to list saved budgets."],
+  },
+  "x402 search": {
+    summary: "Find paid x402 services without making a payment.",
+    usage: 'regents x402 search "<query>" [--json]',
+    flags: ["<query> - Service search text.", "--json", "--config <path>"],
+    examples: ['regents x402 search "research data" --json'],
+    prerequisites: ["No payment setup is needed for search."],
+    auth: "No saved sign-in is needed.",
+    output: "Shows candidate paid endpoints and metadata.",
+    nextStep: "Inspect an endpoint with `regents x402 details --url <url> --json`.",
+    ifItFails: ["If search has no results, broaden the query or inspect a known URL directly."],
+  },
+  "x402 pay": {
+    summary: "Make a capped paid x402 request through Regent budget policy.",
+    usage: "regents x402 pay <url> --budget <budget-id> --max-usdc <amount> --rail agentic-wallet [--receipt]",
+    flags: ["<url> - Protected endpoint URL.", "--budget <id>", "--max-usdc <amount>", "--rail agentic-wallet", "--receipt", "--json", "--config <path>"],
+    examples: ["regents x402 pay https://api.example.com/paid --budget bud_123 --max-usdc 0.25 --rail agentic-wallet --receipt --json"],
+    prerequisites: paymentPrerequisites,
+    auth: "Uses local budget policy and the selected payment rail.",
+    output: "Shows payment result, receipt fields when requested, and safe next steps.",
+    nextStep: "Create or share a receipt when the paid call produced useful work.",
+    ifItFails: [
+      "If the budget is missing or exhausted, run `regents budget status` or create a new budget.",
+      "If Agentic Wallet is missing, run `regents wallet agentic status` and finish login.",
+    ],
+  },
+  "receipt create": {
+    summary: "Create a local receipt from Techtree or x402 work.",
+    usage: "regents receipt create [--from-attempt <id> | --from-notebook <id> | --from-x402-payment <id>]",
+    flags: ["--from-attempt <id>", "--from-notebook <id>", "--from-x402-payment <id>", "--json", "--config <path>"],
+    examples: ["regents receipt create --from-notebook node_123 --json"],
+    prerequisites: ["Use this after a Techtree or paid x402 action that produced evidence."],
+    auth: "No saved product sign-in is needed to create the local receipt.",
+    output: "Shows the saved receipt id and source.",
+    nextStep: "Use `regents receipt share-draft --receipt <id>` before sharing public copy.",
+    ifItFails: ["If the source id is unknown, open the Techtree node, benchmark attempt, notebook, or x402 result first."],
+  },
+  "receipt share-draft": {
+    summary: "Draft safe public copy from a saved receipt.",
+    usage: "regents receipt share-draft --receipt <id>",
+    flags: ["--receipt <id>", "--json", "--config <path>"],
+    examples: ["regents receipt share-draft --receipt receipt_123"],
+    prerequisites: ["Create or list receipts first."],
+    auth: "No saved product sign-in is needed.",
+    output: "Shows draft public copy and notes that the receipt is not a revenue claim by itself.",
+    nextStep: "Review the draft before posting it publicly.",
+    ifItFails: ["If the receipt id is missing, run `regents receipt list --json`."],
+  },
+  "autolaunch agents list": {
+    summary: "List Autolaunch agents and find the ones that can launch.",
+    usage: "regents autolaunch agents list [--launchable] [--json]",
+    flags: ["--launchable - Show only agents that are close to launch-ready.", "--json", "--config <path>"],
+    examples: ["regents autolaunch agents list --launchable", "regents autolaunch agents list --json"],
+    prerequisites: autolaunchPrerequisites,
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows agent ids, launch readiness fields, and the next readiness command to run.",
+    nextStep: "Run `regents autolaunch agent readiness <id>` for the agent you plan to launch.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch agent readiness <id>": {
+    summary: "Check one agent before spending time on launch setup.",
+    usage: "regents autolaunch agent readiness <id> [--json]",
+    flags: ["<id> - Agent id from `regents autolaunch agents list`.", "--json", "--config <path>"],
+    examples: ["regents autolaunch agent readiness agent_123 --json"],
+    prerequisites: autolaunchPrerequisites,
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows what is ready, what is missing, and whether the agent can move into prelaunch planning.",
+    nextStep: "Fix waiting items, then run `regents autolaunch prelaunch wizard`.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch prelaunch wizard": {
+    summary: "Create or update the saved prelaunch plan for one agent.",
+    usage:
+      "regents autolaunch prelaunch wizard --agent <id> --name <token-name> --symbol <symbol> --minimum-raise-usdc <amount> --agent-safe-address <safe>",
+    flags: [
+      "--agent <id> - Agent being launched.",
+      "--name <text> - Token name.",
+      "--symbol <text> - Token symbol.",
+      "--minimum-raise-usdc <amount> - Minimum raise target.",
+      "--agent-safe-address <address> - Agent Safe that will control launch ownership.",
+      "--plan <id> - Update an existing plan.",
+      "--image-url <url> or --image-file <path>",
+      "--json",
+      "--config <path>",
+    ],
+    examples: [
+      "regents autolaunch prelaunch wizard --agent agent_123 --name RegentBot --symbol RGBOT --minimum-raise-usdc 1000 --agent-safe-address 0x0000000000000000000000000000000000000001",
+    ],
+    prerequisites: [
+      ...autolaunchPrerequisites,
+      "Run `regents autolaunch safe wizard` first if you do not already have an Agent Safe address.",
+      "Know the token name, token symbol, minimum raise, and public launch copy before starting.",
+    ],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Saves a local plan, validates it remotely, and shows the plan id plus launchable status.",
+    nextStep: "Run `regents autolaunch prelaunch validate --plan <plan-id>`.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch prelaunch get": {
+    summary: "Open the latest or named prelaunch plan.",
+    usage: "regents autolaunch prelaunch get [--plan <plan-id>] [--json]",
+    flags: ["--plan <id> - Plan id. If omitted, the latest local plan is used.", "--json", "--config <path>"],
+    examples: ["regents autolaunch prelaunch get --plan plan_123"],
+    prerequisites: [...autolaunchPrerequisites, "Run `regents autolaunch prelaunch wizard` first so a plan exists."],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows the saved plan and refreshes the local copy.",
+    nextStep: "Run `regents autolaunch prelaunch validate --plan <plan-id>`.",
+    ifItFails: [
+      ...autolaunchFailureChecks,
+      "If no local plan exists, rerun with `--plan <id>` or create one with `regents autolaunch prelaunch wizard`.",
+    ],
+  },
+  "autolaunch prelaunch validate": {
+    summary: "Check whether a prelaunch plan is ready to publish or launch.",
+    usage: "regents autolaunch prelaunch validate [--plan <plan-id>] [--json]",
+    flags: ["--plan <id> - Plan id. If omitted, the latest local plan is used.", "--json", "--config <path>"],
+    examples: ["regents autolaunch prelaunch validate --plan plan_123"],
+    prerequisites: [...autolaunchPrerequisites, "Create or fetch the plan before validating it."],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows launchable status and the exact missing fields or approvals.",
+    nextStep: "Run `regents autolaunch prelaunch publish --plan <plan-id>` when validation is clean.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch prelaunch publish": {
+    summary: "Publish the launch page draft for a validated plan.",
+    usage: "regents autolaunch prelaunch publish [--plan <plan-id>] [--json]",
+    flags: ["--plan <id> - Plan id. If omitted, the latest local plan is used.", "--json", "--config <path>"],
+    examples: ["regents autolaunch prelaunch publish --plan plan_123"],
+    prerequisites: [
+      ...autolaunchPrerequisites,
+      "Run `regents autolaunch prelaunch validate --plan <plan-id>` and confirm it is clean.",
+      "Review public copy and images before publishing.",
+    ],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows the published page state and the next launch command.",
+    nextStep: "Run `regents autolaunch launch run --plan <plan-id>` when the operator is ready.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch safe wizard": {
+    summary: "Prepare the Agent Safe inputs needed for launch ownership.",
+    usage: "regents autolaunch safe wizard --backup-signer-address <wallet> [--website-wallet-address <wallet>]",
+    flags: [
+      "--backup-signer-address <address> - Backup signer wallet for the Safe.",
+      "--website-wallet-address <address> - Website wallet when available.",
+      "--agent-safe-address <address> - Existing Safe to reuse.",
+      "--wait-for-website-wallet",
+      "--json",
+      "--config <path>",
+    ],
+    examples: ["regents autolaunch safe wizard --backup-signer-address 0x0000000000000000000000000000000000000001"],
+    prerequisites: [
+      "Run `regents wallet status` and confirm the local wallet is the agent signer you intend to use.",
+      "Have a backup signer wallet ready before creating a new Safe.",
+    ],
+    auth: "No Autolaunch sign-in is needed for the local Safe planning step.",
+    output: "Explains the Safe setup and shows the values to use in the prelaunch plan.",
+    nextStep: "Use the Safe address with `regents autolaunch prelaunch wizard --agent-safe-address <safe>`.",
+    ifItFails: [
+      "If a signer is missing, run `regents wallet status` and pass the missing wallet flag named in the error.",
+      "If you already have a Safe, rerun with `--agent-safe-address <safe>`.",
+    ],
+  },
+  "autolaunch safe create": {
+    summary: "Create the Agent Safe used by an Autolaunch project.",
+    usage: "regents autolaunch safe create --backup-signer-address <wallet> [--website-wallet-address <wallet>]",
+    flags: [
+      "--backup-signer-address <address> - Required backup signer wallet.",
+      "--website-wallet-address <address> - Optional website wallet.",
+      "--json",
+      "--config <path>",
+    ],
+    examples: ["regents autolaunch safe create --backup-signer-address 0x0000000000000000000000000000000000000001"],
+    prerequisites: [
+      "Run `regents autolaunch safe wizard` first unless you already know the exact Safe signer layout.",
+      "Confirm the local wallet is allowed to create the Safe and has enough network fees.",
+    ],
+    auth: "No Autolaunch sign-in is needed for the local Safe creation step.",
+    output: "Shows the created Safe address and the launch command that needs it.",
+    nextStep: "Run `regents autolaunch prelaunch wizard --agent-safe-address <safe>`.",
+    ifItFails: [
+      "If the backup signer is missing, rerun with `--backup-signer-address <wallet>`.",
+      "If the local wallet cannot sign, run `regents wallet status` and correct the wallet source.",
+    ],
+  },
+  "autolaunch launch preview": {
+    summary: "Preview the launch payload before creating a launch job.",
+    usage:
+      "regents autolaunch launch preview --agent <id> --name <token-name> --symbol <symbol> --agent-safe-address <safe> --minimum-raise-usdc <amount>",
+    flags: [
+      "--agent <id>",
+      "--name <text>",
+      "--symbol <text>",
+      "--agent-safe-address <address>",
+      "--minimum-raise-usdc <amount>",
+      "--launch-notes <text>",
+      "--json",
+      "--config <path>",
+    ],
+    examples: [
+      "regents autolaunch launch preview --agent agent_123 --name RegentBot --symbol RGBOT --agent-safe-address 0x0000000000000000000000000000000000000001 --minimum-raise-usdc 1000",
+    ],
+    prerequisites: autolaunchPrerequisites,
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows the launch data that would be used without creating the launch job.",
+    nextStep: "Create or run the launch only after the preview matches the intended project.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch launch run": {
+    summary: "Run the launch flow for a validated prelaunch plan.",
+    usage: "regents autolaunch launch run [--plan <plan-id>] [--watch] [--interval <seconds>] [--json]",
+    flags: [
+      "--plan <id> - Plan id. If omitted, the latest local plan is used.",
+      "--wallet-address <address> - Wallet that signs the launch authorization when needed.",
+      "--watch - Keep polling until the launch reaches a final state.",
+      "--interval <seconds>",
+      "--json",
+      "--config <path>",
+    ],
+    examples: ["regents autolaunch launch run --plan plan_123 --watch"],
+    prerequisites: [
+      ...autolaunchWalletActionPrerequisites,
+      "Run `regents autolaunch prelaunch validate --plan <plan-id>` and confirm it is launchable.",
+      "Run `regents autolaunch prelaunch publish --plan <plan-id>` if the public page should be visible first.",
+    ],
+    auth: "Needs Autolaunch sign-in, saved Agent account, and a launch-authorizing wallet.",
+    output: "Shows the launch job id, current job status, and the command to keep watching it.",
+    nextStep: "Run `regents autolaunch jobs watch <job-id> --watch` until the job is ready, failed, or blocked.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch jobs watch": {
+    summary: "Watch an Autolaunch job until it reaches a final state.",
+    usage: "regents autolaunch jobs watch <job-id> [--watch] [--interval <seconds>] [--json]",
+    flags: ["<job-id> - Job id from launch run.", "--watch", "--interval <seconds>", "--json", "--config <path>"],
+    examples: ["regents autolaunch jobs watch job_123 --watch --interval 5"],
+    prerequisites: [...autolaunchPrerequisites, "Start this after a command prints a launch job id."],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows the latest job status and stops when the job is ready, failed, or blocked unless asked to keep watching.",
+    nextStep: "Run the next command shown in the job output, usually launch monitor or finalize.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch launch monitor": {
+    summary: "Watch the lifecycle job after the launch job starts.",
+    usage: "regents autolaunch launch monitor --job <job-id> [--watch] [--interval <seconds>] [--json]",
+    flags: ["--job <id>", "--watch", "--interval <seconds>", "--json", "--config <path>"],
+    examples: ["regents autolaunch launch monitor --job job_123 --watch --interval 5"],
+    prerequisites: [...autolaunchPrerequisites, "Run this only after launch output gives you a lifecycle job id."],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows lifecycle status and the recommended next action.",
+    nextStep: "Run `regents autolaunch launch finalize --job <job-id>` when the monitor recommends finalizing.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch launch finalize": {
+    summary: "Prepare or submit the final launch action for a lifecycle job.",
+    usage: "regents autolaunch launch finalize --job <job-id> [--submit] [--json]",
+    flags: ["--job <id>", "--submit - Sign and submit the prepared action.", "--json", "--config <path>"],
+    examples: ["regents autolaunch launch finalize --job job_123", "regents autolaunch launch finalize --job job_123 --submit"],
+    prerequisites: [
+      ...autolaunchWalletActionPrerequisites,
+      "Run `regents autolaunch launch monitor --job <job-id>` and confirm finalize is the recommended action.",
+      "Run without `--submit` first when you want to inspect the prepared action.",
+    ],
+    auth: "Needs Autolaunch sign-in, saved Agent account, and a wallet able to sign the final action.",
+    output: "Without `--submit`, shows the prepared action. With `--submit`, shows the transaction result.",
+    nextStep: "Run `regents autolaunch vesting status --job <job-id>` after finalization.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch auctions list": {
+    summary: "List active and recent Autolaunch auctions.",
+    usage: "regents autolaunch auctions list [--sort hottest|newest] [--status <status>] [--mine-only] [--json]",
+    flags: ["--sort <value>", "--status <status>", "--chain <chain>", "--mine-only", "--json", "--config <path>"],
+    examples: ["regents autolaunch auctions list --sort hottest --json"],
+    prerequisites: autolaunchPrerequisites,
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows auction ids, subject ids, status, and pricing fields needed for quote commands.",
+    nextStep: "Run `regents autolaunch auction <id>` or `regents autolaunch bids quote --auction <id> ...`.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch auction <id>": {
+    summary: "Open one Autolaunch auction.",
+    usage: "regents autolaunch auction <id> [--json]",
+    flags: ["<id> - Auction id from `regents autolaunch auctions list`.", "--json", "--config <path>"],
+    examples: ["regents autolaunch auction auction_123 --json"],
+    prerequisites: autolaunchPrerequisites,
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows auction state, subject details, bid fields, and current pricing context.",
+    nextStep: "Run `regents autolaunch bids quote --auction <id> --amount <amount> --max-price <price>` before placing a bid.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch bids quote": {
+    summary: "Quote a bid before spending funds.",
+    usage: "regents autolaunch bids quote --auction <auction-id> --amount <amount> --max-price <price> [--json]",
+    flags: ["--auction <id>", "--amount <amount>", "--max-price <price>", "--json", "--config <path>"],
+    examples: ["regents autolaunch bids quote --auction auction_123 --amount 100 --max-price 0.50 --json"],
+    prerequisites: [
+      ...autolaunchPrerequisites,
+      "Open the auction first so the amount, max price, and status are current.",
+      "Use this before every bid because auction conditions can change.",
+    ],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows the estimated bid result and the fields to carry into a place-bid command after payment is signed.",
+    nextStep: "Only place the bid after reviewing the quote and signing the matching wallet transaction.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch bids place": {
+    summary: "Record a signed bid transaction for an auction.",
+    usage:
+      "regents autolaunch bids place --auction <auction-id> --amount <amount> --max-price <price> --tx-hash <hash> [--json]",
+    flags: [
+      "--auction <id>",
+      "--amount <amount>",
+      "--max-price <price>",
+      "--tx-hash <hash> - Transaction hash for the signed bid.",
+      "--current-clearing-price <amount>",
+      "--projected-clearing-price <amount>",
+      "--json",
+      "--config <path>",
+    ],
+    examples: ["regents autolaunch bids place --auction auction_123 --amount 100 --max-price 0.50 --tx-hash 0xabc --json"],
+    prerequisites: [
+      ...autolaunchWalletActionPrerequisites,
+      "Run `regents autolaunch bids quote --auction <id> --amount <amount> --max-price <price>` immediately before placing.",
+      "Submit the wallet transaction first, then pass the resulting `--tx-hash`.",
+    ],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows the recorded bid and the next command to inspect the auction or claim results.",
+    nextStep: "Run `regents autolaunch auction <id>` to confirm the bid appears.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch subjects get": {
+    summary: "Open one launched subject by subject id.",
+    usage: "regents autolaunch subjects get <subject-id> [--json]",
+    flags: ["<subject-id> - Subject id from an auction, launch, or claim record.", "--json", "--config <path>"],
+    examples: ["regents autolaunch subjects get subject_123 --json"],
+    prerequisites: autolaunchPrerequisites,
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows subject state, revenue lanes, staking status, and available prepared actions.",
+    nextStep: "Run staking, claim, or ingress commands only after checking the current subject state.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch subjects staking": {
+    summary: "Show staking state for one Autolaunch subject.",
+    usage: "regents autolaunch subjects staking <subject-id> [--json]",
+    flags: ["<subject-id> - Subject id.", "--json", "--config <path>"],
+    examples: ["regents autolaunch subjects staking subject_123 --json"],
+    prerequisites: autolaunchPrerequisites,
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Shows staking balances, reward state, and whether stake or unstake actions are available.",
+    nextStep: "Use subject stake, unstake, or claim commands only after reviewing this state.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "autolaunch subjects claim-usdc": {
+    summary: "Prepare a USDC claim for one Autolaunch subject.",
+    usage: "regents autolaunch subjects claim-usdc <subject-id> [--submit] [--json]",
+    flags: ["<subject-id> - Subject id.", "--submit - Sign and submit the prepared claim action.", "--json", "--config <path>"],
+    examples: ["regents autolaunch subjects claim-usdc subject_123", "regents autolaunch subjects claim-usdc subject_123 --submit --json"],
+    prerequisites: [
+      ...autolaunchWalletActionPrerequisites,
+      "Run `regents autolaunch subjects get <subject-id>` and confirm there is claimable USDC.",
+    ],
+    auth: "Needs Autolaunch sign-in and a saved Agent account.",
+    output: "Without `--submit`, shows the prepared claim action. With `--submit`, shows the submitted claim result.",
+    nextStep: "Run `regents autolaunch subjects get <subject-id>` again to confirm the updated balances.",
+    ifItFails: autolaunchFailureChecks,
+  },
+  "techtree start": {
+    summary: "Start the default Techtree working view.",
+    usage: "regents techtree start [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents techtree start"],
+    prerequisites: ["Run `regents run` first when you want local agent work and publishing features."],
+    auth: "Public reads are open. Signed work needs Techtree sign-in and a saved Agent account.",
+    output: "Shows Techtree readiness and a suggested first public-work command.",
+    nextStep: "Run `regents techtree work next` or `regents techtree runbook questions list`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree status": {
+    summary: "Show local and Techtree readiness.",
+    usage: "regents techtree status [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents techtree status --json"],
+    prerequisites: ["No sign-in is needed for a basic status read. Signed work needs Techtree sign-in and identity setup."],
+    auth: "Public reads are open. Signed work needs Techtree sign-in and a saved Agent account.",
+    output: "Shows whether Techtree can be reached and whether signed work appears ready.",
+    nextStep: "Run `regents doctor techtree` when status shows a blocked item.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree search": {
+    summary: "Search public Techtree nodes.",
+    usage: "regents techtree search --query <text> [--limit <n>] [--json]",
+    flags: ["--query <text> or --q <text>", "--limit <n>", "--json", "--config <path>"],
+    examples: ['regents techtree search --query "x402 runbook" --limit 10 --json'],
+    prerequisites: ["No sign-in is needed for public search."],
+    auth: "No saved sign-in is needed for public reads.",
+    output: "Shows matching public nodes with ids to open next.",
+    nextStep: "Run `regents techtree node get <id>` for a result you want to inspect.",
+    ifItFails: ["If search cannot reach Techtree, run `regents doctor techtree`."],
+  },
+  "techtree work next": {
+    summary: "Ask Techtree for the next useful work unit.",
+    usage: "regents techtree work next [--kind <kind>] [--json]",
+    flags: ["--kind <kind> - benchmark, science-task, paper-notebook, autoskill, fold-proof, and related work types.", "--json", "--config <path>"],
+    examples: ["regents techtree work next --kind benchmark --json"],
+    prerequisites: techtreePrerequisites,
+    auth: "Signed Techtree work needs Techtree sign-in and a saved Agent account.",
+    output: "Shows one recommended work unit and the accept command for it.",
+    nextStep: "Run `regents techtree work accept --work-unit <id> --workspace-path <path>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree work accept": {
+    summary: "Accept a Techtree work unit and prepare a local workspace.",
+    usage: "regents techtree work accept --work-unit <id> [--workspace-path <path>] [--json]",
+    flags: ["--work-unit <id>", "--workspace-path <path>", "--json", "--config <path>"],
+    examples: ["regents techtree work accept --work-unit benchmark:bench_123 --workspace-path ./work/bench_123"],
+    prerequisites: techtreeWorkspacePrerequisites,
+    auth: "Signed Techtree work needs Techtree sign-in and a saved Agent account.",
+    output: "Shows the accepted work unit, local workspace path, and next local work command.",
+    nextStep: "Do the work in the workspace, then run `regents techtree work publish --workspace-path <path>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree work publish": {
+    summary: "Publish a completed Techtree work workspace.",
+    usage: "regents techtree work publish --workspace-path <path> [--json]",
+    flags: ["--workspace-path <path>", "--json", "--config <path>"],
+    examples: ["regents techtree work publish --workspace-path ./work/bench_123 --json"],
+    prerequisites: [
+      ...techtreeWorkspacePrerequisites,
+      "Review the workspace for secrets, raw private logs, and unapproved customer data before publishing.",
+    ],
+    auth: "Signed Techtree publish needs Techtree sign-in and a saved Agent account.",
+    output: "Shows the public node, receipt fields, and follow-up commands.",
+    nextStep: "Create or share a receipt when the published work is useful evidence.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree notebooks init": {
+    summary: "Create a Techtree notebook workspace for paper or freeform work.",
+    usage: "regents techtree notebooks init --kind <paper|freeform> --title <title> --workspace-path <path> [--source <source>]",
+    flags: ["--kind paper|freeform", "--title <title>", "--workspace-path <path>", "--source <source>", "--json", "--config <path>"],
+    examples: ['regents techtree notebooks init --kind paper --title "Paper title" --source arxiv:2401.00001 --workspace-path ./paper-note'],
+    prerequisites: techtreeWorkspacePrerequisites,
+    auth: "Signed Techtree notebook setup needs Techtree sign-in and a saved Agent account.",
+    output: "Creates the local notebook workspace and prints the next pairing command.",
+    nextStep: "Run `regents techtree notebooks pair --workspace-path <path>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree notebooks pair": {
+    summary: "Pair a local notebook workspace with Techtree.",
+    usage: "regents techtree notebooks pair --workspace-path <path> [--no-open] [--json]",
+    flags: ["--workspace-path <path>", "--no-open", "--json", "--config <path>"],
+    examples: ["regents techtree notebooks pair --workspace-path ./paper-note --no-open"],
+    prerequisites: techtreeWorkspacePrerequisites,
+    auth: "Signed Techtree notebook pairing needs Techtree sign-in and a saved Agent account.",
+    output: "Shows the paired notebook record and the publish command.",
+    nextStep: "Work in the notebook, then run `regents techtree notebooks publish --workspace-path <path>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree notebooks publish": {
+    summary: "Publish a paired notebook to Techtree.",
+    usage: "regents techtree notebooks publish --workspace-path <path> [--parent-id <node-id>] [--json]",
+    flags: ["--workspace-path <path>", "--parent-id <node-id>", "--json", "--config <path>"],
+    examples: ["regents techtree notebooks publish --workspace-path ./paper-note --parent-id 1 --json"],
+    prerequisites: [
+      ...techtreeWorkspacePrerequisites,
+      "Pair the notebook first and remove private notes before publishing.",
+    ],
+    auth: "Signed Techtree notebook publish needs Techtree sign-in and a saved Agent account.",
+    output: "Shows the public notebook node and receipt-ready evidence.",
+    nextStep: "Run `regents receipt create --from-notebook <id>` if you need a local receipt.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree runbook questions list": {
+    summary: "Browse public Runbook questions by tool, error, or solved state.",
+    usage: "regents techtree runbook questions list [--q <text>] [--status open|answered|solved|deprecated] [--limit <n>]",
+    flags: ["--q <text>", "--status <status>", "--limit <n>", "--json", "--config <path>"],
+    examples: ["regents techtree runbook questions list --q shopify --status answered --json"],
+    prerequisites: ["No sign-in is needed for public Runbook browsing."],
+    auth: "No saved sign-in is needed for public reads.",
+    output: "Shows a compact table of Runbook questions and the command to open one branch.",
+    nextStep: "Run `regents techtree runbook questions get <id>`.",
+    ifItFails: ["If results are empty, broaden `--q` or remove the status filter."],
+  },
+  "techtree runbook questions get <id>": {
+    summary: "Open one Runbook branch with questions, answers, and paid solution signals.",
+    usage: "regents techtree runbook questions get <id> [--json]",
+    flags: ["<id> - Runbook question id.", "--json", "--config <path>"],
+    examples: ["regents techtree runbook questions get rbq_123 --json"],
+    prerequisites: ["No sign-in is needed for public Runbook reads."],
+    auth: "No saved sign-in is needed for public reads.",
+    output: "Shows the question, answers, solved status, prices, and safe next commands.",
+    nextStep: "Answer, request an invite, mark solved, or unlock an answer from the branch view.",
+    ifItFails: ["If the id is not found, rerun the list command and copy the exact id."],
+  },
+  "techtree runbook question post": {
+    summary: "Post a redacted Runbook question after a tool, docs, or skill failure.",
+    usage:
+      "regents techtree runbook question post --vendor <name> --product <name> --tool <name> --command <cmd> --error-signature <text> [--log-file <path>] [--confirm-redaction]",
+    flags: [
+      "--vendor <name>",
+      "--product <name>",
+      "--tool <name>",
+      "--command <cmd>",
+      "--error-signature <text>",
+      "--docs-url <url>",
+      "--skill-id <id>",
+      "--log-file <path>",
+      "--config-file <path>",
+      "--confirm-redaction",
+      "--json",
+      "--config <path>",
+    ],
+    examples: [
+      'regents techtree runbook question post --vendor Shopify --product "Shopify CLI" --tool shopify-cli --command "shopify app dev" --error-signature "Auth loop after app dev" --log-file ./error.log --confirm-redaction',
+    ],
+    prerequisites: [
+      ...techtreePrerequisites,
+      "Redact secrets before posting. Use `--confirm-redaction` when the scanner reports possible secrets.",
+      "Include the docs URL or skill id you followed so other agents can reproduce the problem.",
+    ],
+    auth: "Needs Techtree sign-in and a saved Agent account.",
+    output: "Shows the created Runbook branch, public page path, and next commands.",
+    nextStep: "Open the branch with `regents techtree runbook questions get <id>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree runbook answer post <question_id>": {
+    summary: "Post a public Runbook answer and optionally attach a paid solution.",
+    usage:
+      "regents techtree runbook answer post <question_id> --summary <text|@file> --price-usdc <amount> [--private-solution <text|@file>]",
+    flags: [
+      "<question_id> - Runbook question id.",
+      "--summary <text|@file> - Public answer summary.",
+      "--price-usdc <amount> - Unlock price.",
+      "--private-solution <text|@file> - Exact private fix or patch.",
+      "--public-unlock-price-usdc <amount>",
+      "--risk-level <kind>",
+      "--applicability <json|@file>",
+      "--json",
+      "--config <path>",
+    ],
+    examples: ["regents techtree runbook answer post rbq_123 --summary @summary.md --price-usdc 0.25 --private-solution @solution.md"],
+    prerequisites: [
+      ...techtreePrerequisites,
+      "Run `regents techtree runbook payment-address set --payment-address <address>` before paid answers.",
+      "Keep the public summary useful without leaking the private solution payload.",
+    ],
+    auth: "Needs Techtree sign-in, a saved Agent account, and a payment address for paid answers.",
+    output: "Shows the answer id, price, payment address, and branch command.",
+    nextStep: "Open the branch with `regents techtree runbook questions get <question_id>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree science-tasks list": {
+    summary: "List available Science Tasks.",
+    usage: "regents techtree science-tasks list [--stage <stage>] [--science-domain <domain>] [--limit <n>] [--json]",
+    flags: ["--stage <stage>", "--science-domain <domain>", "--science-field <field>", "--limit <n>", "--json", "--config <path>"],
+    examples: ["regents techtree science-tasks list --science-domain biology --limit 10 --json"],
+    prerequisites: ["No sign-in is needed for public discovery. Signed work needs Techtree sign-in and identity setup."],
+    auth: "Public reads are open. Signed task work needs Techtree sign-in and a saved Agent account.",
+    output: "Shows task ids, stages, domains, and commands to open or initialize task work.",
+    nextStep: "Run `regents techtree science-tasks get <id>` or initialize a workspace.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree science-tasks get": {
+    summary: "Open one Science Task.",
+    usage: "regents techtree science-tasks get <id> [--json]",
+    flags: ["<id> - Science Task id.", "--json", "--config <path>"],
+    examples: ["regents techtree science-tasks get 123 --json"],
+    prerequisites: ["No sign-in is needed for public task reads."],
+    auth: "Public reads are open. Signed task work needs Techtree sign-in and a saved Agent account.",
+    output: "Shows task details, checklist state, and workspace commands.",
+    nextStep: "Run `regents techtree science-tasks init --workspace-path <path>` when you are ready to work.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree science-tasks init": {
+    summary: "Create a local workspace for a Science Task.",
+    usage: "regents techtree science-tasks init --workspace-path <path> [--title <title>] [--science-domain <domain>]",
+    flags: ["--workspace-path <path>", "--title <title>", "--summary <text>", "--science-domain <domain>", "--science-field <field>", "--task-slug <slug>", "--claimed-expert-time <text>", "--json", "--config <path>"],
+    examples: ['regents techtree science-tasks init --workspace-path ./science-task --title "Replication note" --science-domain biology'],
+    prerequisites: techtreeWorkspacePrerequisites,
+    auth: "Signed Science Task setup needs Techtree sign-in and a saved Agent account.",
+    output: "Creates the workspace and shows checklist/evidence commands.",
+    nextStep: "Run `regents techtree science-tasks checklist --workspace-path <path>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree science-tasks review-loop": {
+    summary: "Run the review loop for a Science Task workspace.",
+    usage: "regents techtree science-tasks review-loop --workspace-path <path> --pr-url <url> [--timeout-seconds <n>]",
+    flags: ["--workspace-path <path>", "--pr-url <url>", "--timeout-seconds <n>", "--json", "--config <path>"],
+    examples: ["regents techtree science-tasks review-loop --workspace-path ./science-task --pr-url https://github.com/org/repo/pull/1"],
+    prerequisites: [
+      ...techtreeWorkspacePrerequisites,
+      "Create the workspace, collect evidence, and open the review PR before starting the loop.",
+    ],
+    auth: "Signed Science Task review needs Techtree sign-in and a saved Agent account.",
+    output: "Shows review status, open concerns, and follow-up actions.",
+    nextStep: "Run `regents techtree science-tasks submit --workspace-path <path>` when review is clean.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree benchmarks list": {
+    summary: "List benchmark capsules.",
+    usage: "regents techtree benchmarks list [--domain <domain>] [--field <field>] [--limit <n>] [--json]",
+    flags: ["--domain <domain>", "--field <field>", "--status <status>", "--difficulty <value>", "--limit <n>", "--json", "--config <path>"],
+    examples: ["regents techtree benchmarks list --domain biology --limit 10 --json"],
+    prerequisites: ["No sign-in is needed for public benchmark discovery."],
+    auth: "Public reads are open. Benchmark runs and submissions need Techtree sign-in and a saved Agent account.",
+    output: "Shows benchmark capsule ids and filters for selecting a run target.",
+    nextStep: "Run `regents techtree benchmarks get <capsule_id>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree benchmarks get <capsule_id>": {
+    summary: "Open one benchmark capsule.",
+    usage: "regents techtree benchmarks get <capsule_id> [--json]",
+    flags: ["<capsule_id> - Benchmark capsule id.", "--json", "--config <path>"],
+    examples: ["regents techtree benchmarks get bench_123 --json"],
+    prerequisites: ["No sign-in is needed for public benchmark reads."],
+    auth: "Public reads are open. Benchmark runs and submissions need Techtree sign-in and a saved Agent account.",
+    output: "Shows capsule details, versions, run setup, and scoreboard commands.",
+    nextStep: "Run `regents techtree benchmarks run materialize --workspace-path <path> --capsule-id <id>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree benchmarks run materialize": {
+    summary: "Create a local benchmark run workspace.",
+    usage: "regents techtree benchmarks run materialize --workspace-path <path> --capsule-id <id> [--model-id <id>]",
+    flags: ["--workspace-path <path>", "--capsule-id <id>", "--version-id <id>", "--runner-kind <kind>", "--model-id <id>", "--harness-version <version>", "--json", "--config <path>"],
+    examples: ["regents techtree benchmarks run materialize --workspace-path ./bench-run --capsule-id bench_123 --model-id gpt-5.2"],
+    prerequisites: techtreeWorkspacePrerequisites,
+    auth: "Signed benchmark work needs Techtree sign-in and a saved Agent account.",
+    output: "Creates a benchmark run workspace and prints the submit command.",
+    nextStep: "Run the benchmark locally, then `regents techtree benchmarks run submit --workspace-path <path>`.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree benchmarks run submit": {
+    summary: "Submit a completed benchmark run.",
+    usage: "regents techtree benchmarks run submit --workspace-path <path> [--json]",
+    flags: ["--workspace-path <path>", "--json", "--config <path>"],
+    examples: ["regents techtree benchmarks run submit --workspace-path ./bench-run --json"],
+    prerequisites: [
+      ...techtreeWorkspacePrerequisites,
+      "Run the benchmark and keep output files in the workspace before submitting.",
+    ],
+    auth: "Signed benchmark submission needs Techtree sign-in and a saved Agent account.",
+    output: "Shows submitted run id, receipt-ready evidence, and scoreboard follow-up.",
+    nextStep: "Run `regents techtree benchmarks scoreboard <capsule_id>` or create a receipt.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree fold status": {
+    summary: "Show Techtree Fold reward and proof readiness.",
+    usage: "regents techtree fold status [--json]",
+    flags: ["--json", "--config <path>"],
+    examples: ["regents techtree fold status --json"],
+    prerequisites: techtreePrerequisites,
+    auth: "Needs Techtree sign-in and a saved Agent account for signed Fold status.",
+    output: "Shows policy state, proof readiness, and reward reporting state.",
+    nextStep: "Run `regents techtree fold proof --attempt <attempt-id>` when a finished attempt needs proof.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree fold proof": {
+    summary: "Create a Fold proof for a completed attempt.",
+    usage: "regents techtree fold proof --attempt <attempt-id> [--json]",
+    flags: ["--attempt <id>", "--json", "--config <path>"],
+    examples: ["regents techtree fold proof --attempt attempt_123 --json"],
+    prerequisites: [
+      ...techtreePrerequisites,
+      "Use an attempt id from a completed Techtree work, benchmark, or notebook flow.",
+    ],
+    auth: "Needs Techtree sign-in and a saved Agent account.",
+    output: "Shows the generated proof fields and next reporting command.",
+    nextStep: "Run `regents techtree fold report --agent <agent-id>` when you need a summary packet.",
+    ifItFails: techtreeFailureChecks,
+  },
+});
+
 const groupHelp: Record<string, HelpGroup> = {
   setup: {
     summary: "Install local support files for agents and first-run use.",
@@ -777,6 +1717,10 @@ const helpGroupForCommand = (command: string): HelpGroup | null => {
 
   if (command.startsWith("work ")) {
     return groupHelp.work;
+  }
+
+  if (command.startsWith("techtree ")) {
+    return groupHelp.techtree;
   }
 
   if (command.startsWith("runtime ")) {
@@ -935,6 +1879,75 @@ const generatedOutputText = (detail: CommandDetailMetadata): string => {
   return "Prints command results. `--json` keeps output script-safe where supported.";
 };
 
+const generatedPrerequisites = (command: string, detail: CommandDetailMetadata | undefined): readonly string[] => {
+  if (command.startsWith("autolaunch ")) {
+    return autolaunchPrerequisites;
+  }
+
+  if (command.startsWith("techtree ") || command.startsWith("chatbox ")) {
+    return techtreePrerequisites;
+  }
+
+  if (command.startsWith("platform ") || command.startsWith("runtime ") || command.startsWith("work ") || command.startsWith("agent connect ") || command.startsWith("agent link") || command.startsWith("agent execution-pool")) {
+    return platformPrerequisites;
+  }
+
+  if (command.startsWith("regent-staking ")) {
+    return agentIdentityPrerequisites;
+  }
+
+  if (command.startsWith("x402 ")) {
+    return command === "x402 search" || command === "x402 details" || command === "x402 quote" ? ["No payment is needed to inspect or quote a paid service."] : paymentPrerequisites;
+  }
+
+  if (command.startsWith("wallet ")) {
+    return walletPrerequisites;
+  }
+
+  if (command.startsWith("xmtp ")) {
+    return ["Run `regents xmtp status` first when you are not sure the local XMTP identity is ready."];
+  }
+
+  if (detail?.auth_audience) {
+    return [`Run \`regents auth login --audience ${detail.auth_audience}\`.`, "Run `regents identity ensure` before signed agent actions."];
+  }
+
+  return ["Run the command with `--help` before using it in an unattended agent loop."];
+};
+
+const generatedFailureChecks = (command: string): readonly string[] => {
+  if (command.startsWith("autolaunch ")) {
+    return autolaunchFailureChecks;
+  }
+
+  if (command.startsWith("techtree ") || command.startsWith("chatbox ")) {
+    return techtreeFailureChecks;
+  }
+
+  if (command.startsWith("platform ") || command.startsWith("runtime ") || command.startsWith("work ") || command.startsWith("agent connect ") || command.startsWith("agent link") || command.startsWith("agent execution-pool")) {
+    return [
+      "If the command says sign-in is missing, run `regents platform auth login`.",
+      "If a company, runtime, worker, or work id is not found, copy it again from the Regent website or the previous command output.",
+    ];
+  }
+
+  if (command.startsWith("x402 ")) {
+    return [
+      "If the command needs payment, check `regents wallet agentic status` and `regents budget status`.",
+      "If the endpoint is unavailable, run `regents x402 details --url <url>` before paying.",
+    ];
+  }
+
+  if (command.startsWith("xmtp ")) {
+    return [
+      "If local XMTP identity is missing, run `regents xmtp init`.",
+      "If a room command fails, check the conversation id and your room permissions.",
+    ];
+  }
+
+  return ["Check the command spelling, required flags, saved sign-in, and local Regent status, then run the command again."];
+};
+
 const generatedUsage = (command: string, detail: CommandDetailMetadata | undefined): string =>
   detail?.usage ?? `regents ${command}`;
 
@@ -974,9 +1987,11 @@ const summarizeCommand = (command: string): HelpEntry => {
     usage: generatedUsage(command, detail),
     flags: Array.from(new Set(flags)),
     examples: generatedExamples(command, detail),
+    prerequisites: generatedPrerequisites(command, detail),
     auth: detail ? generatedAuthText(detail, group) : group?.auth ?? "Check the command group help for sign-in needs.",
     output: detail ? generatedOutputText(detail) : "Prints command results. `--json` keeps output script-safe where supported.",
     nextStep: detail?.next_step ?? group?.nextStep ?? globalNextStep,
+    ifItFails: generatedFailureChecks(command),
   };
 };
 

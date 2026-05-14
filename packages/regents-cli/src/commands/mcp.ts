@@ -1,21 +1,12 @@
 import type { ParsedCliArgs } from "../parse.js";
 
 import { CliUsageError } from "../cli-usage-error.js";
-import { exportHermesMcp } from "../internal-runtime/coinbase.js";
 import { RegentKernel } from "../internal-runtime/runtime.js";
 import { runRegentsMcpHttp } from "../mcp/http.js";
 import { runRegentsMcpStdio } from "../mcp/stdio.js";
 import { regentsMcpToolsList } from "../mcp/tool-registry.js";
 import { getFlag, parseIntegerFlag } from "../parse.js";
 import { printJson } from "../printer.js";
-
-export async function runMcpExportHermes(
-  args: readonly string[] | ParsedCliArgs,
-): Promise<number> {
-  const payload = exportHermesMcp();
-  printJson(payload);
-  return 0;
-}
 
 export async function runMcpServe(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const transport = getFlag(args, "transport") ?? "stdio";

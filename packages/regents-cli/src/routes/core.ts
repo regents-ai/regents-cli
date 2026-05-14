@@ -8,20 +8,16 @@ import {
 import { runAgentContext } from "../commands/agent-context.js";
 import { runBudgetGrant, runBudgetLedger, runBudgetRevoke, runBudgetStatus } from "../commands/budget.js";
 import { runConfigGet, runConfigWrite } from "../commands/config.js";
-import { runCreateInit, runCreateWallet } from "../commands/create.js";
 import { runDoctorCommand, runDoctorContractsCommand, runDoctorWorkspaceCommand } from "../commands/doctor.js";
 import { runGossipsubStatus } from "../commands/gossipsub.js";
 import {
   runMcpDoctor,
   runMcpExportCodex,
-  runMcpExportHermes,
   runMcpServe,
   runMcpToolsList,
 } from "../commands/mcp.js";
 import {
-  runOperatorBalance,
   runOperatorInit,
-  runOperatorSearch,
   runOperatorStatus,
   runOperatorWhoami,
 } from "../commands/operator.js";
@@ -46,7 +42,6 @@ export const coreRoutes: readonly CliRoute[] = [
   route("init", async ({ parsedArgs, configPath }) => runOperatorInit(parsedArgs, configPath)),
   route("status", async ({ parsedArgs, configPath }) => runOperatorStatus(parsedArgs, configPath)),
   route("whoami", async ({ parsedArgs, configPath }) => runOperatorWhoami(parsedArgs, configPath)),
-  route("balance", async ({ parsedArgs, configPath }) => runOperatorBalance(parsedArgs, configPath)),
   route("agent-context", async ({ configPath }) => {
     await runAgentContext(configPath);
     return 0;
@@ -71,17 +66,8 @@ export const coreRoutes: readonly CliRoute[] = [
     await runSetupSkills(parsedArgs);
     return 0;
   }),
-  route("search", async ({ parsedArgs, configPath }) => runOperatorSearch(parsedArgs, configPath), { variadicTail: true }),
   route("run", async ({ parsedArgs, configPath }) => {
     await runRuntime(parsedArgs, configPath);
-    return 0;
-  }),
-  route("create init", async ({ parsedArgs }) => {
-    await runCreateInit(parsedArgs);
-    return 0;
-  }),
-  route("create wallet", async ({ parsedArgs }) => {
-    await runCreateWallet(parsedArgs);
     return 0;
   }),
   route("config get", async ({ parsedArgs }) => {
@@ -96,14 +82,9 @@ export const coreRoutes: readonly CliRoute[] = [
   route("doctor auth", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
   route("doctor techtree", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
   route("doctor transports", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
-  route("doctor xmtp", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
   route("doctor contracts", async ({ parsedArgs, configPath }) => runDoctorContractsCommand(parsedArgs, configPath)),
   route("doctor workspace", async ({ parsedArgs, configPath }) => runDoctorWorkspaceCommand(parsedArgs, configPath)),
   route("doctor", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath), { variadicTail: true }),
-  route("mcp export hermes", async ({ parsedArgs }) => {
-    await runMcpExportHermes(parsedArgs);
-    return 0;
-  }),
   route("mcp export codex", async () => runMcpExportCodex()),
   route("mcp tools list", async () => runMcpToolsList()),
   route("mcp doctor", async ({ parsedArgs, configPath }) => runMcpDoctor(parsedArgs, configPath)),

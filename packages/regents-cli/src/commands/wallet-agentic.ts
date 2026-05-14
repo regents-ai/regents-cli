@@ -48,18 +48,8 @@ export async function runWalletAgenticVerify(args: ParsedCliArgs): Promise<numbe
   return 0;
 }
 
-export async function runWalletAgenticAddress(args: ParsedCliArgs): Promise<number> {
-  printAwal(args, await runAwalJson(["address", "--json"]));
-  return 0;
-}
-
 export async function runWalletAgenticBalance(args: ParsedCliArgs): Promise<number> {
   printAwal(args, await runAwalJson(["balance", "--chain", chain(args), "--json"]));
-  return 0;
-}
-
-export async function runWalletAgenticGet(args: ParsedCliArgs): Promise<number> {
-  printAwal(args, await runAwalJson(["show", "--json"]));
   return 0;
 }
 

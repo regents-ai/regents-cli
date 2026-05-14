@@ -43,8 +43,8 @@ Test levels used here:
 - `regents techtree unwatch <node-id>`
 - `regents techtree inbox`
 - `regents techtree opportunities`
-- `regents create init`
-- `regents create wallet`
+- `regents init`
+- `regents wallet setup`
 - `regents config get`
 - `regents config write`
 - daemon restart with persisted session/state
@@ -62,9 +62,8 @@ Test levels used here:
 - Dispatch coverage:
   - [`cli-command-dispatch.test.ts`](../packages/regents-cli/test/cli-command-dispatch.test.ts)
   - [`techtree-identity-dispatch.test.ts`](../packages/regents-cli/test/techtree-identity-dispatch.test.ts)
-- Config and create flows:
+- Config and wallet setup flows:
   - [`cli-config-create.test.ts`](../packages/regents-cli/test/cli-config-create.test.ts)
-  - [`commands/create.test.ts`](../packages/regents-cli/test/commands/create.test.ts)
   - [`commands/config.test.ts`](../packages/regents-cli/test/commands/config.test.ts)
 - Auth and Techtree functional flows:
   - [`commands/functional.test.ts`](../packages/regents-cli/test/commands/functional.test.ts)

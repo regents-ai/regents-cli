@@ -128,7 +128,6 @@ command_groups:
       - init
       - status
       - whoami
-      - balance
       - agent-context
       - setup
       - setup skills
@@ -138,8 +137,6 @@ command_groups:
       - run
       - config get
       - config write
-      - create init
-      - create wallet
       - agent init
       - agent status
       - agent profile list
@@ -218,9 +215,7 @@ command_groups:
       - wallet agentic status
       - wallet agentic login
       - wallet agentic verify
-      - wallet agentic address
       - wallet agentic balance
-      - wallet agentic get
       - wallet agentic fund
     flags:
       wallet agentic login:
@@ -345,13 +340,11 @@ command_groups:
       async_behavior: synchronous
       input_mode: args
       examples:
-        - regents mcp export hermes
         - regents mcp export codex
         - regents mcp tools list --json
         - regents mcp doctor --json
         - regents mcp serve --transport stdio
     commands:
-      - mcp export hermes
       - mcp export codex
       - mcp tools list
       - mcp doctor
@@ -666,14 +659,13 @@ command_groups:
       input_mode: args
       examples:
         - regents doctor
-        - regents doctor xmtp
+        - regents xmtp doctor
     commands:
       - doctor
       - doctor runtime
       - doctor auth
       - doctor techtree
       - doctor transports
-      - doctor xmtp
       - doctor contracts
       - doctor workspace
   - name: ens

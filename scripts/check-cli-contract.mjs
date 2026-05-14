@@ -86,7 +86,7 @@ const extractOwnershipGroups = (source, exportName) => {
 };
 
 const normalizeCommandName = (command) => command.replace(/^regents?\s+/u, "");
-const currentAvailabilityValues = new Set(["current", "beta_disabled"]);
+const currentAvailabilityValues = new Set(["current"]);
 const platformPublicCommand = (command) =>
   command.startsWith("platform ") ||
   command.startsWith("runtime ") ||
@@ -396,7 +396,7 @@ for (const record of contractCommandRecords) {
 for (const [command, availability] of flattenedContracts.platform.availabilityByCommand) {
   if (platformPublicCommand(command) && !currentAvailabilityValues.has(availability)) {
     fail(
-      `Platform CLI command ${command} has unsupported availability ${availability}; use current or beta_disabled`,
+      `Platform CLI command ${command} has unsupported availability ${availability}; use current`,
     );
   }
 }

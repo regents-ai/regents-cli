@@ -59,9 +59,6 @@ const prepareOrSubmitWrite = async (
   );
 };
 
-const requireHoldingSubjectId = (args: ParsedCliArgs): string =>
-  requirePositional(args, 3, "subject-id");
-
 const parseNonNegativeIntegerFlag = (
   args: ParsedCliArgs,
   name: string,
@@ -166,7 +163,6 @@ export async function runAutolaunchSubjectCreateDeferredAutolaunch(
     token_symbol: requireArg(getFlag(args, "token-symbol"), "token-symbol"),
     total_supply: requireArg(getFlag(args, "total-supply"), "total-supply"),
     treasury: requireArg(getFlag(args, "treasury"), "treasury"),
-    token_factory: requireArg(getFlag(args, "token-factory"), "token-factory"),
     subject_label: requireArg(getFlag(args, "subject-label"), "subject-label"),
   };
 
@@ -323,66 +319,6 @@ export async function runAutolaunchSubjectSweepIngress(
   await prepareOrSubmitWrite(
     "POST",
     `/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
-    {},
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchHoldingsStake(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requireHoldingSubjectId(args);
-  const amount = requireArg(getFlag(args, "amount"), "amount");
-  const receiver = stakeReceiverFlag(args);
-
-  await prepareOrSubmitWrite(
-    "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/stake`,
-    stakeBody(amount, receiver),
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchHoldingsUnstake(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requireHoldingSubjectId(args);
-  await prepareOrSubmitWrite(
-    "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/unstake`,
-    { amount: requireArg(getFlag(args, "amount"), "amount") },
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchHoldingsClaimUsdc(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requireHoldingSubjectId(args);
-  await prepareOrSubmitWrite(
-    "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
-    {},
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchHoldingsSweepIngress(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requireHoldingSubjectId(args);
-  const ingressAddress = requireArg(getFlag(args, "address"), "address");
-  await prepareOrSubmitWrite(
-    "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(ingressAddress)}/sweep`,
     {},
     args,
     configPath,

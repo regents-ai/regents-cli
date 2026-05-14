@@ -76,7 +76,7 @@ const ownershipPathsByOwner = (owner: (typeof apiCommandOwnership)[number]["owne
   new Set(apiCommandOwnership.filter((group) => group.owner === owner).flatMap((group) => group.pathTemplates));
 
 const normalizeCommandName = (command: string): string => command.replace(/^regents?\s+/u, "");
-const currentAvailabilityValues = new Set(["current", "beta_disabled"]);
+const currentAvailabilityValues = new Set(["current"]);
 const platformPublicCommand = (command: string): boolean =>
   command.startsWith("platform ") ||
   command.startsWith("runtime ") ||

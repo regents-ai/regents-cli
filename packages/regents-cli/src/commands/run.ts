@@ -312,8 +312,8 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
       },
       {
         label: "Techtree search",
-        command: "regents search <query>",
-        when: "search the Techtree surface from the global CLI.",
+        command: "regents techtree search --query <query>",
+        when: "search Techtree.",
       },
       {
         label: "Techtree workspace",

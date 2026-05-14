@@ -14,7 +14,7 @@ const commandListPath = resolve(root, "docs/regents-cli-command-list.md");
 const manifest = readWorkspaceManifest(root, YAML);
 const cliContractFiles = cliCommandContractFiles(manifest, root);
 
-const currentAvailabilityValues = new Set(["current", "beta_disabled"]);
+const currentAvailabilityValues = new Set(["current"]);
 const platformPublicCommand = (command) =>
   command.startsWith("platform ") ||
   command.startsWith("runtime ") ||
@@ -32,6 +32,448 @@ const parseYaml = (file) => YAML.parse(fs.readFileSync(file, "utf8"));
 const normalizeCommandName = (command) => command.replace(/^regents?\s+/u, "");
 const topLevelGroup = (command) => command.split(" ")[0];
 const commandKey = (command) => command.replace(/^regents?\s+/u, "").replace(/[<>\s-]+/gu, "_");
+const humanize = (value) =>
+  value
+    .replace(/[<>]/gu, "")
+    .replace(/[-_]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+
+const isPlaceholder = (part) => /^<[^>]+>$/u.test(part);
+const sentenceCase = (value) => (value.length === 0 ? value : `${value.charAt(0).toUpperCase()}${value.slice(1)}`);
+const articleFor = (value) => (/^[aeiou]/iu.test(value) ? "an" : "a");
+const terminalLabel = (value) =>
+  value
+    .replace(/\bxmtp\b/giu, "XMTP")
+    .replace(/\bmcp\b/giu, "MCP")
+    .replace(/\bens\b/giu, "ENS")
+    .replace(/\btechtree\b/giu, "Techtree")
+    .replace(/\bautolaunch\b/giu, "Autolaunch")
+    .replace(/\bsiwa\b/giu, "SIWA")
+    .replace(/\bbbh\b/giu, "BBH")
+    .replace(/\btech\b/giu, "TECH")
+    .replace(/\borcid\b/giu, "ORCID")
+    .replace(/\busdc\b/giu, "USDC")
+    .replace(/\bregent\b/giu, "REGENT")
+    .replace(/\bx402\b/giu, "x402");
+
+const summaryOverrides = new Map([
+  ["auth login", "Sign in for protected Regent commands."],
+  ["auth logout", "Sign out on this machine."],
+  ["auth status", "Show the current saved sign-in."],
+  ["budget grant", "Give an agent a spending budget."],
+  ["budget ledger", "Show budget activity."],
+  ["budget revoke", "Revoke an agent budget."],
+  ["budget status", "Show the current budget state."],
+  ["config get", "Show local Regent configuration."],
+  ["config write", "Save local Regent configuration."],
+  ["doctor", "Check local Regent readiness."],
+  ["ens set-primary", "Set the primary ENS name."],
+  ["feynman", "Open the Feynman research shell."],
+  ["identity ensure", "Set up or confirm the local Agent identity."],
+  ["identity graph", "Show linked identity records."],
+  ["identity status", "Show local identity readiness."],
+  ["mcp doctor", "Check MCP setup."],
+  ["mcp export codex", "Print MCP setup for Codex."],
+  ["mcp serve", "Start the Regents MCP server."],
+  ["plugin doctor", "Check plugin setup."],
+  ["plugin install", "Install a Regent plugin for the selected runtime."],
+  ["plugin status", "Show installed Regent plugins."],
+  ["receipt create", "Create a payment receipt record."],
+  ["receipt share-draft", "Draft shareable receipt details."],
+  ["run", "Start local Regent access for agents and terminal commands."],
+  ["runtime policy", "Show runtime policy settings."],
+  ["runtime tools", "List runtime tools."],
+  ["setup", "Show setup guidance."],
+  ["setup skills", "Install recommended Regent skills."],
+  ["wallet setup", "Set up the local wallet path."],
+  ["wallet status", "Show wallet readiness."],
+  ["wallet agentic balance", "Show the Agent wallet balance."],
+  ["wallet agentic fund", "Show how to fund the Agent wallet."],
+  ["wallet agentic login", "Sign in with the Agent wallet."],
+  ["wallet agentic status", "Show Agent wallet readiness."],
+  ["wallet agentic verify", "Verify the Agent wallet sign-in."],
+  ["x402 details", "Show paid endpoint details."],
+  ["x402 fetch", "Fetch a paid x402 result."],
+  ["x402 pay", "Pay an x402 endpoint."],
+  ["x402 prepare", "Prepare an x402 paid request."],
+  ["x402 quote", "Quote an x402 paid request."],
+  ["x402 refund", "Request an x402 refund."],
+  ["x402 search", "Search for x402 services."],
+  ["chatbox history", "Show chatbox message history."],
+  ["chatbox post", "Post a chatbox message."],
+  ["chatbox tail", "Watch new chatbox messages."],
+  ["techtree activity", "Show recent Techtree activity."],
+  ["techtree autoskill review", "Review an autoskill package."],
+  ["techtree inbox", "Show your Techtree inbox."],
+  ["techtree opportunities", "Show available Techtree opportunities."],
+  ["techtree runbook invite-request <question_id>", "Invite help on a Runbook question."],
+  ["techtree runbook mark-solved <question_id>", "Mark a Runbook question solved."],
+  ["techtree runbook questions get <id>", "Show a Runbook question."],
+  ["techtree runbook unlock <answer_id>", "Unlock a paid Runbook answer."],
+  ["techtree science-tasks review-loop", "Run the science-task review loop."],
+  ["techtree science-tasks review-update", "Update a science-task review."],
+  ["techtree search", "Search Techtree."],
+  ["techtree star <id>", "Star a Techtree node."],
+  ["techtree start", "Open the Techtree start flow."],
+  ["techtree unstar <id>", "Remove a Techtree node star."],
+  ["techtree unwatch <id>", "Stop watching a Techtree node."],
+  ["techtree watch <id>", "Watch a Techtree node."],
+  ["techtree watch tail", "Watch updates from followed Techtree nodes."],
+  ["xmtp doctor", "Check XMTP readiness."],
+  ["xmtp init", "Set up local XMTP identity."],
+  ["xmtp resolve", "Resolve an XMTP identity."],
+  ["xmtp revoke-other-installations", "Revoke other XMTP installations."],
+  ["xmtp rotate-db-key", "Rotate the XMTP database key."],
+  ["xmtp rotate-wallet", "Rotate the XMTP wallet."],
+  ["xmtp status", "Show XMTP readiness."],
+  ["xmtp test dm", "Send a test XMTP direct message."],
+]);
+
+const resourceLabel = (group, resourceParts) => {
+  const words = resourceParts.filter((part) => !isPlaceholder(part));
+  if (words.length === 0) {
+    return terminalLabel(humanize(group));
+  }
+
+  return terminalLabel(humanize(words.join(" ")));
+};
+
+const splitAction = (action) => {
+  const [verb, ...rest] = action.split("-");
+  return { verb, qualifier: terminalLabel(humanize(rest.join(" "))) };
+};
+
+const knownActionVerbs = new Set([
+  "accept",
+  "activate",
+  "add",
+  "admins",
+  "apply",
+  "attach",
+  "buy",
+  "cancel",
+  "checklist",
+  "claim",
+  "clear",
+  "confirm",
+  "create",
+  "current",
+  "details",
+  "doctor",
+  "edit",
+  "evidence",
+  "execute",
+  "exit",
+  "export",
+  "fetch",
+  "finalize",
+  "get",
+  "health",
+  "history",
+  "improve",
+  "init",
+  "invite",
+  "leaderboard",
+  "link",
+  "list",
+  "lookup",
+  "mark",
+  "materialize",
+  "members",
+  "migrate",
+  "mint",
+  "monitor",
+  "next",
+  "open",
+  "pack",
+  "pair",
+  "pay",
+  "permissions",
+  "place",
+  "post",
+  "prepare",
+  "preview",
+  "proof",
+  "proposals",
+  "propose",
+  "publish",
+  "pull",
+  "quote",
+  "readiness",
+  "ready",
+  "refund",
+  "register",
+  "release",
+  "remove",
+  "repeat",
+  "report",
+  "rescue",
+  "restore",
+  "resume",
+  "revoke",
+  "review",
+  "rotate",
+  "run",
+  "score",
+  "search",
+  "set",
+  "solve",
+  "stake",
+  "star",
+  "start",
+  "status",
+  "submit",
+  "super",
+  "sweep",
+  "sync",
+  "tail",
+  "unstar",
+  "unstake",
+  "unwatch",
+  "unlock",
+  "update",
+  "validate",
+  "verify",
+  "vote",
+  "watch",
+  "withdraw",
+  "wizard",
+  "write",
+]);
+
+const findActionIndex = (parts) => {
+  for (let index = parts.length - 1; index >= 0; index -= 1) {
+    if (knownActionVerbs.has(splitAction(parts[index]).verb)) {
+      return index;
+    }
+  }
+  return -1;
+};
+
+const actionSummary = (group, tail) => {
+  const nonPlaceholderTail = tail.filter((part) => !isPlaceholder(part));
+  const actionIndex = findActionIndex(nonPlaceholderTail);
+
+  if (actionIndex === -1) {
+    return `Show ${resourceLabel(group, [group, ...nonPlaceholderTail])}.`;
+  }
+
+  const action = nonPlaceholderTail[actionIndex] ?? group;
+  const { verb, qualifier } = splitAction(action);
+  const resource = resourceLabel(group, [
+    ...nonPlaceholderTail.slice(0, actionIndex),
+    ...nonPlaceholderTail.slice(actionIndex + 1),
+  ]);
+  const qualifiedResource = qualifier ? `${qualifier} for ${resource}` : resource;
+
+  switch (verb) {
+    case "account":
+    case "details":
+    case "get":
+    case "lookup":
+    case "projection":
+      return `Show ${resource}.`;
+    case "list":
+      return `List ${resource}.`;
+    case "admins":
+    case "members":
+    case "permissions":
+    case "proposals":
+    case "super":
+      return `List ${resourceLabel(group, nonPlaceholderTail)}.`;
+    case "status":
+    case "health":
+      return `Show ${resource} status.`;
+    case "init":
+      return `Set up ${resource}.`;
+    case "create":
+    case "mint":
+    case "register":
+      return `Create ${qualifiedResource}.`;
+    case "add":
+      return `Add ${qualifier ? `${qualifier} to ` : ""}${resource}.`;
+    case "remove":
+    case "clear":
+    case "revoke":
+      return `Remove ${qualifier ? `${qualifier} from ` : ""}${resource}.`;
+    case "set":
+    case "write":
+      return `Set ${qualifiedResource}.`;
+    case "link":
+      return `Link ${qualifiedResource}.`;
+    case "pair":
+      return `Pair ${resource}.`;
+    case "post":
+      return `Post ${qualifiedResource}.`;
+    case "publish":
+      return `Publish ${qualifiedResource}.`;
+    case "submit":
+      return `Submit ${qualifiedResource}.`;
+    case "watch":
+    case "tail":
+    case "monitor":
+      return `Watch ${qualifiedResource}.`;
+    case "claim":
+      return `Claim ${qualifiedResource}.`;
+    case "stake":
+      return `Stake ${resource}.`;
+    case "unstake":
+      return `Unstake ${resource}.`;
+    case "prepare":
+      return `Prepare ${qualifiedResource}.`;
+    case "preview":
+      return `Preview ${resource}.`;
+    case "validate":
+    case "verify":
+    case "doctor":
+      return `Check ${resource}.`;
+    case "quote":
+      return `Quote ${resource}.`;
+    case "run":
+      return `Run ${resource}.`;
+    case "buy":
+      return `Buy ${resource}.`;
+    case "pay":
+      return `Pay ${resource}.`;
+    case "fetch":
+    case "pull":
+      return `Fetch ${resource}.`;
+    case "unlock":
+      return `Unlock ${resource}.`;
+    case "refund":
+      return `Refund ${resource}.`;
+    case "search":
+      return `Search ${resource}.`;
+    case "start":
+      return `Start ${resource}.`;
+    case "apply":
+      return `Apply ${qualifiedResource}.`;
+    case "accept":
+      return `Accept ${qualifiedResource}.`;
+    case "activate":
+      return `Activate ${qualifiedResource}.`;
+    case "attach":
+      return `Attach ${qualifiedResource}.`;
+    case "cancel":
+      return `Cancel ${qualifiedResource}.`;
+    case "confirm":
+      return `Confirm ${qualifiedResource}.`;
+    case "execute":
+      return `Execute ${qualifiedResource}.`;
+    case "finalize":
+      return `Finalize ${resource}.`;
+    case "release":
+      return `Release ${resource}.`;
+    case "restore":
+      return `Restore ${resource}.`;
+    case "pause":
+      return `Pause ${resource}.`;
+    case "resume":
+      return `Resume ${resource}.`;
+    case "open":
+      return `Open ${resource}.`;
+    case "edit":
+      return `Edit ${resource}.`;
+    case "sweep":
+      return `Sweep ${qualifiedResource}.`;
+    case "update":
+      return `Update ${qualifiedResource}.`;
+    case "migrate":
+      return `Migrate ${resource}.`;
+    case "rotate":
+      return `Rotate ${qualifiedResource}.`;
+    case "rescue":
+      return `Rescue ${resource}.`;
+    case "ready":
+      return `Mark ${resource} ready.`;
+    case "mark":
+      return `Mark ${resource}${qualifier ? ` ${qualifier}` : ""}.`;
+    case "vote":
+      return `Vote on ${resource}.`;
+    case "invite":
+      return `Invite help for ${resource}.`;
+    case "score":
+      return `Score ${resource}.`;
+    case "improve":
+      return `Improve ${resource}.`;
+    case "solve":
+      return `Solve ${resource}.`;
+    case "materialize":
+      return `Materialize ${resource}.`;
+    case "repeat":
+      return `Repeat ${resource}.`;
+    case "pack":
+      return `Pack ${resource}.`;
+    case "sync":
+      return `Sync ${resource}.`;
+    case "review":
+      return `Review ${resource}.`;
+    case "exit":
+      return `Exit ${resource}.`;
+    case "place":
+      return `Place ${resource}.`;
+    case "withdraw":
+      return `Withdraw ${resource}.`;
+    case "current":
+      return `Show current ${resource}.`;
+    case "history":
+      return `Show ${resource} history.`;
+    case "leaderboard":
+      return `Show ${resource} leaderboard.`;
+    case "proof":
+      return `Show ${resource} proof.`;
+    case "report":
+      return `Create ${resource} report.`;
+    case "wizard":
+      return `Open ${resource} wizard.`;
+    case "checklist":
+      return `Show ${resource} checklist.`;
+    case "evidence":
+      return `Show ${resource} evidence.`;
+    case "export":
+      return `Export ${resource}.`;
+    case "next":
+      return `Show the next ${resource}.`;
+    case "readiness":
+      return `Show ${resource} readiness.`;
+    case "plan":
+      return `Plan ${resource}.`;
+    case "by":
+      return `Find ${qualifiedResource}.`;
+    default:
+      return `${sentenceCase(terminalLabel(humanize(action)))} ${resource}.`;
+  }
+};
+
+const verbSummary = (command) => {
+  const override = summaryOverrides.get(command);
+  if (override) {
+    return override;
+  }
+
+  const parts = command.split(" ");
+  const tail = parts.slice(1);
+  const group = parts[0] ?? command;
+
+  if (command === "init") return "Set up the local Regents config and working folders.";
+  if (command === "status") return "Show whether this machine is ready to use Regent.";
+  if (command === "whoami") return "Show the local Agent account and saved sign-in context.";
+  if (command === "run") return "Start local Regent access for agents and terminal commands.";
+  if (command === "agent-context") return "Print the safe command and setup context for another agent.";
+  if (command === "bug") return "Send a signed bug report to Regents.";
+  if (command === "security-report") return "Send a signed security report to Regents.";
+
+  return actionSummary(group, tail);
+};
+
+const commandSummary = (command, existing) => {
+  if (typeof existing === "string" && existing.trim().length > 0) {
+    return existing;
+  }
+  return verbSummary(command);
+};
+
 const compactObject = (value) => {
   if (!value || typeof value !== "object") {
     return value;
@@ -125,7 +567,7 @@ const readContractGroups = (owner, contract) => {
           flags: command.flags,
           examples: command.examples ?? command.agent_metadata?.examples ?? ownerAgentDefaults?.examples,
           agent_metadata: metadataWithoutExamples(command.agent_metadata ?? ownerAgentDefaults),
-          summary: command.summary,
+          summary: commandSummary(normalizedCommand, command.summary),
           usage: command.usage,
           next_step: command.next_step,
         }),
@@ -157,7 +599,7 @@ const readContractGroups = (owner, contract) => {
         flags: readGroupFlags(group, normalizedCommand),
         examples: agentMetadata?.examples ?? group.examples,
         agent_metadata: metadataWithoutExamples(agentMetadata),
-        summary: help.summary ?? group.summary,
+        summary: commandSummary(normalizedCommand, agentMetadata?.summary),
         usage: help.usage ?? group.usage,
         next_step: help.next_step ?? group.next_step,
       });

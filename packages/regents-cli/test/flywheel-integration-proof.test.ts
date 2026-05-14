@@ -87,14 +87,6 @@ const expectedLoop = [
   {
     owner: "techtree",
     contract: "techtreeApi",
-    pathTemplate: "/v1/agent/runtime/publish/submit",
-    method: "post",
-    operationId: "publishRuntimeWorkspace",
-    command: "techtree main artifact publish",
-  },
-  {
-    owner: "techtree",
-    contract: "techtreeApi",
     pathTemplate: "/v1/runtime/nodes/{id}",
     method: "get",
     operationId: "getRuntimeNode",
@@ -112,10 +104,10 @@ const expectedLoop = [
   {
     owner: "autolaunch",
     contract: "autolaunchApi",
-    pathTemplate: "/v1/agent/launch/jobs",
+    pathTemplate: "/v1/agent/prelaunch/plans/{id}/launch",
     method: "post",
-    operationId: "agentCreateLaunchJob",
-    command: "autolaunch launch create",
+    operationId: "agentLaunchPrelaunchPlan",
+    command: "autolaunch launch run",
   },
   {
     owner: "autolaunch",
@@ -123,7 +115,7 @@ const expectedLoop = [
     pathTemplate: "/v1/agent/launch/jobs/{id}",
     method: "get",
     operationId: "agentGetLaunchJob",
-    command: "autolaunch launch run",
+    command: "autolaunch jobs watch",
   },
   {
     owner: "autolaunch",

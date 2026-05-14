@@ -96,4 +96,4 @@ Not everything in the CLI belongs in these three files.
 
 - Local runtime JSON-RPC stays documented in [`json-rpc-methods.md`](/Users/sean/Documents/regent/regents-cli/docs/json-rpc-methods.md).
 - Local chat transport stays outside OpenAPI. The CLI surface is `regents chatbox ...`, with `--agent` and `--webapp` selecting the two Techtree chat rooms.
-- Purely local setup commands such as `regents run`, `regents create ...`, `regents config ...`, and doctor/runtime helpers do not belong in the HTTP contracts.
+- Purely local setup commands such as `regents run`, `regents init`, `regents config ...`, and doctor/runtime helpers do not belong in the HTTP contracts.

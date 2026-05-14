@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { CliUsageError } from "../../cli-usage-error.js";
 import { loadConfig } from "../../internal-runtime/config.js";
 import { ensureSecureDir, writeJsonFileAtomicSync } from "../../internal-runtime/paths.js";
 import {
@@ -45,14 +46,7 @@ interface LocalPlanRecord {
 
 const PRELAUNCH_DIR = "autolaunch-plans";
 const AUTOLAUNCH_CHAIN_ID = 8_453;
-
-const rejectPrelaunchWizardChainFlags = (args: ParsedCliArgs): void => {
-  if (getFlag(args, "chain") || getFlag(args, "chain-id")) {
-    throw new Error(
-      "Autolaunch launches on Base mainnet. Run `regents autolaunch prelaunch wizard` without a chain flag.",
-    );
-  }
-};
+const HIGH_MINIMUM_RAISE_USDC = 50_000n;
 
 const normalizeText = (value: string | undefined): string | undefined => {
   if (!value) {
@@ -61,6 +55,69 @@ const normalizeText = (value: string | undefined): string | undefined => {
 
   const trimmed = value.trim();
   return trimmed === "" ? undefined : trimmed;
+};
+
+const validatedLengthText = (
+  value: string,
+  label: string,
+  minLength: number,
+  maxLength: number,
+): string => {
+  const trimmed = normalizeText(value);
+
+  if (!trimmed) {
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `${label} is required.`,
+    });
+  }
+
+  const length = Array.from(trimmed).length;
+  if (length < minLength || length > maxLength) {
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `${label} must be ${minLength} to ${maxLength} characters.`,
+    });
+  }
+
+  return trimmed;
+};
+
+const validatedMinimumRaiseUsdc = (value: string): string => {
+  const trimmed = normalizeText(value);
+
+  if (!trimmed || !/^[0-9]+$/u.test(trimmed)) {
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: "Minimum USDC raise must be a whole number, 0 or greater.",
+    });
+  }
+
+  return trimmed.replace(/^0+(?=\d)/u, "");
+};
+
+const confirmHighMinimumRaise = async (
+  value: string,
+  prompts: PromptBoundary,
+): Promise<void> => {
+  if (BigInt(value) <= HIGH_MINIMUM_RAISE_USDC) {
+    return;
+  }
+
+  const confirmed = await prompts.confirm(
+    `Minimum raise is ${value} USDC, which is above 50000. Continue?`,
+    {
+      unavailableMessage:
+        "Minimum USDC raise above 50000 requires confirmation. Rerun in an interactive terminal.",
+    },
+  );
+
+  if (!confirmed) {
+    throw new CliUsageError({
+      code: "high_minimum_raise_not_confirmed",
+      message: "Minimum USDC raise was not confirmed.",
+    });
+  }
 };
 
 const stateDir = (configPath?: string): string =>
@@ -295,16 +352,28 @@ const createOrUpdateRemotePlan = async (
 ): Promise<Record<string, unknown>> => {
   const prompts = createPromptBoundary(args);
   const agentId = await promptedRequiredFlag(args, prompts, "agent", "Agent id", "Agent id", "<agent>");
-  const tokenName = await promptedRequiredFlag(args, prompts, "name", "Token name", "Token name", "<name>");
-  const tokenSymbol = await promptedRequiredFlag(args, prompts, "symbol", "Token symbol", "Token symbol", "<symbol>");
-  const minimumRaiseUsdc = await promptedRequiredFlag(
-    args,
-    prompts,
-    "minimum-raise-usdc",
-    "Minimum USDC raise",
-    "Minimum USDC raise",
-    "<amount>",
+  const tokenName = validatedLengthText(
+    await promptedRequiredFlag(args, prompts, "name", "Token name", "Token name", "<name>"),
+    "Token name",
+    3,
+    15,
   );
+  const tokenSymbol = validatedLengthText(
+    await promptedRequiredFlag(args, prompts, "symbol", "Token symbol", "Token symbol", "<symbol>"),
+    "Token symbol",
+    2,
+    10,
+  );
+  const minimumRaiseUsdc = validatedMinimumRaiseUsdc(
+    normalizeText(getFlag(args, "minimum-raise-usdc")) ??
+      (prompts.inputAllowed
+        ? await prompts.text("Minimum USDC raise", {
+            fallback: "0",
+            unavailableMessage: "Pass --minimum-raise-usdc <whole-usdc>.",
+          })
+        : "0"),
+  );
+  await confirmHighMinimumRaise(minimumRaiseUsdc, prompts);
   if (!normalizeText(getFlag(args, "agent-safe-address"))) {
     printAgentSafeExplainer();
   }
@@ -333,9 +402,9 @@ const createOrUpdateRemotePlan = async (
 
   const payload = {
     agent_id: requireArg(agentId, "agent"),
-    token_name: requireArg(tokenName, "name"),
-    token_symbol: requireArg(tokenSymbol, "symbol"),
-    minimum_raise_usdc: requireArg(minimumRaiseUsdc, "minimum-raise-usdc"),
+    token_name: tokenName,
+    token_symbol: tokenSymbol,
+    minimum_raise_usdc: minimumRaiseUsdc,
     agent_safe_address:
       agentSafe ||
       (() => {
@@ -484,7 +553,6 @@ export async function runAutolaunchPrelaunchWizard(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  rejectPrelaunchWizardChainFlags(args);
   printAlphaFundsWarning();
   const plan = await createOrUpdateRemotePlan(args, configPath);
   const validation = await requestJson(
