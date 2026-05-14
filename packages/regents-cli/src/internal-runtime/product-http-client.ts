@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import { appendStructuredLog } from "./structured-log.js";
 import { loadConfig } from "./config.js";
@@ -8,6 +9,16 @@ export type ProductServiceName = "siwa" | "platform" | "autolaunch" | "techtree"
 export type ProductHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type ProductHttpHeaders = ConstructorParameters<typeof Headers>[0];
 type ProductHttpBody = NonNullable<Parameters<typeof fetch>[1]> extends { readonly body?: infer Body } ? Body : never;
+
+const packageMetadata = JSON.parse(
+  readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+) as { readonly version?: unknown };
+
+if (typeof packageMetadata.version !== "string" || packageMetadata.version.trim() === "") {
+  throw new Error("@regentslabs/cli package version is required.");
+}
+
+export const regentsCliVersion = packageMetadata.version;
 
 export interface ProductHttpRequestOptions {
   readonly service: ProductServiceName;
@@ -88,6 +99,8 @@ export const requestProductResponse = async (
   const headers = new Headers(options.headers);
 
   headers.set("x-request-id", requestId);
+  headers.set("x-regents-client", "regents-cli");
+  headers.set("x-regents-cli-version", regentsCliVersion);
 
   if (externalSignal) {
     if (externalSignal.aborted) {

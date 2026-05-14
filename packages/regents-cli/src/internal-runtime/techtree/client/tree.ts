@@ -7,7 +7,6 @@ import type {
   NodeCreateInput,
   NodeCreateResponse,
   NodePaidPayloadAccessResponse,
-  NodePurchaseVerifyResponse,
   NodeStarRecord,
   SearchResponse,
   SkillTextResponse,
@@ -142,14 +141,6 @@ export class TreeResource {
     return this.request.authedFetchJson<NodePaidPayloadAccessResponse>(
       "GET",
       `/v1/agent/tree/nodes/${nodeId}/payload`,
-    );
-  }
-
-  async verifyNodePurchase(nodeId: number, txHash: `0x${string}`): Promise<NodePurchaseVerifyResponse> {
-    return this.request.authedFetchJson<NodePurchaseVerifyResponse>(
-      "POST",
-      `/v1/agent/tree/nodes/${nodeId}/purchases`,
-      { tx_hash: txHash },
     );
   }
 

@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
+import path from "node:path";
 
-import { ExactEvmScheme, type ClientEvmSigner } from "@x402/evm";
+import { ExactEvmScheme, toClientEvmSigner, type ClientEvmSigner } from "@x402/evm";
+import { BatchSettlementEvmScheme, FileClientChannelStorage } from "@x402/evm/batch-settlement/client";
 import {
   decodePaymentResponseHeader,
   x402Client,
@@ -8,7 +10,9 @@ import {
   type PaymentRequired,
   type PaymentRequirements,
 } from "@x402/fetch";
+import { createPublicClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import { base, baseSepolia } from "viem/chains";
 
 import type {
   X402DetailsResponse,
@@ -49,6 +53,8 @@ const PAYMENT_HEADER_NAMES = new Set([
 ]);
 
 const SUPPORTED_METHODS = new Set<X402HttpMethod>(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+const SUPPORTED_SCHEMES = new Set(["batch-settlement", "exact"]);
+const SUPPORTED_BATCH_NETWORKS = new Set(["eip155:8453", "eip155:84532"]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -150,16 +156,23 @@ const requirePaymentRequiredV2 = (paymentRequired: PaymentRequired): PaymentRequ
 
 const paymentRequirementHash = (requirement: PaymentRequirements): string => hashValue(requirement);
 
+const requireAtomicAmount = (value: string, errorCode: string, message: string): void => {
+  if (!/^\d+$/.test(value)) {
+    throw new RegentError(errorCode, message);
+  }
+};
+
 const selectedRequirement = (requirement: PaymentRequirements): X402SelectedPaymentRequirement => {
-  if (requirement.scheme !== "exact") {
+  if (!SUPPORTED_SCHEMES.has(requirement.scheme)) {
     throw new RegentError("x402_unsupported_scheme", `Regent x402 does not support scheme ${requirement.scheme}.`);
   }
   if (!requirement.network.startsWith("eip155:")) {
     throw new RegentError("x402_unsupported_network", `Regent x402 does not support network ${requirement.network}.`);
   }
-  if (!/^\d+$/.test(requirement.amount)) {
-    throw new RegentError("x402_invalid_amount", "x402 amount must be an atomic token integer.");
+  if (requirement.scheme === "batch-settlement" && !SUPPORTED_BATCH_NETWORKS.has(requirement.network)) {
+    throw new RegentError("x402_unsupported_network", `Regent x402 does not support network ${requirement.network}.`);
   }
+  requireAtomicAmount(requirement.amount, "x402_invalid_amount", "x402 amount must be an atomic token integer.");
   if (typeof requirement.maxTimeoutSeconds !== "number" || requirement.maxTimeoutSeconds <= 0) {
     throw new RegentError("x402_invalid_timeout", "x402 payment requirement timeout is invalid.");
   }
@@ -181,7 +194,18 @@ const selectRequirement = (
   maxAmount?: string,
 ): X402SelectedPaymentRequirement => {
   const supported = accepts
-    .filter((requirement) => requirement.scheme === "exact" && requirement.network.startsWith("eip155:"))
+    .filter(
+      (requirement) =>
+        SUPPORTED_SCHEMES.has(requirement.scheme) &&
+        requirement.network.startsWith("eip155:") &&
+        (requirement.scheme !== "batch-settlement" || SUPPORTED_BATCH_NETWORKS.has(requirement.network)),
+    )
+    .sort((left, right) => {
+      if (left.scheme === right.scheme) {
+        return 0;
+      }
+      return left.scheme === "batch-settlement" ? -1 : 1;
+    })
     .map(selectedRequirement);
 
   if (supported.length === 0) {
@@ -191,15 +215,60 @@ const selectRequirement = (
   const selected = supported[0];
 
   if (maxAmount !== undefined) {
-    if (!/^\d+$/.test(maxAmount)) {
-      throw new RegentError("x402_invalid_max_amount", "x402 max amount must be an atomic token integer.");
-    }
+    requireAtomicAmount(maxAmount, "x402_invalid_max_amount", "x402 max amount must be an atomic token integer.");
     if (BigInt(selected.amount) > BigInt(maxAmount)) {
       throw new RegentError("x402_amount_above_limit", "x402 quote is above the approved maximum amount.");
     }
   }
 
   return selected;
+};
+
+const validateMaxDepositAmount = (scheme: string, maxDepositAmount?: string): string | undefined => {
+  if (scheme !== "batch-settlement") {
+    return undefined;
+  }
+
+  if (maxDepositAmount === undefined) {
+    throw new RegentError(
+      "x402_deposit_limit_required",
+      "Batch-settlement x402 payments require --max-deposit-amount.",
+    );
+  }
+
+  requireAtomicAmount(
+    maxDepositAmount,
+    "x402_invalid_max_deposit_amount",
+    "x402 max deposit amount must be an atomic token integer.",
+  );
+
+  if (BigInt(maxDepositAmount) <= 0n) {
+    throw new RegentError("x402_invalid_max_deposit_amount", "x402 max deposit amount must be greater than zero.");
+  }
+
+  return maxDepositAmount;
+};
+
+const viemChainForNetwork = (network: string) => {
+  switch (network) {
+    case "eip155:8453":
+      return base;
+    case "eip155:84532":
+      return baseSepolia;
+    default:
+      throw new RegentError("x402_unsupported_network", `Regent x402 does not support network ${network}.`);
+  }
+};
+
+const rpcUrlForNetwork = (network: string): string | undefined => {
+  switch (network) {
+    case "eip155:8453":
+      return process.env.BASE_MAINNET_RPC_URL ?? process.env.BASE_RPC_URL;
+    case "eip155:84532":
+      return process.env.BASE_SEPOLIA_RPC_URL ?? process.env.BASE_RPC_URL;
+    default:
+      return undefined;
+  }
 };
 
 const parseJsonBody = (bodyText: string): unknown | undefined => {
@@ -280,7 +349,12 @@ export class RegentX402Client {
       x402_version: paymentRequired.x402Version,
       resource: paymentRequired.resource as unknown as Record<string, unknown>,
       accepts: paymentRequired.accepts
-        .filter((requirement) => requirement.scheme === "exact" && requirement.network.startsWith("eip155:"))
+        .filter(
+          (requirement) =>
+            SUPPORTED_SCHEMES.has(requirement.scheme) &&
+            requirement.network.startsWith("eip155:") &&
+            (requirement.scheme !== "batch-settlement" || SUPPORTED_BATCH_NETWORKS.has(requirement.network)),
+        )
         .map(selectedRequirement),
       payment_required_hash: discovered.paymentRequiredHash ?? hashValue(paymentRequired),
       ...(paymentRequired.error ? { error: paymentRequired.error } : {}),
@@ -295,6 +369,7 @@ export class RegentX402Client {
 
     const paymentRequired = requirePaymentRequiredV2(discovered.paymentRequired);
     const selected = selectRequirement(paymentRequired.accepts, input.max_amount);
+    validateMaxDepositAmount(selected.scheme, input.max_deposit_amount);
 
     return {
       ok: true,
@@ -312,6 +387,7 @@ export class RegentX402Client {
     const quote = await this.quote(input);
     const createdAt = nowIso();
     const expiresAt = new Date(Date.now() + quote.selected.max_timeout_seconds * 1_000).toISOString();
+    const maxDepositAmount = validateMaxDepositAmount(quote.selected.scheme, input.max_deposit_amount);
     const intent: X402IntentRecord = this.store.saveIntent({
       intent_id: `x402_intent_${crypto.randomUUID()}`,
       approval_status: input.approve ? "approved" : "pending",
@@ -321,6 +397,7 @@ export class RegentX402Client {
       selected: quote.selected,
       payment_required_hash: quote.payment_required_hash,
       ...(input.max_amount ? { max_amount: input.max_amount } : {}),
+      ...(maxDepositAmount ? { max_deposit_amount: maxDepositAmount } : {}),
       created_at: createdAt,
       expires_at: expiresAt,
       ...(input.approve ? { approved_at: createdAt } : {}),
@@ -369,7 +446,11 @@ export class RegentX402Client {
 
     compareApprovedPayment(intent, discovered.paymentRequiredHash ?? hashValue(discovered.paymentRequired));
 
-    const httpClient = await this.createHttpClient(intent.selected.requirement_hash);
+    const httpClient = await this.createHttpClient(
+      intent.selected.requirement_hash,
+      intent.selected.network,
+      intent.max_deposit_amount,
+    );
     const paymentPayload = await httpClient.createPaymentPayload(discovered.paymentRequired);
     const paymentHeaders = httpClient.encodePaymentSignatureHeader(paymentPayload);
     const paidResponse = await this.fetch(input.url, requestInit(input, paymentHeaders));
@@ -442,7 +523,11 @@ export class RegentX402Client {
     }
   }
 
-  private async createHttpClient(selectedRequirementHash: string): Promise<x402HTTPClient> {
+  private async createHttpClient(
+    selectedRequirementHash: string,
+    selectedNetwork: string,
+    maxDepositAmount?: string,
+  ): Promise<x402HTTPClient> {
     const account = privateKeyToAccount(await this.walletSecretSource.getPrivateKeyHex());
     const client = new x402Client((_version, requirements) => {
       const selected = requirements.find((requirement) => paymentRequirementHash(requirement) === selectedRequirementHash);
@@ -451,7 +536,44 @@ export class RegentX402Client {
       }
       return selected;
     });
-    client.register("eip155:*", new ExactEvmScheme(account as ClientEvmSigner));
+    const signer = account as unknown as ClientEvmSigner;
+    client.register("eip155:*", new ExactEvmScheme(signer));
+    if (SUPPORTED_BATCH_NETWORKS.has(selectedNetwork)) {
+      client.register(
+        "eip155:*",
+        new BatchSettlementEvmScheme(
+          toClientEvmSigner(
+            signer,
+            createPublicClient({
+              chain: viemChainForNetwork(selectedNetwork),
+              transport: http(rpcUrlForNetwork(selectedNetwork)),
+            }),
+          ),
+          {
+            depositPolicy: { depositMultiplier: 5 },
+            storage: new FileClientChannelStorage({ directory: path.join(this.store.rootDir, "channels") }),
+            depositStrategy: ({ depositAmount, minimumDepositAmount }) => {
+              if (maxDepositAmount === undefined) {
+                throw new RegentError(
+                  "x402_deposit_limit_required",
+                  "Batch-settlement x402 payments require --max-deposit-amount.",
+                );
+              }
+
+              const cap = BigInt(maxDepositAmount);
+              const minimum = BigInt(minimumDepositAmount);
+              const proposed = BigInt(depositAmount);
+
+              if (minimum > cap) {
+                throw new RegentError("x402_deposit_above_limit", "x402 deposit is above the approved maximum deposit.");
+              }
+
+              return proposed > cap ? cap.toString() : undefined;
+            },
+          },
+        ),
+      );
+    }
     return new x402HTTPClient(client);
   }
 }

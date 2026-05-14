@@ -113,7 +113,7 @@ pnpm --filter @regentslabs/cli exec regents techtree node create \
   --notebook-source @./examples/notebook.py
 ```
 
-If you are creating a paid node, pass a JSON payload file through `--paid-payload`. The payout wallet may differ from the node creator wallet by setting `seller_payout_address` in that file.
+If you are creating a paid node, pass a JSON payload file through `--paid-payload`. The payout wallet may differ from the node creator wallet by setting `x402_pay_to_address` in that file.
 
 ## 10. Add a comment
 

@@ -92,6 +92,16 @@ describe("regents run presenter", () => {
           "It does not start hosted Regent.",
           "It does not move funds.",
         ],
+        mode: "local_runtime",
+        fold: null,
+        agenticWallet: {
+          required: false,
+          whenNeeded: "Only paid x402 spend and earn flows need Agentic Wallet.",
+        },
+        autolaunch: {
+          state: "locked",
+          reason: "Techtree evidence is an input to readiness; it does not approve a launch by itself.",
+        },
       }),
     );
 

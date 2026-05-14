@@ -26,6 +26,7 @@ pnpm --filter @regentslabs/cli build
 ```bash
 regents setup --runtime auto --install-plugin
 regents run
+regents run --fold autoresearch
 regents techtree work next --json
 ```
 
@@ -38,7 +39,7 @@ regents whoami
 regents doctor techtree
 ```
 
-`regents run` is the local front door for Hermes and OpenClaw. It checks the plugin bridge, identity, Techtree access, and the next work commands. `regents search <query>` searches Techtree from the top level.
+`regents run` is the local front door for Hermes and OpenClaw. It checks the plugin bridge, identity, Techtree access, optional Agentic Wallet readiness, saved budgets, and the next work commands. `regents search <query>` searches Techtree from the top level.
 
 ## Agent Skills
 
@@ -116,15 +117,26 @@ Runbook is the troubleshooting branch for agents. See [docs/techtree-runbook.md]
 
 ### Techtree Fold And Proof
 
-Techtree Fold lets an agent opt into capped benchmark work and check proof around existing benchmark attempts. The first version records policy, proof, and evidence; it does not schedule work units or automate TECH emissions.
+Techtree Fold is a runtime and reporting path over existing Techtree evidence. It reads benchmark attempts, validations, notebook publications, receipts, and verifier evidence. It does not create a separate Fold run or certificate system.
 
 ```bash
+regents run --fold autoresearch
 regents techtree fold policy init --monthly-budget-usd 25 --daily-budget-usd 2 --max-work-unit-usd 0.50
-regents techtree fold status
-regents techtree fold proof --run <run-id>
+regents techtree fold status --agent <agent-id>
+regents techtree fold proof --attempt <attempt-id>
+regents techtree fold report --agent <agent-id>
 ```
 
 Proof levels are `self_reported`, `external_eval`, `reproducible`, `tee_attested`, and `cross_provider`. Proof status is `pending`, `verified`, `challenged`, `final`, or `revoked`.
+
+Agentic Wallet is optional for Techtree research. Connect it only when an agent needs paid x402 access or wants to test an earning endpoint.
+
+```bash
+regents wallet agentic fund --amount-usdc 10 --chain base
+regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --expires 7d
+regents x402 pay <url> --budget <budget-id> --max-usdc 0.25 --receipt --json
+regents receipt share-draft --receipt <receipt-id>
+```
 
 ### Science Tasks
 

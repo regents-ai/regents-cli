@@ -3466,6 +3466,8 @@ export interface components {
         /** @description Too many requests */
         StatusMessage429: {
             headers: {
+                /** @description Seconds to wait before retrying. */
+                "Retry-After"?: number;
                 [name: string]: unknown;
             };
             content: {
@@ -4117,6 +4119,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     createAgentSecurityReport: {
@@ -4143,6 +4146,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getPlatformAgentSession: {
@@ -4163,6 +4167,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentSessionResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     createPlatformAgentSession: {
@@ -4184,6 +4189,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     deletePlatformAgentSession: {
@@ -4204,6 +4210,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     createAgentbookTrustSession: {
@@ -4229,6 +4236,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getAgentbookTrustSession: {
@@ -4253,6 +4261,7 @@ export interface operations {
             };
             401: components["responses"]["StatusMessage401"];
             404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     submitAgentbookTrustSession: {
@@ -4303,6 +4312,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformTemplates: {
@@ -4412,6 +4422,7 @@ export interface operations {
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
             403: components["responses"]["StatusMessage403"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     privySessionDelete: {
@@ -4435,6 +4446,7 @@ export interface operations {
                 };
             };
             403: components["responses"]["StatusMessage403"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     privyXmtpComplete: {
@@ -4461,6 +4473,7 @@ export interface operations {
             };
             401: components["responses"]["StatusMessage401"];
             422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     privySessionCsrf: {
@@ -4481,6 +4494,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrivySessionCsrf"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     privySessionProfile: {
@@ -4501,6 +4515,7 @@ export interface operations {
                     "application/json": components["schemas"]["CurrentHumanProfile"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     privySessionProfileAvatarUpdate: {
@@ -4527,6 +4542,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getAgentRegentStakingOverview: {
@@ -4548,6 +4564,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4573,6 +4590,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4600,6 +4618,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4627,6 +4646,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4650,6 +4670,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4673,6 +4694,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4696,6 +4718,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4721,6 +4744,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4748,6 +4772,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4775,6 +4800,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4802,6 +4828,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4829,6 +4856,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4856,6 +4884,7 @@ export interface operations {
             };
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4877,6 +4906,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentFormationResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
             502: components["responses"]["StatusMessage502"];
             503: components["responses"]["StatusMessage503"];
         };
@@ -4900,6 +4930,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             502: components["responses"]["StatusMessage502"];
             503: components["responses"]["StatusMessage503"];
         };
@@ -4923,6 +4954,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
             502: components["responses"]["StatusMessage502"];
             503: components["responses"]["StatusMessage503"];
         };
@@ -4956,6 +4988,7 @@ export interface operations {
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
             403: components["responses"]["StatusMessage403"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -4981,6 +5014,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformBillingUsage: {
@@ -5005,6 +5039,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformFormationCreateCompany: {
@@ -5038,6 +5073,7 @@ export interface operations {
             402: components["responses"]["StatusMessage402"];
             403: components["responses"]["StatusMessage403"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -5063,6 +5099,7 @@ export interface operations {
             };
             401: components["responses"]["StatusMessage401"];
             404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformEnsPrepareUpgrade: {
@@ -5094,6 +5131,7 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformEnsConfirmUpgrade: {
@@ -5128,6 +5166,7 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformEnsAttach: {
@@ -5164,6 +5203,7 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformEnsDetach: {
@@ -5199,6 +5239,7 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformEnsLinkPlan: {
@@ -5234,6 +5275,7 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformEnsPrepareBidirectional: {
@@ -5269,6 +5311,7 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformEnsPreparePrimary: {
@@ -5301,6 +5344,7 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
             409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     agentPlatformBillingTopupCheckout: {
@@ -5332,6 +5376,7 @@ export interface operations {
             400: components["responses"]["StatusMessage400"];
             401: components["responses"]["StatusMessage401"];
             403: components["responses"]["StatusMessage403"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -5385,6 +5430,7 @@ export interface operations {
             401: components["responses"]["StatusMessage401"];
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -5416,6 +5462,7 @@ export interface operations {
             402: components["responses"]["StatusMessage402"];
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };
     };
@@ -5633,6 +5680,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrAccountResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrWorkItems: {
@@ -5655,6 +5703,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrWorkItemListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     createRwrWorkItem: {
@@ -5681,6 +5730,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrWorkItemResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrWorkItem: {
@@ -5704,6 +5754,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrWorkItemResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     startRwrWorkRun: {
@@ -5731,6 +5782,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRunResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrRun: {
@@ -5754,6 +5806,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRunResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrRunTree: {
@@ -5777,6 +5830,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRunTreeResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     cancelRwrRun: {
@@ -5800,6 +5854,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRunResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     retryRwrRun: {
@@ -5823,6 +5878,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRunResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrRunEvents: {
@@ -5846,6 +5902,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRunEventListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     appendRwrRunEvent: {
@@ -5874,6 +5931,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     streamRwrRunEvents: {
@@ -5897,6 +5955,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRunEventStreamResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     appendRwrRunEventBatch: {
@@ -5925,6 +5984,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrRunArtifacts: {
@@ -5948,6 +6008,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrArtifactListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     createRwrRunArtifact: {
@@ -5976,6 +6037,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrRunArtifact: {
@@ -6000,6 +6062,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrArtifactResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     publishRwrRunArtifact: {
@@ -6024,6 +6087,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrArtifactResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrCompanyArtifact: {
@@ -6047,6 +6111,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrArtifactResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrRunApprovals: {
@@ -6070,6 +6135,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrApprovalListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrRunApproval: {
@@ -6094,6 +6160,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrApprovalResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     resolveRwrRunApproval: {
@@ -6122,6 +6189,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrApprovalResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrWorkers: {
@@ -6144,6 +6212,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrWorkerListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     registerRwrWorker: {
@@ -6171,6 +6240,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     heartbeatRwrWorker: {
@@ -6195,6 +6265,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrWorkerAssignments: {
@@ -6219,6 +6290,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     claimRwrWorkerAssignment: {
@@ -6243,6 +6315,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     releaseRwrWorkerAssignment: {
@@ -6267,6 +6340,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     completeRwrWorkerAssignment: {
@@ -6291,6 +6365,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrRuntimes: {
@@ -6313,6 +6388,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     createRwrRuntime: {
@@ -6339,6 +6415,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrRuntime: {
@@ -6362,6 +6439,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     checkpointRwrRuntime: {
@@ -6389,6 +6467,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeCheckpointResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     restoreRwrRuntime: {
@@ -6416,6 +6495,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeRestoreResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     pauseRwrRuntime: {
@@ -6439,6 +6519,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     resumeRwrRuntime: {
@@ -6462,6 +6543,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrRuntimeServices: {
@@ -6485,6 +6567,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeServiceListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     getRwrRuntimeHealth: {
@@ -6508,6 +6591,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrRuntimeHealthResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     requestRwrDelegation: {
@@ -6536,6 +6620,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrAgentRelationships: {
@@ -6559,6 +6644,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrAgentRelationshipListResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     createRwrAgentRelationship: {
@@ -6586,6 +6672,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrAgentRelationshipResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     listRwrExecutionPool: {
@@ -6609,6 +6696,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrExecutionPoolResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     deleteRwrAgentRelationship: {
@@ -6632,6 +6720,7 @@ export interface operations {
                     "application/json": components["schemas"]["RwrAgentRelationshipResponse"];
                 };
             };
+            429: components["responses"]["StatusMessage429"];
         };
     };
 }

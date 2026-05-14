@@ -104,6 +104,10 @@ export const CLI_COMMANDS = [
   "autolaunch vesting release",
   "autolaunch vesting status",
   "balance",
+  "budget grant",
+  "budget ledger",
+  "budget revoke",
+  "budget status",
   "bug",
   "chatbox history",
   "chatbox post",
@@ -149,6 +153,10 @@ export const CLI_COMMANDS = [
   "plugin doctor",
   "plugin install",
   "plugin status",
+  "receipt create",
+  "receipt get",
+  "receipt list",
+  "receipt share-draft",
   "regent-staking account",
   "regent-staking claim-and-restake-regent",
   "regent-staking claim-regent",
@@ -162,9 +170,12 @@ export const CLI_COMMANDS = [
   "runtime get",
   "runtime health",
   "runtime pause",
+  "runtime policy",
   "runtime restore",
   "runtime resume",
   "runtime services",
+  "runtime status",
+  "runtime tools",
   "search",
   "security-report",
   "setup",
@@ -219,6 +230,7 @@ export const CLI_COMMANDS = [
   "techtree comment add",
   "techtree fold policy init",
   "techtree fold proof",
+  "techtree fold report",
   "techtree fold status",
   "techtree identities list",
   "techtree identities mint",
@@ -305,6 +317,13 @@ export const CLI_COMMANDS = [
   "techtree work list",
   "techtree work next",
   "techtree work publish",
+  "wallet agentic address",
+  "wallet agentic balance",
+  "wallet agentic fund",
+  "wallet agentic get",
+  "wallet agentic login",
+  "wallet agentic status",
+  "wallet agentic verify",
   "wallet setup",
   "wallet status",
   "whoami",
@@ -316,9 +335,11 @@ export const CLI_COMMANDS = [
   "work watch",
   "x402 details",
   "x402 fetch",
+  "x402 pay",
   "x402 prepare",
   "x402 quote",
   "x402 receipts get",
+  "x402 search",
   "xmtp doctor",
   "xmtp group add-admin",
   "xmtp group add-member",
@@ -467,6 +488,12 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   "balance": [
     "balance"
   ],
+  "budget": [
+    "budget grant",
+    "budget ledger",
+    "budget revoke",
+    "budget status"
+  ],
   "bug": [
     "bug"
   ],
@@ -538,6 +565,12 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "plugin install",
     "plugin status"
   ],
+  "receipt": [
+    "receipt create",
+    "receipt get",
+    "receipt list",
+    "receipt share-draft"
+  ],
   "regent-staking": [
     "regent-staking account",
     "regent-staking claim-and-restake-regent",
@@ -556,9 +589,12 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "runtime get",
     "runtime health",
     "runtime pause",
+    "runtime policy",
     "runtime restore",
     "runtime resume",
-    "runtime services"
+    "runtime services",
+    "runtime status",
+    "runtime tools"
   ],
   "search": [
     "search"
@@ -623,6 +659,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree comment add",
     "techtree fold policy init",
     "techtree fold proof",
+    "techtree fold report",
     "techtree fold status",
     "techtree identities list",
     "techtree identities mint",
@@ -711,6 +748,13 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree work publish"
   ],
   "wallet": [
+    "wallet agentic address",
+    "wallet agentic balance",
+    "wallet agentic fund",
+    "wallet agentic get",
+    "wallet agentic login",
+    "wallet agentic status",
+    "wallet agentic verify",
     "wallet setup",
     "wallet status"
   ],
@@ -728,9 +772,11 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   "x402": [
     "x402 details",
     "x402 fetch",
+    "x402 pay",
     "x402 prepare",
     "x402 quote",
-    "x402 receipts get"
+    "x402 receipts get",
+    "x402 search"
   ],
   "xmtp": [
     "xmtp doctor",
@@ -958,6 +1004,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -985,6 +1032,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -1098,6 +1146,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -1125,6 +1174,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -1152,6 +1202,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -1179,6 +1230,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -3753,6 +3805,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -3766,6 +3819,180 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
+    }
+  },
+  "budget grant": {
+    "command": "budget grant",
+    "owner": "shared-services",
+    "group": "budget",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--agent",
+        "type": "string",
+        "required": true,
+        "description": "Agent that may use this budget through Regent."
+      },
+      {
+        "name": "--amount-usdc",
+        "type": "decimal-usd",
+        "required": true,
+        "description": "Total budget amount."
+      },
+      {
+        "name": "--max-payment-usdc",
+        "type": "decimal-usd",
+        "required": true,
+        "description": "Maximum size for one payment."
+      },
+      {
+        "name": "--mode",
+        "type": "enum",
+        "enum": [
+          "techtree_research",
+          "paid_service"
+        ],
+        "required": true,
+        "description": "Work mode this budget is allowed to support."
+      },
+      {
+        "name": "--rail",
+        "type": "enum",
+        "enum": [
+          "regent-wallet",
+          "agentic-wallet"
+        ],
+        "required": true,
+        "description": "Payment rail this budget allows."
+      },
+      {
+        "name": "--allow-host",
+        "type": "string",
+        "required": false,
+        "description": "Optional paid service hostname this budget may use. Repeat to allow more hosts."
+      },
+      {
+        "name": "--expires",
+        "type": "duration-or-time",
+        "required": true,
+        "description": "Expiration such as 7d or an ISO timestamp."
+      }
+    ],
+    "examples": [
+      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget status --json",
+      "regents budget ledger --budget bud_..."
+    ],
+    "agent_metadata": {
+      "category": "budget",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-policy-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "budget ledger": {
+    "command": "budget ledger",
+    "owner": "shared-services",
+    "group": "budget",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--budget",
+        "type": "string",
+        "required": true,
+        "description": "Budget id to inspect."
+      }
+    ],
+    "examples": [
+      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget status --json",
+      "regents budget ledger --budget bud_..."
+    ],
+    "agent_metadata": {
+      "category": "budget",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-policy-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "budget revoke": {
+    "command": "budget revoke",
+    "owner": "shared-services",
+    "group": "budget",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--budget",
+        "type": "string",
+        "required": true,
+        "description": "Budget id to revoke."
+      }
+    ],
+    "examples": [
+      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget status --json",
+      "regents budget ledger --budget bud_..."
+    ],
+    "agent_metadata": {
+      "category": "budget",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-policy-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "budget status": {
+    "command": "budget status",
+    "owner": "shared-services",
+    "group": "budget",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--budget",
+        "type": "string",
+        "required": false,
+        "description": "Budget id to inspect."
+      },
+      {
+        "name": "--agent",
+        "type": "string",
+        "required": false,
+        "description": "Agent id to filter by."
+      }
+    ],
+    "examples": [
+      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget status --json",
+      "regents budget ledger --budget bud_..."
+    ],
+    "agent_metadata": {
+      "category": "budget",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-policy-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
     }
   },
   "bug": {
@@ -3890,6 +4117,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -3917,6 +4145,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -3944,6 +4173,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -3971,6 +4201,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -4225,6 +4456,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -4326,6 +4558,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -5224,6 +5457,140 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "flags"
     }
   },
+  "receipt create": {
+    "command": "receipt create",
+    "owner": "shared-services",
+    "group": "receipt",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--from-attempt",
+        "type": "string",
+        "required": false,
+        "description": "Techtree benchmark attempt id to cite."
+      },
+      {
+        "name": "--from-notebook",
+        "type": "string",
+        "required": false,
+        "description": "Techtree notebook publication node id to cite."
+      },
+      {
+        "name": "--from-x402-payment",
+        "type": "string",
+        "required": false,
+        "description": "x402 payment id to cite."
+      },
+      {
+        "name": "--from-budget-entry",
+        "type": "string",
+        "required": false,
+        "description": "Local budget ledger entry to cite."
+      }
+    ],
+    "examples": [
+      "regents receipt create --from-attempt attempt_... --json",
+      "regents receipt list --json",
+      "regents receipt share-draft --receipt rcpt_..."
+    ],
+    "agent_metadata": {
+      "category": "receipts",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "receipt get": {
+    "command": "receipt get",
+    "owner": "shared-services",
+    "group": "receipt",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--receipt",
+        "type": "string",
+        "required": true,
+        "description": "Receipt id to inspect."
+      }
+    ],
+    "examples": [
+      "regents receipt create --from-attempt attempt_... --json",
+      "regents receipt list --json",
+      "regents receipt share-draft --receipt rcpt_..."
+    ],
+    "agent_metadata": {
+      "category": "receipts",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "receipt list": {
+    "command": "receipt list",
+    "owner": "shared-services",
+    "group": "receipt",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents receipt create --from-attempt attempt_... --json",
+      "regents receipt list --json",
+      "regents receipt share-draft --receipt rcpt_..."
+    ],
+    "agent_metadata": {
+      "category": "receipts",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "receipt share-draft": {
+    "command": "receipt share-draft",
+    "owner": "shared-services",
+    "group": "receipt",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--receipt",
+        "type": "string",
+        "required": true,
+        "description": "Receipt id to turn into draft share copy."
+      }
+    ],
+    "examples": [
+      "regents receipt create --from-attempt attempt_... --json",
+      "regents receipt list --json",
+      "regents receipt share-draft --receipt rcpt_..."
+    ],
+    "agent_metadata": {
+      "category": "receipts",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
   "regent-staking account": {
     "command": "regent-staking account",
     "owner": "platform",
@@ -5866,6 +6233,29 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Pause one runtime for a Regent company."
   },
+  "runtime policy": {
+    "command": "runtime policy",
+    "owner": "shared-services",
+    "group": "runtime-local",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents runtime status --json",
+      "regents runtime tools --json",
+      "regents runtime policy --json"
+    ],
+    "agent_metadata": {
+      "category": "local-control",
+      "prompt_behavior": "never_prompt",
+      "json_support": "required",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
   "runtime restore": {
     "command": "runtime restore",
     "owner": "platform",
@@ -6043,6 +6433,52 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "List services for one runtime."
   },
+  "runtime status": {
+    "command": "runtime status",
+    "owner": "shared-services",
+    "group": "runtime-local",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents runtime status --json",
+      "regents runtime tools --json",
+      "regents runtime policy --json"
+    ],
+    "agent_metadata": {
+      "category": "local-control",
+      "prompt_behavior": "never_prompt",
+      "json_support": "required",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "runtime tools": {
+    "command": "runtime tools",
+    "owner": "shared-services",
+    "group": "runtime-local",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents runtime status --json",
+      "regents runtime tools --json",
+      "regents runtime policy --json"
+    ],
+    "agent_metadata": {
+      "category": "local-control",
+      "prompt_behavior": "never_prompt",
+      "json_support": "required",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
   "search": {
     "command": "search",
     "owner": "techtree",
@@ -6205,6 +6641,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -6250,6 +6687,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--max-deposit-amount",
+        "type": "atomic-token-amount",
+        "required": true
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -6316,6 +6760,41 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--skill-node-id",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "name": "--payment-rail",
+        "type": "enum",
+        "enum": [
+          "batch_settlement"
+        ],
+        "required": false
+      },
+      {
+        "name": "--chain-id",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "name": "--x402-asset-address",
+        "type": "evm-address",
+        "required": true
+      },
+      {
+        "name": "--x402-pay-to-address",
+        "type": "evm-address",
+        "required": true
+      },
+      {
+        "name": "--price-usdc",
+        "type": "decimal-usd",
+        "required": true
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7351,8 +7830,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree fold policy init",
-      "regents techtree fold status",
-      "regents techtree fold proof --run run_..."
+      "regents techtree fold status --agent agent_...",
+      "regents techtree fold proof --attempt attempt_...",
+      "regents techtree fold report --agent agent_..."
     ],
     "agent_metadata": {
       "category": "fold",
@@ -7374,15 +7854,47 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "fold-proof-envelopes",
     "flags": [
       {
-        "name": "--run",
+        "name": "--attempt",
         "type": "string",
         "required": true
       }
     ],
     "examples": [
       "regents techtree fold policy init",
-      "regents techtree fold status",
-      "regents techtree fold proof --run run_..."
+      "regents techtree fold status --agent agent_...",
+      "regents techtree fold proof --attempt attempt_...",
+      "regents techtree fold report --agent agent_..."
+    ],
+    "agent_metadata": {
+      "category": "fold",
+      "prompt_behavior": "confirm_before_policy_or_install",
+      "json_support": "supported",
+      "mutation_class": "local-and-http-write",
+      "retry_behavior": "retry_reads_and_local_install",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    }
+  },
+  "techtree fold report": {
+    "command": "techtree fold report",
+    "owner": "techtree",
+    "group": "fold",
+    "interface": "mixed",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "fold-proof-envelopes",
+    "flags": [
+      {
+        "name": "--agent",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "examples": [
+      "regents techtree fold policy init",
+      "regents techtree fold status --agent agent_...",
+      "regents techtree fold proof --attempt attempt_...",
+      "regents techtree fold report --agent agent_..."
     ],
     "agent_metadata": {
       "category": "fold",
@@ -7402,10 +7914,18 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "fold-proof-envelopes",
+    "flags": [
+      {
+        "name": "--agent",
+        "type": "string",
+        "required": false
+      }
+    ],
     "examples": [
       "regents techtree fold policy init",
-      "regents techtree fold status",
-      "regents techtree fold proof --run run_..."
+      "regents techtree fold status --agent agent_...",
+      "regents techtree fold proof --attempt attempt_...",
+      "regents techtree fold report --agent agent_..."
     ],
     "agent_metadata": {
       "category": "fold",
@@ -9465,6 +9985,229 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     }
   },
+  "wallet agentic address": {
+    "command": "wallet agentic address",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "wallet agentic balance": {
+    "command": "wallet agentic balance",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--chain",
+        "type": "enum",
+        "enum": [
+          "base"
+        ],
+        "required": true,
+        "description": "Chain to inspect for Agentic Wallet balance."
+      }
+    ],
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "wallet agentic fund": {
+    "command": "wallet agentic fund",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--amount-usdc",
+        "type": "decimal-usd",
+        "required": true,
+        "description": "Funding amount to show in the guided onramp instructions."
+      },
+      {
+        "name": "--chain",
+        "type": "enum",
+        "enum": [
+          "base"
+        ],
+        "required": true,
+        "description": "Chain to fund."
+      }
+    ],
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "wallet agentic get": {
+    "command": "wallet agentic get",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "wallet agentic login": {
+    "command": "wallet agentic login",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--email",
+        "type": "string",
+        "required": true,
+        "description": "Email address to start Agentic Wallet login."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the Agentic Wallet login response as JSON."
+      }
+    ],
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "wallet agentic status": {
+    "command": "wallet agentic status",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "wallet agentic verify": {
+    "command": "wallet agentic verify",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--flow-id",
+        "type": "string",
+        "required": true,
+        "description": "Agentic Wallet login flow id."
+      },
+      {
+        "name": "--otp",
+        "type": "string",
+        "required": true,
+        "description": "One-time code from Agentic Wallet login."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the Agentic Wallet verification response as JSON."
+      }
+    ],
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
   "wallet setup": {
     "command": "wallet setup",
     "owner": "shared-services",
@@ -9473,7 +10216,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
-      "regents wallet status"
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
     ],
     "agent_metadata": {
       "category": "wallet",
@@ -9494,7 +10239,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
-      "regents wallet status"
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
     ],
     "agent_metadata": {
       "category": "wallet",
@@ -9527,6 +10274,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "regents setup --runtime auto --install-plugin",
       "regents setup skills",
       "regents plugin status --runtime auto",
+      "regents runtime status --json",
       "regents agent-context",
       "regents config get",
       "regents agent profile get"
@@ -9980,11 +10728,35 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "url",
+        "required": true,
+        "description": "Protected resource URL to inspect."
+      },
+      {
+        "name": "method",
+        "required": false,
+        "description": "HTTP method for the protected resource request."
+      },
+      {
+        "name": "body",
+        "required": false,
+        "description": "Request body used while inspecting the protected resource."
+      },
+      {
+        "name": "header",
+        "required": false,
+        "description": "Repeatable request header in Name/value form."
+      }
+    ],
     "examples": [
+      "regents x402 search \"research data\" --json",
       "regents x402 details --url https://api.example.com/paid --json",
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
     "agent_metadata": {
@@ -10005,11 +10777,103 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "intent-id",
+        "required": true,
+        "description": "Approved x402 intent to use."
+      },
+      {
+        "name": "url",
+        "required": true,
+        "description": "Protected resource URL to fetch."
+      },
+      {
+        "name": "method",
+        "required": false,
+        "description": "HTTP method for the protected resource request."
+      },
+      {
+        "name": "body",
+        "required": false,
+        "description": "Request body used while fetching the protected resource."
+      },
+      {
+        "name": "header",
+        "required": false,
+        "description": "Repeatable request header in Name/value form."
+      }
+    ],
     "examples": [
+      "regents x402 search \"research data\" --json",
       "regents x402 details --url https://api.example.com/paid --json",
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
+      "regents x402 receipts get --id x402_receipt_... --json"
+    ],
+    "agent_metadata": {
+      "category": "paid-api",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "payment-prepare-or-fetch",
+      "retry_behavior": "never_retry_payments",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "x402 pay": {
+    "command": "x402 pay",
+    "owner": "shared-services",
+    "group": "x402",
+    "interface": "runtime",
+    "auth_mode": "local-wallet",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--budget",
+        "type": "string",
+        "required": true,
+        "description": "Regent budget that approves this payment."
+      },
+      {
+        "name": "--max-usdc",
+        "type": "decimal-usd",
+        "required": true,
+        "description": "Maximum USDC to spend on this x402 request."
+      },
+      {
+        "name": "--rail",
+        "type": "enum",
+        "enum": [
+          "regent-wallet",
+          "agentic-wallet"
+        ],
+        "required": true,
+        "description": "Payment rail to use for this request."
+      },
+      {
+        "name": "--approve",
+        "type": "boolean",
+        "required": false,
+        "description": "Confirm a paid-service budget payment."
+      },
+      {
+        "name": "--receipt",
+        "type": "boolean",
+        "required": false,
+        "description": "Create a local Regent receipt after a successful payment."
+      }
+    ],
+    "examples": [
+      "regents x402 search \"research data\" --json",
+      "regents x402 details --url https://api.example.com/paid --json",
+      "regents x402 quote --url https://api.example.com/paid --json",
+      "regents x402 prepare --url https://api.example.com/paid --approve --json",
+      "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
     "agent_metadata": {
@@ -10030,11 +10894,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "url",
+        "required": true,
+        "description": "Protected resource URL to prepare."
+      },
+      {
+        "name": "method",
+        "required": false,
+        "description": "HTTP method for the protected resource request."
+      },
+      {
+        "name": "body",
+        "required": false,
+        "description": "Request body used while preparing the protected resource."
+      },
+      {
+        "name": "header",
+        "required": false,
+        "description": "Repeatable request header in Name/value form."
+      },
+      {
+        "name": "max-amount",
+        "required": false,
+        "description": "Maximum accepted atomic token amount."
+      },
+      {
+        "name": "max-deposit-amount",
+        "required": false,
+        "description": "Maximum atomic token amount the operator allows the CLI to escrow for batch-settlement payments."
+      },
+      {
+        "name": "approve",
+        "required": false,
+        "description": "Record explicit local operator approval for the prepared x402 request."
+      }
+    ],
     "examples": [
+      "regents x402 search \"research data\" --json",
       "regents x402 details --url https://api.example.com/paid --json",
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
     "agent_metadata": {
@@ -10055,11 +10958,45 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "url",
+        "required": true,
+        "description": "Protected resource URL to quote."
+      },
+      {
+        "name": "method",
+        "required": false,
+        "description": "HTTP method for the protected resource request."
+      },
+      {
+        "name": "body",
+        "required": false,
+        "description": "Request body used while quoting the protected resource."
+      },
+      {
+        "name": "header",
+        "required": false,
+        "description": "Repeatable request header in Name/value form."
+      },
+      {
+        "name": "max-amount",
+        "required": false,
+        "description": "Maximum accepted atomic token amount."
+      },
+      {
+        "name": "max-deposit-amount",
+        "required": false,
+        "description": "Maximum atomic token amount the operator allows the CLI to escrow for batch-settlement payments."
+      }
+    ],
     "examples": [
+      "regents x402 search \"research data\" --json",
       "regents x402 details --url https://api.example.com/paid --json",
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
     "agent_metadata": {
@@ -10080,11 +11017,47 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "id",
+        "required": true,
+        "description": "x402 receipt id to read from the local Regent receipt store."
+      }
+    ],
     "examples": [
+      "regents x402 search \"research data\" --json",
       "regents x402 details --url https://api.example.com/paid --json",
       "regents x402 quote --url https://api.example.com/paid --json",
       "regents x402 prepare --url https://api.example.com/paid --approve --json",
       "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
+      "regents x402 receipts get --id x402_receipt_... --json"
+    ],
+    "agent_metadata": {
+      "category": "paid-api",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "payment-prepare-or-fetch",
+      "retry_behavior": "never_retry_payments",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    }
+  },
+  "x402 search": {
+    "command": "x402 search",
+    "owner": "shared-services",
+    "group": "x402",
+    "interface": "runtime",
+    "auth_mode": "local-wallet",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents x402 search \"research data\" --json",
+      "regents x402 details --url https://api.example.com/paid --json",
+      "regents x402 quote --url https://api.example.com/paid --json",
+      "regents x402 prepare --url https://api.example.com/paid --approve --json",
+      "regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json",
+      "regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json",
       "regents x402 receipts get --id x402_receipt_... --json"
     ],
     "agent_metadata": {

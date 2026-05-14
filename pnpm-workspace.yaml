@@ -2,6 +2,11 @@ packages:
   - "packages/regents-cli"
 
 minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - "@x402/core"
+  - "@x402/evm"
+  - "@x402/fetch"
+  - "viem"
 blockExoticSubdeps: true
 strictDepBuilds: true
 

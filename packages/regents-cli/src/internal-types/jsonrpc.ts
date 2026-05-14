@@ -490,7 +490,7 @@ export interface RegentRpcParamsMap {
   "techtree.fold.policy.init": FoldPolicyInput;
   "techtree.fold.status": undefined;
   "techtree.fold.evidencePacket": undefined;
-  "techtree.fold.proof": { run_id: string };
+  "techtree.fold.proof": { attempt_id: string };
   "techtree.tech.status": undefined;
   "techtree.tech.epochs.current": undefined;
   "techtree.tech.leaderboards.list": { status?: string; limit?: number } | undefined;
@@ -520,7 +520,7 @@ export interface RegentRpcParamsMap {
   "techtree.autoskill.publishResult": { workspace_path: string; input: AutoskillResultPublishInput };
   "techtree.autoskill.review": AutoskillReviewCreateInput;
   "techtree.autoskill.listing.create": AutoskillListingCreateInput;
-  "techtree.autoskill.buy": { node_id: number };
+  "techtree.autoskill.buy": { node_id: number; max_deposit_amount: string };
   "techtree.autoskill.pull": {
     node_id: number;
     workspace_path: string;

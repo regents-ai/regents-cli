@@ -145,6 +145,14 @@ cat > "${WORK_DIR}/package.json" <<'EOF'
 }
 EOF
 
+cat > "${WORK_DIR}/.npmrc" <<'EOF'
+minimum-release-age=10080
+minimum-release-age-exclude[]=@x402/core
+minimum-release-age-exclude[]=@x402/evm
+minimum-release-age-exclude[]=@x402/fetch
+minimum-release-age-exclude[]=viem
+EOF
+
 if ! pnpm --dir "${WORK_DIR}" add --allow-build=@regentslabs/cli "${PACK_DIR}"/regentslabs-cli-*.tgz >"${INSTALL_LOG}" 2>&1; then
   cat "${INSTALL_LOG}" >&2
   exit 1

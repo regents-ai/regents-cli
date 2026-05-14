@@ -27,6 +27,27 @@ export interface PluginInstallReport {
   files: string[];
 }
 
+export const REGENT_PLUGIN_TOOL_NAMES = [
+  "regent_status",
+  "regent_setup_status",
+  "regent_runtime_start",
+  "regent_runtime_stop",
+  "regent_identity_ensure",
+  "regent_agent_graph",
+  "regent_work_next",
+  "regent_work_accept",
+  "regent_workspace_pair",
+  "regent_benchmark_run",
+  "regent_science_task_review_loop",
+  "regent_notebook_publish",
+  "regent_fold_status",
+  "regent_fold_proof",
+  "regent_budget_status",
+  "regent_x402_pay_guarded",
+  "regent_receipt_create",
+  "regent_receipt_share_draft",
+] as const;
+
 const homePath = (...parts: string[]): string =>
   path.join(process.env.HOME ?? process.env.USERPROFILE ?? "~", ...parts);
 
@@ -95,11 +116,15 @@ const writeFile = (filePath: string, body: string, files: string[]): void => {
 };
 
 const hermesPluginYaml = (): string => `name: regent
-version: 0.2.0
+version: 0.3.0
 description: Typed Regent bridge for Hermes
 provides_tools:
   - regent_status
   - regent_setup_status
+  - regent_runtime_start
+  - regent_runtime_stop
+  - regent_identity_ensure
+  - regent_agent_graph
   - regent_work_next
   - regent_work_accept
   - regent_workspace_pair
@@ -108,6 +133,10 @@ provides_tools:
   - regent_notebook_publish
   - regent_fold_status
   - regent_fold_proof
+  - regent_budget_status
+  - regent_x402_pay_guarded
+  - regent_receipt_create
+  - regent_receipt_share_draft
 `;
 
 const hermesInitPy = (): string => `from .tools import *  # noqa: F401,F403
@@ -122,6 +151,7 @@ raw regents command strings, raw awal, raw curl, or raw npx input.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from typing import Any, Dict, List
@@ -131,6 +161,10 @@ REGENTS_BIN = "regents"
 ALLOWED: Dict[str, List[str]] = {
     "regent_status": ["status", "--json"],
     "regent_setup_status": ["plugin", "status", "--runtime", "auto", "--json"],
+    "regent_runtime_start": ["run", "--json"],
+    "regent_runtime_stop": ["runtime", "status", "--json"],
+    "regent_identity_ensure": ["identity", "ensure", "--json"],
+    "regent_agent_graph": ["identity", "graph", "--json"],
     "regent_work_next": ["techtree", "work", "next", "--json"],
     "regent_work_accept": ["techtree", "work", "accept", "--json"],
     "regent_workspace_pair": ["techtree", "notebooks", "pair", "--json"],
@@ -139,7 +173,26 @@ ALLOWED: Dict[str, List[str]] = {
     "regent_notebook_publish": ["techtree", "notebooks", "publish", "--json"],
     "regent_fold_status": ["techtree", "fold", "status", "--json"],
     "regent_fold_proof": ["techtree", "fold", "proof", "--json"],
+    "regent_budget_status": ["budget", "status", "--json"],
+    "regent_x402_pay_guarded": ["x402", "pay"],
+    "regent_receipt_create": ["receipt", "create", "--json"],
+    "regent_receipt_share_draft": ["receipt", "share-draft", "--json"],
 }
+
+
+def _redact(value: Any) -> Any:
+    if isinstance(value, dict):
+        redacted: Dict[str, Any] = {}
+        for key, entry in value.items():
+            lowered = str(key).lower()
+            if any(part in lowered for part in ["secret", "private", "token", "otp", "payment", "header"]):
+                redacted[key] = "[redacted]"
+            else:
+                redacted[key] = _redact(entry)
+        return redacted
+    if isinstance(value, list):
+        return [_redact(entry) for entry in value]
+    return value
 
 
 def _run(argv: List[str]) -> Dict[str, Any]:
@@ -148,7 +201,20 @@ def _run(argv: List[str]) -> Dict[str, Any]:
     proc = subprocess.run([REGENTS_BIN, *argv], capture_output=True, text=True, check=False)
     if proc.returncode != 0:
         return {"ok": False, "error": proc.stderr.strip() or proc.stdout.strip()}
-    return json.loads(proc.stdout)
+    return _redact(json.loads(proc.stdout))
+
+
+def _start(argv: List[str]) -> Dict[str, Any]:
+    if shutil.which(REGENTS_BIN) is None:
+        return {"ok": False, "error": "Regents CLI is not installed. Run npm install -g @regentslabs/cli."}
+    proc = subprocess.Popen(
+        [REGENTS_BIN, *argv],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    return {"ok": True, "pid": proc.pid, "command": [REGENTS_BIN, *argv]}
 
 
 def regent_status(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
@@ -157,6 +223,26 @@ def regent_status(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
 
 def regent_setup_status(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
     return _run(ALLOWED["regent_setup_status"])
+
+
+def regent_runtime_start(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    params = params or {}
+    argv = list(ALLOWED["regent_runtime_start"])
+    if params.get("mode") == "techtree_fold":
+        argv.extend(["--fold", str(params.get("preset") or "autoresearch")])
+    return _start(argv)
+
+
+def regent_runtime_stop(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    return {"ok": False, "error": "Stop Regent from the terminal where regents run is active."}
+
+
+def regent_identity_ensure(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    return _run(ALLOWED["regent_identity_ensure"])
+
+
+def regent_agent_graph(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    return _run(ALLOWED["regent_agent_graph"])
 
 
 def regent_work_next(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
@@ -212,16 +298,64 @@ def regent_fold_status(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
 
 def regent_fold_proof(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
     params = params or {}
-    return _run([*ALLOWED["regent_fold_proof"], "--run", str(params["run_id"])])
+    return _run([*ALLOWED["regent_fold_proof"], "--attempt", str(params["attempt_id"])])
+
+
+def regent_budget_status(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    params = params or {}
+    argv = list(ALLOWED["regent_budget_status"])
+    if params.get("budget_id"):
+        argv.extend(["--budget", str(params["budget_id"])])
+    if params.get("agent_id"):
+        argv.extend(["--agent", str(params["agent_id"])])
+    return _run(argv)
+
+
+def regent_x402_pay_guarded(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    params = params or {}
+    argv = [
+        *ALLOWED["regent_x402_pay_guarded"],
+        str(params["url"]),
+        "--budget", str(params["budget_id"]),
+        "--max-usdc", str(params["max_usdc"]),
+        "--rail", str(params.get("rail") or "agentic-wallet"),
+        "--json",
+    ]
+    if params.get("approve"):
+        argv.append("--approve")
+    if params.get("receipt"):
+        argv.append("--receipt")
+    return _run(argv)
+
+
+def regent_receipt_create(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    params = params or {}
+    argv = list(ALLOWED["regent_receipt_create"])
+    if params.get("attempt_id"):
+        argv.extend(["--from-attempt", str(params["attempt_id"])])
+    elif params.get("notebook_id"):
+        argv.extend(["--from-notebook", str(params["notebook_id"])])
+    elif params.get("x402_payment_id"):
+        argv.extend(["--from-x402-payment", str(params["x402_payment_id"])])
+    return _run(argv)
+
+
+def regent_receipt_share_draft(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    params = params or {}
+    return _run([*ALLOWED["regent_receipt_share_draft"], "--receipt", str(params["receipt_id"])])
 `;
 
 const openclawPluginJson = (): string => `${JSON.stringify({
   name: "regent",
-  version: "0.2.0",
+  version: "0.3.0",
   description: "Typed Regent bridge for OpenClaw",
   tools: [
     "regent_status",
     "regent_setup_status",
+    "regent_runtime_start",
+    "regent_runtime_stop",
+    "regent_identity_ensure",
+    "regent_agent_graph",
     "regent_work_next",
     "regent_work_accept",
     "regent_workspace_pair",
@@ -230,6 +364,10 @@ const openclawPluginJson = (): string => `${JSON.stringify({
     "regent_notebook_publish",
     "regent_fold_status",
     "regent_fold_proof",
+    "regent_budget_status",
+    "regent_x402_pay_guarded",
+    "regent_receipt_create",
+    "regent_receipt_share_draft",
   ],
 }, null, 2)}
 `;
@@ -237,6 +375,10 @@ const openclawPluginJson = (): string => `${JSON.stringify({
 const openclawIndexJs = (): string => `export const tools = {
   regent_status: ["status", "--json"],
   regent_setup_status: ["plugin", "status", "--runtime", "auto", "--json"],
+  regent_runtime_start: ["run", "--json"],
+  regent_runtime_stop: ["runtime", "status", "--json"],
+  regent_identity_ensure: ["identity", "ensure", "--json"],
+  regent_agent_graph: ["identity", "graph", "--json"],
   regent_work_next: ["techtree", "work", "next", "--json"],
   regent_work_accept: ["techtree", "work", "accept", "--json"],
   regent_workspace_pair: ["techtree", "notebooks", "pair", "--json"],
@@ -245,6 +387,10 @@ const openclawIndexJs = (): string => `export const tools = {
   regent_notebook_publish: ["techtree", "notebooks", "publish", "--json"],
   regent_fold_status: ["techtree", "fold", "status", "--json"],
   regent_fold_proof: ["techtree", "fold", "proof", "--json"],
+  regent_budget_status: ["budget", "status", "--json"],
+  regent_x402_pay_guarded: ["x402", "pay"],
+  regent_receipt_create: ["receipt", "create", "--json"],
+  regent_receipt_share_draft: ["receipt", "share-draft", "--json"],
 };
 `;
 
@@ -254,15 +400,23 @@ const regentSkills = (): Array<{ name: string; body: string }> => [
     body: `# Regent Runtime
 
 Use Regent plugin tools. Do not run raw shell, raw regents, raw awal, raw curl, or raw npx.
-Start with regent_setup_status, then regent_work_next.
+Start with regent_setup_status, then regent_runtime_start, then regent_work_next.
 `,
   },
   {
     name: "regent-techtree-fold",
     body: `# Regent Techtree Fold
 
-Use regent_fold_status and regent_fold_proof. Fold records proof for work that has evidence.
-Do not describe this as model training.
+Use regent_fold_status and regent_fold_proof. Fold reports on existing Techtree attempts, notebooks, receipts, and verifier evidence.
+Do not claim a new certificate unless Techtree returns that evidence.
+`,
+  },
+  {
+    name: "regent-techtree-work",
+    body: `# Regent Techtree Work
+
+Use regent_work_next, regent_work_accept, regent_workspace_pair, regent_benchmark_run, regent_science_task_review_loop, and regent_notebook_publish.
+Do not create work claims without a Regent receipt or Techtree evidence reference.
 `,
   },
   {
@@ -271,6 +425,30 @@ Do not describe this as model training.
 
 Use Regent notebook tools to create, pair, and publish marimo notebooks.
 Keep paper notebooks tied to their arXiv or alphaXiv source when available.
+`,
+  },
+  {
+    name: "regent-wallet-budget",
+    body: `# Regent Wallet Budget
+
+Use Regent budget tools for spend checks. Do not call raw AWAL, raw wallet commands, or payment commands.
+Budgets are Regent policy for this runtime, not a place to keep funds.
+`,
+  },
+  {
+    name: "regent-x402",
+    body: `# Regent x402
+
+Use regent_x402_pay_guarded for paid calls. Every payment needs a budget id and max USDC amount.
+Do not bypass Regent budgets with raw curl, raw npx, raw AWAL, or raw shell.
+`,
+  },
+  {
+    name: "regent-receipts",
+    body: `# Regent Receipts
+
+Use regent_receipt_create and regent_receipt_share_draft after Techtree or x402 work.
+Share copy is a draft. Do not claim revenue unless the receipt proves recognized revenue.
 `,
   },
 ];

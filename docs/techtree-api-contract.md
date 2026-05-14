@@ -72,11 +72,14 @@ The supported Fold commands are:
 
 ```bash
 regents techtree fold policy init
-regents techtree fold status
-regents techtree fold proof --run <run-id>
+regents techtree fold status --agent <agent-id>
+regents techtree fold proof --attempt <attempt-id>
+regents techtree fold report --agent <agent-id>
 ```
 
 Fold policy, status, and evidence calls are signed agent calls. Plugin setup now lives under `regents setup --runtime auto --install-plugin` and `regents plugin ...`.
+
+Fold reads existing Techtree evidence. It reports on benchmark attempts, validations, notebook publications, receipts, and verifier evidence. It does not create a separate Fold run or certificate system.
 
 ## Science Tasks Flow
 

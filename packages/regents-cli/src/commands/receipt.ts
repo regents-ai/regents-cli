@@ -1,0 +1,67 @@
+import {
+  createReceipt,
+  findReceipt,
+  readReceiptFile,
+  receiptShareDraft,
+} from "../internal-runtime/receipt-store.js";
+import { loadConfig } from "../internal-runtime/config.js";
+import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { printJson, printText, renderKeyValuePanel } from "../printer.js";
+
+const printReceipt = (args: ParsedCliArgs, payload: { ok: true; receipt: { receipt_id: string; kind: string } }): void => {
+  if (getBooleanFlag(args, "json")) {
+    printJson(payload);
+    return;
+  }
+
+  printText(
+    renderKeyValuePanel("◆ REGENT RECEIPT", [
+      { label: "receipt", value: payload.receipt.receipt_id },
+      { label: "kind", value: payload.receipt.kind },
+      { label: "share", value: `regents receipt share-draft --receipt ${payload.receipt.receipt_id}` },
+    ]),
+  );
+};
+
+export async function runReceiptCreate(args: ParsedCliArgs, configPath?: string): Promise<number> {
+  const config = loadConfig(configPath);
+  const receipt = createReceipt(config, {
+    attempt_id: getFlag(args, "from-attempt"),
+    notebook_id: getFlag(args, "from-notebook"),
+    x402_payment_id: getFlag(args, "from-x402-payment"),
+    budget_entry: getFlag(args, "from-budget-entry"),
+  });
+  printReceipt(args, { ok: true, receipt });
+  return 0;
+}
+
+export async function runReceiptGet(args: ParsedCliArgs, configPath?: string): Promise<number> {
+  const config = loadConfig(configPath);
+  printJson({ ok: true, receipt: findReceipt(config, requireArg(getFlag(args, "receipt"), "--receipt")) });
+  return 0;
+}
+
+export async function runReceiptList(args: ParsedCliArgs, configPath?: string): Promise<number> {
+  const config = loadConfig(configPath);
+  const receipts = readReceiptFile(config).receipts;
+  if (getBooleanFlag(args, "json")) {
+    printJson({ ok: true, receipts });
+    return 0;
+  }
+
+  printText(receipts.length === 0 ? "No Regent receipts yet." : receipts.map((entry) => entry.receipt_id).join("\n"));
+  return 0;
+}
+
+export async function runReceiptShareDraft(args: ParsedCliArgs, configPath?: string): Promise<number> {
+  const config = loadConfig(configPath);
+  const receipt = findReceipt(config, requireArg(getFlag(args, "receipt"), "--receipt"));
+  const draft = receiptShareDraft(receipt);
+  if (getBooleanFlag(args, "json")) {
+    printJson({ ok: true, draft });
+    return 0;
+  }
+
+  printText(draft.copy);
+  return 0;
+}

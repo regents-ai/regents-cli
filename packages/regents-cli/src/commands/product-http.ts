@@ -6,6 +6,7 @@ import {
 } from "../internal-runtime/product-http-client.js";
 import type { SiwaAudience } from "../internal-types/index.js";
 import type { RegentConfig } from "../internal-types/config.js";
+import { messageWithRetryAfter } from "../internal-runtime/rate-limit-message.js";
 
 import { buildAgentAuthHeaders } from "./agent-auth.js";
 
@@ -40,14 +41,14 @@ const parseJsonObject = (text: string): JsonObject => {
   return parsed as JsonObject;
 };
 
-const errorMessageFromPayload = (payload: JsonObject, status: number): string => {
+const errorMessageFromPayload = (payload: JsonObject, status: number, headers: Headers): string => {
   const error = payload.error;
   const errorMessage =
     error && typeof error === "object" && typeof (error as { message?: unknown }).message === "string"
       ? String((error as { message: string }).message)
       : undefined;
 
-  return errorMessage ?? `Regent request failed (${status}).`;
+  return messageWithRetryAfter(status, headers, errorMessage ?? `Regent request failed (${status}).`);
 };
 
 export const requestProductJson = async <T>(
@@ -99,7 +100,7 @@ export const requestProductJson = async <T>(
       status: response.status,
       path,
       requestId,
-      message: errorMessageFromPayload(payload, response.status),
+      message: errorMessageFromPayload(payload, response.status, response.headers),
     });
   }
 

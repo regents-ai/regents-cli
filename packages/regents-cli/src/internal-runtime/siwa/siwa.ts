@@ -8,6 +8,7 @@ import type {
 
 import { AuthError } from "../errors.js";
 import { ProductHttpError, requestProductResponse } from "../product-http-client.js";
+import { messageWithRetryAfter } from "../rate-limit-message.js";
 
 const DEFAULT_DOMAIN = "regent.cx";
 const DEFAULT_URI = "https://regent.cx/v1/agent/siwa/verify";
@@ -77,11 +78,16 @@ const parseSiwaErrorResponse = async (response: Response): Promise<AuthError> =>
           ? parsed.message
           : `SIWA request failed with HTTP ${response.status}`;
 
-    return new AuthError(code, message, undefined, { status: response.status });
+    return new AuthError(
+      code,
+      messageWithRetryAfter(response.status, response.headers, message),
+      undefined,
+      { status: response.status },
+    );
   } catch {
     return new AuthError(
       "siwa_request_failed",
-      text || `SIWA request failed with HTTP ${response.status}`,
+      messageWithRetryAfter(response.status, response.headers, text || `SIWA request failed with HTTP ${response.status}`),
       undefined,
       { status: response.status },
     );

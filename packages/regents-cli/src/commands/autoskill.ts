@@ -192,14 +192,10 @@ export async function runAutoskillReview(args: ParsedCliArgs, configPath?: strin
 export async function runAutoskillListingCreate(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const payload: AutoskillListingCreateInput = {
     skill_node_id: parseNodeId(getFlag(args, "skill-node-id"), "skill-node-id"),
-    payment_rail: (getFlag(args, "payment-rail") ?? "onchain") as "onchain",
+    payment_rail: (getFlag(args, "payment-rail") ?? "batch_settlement") as "batch_settlement",
     chain_id: Number(requireArg(getFlag(args, "chain-id"), "chain-id")),
-    usdc_token_address: requireArg(getFlag(args, "usdc-token-address"), "usdc-token-address") as `0x${string}`,
-    treasury_address: requireArg(getFlag(args, "treasury-address"), "treasury-address") as `0x${string}`,
-    seller_payout_address: requireArg(
-      getFlag(args, "seller-payout-address"),
-      "seller-payout-address",
-    ) as `0x${string}`,
+    x402_asset_address: requireArg(getFlag(args, "x402-asset-address"), "x402-asset-address") as `0x${string}`,
+    x402_pay_to_address: requireArg(getFlag(args, "x402-pay-to-address"), "x402-pay-to-address") as `0x${string}`,
     price_usdc: requireArg(getFlag(args, "price-usdc"), "price-usdc"),
     ...(getFlag(args, "listing-meta") ? { listing_meta: parseOptionalJson(getFlag(args, "listing-meta")) } : {}),
   };
@@ -213,6 +209,7 @@ export async function runAutoskillBuy(args: ParsedCliArgs, configPath?: string):
       "techtree.autoskill.buy",
       {
         node_id: parseNodeId(getFlag(args, "node-id") ?? args.positionals[3], "node-id"),
+        max_deposit_amount: requireArg(getFlag(args, "max-deposit-amount"), "--max-deposit-amount"),
       },
       configPath,
     ),

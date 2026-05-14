@@ -230,5 +230,9 @@ describe("http signing", () => {
         "x-agent-token-id": "99",
       },
     });
+
+    const headers = request.init.headers as Record<string, string>;
+    expect(headers["x-regents-client"]).toBeUndefined();
+    expect(headers["x-regents-cli-version"]).toBeUndefined();
   });
 });

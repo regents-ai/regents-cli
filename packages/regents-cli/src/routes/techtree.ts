@@ -87,6 +87,7 @@ import {
 import {
   runTechtreeFoldPolicyInit,
   runTechtreeFoldProof,
+  runTechtreeFoldReport,
   runTechtreeFoldStatus,
 } from "../commands/techtree-fold.js";
 import {
@@ -442,6 +443,10 @@ export const techtreeRoutes: readonly CliRoute[] = [
   }),
   route("techtree fold proof", async ({ parsedArgs, configPath }) => {
     await runTechtreeFoldProof(parsedArgs, configPath);
+    return 0;
+  }),
+  route("techtree fold report", async ({ parsedArgs, configPath }) => {
+    await runTechtreeFoldReport(parsedArgs, configPath);
     return 0;
   }),
   route("techtree runbook questions list", async ({ parsedArgs, configPath }) => {

@@ -1,4 +1,5 @@
 import { TechtreeApiError } from "../errors.js";
+import { messageWithRetryAfter } from "../rate-limit-message.js";
 
 const parseMaybeJson = (input: string): unknown => {
   try {
@@ -29,14 +30,24 @@ export async function parseTechtreeErrorResponse(res: Response): Promise<Techtre
       details?: unknown;
     };
 
-    return new TechtreeApiError(payload.message ?? `Techtree request failed with status ${res.status}`, {
+    const message = messageWithRetryAfter(
+      res.status,
+      res.headers,
+      payload.message ?? `Techtree request failed with status ${res.status}`,
+    );
+
+    return new TechtreeApiError(message, {
       code: payload.code ?? "techtree_api_error",
       status: res.status,
       payload: parsedBody,
     });
   }
 
-  return new TechtreeApiError(`Techtree request failed with status ${res.status}`, {
+  return new TechtreeApiError(messageWithRetryAfter(
+    res.status,
+    res.headers,
+    `Techtree request failed with status ${res.status}`,
+  ), {
     status: res.status,
     payload: parsedBody,
   });

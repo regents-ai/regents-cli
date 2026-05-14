@@ -21,15 +21,13 @@ export interface AutoskillListingSummary {
   skill_node_id: number;
   seller_agent_id: number;
   status: "draft" | "active" | "paused" | "closed";
-  payment_rail: "onchain";
+  payment_rail: "batch_settlement";
   chain_id: number;
-  settlement_contract_address: `0x${string}` | null;
-  usdc_token_address: `0x${string}`;
-  treasury_address: `0x${string}`;
-  seller_payout_address: `0x${string}`;
+  x402_scheme: "batch-settlement";
+  x402_network: string;
+  x402_asset_address: `0x${string}`;
+  x402_pay_to_address: `0x${string}`;
   price_usdc: string;
-  treasury_bps: number;
-  seller_bps: number;
   listing_meta: Record<string, unknown>;
   inserted_at: string;
   updated_at: string;
@@ -87,12 +85,12 @@ export interface AutoskillBundleAccessResponse {
 export interface PaidPayloadSummary {
   status: "draft" | "active" | "paused" | "closed";
   delivery_mode: "server_verified";
-  payment_rail: "onchain";
-  chain_id: number | null;
-  settlement_contract_address: `0x${string}` | null;
-  usdc_token_address: `0x${string}` | null;
-  treasury_address: `0x${string}` | null;
-  seller_payout_address: `0x${string}` | null;
+  payment_rail: "batch_settlement";
+  x402_scheme: "batch-settlement";
+  x402_network: string;
+  x402_asset_address: `0x${string}`;
+  x402_pay_to_address: `0x${string}`;
+  x402_price_atomic: string;
   price_usdc: string | null;
   listing_ref: `0x${string}` | null;
   bundle_ref: `0x${string}` | null;
@@ -107,17 +105,6 @@ export interface NodePaidPayloadAccessResponse {
     download_url: string | null;
     encryption_meta: Record<string, unknown>;
     access_policy: Record<string, unknown>;
-  };
-}
-
-export interface NodePurchaseVerifyResponse {
-  data: {
-    node_id: number;
-    tx_hash: `0x${string}`;
-    chain_id: number;
-    amount_usdc: string;
-    listing_ref: `0x${string}`;
-    bundle_ref: `0x${string}`;
   };
 }
 
@@ -316,12 +303,12 @@ export interface AutoskillCreateListingResponse {
 export interface AutoskillBuyResponse {
   data: {
     node_id: number;
-    approve_tx_hash: `0x${string}`;
-    purchase_tx_hash: `0x${string}`;
-    chain_id: number;
-    amount_usdc: string;
-    listing_ref: `0x${string}`;
-    bundle_ref: `0x${string}`;
+    payment_scheme: "batch-settlement";
+    amount_atomic: string;
+    max_deposit_amount: string;
+    x402_receipt_id: string | null;
+    status: number;
+    ok: boolean;
   };
 }
 
@@ -371,7 +358,7 @@ export interface AutoskillSkillPublishInput {
   marimo_entrypoint: string;
   bundle_archive_b64?: string;
   encrypted_bundle_archive_b64?: string;
-  payment_rail?: "onchain";
+  payment_rail?: "batch_settlement";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
 }
@@ -387,7 +374,7 @@ export interface AutoskillSkillPublishRequest {
   preview_md?: string;
   marimo_entrypoint: string;
   primary_file?: string;
-  payment_rail?: "onchain";
+  payment_rail?: "batch_settlement";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
 }
@@ -405,7 +392,7 @@ export interface AutoskillEvalPublishInput {
   marimo_entrypoint: string;
   bundle_archive_b64?: string;
   encrypted_bundle_archive_b64?: string;
-  payment_rail?: "onchain";
+  payment_rail?: "batch_settlement";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
 }
@@ -419,7 +406,7 @@ export interface AutoskillEvalPublishRequest {
   preview_md?: string;
   marimo_entrypoint: string;
   primary_file?: string;
-  payment_rail?: "onchain";
+  payment_rail?: "batch_settlement";
   access_policy?: Record<string, unknown>;
   encryption_meta?: Record<string, unknown>;
   bundle_manifest: {
@@ -455,11 +442,10 @@ export interface AutoskillReviewCreateInput {
 
 export interface AutoskillListingCreateInput {
   skill_node_id: number;
-  payment_rail: "onchain";
+  payment_rail: "batch_settlement";
   chain_id: number;
-  usdc_token_address: `0x${string}`;
-  treasury_address: `0x${string}`;
-  seller_payout_address: `0x${string}`;
+  x402_asset_address: `0x${string}`;
+  x402_pay_to_address: `0x${string}`;
   price_usdc: string;
   listing_meta?: Record<string, unknown>;
 }
@@ -1325,10 +1311,11 @@ export interface NodeCreateInput {
     encryption_meta?: Record<string, unknown>;
     access_policy?: Record<string, unknown>;
     chain_id?: number;
-    settlement_contract_address?: `0x${string}`;
-    usdc_token_address?: `0x${string}`;
-    treasury_address?: `0x${string}`;
-    seller_payout_address?: `0x${string}`;
+    x402_network?: string;
+    x402_asset_address?: `0x${string}`;
+    x402_pay_to_address?: `0x${string}`;
+    x402_receiver_authorizer_address?: `0x${string}`;
+    x402_withdraw_delay_seconds?: number;
     price_usdc?: string;
     listing_ref?: `0x${string}`;
     bundle_ref?: `0x${string}`;

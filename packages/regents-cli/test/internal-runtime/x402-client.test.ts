@@ -19,27 +19,46 @@ const createWalletSource = (): WalletSecretSource => ({
   getPrivateKeyHex: async () => PRIVATE_KEY,
 });
 
-const createPaymentRequired = (url: string, amount: string) => ({
+const createExactRequirement = (amount: string) => ({
+  scheme: "exact",
+  network: "eip155:8453",
+  asset: USDC_BASE,
+  amount,
+  payTo: PAY_TO,
+  maxTimeoutSeconds: 60,
+  extra: {
+    name: "USDC",
+    version: "2",
+  },
+});
+
+const createBatchRequirement = (amount: string) => ({
+  scheme: "batch-settlement",
+  network: "eip155:8453",
+  asset: USDC_BASE,
+  amount,
+  payTo: PAY_TO,
+  maxTimeoutSeconds: 60,
+  extra: {
+    receiverAuthorizer: PAY_TO,
+    withdrawDelay: 86400,
+    name: "USDC",
+    version: "2",
+  },
+});
+
+const createPaymentRequired = (
+  url: string,
+  amount: string,
+  accepts = [createExactRequirement(amount)],
+) => ({
   x402Version: 2,
   resource: {
     url,
     description: "Paid Regent test resource",
     mimeType: "application/json",
   },
-  accepts: [
-    {
-      scheme: "exact",
-      network: "eip155:8453",
-      asset: USDC_BASE,
-      amount,
-      payTo: PAY_TO,
-      maxTimeoutSeconds: 60,
-      extra: {
-        name: "USDC",
-        version: "2",
-      },
-    },
-  ],
+  accepts,
 });
 
 describe("Regent x402 wrapper", () => {
@@ -139,6 +158,45 @@ describe("Regent x402 wrapper", () => {
     } finally {
       await paidServer.close();
     }
+  });
+
+  it("selects batch settlement only when an operator deposit cap is present", async () => {
+    const url = "https://example.test/paid";
+    const client = new RegentX402Client({
+      stateDir: tempDir,
+      walletSecretSource: createWalletSource(),
+      fetch: async () =>
+        new Response("{}", {
+          status: 402,
+          headers: {
+            "payment-required": encodeHeader(
+              createPaymentRequired(url, "1000", [
+                createExactRequirement("1000"),
+                createBatchRequirement("1000"),
+              ]),
+            ),
+          },
+        }),
+    });
+
+    await expect(client.quote({ url, max_amount: "1000" })).rejects.toMatchObject({
+      code: "x402_deposit_limit_required",
+    });
+
+    const quote = await client.quote({
+      url,
+      max_amount: "1000",
+      max_deposit_amount: "5000",
+    });
+    expect(quote.selected.scheme).toBe("batch-settlement");
+
+    const prepared = await client.prepare({
+      url,
+      approve: true,
+      max_deposit_amount: "5000",
+    });
+    expect(prepared.intent.selected.scheme).toBe("batch-settlement");
+    expect(prepared.intent.max_deposit_amount).toBe("5000");
   });
 
   it("does not pay when the prepared intent has not been approved", async () => {

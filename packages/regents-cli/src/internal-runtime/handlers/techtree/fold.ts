@@ -24,7 +24,7 @@ export async function handleTechtreeFoldEvidencePacket(ctx: RuntimeContext): Pro
 
 export async function handleTechtreeFoldProof(
   ctx: RuntimeContext,
-  params: { run_id: string },
+  params: { attempt_id: string },
 ): Promise<BenchmarkProofResponse> {
-  return ctx.techtree.getBenchmarkAttemptProof(params.run_id);
+  return ctx.techtree.getBenchmarkAttemptProof(params.attempt_id);
 }

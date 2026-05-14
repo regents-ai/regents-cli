@@ -37,10 +37,15 @@ export async function runTechtreeFoldProof(args: ParsedCliArgs, configPath?: str
   printJson(
     await daemonCall(
       "techtree.fold.proof",
-      { run_id: requireArg(getFlag(args, "run"), "--run") },
+      { attempt_id: requireArg(getFlag(args, "attempt"), "--attempt") },
       configPath,
     ),
   );
+}
+
+export async function runTechtreeFoldReport(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  requireArg(getFlag(args, "agent"), "--agent");
+  printJson(await daemonCall("techtree.fold.evidencePacket", undefined, configPath));
 }
 
 const parseUsdMicros = (value: string | undefined, flagName: string): number => {

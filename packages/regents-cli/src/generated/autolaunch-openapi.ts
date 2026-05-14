@@ -3284,7 +3284,19 @@ export interface components {
             profile: components["schemas"]["ProfileSnapshot"];
         };
     };
-    responses: never;
+    responses: {
+        /** @description Too many requests */
+        RateLimitError: {
+            headers: {
+                /** @description Seconds to wait before retrying. */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["RateLimitedError"];
+            };
+        };
+    };
     parameters: {
         AgentId: string;
         PlanId: string;
@@ -3597,6 +3609,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrivySessionCsrf"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createPrivySession: {
@@ -3639,6 +3652,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     deletePrivySession: {
@@ -3659,6 +3673,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     completePrivyXmtpSetup: {
@@ -3701,6 +3716,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getPrivySessionProfile: {
@@ -3721,6 +3737,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrivySessionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAutolaunchAgentSession: {
@@ -3741,6 +3758,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentSessionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAutolaunchAgentSession: {
@@ -3770,6 +3788,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     deleteAutolaunchAgentSession: {
@@ -3790,6 +3809,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAppRegentStakingOverview: {
@@ -3810,6 +3830,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAppRegentStakingAccount: {
@@ -3832,6 +3853,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     stakeAppRegent: {
@@ -3865,6 +3887,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     unstakeAppRegent: {
@@ -3898,6 +3921,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     claimAppRegentStakingUsdc: {
@@ -3931,6 +3955,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     claimAppRegentStakingRegent: {
@@ -3964,6 +3989,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     claimAndRestakeAppRegentStakingRegent: {
@@ -3997,6 +4023,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareAppRegentStakingUsdcDeposit: {
@@ -4039,6 +4066,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareAppRegentStakingTreasuryWithdrawal: {
@@ -4081,6 +4109,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAgentbookSession: {
@@ -4105,6 +4134,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentbookSession: {
@@ -4127,6 +4157,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     submitAgentbookSession: {
@@ -4153,6 +4184,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     lookupAgentbookRegistration: {
@@ -4176,6 +4208,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     verifyAgentbookHeader: {
@@ -4200,6 +4233,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAgents: {
@@ -4220,6 +4254,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgent: {
@@ -4242,6 +4277,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentReadiness: {
@@ -4264,6 +4300,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentReadinessEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAgentPairingSession: {
@@ -4297,6 +4334,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     completeAgentPairingSession: {
@@ -4348,6 +4386,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentPairingSession: {
@@ -4388,6 +4427,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listPrelaunchPlans: {
@@ -4408,6 +4448,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createPrelaunchPlan: {
@@ -4432,6 +4473,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getPrelaunchPlan: {
@@ -4454,6 +4496,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     updatePrelaunchPlan: {
@@ -4480,6 +4523,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     validatePrelaunchPlan: {
@@ -4502,6 +4546,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanValidationEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     publishPrelaunchPlan: {
@@ -4524,6 +4569,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanValidationEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     launchPrelaunchPlan: {
@@ -4550,6 +4596,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     uploadPrelaunchAsset: {
@@ -4574,6 +4621,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchAssetEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     savePrelaunchMetadata: {
@@ -4600,6 +4648,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getPrelaunchMetadataPreview: {
@@ -4622,6 +4671,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchMetadataPreviewEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     previewLaunch: {
@@ -4646,6 +4696,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchPreviewEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createLaunchJob: {
@@ -4670,6 +4721,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchJobEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getLaunchJob: {
@@ -4692,6 +4744,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchJobEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getLifecycleJob: {
@@ -4714,6 +4767,7 @@ export interface operations {
                     "application/json": components["schemas"]["LifecycleJobEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareFinalizeLaunch: {
@@ -4736,6 +4790,7 @@ export interface operations {
                     "application/json": components["schemas"]["LifecycleFinalizeEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     registerFinalizeLaunch: {
@@ -4762,6 +4817,7 @@ export interface operations {
                     "application/json": components["schemas"]["LifecycleFinalizeRegisterEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getVestingStatus: {
@@ -4784,6 +4840,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentTrust: {
@@ -4806,6 +4863,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentTrustEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     startXLink: {
@@ -4830,6 +4888,7 @@ export interface operations {
                     "application/json": components["schemas"]["XLinkStartEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     completeXLink: {
@@ -4854,6 +4913,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentTrustEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAuctions: {
@@ -4877,6 +4937,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAuctionReturns: {
@@ -4900,6 +4961,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionReturnsEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAuction: {
@@ -4922,6 +4984,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     quoteAuctionBid: {
@@ -4948,6 +5011,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionBidQuoteEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAuctionBid: {
@@ -4974,6 +5038,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listMyBids: {
@@ -4997,6 +5062,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getMyHoldings: {
@@ -5017,6 +5083,7 @@ export interface operations {
                     "application/json": components["schemas"]["HoldingsEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getMyProfile: {
@@ -5037,6 +5104,7 @@ export interface operations {
                     "application/json": components["schemas"]["ProfileSnapshotEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     refreshMyProfile: {
@@ -5057,6 +5125,7 @@ export interface operations {
                     "application/json": components["schemas"]["ProfileSnapshotEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     exitBid: {
@@ -5083,6 +5152,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     returnBidUsdc: {
@@ -5109,6 +5179,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     claimBid: {
@@ -5135,6 +5206,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getSubject: {
@@ -5157,6 +5229,7 @@ export interface operations {
                     "application/json": components["schemas"]["SubjectEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareExistingTokenRevenueSubject: {
@@ -5181,6 +5254,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedRevenueSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     confirmExistingTokenRevenueSubject: {
@@ -5205,6 +5279,7 @@ export interface operations {
                     "application/json": components["schemas"]["RevenueSubjectEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareDeferredAutolaunch: {
@@ -5229,6 +5304,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedRevenueSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     confirmDeferredAutolaunch: {
@@ -5253,6 +5329,7 @@ export interface operations {
                     "application/json": components["schemas"]["RevenueSubjectEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listSubjectsByToken: {
@@ -5275,6 +5352,7 @@ export interface operations {
                     "application/json": components["schemas"]["RevenueSubjectListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getSubjectIngress: {
@@ -5297,6 +5375,7 @@ export interface operations {
                     "application/json": components["schemas"]["SubjectIngressEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getSubjectStaking: {
@@ -5319,6 +5398,7 @@ export interface operations {
                     "application/json": components["schemas"]["SubjectStakingEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listSubjectProtocolFeeSettlements: {
@@ -5341,6 +5421,7 @@ export interface operations {
                     "application/json": components["schemas"]["ProtocolFeeSettlementListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listSubjectRegentEmissions: {
@@ -5363,6 +5444,7 @@ export interface operations {
                     "application/json": components["schemas"]["RegentEmissionListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     stakeSubject: {
@@ -5389,6 +5471,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     unstakeSubject: {
@@ -5415,6 +5498,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     claimSubjectUsdc: {
@@ -5441,6 +5525,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     sweepSubjectIngress: {
@@ -5468,6 +5553,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     planEnsLink: {
@@ -5492,6 +5578,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareEnsip25Link: {
@@ -5516,6 +5603,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareErc8004Link: {
@@ -5540,6 +5628,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareBidirectionalEnsLink: {
@@ -5564,6 +5653,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getContractsAdminOverview: {
@@ -5584,6 +5674,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getContractsJobOverview: {
@@ -5606,6 +5697,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getContractsSubjectOverview: {
@@ -5628,6 +5720,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareJobContractAction: {
@@ -5658,6 +5751,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareSubjectContractAction: {
@@ -5688,6 +5782,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareAdminContractAction: {
@@ -5726,6 +5821,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentListAgents: {
@@ -5746,6 +5842,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetAgent: {
@@ -5768,6 +5865,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetAgentReadiness: {
@@ -5790,6 +5888,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentReadinessEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetAgentTrust: {
@@ -5812,6 +5911,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentTrustEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetSubject: {
@@ -5834,6 +5934,7 @@ export interface operations {
                     "application/json": components["schemas"]["SubjectEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareExistingTokenRevenueSubject: {
@@ -5858,6 +5959,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedRevenueSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentConfirmExistingTokenRevenueSubject: {
@@ -5882,6 +5984,7 @@ export interface operations {
                     "application/json": components["schemas"]["RevenueSubjectEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareDeferredAutolaunch: {
@@ -5906,6 +6009,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedRevenueSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentConfirmDeferredAutolaunch: {
@@ -5930,6 +6034,7 @@ export interface operations {
                     "application/json": components["schemas"]["RevenueSubjectEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentListSubjectsByToken: {
@@ -5952,6 +6057,7 @@ export interface operations {
                     "application/json": components["schemas"]["RevenueSubjectListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetSubjectIngress: {
@@ -5974,6 +6080,7 @@ export interface operations {
                     "application/json": components["schemas"]["SubjectIngressEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetSubjectStaking: {
@@ -5996,6 +6103,7 @@ export interface operations {
                     "application/json": components["schemas"]["SubjectStakingEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentListSubjectProtocolFeeSettlements: {
@@ -6018,6 +6126,7 @@ export interface operations {
                     "application/json": components["schemas"]["ProtocolFeeSettlementListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentListSubjectRegentEmissions: {
@@ -6040,6 +6149,7 @@ export interface operations {
                     "application/json": components["schemas"]["RegentEmissionListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetSubjectAccountingTags: {
@@ -6066,6 +6176,7 @@ export interface operations {
                     "application/json": components["schemas"]["SubjectAccountingTagsEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentStakeSubject: {
@@ -6092,6 +6203,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentUnstakeSubject: {
@@ -6118,6 +6230,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentClaimSubjectUsdc: {
@@ -6144,6 +6257,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentSweepSubjectIngress: {
@@ -6171,6 +6285,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentListPrelaunchPlans: {
@@ -6191,6 +6306,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentCreatePrelaunchPlan: {
@@ -6215,6 +6331,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetPrelaunchPlan: {
@@ -6237,6 +6354,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentUpdatePrelaunchPlan: {
@@ -6263,6 +6381,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentValidatePrelaunchPlan: {
@@ -6285,6 +6404,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanValidationEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPublishPrelaunchPlan: {
@@ -6307,6 +6427,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanValidationEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentLaunchPrelaunchPlan: {
@@ -6333,6 +6454,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentUploadPrelaunchAsset: {
@@ -6357,6 +6479,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchAssetEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentSavePrelaunchMetadata: {
@@ -6383,6 +6506,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchPlanEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetPrelaunchMetadataPreview: {
@@ -6405,6 +6529,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrelaunchMetadataPreviewEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetLifecycleJob: {
@@ -6427,6 +6552,7 @@ export interface operations {
                     "application/json": components["schemas"]["LifecycleJobEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareFinalizeLaunch: {
@@ -6449,6 +6575,7 @@ export interface operations {
                     "application/json": components["schemas"]["LifecycleFinalizeEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentRegisterFinalizeLaunch: {
@@ -6475,6 +6602,7 @@ export interface operations {
                     "application/json": components["schemas"]["LifecycleFinalizeRegisterEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetVestingStatus: {
@@ -6497,6 +6625,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetContractsAdminOverview: {
@@ -6517,6 +6646,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetContractsJobOverview: {
@@ -6539,6 +6669,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetContractsSubjectOverview: {
@@ -6561,6 +6692,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareJobContractAction: {
@@ -6591,6 +6723,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareSubjectContractAction: {
@@ -6621,6 +6754,7 @@ export interface operations {
                     "application/json": components["schemas"]["PreparedActionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareAdminContractAction: {
@@ -6659,6 +6793,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPreviewLaunch: {
@@ -6683,6 +6818,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchPreviewEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentCreateLaunchJob: {
@@ -6707,6 +6843,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchJobEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetLaunchJob: {
@@ -6729,6 +6866,7 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchJobEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentListAuctions: {
@@ -6752,6 +6890,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentListAuctionReturns: {
@@ -6775,6 +6914,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionReturnsEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentGetAuction: {
@@ -6797,6 +6937,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentQuoteAuctionBid: {
@@ -6823,6 +6964,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionBidQuoteEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentCreateAuctionBid: {
@@ -6849,6 +6991,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentReturnBidUsdc: {
@@ -6875,6 +7018,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentExitBid: {
@@ -6901,6 +7045,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentClaimBid: {
@@ -6927,6 +7072,7 @@ export interface operations {
                     "application/json": components["schemas"]["BidPositionEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPlanEnsLink: {
@@ -6951,6 +7097,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareEnsip25Link: {
@@ -6975,6 +7122,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareErc8004Link: {
@@ -6999,6 +7147,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     agentPrepareBidirectionalEnsLink: {
@@ -7023,6 +7172,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
 }

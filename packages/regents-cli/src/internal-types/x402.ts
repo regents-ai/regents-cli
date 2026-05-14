@@ -9,6 +9,7 @@ export interface X402RequestInput {
 
 export interface X402QuoteParams extends X402RequestInput {
   max_amount?: string;
+  max_deposit_amount?: string;
 }
 
 export interface X402PrepareParams extends X402QuoteParams {
@@ -74,6 +75,7 @@ export interface X402IntentRecord {
   selected: X402SelectedPaymentRequirement;
   payment_required_hash: string;
   max_amount?: string;
+  max_deposit_amount?: string;
   created_at: string;
   expires_at: string;
   approved_at?: string;

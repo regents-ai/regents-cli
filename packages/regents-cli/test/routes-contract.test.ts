@@ -104,6 +104,7 @@ describe("contract command route matching", () => {
       "work get",
       "work run",
       "work watch",
+      "x402 search",
       "xmtp group add-admin",
       "xmtp group add-member",
       "xmtp group add-super-admin",

@@ -106,7 +106,6 @@ import type {
   NodeCreateInput,
   NodeCreateResponse,
   NodePaidPayloadAccessResponse,
-  NodePurchaseVerifyResponse,
   NodeStarRecord,
   RegentConfig,
   ScienceTaskChecklistUpdateInput,
@@ -136,7 +135,7 @@ import { AutoskillResource } from "./client/autoskill.js";
 import { BenchmarksResource } from "./client/benchmarks.js";
 import { BbhResource } from "./client/bbh.js";
 import { ChatboxResource } from "./client/chatbox.js";
-import { TechtreeRequestClient } from "./client/request.js";
+import { TechtreeRequestClient, type TechtreeRequestMethod } from "./client/request.js";
 import { ReviewsResource } from "./client/reviews.js";
 import { RunbookResource } from "./client/runbook.js";
 import { ScienceTasksResource } from "./client/science-tasks.js";
@@ -215,6 +214,10 @@ export class TechtreeClient {
 
   getNode(id: number): Promise<{ data: TreeNode }> {
     return this.tree.getNode(id);
+  }
+
+  buildAuthedRequestInit(method: TechtreeRequestMethod, path: string, body?: unknown): Promise<RequestInit> {
+    return this.request.buildAuthedRequestInit(method, path, body);
   }
 
   getChildren(id: number, params?: { limit?: number }): Promise<{ data: TreeNode[] }> {
@@ -532,10 +535,6 @@ export class TechtreeClient {
 
   getNodePaidPayload(nodeId: number): Promise<NodePaidPayloadAccessResponse> {
     return this.tree.getNodePaidPayload(nodeId);
-  }
-
-  verifyNodePurchase(nodeId: number, txHash: `0x${string}`): Promise<NodePurchaseVerifyResponse> {
-    return this.tree.verifyNodePurchase(nodeId, txHash);
   }
 
   fetchExternalText(url: string): Promise<string> {

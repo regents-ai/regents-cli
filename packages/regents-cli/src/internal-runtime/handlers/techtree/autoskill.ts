@@ -21,6 +21,7 @@ import type {
 } from "../../../internal-types/index.js";
 
 import type { RuntimeContext } from "../../runtime.js";
+import { RegentX402Client } from "../../x402/client.js";
 import {
   buildAutoskillBundlePayload,
   defaultSkillSlug,
@@ -33,7 +34,13 @@ import {
   writeDefaultResultFiles,
 } from "../../workloads/autoskill.js";
 import { prepareAutoskillNotebookPair } from "../../workloads/notebook-pair.js";
-import { settleTechtreeNodePaidPayloadPurchase } from "./evm.js";
+
+type HeaderInput = ConstructorParameters<typeof Headers>[0];
+
+const headersRecord = (headers: HeaderInput | undefined): Record<string, string> => {
+  const normalized = new Headers(headers);
+  return Object.fromEntries(normalized.entries());
+};
 
 export async function handleTechtreeAutoskillInitSkill(
   _ctx: RuntimeContext,
@@ -220,7 +227,7 @@ export async function handleTechtreeAutoskillListingCreate(
 
 export async function handleTechtreeAutoskillBuy(
   ctx: RuntimeContext,
-  params: { node_id: number },
+  params: { node_id: number; max_deposit_amount: string },
 ): Promise<AutoskillBuyResponse> {
   const node = (await ctx.techtree.getNode(params.node_id)).data;
   const payload = node.paid_payload;
@@ -229,12 +236,41 @@ export async function handleTechtreeAutoskillBuy(
     throw new Error("node does not expose an active paid payload");
   }
 
-  const purchase = await settleTechtreeNodePaidPayloadPurchase(ctx, params.node_id, payload);
+  const path = `/v1/agent/tree/nodes/${params.node_id}/payload`;
+  const url = `${ctx.techtree.baseUrl}${path}`;
+  const init = await ctx.techtree.buildAuthedRequestInit("GET", path);
+  const headers = headersRecord(init.headers);
+  const x402 = new RegentX402Client({
+    stateDir: ctx.config.runtime.stateDir,
+    walletSecretSource: ctx.walletSecretSource,
+  });
+  const prepared = await x402.prepare({
+    url,
+    method: "GET",
+    headers,
+    max_amount: payload.x402_price_atomic,
+    max_deposit_amount: params.max_deposit_amount,
+    approve: true,
+  });
+  if (prepared.intent.selected.scheme !== "batch-settlement") {
+    throw new Error("paid payload did not offer batch-settlement");
+  }
+  const fetched = await x402.fetchApproved({
+    url,
+    method: "GET",
+    headers,
+    intent_id: prepared.intent.intent_id,
+  });
 
   return {
     data: {
       node_id: params.node_id,
-      ...purchase,
+      payment_scheme: prepared.intent.selected.scheme,
+      amount_atomic: prepared.intent.selected.amount,
+      max_deposit_amount: params.max_deposit_amount,
+      x402_receipt_id: fetched.receipt?.receipt_id ?? null,
+      status: fetched.status,
+      ok: fetched.ok,
     },
   };
 }

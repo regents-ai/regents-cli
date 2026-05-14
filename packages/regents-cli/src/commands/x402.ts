@@ -8,6 +8,16 @@ import type {
   X402RequestInput,
 } from "../internal-types/index.js";
 import { RegentKernel } from "../internal-runtime/runtime.js";
+import { runAwalJson } from "../internal-runtime/agentic-wallet/awal.js";
+import {
+  atomicStringToUsdc,
+  assertBudgetPaymentAllowed,
+  recordBudgetSpend,
+  usdcToAtomicString,
+  type PaymentRail,
+} from "../internal-runtime/budget-store.js";
+import { createReceipt } from "../internal-runtime/receipt-store.js";
+import { loadConfig } from "../internal-runtime/config.js";
 import { getBooleanFlag, getFlag, getFlags, requireArg } from "../parse.js";
 import { CLI_PALETTE, printJson, printText, renderKeyValuePanel } from "../printer.js";
 import { CliUsageError } from "../cli-usage-error.js";
@@ -44,6 +54,7 @@ const requestInput = (args: ParsedCliArgs): X402RequestInput => ({
 const quoteInput = (args: ParsedCliArgs): X402QuoteParams => ({
   ...requestInput(args),
   max_amount: getFlag(args, "max-amount"),
+  max_deposit_amount: getFlag(args, "max-deposit-amount"),
 });
 
 const prepareInput = (args: ParsedCliArgs): X402PrepareParams => ({
@@ -59,6 +70,51 @@ const fetchInput = (args: ParsedCliArgs): X402FetchParams => ({
 const receiptGetInput = (args: ParsedCliArgs): X402ReceiptGetParams => ({
   id: requireArg(getFlag(args, "id"), "--id"),
 });
+
+const x402Query = (args: ParsedCliArgs): string => requireArg(args.positionals.slice(2).join(" "), "query");
+
+const x402PayUrl = (args: ParsedCliArgs): string => requireArg(args.positionals[2], "url");
+
+const parseRail = (value: string | undefined): PaymentRail => {
+  if (value === "regent-wallet" || value === "agentic-wallet") {
+    return value;
+  }
+
+  throw new CliUsageError({
+    code: "invalid_flag_value",
+    message: "--rail must be regent-wallet or agentic-wallet.",
+    validValues: ["regent-wallet", "agentic-wallet"],
+  });
+};
+
+const payRequestInput = (args: ParsedCliArgs): X402RequestInput => ({
+  url: x402PayUrl(args),
+  method: getFlag(args, "method")?.toUpperCase() as X402RequestInput["method"],
+  headers: parseHeaders(args),
+  body: getFlag(args, "body"),
+});
+
+const paymentReferenceKeys = new Set(["id", "payment_id", "paymentId", "receipt_id", "receiptId", "tx_hash", "transaction_hash"]);
+
+const extractPaymentReference = (value: unknown): string | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  for (const [key, entry] of Object.entries(value)) {
+    if (paymentReferenceKeys.has(key) && typeof entry === "string" && entry.trim()) {
+      return entry;
+    }
+    if (entry && typeof entry === "object") {
+      const nested = extractPaymentReference(entry);
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+
+  return undefined;
+};
 
 const withKernel = async <T>(
   configPath: string | undefined,
@@ -86,6 +142,12 @@ export async function runX402Details(args: ParsedCliArgs, configPath?: string): 
       { label: "request", value: result.request.request_hash },
     ]),
   );
+  return 0;
+}
+
+export async function runX402Search(args: ParsedCliArgs): Promise<number> {
+  const result = await runAwalJson(["x402", "bazaar", "search", x402Query(args), "--json"]);
+  printJson(result);
   return 0;
 }
 
@@ -134,6 +196,69 @@ export async function runX402Fetch(args: ParsedCliArgs, configPath?: string): Pr
 
   printText(result.body_text);
   return result.ok ? 0 : 1;
+}
+
+export async function runX402Pay(args: ParsedCliArgs, configPath?: string): Promise<number> {
+  const config = loadConfig(configPath);
+  const budgetId = requireArg(getFlag(args, "budget"), "--budget");
+  const maxUsdc = requireArg(getFlag(args, "max-usdc"), "--max-usdc");
+  const rail = parseRail(getFlag(args, "rail"));
+  const request = payRequestInput(args);
+  assertBudgetPaymentAllowed(config, {
+    budget_id: budgetId,
+    amount_usdc: maxUsdc,
+    rail,
+    url: request.url,
+    approved: getBooleanFlag(args, "approve"),
+  });
+
+  const maxAtomic = usdcToAtomicString(maxUsdc);
+  let payment: unknown;
+  let paymentReference: string | undefined;
+  let spentUsdc: string;
+
+  if (rail === "agentic-wallet") {
+    payment = await runAwalJson([
+      "x402",
+      "pay",
+      request.url,
+      "--max-amount",
+      maxAtomic,
+      "--json",
+    ]);
+    paymentReference = extractPaymentReference(payment);
+    spentUsdc = maxUsdc;
+  } else {
+    const regentWalletPayment = await withKernel(configPath, async (kernel) => {
+      const prepared = await kernel.call("x402.prepare", { ...request, max_amount: maxAtomic, approve: true });
+      const fetched = await kernel.call("x402.fetch", {
+        ...request,
+        intent_id: prepared.intent.intent_id,
+      });
+      if (!fetched.ok || !fetched.receipt) {
+        throw new CliUsageError({
+          code: "x402_payment_failed",
+          message: "The x402 payment did not complete.",
+        });
+      }
+      return { prepared, fetched, receipt: fetched.receipt };
+    });
+    payment = regentWalletPayment;
+    paymentReference = regentWalletPayment.receipt.receipt_id;
+    spentUsdc = atomicStringToUsdc(regentWalletPayment.prepared.intent.selected.amount);
+  }
+  const spend = recordBudgetSpend(config, {
+    budget_id: budgetId,
+    amount_usdc: spentUsdc,
+    reference: paymentReference,
+    rail,
+  });
+  const receipt = getBooleanFlag(args, "receipt")
+    ? createReceipt(config, paymentReference ? { x402_payment_id: paymentReference } : { budget_entry: spend.ledger_entry.entry_id })
+    : undefined;
+
+  printJson({ ok: true, rail, payment, budget: spend.budget, receipt });
+  return 0;
 }
 
 export async function runX402ReceiptsGet(args: ParsedCliArgs, configPath?: string): Promise<number> {

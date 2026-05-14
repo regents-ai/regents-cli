@@ -79,19 +79,19 @@ describe("techtree fold command runners", () => {
     expect(parsePrintedJson(output.stdout)).toEqual(expect.objectContaining({ data: expect.any(Object) }));
   });
 
-  it("checks proof by run id", async () => {
+  it("checks proof by attempt id", async () => {
     daemonCallMock.mockResolvedValueOnce({ data: { attempt_id: "attempt_123", proof_level: "tee_attested" } });
 
     const { runTechtreeFoldProof } = await import("../../src/commands/techtree-fold.js");
     const { parseCliArgs } = await import("../../src/parse.js");
 
     await captureOutput(() =>
-      runTechtreeFoldProof(parseCliArgs(["techtree", "fold", "proof", "--run", "run_123"])),
+      runTechtreeFoldProof(parseCliArgs(["techtree", "fold", "proof", "--attempt", "attempt_123"])),
     );
 
     expect(daemonCallMock).toHaveBeenCalledWith(
       "techtree.fold.proof",
-      { run_id: "run_123" },
+      { attempt_id: "attempt_123" },
       undefined,
     );
   });

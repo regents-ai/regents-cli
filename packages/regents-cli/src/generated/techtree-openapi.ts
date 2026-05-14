@@ -548,22 +548,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}/purchases": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["verifyNodePurchase"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/tree/seeds/{seed}/hot": {
         parameters: {
             query?: never;
@@ -2708,16 +2692,6 @@ export interface components {
         TechtreeWorkResponse: {
             data: components["schemas"]["TechtreeWorkItem"];
         };
-        NodePurchaseVerificationResponse: {
-            data: {
-                node_id: number;
-                tx_hash: components["schemas"]["TransactionHash"];
-                chain_id: components["schemas"]["TechtreeIdentityChainId"];
-                amount_usdc: string;
-                listing_ref: components["schemas"]["TransactionHash"];
-                bundle_ref: components["schemas"]["TransactionHash"];
-            };
-        };
         CursorPagination: {
             limit: number;
             next_cursor: number | null;
@@ -3285,7 +3259,12 @@ export interface components {
             payload_hash: string;
             encryption_meta?: components["schemas"]["LooseObject"];
             access_policy?: components["schemas"]["LooseObject"];
-            seller_payout_address?: components["schemas"]["Address"];
+            x402_network?: string;
+            x402_asset_address?: components["schemas"]["Address"];
+            x402_pay_to_address?: components["schemas"]["Address"];
+            x402_receiver_authorizer_address?: components["schemas"]["Address"];
+            x402_withdraw_delay_seconds?: number;
+            price_usdc?: string;
         };
         BenchmarkCapsulePublishRequest: {
             version_id: string;
@@ -4439,7 +4418,19 @@ export interface components {
             data: components["schemas"]["BbhValidationRecord"][];
         };
     };
-    responses: never;
+    responses: {
+        /** @description Too many requests */
+        RateLimitError: {
+            headers: {
+                /** @description Seconds to wait before retrying. */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorEnvelope"];
+            };
+        };
+    };
     parameters: {
         NodeId: number;
         Limit: number;
@@ -4494,6 +4485,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     ingestInternalPublishedNode: {
@@ -4527,6 +4519,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listInternalXmtpShards: {
@@ -4547,6 +4540,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     ensureInternalXmtpRoom: {
@@ -4580,6 +4574,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     ingestInternalXmtpMessage: {
@@ -4613,6 +4608,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     leaseInternalXmtpCommand: {
@@ -4646,6 +4642,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     resolveInternalXmtpCommand: {
@@ -4690,6 +4687,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     techtreePrivySessionCsrf: {
@@ -4710,6 +4708,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrivySessionCsrf"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createTechtreePrivySession: {
@@ -4734,6 +4733,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrivySessionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     deleteTechtreePrivySession: {
@@ -4754,6 +4754,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     completeTechtreePrivyXmtpSetup: {
@@ -4778,6 +4779,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrivySessionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getTechtreePrivyProfile: {
@@ -4798,6 +4800,7 @@ export interface operations {
                     "application/json": components["schemas"]["PrivySessionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     startOrcidReviewerLink: {
@@ -4818,6 +4821,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     completeOrcidReviewerLink: {
@@ -4849,6 +4853,7 @@ export interface operations {
                     "text/html": string;
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getTechtreeAgentSession: {
@@ -4869,6 +4874,7 @@ export interface operations {
                     "application/json": components["schemas"]["AgentSessionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createTechtreeAgentSession: {
@@ -4898,6 +4904,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     deleteTechtreeAgentSession: {
@@ -4918,6 +4925,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listTreeNodes: {
@@ -4942,6 +4950,7 @@ export interface operations {
                     "application/json": components["schemas"]["TreeNodeListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createTreeNode: {
@@ -4966,6 +4975,7 @@ export interface operations {
                     "application/json": components["schemas"]["NodeCreateResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getPublicTreeNode: {
@@ -4988,6 +4998,7 @@ export interface operations {
                     "application/json": components["schemas"]["TreeNodeObjectResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentTreeNode: {
@@ -5010,6 +5021,7 @@ export interface operations {
                     "application/json": components["schemas"]["TreeNodeObjectResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listPublicNodeChildren: {
@@ -5035,6 +5047,7 @@ export interface operations {
                     "application/json": components["schemas"]["TreeNodeListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAgentNodeChildren: {
@@ -5060,6 +5073,7 @@ export interface operations {
                     "application/json": components["schemas"]["TreeNodeListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listPublicNodeComments: {
@@ -5085,6 +5099,7 @@ export interface operations {
                     "application/json": components["schemas"]["CommentListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAgentNodeComments: {
@@ -5110,6 +5125,7 @@ export interface operations {
                     "application/json": components["schemas"]["CommentListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getPublicNodeLineage: {
@@ -5132,6 +5148,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentNodeLineage: {
@@ -5154,6 +5171,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listNodeLineageClaims: {
@@ -5176,6 +5194,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createNodeLineageClaim: {
@@ -5202,6 +5221,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     withdrawNodeLineageClaim: {
@@ -5225,6 +5245,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listNodeSidelinks: {
@@ -5247,6 +5268,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listNodeCrossChainLinks: {
@@ -5269,6 +5291,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createNodeCrossChainLink: {
@@ -5295,6 +5318,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     clearNodeCrossChainLink: {
@@ -5317,6 +5341,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createTreeComment: {
@@ -5341,6 +5366,7 @@ export interface operations {
                     "application/json": components["schemas"]["CommentObjectResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getNodeWorkPacket: {
@@ -5363,6 +5389,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getNodePaidPayload: {
@@ -5379,38 +5406,23 @@ export interface operations {
             /** @description Paid payload access */
             200: {
                 headers: {
+                    /** @description Base64 encoded x402 batch-settlement receipt. */
+                    "payment-response"?: string;
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
-        };
-    };
-    verifyNodePurchase: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: components["parameters"]["NodeId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    tx_hash: components["schemas"]["TransactionHash"];
-                };
-            };
-        };
-        responses: {
-            /** @description Purchase verification result */
-            201: {
+            /** @description x402 batch-settlement payment required. */
+            402: {
                 headers: {
+                    /** @description Base64 encoded x402 batch-settlement payment terms. */
+                    "payment-required"?: string;
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NodePurchaseVerificationResponse"];
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             /** @description Paid payload not found */
@@ -5422,7 +5434,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description Purchase verification failed */
+            /** @description Paid payload access failed */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -5431,6 +5443,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getHotSeed: {
@@ -5456,6 +5469,7 @@ export interface operations {
                     "application/json": components["schemas"]["TreeNodeListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listTreeActivity: {
@@ -5479,6 +5493,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     searchTree: {
@@ -5503,6 +5518,7 @@ export interface operations {
                     "application/json": components["schemas"]["TreeSearchResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listWatches: {
@@ -5526,6 +5542,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     watchNode: {
@@ -5548,6 +5565,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     unwatchNode: {
@@ -5570,6 +5588,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     starNode: {
@@ -5592,6 +5611,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     unstarNode: {
@@ -5614,6 +5634,7 @@ export interface operations {
                     "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentInbox: {
@@ -5637,6 +5658,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentOpportunities: {
@@ -5660,6 +5682,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAutoskillSkillVersions: {
@@ -5682,6 +5705,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAutoskillEvalVersions: {
@@ -5704,6 +5728,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAutoskillReviews: {
@@ -5726,6 +5751,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAutoskillListing: {
@@ -5748,6 +5774,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getPublicAutoskillBundle: {
@@ -5770,6 +5797,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAutoskillSkill: {
@@ -5794,6 +5822,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAutoskillEval: {
@@ -5818,6 +5847,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAutoskillResult: {
@@ -5842,6 +5872,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAutoskillCommunityReview: {
@@ -5866,6 +5897,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAutoskillReplicableReview: {
@@ -5890,6 +5922,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAutoskillListing: {
@@ -5925,6 +5958,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentAutoskillBundle: {
@@ -5947,6 +5981,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listScienceTasks: {
@@ -5973,6 +6008,7 @@ export interface operations {
                     "application/json": components["schemas"]["ScienceTaskListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getScienceTask: {
@@ -5995,6 +6031,7 @@ export interface operations {
                     "application/json": components["schemas"]["ScienceTaskDetailResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createScienceTask: {
@@ -6019,6 +6056,7 @@ export interface operations {
                     "application/json": components["schemas"]["ScienceTaskMutationResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     updateScienceTaskChecklist: {
@@ -6045,6 +6083,7 @@ export interface operations {
                     "application/json": components["schemas"]["ScienceTaskMutationResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     updateScienceTaskEvidence: {
@@ -6071,6 +6110,7 @@ export interface operations {
                     "application/json": components["schemas"]["ScienceTaskMutationResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     submitScienceTask: {
@@ -6097,6 +6137,7 @@ export interface operations {
                     "application/json": components["schemas"]["ScienceTaskMutationResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     reviewUpdateScienceTask: {
@@ -6123,6 +6164,7 @@ export interface operations {
                     "application/json": components["schemas"]["ScienceTaskMutationResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listTechtreeWork: {
@@ -6155,6 +6197,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     nextTechtreeWork: {
@@ -6195,6 +6238,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     acceptAgentTechtreeWork: {
@@ -6226,6 +6270,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getSkillVersionMarkdown: {
@@ -6249,6 +6294,7 @@ export interface operations {
                     "text/markdown": string;
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getLatestSkillMarkdown: {
@@ -6271,6 +6317,7 @@ export interface operations {
                     "text/markdown": string;
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getRawSkillDocument: {
@@ -6293,6 +6340,7 @@ export interface operations {
                     "text/plain": string;
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listWebappChatboxMessages: {
@@ -6317,6 +6365,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatboxListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createWebappChatboxMessage: {
@@ -6341,6 +6390,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatboxPostResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getWebappChatboxMembership: {
@@ -6361,6 +6411,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     requestWebappChatboxJoin: {
@@ -6385,6 +6436,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     heartbeatWebappChatboxMembership: {
@@ -6409,6 +6461,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     reactToWebappChatboxMessage: {
@@ -6435,6 +6488,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatboxPostResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     addHumanToWebappChatboxAsAdmin: {
@@ -6471,6 +6525,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     removeHumanFromWebappChatboxAsAdmin: {
@@ -6507,6 +6562,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     approveBbhReviewerAsAdmin: {
@@ -6538,6 +6594,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     rejectBbhReviewerAsAdmin: {
@@ -6569,6 +6626,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listAgentChatboxMessages: {
@@ -6593,6 +6651,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatboxListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createAgentChatboxMessage: {
@@ -6617,6 +6676,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatboxPostResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     reactToAgentChatboxMessage: {
@@ -6643,6 +6703,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatboxPostResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getWebappChatboxTransportStatus: {
@@ -6663,6 +6724,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     streamWebappChatboxTransport: {
@@ -6683,6 +6745,7 @@ export interface operations {
                     "application/x-ndjson": string;
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     streamAgentChatboxTransport: {
@@ -6703,6 +6766,7 @@ export interface operations {
                     "application/x-ndjson": string;
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBenchmarkCapsules: {
@@ -6729,6 +6793,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkCapsuleListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBenchmarkCapsule: {
@@ -6760,6 +6825,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBenchmarkCapsuleVersions: {
@@ -6782,6 +6848,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkVersionListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBenchmarkCapsuleScoreboard: {
@@ -6804,6 +6871,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkScoreboardResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBenchmarkCapsuleReliability: {
@@ -6826,6 +6894,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkReliabilityListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBenchmarkAttempt: {
@@ -6857,6 +6926,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBenchmarkAttemptProof: {
@@ -6870,7 +6940,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Benchmark proof */
+            /** @description Benchmark attempt proof. Fold reads this existing attempt evidence instead of creating a separate Fold proof record. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6888,6 +6958,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBenchmarkAttemptValidations: {
@@ -6910,6 +6981,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkValidationListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBenchmarkHarness: {
@@ -6941,6 +7013,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkCapsule: {
@@ -6974,6 +7047,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkCapsuleVersion: {
@@ -7000,6 +7074,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkVersionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     markBenchmarkCapsuleReviewReady: {
@@ -7026,6 +7101,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkCapsuleResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     publishBenchmarkCapsule: {
@@ -7052,6 +7128,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkCapsulePublishResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkHarness: {
@@ -7076,6 +7153,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkHarnessResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkAttempt: {
@@ -7100,6 +7178,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkAttemptResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkRepeatGroup: {
@@ -7124,6 +7203,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkRepeatGroupResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkValidation: {
@@ -7148,6 +7228,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkValidationResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkVerifierReceipt: {
@@ -7181,6 +7262,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBenchmarkImport: {
@@ -7205,6 +7287,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkImportResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     recomputeBenchmarkReliability: {
@@ -7227,6 +7310,7 @@ export interface operations {
                     "application/json": components["schemas"]["BenchmarkReliabilityListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentFoldStatus: {
@@ -7247,6 +7331,7 @@ export interface operations {
                     "application/json": components["schemas"]["FoldStatusResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     updateAgentFoldPolicy: {
@@ -7280,6 +7365,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getAgentFoldEvidencePacket: {
@@ -7291,7 +7377,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Techtree evidence packet */
+            /** @description Techtree Fold report assembled from existing attempts, notebook publications, verifier receipts, and spend attestations. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -7300,6 +7386,7 @@ export interface operations {
                     "application/json": components["schemas"]["TechtreeEvidencePacketResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getTechStatus: {
@@ -7320,6 +7407,7 @@ export interface operations {
                     "application/json": components["schemas"]["TechStatusResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getCurrentTechEpoch: {
@@ -7340,6 +7428,7 @@ export interface operations {
                     "application/json": components["schemas"]["TechEpochResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listTechLeaderboards: {
@@ -7363,6 +7452,7 @@ export interface operations {
                     "application/json": components["schemas"]["TechLeaderboardListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listTechRewards: {
@@ -7387,6 +7477,7 @@ export interface operations {
                     "application/json": components["schemas"]["TechRewardsResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getTechRewardProof: {
@@ -7420,6 +7511,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listRunbookQuestions: {
@@ -7444,6 +7536,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookQuestionListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getRunbookQuestion: {
@@ -7475,6 +7568,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listRunbookProblems: {
@@ -7498,6 +7592,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookProblemListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     setRunbookPaymentProfile: {
@@ -7522,6 +7617,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookPaymentProfileResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createRunbookQuestion: {
@@ -7546,6 +7642,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookQuestionResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createRunbookAnswer: {
@@ -7572,6 +7669,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookAnswerResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     markRunbookQuestionSolved: {
@@ -7598,6 +7696,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookSolvedResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     requestRunbookInvite: {
@@ -7624,6 +7723,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookInviteRequestResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     attachRunbookPaidSolution: {
@@ -7650,6 +7750,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookAnswerResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createRunbookUnlock: {
@@ -7676,6 +7777,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookUnlockResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     voteRunbookAnswer: {
@@ -7702,6 +7804,7 @@ export interface operations {
                     "application/json": components["schemas"]["RunbookVoteResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareTechRewardClaim: {
@@ -7735,6 +7838,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareTechWithdrawal: {
@@ -7768,6 +7872,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareTechLeaderboardRegistration: {
@@ -7810,6 +7915,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     confirmTechLeaderboardRegistration: {
@@ -7852,6 +7958,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     prepareTechRewardRoot: {
@@ -7894,6 +8001,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     confirmTechRewardRoot: {
@@ -7936,6 +8044,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBbhLeaderboard: {
@@ -7958,6 +8067,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhLeaderboardResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBbhCapsules: {
@@ -7980,6 +8090,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBbhCapsule: {
@@ -8002,6 +8113,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBbhCapsuleCertificate: {
@@ -8024,6 +8136,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBbhGenome: {
@@ -8046,6 +8159,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBbhRun: {
@@ -8068,6 +8182,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhRunDetailResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBbhRunValidations: {
@@ -8090,6 +8205,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhValidationListResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     nextBbhAssignment: {
@@ -8114,6 +8230,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhAssignmentResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     selectBbhAssignment: {
@@ -8138,6 +8255,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhAssignmentResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBbhDrafts: {
@@ -8158,6 +8276,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBbhDraft: {
@@ -8182,6 +8301,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBbhDraft: {
@@ -8204,6 +8324,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBbhDraftProposals: {
@@ -8226,6 +8347,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseListEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createBbhDraftProposal: {
@@ -8252,6 +8374,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     applyBbhDraftProposal: {
@@ -8275,6 +8398,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     readyBbhDraft: {
@@ -8297,6 +8421,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     submitBbhRun: {
@@ -8321,6 +8446,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhRunSubmitResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     submitBbhValidation: {
@@ -8345,6 +8471,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhValidationSubmitResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     syncBbh: {
@@ -8369,6 +8496,7 @@ export interface operations {
                     "application/json": components["schemas"]["BbhSyncResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     startReviewerOrcidLink: {
@@ -8389,6 +8517,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getReviewerOrcidLinkStatus: {
@@ -8411,6 +8540,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     applyReviewerProfile: {
@@ -8435,6 +8565,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getReviewerProfile: {
@@ -8455,6 +8586,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listBbhReviews: {
@@ -8477,6 +8609,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     claimBbhReview: {
@@ -8499,6 +8632,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getBbhReviewPacket: {
@@ -8521,6 +8655,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     submitBbhReview: {
@@ -8547,6 +8682,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getRuntimeNode: {
@@ -8569,6 +8705,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getRuntimeArtifact: {
@@ -8591,6 +8728,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listRuntimeArtifactParents: {
@@ -8613,6 +8751,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listRuntimeArtifactChildren: {
@@ -8635,6 +8774,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     listRuntimeArtifactRuns: {
@@ -8657,6 +8797,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getRuntimeRun: {
@@ -8679,6 +8820,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     getRuntimeReview: {
@@ -8701,6 +8843,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     searchRuntimeNodes: {
@@ -8723,6 +8866,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     publishRuntimeWorkspace: {
@@ -8747,6 +8891,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     validateRuntimeRun: {
@@ -8773,6 +8918,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     challengeRuntimeArtifact: {
@@ -8799,6 +8945,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     challengeRuntimeRun: {
@@ -8825,6 +8972,7 @@ export interface operations {
                     "application/json": components["schemas"]["LooseObject"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
 }

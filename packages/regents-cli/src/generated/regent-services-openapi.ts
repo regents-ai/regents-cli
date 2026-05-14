@@ -458,7 +458,19 @@ export interface components {
             error: string;
         };
     };
-    responses: never;
+    responses: {
+        /** @description Too many requests */
+        RateLimitError: {
+            headers: {
+                /** @description Seconds to wait before retrying. */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorEnvelope"];
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -624,6 +636,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     verifySharedAgentSiwaSession: {
@@ -693,6 +706,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
             /** @description SIWA verification is not configured */
             500: {
                 headers: {
@@ -783,6 +797,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
             /** @description SIWA HTTP verification is not configured */
             500: {
                 headers: {
@@ -812,6 +827,7 @@ export interface operations {
                     "application/json": components["schemas"]["KeyringHealthResponse"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringCreateWallet: {
@@ -872,6 +888,7 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleError"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringHasWallet: {
@@ -932,6 +949,7 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleError"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringGetAddress: {
@@ -1001,6 +1019,7 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleError"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringSignMessage: {
@@ -1070,6 +1089,7 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleError"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringSignRawMessage: {
@@ -1139,6 +1159,7 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleError"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringSignTransaction: {
@@ -1208,6 +1229,7 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleError"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringSignAuthorization: {
@@ -1277,6 +1299,7 @@ export interface operations {
                     "application/json": components["schemas"]["SimpleError"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
         };
     };
 }

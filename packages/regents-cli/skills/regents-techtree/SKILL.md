@@ -77,7 +77,7 @@ Use Fold only inside an approved local budget policy. Fold is for capped benchma
 ```bash
 regents techtree fold policy init --monthly-budget-usd 25 --daily-budget-usd 2 --max-work-unit-usd 0.50
 regents techtree fold status
-regents techtree fold proof --run <run-id>
+regents techtree fold proof --attempt <attempt-id>
 ```
 
 Do not start costly benchmark work unless the Fold policy allows it.

@@ -8,9 +8,17 @@ import {
   runRuntimeServices,
   runRuntimeGet,
 } from "../commands/runtime.js";
+import {
+  runRuntimeLocalPolicy,
+  runRuntimeLocalStatus,
+  runRuntimeLocalTools,
+} from "../commands/runtime-local.js";
 import { route, type CliRoute } from "./shared.js";
 
 export const runtimeRoutes: readonly CliRoute[] = [
+  route("runtime status", async ({ configPath }) => runRuntimeLocalStatus(configPath)),
+  route("runtime tools", async () => runRuntimeLocalTools()),
+  route("runtime policy", async ({ configPath }) => runRuntimeLocalPolicy(configPath)),
   route("runtime create", async ({ parsedArgs }) => {
     await runRuntimeCreate(parsedArgs);
     return 0;

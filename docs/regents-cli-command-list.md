@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 348.
+Total commands: 369.
 
 ## Full Command List
 
@@ -128,6 +128,13 @@ Total commands: 348.
 
 - `regents balance`
 
+### Budget
+
+- `regents budget grant`
+- `regents budget ledger`
+- `regents budget revoke`
+- `regents budget status`
+
 ### Bug
 
 - `regents bug` - Send a signed bug report to Platform.
@@ -212,6 +219,13 @@ Total commands: 348.
 - `regents plugin install`
 - `regents plugin status`
 
+### Receipt
+
+- `regents receipt create`
+- `regents receipt get`
+- `regents receipt list`
+- `regents receipt share-draft`
+
 ### Regent Staking
 
 - `regents regent-staking account` - Show Regent staking state for one wallet.
@@ -233,9 +247,12 @@ Total commands: 348.
 - `regents runtime get` - Show one runtime for a Regent company.
 - `regents runtime health` - Show health for one runtime.
 - `regents runtime pause` - Pause one runtime for a Regent company.
+- `regents runtime policy`
 - `regents runtime restore` - Restore one runtime from a checkpoint.
 - `regents runtime resume` - Resume one runtime for a Regent company.
 - `regents runtime services` - List services for one runtime.
+- `regents runtime status`
+- `regents runtime tools`
 
 ### Search
 
@@ -305,6 +322,7 @@ Total commands: 348.
 - `regents techtree comment add`
 - `regents techtree fold policy init`
 - `regents techtree fold proof`
+- `regents techtree fold report`
 - `regents techtree fold status`
 - `regents techtree identities list`
 - `regents techtree identities mint`
@@ -394,6 +412,13 @@ Total commands: 348.
 
 ### Wallet
 
+- `regents wallet agentic address`
+- `regents wallet agentic balance`
+- `regents wallet agentic fund`
+- `regents wallet agentic get`
+- `regents wallet agentic login`
+- `regents wallet agentic status`
+- `regents wallet agentic verify`
 - `regents wallet setup`
 - `regents wallet status`
 
@@ -414,9 +439,11 @@ Total commands: 348.
 
 - `regents x402 details`
 - `regents x402 fetch`
+- `regents x402 pay`
 - `regents x402 prepare`
 - `regents x402 quote`
 - `regents x402 receipts get`
+- `regents x402 search`
 
 ### Xmtp
 

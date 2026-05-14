@@ -46,6 +46,7 @@ command_groups:
         - regents setup --runtime auto --install-plugin
         - regents setup skills
         - regents plugin status --runtime auto
+        - regents runtime status --json
         - regents agent-context
         - regents config get
         - regents agent profile get
@@ -211,9 +212,78 @@ command_groups:
       input_mode: flags
       examples:
         - regents wallet status
+        - regents wallet agentic status --json
+        - regents wallet agentic fund --amount-usdc 10 --chain base
     commands:
       - wallet status
       - wallet setup
+      - wallet agentic status
+      - wallet agentic login
+      - wallet agentic verify
+      - wallet agentic address
+      - wallet agentic balance
+      - wallet agentic get
+      - wallet agentic fund
+    flags:
+      wallet agentic login:
+        - name: --email
+          type: string
+          required: true
+          description: Email address to start Agentic Wallet login.
+        - name: --json
+          type: boolean
+          required: false
+          description: Print the Agentic Wallet login response as JSON.
+      wallet agentic verify:
+        - name: --flow-id
+          type: string
+          required: true
+          description: Agentic Wallet login flow id.
+        - name: --otp
+          type: string
+          required: true
+          description: One-time code from Agentic Wallet login.
+        - name: --json
+          type: boolean
+          required: false
+          description: Print the Agentic Wallet verification response as JSON.
+      wallet agentic balance:
+        - name: --chain
+          type: enum
+          enum: [base]
+          required: true
+          description: Chain to inspect for Agentic Wallet balance.
+      wallet agentic fund:
+        - name: --amount-usdc
+          type: decimal-usd
+          required: true
+          description: Funding amount to show in the guided onramp instructions.
+        - name: --chain
+          type: enum
+          enum: [base]
+          required: true
+          description: Chain to fund.
+  - name: runtime-local
+    interface: runtime
+    auth_mode: none
+    output_envelope: loose-object
+    agent_metadata:
+      category: local-control
+      prompt_behavior: never_prompt
+      json_support: required
+      mutation_class: local-read
+      retry_behavior: safe
+      pagination: none
+      async_behavior: synchronous
+      input_mode: flags
+      examples:
+        - regents runtime status --json
+        - regents runtime tools --json
+        - regents runtime policy --json
+    commands:
+      - runtime status
+      - runtime tools
+      - runtime policy
   - name: identity
     interface: runtime
     auth_mode: none
@@ -313,86 +383,242 @@ command_groups:
       async_behavior: synchronous
       input_mode: flags
       examples:
+        - regents x402 search "research data" --json
         - regents x402 details --url https://api.example.com/paid --json
         - regents x402 quote --url https://api.example.com/paid --json
         - regents x402 prepare --url https://api.example.com/paid --approve --json
         - regents x402 fetch --intent-id x402_intent_... --url https://api.example.com/paid --json
+        - regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json
         - regents x402 receipts get --id x402_receipt_... --json
     commands:
+      - x402 search
       - x402 details
       - x402 quote
       - x402 prepare
       - x402 fetch
+      - x402 pay
       - x402 receipts get
+    flags:
+      x402 pay:
+        - name: --budget
+          type: string
+          required: true
+          description: Regent budget that approves this payment.
+        - name: --max-usdc
+          type: decimal-usd
+          required: true
+          description: Maximum USDC to spend on this x402 request.
+        - name: --rail
+          type: enum
+          enum: [regent-wallet, agentic-wallet]
+          required: true
+          description: Payment rail to use for this request.
+        - name: --approve
+          type: boolean
+          required: false
+          description: Confirm a paid-service budget payment.
+        - name: --receipt
+          type: boolean
+          required: false
+          description: Create a local Regent receipt after a successful payment.
     command_flags:
-    x402 details:
-      - name: url
-        required: true
-        description: Protected resource URL to inspect.
-      - name: method
-        required: false
-        description: HTTP method for the protected resource request.
-      - name: body
-        required: false
-        description: Request body used while inspecting the protected resource.
-      - name: header
-        required: false
-        description: Repeatable request header in Name/value form.
-    x402 quote:
-      - name: url
-        required: true
-        description: Protected resource URL to quote.
-      - name: method
-        required: false
-        description: HTTP method for the protected resource request.
-      - name: body
-        required: false
-        description: Request body used while quoting the protected resource.
-      - name: header
-        required: false
-        description: Repeatable request header in Name/value form.
-      - name: max-amount
-        required: false
-        description: Maximum accepted atomic token amount.
-    x402 prepare:
-      - name: url
-        required: true
-        description: Protected resource URL to prepare.
-      - name: method
-        required: false
-        description: HTTP method for the protected resource request.
-      - name: body
-        required: false
-        description: Request body used while preparing the protected resource.
-      - name: header
-        required: false
-        description: Repeatable request header in Name/value form.
-      - name: max-amount
-        required: false
-        description: Maximum accepted atomic token amount.
-      - name: approve
-        required: false
-        description: Record explicit local operator approval for the prepared x402 request.
-    x402 fetch:
-      - name: intent-id
-        required: true
-        description: Approved x402 intent to use.
-      - name: url
-        required: true
-        description: Protected resource URL to fetch.
-      - name: method
-        required: false
-        description: HTTP method for the protected resource request.
-      - name: body
-        required: false
-        description: Request body used while fetching the protected resource.
-      - name: header
-        required: false
-        description: Repeatable request header in Name/value form.
-    x402 receipts get:
-      - name: id
-        required: true
-        description: x402 receipt id to read from the local Regent receipt store.
+      x402 details:
+        - name: url
+          required: true
+          description: Protected resource URL to inspect.
+        - name: method
+          required: false
+          description: HTTP method for the protected resource request.
+        - name: body
+          required: false
+          description: Request body used while inspecting the protected resource.
+        - name: header
+          required: false
+          description: Repeatable request header in Name/value form.
+      x402 quote:
+        - name: url
+          required: true
+          description: Protected resource URL to quote.
+        - name: method
+          required: false
+          description: HTTP method for the protected resource request.
+        - name: body
+          required: false
+          description: Request body used while quoting the protected resource.
+        - name: header
+          required: false
+          description: Repeatable request header in Name/value form.
+        - name: max-amount
+          required: false
+          description: Maximum accepted atomic token amount.
+        - name: max-deposit-amount
+          required: false
+          description: Maximum atomic token amount the operator allows the CLI to escrow for batch-settlement payments.
+      x402 prepare:
+        - name: url
+          required: true
+          description: Protected resource URL to prepare.
+        - name: method
+          required: false
+          description: HTTP method for the protected resource request.
+        - name: body
+          required: false
+          description: Request body used while preparing the protected resource.
+        - name: header
+          required: false
+          description: Repeatable request header in Name/value form.
+        - name: max-amount
+          required: false
+          description: Maximum accepted atomic token amount.
+        - name: max-deposit-amount
+          required: false
+          description: Maximum atomic token amount the operator allows the CLI to escrow for batch-settlement payments.
+        - name: approve
+          required: false
+          description: Record explicit local operator approval for the prepared x402 request.
+      x402 fetch:
+        - name: intent-id
+          required: true
+          description: Approved x402 intent to use.
+        - name: url
+          required: true
+          description: Protected resource URL to fetch.
+        - name: method
+          required: false
+          description: HTTP method for the protected resource request.
+        - name: body
+          required: false
+          description: Request body used while fetching the protected resource.
+        - name: header
+          required: false
+          description: Repeatable request header in Name/value form.
+      x402 receipts get:
+        - name: id
+          required: true
+          description: x402 receipt id to read from the local Regent receipt store.
+  - name: budget
+    interface: runtime
+    auth_mode: none
+    output_envelope: loose-object
+    agent_metadata:
+      category: budget
+      prompt_behavior: never_prompt
+      json_support: supported
+      mutation_class: local-policy-write
+      retry_behavior: safe_for_reads
+      pagination: bounded
+      async_behavior: synchronous
+      input_mode: flags
+      examples:
+        - regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d
+        - regents budget status --json
+        - regents budget ledger --budget bud_...
+    commands:
+      - budget grant
+      - budget status
+      - budget ledger
+      - budget revoke
+    flags:
+      budget grant:
+        - name: --agent
+          type: string
+          required: true
+          description: Agent that may use this budget through Regent.
+        - name: --amount-usdc
+          type: decimal-usd
+          required: true
+          description: Total budget amount.
+        - name: --max-payment-usdc
+          type: decimal-usd
+          required: true
+          description: Maximum size for one payment.
+        - name: --mode
+          type: enum
+          enum: [techtree_research, paid_service]
+          required: true
+          description: Work mode this budget is allowed to support.
+        - name: --rail
+          type: enum
+          enum: [regent-wallet, agentic-wallet]
+          required: true
+          description: Payment rail this budget allows.
+        - name: --allow-host
+          type: string
+          required: false
+          description: Optional paid service hostname this budget may use. Repeat to allow more hosts.
+        - name: --expires
+          type: duration-or-time
+          required: true
+          description: Expiration such as 7d or an ISO timestamp.
+      budget status:
+        - name: --budget
+          type: string
+          required: false
+          description: Budget id to inspect.
+        - name: --agent
+          type: string
+          required: false
+          description: Agent id to filter by.
+      budget ledger:
+        - name: --budget
+          type: string
+          required: true
+          description: Budget id to inspect.
+      budget revoke:
+        - name: --budget
+          type: string
+          required: true
+          description: Budget id to revoke.
+  - name: receipt
+    interface: runtime
+    auth_mode: none
+    output_envelope: loose-object
+    agent_metadata:
+      category: receipts
+      prompt_behavior: never_prompt
+      json_support: supported
+      mutation_class: local-write
+      retry_behavior: safe_for_reads
+      pagination: bounded
+      async_behavior: synchronous
+      input_mode: flags
+      examples:
+        - regents receipt create --from-attempt attempt_... --json
+        - regents receipt list --json
+        - regents receipt share-draft --receipt rcpt_...
+    commands:
+      - receipt create
+      - receipt get
+      - receipt list
+      - receipt share-draft
+    flags:
+      receipt create:
+        - name: --from-attempt
+          type: string
+          required: false
+          description: Techtree benchmark attempt id to cite.
+        - name: --from-notebook
+          type: string
+          required: false
+          description: Techtree notebook publication node id to cite.
+        - name: --from-x402-payment
+          type: string
+          required: false
+          description: x402 payment id to cite.
+        - name: --from-budget-entry
+          type: string
+          required: false
+          description: Local budget ledger entry to cite.
+      receipt get:
+        - name: --receipt
+          type: string
+          required: true
+          description: Receipt id to inspect.
+      receipt share-draft:
+        - name: --receipt
+          type: string
+          required: true
+          description: Receipt id to turn into draft share copy.
   - name: feynman
     interface: local-process
     auth_mode: none

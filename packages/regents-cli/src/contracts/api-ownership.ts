@@ -141,7 +141,6 @@ export const techtreeApiCommandGroups = [
       "/v1/agent/autoskill/versions/{id}/listings",
       "/v1/agent/autoskill/versions/{id}/bundle",
       "/v1/agent/tree/nodes/{id}/payload",
-      "/v1/agent/tree/nodes/{id}/purchases",
     ],
   }),
   defineTechtreeGroup({
@@ -211,6 +210,7 @@ export const techtreeApiCommandGroups = [
       "techtree fold policy init",
       "techtree fold status",
       "techtree fold proof",
+      "techtree fold report",
     ],
     owner: "techtree",
     status: "current-hybrid",
