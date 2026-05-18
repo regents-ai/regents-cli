@@ -593,6 +593,7 @@ export type BenchmarkDomain =
   | "bioinformatics"
   | "computational_biology"
   | "science_task"
+  | "terminal_science_bench"
   | "code"
   | "math"
   | "agent_skill"
@@ -627,6 +628,7 @@ export type BenchmarkRunnerKind =
   | "gemini"
   | "opencode"
   | "manual_human"
+  | "custom"
   | "custom_local";
 export type BenchmarkAttemptStatus =
   | "created"
@@ -644,6 +646,51 @@ export type BenchmarkValidationResult = "confirmed" | "rejected" | "mixed" | "ne
 export type BenchmarkProofLevel = "self_reported" | "external_eval" | "reproducible" | "tee_attested" | "cross_provider";
 export type BenchmarkProofStatus = "pending" | "verified" | "challenged" | "final" | "revoked";
 export type BenchmarkVerifierProviderKind = "prime_eval" | "ecloud_tdx" | "techtree_replay";
+
+export type TerminalScienceAgentKey = "codex" | "openclaw" | "hermes" | "custom";
+export type TerminalScienceEnvironmentKind = "docker";
+
+export interface TerminalScienceGoal {
+  goal_id: string;
+  kind: "terminal_bench_science_goal";
+  task_uri: string;
+  task_repo: string;
+  task_ref: string;
+  task_path: string;
+  agent_profile: string;
+  model: string;
+  environment: TerminalScienceEnvironmentKind;
+  status: "active";
+  updated_at: string;
+}
+
+export interface TerminalScienceSetGoalResponse {
+  ok: true;
+  goal: TerminalScienceGoal;
+}
+
+export interface TerminalScienceRunFileSet {
+  goal: string;
+  run_envelope: string;
+  public_summary: string;
+  harbor_stdout: string;
+  harbor_stderr: string;
+  checksums: string;
+}
+
+export interface TerminalScienceRunResponse {
+  ok: true;
+  goal: TerminalScienceGoal;
+  run_id: string;
+  local_attempt_id: string;
+  run_dir: string;
+  status: "passed" | "failed" | "timeout";
+  exit_code: number | null;
+  command: string;
+  public_summary: Record<string, unknown>;
+  files: TerminalScienceRunFileSet;
+  checksums: Record<string, string>;
+}
 
 export interface BenchmarkReliabilitySummary {
   summary_id: string;
@@ -954,6 +1001,26 @@ export interface BenchmarkValidationCreateInput {
   review_source?: Record<string, unknown>;
 }
 
+export interface BenchmarkCapsulePublishInput {
+  version_id: string;
+  seed: string;
+  parent_id?: number;
+  notebook_source: string;
+  title?: string | null;
+  summary?: string | null;
+  visibility?: "public" | "paid_access";
+  idempotency_key?: string | null;
+  paid_payload?: Record<string, unknown> | null;
+}
+
+export interface BenchmarkPublicationNode {
+  node_id: number;
+  manifest_cid?: string | null;
+  status: string;
+  publish_status: string;
+  anchor_status: string;
+}
+
 export interface BenchmarkCapsuleListResponse {
   data: BenchmarkCapsule[];
 }
@@ -968,6 +1035,14 @@ export interface BenchmarkVersionListResponse {
 
 export interface BenchmarkVersionResponse {
   data: BenchmarkCapsuleVersion;
+}
+
+export interface BenchmarkCapsulePublishResponse {
+  data: {
+    capsule: BenchmarkCapsule;
+    version: BenchmarkCapsuleVersion;
+    publication_node: BenchmarkPublicationNode;
+  };
 }
 
 export interface BenchmarkHarnessResponse {

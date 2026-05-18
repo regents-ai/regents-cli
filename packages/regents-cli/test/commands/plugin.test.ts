@@ -33,12 +33,17 @@ describe("plugin setup commands", () => {
     const output = await captureOutput(() => runPluginInstall(parseCliArgs(["--runtime", "auto"])));
     const payload = parsePrintedJson(output.stdout) as {
       selectedRuntime: string;
-      installed_plugins: Array<{ runtime: string }>;
+      installed_plugins: Array<{ runtime: string; hermesXaiOAuth?: { providerId: string; defaultModel: string } }>;
+      next_steps: string[];
     };
 
     expect(payload.selectedRuntime).toBe("auto");
     expect(payload.installed_plugins.map((entry) => entry.runtime)).toEqual(["hermes", "openclaw"]);
+    expect(payload.installed_plugins[0]?.hermesXaiOAuth?.providerId).toBe("xai-oauth");
+    expect(payload.installed_plugins[0]?.hermesXaiOAuth?.defaultModel).toBe("grok-4.3");
+    expect(payload.next_steps[0]).toBe("hermes auth add xai-oauth");
     expect(fs.existsSync(path.join(tempHome, ".hermes", "plugins", "regent", "plugin.yaml"))).toBe(true);
+    expect(fs.readFileSync(path.join(tempHome, ".hermes", "config.yaml"), "utf8")).toContain("provider: xai-oauth");
     expect(fs.existsSync(path.join(tempHome, ".openclaw", "plugins", "regent", "openclaw.plugin.json"))).toBe(true);
   });
 

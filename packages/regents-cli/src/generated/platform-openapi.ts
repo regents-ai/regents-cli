@@ -196,6 +196,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks/onramp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["mobileCoinbaseOnrampWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/basenames/config": {
         parameters: {
             query?: never;
@@ -2262,6 +2278,15 @@ export interface components {
                 status: string;
                 available: boolean;
                 metering_status: string;
+                control_room: {
+                    status: string;
+                    one_sprite: boolean;
+                    sprite_runtime_id: string | null;
+                    workspace_service_name: string | null;
+                    bridge_service_name: string | null;
+                    path: string | null;
+                    registry_path: string | null;
+                };
             };
         };
         RwrDelegationResponse: {
@@ -3248,6 +3273,14 @@ export interface components {
             sprite_owner: string;
             sprite_service_name: string;
             workspace_http_port: number;
+            hermes_provider_id: string;
+            hermes_provider_display_name: string;
+            /** Format: uri */
+            hermes_auth_server: string;
+            /** Format: uri */
+            hermes_base_url: string;
+            hermes_transport: string;
+            hermes_requires_env_var: boolean;
             hermes_adapter_type: string;
             hermes_model: string;
             hermes_persist_session: boolean;
@@ -3367,12 +3400,43 @@ export interface components {
             };
             hermes: {
                 status: string;
+                provider_id: string;
+                provider_display_name: string;
+                auth_type: string;
+                /** Format: uri */
+                auth_server: string;
+                /** Format: uri */
+                base_url: string;
+                transport: string;
+                requires_env_var: boolean;
+                login_command: string;
+                remote_login_command: string;
                 adapter_type: string;
                 model: string;
                 persist_session: boolean;
                 toolsets: string[];
                 runtime_plugins: string[];
                 shared_skills: string[];
+            };
+            voice: {
+                enabled: boolean;
+                /** @enum {string} */
+                health: "ok" | "degraded" | "unavailable";
+                status_url: string;
+                session_url: string;
+                /** @enum {string} */
+                provider: "openai-realtime";
+                /** @default gpt-realtime-2 */
+                model: string;
+                tool_registry_digest: string;
+                account: {
+                    /** @enum {boolean} */
+                    required: true;
+                    satisfied: boolean;
+                    /** @enum {string} */
+                    provider: "openai_chatgpt";
+                    connect_url?: string | null;
+                };
             };
             checkpoint: {
                 status: string;
@@ -3770,6 +3834,45 @@ export interface operations {
                     "text/plain": string;
                 };
             };
+        };
+    };
+    mobileCoinbaseOnrampWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    eventType: "onramp.transaction.created" | "onramp.transaction.updated" | "onramp.transaction.success" | "onramp.transaction.failed";
+                    transactionId: string;
+                    partnerUserRef?: string;
+                    purchaseAmount?: string;
+                    purchaseCurrency?: string;
+                    destinationNetwork?: string;
+                    failureReason?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Coinbase onramp webhook accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        received: boolean;
+                        duplicate?: boolean;
+                    };
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            503: components["responses"]["StatusMessage503"];
         };
     };
     basenamesConfig: {

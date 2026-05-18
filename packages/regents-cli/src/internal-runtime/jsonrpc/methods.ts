@@ -45,6 +45,8 @@ export const REGENT_RPC_METHODS = {
   techtreeScienceTasksSubmit: "techtree.scienceTasks.submit",
   techtreeScienceTasksReviewUpdate: "techtree.scienceTasks.reviewUpdate",
   techtreeScienceTasksReviewLoop: "techtree.scienceTasks.reviewLoop",
+  techtreeScienceSetGoal: "techtree.science.setGoal",
+  techtreeScienceRun: "techtree.science.run",
   techtreeWorkList: "techtree.work.list",
   techtreeWorkNext: "techtree.work.next",
   techtreeWorkAccept: "techtree.work.accept",

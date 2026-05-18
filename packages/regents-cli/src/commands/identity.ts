@@ -37,7 +37,8 @@ const renderHumanSuccess = (result: Awaited<ReturnType<typeof ensureIdentity>>):
       titleColor: CLI_PALETTE.title,
     }),
     renderPanel("◆ NEXT STEP", [
-      `${tone("regents identity status", CLI_PALETTE.emphasis, true)} to check whether the saved identity is still ready.`,
+      `${tone("regents auth login --audience techtree", CLI_PALETTE.emphasis, true)} to save a Techtree sign-in.`,
+      `${tone("regents run --fold autoresearch", CLI_PALETTE.emphasis, true)} to start local research work.`,
     ], {
       borderColor: CLI_PALETTE.chrome,
       titleColor: CLI_PALETTE.title,
@@ -311,7 +312,13 @@ export async function runIdentityEnsure(
     });
 
     if (json) {
-      printJson(result);
+      printJson({
+        ...result,
+        next_steps: [
+          "regents auth login --audience techtree",
+          "regents run --fold autoresearch",
+        ],
+      });
     } else {
       printText(renderHumanSuccess(result));
     }

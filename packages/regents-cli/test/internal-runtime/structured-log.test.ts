@@ -57,6 +57,14 @@ const configFor = (homeDir: string): RegentConfig => ({
       defaultHarness: "hermes",
       defaultProfile: "bbh",
     },
+    science: {
+      workspaceRoot: path.join(homeDir, ".regent", "workspaces", "science"),
+      taskRepoRoot: path.join(homeDir, ".regent", "workspaces", "science", "repos"),
+      defaultHarness: "codex",
+      defaultModel: "openai/gpt-5.4",
+      defaultEnvironment: "docker",
+      defaultTaskRef: "main",
+    },
   },
 });
 

@@ -91,6 +91,8 @@ import {
   handleTechtreeNodeLineageList,
   handleTechtreeNodeWorkPacket,
   handleTechtreeNodesList,
+  handleTechtreeScienceRun,
+  handleTechtreeScienceSetGoal,
   handleTechtreeScienceTasksGet,
   handleTechtreeScienceTasksChecklist,
   handleTechtreeScienceTasksEvidence,
@@ -561,6 +563,16 @@ export class RegentKernel {
         return handleTechtreeScienceTasksReviewLoop(
           ctx,
           params as Parameters<typeof handleTechtreeScienceTasksReviewLoop>[1],
+        );
+      case "techtree.science.setGoal":
+        return handleTechtreeScienceSetGoal(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceSetGoal>[1],
+        );
+      case "techtree.science.run":
+        return handleTechtreeScienceRun(
+          ctx,
+          params as Parameters<typeof handleTechtreeScienceRun>[1],
         );
       case "techtree.work.list":
         return handleTechtreeWorkList(ctx, params as Parameters<typeof handleTechtreeWorkList>[1]);

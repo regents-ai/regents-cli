@@ -12,6 +12,7 @@ const renderWalletStatus = (status: Awaited<ReturnType<typeof coinbaseStatus>>):
       `wallet: ${status.account.name}`,
       `address: ${status.account.address}`,
       `identity_ready: ${status.identity_ready ? "yes" : "no"}`,
+      `next: ${status.identity_ready ? "regents identity status" : "regents identity ensure"}`,
     ].join("\n");
   }
 
@@ -72,9 +73,9 @@ export async function runWalletSetup(
       walletName: getFlag(args, "wallet") ?? undefined,
     });
     if (json) {
-      printJson(result);
+      printJson({ ...result, next_steps: ["regents identity ensure"] });
     } else {
-      printText(["Coinbase wallet ready.", `wallet: ${result.wallet.name}`, `address: ${result.wallet.address}`].join("\n"));
+      printText(["Coinbase wallet ready.", `wallet: ${result.wallet.name}`, `address: ${result.wallet.address}`, "next: regents identity ensure"].join("\n"));
     }
     return 0;
   } catch (error) {

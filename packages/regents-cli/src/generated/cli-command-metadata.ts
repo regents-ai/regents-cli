@@ -70,7 +70,6 @@ export const CLI_COMMANDS = [
   "autolaunch splitter get",
   "autolaunch splitter propose-eligible-revenue-share",
   "autolaunch splitter propose-treasury-recipient-rotation",
-  "autolaunch splitter pull-treasury-share",
   "autolaunch splitter reassign-dust",
   "autolaunch splitter set-label",
   "autolaunch splitter set-paused",
@@ -79,7 +78,7 @@ export const CLI_COMMANDS = [
   "autolaunch splitter sweep-treasury-reserved",
   "autolaunch splitter sweep-treasury-residual",
   "autolaunch strategy migrate",
-  "autolaunch strategy sweep-currency",
+  "autolaunch strategy sweep-quote-token",
   "autolaunch strategy sweep-token",
   "autolaunch subjects by-token",
   "autolaunch subjects claim-usdc",
@@ -253,6 +252,8 @@ export const CLI_COMMANDS = [
   "techtree runbook questions get <id>",
   "techtree runbook questions list",
   "techtree runbook unlock <answer_id>",
+  "techtree science run",
+  "techtree science set-goal",
   "techtree science-tasks checklist",
   "techtree science-tasks evidence",
   "techtree science-tasks export",
@@ -419,7 +420,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch splitter get",
     "autolaunch splitter propose-eligible-revenue-share",
     "autolaunch splitter propose-treasury-recipient-rotation",
-    "autolaunch splitter pull-treasury-share",
     "autolaunch splitter reassign-dust",
     "autolaunch splitter set-label",
     "autolaunch splitter set-paused",
@@ -428,7 +428,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch splitter sweep-treasury-reserved",
     "autolaunch splitter sweep-treasury-residual",
     "autolaunch strategy migrate",
-    "autolaunch strategy sweep-currency",
+    "autolaunch strategy sweep-quote-token",
     "autolaunch strategy sweep-token",
     "autolaunch subjects by-token",
     "autolaunch subjects claim-usdc",
@@ -644,6 +644,8 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree runbook questions get <id>",
     "techtree runbook questions list",
     "techtree runbook unlock <answer_id>",
+    "techtree science run",
+    "techtree science set-goal",
     "techtree science-tasks checklist",
     "techtree science-tasks evidence",
     "techtree science-tasks export",
@@ -2383,10 +2385,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "description": "Token symbol, 2 to 10 characters."
       },
       {
-        "name": "--minimum-raise-usdc",
-        "type": "integer",
+        "name": "--minimum-raise-quote",
+        "type": "decimal-regent",
         "required": false,
-        "description": "Minimum USDC raise. Use a whole number; 0 is allowed."
+        "description": "Minimum $REGENT raise. Use up to 18 decimals; 0 is allowed."
       },
       {
         "name": "--agent-safe-address",
@@ -2820,32 +2822,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Propose treasury recipient rotation splitter."
   },
-  "autolaunch splitter pull-treasury-share": {
-    "command": "autolaunch splitter pull-treasury-share",
-    "owner": "autolaunch",
-    "group": "ens-contracts",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "prepared-action-or-status",
-    "examples": [
-      "regents autolaunch fee-registry get --job <job_id>",
-      "regents autolaunch fee-vault get --job <job_id>",
-      "regents autolaunch splitter get --subject <subject_id>",
-      "regents autolaunch registry get --subject <subject_id>"
-    ],
-    "agent_metadata": {
-      "category": "contracts",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_prepares",
-      "pagination": "none",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Fetch splitter."
-  },
   "autolaunch splitter reassign-dust": {
     "command": "autolaunch splitter reassign-dust",
     "owner": "autolaunch",
@@ -3054,8 +3030,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Migrate strategy."
   },
-  "autolaunch strategy sweep-currency": {
-    "command": "autolaunch strategy sweep-currency",
+  "autolaunch strategy sweep-quote-token": {
+    "command": "autolaunch strategy sweep-quote-token",
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
@@ -3078,7 +3054,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "Sweep currency for strategy."
+    "summary": "Sweep quote token for strategy."
   },
   "autolaunch strategy sweep-token": {
     "command": "autolaunch strategy sweep-token",
@@ -3739,9 +3715,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents x402 search \"research data\" --json"
     },
-    "summary": "Give an agent a spending budget."
+    "summary": "Give an agent a spending budget.",
+    "next_step": "regents x402 search \"research data\" --json"
   },
   "budget ledger": {
     "command": "budget ledger",
@@ -3771,9 +3749,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents x402 pay <url> --budget <budget-id> --max-usdc 0.25 --rail agentic-wallet --receipt --json"
     },
-    "summary": "Show budget activity."
+    "summary": "Show budget activity.",
+    "next_step": "regents x402 pay <url> --budget <budget-id> --max-usdc 0.25 --rail agentic-wallet --receipt --json"
   },
   "budget revoke": {
     "command": "budget revoke",
@@ -3803,9 +3783,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents budget status --json"
     },
-    "summary": "Revoke an agent budget."
+    "summary": "Revoke an agent budget.",
+    "next_step": "regents budget status --json"
   },
   "budget status": {
     "command": "budget status",
@@ -3841,9 +3823,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents budget ledger --budget <budget-id>"
     },
-    "summary": "Show the current budget state."
+    "summary": "Show the current budget state.",
+    "next_step": "regents budget ledger --budget <budget-id>"
   },
   "bug": {
     "command": "bug",
@@ -4426,6 +4410,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "none",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "transport",
+        "required": true,
+        "description": "MCP transport to start. Use stdio locally or streamable-http for a bearer-protected sidecar."
+      },
+      {
+        "name": "host",
+        "required": false,
+        "description": "Host for streamable-http MCP."
+      },
+      {
+        "name": "port",
+        "required": false,
+        "description": "Port for streamable-http MCP."
+      }
+    ],
     "examples": [
       "regents mcp export codex",
       "regents mcp tools list --json",
@@ -4921,9 +4922,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents run"
     },
-    "summary": "Check plugin setup."
+    "summary": "Check plugin setup.",
+    "next_step": "regents run"
   },
   "plugin install": {
     "command": "plugin install",
@@ -4942,7 +4945,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "openclaw"
         ],
         "required": true,
-        "description": "Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Installing the wrong one is harmless, but the intended app will not see Regent until its matching runtime is installed."
+        "description": "Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Hermes setup also selects xAI Grok OAuth with grok-4.3 and returns the Hermes sign-in command."
       }
     ],
     "examples": [
@@ -4958,9 +4961,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents plugin doctor --runtime auto"
     },
-    "summary": "Install a Regent plugin for the selected runtime."
+    "summary": "Install a Regent plugin for the selected runtime.",
+    "next_step": "regents plugin doctor --runtime auto"
   },
   "plugin status": {
     "command": "plugin status",
@@ -4993,9 +4998,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents plugin install --runtime auto"
     },
-    "summary": "Show installed Regent plugins."
+    "summary": "Show installed Regent plugins.",
+    "next_step": "regents plugin install --runtime auto"
   },
   "receipt create": {
     "command": "receipt create",
@@ -5043,9 +5050,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents receipt share-draft --receipt <receipt-id>"
     },
-    "summary": "Create a payment receipt record."
+    "summary": "Create a payment receipt record.",
+    "next_step": "regents receipt share-draft --receipt <receipt-id>"
   },
   "receipt get": {
     "command": "receipt get",
@@ -5075,9 +5084,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents receipt share-draft --receipt <receipt-id>"
     },
-    "summary": "Show receipt."
+    "summary": "Show receipt.",
+    "next_step": "regents receipt share-draft --receipt <receipt-id>"
   },
   "receipt list": {
     "command": "receipt list",
@@ -5099,9 +5110,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents receipt get --receipt <receipt-id>"
     },
-    "summary": "List receipt."
+    "summary": "List receipt.",
+    "next_step": "regents receipt get --receipt <receipt-id>"
   },
   "receipt share-draft": {
     "command": "receipt share-draft",
@@ -5131,9 +5144,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents techtree fold report --agent <agent-id> --json"
     },
-    "summary": "Draft shareable receipt details."
+    "summary": "Draft shareable receipt details.",
+    "next_step": "regents techtree fold report --agent <agent-id> --json"
   },
   "regent-staking account": {
     "command": "regent-staking account",
@@ -5439,9 +5454,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "start_once_keep_running",
       "pagination": "none",
       "async_behavior": "long_running",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents techtree work next --json"
     },
-    "summary": "Start local Regent access for agents and terminal commands."
+    "summary": "Start local Regent access for agents and terminal commands.",
+    "next_step": "regents techtree work next --json"
   },
   "runtime checkpoint": {
     "command": "runtime checkpoint",
@@ -5798,9 +5815,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents techtree work next --json"
     },
-    "summary": "Show runtime policy settings."
+    "summary": "Show runtime policy settings.",
+    "next_step": "regents techtree work next --json"
   },
   "runtime restore": {
     "command": "runtime restore",
@@ -5999,9 +6018,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents runtime tools --json"
     },
-    "summary": "Show runtime status."
+    "summary": "Show runtime status.",
+    "next_step": "regents runtime tools --json"
   },
   "runtime tools": {
     "command": "runtime tools",
@@ -6023,9 +6044,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents runtime policy --json"
     },
-    "summary": "List runtime tools."
+    "summary": "List runtime tools.",
+    "next_step": "regents runtime policy --json"
   },
   "security-report": {
     "command": "security-report",
@@ -6109,9 +6132,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents plugin status --runtime auto"
     },
-    "summary": "Show setup guidance."
+    "summary": "Show setup guidance.",
+    "next_step": "regents plugin status --runtime auto"
   },
   "setup skills": {
     "command": "setup skills",
@@ -7396,9 +7421,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_install",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents run --fold autoresearch"
     },
-    "summary": "Set up fold policy."
+    "summary": "Set up fold policy.",
+    "next_step": "regents run --fold autoresearch"
   },
   "techtree fold proof": {
     "command": "techtree fold proof",
@@ -7428,9 +7455,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_install",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents receipt create --from-attempt <attempt-id> --json"
     },
-    "summary": "Show fold proof."
+    "summary": "Show fold proof.",
+    "next_step": "regents receipt create --from-attempt <attempt-id> --json"
   },
   "techtree fold report": {
     "command": "techtree fold report",
@@ -7460,9 +7489,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_install",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents receipt share-draft --receipt <receipt-id>"
     },
-    "summary": "Create fold report."
+    "summary": "Create fold report.",
+    "next_step": "regents receipt share-draft --receipt <receipt-id>"
   },
   "techtree fold status": {
     "command": "techtree fold status",
@@ -7492,9 +7523,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_install",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents techtree fold report --agent <agent-id> --json"
     },
-    "summary": "Show fold status."
+    "summary": "Show fold status.",
+    "next_step": "regents techtree fold report --agent <agent-id> --json"
   },
   "techtree identities list": {
     "command": "techtree identities list",
@@ -7948,9 +7981,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_packaging",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents techtree notebooks pair --workspace-path <workspace>"
     },
-    "summary": "Set up notebooks."
+    "summary": "Set up notebooks.",
+    "next_step": "regents techtree notebooks pair --workspace-path <workspace>"
   },
   "techtree notebooks pair": {
     "command": "techtree notebooks pair",
@@ -7984,9 +8019,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_packaging",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents techtree notebooks publish --workspace-path <workspace>"
     },
-    "summary": "Pair notebooks."
+    "summary": "Pair notebooks.",
+    "next_step": "regents techtree notebooks publish --workspace-path <workspace>"
   },
   "techtree notebooks publish": {
     "command": "techtree notebooks publish",
@@ -8020,9 +8057,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_packaging",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents receipt create --from-notebook <node-id> --json"
     },
-    "summary": "Publish notebooks."
+    "summary": "Publish notebooks.",
+    "next_step": "regents receipt create --from-notebook <node-id> --json"
   },
   "techtree opportunities": {
     "command": "techtree opportunities",
@@ -8445,6 +8484,126 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Unlock a paid Runbook answer."
+  },
+  "techtree science run": {
+    "command": "techtree science run",
+    "owner": "techtree",
+    "group": "science",
+    "interface": "local-runtime",
+    "auth_mode": "none",
+    "output_envelope": "terminal-science-bench-envelopes",
+    "flags": [
+      {
+        "name": "--task",
+        "type": "terminal-science-task-uri",
+        "required": false
+      },
+      {
+        "name": "--agent",
+        "type": "enum",
+        "enum": [
+          "codex",
+          "openclaw",
+          "hermes",
+          "custom"
+        ],
+        "required": false
+      },
+      {
+        "name": "--model",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "--env",
+        "type": "enum",
+        "enum": [
+          "docker"
+        ],
+        "required": false
+      },
+      {
+        "name": "--run-dir",
+        "type": "path",
+        "required": false
+      },
+      {
+        "name": "--timeout-seconds",
+        "type": "integer",
+        "required": false
+      }
+    ],
+    "examples": [
+      "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name",
+      "regents techtree science run --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name --run-dir ./science-runs/example-name"
+    ],
+    "agent_metadata": {
+      "category": "terminal-science-bench",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "retry_local_runs",
+      "pagination": "none",
+      "async_behavior": "local-long-running",
+      "input_mode": "args-and-flags",
+      "summary": "Run a Terminal Science Bench task locally."
+    },
+    "summary": "Run a Terminal Science Bench task locally."
+  },
+  "techtree science set-goal": {
+    "command": "techtree science set-goal",
+    "owner": "techtree",
+    "group": "science",
+    "interface": "local-runtime",
+    "auth_mode": "none",
+    "output_envelope": "terminal-science-bench-envelopes",
+    "flags": [
+      {
+        "name": "--task",
+        "type": "terminal-science-task-uri",
+        "required": true
+      },
+      {
+        "name": "--agent",
+        "type": "enum",
+        "enum": [
+          "codex",
+          "openclaw",
+          "hermes",
+          "custom"
+        ],
+        "required": false
+      },
+      {
+        "name": "--model",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "--env",
+        "type": "enum",
+        "enum": [
+          "docker"
+        ],
+        "required": false
+      }
+    ],
+    "examples": [
+      "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name",
+      "regents techtree science run --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name --run-dir ./science-runs/example-name"
+    ],
+    "agent_metadata": {
+      "category": "terminal-science-bench",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "retry_local_runs",
+      "pagination": "none",
+      "async_behavior": "local-long-running",
+      "input_mode": "args-and-flags",
+      "summary": "Save a Terminal Science Bench task target."
+    },
+    "summary": "Save a Terminal Science Bench task target."
   },
   "techtree science-tasks checklist": {
     "command": "techtree science-tasks checklist",
@@ -9177,9 +9336,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_packaging",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents techtree work publish --workspace-path ./work/<slug>"
     },
-    "summary": "Accept work."
+    "summary": "Accept work.",
+    "next_step": "regents techtree work publish --workspace-path ./work/<slug>"
   },
   "techtree work list": {
     "command": "techtree work list",
@@ -9226,9 +9387,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_packaging",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents techtree work next --json"
     },
-    "summary": "List work."
+    "summary": "List work.",
+    "next_step": "regents techtree work next --json"
   },
   "techtree work next": {
     "command": "techtree work next",
@@ -9270,9 +9433,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_packaging",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>"
     },
-    "summary": "Show the next work."
+    "summary": "Show the next work.",
+    "next_step": "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>"
   },
   "techtree work publish": {
     "command": "techtree work publish",
@@ -9302,9 +9467,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "retry_reads_and_local_packaging",
       "pagination": "bounded",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "next_step": "regents receipt create --from-notebook <node-id> --json"
     },
-    "summary": "Publish work."
+    "summary": "Publish work.",
+    "next_step": "regents receipt create --from-notebook <node-id> --json"
   },
   "wallet agentic balance": {
     "command": "wallet agentic balance",
@@ -9337,9 +9504,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_status",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d"
     },
-    "summary": "Show the Agent wallet balance."
+    "summary": "Show the Agent wallet balance.",
+    "next_step": "regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d"
   },
   "wallet agentic fund": {
     "command": "wallet agentic fund",
@@ -9378,9 +9547,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_status",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents wallet agentic balance --chain base --json"
     },
-    "summary": "Show how to fund the Agent wallet."
+    "summary": "Show how to fund the Agent wallet.",
+    "next_step": "regents wallet agentic balance --chain base --json"
   },
   "wallet agentic login": {
     "command": "wallet agentic login",
@@ -9416,9 +9587,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_status",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents wallet agentic verify --flow-id <flow-id> --otp <code> --json"
     },
-    "summary": "Sign in with the Agent wallet."
+    "summary": "Sign in with the Agent wallet.",
+    "next_step": "regents wallet agentic verify --flow-id <flow-id> --otp <code> --json"
   },
   "wallet agentic status": {
     "command": "wallet agentic status",
@@ -9440,9 +9613,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_status",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents wallet agentic balance --chain base --json"
     },
-    "summary": "Show Agent wallet readiness."
+    "summary": "Show Agent wallet readiness.",
+    "next_step": "regents wallet agentic balance --chain base --json"
   },
   "wallet agentic verify": {
     "command": "wallet agentic verify",
@@ -9484,9 +9659,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_status",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents wallet agentic balance --chain base --json"
     },
-    "summary": "Verify the Agent wallet sign-in."
+    "summary": "Verify the Agent wallet sign-in.",
+    "next_step": "regents wallet agentic balance --chain base --json"
   },
   "wallet setup": {
     "command": "wallet setup",
@@ -9508,9 +9685,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_status",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents identity ensure"
     },
-    "summary": "Set up the local wallet path."
+    "summary": "Set up the local wallet path.",
+    "next_step": "regents identity ensure"
   },
   "wallet status": {
     "command": "wallet status",
@@ -9532,9 +9711,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_status",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents wallet setup"
     },
-    "summary": "Show wallet readiness."
+    "summary": "Show wallet readiness.",
+    "next_step": "regents wallet setup"
   },
   "whoami": {
     "command": "whoami",
@@ -10052,9 +10233,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "never_retry_payments",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents x402 quote --url <paid-url> --json"
     },
-    "summary": "Show paid endpoint details."
+    "summary": "Show paid endpoint details.",
+    "next_step": "regents x402 quote --url <paid-url> --json"
   },
   "x402 fetch": {
     "command": "x402 fetch",
@@ -10179,9 +10362,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "never_retry_payments",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents receipt share-draft --receipt <receipt-id>"
     },
-    "summary": "Pay an x402 endpoint."
+    "summary": "Pay an x402 endpoint.",
+    "next_step": "regents receipt share-draft --receipt <receipt-id>"
   },
   "x402 prepare": {
     "command": "x402 prepare",
@@ -10245,9 +10430,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "never_retry_payments",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents x402 fetch --intent-id <intent-id> --url <paid-url> --json"
     },
-    "summary": "Prepare an x402 paid request."
+    "summary": "Prepare an x402 paid request.",
+    "next_step": "regents x402 fetch --intent-id <intent-id> --url <paid-url> --json"
   },
   "x402 quote": {
     "command": "x402 quote",
@@ -10306,9 +10493,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "never_retry_payments",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents x402 prepare --url <paid-url> --approve --json"
     },
-    "summary": "Quote an x402 paid request."
+    "summary": "Quote an x402 paid request.",
+    "next_step": "regents x402 prepare --url <paid-url> --approve --json"
   },
   "x402 receipts get": {
     "command": "x402 receipts get",
@@ -10342,9 +10531,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "never_retry_payments",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents receipt create --from-x402-payment <payment-id> --json"
     },
-    "summary": "Show receipts."
+    "summary": "Show receipts.",
+    "next_step": "regents receipt create --from-x402-payment <payment-id> --json"
   },
   "x402 refund": {
     "command": "x402 refund",
@@ -10417,9 +10608,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "never_retry_payments",
       "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "flags"
+      "input_mode": "flags",
+      "next_step": "regents x402 details --url <paid-url> --json"
     },
-    "summary": "Search for x402 services."
+    "summary": "Search for x402 services.",
+    "next_step": "regents x402 details --url <paid-url> --json"
   },
   "xmtp doctor": {
     "command": "xmtp doctor",

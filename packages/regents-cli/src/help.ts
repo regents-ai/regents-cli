@@ -152,7 +152,7 @@ const commandHelp: Record<string, HelpEntry> = {
     summary: "Install the Regent tools into Hermes, OpenClaw, or both.",
     usage: "regents plugin install --runtime <auto|hermes|openclaw>",
     flags: [
-      "--runtime hermes installs only the Hermes tools. Use this for a Hermes agent.",
+      "--runtime hermes installs the Hermes tools and selects xAI Grok OAuth with grok-4.3.",
       "--runtime openclaw installs only the OpenClaw tools. Use this for an OpenClaw agent.",
       "--runtime auto installs both sets of tools. Use this when the machine may run either Hermes or OpenClaw.",
       "--json",
@@ -165,9 +165,9 @@ const commandHelp: Record<string, HelpEntry> = {
     ],
     auth: "No saved sign-in is needed.",
     output:
-      "Shows which runtime was selected and which tool files were written. If you installed the wrong runtime, nothing dangerous happened; run this command again with the runtime used by the agent app.",
+      "Shows which runtime was selected, which tool files were written, and the Hermes sign-in command when Hermes is selected.",
     nextStep:
-      "Run `regents plugin status --runtime hermes` or `regents plugin status --runtime openclaw` to confirm the intended agent app can see Regent, then start Regent with `regents run`.",
+      "For Hermes, run `hermes auth add xai-oauth`, then run `regents plugin status --runtime hermes` and start Regent with `regents run`.",
   },
   "plugin status": {
     summary: "Check whether Hermes, OpenClaw, or both can see the Regent tools.",
@@ -1018,12 +1018,12 @@ Object.assign(commandHelp, {
   "autolaunch prelaunch wizard": {
     summary: "Create or update the saved prelaunch plan for one agent.",
     usage:
-      "regents autolaunch prelaunch wizard --agent <id> --name <token-name> --symbol <symbol> --minimum-raise-usdc <amount> --agent-safe-address <safe>",
+      "regents autolaunch prelaunch wizard --agent <id> --name <token-name> --symbol <symbol> --minimum-raise-quote <amount> --agent-safe-address <safe>",
     flags: [
       "--agent <id> - Agent being launched.",
       "--name <text> - Token name.",
       "--symbol <text> - Token symbol.",
-      "--minimum-raise-usdc <amount> - Minimum raise target.",
+      "--minimum-raise-quote <amount> - Minimum $REGENT raise target, up to 18 decimals.",
       "--agent-safe-address <address> - Agent Safe that will control launch ownership.",
       "--plan <id> - Update an existing plan.",
       "--image-url <url> or --image-file <path>",
@@ -1031,7 +1031,7 @@ Object.assign(commandHelp, {
       "--config <path>",
     ],
     examples: [
-      "regents autolaunch prelaunch wizard --agent agent_123 --name RegentBot --symbol RGBOT --minimum-raise-usdc 1000 --agent-safe-address 0x0000000000000000000000000000000000000001",
+      "regents autolaunch prelaunch wizard --agent agent_123 --name RegentBot --symbol RGBOT --minimum-raise-quote 1000 --agent-safe-address 0x0000000000000000000000000000000000000001",
     ],
     prerequisites: [
       ...autolaunchPrerequisites,
@@ -1132,19 +1132,19 @@ Object.assign(commandHelp, {
   "autolaunch launch preview": {
     summary: "Preview the launch payload before creating a launch job.",
     usage:
-      "regents autolaunch launch preview --agent <id> --name <token-name> --symbol <symbol> --agent-safe-address <safe> --minimum-raise-usdc <amount>",
+      "regents autolaunch launch preview --agent <id> --name <token-name> --symbol <symbol> --agent-safe-address <safe> --minimum-raise-quote <amount>",
     flags: [
       "--agent <id>",
       "--name <text>",
       "--symbol <text>",
       "--agent-safe-address <address>",
-      "--minimum-raise-usdc <amount>",
+      "--minimum-raise-quote <amount> - Minimum $REGENT raise target, up to 18 decimals.",
       "--launch-notes <text>",
       "--json",
       "--config <path>",
     ],
     examples: [
-      "regents autolaunch launch preview --agent agent_123 --name RegentBot --symbol RGBOT --agent-safe-address 0x0000000000000000000000000000000000000001 --minimum-raise-usdc 1000",
+      "regents autolaunch launch preview --agent agent_123 --name RegentBot --symbol RGBOT --agent-safe-address 0x0000000000000000000000000000000000000001 --minimum-raise-quote 1000",
     ],
     prerequisites: autolaunchPrerequisites,
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
@@ -1230,17 +1230,23 @@ Object.assign(commandHelp, {
     prerequisites: autolaunchPrerequisites,
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
     output: "Shows auction state, subject details, bid fields, and current pricing context.",
-    nextStep: "Run `regents autolaunch bids quote --auction <id> --amount <amount> --max-price <price>` before placing a bid.",
+    nextStep: "Run `regents autolaunch bids quote --auction <id> --amount <regent> --max-price <price>` before placing a bid.",
     ifItFails: autolaunchFailureChecks,
   },
   "autolaunch bids quote": {
     summary: "Quote a bid before spending funds.",
-    usage: "regents autolaunch bids quote --auction <auction-id> --amount <amount> --max-price <price> [--json]",
-    flags: ["--auction <id>", "--amount <amount>", "--max-price <price>", "--json", "--config <path>"],
+    usage: "regents autolaunch bids quote --auction <auction-id> --amount <regent> --max-price <price> [--json]",
+    flags: [
+      "--auction <id>",
+      "--amount <regent> - $REGENT bid budget.",
+      "--max-price <price> - Maximum $REGENT price per agent token.",
+      "--json",
+      "--config <path>",
+    ],
     examples: ["regents autolaunch bids quote --auction auction_123 --amount 100 --max-price 0.50 --json"],
     prerequisites: [
       ...autolaunchPrerequisites,
-      "Open the auction first so the amount, max price, and status are current.",
+      "Open the auction first so the $REGENT amount, max price, and status are current.",
       "Use this before every bid because auction conditions can change.",
     ],
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
@@ -1251,11 +1257,11 @@ Object.assign(commandHelp, {
   "autolaunch bids place": {
     summary: "Record a signed bid transaction for an auction.",
     usage:
-      "regents autolaunch bids place --auction <auction-id> --amount <amount> --max-price <price> --tx-hash <hash> [--json]",
+      "regents autolaunch bids place --auction <auction-id> --amount <regent> --max-price <price> --tx-hash <hash> [--json]",
     flags: [
       "--auction <id>",
-      "--amount <amount>",
-      "--max-price <price>",
+      "--amount <regent> - $REGENT bid budget.",
+      "--max-price <price> - Maximum $REGENT price per agent token.",
       "--tx-hash <hash> - Transaction hash for the signed bid.",
       "--current-clearing-price <amount>",
       "--projected-clearing-price <amount>",
@@ -1265,7 +1271,7 @@ Object.assign(commandHelp, {
     examples: ["regents autolaunch bids place --auction auction_123 --amount 100 --max-price 0.50 --tx-hash 0xabc --json"],
     prerequisites: [
       ...autolaunchWalletActionPrerequisites,
-      "Run `regents autolaunch bids quote --auction <id> --amount <amount> --max-price <price>` immediately before placing.",
+      "Run `regents autolaunch bids quote --auction <id> --amount <regent> --max-price <price>` immediately before placing.",
       "Submit the wallet transaction first, then pass the resulting `--tx-hash`.",
     ],
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
@@ -1358,7 +1364,9 @@ Object.assign(commandHelp, {
     usage: "regents techtree work accept --work-unit <id> [--workspace-path <path>] [--json]",
     flags: ["--work-unit <id>", "--workspace-path <path>", "--json", "--config <path>"],
     examples: ["regents techtree work accept --work-unit benchmark:bench_123 --workspace-path ./work/bench_123"],
-    prerequisites: techtreeWorkspacePrerequisites,
+    prerequisites: [
+      "Start `regents run` in another terminal first.",
+    ],
     auth: "Signed Techtree work needs Techtree sign-in and a saved Agent account.",
     output: "Shows the accepted work unit, local workspace path, and next local work command.",
     nextStep: "Do the work in the workspace, then run `regents techtree work publish --workspace-path <path>`.",
@@ -1538,6 +1546,37 @@ Object.assign(commandHelp, {
     auth: "Signed Science Task review needs Techtree sign-in and a saved Agent account.",
     output: "Shows review status, open concerns, and follow-up actions.",
     nextStep: "Run `regents techtree science-tasks submit --workspace-path <path>` when review is clean.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree science set-goal": {
+    summary: "Save a Terminal Science Bench task target.",
+    usage: "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/<domain>/<field>/<task>",
+    flags: ["--task <task>", "--agent <codex|openclaw|hermes|custom>", "--model <model>", "--env <docker>", "--json", "--config <path>"],
+    examples: [
+      "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name",
+    ],
+    prerequisites: techtreeWorkspacePrerequisites,
+    auth: "Needs Regent running on this machine.",
+    output: "Shows the saved task, runner, model, and environment.",
+    nextStep: "Run `regents techtree science run --run-dir ./science-runs/<task>` when you are ready.",
+    ifItFails: techtreeFailureChecks,
+  },
+  "techtree science run": {
+    summary: "Run a Terminal Science Bench task and save local result files.",
+    usage: "regents techtree science run [--task harbor-framework/terminal-bench-science:tasks/<domain>/<field>/<task>] [--run-dir <path>]",
+    flags: ["--task <task>", "--run-dir <path>", "--agent <codex|openclaw|hermes|custom>", "--model <model>", "--env <docker>", "--timeout-seconds <n>", "--json", "--config <path>"],
+    examples: [
+      "regents techtree science run --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name --run-dir ./science-runs/example-name",
+      "regents techtree science run --run-dir ./science-runs/latest",
+    ],
+    prerequisites: [
+      "Start `regents run` in another terminal first.",
+      "Install Harbor and prepare the selected local runner before starting a run.",
+      "Keep raw logs private unless you deliberately review and share them.",
+    ],
+    auth: "Needs Regent running on this machine.",
+    output: "Shows the run folder, verifier result, public summary, and saved file paths.",
+    nextStep: "Open the printed run folder or rerun with another task.",
     ifItFails: techtreeFailureChecks,
   },
   "techtree benchmarks list": {

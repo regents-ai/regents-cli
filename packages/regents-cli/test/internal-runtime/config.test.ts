@@ -162,6 +162,12 @@ describe("config loading", () => {
             workspaceRoot: "./workspaces/claude-code",
             profiles: ["owner", "public", "group", "bbh"],
           },
+          codex: {
+            enabled: false,
+            entrypoint: "codex",
+            workspaceRoot: "./workspaces/codex",
+            profiles: ["owner", "public", "group", "bbh", "science"],
+          },
           custom: {
             enabled: false,
             entrypoint: "custom-harness",
@@ -176,6 +182,14 @@ describe("config loading", () => {
           defaultHarness: "hermes",
           defaultProfile: "bbh",
         },
+        science: {
+          workspaceRoot: "./workspaces/science",
+          taskRepoRoot: "./workspaces/science/repos",
+          defaultHarness: "codex",
+          defaultModel: "openai/gpt-5.4",
+          defaultEnvironment: "docker",
+          defaultTaskRef: "main",
+        },
       },
     });
 
@@ -186,7 +200,10 @@ describe("config loading", () => {
     expect(written.xmtp.dbPath).toBe(path.join(tempDir, "xmtp", "dev", "client.db"));
     expect(written.xmtp.publicPolicyPath).toBe(path.join(tempDir, "policies", "public-xmtp.md"));
     expect(written.agents.harnesses.hermes.workspaceRoot).toBe(path.join(tempDir, "workspaces", "hermes"));
+    expect(written.agents.harnesses.codex.workspaceRoot).toBe(path.join(tempDir, "workspaces", "codex"));
     expect(written.workloads.bbh.workspaceRoot).toBe(path.join(tempDir, "workspaces", "bbh"));
+    expect(written.workloads.science.workspaceRoot).toBe(path.join(tempDir, "workspaces", "science"));
+    expect(written.workloads.science.taskRepoRoot).toBe(path.join(tempDir, "workspaces", "science", "repos"));
     expect(fs.existsSync(path.dirname(written.runtime.socketPath))).toBe(true);
     expect(fs.existsSync(written.runtime.stateDir)).toBe(true);
     expect(fs.existsSync(path.dirname(written.wallet.keystorePath))).toBe(true);
@@ -194,7 +211,10 @@ describe("config loading", () => {
     expect(fs.existsSync(path.dirname(written.xmtp.dbPath))).toBe(true);
     expect(fs.existsSync(path.dirname(written.xmtp.publicPolicyPath))).toBe(true);
     expect(fs.existsSync(written.agents.harnesses.hermes.workspaceRoot)).toBe(true);
+    expect(fs.existsSync(written.agents.harnesses.codex.workspaceRoot)).toBe(true);
     expect(fs.existsSync(written.workloads.bbh.workspaceRoot)).toBe(true);
+    expect(fs.existsSync(written.workloads.science.workspaceRoot)).toBe(true);
+    expect(fs.existsSync(written.workloads.science.taskRepoRoot)).toBe(true);
   });
 
   it("only writes the initial config file when it is missing", () => {

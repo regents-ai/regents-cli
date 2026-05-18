@@ -299,7 +299,7 @@ export const extractWalletAction = (
     action: requireStringField(walletAction.action, "action"),
     chain_id: requirePreparedTxChainId(walletAction.chain_id),
     to: requireAddressField(walletAction.to, "to"),
-    value: requireStringField(walletAction.value, "value"),
+    value: requireHexField(walletAction.value, "value"),
     data: requireHexField(walletAction.data, "data"),
     expected_signer: requireAddressField(walletAction.expected_signer, "expected_signer"),
     expires_at: requireStringField(walletAction.expires_at, "expires_at"),

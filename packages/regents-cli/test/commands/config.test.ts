@@ -36,8 +36,11 @@ describe("config commands", () => {
         techtree: { baseUrl: string; requestTimeoutMs: number };
       };
       xmtp: { dbPath: string; publicPolicyPath: string; env: string };
-      agents: { defaultHarness: string; harnesses: { hermes: { workspaceRoot: string } } };
-      workloads: { bbh: { workspaceRoot: string; defaultHarness: string; defaultProfile: string } };
+      agents: { defaultHarness: string; harnesses: { hermes: { workspaceRoot: string }; codex: { workspaceRoot: string } } };
+      workloads: {
+        bbh: { workspaceRoot: string; defaultHarness: string; defaultProfile: string };
+        science: { workspaceRoot: string; taskRepoRoot: string; defaultHarness: string; defaultModel: string };
+      };
     }>(stdout);
 
     expect(printed.runtime.socketPath).toBe(path.join(tempDir, "run", "regent.sock"));
@@ -68,10 +71,17 @@ describe("config commands", () => {
     });
     expect(printed.agents.defaultHarness).toBe("hermes");
     expect(printed.agents.harnesses.hermes.workspaceRoot).toBe(path.join(tempDir, "workspaces", "hermes"));
+    expect(printed.agents.harnesses.codex.workspaceRoot).toBe(path.join(tempDir, "workspaces", "codex"));
     expect(printed.workloads.bbh).toEqual({
       workspaceRoot: path.join(tempDir, "workspaces", "bbh"),
       defaultHarness: "hermes",
       defaultProfile: "bbh",
+    });
+    expect(printed.workloads.science).toMatchObject({
+      workspaceRoot: path.join(tempDir, "workspaces", "science"),
+      taskRepoRoot: path.join(tempDir, "workspaces", "science", "repos"),
+      defaultHarness: "codex",
+      defaultModel: "openai/gpt-5.4",
     });
   });
 
@@ -156,6 +166,12 @@ describe("config commands", () => {
               workspaceRoot: path.join(tempDir, "workspaces", "claude-code"),
               profiles: ["owner", "public", "group", "bbh"],
             },
+            codex: {
+              enabled: false,
+              entrypoint: "codex",
+              workspaceRoot: path.join(tempDir, "workspaces", "codex"),
+              profiles: ["owner", "public", "group", "bbh", "science"],
+            },
             custom: {
               enabled: false,
               entrypoint: "custom-harness",
@@ -169,6 +185,14 @@ describe("config commands", () => {
             workspaceRoot: path.join(tempDir, "workspaces", "bbh"),
             defaultHarness: "hermes",
             defaultProfile: "bbh",
+          },
+          science: {
+            workspaceRoot: path.join(tempDir, "workspaces", "science"),
+            taskRepoRoot: path.join(tempDir, "workspaces", "science", "repos"),
+            defaultHarness: "codex",
+            defaultModel: "openai/gpt-5.4",
+            defaultEnvironment: "docker",
+            defaultTaskRef: "main",
           },
         },
       }),

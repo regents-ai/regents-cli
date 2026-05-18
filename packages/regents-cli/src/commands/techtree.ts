@@ -7,6 +7,7 @@ import { getFlag, getFlags, parseIntegerFlag, requireArg, type ParsedCliArgs } f
 import { printJson } from "../printer.js";
 
 export * from "./techtree-science-tasks.js";
+export * from "./techtree-science.js";
 export * from "./techtree-watch.js";
 export * from "./techtree-benchmarks.js";
 export * from "./techtree-tech.js";

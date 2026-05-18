@@ -99,9 +99,9 @@ export async function runAutolaunchLaunchPreview(
     token_name: required.name,
     token_symbol: required.symbol,
     agent_safe_address: required.agentSafeAddress,
-    minimum_raise_usdc: requireArg(
-      getFlag(args, "minimum-raise-usdc"),
-      "minimum-raise-usdc",
+    minimum_raise_quote: requireArg(
+      getFlag(args, "minimum-raise-quote"),
+      "minimum-raise-quote",
     ),
     total_supply: AGENT_LAUNCH_TOTAL_SUPPLY,
     launch_notes: getFlag(args, "launch-notes"),

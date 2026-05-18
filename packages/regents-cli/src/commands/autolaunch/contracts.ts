@@ -115,11 +115,11 @@ export async function runAutolaunchStrategySweepToken(
   await postPrepareJobAction(args, "strategy", "sweep_token", {}, configPath);
 }
 
-export async function runAutolaunchStrategySweepCurrency(
+export async function runAutolaunchStrategySweepQuoteToken(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  await postPrepareJobAction(args, "strategy", "sweep_currency", {}, configPath);
+  await postPrepareJobAction(args, "strategy", "sweep_quote_token", {}, configPath);
 }
 
 export async function runAutolaunchVestingRelease(
@@ -164,15 +164,6 @@ export async function runAutolaunchFeeVaultGet(
   configPath?: string,
 ): Promise<void> {
   await runAutolaunchContractsJobShow(args, configPath);
-}
-
-export async function runAutolaunchSplitterPullTreasuryShare(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  await postPrepareJobAction(args, "revenue_splitter", "pull_treasury_share", {
-    amount: requireArg(getFlag(args, "amount"), "amount"),
-  }, configPath);
 }
 
 export async function runAutolaunchFeeVaultWithdrawRegent(

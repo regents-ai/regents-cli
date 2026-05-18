@@ -124,7 +124,7 @@ describe("autolaunch CLI command group", () => {
         ...base,
         owner_product: "autolaunch",
         to: "0x5555555555555555555555555555555555555555",
-        value: "0",
+        value: "0x0",
         data,
         simulation: { required: false, status: "not_required", block_number: null },
       },
@@ -318,7 +318,7 @@ describe("autolaunch CLI command group", () => {
       createSafeDeploymentTransaction: vi.fn().mockResolvedValue({
         to: "0x5555555555555555555555555555555555555555",
         data: "0xabcdef",
-        value: "0",
+        value: "0x0",
       }),
       getContractVersion: vi.fn().mockReturnValue("1.4.1"),
     });
@@ -651,7 +651,7 @@ describe("autolaunch CLI command group", () => {
         "Atlas Coin",
         "--symbol",
         "ATLAS",
-        "--minimum-raise-usdc",
+        "--minimum-raise-quote",
         "10000",
         "--agent-safe-address",
         "0x1111111111111111111111111111111111111111",
@@ -670,7 +670,7 @@ describe("autolaunch CLI command group", () => {
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
       agent_safe_address: "0x1111111111111111111111111111111111111111",
-      minimum_raise_usdc: "10000",
+      minimum_raise_quote: "10000",
     });
     expect(
       parsePrintedJson<{ reputation_prompt: { skip_label: string } }>(
@@ -1081,15 +1081,15 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
-  it("prepares treasury share pulls through the revenue splitter", async () => {
+  it("prepares quote token sweeps through the strategy", async () => {
     fetchMock.mockResolvedValue(
       new Response(
         JSON.stringify({
           ok: true,
           prepared: preparedContractAction(
-            "0x94af8446",
-            "revenue_splitter",
-            "pull_treasury_share",
+            "0x73d8b8d9",
+            "strategy",
+            "sweep_quote_token",
           ),
         }),
         {
@@ -1102,28 +1102,24 @@ describe("autolaunch CLI command group", () => {
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "autolaunch",
-        "splitter",
-        "pull-treasury-share",
+        "strategy",
+        "sweep-quote-token",
         "--job",
         "job_123",
-        "--amount",
-        "7000000",
       ]),
     );
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/contracts/jobs/job_123/revenue_splitter/pull_treasury_share/prepare`,
+      `${expectedBaseUrl}/v1/agent/contracts/jobs/job_123/strategy/sweep_quote_token/prepare`,
     );
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
-      amount: "7000000",
-    });
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({});
     expect(
       parsePrintedJson<{ prepared: { resource: string; action: string } }>(output.stdout),
     ).toMatchObject({
       prepared: {
-        resource: "revenue_splitter",
-        action: "pull_treasury_share",
+        resource: "strategy",
+        action: "sweep_quote_token",
       },
     });
   });
@@ -1431,7 +1427,7 @@ describe("autolaunch CLI command group", () => {
         "Agent Coin",
         "--symbol",
         "AGENT",
-        "--minimum-raise-usdc",
+        "--minimum-raise-quote",
         "2500",
         "--agent-safe-address",
         "0x0000000000000000000000000000000000000001",
@@ -1492,7 +1488,7 @@ describe("autolaunch CLI command group", () => {
         "Atlas Coin",
         "--symbol",
         "ATLAS",
-        "--minimum-raise-usdc",
+        "--minimum-raise-quote",
         "10000",
         "--agent-safe-address",
         "0x1111111111111111111111111111111111111111",
@@ -1506,7 +1502,7 @@ describe("autolaunch CLI command group", () => {
       agent_id: "8453:42",
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
-      minimum_raise_usdc: "10000",
+      minimum_raise_quote: "10000",
       agent_safe_address: "0x1111111111111111111111111111111111111111",
     });
   });
@@ -1561,7 +1557,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(JSON.parse(String(requestInit?.body))).toMatchObject({
-      minimum_raise_usdc: "0",
+      minimum_raise_quote: "0",
     });
   });
 
@@ -1570,8 +1566,8 @@ describe("autolaunch CLI command group", () => {
     { flag: "--name", value: "Atlas Token Name", error: "Token name must be 3 to 15 characters." },
     { flag: "--symbol", value: "A", error: "Token symbol must be 2 to 10 characters." },
     { flag: "--symbol", value: "ATLASCOINXX", error: "Token symbol must be 2 to 10 characters." },
-    { flag: "--minimum-raise-usdc", value: "-1", error: "Minimum USDC raise must be a whole number, 0 or greater." },
-    { flag: "--minimum-raise-usdc", value: "1.5", error: "Minimum USDC raise must be a whole number, 0 or greater." },
+    { flag: "--minimum-raise-quote", value: "-1", error: "Minimum $REGENT raise must be 0 or greater, with up to 18 decimals." },
+    { flag: "--minimum-raise-quote", value: "0.0000000000000000001", error: "Minimum $REGENT raise must be 0 or greater, with up to 18 decimals." },
   ])("rejects unsafe prelaunch input for $flag", async ({ flag, value, error }) => {
     const args = [
       "autolaunch",
@@ -1583,7 +1579,7 @@ describe("autolaunch CLI command group", () => {
       "Atlas Coin",
       "--symbol",
       "ATLAS",
-      "--minimum-raise-usdc",
+      "--minimum-raise-quote",
       "0",
       "--agent-safe-address",
       "0x1111111111111111111111111111111111111111",
@@ -1598,6 +1594,62 @@ describe("autolaunch CLI command group", () => {
     expect(output.stderr).toContain(error);
   });
 
+  it("accepts decimal prelaunch minimum raises with REGENT precision", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_mainnet",
+              state: "draft",
+              agent_id: "8453:42",
+              metadata_draft: { title: "Atlas Coin" },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_mainnet",
+              state: "launchable",
+              validation_summary: { launchable: true },
+            },
+            validation: { launchable: true, blockers: [], warnings: [] },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "prelaunch",
+        "wizard",
+        "--agent",
+        "8453:42",
+        "--name",
+        "Atlas Coin",
+        "--symbol",
+        "ATLAS",
+        "--minimum-raise-quote",
+        "1.500000000000000001",
+        "--agent-safe-address",
+        "0x1111111111111111111111111111111111111111",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect(JSON.parse(String(requestInit?.body))).toMatchObject({
+      minimum_raise_quote: "1.500000000000000001",
+    });
+  });
+
   it("requires interactive confirmation for a high prelaunch minimum raise", async () => {
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -1610,7 +1662,7 @@ describe("autolaunch CLI command group", () => {
         "Atlas Coin",
         "--symbol",
         "ATLAS",
-        "--minimum-raise-usdc",
+        "--minimum-raise-quote",
         "50001",
         "--agent-safe-address",
         "0x1111111111111111111111111111111111111111",
@@ -1619,7 +1671,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(1);
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(output.stderr).toContain("Minimum USDC raise above 50000 requires confirmation.");
+    expect(output.stderr).toContain("Minimum $REGENT raise above 50000 requires confirmation.");
   });
 
   it("shows the alpha funds warning at the start of the prelaunch wizard", async () => {
@@ -1795,7 +1847,7 @@ describe("autolaunch CLI command group", () => {
         "Atlas Coin",
         "--symbol",
         "ATLAS",
-        "--minimum-raise-usdc",
+        "--minimum-raise-quote",
         "10000",
         "--agent-safe-address",
         "0x1111111111111111111111111111111111111111",
@@ -1822,7 +1874,7 @@ describe("autolaunch CLI command group", () => {
       agent_id: "8453:42",
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
-      minimum_raise_usdc: "10000",
+      minimum_raise_quote: "10000",
       agent_safe_address: "0x1111111111111111111111111111111111111111",
       metadata_draft: {
         title: "Atlas Launch",
@@ -2104,7 +2156,7 @@ describe("autolaunch CLI command group", () => {
         "Atlas Coin",
         "--symbol",
         "ATLAS",
-        "--minimum-raise-usdc",
+        "--minimum-raise-quote",
         "10000",
       ]),
     );

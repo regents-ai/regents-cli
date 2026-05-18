@@ -255,6 +255,12 @@ describe("CLI config flows", () => {
             workspaceRoot: path.join(harness.tempDir, "workspaces", "claude-code"),
             profiles: ["owner", "public", "group", "bbh"],
           },
+          codex: {
+            enabled: false,
+            entrypoint: "codex",
+            workspaceRoot: path.join(harness.tempDir, "workspaces", "codex"),
+            profiles: ["owner", "public", "group", "bbh", "science"],
+          },
           custom: {
             enabled: false,
             entrypoint: "custom-harness",
@@ -268,6 +274,14 @@ describe("CLI config flows", () => {
           workspaceRoot: path.join(harness.tempDir, "workspaces", "bbh"),
           defaultHarness: "hermes",
           defaultProfile: "bbh",
+        },
+        science: {
+          workspaceRoot: path.join(harness.tempDir, "workspaces", "science"),
+          taskRepoRoot: path.join(harness.tempDir, "workspaces", "science", "repos"),
+          defaultHarness: "codex",
+          defaultModel: "openai/gpt-5.4",
+          defaultEnvironment: "docker",
+          defaultTaskRef: "main",
         },
       },
     });
@@ -351,6 +365,12 @@ describe("CLI config flows", () => {
               workspaceRoot: path.join(harness.tempDir, "workspaces", "claude-code"),
               profiles: ["owner", "public", "group", "bbh"],
             },
+            codex: {
+              enabled: false,
+              entrypoint: "codex",
+              workspaceRoot: path.join(harness.tempDir, "workspaces", "codex"),
+              profiles: ["owner", "public", "group", "bbh", "science"],
+            },
             custom: {
               enabled: false,
               entrypoint: "custom-harness",
@@ -364,6 +384,14 @@ describe("CLI config flows", () => {
             workspaceRoot: path.join(harness.tempDir, "workspaces", "bbh"),
             defaultHarness: "hermes",
             defaultProfile: "bbh",
+          },
+          science: {
+            workspaceRoot: path.join(harness.tempDir, "workspaces", "science"),
+            taskRepoRoot: path.join(harness.tempDir, "workspaces", "science", "repos"),
+            defaultHarness: "codex",
+            defaultModel: "openai/gpt-5.4",
+            defaultEnvironment: "docker",
+            defaultTaskRef: "main",
           },
         },
       }),
@@ -458,6 +486,12 @@ describe("CLI config flows", () => {
               workspaceRoot: path.join(harness.tempDir, "workspaces", "claude-code"),
               profiles: ["owner", "public", "group", "bbh"],
             },
+            codex: {
+              enabled: false,
+              entrypoint: "codex",
+              workspaceRoot: path.join(harness.tempDir, "workspaces", "codex"),
+              profiles: ["owner", "public", "group", "bbh", "science"],
+            },
             custom: {
               enabled: false,
               entrypoint: "custom-harness",
@@ -471,6 +505,14 @@ describe("CLI config flows", () => {
             workspaceRoot: path.join(harness.tempDir, "workspaces", "bbh"),
             defaultHarness: "hermes",
             defaultProfile: "bbh",
+          },
+          science: {
+            workspaceRoot: path.join(harness.tempDir, "workspaces", "science"),
+            taskRepoRoot: path.join(harness.tempDir, "workspaces", "science", "repos"),
+            defaultHarness: "codex",
+            defaultModel: "openai/gpt-5.4",
+            defaultEnvironment: "docker",
+            defaultTaskRef: "main",
           },
         },
       },

@@ -3,6 +3,8 @@ import type {
   BenchmarkAttemptResponse,
   BenchmarkCapsuleCreateInput,
   BenchmarkCapsuleListResponse,
+  BenchmarkCapsulePublishInput,
+  BenchmarkCapsulePublishResponse,
   BenchmarkCapsuleResponse,
   BenchmarkHarnessCreateInput,
   BenchmarkHarnessResponse,
@@ -83,6 +85,14 @@ export class BenchmarksResource {
     return this.request.authedFetchJson<BenchmarkVersionResponse>(
       "POST",
       `/v1/agent/benchmarks/capsules/${pathId(capsuleId)}/versions`,
+      input,
+    );
+  }
+
+  publishCapsule(capsuleId: string, input: BenchmarkCapsulePublishInput): Promise<BenchmarkCapsulePublishResponse> {
+    return this.request.authedFetchJson<BenchmarkCapsulePublishResponse>(
+      "POST",
+      `/v1/agent/benchmarks/capsules/${pathId(capsuleId)}/publish`,
       input,
     );
   }

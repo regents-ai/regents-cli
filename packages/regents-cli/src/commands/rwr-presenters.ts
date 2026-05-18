@@ -491,6 +491,7 @@ export const printRuntimeServicesResult = (args: ParsedCliArgs, payload: RwrPayl
 export const printRuntimeHealthResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
   printRwrPayload(args, payload, () => {
     const health = asRecord(payload.result.health, "runtime health");
+    const controlRoom = asRecord(health.control_room, "control room");
     const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
     const runtimeId = displayValue(payload.result.runtime_id) ?? args.positionals[2] ?? "<runtime-id>";
 
@@ -500,6 +501,17 @@ export const printRuntimeHealthResult = (args: ParsedCliArgs, payload: RwrPayloa
         { label: "status", value: displayLabel(health.status) ?? "unknown", valueColor: CLI_PALETTE.emphasis },
         { label: "available", value: health.available === true ? "yes" : "no" },
         { label: "metering", value: displayLabel(health.metering_status) ?? "unknown" },
+      ], {
+        borderColor: CLI_PALETTE.chrome,
+        titleColor: CLI_PALETTE.title,
+      }),
+      renderKeyValuePanel("◆ HERMES CONTROL ROOM", [
+        { label: "status", value: displayLabel(controlRoom.status) ?? "unknown", valueColor: CLI_PALETTE.emphasis },
+        { label: "one Sprite", value: controlRoom.one_sprite === true ? "yes" : "no" },
+        { label: "Sprite runtime", value: displayValue(controlRoom.sprite_runtime_id) ?? "none" },
+        { label: "Workspace service", value: displayValue(controlRoom.workspace_service_name) ?? "none" },
+        { label: "bridge service", value: displayValue(controlRoom.bridge_service_name) ?? "none" },
+        { label: "control room", value: displayValue(controlRoom.path) ?? "none" },
       ], {
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,

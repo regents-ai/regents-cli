@@ -4,13 +4,18 @@ import type { BenchmarkProofLevel, FoldPolicyInput } from "../internal-types/ind
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
+const withNextSteps = <T>(payload: T, nextSteps: readonly string[]): T & { next_steps: readonly string[] } => ({
+  ...(payload as Record<string, unknown>),
+  next_steps: nextSteps,
+}) as T & { next_steps: readonly string[] };
+
 const proofLevels = new Set(["self_reported", "external_eval", "reproducible", "tee_attested", "cross_provider"]);
 const privacyClasses = new Set(["public", "blinded", "hidden_scorer"]);
 type FoldPrivacyClass = FoldPolicyInput["privacy_classes"][number];
 
 export async function runTechtreeFoldPolicyInit(args: ParsedCliArgs, configPath?: string): Promise<void> {
   printJson(
-    await daemonCall(
+    withNextSteps(await daemonCall(
       "techtree.fold.policy.init",
       {
         enabled: getBooleanFlag(args, "enabled"),
@@ -25,27 +30,31 @@ export async function runTechtreeFoldPolicyInit(args: ParsedCliArgs, configPath?
         reporting: { weekly_summary: getBooleanFlag(args, "weekly-summary") },
       },
       configPath,
-    ),
+    ), ["regents run --fold autoresearch"]),
   );
 }
 
 export async function runTechtreeFoldStatus(_args: ParsedCliArgs, configPath?: string): Promise<void> {
-  printJson(await daemonCall("techtree.fold.status", undefined, configPath));
+  printJson(withNextSteps(await daemonCall("techtree.fold.status", undefined, configPath), ["regents techtree fold report --agent <agent-id> --json"]));
 }
 
 export async function runTechtreeFoldProof(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const attemptId = requireArg(getFlag(args, "attempt"), "--attempt");
   printJson(
-    await daemonCall(
+    withNextSteps(await daemonCall(
       "techtree.fold.proof",
-      { attempt_id: requireArg(getFlag(args, "attempt"), "--attempt") },
+      { attempt_id: attemptId },
       configPath,
-    ),
+    ), [`regents receipt create --from-attempt ${attemptId} --json`]),
   );
 }
 
 export async function runTechtreeFoldReport(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  requireArg(getFlag(args, "agent"), "--agent");
-  printJson(await daemonCall("techtree.fold.evidencePacket", undefined, configPath));
+  const agentId = requireArg(getFlag(args, "agent"), "--agent");
+  printJson(withNextSteps(await daemonCall("techtree.fold.evidencePacket", undefined, configPath), [
+    `regents techtree fold status --agent ${agentId} --json`,
+    "regents receipt share-draft --receipt <receipt-id>",
+  ]));
 }
 
 const parseUsdMicros = (value: string | undefined, flagName: string): number => {

@@ -19,6 +19,8 @@ import type {
   BenchmarkAttemptResponse,
   BenchmarkCapsuleCreateInput,
   BenchmarkCapsuleListResponse,
+  BenchmarkCapsulePublishInput,
+  BenchmarkCapsulePublishResponse,
   BenchmarkCapsuleResponse,
   BenchmarkHarnessCreateInput,
   BenchmarkHarnessResponse,
@@ -359,6 +361,10 @@ export class TechtreeClient {
 
   createBenchmarkVersion(capsuleId: string, input: BenchmarkVersionCreateInput): Promise<BenchmarkVersionResponse> {
     return this.benchmarks.createVersion(capsuleId, input);
+  }
+
+  publishBenchmarkCapsule(capsuleId: string, input: BenchmarkCapsulePublishInput): Promise<BenchmarkCapsulePublishResponse> {
+    return this.benchmarks.publishCapsule(capsuleId, input);
   }
 
   createBenchmarkHarness(input: BenchmarkHarnessCreateInput): Promise<BenchmarkHarnessResponse> {

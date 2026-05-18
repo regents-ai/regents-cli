@@ -25,7 +25,7 @@ describe("Regent plugin bridge installer", () => {
   });
 
   it("installs typed tools and Fold proof by attempt", () => {
-    installPlugin("hermes");
+    const report = installPlugin("hermes");
 
     const toolsPath = path.join(tempHome, ".hermes", "plugins", "regent", "tools.py");
     const tools = fs.readFileSync(toolsPath, "utf8");
@@ -44,5 +44,12 @@ describe("Regent plugin bridge installer", () => {
       "regent-wallet-budget",
       "regent-x402",
     ]);
+
+    const config = fs.readFileSync(path.join(tempHome, ".hermes", "config.yaml"), "utf8");
+    expect(config).toContain("default: grok-4.3");
+    expect(config).toContain("provider: xai-oauth");
+    expect(config).toContain("base_url: https://api.x.ai/v1");
+    expect(report.hermesXaiOAuth?.loginCommand).toBe("hermes auth add xai-oauth");
+    expect(report.files).toContain(path.join(tempHome, ".hermes", "plugins", "regent", "xai-grok-oauth.md"));
   });
 });

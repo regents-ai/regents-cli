@@ -29,6 +29,8 @@ import {
   runTechtreeNodesList,
   runTechtreeOpportunities,
   runTechtreeSearch,
+  runTechtreeScienceRun,
+  runTechtreeScienceSetGoal,
   runTechtreeStar,
   runTechtreeStatus,
   runTechtreeUnstar,
@@ -282,6 +284,14 @@ export const techtreeRoutes: readonly CliRoute[] = [
   }),
   route("techtree science-tasks review-loop", async ({ parsedArgs, configPath }) => {
     await runTechtreeScienceTasksReviewLoop(parsedArgs, configPath);
+    return 0;
+  }),
+  route("techtree science set-goal", async ({ parsedArgs, configPath }) => {
+    await runTechtreeScienceSetGoal(parsedArgs, configPath);
+    return 0;
+  }),
+  route("techtree science run", async ({ parsedArgs, configPath }) => {
+    await runTechtreeScienceRun(parsedArgs, configPath);
     return 0;
   }),
   route("techtree work list", async ({ parsedArgs, configPath }) => {

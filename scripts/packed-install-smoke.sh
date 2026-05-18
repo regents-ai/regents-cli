@@ -464,19 +464,25 @@ cat > "${WORK_DIR}/replacement.json" <<EOF
         "enabled": false,
         "entrypoint": "openclaw",
         "workspaceRoot": "${WORK_DIR}/workspaces/openclaw",
-        "profiles": ["owner", "public", "group", "bbh"]
+        "profiles": ["owner", "public", "group", "bbh", "science"]
       },
       "hermes": {
         "enabled": true,
         "entrypoint": "hermes",
         "workspaceRoot": "${WORK_DIR}/workspaces/hermes",
-        "profiles": ["owner", "public", "group", "bbh"]
+        "profiles": ["owner", "public", "group", "bbh", "science"]
       },
       "claude_code": {
         "enabled": false,
         "entrypoint": "claude",
         "workspaceRoot": "${WORK_DIR}/workspaces/claude-code",
-        "profiles": ["owner", "public", "group", "bbh"]
+        "profiles": ["owner", "public", "group", "bbh", "science"]
+      },
+      "codex": {
+        "enabled": false,
+        "entrypoint": "codex",
+        "workspaceRoot": "${WORK_DIR}/workspaces/codex",
+        "profiles": ["owner", "public", "group", "bbh", "science"]
       },
       "custom": {
         "enabled": false,
@@ -491,6 +497,14 @@ cat > "${WORK_DIR}/replacement.json" <<EOF
       "workspaceRoot": "${WORK_DIR}/workspaces/bbh",
       "defaultHarness": "hermes",
       "defaultProfile": "bbh"
+    },
+    "science": {
+      "workspaceRoot": "${WORK_DIR}/workspaces/science",
+      "taskRepoRoot": "${WORK_DIR}/workspaces/science/repos",
+      "defaultHarness": "codex",
+      "defaultModel": "openai/gpt-5.4",
+      "defaultEnvironment": "docker",
+      "defaultTaskRef": "main"
     }
   }
 }

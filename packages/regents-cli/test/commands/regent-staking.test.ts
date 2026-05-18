@@ -74,7 +74,7 @@ describe("regent-staking CLI command group", () => {
     action: "claim",
     chain_id: 8453,
     to: "0x3333333333333333333333333333333333333333",
-    value: "0",
+    value: "0x0",
     data,
     expected_signer: submitWallet,
     expires_at: "2999-01-01T00:00:00.000Z",

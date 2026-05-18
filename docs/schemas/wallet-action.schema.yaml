@@ -47,7 +47,7 @@ properties:
     pattern: "^0x[a-fA-F0-9]{40}$"
   value:
     type: string
-    pattern: "^[0-9]+$"
+    pattern: "^0x[a-fA-F0-9]+$"
   data:
     type: string
     pattern: "^0x[a-fA-F0-9]*$"

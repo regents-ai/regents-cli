@@ -48,7 +48,6 @@ import {
   runAutolaunchSplitterCancelEligibleRevenueShare,
   runAutolaunchSplitterCancelTreasuryRecipientRotation,
   runAutolaunchSplitterExecuteTreasuryRecipientRotation,
-  runAutolaunchSplitterPullTreasuryShare,
   runAutolaunchSplitterProposeEligibleRevenueShare,
   runAutolaunchSplitterProposeTreasuryRecipientRotation,
   runAutolaunchSplitterReassignDust,
@@ -60,7 +59,7 @@ import {
   runAutolaunchSplitterSweepTreasuryResidual,
   runAutolaunchSplitterGet,
   runAutolaunchStrategyMigrate,
-  runAutolaunchStrategySweepCurrency,
+  runAutolaunchStrategySweepQuoteToken,
   runAutolaunchStrategySweepToken,
   runAutolaunchSubjectByToken,
   runAutolaunchSubjectClaimUsdc,
@@ -264,8 +263,8 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchStrategySweepToken(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch strategy sweep-currency", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchStrategySweepCurrency(parsedArgs, configPath);
+  route("autolaunch strategy sweep-quote-token", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchStrategySweepQuoteToken(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch vesting release", async ({ parsedArgs, configPath }) => {
@@ -306,10 +305,6 @@ export const autolaunchRoutes: readonly CliRoute[] = [
   }),
   route("autolaunch splitter accept-ownership", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSplitterAcceptOwnership(parsedArgs, configPath);
-    return 0;
-  }),
-  route("autolaunch splitter pull-treasury-share", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchSplitterPullTreasuryShare(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch splitter set-paused", async ({ parsedArgs, configPath }) => {

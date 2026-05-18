@@ -135,6 +135,8 @@ import type {
   TechtreeWorkKind,
   TechtreeWorkListResponse,
   TechtreeWorkResponse,
+  TerminalScienceRunResponse,
+  TerminalScienceSetGoalResponse,
   WatchRecord,
   WorkPacketResponse,
 } from "./techtree.js";
@@ -254,6 +256,8 @@ export type RegentRpcMethod =
   | "techtree.scienceTasks.submit"
   | "techtree.scienceTasks.reviewUpdate"
   | "techtree.scienceTasks.reviewLoop"
+  | "techtree.science.setGoal"
+  | "techtree.science.run"
   | "techtree.work.list"
   | "techtree.work.next"
   | "techtree.work.accept"
@@ -446,6 +450,20 @@ export interface RegentRpcParamsMap {
   "techtree.scienceTasks.reviewLoop": {
     workspace_path: string;
     harbor_pr_url: string;
+    timeout_seconds?: number;
+  };
+  "techtree.science.setGoal": {
+    task: string;
+    agent?: string;
+    model?: string;
+    env?: string;
+  };
+  "techtree.science.run": {
+    task?: string;
+    agent?: string;
+    model?: string;
+    env?: string;
+    run_dir?: string;
     timeout_seconds?: number;
   };
   "techtree.work.list": { kind?: TechtreeWorkKind; limit?: number } | undefined;
@@ -682,6 +700,8 @@ export interface RegentRpcResultMap {
     log_path: string;
     workflow_state: string;
   };
+  "techtree.science.setGoal": TerminalScienceSetGoalResponse;
+  "techtree.science.run": TerminalScienceRunResponse;
   "techtree.work.list": TechtreeWorkListResponse;
   "techtree.work.next": TechtreeWorkResponse;
   "techtree.work.accept": TechtreeWorkResponse | Record<string, unknown>;

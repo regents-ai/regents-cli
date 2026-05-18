@@ -601,7 +601,7 @@ const readContractGroups = (owner, contract) => {
         agent_metadata: metadataWithoutExamples(agentMetadata),
         summary: commandSummary(normalizedCommand, agentMetadata?.summary),
         usage: help.usage ?? group.usage,
-        next_step: help.next_step ?? group.next_step,
+        next_step: agentMetadata?.next_step ?? help.next_step ?? group.next_step,
       });
     }),
   }));

@@ -8,7 +8,10 @@ import { loadConfig } from "../internal-runtime/config.js";
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson, printText, renderKeyValuePanel } from "../printer.js";
 
-const printReceipt = (args: ParsedCliArgs, payload: { ok: true; receipt: { receipt_id: string; kind: string } }): void => {
+const printReceipt = (
+  args: ParsedCliArgs,
+  payload: { ok: true; receipt: { receipt_id: string; kind: string }; next_steps?: string[] },
+): void => {
   if (getBooleanFlag(args, "json")) {
     printJson(payload);
     return;
@@ -19,6 +22,7 @@ const printReceipt = (args: ParsedCliArgs, payload: { ok: true; receipt: { recei
       { label: "receipt", value: payload.receipt.receipt_id },
       { label: "kind", value: payload.receipt.kind },
       { label: "share", value: `regents receipt share-draft --receipt ${payload.receipt.receipt_id}` },
+      { label: "next", value: `regents receipt share-draft --receipt ${payload.receipt.receipt_id}` },
     ]),
   );
 };
@@ -31,13 +35,22 @@ export async function runReceiptCreate(args: ParsedCliArgs, configPath?: string)
     x402_payment_id: getFlag(args, "from-x402-payment"),
     budget_entry: getFlag(args, "from-budget-entry"),
   });
-  printReceipt(args, { ok: true, receipt });
+  printReceipt(args, {
+    ok: true,
+    receipt,
+    next_steps: [`regents receipt share-draft --receipt ${receipt.receipt_id}`],
+  });
   return 0;
 }
 
 export async function runReceiptGet(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const config = loadConfig(configPath);
-  printJson({ ok: true, receipt: findReceipt(config, requireArg(getFlag(args, "receipt"), "--receipt")) });
+  const receipt = findReceipt(config, requireArg(getFlag(args, "receipt"), "--receipt"));
+  printJson({
+    ok: true,
+    receipt,
+    next_steps: [`regents receipt share-draft --receipt ${receipt.receipt_id}`],
+  });
   return 0;
 }
 
@@ -49,7 +62,9 @@ export async function runReceiptList(args: ParsedCliArgs, configPath?: string): 
     return 0;
   }
 
-  printText(receipts.length === 0 ? "No Regent receipts yet." : receipts.map((entry) => entry.receipt_id).join("\n"));
+  printText(receipts.length === 0
+    ? "No Regent receipts yet.\nnext: regents receipt create --from-attempt <attempt-id> --json"
+    : `${receipts.map((entry) => entry.receipt_id).join("\n")}\nnext: regents receipt get --receipt ${receipts[0]?.receipt_id}`);
   return 0;
 }
 
@@ -58,10 +73,10 @@ export async function runReceiptShareDraft(args: ParsedCliArgs, configPath?: str
   const receipt = findReceipt(config, requireArg(getFlag(args, "receipt"), "--receipt"));
   const draft = receiptShareDraft(receipt);
   if (getBooleanFlag(args, "json")) {
-    printJson({ ok: true, draft });
+    printJson({ ok: true, draft, next_steps: ["regents techtree fold report --agent <agent-id> --json"] });
     return 0;
   }
 
-  printText(draft.copy);
+  printText(`${draft.copy}\nnext: regents techtree fold report --agent <agent-id> --json`);
   return 0;
 }

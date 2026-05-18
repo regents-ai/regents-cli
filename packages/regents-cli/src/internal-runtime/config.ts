@@ -16,6 +16,8 @@ import {
 const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 const xmtpEnvSchema = z.enum(["local", "dev", "production"]);
 const siwaAudienceSchema = z.enum(["platform", "autolaunch", "techtree", "regent-services"]);
+const executorHarnessSchema = z.enum(["openclaw", "hermes", "claude_code", "codex", "custom"]);
+const terminalScienceEnvironmentSchema = z.enum(["docker"]);
 const serviceConfigSchema = z.object({
   baseUrl: z.string().url(),
   requestTimeoutMs: z.number().int().positive(),
@@ -63,7 +65,7 @@ const configSchema = z.object({
     }).strict(),
   }).strict(),
   agents: z.object({
-    defaultHarness: z.enum(["openclaw", "hermes", "claude_code", "custom"]),
+    defaultHarness: executorHarnessSchema,
     harnesses: z.record(
       z.string().min(1),
       z.object({
@@ -77,8 +79,16 @@ const configSchema = z.object({
   workloads: z.object({
     bbh: z.object({
       workspaceRoot: z.string().min(1),
-      defaultHarness: z.enum(["openclaw", "hermes", "claude_code", "custom"]),
+      defaultHarness: executorHarnessSchema,
       defaultProfile: z.string().min(1),
+    }).strict(),
+    science: z.object({
+      workspaceRoot: z.string().min(1),
+      taskRepoRoot: z.string().min(1),
+      defaultHarness: executorHarnessSchema,
+      defaultModel: z.string().min(1),
+      defaultEnvironment: terminalScienceEnvironmentSchema,
+      defaultTaskRef: z.string().min(1),
     }).strict(),
   }).strict(),
 }).strict();
@@ -115,6 +125,7 @@ const configOverrideSchema = z.object({
   workloads: configSchema.shape.workloads
     .extend({
       bbh: configSchema.shape.workloads.shape.bbh.partial().optional(),
+      science: configSchema.shape.workloads.shape.science.partial().optional(),
     })
     .partial()
     .optional(),
@@ -214,6 +225,11 @@ const normalizeConfig = (config: RegentConfig, configPath?: string): RegentConfi
         ...config.workloads.bbh,
         workspaceRoot: normalizePath(config.workloads.bbh.workspaceRoot, resolvedConfigRootDir),
       },
+      science: {
+        ...config.workloads.science,
+        workspaceRoot: normalizePath(config.workloads.science.workspaceRoot, resolvedConfigRootDir),
+        taskRepoRoot: normalizePath(config.workloads.science.taskRepoRoot, resolvedConfigRootDir),
+      },
     },
   };
 };
@@ -255,6 +271,12 @@ export const agentDefaultsForRoot = (rootDir: string): RegentConfig["agents"] =>
       workspaceRoot: path.join(rootDir, "workspaces", "claude-code"),
       profiles: ["owner", "public", "group", "bbh"],
     },
+    codex: {
+      enabled: false,
+      entrypoint: "codex",
+      workspaceRoot: path.join(rootDir, "workspaces", "codex"),
+      profiles: ["owner", "public", "group", "bbh", "science"],
+    },
     custom: {
       enabled: false,
       entrypoint: "custom-harness",
@@ -269,6 +291,14 @@ export const workloadDefaultsForRoot = (rootDir: string): RegentConfig["workload
     workspaceRoot: path.join(rootDir, "workspaces", "bbh"),
     defaultHarness: "hermes",
     defaultProfile: "bbh",
+  },
+  science: {
+    workspaceRoot: path.join(rootDir, "workspaces", "science"),
+    taskRepoRoot: path.join(rootDir, "workspaces", "science", "repos"),
+    defaultHarness: "codex",
+    defaultModel: "openai/gpt-5.4",
+    defaultEnvironment: "docker",
+    defaultTaskRef: "main",
   },
 });
 
@@ -285,6 +315,8 @@ const ensureConfigDirectories = (config: RegentConfig): void => {
     ensureSecureDir(harness.workspaceRoot);
   }
   ensureSecureDir(config.workloads.bbh.workspaceRoot);
+  ensureSecureDir(config.workloads.science.workspaceRoot);
+  ensureSecureDir(config.workloads.science.taskRepoRoot);
 };
 
 export function defaultConfig(configPath?: string): RegentConfig {

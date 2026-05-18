@@ -20,7 +20,7 @@ const preparedWalletActionResponse = () => ({
       action: "claim_reward",
       chain_id: 8453,
       to: "0x1111111111111111111111111111111111111111",
-      value: "0",
+      value: "0x0",
       data: "0x1234",
       expected_signer: "0x2222222222222222222222222222222222222222",
       expires_at: "2026-05-07T12:00:00Z",

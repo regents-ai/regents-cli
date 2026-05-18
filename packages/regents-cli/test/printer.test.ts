@@ -154,6 +154,24 @@ describe("printer surface", () => {
     expect(output.stdout).toContain("╭");
   });
 
+  it("renders next-step hints at the end of human JSON output", async () => {
+    setStdoutTty(true);
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
+
+    const output = await captureOutput(async () => {
+      printJson({
+        ok: true,
+        created: true,
+        next: ["regents techtree work next --json"],
+      });
+    });
+
+    const nextIndex = output.stdout.lastIndexOf("NEXT");
+    expect(nextIndex).toBeGreaterThan(output.stdout.indexOf("REGENT OUTPUT DECK"));
+    expect(output.stdout).toContain("regents techtree work next --json");
+  });
+
   it("renders a framed error for human terminals", async () => {
     setStdoutTty(true);
     delete process.env.NO_COLOR;

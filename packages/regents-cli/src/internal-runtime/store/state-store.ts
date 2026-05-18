@@ -6,6 +6,7 @@ import type {
   LocalAgentIdentity,
   RegentAgentRuntimeState,
   SiwaSession,
+  TerminalScienceGoal,
 } from "../../internal-types/index.js";
 
 import { writeJsonFileAtomicSync } from "../paths.js";
@@ -17,6 +18,7 @@ export interface PersistentState {
   agentRuntime?: RegentAgentRuntimeState;
   lastUsedNodeIdempotencyKey?: string;
   lastUsedCommentIdempotencyKey?: string;
+  techtreeScienceGoal?: TerminalScienceGoal;
 }
 
 const emptyState = (): PersistentState => ({});

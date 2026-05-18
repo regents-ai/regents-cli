@@ -168,12 +168,23 @@ const defaultSolverKindForMetadata = (
   throw new Error("BBH run workspaces require executor harness kind `hermes` or `openclaw`");
 };
 
+const bbhHarnessTypeForMetadata = (
+  metadata: RegentResolvedRunMetadata,
+): BbhGenomeSource["harness_type"] => {
+  const kind = metadata.executor_harness.kind;
+  if (kind === "openclaw" || kind === "hermes" || kind === "claude_code" || kind === "custom") {
+    return kind;
+  }
+
+  throw new Error("BBH workspaces require executor harness kind `openclaw`, `hermes`, `claude_code`, or `custom`");
+};
+
 export const buildBbhGenomeSource = (
   params: BbhRunExecParams,
   metadata: RegentResolvedRunMetadata,
 ): BbhGenomeSource => {
   const partial = params.genome ?? {};
-  const harnessType = partial.harness_type ?? metadata.executor_harness.kind;
+  const harnessType = partial.harness_type ?? bbhHarnessTypeForMetadata(metadata);
   const base = {
     model_id: partial.model_id ?? "unknown-model",
     harness_type: harnessType,
@@ -305,7 +316,7 @@ const buildExecutorSource = (
 ): BbhRunSource["executor"] => ({
   type: "genome",
   id: genome.genome_id ?? null,
-  harness: metadata.executor_harness.kind,
+  harness: bbhHarnessTypeForMetadata(metadata),
   harness_version: genome.harness_version,
   profile: metadata.executor_harness.profile,
 });

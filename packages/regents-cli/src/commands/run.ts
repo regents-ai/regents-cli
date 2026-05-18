@@ -162,12 +162,19 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
           preset: foldTrack,
           defaultWorkKind: foldTrack === "bbh-public-v1" ? "benchmark" : "freeform-notebook",
           proofAnchor: "techtree_attempt_or_notebook",
-          next: [
-            "regents techtree notebooks init --kind freeform --title \"Research notebook\" --workspace-path ./techtree-work/autoresearch",
-            "regents techtree notebooks pair --workspace-path ./techtree-work/autoresearch",
-            "regents techtree notebooks publish --workspace-path ./techtree-work/autoresearch",
-            "regents receipt create --from-notebook <node-id> --json",
-          ],
+          next: foldTrack === "bbh-public-v1"
+            ? [
+                "regents techtree work next --kind benchmark --json",
+                "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>",
+                "regents techtree work publish --workspace-path ./work/<slug>",
+                "regents techtree fold proof --attempt <attempt-id> --json",
+              ]
+            : [
+                "regents techtree notebooks init --kind freeform --title \"Research notebook\" --workspace-path ./techtree-work/autoresearch",
+                "regents techtree notebooks pair --workspace-path ./techtree-work/autoresearch",
+                "regents techtree notebooks publish --workspace-path ./techtree-work/autoresearch",
+                "regents receipt create --from-notebook <node-id> --json",
+              ],
         }
       : null,
     plugin,
@@ -270,6 +277,11 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
         label: "Accept work",
         command: "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>",
         when: "create the local folder for the selected work.",
+      },
+      {
+        label: "Terminal Science Bench",
+        command: "regents techtree science run --task harbor-framework/terminal-bench-science:tasks/<domain>/<field>/<task> --run-dir ./science-runs/<task>",
+        when: "run a local science task and save the files on this machine.",
       },
       ...(foldTrack
         ? [{

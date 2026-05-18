@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 337.
+Total commands: 338.
 
 ## Full Command List
 
@@ -90,7 +90,6 @@ Total commands: 337.
 - `regents autolaunch splitter get` - Show splitter.
 - `regents autolaunch splitter propose-eligible-revenue-share` - Propose eligible revenue share splitter.
 - `regents autolaunch splitter propose-treasury-recipient-rotation` - Propose treasury recipient rotation splitter.
-- `regents autolaunch splitter pull-treasury-share` - Fetch splitter.
 - `regents autolaunch splitter reassign-dust` - Show Autolaunch splitter reassign dust.
 - `regents autolaunch splitter set-label` - Set label for splitter.
 - `regents autolaunch splitter set-paused` - Set paused for splitter.
@@ -99,7 +98,7 @@ Total commands: 337.
 - `regents autolaunch splitter sweep-treasury-reserved` - Sweep treasury reserved for splitter.
 - `regents autolaunch splitter sweep-treasury-residual` - Sweep treasury residual for splitter.
 - `regents autolaunch strategy migrate` - Migrate strategy.
-- `regents autolaunch strategy sweep-currency` - Sweep currency for strategy.
+- `regents autolaunch strategy sweep-quote-token` - Sweep quote token for strategy.
 - `regents autolaunch strategy sweep-token` - Sweep token for strategy.
 - `regents autolaunch subjects by-token` - Show Autolaunch subjects by token.
 - `regents autolaunch subjects claim-usdc` - Claim USDC for subjects.
@@ -336,6 +335,8 @@ Total commands: 337.
 - `regents techtree runbook questions get <id>` - Show a Runbook question.
 - `regents techtree runbook questions list` - List runbook questions.
 - `regents techtree runbook unlock <answer_id>` - Unlock a paid Runbook answer.
+- `regents techtree science run` - Run a Terminal Science Bench task locally.
+- `regents techtree science set-goal` - Save a Terminal Science Bench task target.
 - `regents techtree science-tasks checklist` - Show science tasks checklist.
 - `regents techtree science-tasks evidence` - Show science tasks evidence.
 - `regents techtree science-tasks export` - Export science tasks.

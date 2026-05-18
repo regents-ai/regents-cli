@@ -46,7 +46,9 @@ interface LocalPlanRecord {
 
 const PRELAUNCH_DIR = "autolaunch-plans";
 const AUTOLAUNCH_CHAIN_ID = 8_453;
-const HIGH_MINIMUM_RAISE_USDC = 50_000n;
+const REGENT_DECIMALS = 18;
+const REGENT_SCALE = 10n ** BigInt(REGENT_DECIMALS);
+const HIGH_MINIMUM_RAISE_QUOTE_WEI = 50_000n * REGENT_SCALE;
 
 const normalizeText = (value: string | undefined): string | undefined => {
   if (!value) {
@@ -83,39 +85,50 @@ const validatedLengthText = (
   return trimmed;
 };
 
-const validatedMinimumRaiseUsdc = (value: string): string => {
+const validatedMinimumRaiseQuote = (value: string): string => {
   const trimmed = normalizeText(value);
 
-  if (!trimmed || !/^[0-9]+$/u.test(trimmed)) {
+  if (!trimmed || !/^[0-9]+(?:\.[0-9]{1,18})?$/u.test(trimmed)) {
     throw new CliUsageError({
       code: "invalid_flag_value",
-      message: "Minimum USDC raise must be a whole number, 0 or greater.",
+      message: "Minimum $REGENT raise must be 0 or greater, with up to 18 decimals.",
     });
   }
 
-  return trimmed.replace(/^0+(?=\d)/u, "");
+  const [wholePart = "0", fractionalPart] = trimmed.split(".");
+  const whole = wholePart.replace(/^0+(?=\d)/u, "");
+  const fractional = fractionalPart?.replace(/0+$/u, "");
+
+  return fractional ? `${whole}.${fractional}` : whole;
+};
+
+const quoteToWei = (value: string): bigint => {
+  const [wholePart = "0", fractionalPart = ""] = value.split(".");
+  const fractional = fractionalPart.padEnd(REGENT_DECIMALS, "0");
+
+  return BigInt(wholePart) * REGENT_SCALE + BigInt(fractional);
 };
 
 const confirmHighMinimumRaise = async (
   value: string,
   prompts: PromptBoundary,
 ): Promise<void> => {
-  if (BigInt(value) <= HIGH_MINIMUM_RAISE_USDC) {
+  if (quoteToWei(value) <= HIGH_MINIMUM_RAISE_QUOTE_WEI) {
     return;
   }
 
   const confirmed = await prompts.confirm(
-    `Minimum raise is ${value} USDC, which is above 50000. Continue?`,
+    `Minimum raise is ${value} $REGENT, which is above 50000. Continue?`,
     {
       unavailableMessage:
-        "Minimum USDC raise above 50000 requires confirmation. Rerun in an interactive terminal.",
+        "Minimum $REGENT raise above 50000 requires confirmation. Rerun in an interactive terminal.",
     },
   );
 
   if (!confirmed) {
     throw new CliUsageError({
       code: "high_minimum_raise_not_confirmed",
-      message: "Minimum USDC raise was not confirmed.",
+      message: "Minimum $REGENT raise was not confirmed.",
     });
   }
 };
@@ -364,16 +377,16 @@ const createOrUpdateRemotePlan = async (
     2,
     10,
   );
-  const minimumRaiseUsdc = validatedMinimumRaiseUsdc(
-    normalizeText(getFlag(args, "minimum-raise-usdc")) ??
+  const minimumRaiseQuote = validatedMinimumRaiseQuote(
+    normalizeText(getFlag(args, "minimum-raise-quote")) ??
       (prompts.inputAllowed
-        ? await prompts.text("Minimum USDC raise", {
+        ? await prompts.text("Minimum $REGENT raise", {
             fallback: "0",
-            unavailableMessage: "Pass --minimum-raise-usdc <whole-usdc>.",
+            unavailableMessage: "Pass --minimum-raise-quote <amount>.",
           })
         : "0"),
   );
-  await confirmHighMinimumRaise(minimumRaiseUsdc, prompts);
+  await confirmHighMinimumRaise(minimumRaiseQuote, prompts);
   if (!normalizeText(getFlag(args, "agent-safe-address"))) {
     printAgentSafeExplainer();
   }
@@ -404,7 +417,7 @@ const createOrUpdateRemotePlan = async (
     agent_id: requireArg(agentId, "agent"),
     token_name: tokenName,
     token_symbol: tokenSymbol,
-    minimum_raise_usdc: minimumRaiseUsdc,
+    minimum_raise_quote: minimumRaiseQuote,
     agent_safe_address:
       agentSafe ||
       (() => {

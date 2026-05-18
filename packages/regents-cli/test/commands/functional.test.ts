@@ -157,6 +157,9 @@ exit 1
       },
       created: false,
       state_path: walletStatePath(),
+      next_steps: [
+        "regents identity ensure",
+      ],
     });
     expect(fs.existsSync(walletStatePath())).toBe(true);
 
@@ -174,6 +177,10 @@ exit 1
       verified: "onchain",
       receipt_expires_at: "2999-01-01T00:00:00.000Z",
       cache_path: receiptPath(),
+      next_steps: [
+        "regents auth login --audience techtree",
+        "regents run --fold autoresearch",
+      ],
     });
 
     expect(fs.existsSync(receiptPath())).toBe(true);

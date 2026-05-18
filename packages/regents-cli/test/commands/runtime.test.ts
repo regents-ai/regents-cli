@@ -244,7 +244,20 @@ describe("runtime commands", () => {
             ok: true,
             company_id: 123,
             runtime_id: 44,
-            health: { status: "healthy", available: true, metering_status: "active" },
+            health: {
+              status: "healthy",
+              available: true,
+              metering_status: "active",
+              control_room: {
+                status: "expected",
+                one_sprite: true,
+                sprite_runtime_id: "sprite-44",
+                workspace_service_name: "hermes-workspace",
+                bridge_service_name: "regent-bridge",
+                path: "/regent/control-room",
+                registry_path: "/regent/control-room/agents.yaml",
+              },
+            },
           }),
           { status: 200, headers: { "content-type": "application/json" } },
         ),
@@ -297,7 +310,20 @@ describe("runtime commands", () => {
           ok: true,
           company_id: 123,
           runtime_id: 44,
-          health: { status: "needs_attention", available: false, metering_status: "trialing" },
+          health: {
+            status: "needs_attention",
+            available: false,
+            metering_status: "trialing",
+            control_room: {
+              status: "expected",
+              one_sprite: true,
+              sprite_runtime_id: "sprite-44",
+              workspace_service_name: "hermes-workspace",
+              bridge_service_name: "regent-bridge",
+              path: "/regent/control-room",
+              registry_path: "/regent/control-room/agents.yaml",
+            },
+          },
         }),
         { status: 200, headers: { "content-type": "application/json" } },
       ),
@@ -324,6 +350,9 @@ describe("runtime commands", () => {
     expect(visible).toContain("needs attention");
     expect(visible).toContain("available");
     expect(visible).toContain("no");
+    expect(visible).toContain("HERMES CONTROL ROOM");
+    expect(visible).toContain("one Sprite");
+    expect(visible).toContain("hermes-workspace");
   });
 
   it("pauses and resumes a runtime through the contracted routes", async () => {

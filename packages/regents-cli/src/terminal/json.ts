@@ -37,6 +37,58 @@ const jsonTitle = (value: unknown): string => {
   return "◆ REGENT OUTPUT DECK";
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const addUniqueStep = (steps: string[], value: unknown): void => {
+  if (typeof value !== "string") {
+    return;
+  }
+
+  const step = value.trim();
+  if (step.length > 0 && !steps.includes(step)) {
+    steps.push(step);
+  }
+};
+
+const addStringArraySteps = (steps: string[], value: unknown): void => {
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  for (const entry of value) {
+    addUniqueStep(steps, entry);
+  }
+};
+
+const nextStepsFromRecord = (value: unknown): string[] => {
+  if (!isRecord(value)) {
+    return [];
+  }
+
+  const steps: string[] = [];
+  addStringArraySteps(steps, value.next_steps);
+  addStringArraySteps(steps, value.next);
+
+  if (isRecord(value.next_action)) {
+    addUniqueStep(steps, value.next_action.command);
+  }
+
+  if (Array.isArray(value.nextCommands)) {
+    for (const entry of value.nextCommands) {
+      if (isRecord(entry)) {
+        addUniqueStep(steps, entry.command);
+      }
+    }
+  }
+
+  if (isRecord(value.fold)) {
+    addStringArraySteps(steps, value.fold.next);
+  }
+
+  return steps;
+};
+
 const summarizeRecord = (value: unknown): KeyValueRow[] => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return [];
@@ -147,8 +199,15 @@ const humanJson = (value: unknown): string => {
     borderColor: CLI_PALETTE.chrome,
     titleColor: CLI_PALETTE.title,
   });
+  const nextSteps = nextStepsFromRecord(value);
+  const nextPanel = nextSteps.length > 0
+    ? renderPanel("◆ NEXT", nextSteps, {
+        borderColor: CLI_PALETTE.chrome,
+        titleColor: CLI_PALETTE.title,
+      })
+    : undefined;
 
-  return summaryPanel ? `${summaryPanel}\n\n${payloadPanel}` : payloadPanel;
+  return [summaryPanel, payloadPanel, nextPanel].filter(Boolean).join("\n\n");
 };
 
 export function printJson(value: unknown): void {

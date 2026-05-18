@@ -1,6 +1,6 @@
 import type { LocalAgentIdentity } from "./runtime.js";
 
-export type RegentExecutorHarnessKind = "openclaw" | "hermes" | "claude_code" | "custom";
+export type RegentExecutorHarnessKind = "openclaw" | "hermes" | "claude_code" | "codex" | "custom";
 export type RegentOriginKind =
   | "local"
   | "xmtp_dm"

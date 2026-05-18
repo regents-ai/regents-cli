@@ -73,8 +73,18 @@ export interface RegentBbhWorkloadConfig {
   defaultProfile: string;
 }
 
+export interface RegentScienceWorkloadConfig {
+  workspaceRoot: string;
+  taskRepoRoot: string;
+  defaultHarness: RegentExecutorHarnessKind;
+  defaultModel: string;
+  defaultEnvironment: "docker";
+  defaultTaskRef: string;
+}
+
 export interface RegentWorkloadsConfig {
   bbh: RegentBbhWorkloadConfig;
+  science: RegentScienceWorkloadConfig;
 }
 
 export interface RegentConfig {

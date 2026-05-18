@@ -128,6 +128,11 @@ const extractPaymentReference = (value: unknown): string | undefined => {
   return undefined;
 };
 
+const withNextSteps = <T>(payload: T, nextSteps: readonly string[]): T & { next_steps: readonly string[] } => ({
+  ...(payload as Record<string, unknown>),
+  next_steps: nextSteps,
+}) as T & { next_steps: readonly string[] };
+
 const withKernel = async <T>(
   configPath: string | undefined,
   run: (kernel: RegentKernel) => Promise<T>,
@@ -142,8 +147,11 @@ const withKernel = async <T>(
 
 export async function runX402Details(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const result = await withKernel(configPath, (kernel) => kernel.call("x402.details", requestInput(args)));
+  const nextSteps = result.payment_required
+    ? [`regents x402 quote --url ${result.request.url} --json`]
+    : ["No payment is required for this resource."];
   if (getBooleanFlag(args, "json")) {
-    printJson(result);
+    printJson(withNextSteps(result, nextSteps));
     return 0;
   }
 
@@ -152,6 +160,7 @@ export async function runX402Details(args: ParsedCliArgs, configPath?: string): 
       { label: "payment", value: result.payment_required ? "required" : "not required" },
       { label: "status", value: String(result.status) },
       { label: "request", value: result.request.request_hash },
+      { label: "next", value: nextSteps[0] ?? "" },
     ]),
   );
   return 0;
@@ -159,14 +168,15 @@ export async function runX402Details(args: ParsedCliArgs, configPath?: string): 
 
 export async function runX402Search(args: ParsedCliArgs): Promise<number> {
   const result = await runAwalJson(["x402", "bazaar", "search", x402Query(args), "--json"]);
-  printJson(result);
+  printJson(withNextSteps(result, ["regents x402 details --url <paid-url> --json"]));
   return 0;
 }
 
 export async function runX402Quote(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const result = await withKernel(configPath, (kernel) => kernel.call("x402.quote", quoteInput(args)));
+  const nextSteps = [`regents x402 prepare --url ${result.request.url} --max-amount ${result.selected.amount} --approve --json`];
   if (getBooleanFlag(args, "json")) {
-    printJson(result);
+    printJson(withNextSteps(result, nextSteps));
     return 0;
   }
 
@@ -176,6 +186,7 @@ export async function runX402Quote(args: ParsedCliArgs, configPath?: string): Pr
       { label: "network", value: result.selected.network },
       { label: "asset", value: result.selected.asset },
       { label: "pay to", value: result.selected.pay_to },
+      { label: "next", value: nextSteps[0] ?? "" },
     ]),
   );
   return 0;
@@ -202,7 +213,10 @@ export async function runX402Prepare(args: ParsedCliArgs, configPath?: string): 
 export async function runX402Fetch(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const result = await withKernel(configPath, (kernel) => kernel.call("x402.fetch", fetchInput(args)));
   if (getBooleanFlag(args, "json")) {
-    printJson(result);
+    printJson(withNextSteps(
+      result,
+      result.receipt ? [`regents x402 receipts get --id ${result.receipt.receipt_id} --json`] : [],
+    ));
     return result.ok ? 0 : 1;
   }
 
@@ -213,7 +227,7 @@ export async function runX402Fetch(args: ParsedCliArgs, configPath?: string): Pr
 export async function runX402Refund(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const result = await withKernel(configPath, (kernel) => kernel.call("x402.refund", refundInput(args)));
   if (getBooleanFlag(args, "json")) {
-    printJson(result);
+    printJson(withNextSteps(result, ["regents x402 receipts get --id <receipt-id> --json"]));
     return 0;
   }
 
@@ -221,6 +235,7 @@ export async function runX402Refund(args: ParsedCliArgs, configPath?: string): P
     renderKeyValuePanel("◆ X402 REFUND", [
       { label: "url", value: result.url },
       { label: "amount", value: result.amount ?? "full unused balance", valueColor: CLI_PALETTE.emphasis },
+      { label: "next", value: "regents x402 receipts get --id <receipt-id> --json" },
     ]),
   );
   return 0;
@@ -290,14 +305,26 @@ export async function runX402Pay(args: ParsedCliArgs, configPath?: string): Prom
     ? createReceipt(config, paymentReference ? { x402_payment_id: paymentReference } : { budget_entry: spend.ledger_entry.entry_id })
     : undefined;
 
-  printJson({ ok: true, rail, payment, budget: spend.budget, receipt });
+  printJson({
+    ok: true,
+    rail,
+    payment,
+    budget: spend.budget,
+    receipt,
+    next_steps: receipt
+      ? [`regents receipt share-draft --receipt ${receipt.receipt_id}`]
+      : [`regents budget ledger --budget ${spend.budget.budget_id}`],
+  });
   return 0;
 }
 
 export async function runX402ReceiptsGet(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const result = await withKernel(configPath, (kernel) => kernel.call("x402.receipts.get", receiptGetInput(args)));
   if (getBooleanFlag(args, "json")) {
-    printJson(result);
+    printJson(withNextSteps(
+      result,
+      result.receipt ? [`regents receipt create --from-x402-payment ${result.receipt.receipt_id} --json`] : [],
+    ));
     return 0;
   }
 
@@ -312,6 +339,7 @@ export async function runX402ReceiptsGet(args: ParsedCliArgs, configPath?: strin
       { label: "intent", value: result.receipt.intent_id },
       { label: "status", value: String(result.receipt.status) },
       { label: "paid", value: result.receipt.ok ? "yes" : "no" },
+      { label: "next", value: `regents receipt create --from-x402-payment ${result.receipt.receipt_id} --json` },
     ]),
   );
   return result.receipt.ok ? 0 : 1;

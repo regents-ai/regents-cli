@@ -126,15 +126,16 @@ The launch shape is fixed:
 - 10% of the 100 billion supply is sold in the auction
 - 5% is reserved for LP migration
 - 85% vests to the agent treasury over one year
-- half of the auction USDC funds LP migration
-- the other half of the auction USDC goes to the agent Safe for operating runway
+- half of the auction $REGENT funds LP migration
+- the other half of the auction $REGENT goes to the agent Safe for operating runway
 
 The fee rules are fixed too:
 
 - the official launch pool charges a fixed 2% fee
 - that 2% split is fixed at 1% to Regent and 1% to the agent treasury
 - recognized subject revenue first sends a fixed 1% skim to Regent
-- the remaining 99% is governed by the live eligible revenue share
+- 10% of the remaining 99% buys `$REGENT` for the agent treasury
+- the remaining 89.1% is governed by the live eligible revenue share
 - that live share decides how much stays in the staker-eligible lane and how much goes straight into the subject reserve lane
 
 ## Primary operator journey
@@ -255,7 +256,7 @@ regents autolaunch launch preview \
   --name "Agent Coin Name" \
   --symbol "AGENT" \
   --agent-safe-address <safe-address> \
-  --minimum-raise-usdc <amount> \
+  --minimum-raise-quote <amount> \
   [--launch-notes <text>] \
   [--json]
 
@@ -284,7 +285,7 @@ Successful launch output now includes the live V2 stack fields:
 - `default_ingress_address`
 - `pool_id`
 
-Autolaunch still does not route the launch fee lane automatically into REGENT rewards. The Regent-side launch fee lane is still a direct treasury payout. The separate Base `regent-staking` rail is fed manually after bridging.
+Autolaunch still does not route the launch fee lane automatically into REGENT rewards. The Regent-side launch fee lane is still a direct treasury payout. The separate Base `regent-staking` rail can be funded manually after bridging and also receives the fixed subject-revenue skim.
 
 `launch preview`, `launch create`, and `jobs watch` return a `reputation_prompt` object in the JSON payload. It is the CLI-safe version of the optional follow-up step shown in the web app:
 
@@ -310,14 +311,14 @@ regents autolaunch auction <auction-id> [--json]
 ```bash
 regents autolaunch bids quote \
   --auction <auction-id> \
-  --amount <currency-amount> \
-  --max-price <price-q96-or-ratio> \
+  --amount <regent-amount> \
+  --max-price <regent-price> \
   [--json]
 
 regents autolaunch bids place \
   --auction <auction-id> \
-  --amount <currency-amount> \
-  --max-price <price-q96-or-ratio> \
+  --amount <regent-amount> \
+  --max-price <regent-price> \
   --tx-hash <hash> \
   [--current-clearing-price <value>] \
   [--projected-clearing-price <value>] \
@@ -359,7 +360,7 @@ These commands expose the same read model that powers the `/contracts` page in t
 ```bash
 regents autolaunch strategy migrate --job <job-id> [--json]
 regents autolaunch strategy sweep-token --job <job-id> [--json]
-regents autolaunch strategy sweep-currency --job <job-id> [--json]
+regents autolaunch strategy sweep-quote-token --job <job-id> [--json]
 regents autolaunch vesting release --job <job-id> [--json]
 
 regents autolaunch fee-registry get --job <job-id> [--json]
@@ -368,7 +369,6 @@ regents autolaunch fee-vault get --job <job-id> [--json]
 regents autolaunch fee-vault withdraw-regent --job <job-id> --currency <address> --amount <raw-units> --recipient <address> [--json]
 
 regents autolaunch splitter get --subject <subject-id> [--json]
-regents autolaunch splitter pull-treasury-share --job <job-id> --amount <raw-units> [--json]
 regents autolaunch splitter set-paused --subject <subject-id> --paused true|false [--json]
 regents autolaunch splitter set-label --subject <subject-id> --label <text> [--json]
 regents autolaunch splitter propose-treasury-recipient-rotation --subject <subject-id> --recipient <address> [--json]
@@ -424,7 +424,7 @@ The CLI is JSON-first. It forwards directly to the `autolaunch` Phoenix JSON API
 - `GET /v1/agent/auctions/{id}`
 - `POST /v1/agent/auctions/{id}/bid_quote`
 - `POST /v1/agent/auctions/{id}/bids`
-- `POST /v1/agent/bids/{id}/return-usdc`
+- `POST /v1/agent/bids/{id}/return-quote-token`
 - `POST /v1/agent/bids/{id}/exit`
 - `POST /v1/agent/bids/{id}/claim`
 - `GET /v1/agent/subjects/{id}`

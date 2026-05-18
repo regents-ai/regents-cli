@@ -144,7 +144,7 @@ describe("ENS CLI command group", () => {
             action: "set_primary_name",
             chain_id: 1,
             to: "0xa58e81fe9b61b5c3fe2afd33cf304c454abfc7cb",
-            value: "0",
+            value: "0x0",
             data: "0x1234",
             expected_signer: "0x00000000000000000000000000000000000000aa",
             expires_at: expiresAt,

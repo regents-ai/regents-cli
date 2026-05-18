@@ -61,6 +61,7 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
+          next_step: regents plugin status --runtime auto
           examples:
             - regents setup --runtime auto
             - regents setup --runtime hermes
@@ -85,6 +86,7 @@ command_groups:
           pagination: none
           async_behavior: long_running
           input_mode: flags
+          next_step: regents techtree work next --json
           examples:
             - regents run
             - regents run --fold autoresearch
@@ -98,6 +100,7 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
+          next_step: regents plugin install --runtime auto
           examples:
             - regents plugin status --runtime auto
         plugin install:
@@ -109,6 +112,7 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
+          next_step: regents plugin doctor --runtime auto
           examples:
             - regents plugin install --runtime auto
             - regents plugin install --runtime hermes
@@ -122,6 +126,7 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
+          next_step: regents run
           examples:
             - regents plugin doctor --runtime auto
     commands:
@@ -185,7 +190,7 @@ command_groups:
           type: enum
           enum: [auto, hermes, openclaw]
           required: true
-          description: Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Installing the wrong one is harmless, but the intended app will not see Regent until its matching runtime is installed.
+          description: Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Hermes setup also selects xAI Grok OAuth with grok-4.3 and returns the Hermes sign-in command.
       plugin doctor:
         - name: --runtime
           type: enum
@@ -209,6 +214,21 @@ command_groups:
         - regents wallet status
         - regents wallet agentic status --json
         - regents wallet agentic fund --amount-usdc 10 --chain base
+      commands:
+        wallet status:
+          next_step: regents wallet setup
+        wallet setup:
+          next_step: regents identity ensure
+        wallet agentic status:
+          next_step: regents wallet agentic balance --chain base --json
+        wallet agentic login:
+          next_step: regents wallet agentic verify --flow-id <flow-id> --otp <code> --json
+        wallet agentic verify:
+          next_step: regents wallet agentic balance --chain base --json
+        wallet agentic balance:
+          next_step: regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d
+        wallet agentic fund:
+          next_step: regents wallet agentic balance --chain base --json
     commands:
       - wallet status
       - wallet setup
@@ -273,6 +293,13 @@ command_groups:
         - regents runtime status --json
         - regents runtime tools --json
         - regents runtime policy --json
+      commands:
+        runtime status:
+          next_step: regents runtime tools --json
+        runtime tools:
+          next_step: regents runtime policy --json
+        runtime policy:
+          next_step: regents techtree work next --json
     commands:
       - runtime status
       - runtime tools
@@ -350,16 +377,16 @@ command_groups:
       - mcp doctor
       - mcp serve
     command_flags:
-    mcp serve:
-      - name: transport
-        required: true
-        description: MCP transport to start. Use stdio locally or streamable-http for a bearer-protected sidecar.
-      - name: host
-        required: false
-        description: Host for streamable-http MCP.
-      - name: port
-        required: false
-        description: Port for streamable-http MCP.
+      mcp serve:
+        - name: transport
+          required: true
+          description: MCP transport to start. Use stdio locally or streamable-http for a bearer-protected sidecar.
+        - name: host
+          required: false
+          description: Host for streamable-http MCP.
+        - name: port
+          required: false
+          description: Port for streamable-http MCP.
   - name: x402
     interface: runtime
     auth_mode: local-wallet
@@ -382,6 +409,19 @@ command_groups:
         - regents x402 refund --url https://api.example.com/paid --json
         - regents x402 pay https://api.example.com/paid --budget bud_... --max-usdc 0.25 --rail agentic-wallet --receipt --json
         - regents x402 receipts get --id x402_receipt_... --json
+      commands:
+        x402 search:
+          next_step: regents x402 details --url <paid-url> --json
+        x402 details:
+          next_step: regents x402 quote --url <paid-url> --json
+        x402 quote:
+          next_step: regents x402 prepare --url <paid-url> --approve --json
+        x402 prepare:
+          next_step: regents x402 fetch --intent-id <intent-id> --url <paid-url> --json
+        x402 pay:
+          next_step: regents receipt share-draft --receipt <receipt-id>
+        x402 receipts get:
+          next_step: regents receipt create --from-x402-payment <payment-id> --json
     commands:
       - x402 search
       - x402 details
@@ -520,6 +560,15 @@ command_groups:
         - regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d
         - regents budget status --json
         - regents budget ledger --budget bud_...
+      commands:
+        budget grant:
+          next_step: regents x402 search "research data" --json
+        budget status:
+          next_step: regents budget ledger --budget <budget-id>
+        budget ledger:
+          next_step: regents x402 pay <url> --budget <budget-id> --max-usdc 0.25 --rail agentic-wallet --receipt --json
+        budget revoke:
+          next_step: regents budget status --json
     commands:
       - budget grant
       - budget status
@@ -593,6 +642,15 @@ command_groups:
         - regents receipt create --from-attempt attempt_... --json
         - regents receipt list --json
         - regents receipt share-draft --receipt rcpt_...
+      commands:
+        receipt create:
+          next_step: regents receipt share-draft --receipt <receipt-id>
+        receipt get:
+          next_step: regents receipt share-draft --receipt <receipt-id>
+        receipt list:
+          next_step: regents receipt get --receipt <receipt-id>
+        receipt share-draft:
+          next_step: regents techtree fold report --agent <agent-id> --json
     commands:
       - receipt create
       - receipt get

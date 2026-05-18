@@ -62,6 +62,8 @@ This file is generated from the current runtime method registry.
 - `techtree.scienceTasks.submit`
 - `techtree.scienceTasks.reviewUpdate`
 - `techtree.scienceTasks.reviewLoop`
+- `techtree.science.setGoal`
+- `techtree.science.run`
 - `techtree.work.list`
 - `techtree.work.next`
 - `techtree.work.accept`

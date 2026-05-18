@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import YAML from "yaml";
+
 import { expandHome } from "./paths.js";
 
 export type RegentAgentRuntime = "hermes" | "openclaw";
@@ -25,7 +27,39 @@ export interface PluginInstallReport {
   pluginPath: string;
   skillsPath: string;
   files: string[];
+  hermesXaiOAuth?: HermesXaiOAuthSetup;
 }
+
+export interface HermesXaiOAuthSetup {
+  providerId: "xai-oauth";
+  displayName: "xAI Grok OAuth (SuperGrok Subscription)";
+  authType: "Browser OAuth 2.0 PKCE";
+  transport: "codex_responses";
+  defaultModel: "grok-4.3";
+  baseUrl: "https://api.x.ai/v1";
+  authServer: "https://accounts.x.ai";
+  requiresEnvVar: false;
+  configPath: string;
+  loginCommand: "hermes auth add xai-oauth";
+  remoteLoginCommand: "hermes auth add xai-oauth --no-browser";
+  logoutCommand: "hermes auth logout xai-oauth";
+  providerAliases: readonly ["xai-oauth", "grok-oauth", "x-ai-oauth", "xai-grok-oauth"];
+}
+
+const HERMES_XAI_OAUTH_SETUP = {
+  providerId: "xai-oauth",
+  displayName: "xAI Grok OAuth (SuperGrok Subscription)",
+  authType: "Browser OAuth 2.0 PKCE",
+  transport: "codex_responses",
+  defaultModel: "grok-4.3",
+  baseUrl: "https://api.x.ai/v1",
+  authServer: "https://accounts.x.ai",
+  requiresEnvVar: false,
+  loginCommand: "hermes auth add xai-oauth",
+  remoteLoginCommand: "hermes auth add xai-oauth --no-browser",
+  logoutCommand: "hermes auth logout xai-oauth",
+  providerAliases: ["xai-oauth", "grok-oauth", "x-ai-oauth", "xai-grok-oauth"],
+} as const;
 
 export const REGENT_PLUGIN_TOOL_NAMES = [
   "regent_status",
@@ -93,10 +127,13 @@ export const installPlugin = (runtime: RegentAgentRuntime): PluginInstallReport 
 
   fs.mkdirSync(skillsPath, { recursive: true });
 
+  let hermesXaiOAuth: HermesXaiOAuthSetup | undefined;
+
   if (runtime === "hermes") {
     writeFile(path.join(pluginPath, "plugin.yaml"), hermesPluginYaml(), files);
     writeFile(path.join(pluginPath, "__init__.py"), hermesInitPy(), files);
     writeFile(path.join(pluginPath, "tools.py"), hermesToolsPy(), files);
+    hermesXaiOAuth = writeHermesXaiOAuthSetup(pluginPath, files);
   } else {
     writeFile(path.join(pluginPath, "openclaw.plugin.json"), openclawPluginJson(), files);
     writeFile(path.join(pluginPath, "index.js"), openclawIndexJs(), files);
@@ -106,7 +143,7 @@ export const installPlugin = (runtime: RegentAgentRuntime): PluginInstallReport 
     writeFile(path.join(skillsPath, skill.name, "SKILL.md"), skill.body, files);
   }
 
-  return { ok: true, runtime, pluginPath, skillsPath, files };
+  return { ok: true, runtime, pluginPath, skillsPath, files, ...(hermesXaiOAuth ? { hermesXaiOAuth } : {}) };
 };
 
 const writeFile = (filePath: string, body: string, files: string[]): void => {
@@ -114,6 +151,80 @@ const writeFile = (filePath: string, body: string, files: string[]): void => {
   fs.writeFileSync(filePath, body, "utf8");
   files.push(filePath);
 };
+
+const writeHermesXaiOAuthSetup = (pluginPath: string, files: string[]): HermesXaiOAuthSetup => {
+  const configPath = path.resolve(expandHome(homePath(".hermes", "config.yaml")));
+  const existing = readHermesConfig(configPath);
+  const existingModel = isPlainObject(existing.model) ? existing.model : {};
+  const nextConfig = {
+    ...existing,
+    model: {
+      ...existingModel,
+      default: HERMES_XAI_OAUTH_SETUP.defaultModel,
+      provider: HERMES_XAI_OAUTH_SETUP.providerId,
+      base_url: HERMES_XAI_OAUTH_SETUP.baseUrl,
+    },
+  };
+
+  writeFile(configPath, YAML.stringify(nextConfig), files);
+  writeFile(path.join(pluginPath, "xai-grok-oauth.md"), hermesXaiOAuthGuide(configPath), files);
+
+  return {
+    ...HERMES_XAI_OAUTH_SETUP,
+    configPath,
+  };
+};
+
+const readHermesConfig = (configPath: string): Record<string, unknown> => {
+  if (!fs.existsSync(configPath)) {
+    return {};
+  }
+
+  const parsed = YAML.parse(fs.readFileSync(configPath, "utf8")) as unknown;
+
+  if (parsed == null) {
+    return {};
+  }
+
+  if (!isPlainObject(parsed)) {
+    throw new Error(`Hermes config must be a YAML object: ${configPath}`);
+  }
+
+  return parsed;
+};
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const hermesXaiOAuthGuide = (configPath: string): string => `# xAI Grok OAuth For Hermes
+
+Regent configures Hermes to use xAI Grok OAuth with a SuperGrok subscription.
+
+## Sign in
+
+\`\`\`sh
+${HERMES_XAI_OAUTH_SETUP.loginCommand}
+\`\`\`
+
+## Remote sign-in
+
+Forward the callback port from your local machine, then start the no-browser login in the remote session.
+
+\`\`\`sh
+ssh -N -L 56121:127.0.0.1:56121 user@remote-host
+${HERMES_XAI_OAUTH_SETUP.remoteLoginCommand}
+\`\`\`
+
+## Defaults
+
+- Provider: ${HERMES_XAI_OAUTH_SETUP.providerId}
+- Model: ${HERMES_XAI_OAUTH_SETUP.defaultModel}
+- Endpoint: ${HERMES_XAI_OAUTH_SETUP.baseUrl}
+- Sign-in server: ${HERMES_XAI_OAUTH_SETUP.authServer}
+- Config file: ${configPath}
+
+Hermes stores tokens in ~/.hermes/auth.json. Do not copy tokens into project files.
+`;
 
 const hermesPluginYaml = (): string => `name: regent
 version: 0.3.0

@@ -23,11 +23,13 @@ const printBudget = (args: ParsedCliArgs, payload: unknown): void => {
     : (payload as { budget?: { budget_id?: string; remaining_usdc?: string; status?: string } }).budget;
 
   if (budget) {
+    const nextSteps = (payload as { next_steps?: string[] }).next_steps ?? [];
     printText(
       renderKeyValuePanel("◆ REGENT BUDGET", [
         { label: "budget", value: budget.budget_id ?? "" },
         { label: "remaining", value: budget.remaining_usdc ?? "" },
         { label: "status", value: budget.status ?? "" },
+        ...(nextSteps[0] ? [{ label: "next", value: nextSteps[0] }] : []),
       ]),
     );
     return;
@@ -72,7 +74,14 @@ export async function runBudgetGrant(args: ParsedCliArgs, configPath?: string): 
     expires_at: parseBudgetExpiry(requireArg(getFlag(args, "expires"), "--expires")),
   });
 
-  printBudget(args, { ok: true, budget });
+  printBudget(args, {
+    ok: true,
+    budget,
+    next_steps: [
+      "regents x402 search \"research data\" --json",
+      `regents x402 pay <url> --budget ${budget.budget_id} --max-usdc ${budget.max_payment_usdc} --rail ${budget.rail} --receipt --json`,
+    ],
+  });
   return 0;
 }
 
@@ -80,26 +89,45 @@ export async function runBudgetStatus(args: ParsedCliArgs, configPath?: string):
   const config = loadConfig(configPath);
   const budgetId = getFlag(args, "budget");
   if (budgetId) {
-    printBudget(args, { ok: true, budget: findBudget(config, budgetId) });
+    const budget = findBudget(config, budgetId);
+    printBudget(args, {
+      ok: true,
+      budget,
+      next_steps: [
+        `regents budget ledger --budget ${budget.budget_id}`,
+        `regents x402 pay <url> --budget ${budget.budget_id} --max-usdc ${budget.max_payment_usdc} --rail ${budget.rail} --receipt --json`,
+      ],
+    });
     return 0;
   }
 
   const agentId = getFlag(args, "agent");
   const budgets = readBudgetFile(config).budgets.filter((budget) => !agentId || budget.agent_id === agentId);
-  printJson({ ok: true, budgets });
+  printJson({
+    ok: true,
+    budgets,
+    next_steps: budgets[0]
+      ? [`regents budget ledger --budget ${budgets[0].budget_id}`]
+      : ["regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d"],
+  });
   return 0;
 }
 
 export async function runBudgetLedger(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const config = loadConfig(configPath);
   const budget = findBudget(config, requireArg(getFlag(args, "budget"), "--budget"));
-  printJson({ ok: true, budget_id: budget.budget_id, ledger: budget.ledger });
+  printJson({
+    ok: true,
+    budget_id: budget.budget_id,
+    ledger: budget.ledger,
+    next_steps: [`regents x402 pay <url> --budget ${budget.budget_id} --max-usdc ${budget.max_payment_usdc} --rail ${budget.rail} --receipt --json`],
+  });
   return 0;
 }
 
 export async function runBudgetRevoke(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const config = loadConfig(configPath);
   const budget = revokeBudget(config, requireArg(getFlag(args, "budget"), "--budget"));
-  printBudget(args, { ok: true, budget });
+  printBudget(args, { ok: true, budget, next_steps: ["regents budget status --json"] });
   return 0;
 }

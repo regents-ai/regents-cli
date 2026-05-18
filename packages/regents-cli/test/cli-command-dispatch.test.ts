@@ -68,6 +68,10 @@ const commandCases: CommandCase[] = [
       verified: "onchain",
       receipt_expires_at: "2999-01-01T00:00:00.000Z",
       cache_path: expect.stringContaining("receipt-v1.json"),
+      next_steps: [
+        "regents auth login --audience techtree",
+        "regents run --fold autoresearch",
+      ],
     },
   },
   {
@@ -578,6 +582,61 @@ const commandCases: CommandCase[] = [
         workspace_path: "science-workspace",
         harbor_pr_url: "https://harbor.example/pr/301",
         timeout_seconds: 1200,
+      },
+    },
+  },
+  {
+    name: "techtree science set-goal",
+    args: [
+      "techtree",
+      "science",
+      "set-goal",
+      "--task",
+      "harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example",
+      "--agent",
+      "codex",
+      "--model",
+      "openai/gpt-5.4",
+      "--env",
+      "docker",
+    ],
+    expected: {
+      method: "techtree.science.setGoal",
+      params: {
+        task: "harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example",
+        agent: "codex",
+        model: "openai/gpt-5.4",
+        env: "docker",
+      },
+    },
+  },
+  {
+    name: "techtree science run active goal",
+    args: ["techtree", "science", "run"],
+    expected: {
+      method: "techtree.science.run",
+      params: {},
+    },
+  },
+  {
+    name: "techtree science run task",
+    args: [
+      "techtree",
+      "science",
+      "run",
+      "--task",
+      "harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example",
+      "--run-dir",
+      "tsb-run",
+      "--timeout-seconds",
+      "12",
+    ],
+    expected: {
+      method: "techtree.science.run",
+      params: {
+        task: "harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example",
+        run_dir: "tsb-run",
+        timeout_seconds: 12,
       },
     },
   },

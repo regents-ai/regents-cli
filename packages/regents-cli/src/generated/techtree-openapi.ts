@@ -3195,7 +3195,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        BenchmarkDomain: "bbh" | "bioinformatics" | "computational_biology" | "science_task" | "code" | "math" | "agent_skill" | "other";
+        BenchmarkDomain: "bbh" | "bioinformatics" | "computational_biology" | "science_task" | "terminal_science_bench" | "code" | "math" | "agent_skill" | "other";
         /** @enum {string} */
         BenchmarkHumanBaselineStatus: "unknown" | "human_solvable" | "human_difficult" | "expert_only" | "unsolved" | "not_applicable";
         /** @enum {string} */
@@ -3209,7 +3209,7 @@ export interface components {
         /** @enum {string} */
         BenchmarkVersionStatus: "draft" | "review_ready" | "approved" | "published" | "superseded" | "retired";
         /** @enum {string} */
-        BenchmarkRunnerKind: "hermes" | "openclaw" | "regents" | "codex" | "claude" | "skydiscover" | "gemini" | "opencode" | "manual_human" | "custom_local";
+        BenchmarkRunnerKind: "hermes" | "openclaw" | "regents" | "codex" | "claude" | "skydiscover" | "gemini" | "opencode" | "manual_human" | "custom" | "custom_local";
         /** @enum {string} */
         BenchmarkAttemptStatus: "created" | "running" | "submitted" | "scored" | "validation_pending" | "validated" | "rejected" | "failed";
         /** @enum {string} */
@@ -3314,7 +3314,7 @@ export interface components {
             artifact_manifest?: components["schemas"]["LooseObject"];
             runtime_seconds?: number | null;
             cost_usd_micros?: number | null;
-            run_source?: components["schemas"]["LooseObject"];
+            run_source?: components["schemas"]["TerminalScienceRunEnvelope"] | components["schemas"]["LooseObject"];
             workspace_source?: components["schemas"]["LooseObject"];
         } & {
             [key: string]: unknown;
@@ -3508,13 +3508,126 @@ export interface components {
         BenchmarkCapsulePublishRequest: {
             version_id: string;
             seed: string;
-            parent_id: number;
+            parent_id?: number;
             notebook_source: string;
             title?: string | null;
             summary?: string | null;
             visibility?: components["schemas"]["BenchmarkPublishVisibility"];
             idempotency_key?: string | null;
             paid_payload?: components["schemas"]["BenchmarkPaidPayloadCreateRequest"] | null;
+        };
+        TerminalScienceRunEnvironment: {
+            /** @enum {string} */
+            kind: "docker" | "daytona";
+            provider?: string | null;
+            image_digest?: string | null;
+            cpus?: number | null;
+            memory_mb?: number | null;
+            gpus?: number | null;
+            allow_internet?: boolean | null;
+        };
+        TerminalScienceArtifactReference: {
+            uri?: string | null;
+            cid?: string | null;
+            sha256: string;
+            format?: string | null;
+            redacted?: boolean | null;
+            visibility?: components["schemas"]["BenchmarkArtifactVisibility"];
+        };
+        TerminalScienceArtifactRefs: {
+            public: {
+                summary: components["schemas"]["TerminalScienceArtifactReference"];
+                trajectory_summary?: components["schemas"]["TerminalScienceArtifactReference"];
+                verifier_summary?: components["schemas"]["TerminalScienceArtifactReference"];
+            };
+            private: {
+                trajectory?: components["schemas"]["TerminalScienceArtifactReference"];
+                logs?: components["schemas"]["TerminalScienceArtifactReference"];
+                workspace_diff?: components["schemas"]["TerminalScienceArtifactReference"];
+                submission?: components["schemas"]["TerminalScienceArtifactReference"];
+                raw_bundle?: components["schemas"]["TerminalScienceArtifactReference"];
+            };
+        };
+        TerminalScienceRunEnvelope: {
+            /** @enum {string} */
+            schema: "regent.techtree.science_run.v1";
+            /** @enum {string} */
+            kind: "terminal_bench_science_run";
+            ids: {
+                goal_id?: string | null;
+                run_id: string;
+                local_attempt_id: string;
+                agent_id?: string | null;
+                benchmark_attempt_id?: string | null;
+                validation_id?: string | null;
+                proof_ref?: string | null;
+                published_node_id?: number | null;
+            };
+            task: {
+                /** @enum {string} */
+                benchmark: "terminal-bench-science";
+                /** @enum {string} */
+                upstream_name: "TB-Science";
+                task_uri: string;
+                repo: string;
+                repo_owner: string;
+                repo_name: string;
+                ref: string;
+                commit: string;
+                path: string;
+                domain?: string | null;
+                field?: string | null;
+                task_name?: string | null;
+                task_toml_sha256?: string | null;
+                instruction_sha256?: string | null;
+                environment_sha256?: string | null;
+                verifier_sha256?: string | null;
+            };
+            runner: {
+                /** @enum {string} */
+                harness: "harbor";
+                harness_version?: string | null;
+                harness_commit?: string | null;
+                command: string;
+                environment: components["schemas"]["TerminalScienceRunEnvironment"];
+            };
+            agent: {
+                /** @enum {string} */
+                agent_key: "codex" | "openclaw" | "hermes" | "custom";
+                agent_display_name?: string | null;
+                adapter: string;
+                adapter_version?: string | null;
+                model: string;
+                model_provider?: string | null;
+                /** @enum {string} */
+                runtime: "regents-cli";
+                runtime_profile?: string | null;
+                identity?: components["schemas"]["LooseObject"];
+            };
+            execution: {
+                /** @enum {string} */
+                status: "passed" | "failed" | "timeout" | "error";
+                /** Format: date-time */
+                started_at: string;
+                /** Format: date-time */
+                ended_at: string;
+                duration_ms: number;
+                exit_code: number | null;
+                attempt: number;
+                timeout_sec?: number | null;
+                failure_reason?: string | null;
+            };
+            result: {
+                success: boolean;
+                reward: number;
+                score: number;
+                verifier: components["schemas"]["LooseObject"];
+                tests?: components["schemas"]["LooseObject"];
+            };
+            artifacts: components["schemas"]["TerminalScienceArtifactRefs"];
+            costs: components["schemas"]["LooseObject"];
+            provenance: components["schemas"]["LooseObject"];
+            publish: components["schemas"]["LooseObject"];
         };
         BenchmarkHarnessCreateRequest: {
             harness_id?: string;
@@ -3549,7 +3662,7 @@ export interface components {
             artifact_manifest?: components["schemas"]["LooseObject"];
             runtime_seconds?: number | null;
             cost_usd_micros?: number | null;
-            run_source?: components["schemas"]["LooseObject"];
+            run_source?: components["schemas"]["TerminalScienceRunEnvelope"] | components["schemas"]["LooseObject"];
             workspace_source?: components["schemas"]["LooseObject"];
         };
         BenchmarkRepeatAttemptInput: {

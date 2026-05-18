@@ -30,27 +30,46 @@ const parseInstallRuntimeSelector = (value: string | undefined): RegentAgentRunt
 };
 
 export async function runPluginStatus(args: ParsedCliArgs): Promise<number> {
-  printJson(pluginStatus(parseRuntimeSelector(getFlag(args, "runtime"))));
+  const report = pluginStatus(parseRuntimeSelector(getFlag(args, "runtime")));
+  const missing = report.runtimes.filter((runtime) => !runtime.installed);
+
+  printJson({
+    ...report,
+    next_steps: missing.length > 0
+      ? [`regents plugin install --runtime ${report.selectedRuntime}`]
+      : ["regents run"],
+  });
   return 0;
 }
 
 export async function runPluginInstall(args: ParsedCliArgs): Promise<number> {
   const runtime = parseInstallRuntimeSelector(getFlag(args, "runtime"));
+  const runtimes = selectedRuntimes(runtime);
+  const includesHermes = runtimes.includes("hermes");
 
   printJson({
     ok: true,
     selectedRuntime: runtime,
-    installed_plugins: selectedRuntimes(runtime).map((entry) => installPlugin(entry)),
+    installed_plugins: runtimes.map((entry) => installPlugin(entry)),
+    next_steps: [
+      ...(includesHermes ? ["hermes auth add xai-oauth"] : []),
+      `regents plugin doctor --runtime ${runtime}`,
+      "regents run",
+    ],
   });
   return 0;
 }
 
 export async function runPluginDoctor(args: ParsedCliArgs): Promise<number> {
   const report = pluginStatus(parseRuntimeSelector(getFlag(args, "runtime")));
+  const missing = report.runtimes.filter((runtime) => !runtime.installed).map((runtime) => runtime.runtime);
   printJson({
     ...report,
-    ok: report.runtimes.every((runtime) => runtime.installed),
-    missing: report.runtimes.filter((runtime) => !runtime.installed).map((runtime) => runtime.runtime),
+    ok: missing.length === 0,
+    missing,
+    next_steps: missing.length > 0
+      ? [`regents plugin install --runtime ${report.selectedRuntime}`]
+      : ["regents run"],
   });
   return 0;
 }
