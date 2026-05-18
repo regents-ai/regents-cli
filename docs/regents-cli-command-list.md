@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 338.
+Total commands: 341.
 
 ## Full Command List
 
@@ -72,6 +72,9 @@ Total commands: 338.
 - `regents autolaunch launch preview` - Preview launch.
 - `regents autolaunch launch run` - Run launch.
 - `regents autolaunch pair` - Pair Autolaunch.
+- `regents autolaunch payment-links create` - Create payment links.
+- `regents autolaunch payment-links set-canonical` - Set canonical for payment links.
+- `regents autolaunch payment-links set-state` - Set state for payment links.
 - `regents autolaunch prelaunch get` - Show prelaunch.
 - `regents autolaunch prelaunch publish` - Publish prelaunch.
 - `regents autolaunch prelaunch validate` - Check prelaunch.
@@ -93,21 +96,21 @@ Total commands: 338.
 - `regents autolaunch splitter reassign-dust` - Show Autolaunch splitter reassign dust.
 - `regents autolaunch splitter set-label` - Set label for splitter.
 - `regents autolaunch splitter set-paused` - Set paused for splitter.
-- `regents autolaunch splitter set-protocol-recipient` - Set protocol recipient for splitter.
-- `regents autolaunch splitter sweep-protocol-reserve` - Sweep protocol reserve for splitter.
 - `regents autolaunch splitter sweep-treasury-reserved` - Sweep treasury reserved for splitter.
 - `regents autolaunch splitter sweep-treasury-residual` - Sweep treasury residual for splitter.
 - `regents autolaunch strategy migrate` - Migrate strategy.
 - `regents autolaunch strategy sweep-quote-token` - Sweep quote token for strategy.
 - `regents autolaunch strategy sweep-token` - Sweep token for strategy.
+- `regents autolaunch subjects buybacks` - Show Autolaunch subjects buybacks.
 - `regents autolaunch subjects by-token` - Show Autolaunch subjects by token.
 - `regents autolaunch subjects claim-usdc` - Claim USDC for subjects.
 - `regents autolaunch subjects create-deferred-autolaunch` - Create deferred Autolaunch for subjects.
 - `regents autolaunch subjects create-existing-token` - Create existing token for subjects.
 - `regents autolaunch subjects get` - Show subjects.
 - `regents autolaunch subjects ingress` - Show Autolaunch subjects ingress.
-- `regents autolaunch subjects protocol-fee-settlements` - Show Autolaunch subjects protocol fee settlements.
+- `regents autolaunch subjects payment-links` - Show Autolaunch subjects payment links.
 - `regents autolaunch subjects regent-emissions` - Show Autolaunch subjects REGENT emissions.
+- `regents autolaunch subjects settle-buyback` - Show Autolaunch subjects settle buyback.
 - `regents autolaunch subjects stake` - Stake subjects.
 - `regents autolaunch subjects staking` - Show Autolaunch subjects staking.
 - `regents autolaunch subjects sweep-ingress` - Sweep ingress for subjects.

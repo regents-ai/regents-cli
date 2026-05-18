@@ -273,15 +273,6 @@ export async function runAutolaunchSplitterExecuteTreasuryRecipientRotation(
   );
 }
 
-export async function runAutolaunchSplitterSetProtocolRecipient(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  await postPrepareSubjectAction(args, "splitter", "set_protocol_recipient", {
-    recipient: requireArg(getFlag(args, "recipient"), "recipient"),
-  }, configPath);
-}
-
 export async function runAutolaunchSplitterSweepTreasuryResidual(
   args: ParsedCliArgs,
   configPath?: string,
@@ -296,15 +287,6 @@ export async function runAutolaunchSplitterSweepTreasuryReserved(
   configPath?: string,
 ): Promise<void> {
   await postPrepareSubjectAction(args, "splitter", "sweep_treasury_reserved", {
-    amount: requireArg(getFlag(args, "amount"), "amount"),
-  }, configPath);
-}
-
-export async function runAutolaunchSplitterSweepProtocolReserve(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  await postPrepareSubjectAction(args, "splitter", "sweep_protocol_reserve", {
     amount: requireArg(getFlag(args, "amount"), "amount"),
   }, configPath);
 }

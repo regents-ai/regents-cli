@@ -859,11 +859,11 @@ describe("autolaunch CLI command group", () => {
         configPath,
       ]),
     );
-    const settlements = await captureOutput(() =>
+    const buybacks = await captureOutput(() =>
       runCliEntrypoint([
         "autolaunch",
         "subjects",
-        "protocol-fee-settlements",
+        "buybacks",
         "subject_123",
         "--config",
         configPath,
@@ -882,12 +882,12 @@ describe("autolaunch CLI command group", () => {
 
     expect(byToken.result, byToken.stderr).toBe(0);
     expect(staking.result, staking.stderr).toBe(0);
-    expect(settlements.result, settlements.stderr).toBe(0);
+    expect(buybacks.result, buybacks.stderr).toBe(0);
     expect(emissions.result, emissions.stderr).toBe(0);
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
       `${expectedBaseUrl}/v1/agent/subjects/by-token/0xabc`,
       `${expectedBaseUrl}/v1/agent/subjects/subject_123/staking`,
-      `${expectedBaseUrl}/v1/agent/subjects/subject_123/protocol-fee-settlements`,
+      `${expectedBaseUrl}/v1/agent/subjects/subject_123/buybacks`,
       `${expectedBaseUrl}/v1/agent/subjects/subject_123/regent-emissions`,
     ]);
   });

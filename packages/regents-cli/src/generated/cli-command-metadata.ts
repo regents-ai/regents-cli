@@ -52,6 +52,9 @@ export const CLI_COMMANDS = [
   "autolaunch launch preview",
   "autolaunch launch run",
   "autolaunch pair",
+  "autolaunch payment-links create",
+  "autolaunch payment-links set-canonical",
+  "autolaunch payment-links set-state",
   "autolaunch prelaunch get",
   "autolaunch prelaunch publish",
   "autolaunch prelaunch validate",
@@ -73,21 +76,21 @@ export const CLI_COMMANDS = [
   "autolaunch splitter reassign-dust",
   "autolaunch splitter set-label",
   "autolaunch splitter set-paused",
-  "autolaunch splitter set-protocol-recipient",
-  "autolaunch splitter sweep-protocol-reserve",
   "autolaunch splitter sweep-treasury-reserved",
   "autolaunch splitter sweep-treasury-residual",
   "autolaunch strategy migrate",
   "autolaunch strategy sweep-quote-token",
   "autolaunch strategy sweep-token",
+  "autolaunch subjects buybacks",
   "autolaunch subjects by-token",
   "autolaunch subjects claim-usdc",
   "autolaunch subjects create-deferred-autolaunch",
   "autolaunch subjects create-existing-token",
   "autolaunch subjects get",
   "autolaunch subjects ingress",
-  "autolaunch subjects protocol-fee-settlements",
+  "autolaunch subjects payment-links",
   "autolaunch subjects regent-emissions",
+  "autolaunch subjects settle-buyback",
   "autolaunch subjects stake",
   "autolaunch subjects staking",
   "autolaunch subjects sweep-ingress",
@@ -402,6 +405,9 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch launch preview",
     "autolaunch launch run",
     "autolaunch pair",
+    "autolaunch payment-links create",
+    "autolaunch payment-links set-canonical",
+    "autolaunch payment-links set-state",
     "autolaunch prelaunch get",
     "autolaunch prelaunch publish",
     "autolaunch prelaunch validate",
@@ -423,21 +429,21 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch splitter reassign-dust",
     "autolaunch splitter set-label",
     "autolaunch splitter set-paused",
-    "autolaunch splitter set-protocol-recipient",
-    "autolaunch splitter sweep-protocol-reserve",
     "autolaunch splitter sweep-treasury-reserved",
     "autolaunch splitter sweep-treasury-residual",
     "autolaunch strategy migrate",
     "autolaunch strategy sweep-quote-token",
     "autolaunch strategy sweep-token",
+    "autolaunch subjects buybacks",
     "autolaunch subjects by-token",
     "autolaunch subjects claim-usdc",
     "autolaunch subjects create-deferred-autolaunch",
     "autolaunch subjects create-existing-token",
     "autolaunch subjects get",
     "autolaunch subjects ingress",
-    "autolaunch subjects protocol-fee-settlements",
+    "autolaunch subjects payment-links",
     "autolaunch subjects regent-emissions",
+    "autolaunch subjects settle-buyback",
     "autolaunch subjects stake",
     "autolaunch subjects staking",
     "autolaunch subjects sweep-ingress",
@@ -2270,6 +2276,165 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "usage": "regents autolaunch pair --code <pairing-code>",
     "next_step": "Open Profile in Autolaunch to review the connected agent."
   },
+  "autolaunch payment-links create": {
+    "command": "autolaunch payment-links create",
+    "owner": "autolaunch",
+    "group": "markets-subjects",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "bytes32",
+        "required": true,
+        "description": "Subject id."
+      },
+      {
+        "name": "--label",
+        "type": "string",
+        "required": true,
+        "description": "Payment link label."
+      },
+      {
+        "name": "--canonical",
+        "type": "boolean",
+        "required": false,
+        "description": "Create as a manager-displayed payment link."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Submit the prepared transaction with the configured wallet."
+      }
+    ],
+    "examples": [
+      "regents autolaunch auctions list",
+      "regents autolaunch subjects get <subject_id>",
+      "regents autolaunch bids quote --auction <auction_id>"
+    ],
+    "agent_metadata": {
+      "category": "market",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_quotes",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Create payment links."
+  },
+  "autolaunch payment-links set-canonical": {
+    "command": "autolaunch payment-links set-canonical",
+    "owner": "autolaunch",
+    "group": "markets-subjects",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "bytes32",
+        "required": true,
+        "description": "Subject id."
+      },
+      {
+        "name": "--address",
+        "type": "address",
+        "required": true,
+        "description": "Payment link receiver address."
+      },
+      {
+        "name": "--canonical",
+        "type": "boolean",
+        "required": true,
+        "description": "Whether the link is manager-displayed."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Submit the prepared transaction with the configured wallet."
+      }
+    ],
+    "examples": [
+      "regents autolaunch auctions list",
+      "regents autolaunch subjects get <subject_id>",
+      "regents autolaunch bids quote --auction <auction_id>"
+    ],
+    "agent_metadata": {
+      "category": "market",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_quotes",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Set canonical for payment links."
+  },
+  "autolaunch payment-links set-state": {
+    "command": "autolaunch payment-links set-state",
+    "owner": "autolaunch",
+    "group": "markets-subjects",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "bytes32",
+        "required": true,
+        "description": "Subject id."
+      },
+      {
+        "name": "--address",
+        "type": "address",
+        "required": true,
+        "description": "Payment link receiver address."
+      },
+      {
+        "name": "--active",
+        "type": "boolean",
+        "required": true,
+        "description": "Whether the payment link can receive USDC."
+      },
+      {
+        "name": "--replacement",
+        "type": "address",
+        "required": false,
+        "description": "Replacement payment link receiver address."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Submit the prepared transaction with the configured wallet."
+      }
+    ],
+    "examples": [
+      "regents autolaunch auctions list",
+      "regents autolaunch subjects get <subject_id>",
+      "regents autolaunch bids quote --auction <auction_id>"
+    ],
+    "agent_metadata": {
+      "category": "market",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_quotes",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Set state for payment links."
+  },
   "autolaunch prelaunch get": {
     "command": "autolaunch prelaunch get",
     "owner": "autolaunch",
@@ -2900,58 +3065,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Set paused for splitter."
   },
-  "autolaunch splitter set-protocol-recipient": {
-    "command": "autolaunch splitter set-protocol-recipient",
-    "owner": "autolaunch",
-    "group": "ens-contracts",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "prepared-action-or-status",
-    "examples": [
-      "regents autolaunch fee-registry get --job <job_id>",
-      "regents autolaunch fee-vault get --job <job_id>",
-      "regents autolaunch splitter get --subject <subject_id>",
-      "regents autolaunch registry get --subject <subject_id>"
-    ],
-    "agent_metadata": {
-      "category": "contracts",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_prepares",
-      "pagination": "none",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Set protocol recipient for splitter."
-  },
-  "autolaunch splitter sweep-protocol-reserve": {
-    "command": "autolaunch splitter sweep-protocol-reserve",
-    "owner": "autolaunch",
-    "group": "ens-contracts",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "prepared-action-or-status",
-    "examples": [
-      "regents autolaunch fee-registry get --job <job_id>",
-      "regents autolaunch fee-vault get --job <job_id>",
-      "regents autolaunch splitter get --subject <subject_id>",
-      "regents autolaunch registry get --subject <subject_id>"
-    ],
-    "agent_metadata": {
-      "category": "contracts",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_prepares",
-      "pagination": "none",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Sweep protocol reserve for splitter."
-  },
   "autolaunch splitter sweep-treasury-reserved": {
     "command": "autolaunch splitter sweep-treasury-reserved",
     "owner": "autolaunch",
@@ -3081,6 +3194,31 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Sweep token for strategy."
+  },
+  "autolaunch subjects buybacks": {
+    "command": "autolaunch subjects buybacks",
+    "owner": "autolaunch",
+    "group": "markets-subjects",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "market-envelopes",
+    "examples": [
+      "regents autolaunch auctions list",
+      "regents autolaunch subjects get <subject_id>",
+      "regents autolaunch bids quote --auction <auction_id>"
+    ],
+    "agent_metadata": {
+      "category": "market",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_quotes",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show Autolaunch subjects buybacks."
   },
   "autolaunch subjects by-token": {
     "command": "autolaunch subjects by-token",
@@ -3334,8 +3472,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show Autolaunch subjects ingress."
   },
-  "autolaunch subjects protocol-fee-settlements": {
-    "command": "autolaunch subjects protocol-fee-settlements",
+  "autolaunch subjects payment-links": {
+    "command": "autolaunch subjects payment-links",
     "owner": "autolaunch",
     "group": "markets-subjects",
     "interface": "http",
@@ -3357,7 +3495,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "Show Autolaunch subjects protocol fee settlements."
+    "summary": "Show Autolaunch subjects payment links."
   },
   "autolaunch subjects regent-emissions": {
     "command": "autolaunch subjects regent-emissions",
@@ -3383,6 +3521,51 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch subjects REGENT emissions."
+  },
+  "autolaunch subjects settle-buyback": {
+    "command": "autolaunch subjects settle-buyback",
+    "owner": "autolaunch",
+    "group": "markets-subjects",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--amount-usdc",
+        "type": "string",
+        "required": true,
+        "description": "Pending USDC amount to settle into REGENT."
+      },
+      {
+        "name": "--min-regent-out",
+        "type": "string",
+        "required": true,
+        "description": "Minimum REGENT output accepted by the settlement."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Submit the prepared transaction with the configured wallet."
+      }
+    ],
+    "examples": [
+      "regents autolaunch auctions list",
+      "regents autolaunch subjects get <subject_id>",
+      "regents autolaunch bids quote --auction <auction_id>"
+    ],
+    "agent_metadata": {
+      "category": "market",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_quotes",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show Autolaunch subjects settle buyback."
   },
   "autolaunch subjects stake": {
     "command": "autolaunch subjects stake",

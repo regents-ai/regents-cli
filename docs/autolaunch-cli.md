@@ -133,8 +133,8 @@ The fee rules are fixed too:
 
 - the official launch pool charges a fixed 2% fee
 - that 2% split is fixed at 1% to Regent and 1% to the agent treasury
-- recognized subject revenue first sends a fixed 1% skim to Regent
-- 10% of the remaining 99% buys `$REGENT` for the agent treasury
+- recognized subject revenue records 1% for Regent staking
+- 10% of the remaining 99% waits as pending buyback USDC for the agent treasury
 - the remaining 89.1% is governed by the live eligible revenue share
 - that live share decides how much stays in the staker-eligible lane and how much goes straight into the subject reserve lane
 
@@ -374,15 +374,19 @@ regents autolaunch splitter set-label --subject <subject-id> --label <text> [--j
 regents autolaunch splitter propose-treasury-recipient-rotation --subject <subject-id> --recipient <address> [--json]
 regents autolaunch splitter cancel-treasury-recipient-rotation --subject <subject-id> [--json]
 regents autolaunch splitter execute-treasury-recipient-rotation --subject <subject-id> [--json]
-regents autolaunch splitter set-protocol-recipient --subject <subject-id> --recipient <address> [--json]
 regents autolaunch splitter sweep-treasury-residual --subject <subject-id> --amount <raw-units> [--json]
-regents autolaunch splitter sweep-protocol-reserve --subject <subject-id> --amount <raw-units> [--json]
 regents autolaunch splitter reassign-dust --subject <subject-id> --amount <raw-units> [--json]
 
 regents autolaunch ingress create --subject <subject-id> --label <text> [--make-default true|false] [--json]
 regents autolaunch ingress set-default --subject <subject-id> --address <ingress-address> [--json]
 regents autolaunch ingress set-label --subject <subject-id> --address <ingress-address> --label <text> [--json]
 regents autolaunch ingress rescue --subject <subject-id> --address <ingress-address> --token <address> --amount <raw-units> --recipient <address> [--json]
+regents autolaunch subjects buybacks <subject-id> [--json]
+regents autolaunch subjects settle-buyback <subject-id> --amount-usdc <amount> --min-regent-out <amount> [--submit] [--json]
+regents autolaunch subjects payment-links <subject-id> [--json]
+regents autolaunch payment-links create --subject <subject-id> --label <text> [--canonical] [--submit] [--json]
+regents autolaunch payment-links set-canonical --subject <subject-id> --address <receiver> --canonical true|false [--submit] [--json]
+regents autolaunch payment-links set-state --subject <subject-id> --address <receiver> --active true|false [--replacement <receiver>] [--submit] [--json]
 
 regents autolaunch registry get --subject <subject-id> [--json]
 regents autolaunch registry set-subject-manager --subject <subject-id> --account <address> --enabled true|false [--json]

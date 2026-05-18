@@ -27,6 +27,9 @@ import {
   runAutolaunchIngressSetLabel,
   runAutolaunchJobsWatch,
   runAutolaunchPair,
+  runAutolaunchPaymentLinkCreate,
+  runAutolaunchPaymentLinkSetCanonical,
+  runAutolaunchPaymentLinkSetState,
   runAutolaunchLaunchFinalize,
   runAutolaunchLaunchMonitor,
   runAutolaunchLaunchPreview,
@@ -53,8 +56,6 @@ import {
   runAutolaunchSplitterReassignDust,
   runAutolaunchSplitterSetLabel,
   runAutolaunchSplitterSetPaused,
-  runAutolaunchSplitterSetProtocolRecipient,
-  runAutolaunchSplitterSweepProtocolReserve,
   runAutolaunchSplitterSweepTreasuryReserved,
   runAutolaunchSplitterSweepTreasuryResidual,
   runAutolaunchSplitterGet,
@@ -65,10 +66,12 @@ import {
   runAutolaunchSubjectClaimUsdc,
   runAutolaunchSubjectCreateDeferredAutolaunch,
   runAutolaunchSubjectCreateExistingToken,
+  runAutolaunchSubjectBuybacks,
   runAutolaunchSubjectIngress,
   runAutolaunchSubjectGet,
-  runAutolaunchSubjectProtocolFeeSettlements,
+  runAutolaunchSubjectPaymentLinks,
   runAutolaunchSubjectRegentEmissions,
+  runAutolaunchSubjectSettleBuyback,
   runAutolaunchSubjectStake,
   runAutolaunchSubjectStaking,
   runAutolaunchSubjectSweepIngress,
@@ -235,10 +238,30 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchSubjectSweepIngress(parsedArgs, configPath);
     return 0;
   }, { pattern: "autolaunch subjects sweep-ingress <subject-id>" }),
-  route("autolaunch subjects protocol-fee-settlements", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchSubjectProtocolFeeSettlements(parsedArgs, configPath);
+  route("autolaunch subjects buybacks", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSubjectBuybacks(parsedArgs, configPath);
     return 0;
-  }, { pattern: "autolaunch subjects protocol-fee-settlements <subject-id>" }),
+  }, { pattern: "autolaunch subjects buybacks <subject-id>" }),
+  route("autolaunch subjects settle-buyback", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSubjectSettleBuyback(parsedArgs, configPath);
+    return 0;
+  }, { pattern: "autolaunch subjects settle-buyback <subject-id>" }),
+  route("autolaunch subjects payment-links", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchSubjectPaymentLinks(parsedArgs, configPath);
+    return 0;
+  }, { pattern: "autolaunch subjects payment-links <subject-id>" }),
+  route("autolaunch payment-links create", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchPaymentLinkCreate(parsedArgs, configPath);
+    return 0;
+  }),
+  route("autolaunch payment-links set-canonical", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchPaymentLinkSetCanonical(parsedArgs, configPath);
+    return 0;
+  }),
+  route("autolaunch payment-links set-state", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchPaymentLinkSetState(parsedArgs, configPath);
+    return 0;
+  }),
   route("autolaunch subjects regent-emissions", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSubjectRegentEmissions(parsedArgs, configPath);
     return 0;
@@ -339,20 +362,12 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchSplitterExecuteTreasuryRecipientRotation(parsedArgs, configPath);
     return 0;
   }),
-  route("autolaunch splitter set-protocol-recipient", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchSplitterSetProtocolRecipient(parsedArgs, configPath);
-    return 0;
-  }),
   route("autolaunch splitter sweep-treasury-residual", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSplitterSweepTreasuryResidual(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch splitter sweep-treasury-reserved", async ({ parsedArgs, configPath }) => {
     await runAutolaunchSplitterSweepTreasuryReserved(parsedArgs, configPath);
-    return 0;
-  }),
-  route("autolaunch splitter sweep-protocol-reserve", async ({ parsedArgs, configPath }) => {
-    await runAutolaunchSplitterSweepProtocolReserve(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch splitter reassign-dust", async ({ parsedArgs, configPath }) => {

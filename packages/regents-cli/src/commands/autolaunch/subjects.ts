@@ -59,6 +59,35 @@ const prepareOrSubmitWrite = async (
   );
 };
 
+const prepareOrSubmitTransactionOnly = async (
+  method: "POST",
+  path: string,
+  body: Record<string, unknown>,
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> => {
+  const prepared = await requestJson(method, path, {
+    body,
+    requireAgentAuth: true,
+    configPath,
+  });
+
+  if (!getBooleanFlag(args, "submit")) {
+    printJson(prepared);
+    return;
+  }
+
+  const preparedAction = preparedActionFromEnvelope(prepared);
+  const txRequest = txRequestFromWalletAction(preparedAction.wallet_action);
+
+  if (!txRequest) {
+    throw new Error("This Autolaunch action did not include a transaction to submit.");
+  }
+
+  const txHash = await submitPreparedTxRequest(txRequest, configPath);
+  printJson({ ok: true, tx_hash: txHash, prepared: preparedAction });
+};
+
 const parseNonNegativeIntegerFlag = (
   args: ParsedCliArgs,
   name: string,
@@ -281,7 +310,7 @@ export async function runAutolaunchSubjectClaimUsdc(
   );
 }
 
-export async function runAutolaunchSubjectProtocolFeeSettlements(
+export async function runAutolaunchSubjectBuybacks(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
@@ -289,9 +318,97 @@ export async function runAutolaunchSubjectProtocolFeeSettlements(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/protocol-fee-settlements`,
+      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks`,
       { requireAgentAuth: true, configPath },
     ),
+  );
+}
+
+export async function runAutolaunchSubjectSettleBuyback(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+
+  await prepareOrSubmitWrite(
+    "POST",
+    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks/settle`,
+    {
+      amount_usdc: requireArg(getFlag(args, "amount-usdc"), "amount-usdc"),
+      min_regent_out: requireArg(getFlag(args, "min-regent-out"), "min-regent-out"),
+    },
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchSubjectPaymentLinks(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requirePositional(args, 3, "subject-id");
+  printJson(
+    await requestJson(
+      "GET",
+      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
+      { requireAgentAuth: true, configPath },
+    ),
+  );
+}
+
+export async function runAutolaunchPaymentLinkCreate(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireArg(getFlag(args, "subject"), "subject");
+  const body: Record<string, unknown> = {
+    label: requireArg(getFlag(args, "label"), "label"),
+    canonical: getBooleanFlag(args, "canonical"),
+  };
+  putOptionalStringFlag(body, "salt", args, "salt");
+
+  await prepareOrSubmitTransactionOnly(
+    "POST",
+    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
+    body,
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchPaymentLinkSetCanonical(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireArg(getFlag(args, "subject"), "subject");
+  const address = requireArg(getFlag(args, "address"), "address");
+
+  await prepareOrSubmitTransactionOnly(
+    "POST",
+    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/canonical`,
+    { canonical: requireArg(getFlag(args, "canonical"), "canonical") },
+    args,
+    configPath,
+  );
+}
+
+export async function runAutolaunchPaymentLinkSetState(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  const subjectId = requireArg(getFlag(args, "subject"), "subject");
+  const address = requireArg(getFlag(args, "address"), "address");
+  const body: Record<string, unknown> = {
+    active: requireArg(getFlag(args, "active"), "active"),
+  };
+  putOptionalStringFlag(body, "replacement", args, "replacement");
+
+  await prepareOrSubmitTransactionOnly(
+    "POST",
+    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/state`,
+    body,
+    args,
+    configPath,
   );
 }
 

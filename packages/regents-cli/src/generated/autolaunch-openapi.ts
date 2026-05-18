@@ -1136,16 +1136,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/protocol-fee-settlements": {
+    "/v1/app/subjects/{id}/buybacks": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listSubjectProtocolFeeSettlements"];
+        get: operations["listSubjectBuybacks"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/subjects/{id}/buybacks/settle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["settleSubjectBuyback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/subjects/{id}/payment-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listSubjectPaymentLinks"];
+        put?: never;
+        post: operations["createSubjectPaymentLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/subjects/{id}/payment-links/{address}/canonical": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["setSubjectPaymentLinkCanonical"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/subjects/{id}/payment-links/{address}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["setSubjectPaymentLinkState"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1622,16 +1686,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/protocol-fee-settlements": {
+    "/v1/agent/subjects/{id}/buybacks": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["agentListSubjectProtocolFeeSettlements"];
+        get: operations["agentListSubjectBuybacks"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/subjects/{id}/buybacks/settle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentSettleSubjectBuyback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/subjects/{id}/payment-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentListSubjectPaymentLinks"];
+        put?: never;
+        post: operations["agentCreateSubjectPaymentLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/subjects/{id}/payment-links/{address}/canonical": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentSetSubjectPaymentLinkCanonical"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/subjects/{id}/payment-links/{address}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentSetSubjectPaymentLinkState"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3102,8 +3230,8 @@ export interface components {
             protocol_fee_usdc_total_raw?: number | null;
             regent_emission_total: components["schemas"]["DecimalString"];
             regent_emission_total_raw?: number | null;
-            regent_buyback_total: components["schemas"]["DecimalString"];
-            regent_buyback_total_raw?: number | null;
+            pending_buyback_usdc: components["schemas"]["DecimalString"];
+            pending_buyback_usdc_raw?: number | null;
             oracle_kind: "v4_spot_chainlink_eth_usd" | null;
             regent_weth_pool_id: components["schemas"]["HexData"] | null;
             team_shared_status: components["schemas"]["TeamSharedStatus"];
@@ -3119,7 +3247,7 @@ export interface components {
             token_address: components["schemas"]["Address"];
             subjects: components["schemas"]["RevenueSubject"][];
         };
-        ProtocolFeeSettlement: {
+        BuybackSettlement: {
             subject_id: string;
             splitter_address: components["schemas"]["Address"];
             treasury_address: components["schemas"]["Address"];
@@ -3135,11 +3263,69 @@ export interface components {
             block_number?: number | null;
             log_index?: number | null;
         };
-        ProtocolFeeSettlementListEnvelope: {
+        BuybackStatus: {
+            subject_id: string;
+            splitter_address: components["schemas"]["Address"];
+            treasury_address: components["schemas"]["Address"];
+            router_address: components["schemas"]["Address"] | null;
+            pending_buyback_usdc: components["schemas"]["DecimalString"];
+            pending_buyback_usdc_raw?: number | null;
+            paused: boolean;
+            max_settlement_usdc: components["schemas"]["DecimalString"] | null;
+            max_settlement_usdc_raw?: number | null;
+            daily_remaining_usdc: components["schemas"]["DecimalString"] | null;
+            daily_remaining_usdc_raw?: number | null;
+            expected_min_regent_out: components["schemas"]["DecimalString"] | null;
+            expected_min_regent_out_raw?: number | null;
+        };
+        SubjectBuybackEnvelope: {
             /** @enum {boolean} */
             ok: true;
             subject_id: string;
-            settlements: components["schemas"]["ProtocolFeeSettlement"][];
+            buybacks: components["schemas"]["BuybackStatus"];
+            settlements: components["schemas"]["BuybackSettlement"][];
+        };
+        SettleBuybackRequest: {
+            amount_usdc: components["schemas"]["DecimalString"];
+            min_regent_out: components["schemas"]["DecimalString"];
+            source_ref?: components["schemas"]["HexData"];
+            tx_hash?: components["schemas"]["HexData"];
+        };
+        CreatePaymentLinkRequest: {
+            label: string;
+            /** @default false */
+            canonical: boolean;
+            salt?: components["schemas"]["HexData"];
+        };
+        SetPaymentLinkCanonicalRequest: {
+            canonical: boolean;
+        };
+        SetPaymentLinkStateRequest: {
+            active: boolean;
+            replacement?: components["schemas"]["Address"] | null;
+        };
+        PaymentLinkReceiver: {
+            address: components["schemas"]["Address"];
+            subject_id: string;
+            label?: string | null;
+            creator?: components["schemas"]["Address"] | null;
+            destination: components["schemas"]["Address"] | null;
+            canonical: boolean;
+            active: boolean;
+            replacement: components["schemas"]["Address"] | null;
+            created_by_connected_wallet: boolean;
+        };
+        SubjectPaymentLinksEnvelope: {
+            /** @enum {boolean} */
+            ok: true;
+            subject_id: string;
+            factory_address: components["schemas"]["Address"] | null;
+            destination: components["schemas"]["Address"] | null;
+            canonical_links: components["schemas"]["PaymentLinkReceiver"][];
+            caller_links: components["schemas"]["PaymentLinkReceiver"][];
+            caps?: {
+                [key: string]: unknown;
+            };
         };
         RegentEmission: {
             subject_id: string;
@@ -3178,7 +3364,7 @@ export interface components {
             current_protocol_skim_bps?: number | null;
             protocol_fee_usdc_total?: components["schemas"]["DecimalString"] | null;
             regent_emission_total?: components["schemas"]["DecimalString"] | null;
-            regent_buyback_total?: components["schemas"]["DecimalString"] | null;
+            pending_buyback_usdc?: components["schemas"]["DecimalString"] | null;
             oracle_kind?: "v4_spot_chainlink_eth_usd" | null;
             regent_weth_pool_id?: components["schemas"]["HexData"] | null;
             team_shared_status?: components["schemas"]["TeamSharedStatus"] | null;
@@ -3208,8 +3394,10 @@ export interface components {
             direct_deposit_usdc?: components["schemas"]["DecimalString"] | null;
             verified_ingress_usdc_raw?: number | null;
             verified_ingress_usdc?: components["schemas"]["DecimalString"] | null;
-            regent_skim_usdc_raw?: number | null;
-            regent_skim_usdc?: components["schemas"]["DecimalString"] | null;
+            protocol_fee_usdc_raw?: number | null;
+            protocol_fee_usdc?: components["schemas"]["DecimalString"] | null;
+            treasury_buyback_usdc_raw?: number | null;
+            treasury_buyback_usdc?: components["schemas"]["DecimalString"] | null;
             staker_eligible_inflow_usdc_raw?: number | null;
             staker_eligible_inflow_usdc?: components["schemas"]["DecimalString"] | null;
             treasury_reserved_inflow_usdc_raw?: number | null;
@@ -3218,8 +3406,6 @@ export interface components {
             treasury_residual_usdc?: components["schemas"]["DecimalString"] | null;
             treasury_reserved_usdc_raw?: number | null;
             treasury_reserved_usdc?: components["schemas"]["DecimalString"] | null;
-            protocol_reserve_usdc_raw?: number | null;
-            protocol_reserve_usdc?: components["schemas"]["DecimalString"] | null;
             undistributed_dust_usdc_raw?: number | null;
             undistributed_dust_usdc?: components["schemas"]["DecimalString"] | null;
             recognized_revenue_proof?: {
@@ -5501,7 +5687,7 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
-    listSubjectProtocolFeeSettlements: {
+    listSubjectBuybacks: {
         parameters: {
             query?: never;
             header?: never;
@@ -5512,13 +5698,146 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Protocol fee settlement history */
+            /** @description Subject buyback status and settlement history */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProtocolFeeSettlementListEnvelope"];
+                    "application/json": components["schemas"]["SubjectBuybackEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    settleSubjectBuyback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettleBuybackRequest"];
+            };
+        };
+        responses: {
+            /** @description Buyback settlement prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listSubjectPaymentLinks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subject payment links */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectPaymentLinksEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createSubjectPaymentLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePaymentLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Payment link creation prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    setSubjectPaymentLinkCanonical: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+                address: components["schemas"]["Address"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPaymentLinkCanonicalRequest"];
+            };
+        };
+        responses: {
+            /** @description Payment link display change prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    setSubjectPaymentLinkState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+                address: components["schemas"]["Address"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPaymentLinkStateRequest"];
+            };
+        };
+        responses: {
+            /** @description Payment link state change prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -6292,7 +6611,7 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
-    agentListSubjectProtocolFeeSettlements: {
+    agentListSubjectBuybacks: {
         parameters: {
             query?: never;
             header?: never;
@@ -6303,13 +6622,146 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Protocol fee settlement history */
+            /** @description Subject buyback status and settlement history */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProtocolFeeSettlementListEnvelope"];
+                    "application/json": components["schemas"]["SubjectBuybackEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    agentSettleSubjectBuyback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettleBuybackRequest"];
+            };
+        };
+        responses: {
+            /** @description Buyback settlement prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    agentListSubjectPaymentLinks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subject payment links */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectPaymentLinksEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    agentCreateSubjectPaymentLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePaymentLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description Payment link creation prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    agentSetSubjectPaymentLinkCanonical: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+                address: components["schemas"]["Address"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPaymentLinkCanonicalRequest"];
+            };
+        };
+        responses: {
+            /** @description Payment link display change prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    agentSetSubjectPaymentLinkState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["SubjectId"];
+                address: components["schemas"]["Address"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPaymentLinkStateRequest"];
+            };
+        };
+        responses: {
+            /** @description Payment link state change prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedSubjectActionEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
