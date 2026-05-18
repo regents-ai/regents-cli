@@ -119,6 +119,9 @@ regents autolaunch vesting status --job <job-id>
 
 Skip the Safe commands only when the agent Safe already exists and the launch plan already points to it.
 
+For a first-time launch or bid walkthrough, use the Autolaunch tutorial:
+[`../../autolaunch/docs/first-time-autolaunch-tutorial.md`](/Users/sean/Documents/regent/autolaunch/docs/first-time-autolaunch-tutorial.md).
+
 ## Fixed economic rules
 
 The launch shape is fixed:
