@@ -501,10 +501,11 @@ cat > "${WORK_DIR}/replacement.json" <<EOF
     "science": {
       "workspaceRoot": "${WORK_DIR}/workspaces/science",
       "taskRepoRoot": "${WORK_DIR}/workspaces/science/repos",
-      "defaultHarness": "codex",
+      "defaultAgent": "codex",
       "defaultModel": "openai/gpt-5.4",
       "defaultEnvironment": "docker",
-      "defaultTaskRef": "main"
+      "defaultTaskRef": "main",
+      "publishVisibility": "public"
     }
   }
 }

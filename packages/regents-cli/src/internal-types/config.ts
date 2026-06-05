@@ -76,10 +76,11 @@ export interface RegentBbhWorkloadConfig {
 export interface RegentScienceWorkloadConfig {
   workspaceRoot: string;
   taskRepoRoot: string;
-  defaultHarness: RegentExecutorHarnessKind;
+  defaultAgent: RegentExecutorHarnessKind;
   defaultModel: string;
   defaultEnvironment: "docker";
   defaultTaskRef: string;
+  publishVisibility: "public";
 }
 
 export interface RegentWorkloadsConfig {

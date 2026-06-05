@@ -211,4 +211,30 @@ describe("API command ownership registry", () => {
       ],
     });
   });
+
+  it("registers the Terminal Science run lane against the Techtree contract", () => {
+    const scienceGroup = apiCommandOwnership.find((group) =>
+      group.commands.includes("techtree science run"),
+    );
+
+    expect(scienceGroup).toMatchObject({
+      owner: "techtree",
+      status: "current",
+      commands: [
+        "techtree science set-goal",
+        "techtree science agent set <agent>",
+        "techtree science run",
+      ],
+      pathTemplates: [
+        "/v1/science/goals",
+        "/v1/science/goals/{goal_id}",
+        "/v1/science/goals/active",
+        "/v1/science/runs",
+        "/v1/science/runs/{run_id}",
+        "/v1/science/runs/{run_id}/artifacts",
+        "/v1/science/runs/{run_id}/publish",
+        "/v1/science/tasks/resolve",
+      ],
+    });
+  });
 });

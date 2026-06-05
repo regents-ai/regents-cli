@@ -4,13 +4,14 @@ import { readFile, rm } from "node:fs/promises";
 
 import { expandHome, loadConfig, writeJsonFileAtomicSync } from "../internal-runtime/index.js";
 import { requestProductResponse } from "../internal-runtime/product-http-client.js";
-import { getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { CliUsageError } from "../cli-usage-error.js";
+import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
 const DEFAULT_IDENTITY_TOKEN_ENV = "REGENT_PLATFORM_IDENTITY_TOKEN";
 const DEFAULT_SESSION_FILE = path.join(os.homedir(), ".regent", "platform", "session.json");
 
-type HttpMethod = "GET" | "POST" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 type JsonObject = Record<string, unknown>;
 
 export interface PlatformSessionState {
@@ -196,6 +197,34 @@ export async function runPlatformBillingUsage(args: ParsedCliArgs): Promise<void
   });
 }
 
+export async function runPlatformBillingSpendControlsSet(args: ParsedCliArgs): Promise<void> {
+  const { origin, session } = await loadResolvedPlatformSession(args);
+  const body = {
+    runtimeMonthlyLimitUsdCents: dollarsToCents(args, "runtime-monthly-limit-usd"),
+    llmMonthlyLimitUsdCents: dollarsToCents(args, "model-usage-monthly-limit-usd"),
+    runtimeAutoTopupEnabled: getBooleanFlag(args, "runtime-auto-topup-enabled"),
+    runtimeAutoTopupAmountUsdCents: dollarsToCents(args, "runtime-auto-topup-amount-usd"),
+    runtimeAutoTopupThresholdUsdCents: dollarsToCents(args, "runtime-auto-topup-threshold-usd"),
+  };
+
+  const { data } = await requestPlatformSessionJson({
+    origin,
+    path: "/api/agent-platform/billing/spend-controls",
+    method: "PUT",
+    session,
+    body,
+    commandName: "regents platform billing spend-controls set",
+    configPath: getFlag(args, "config"),
+  });
+
+  printJson({
+    ok: true,
+    command: "regents platform billing spend-controls set",
+    origin,
+    billing: data,
+  });
+}
+
 export async function runPlatformCompanyRuntime(args: ParsedCliArgs): Promise<void> {
   const slug = requireArg(getFlag(args, "slug"), "slug");
   const { origin, session } = await loadResolvedPlatformSession(args);
@@ -244,6 +273,20 @@ const resolveIdentityToken = (args: ParsedCliArgs): string => {
   }
 
   return fromEnv;
+};
+
+const dollarsToCents = (args: ParsedCliArgs, name: string): number => {
+  const value = requireArg(getFlag(args, name), name);
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 0 || String(parsed) !== value) {
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `--${name} must be a non-negative whole-dollar amount.`,
+    });
+  }
+
+  return parsed * 100;
 };
 
 const bootstrapCsrf = async (origin: string): Promise<PlatformSessionState> => {

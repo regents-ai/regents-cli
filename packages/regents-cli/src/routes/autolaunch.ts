@@ -26,6 +26,8 @@ import {
   runAutolaunchIngressSetDefault,
   runAutolaunchIngressSetLabel,
   runAutolaunchJobsWatch,
+  runAutolaunchConnectStart,
+  runAutolaunchAuctionState,
   runAutolaunchPair,
   runAutolaunchPaymentLinkCreate,
   runAutolaunchPaymentLinkSetCanonical,
@@ -34,6 +36,7 @@ import {
   runAutolaunchLaunchMonitor,
   runAutolaunchLaunchPreview,
   runAutolaunchLaunchRun,
+  runAutolaunchLaunchState,
   runAutolaunchSafeCreate,
   runAutolaunchSafeWizard,
   runAutolaunchPrelaunchPublish,
@@ -110,6 +113,14 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchAuctionShow(positionals[2] as string, configPath);
     return 0;
   }),
+  route("autolaunch auction state <id>", async ({ parsedArgs, positionals, configPath }) => {
+    await runAutolaunchAuctionState(
+      requireArg(positionals[3], "auction-id"),
+      parsedArgs,
+      configPath,
+    );
+    return 0;
+  }),
   route("autolaunch bids quote", async ({ parsedArgs, configPath }) => {
     await runAutolaunchBidsQuote(parsedArgs, configPath);
     return 0;
@@ -154,6 +165,10 @@ export const autolaunchRoutes: readonly CliRoute[] = [
     await runAutolaunchPair(parsedArgs, configPath);
     return 0;
   }),
+  route("autolaunch connect start", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchConnectStart(parsedArgs, configPath);
+    return 0;
+  }),
   route("autolaunch prelaunch wizard", async ({ parsedArgs, configPath }) => {
     await runAutolaunchPrelaunchWizard(parsedArgs, configPath);
     return 0;
@@ -184,6 +199,10 @@ export const autolaunchRoutes: readonly CliRoute[] = [
   }),
   route("autolaunch launch run", async ({ parsedArgs, configPath }) => {
     await runAutolaunchLaunchRun(parsedArgs, configPath);
+    return 0;
+  }),
+  route("autolaunch launch state", async ({ parsedArgs, configPath }) => {
+    await runAutolaunchLaunchState(parsedArgs, configPath);
     return 0;
   }),
   route("autolaunch launch monitor", async ({ parsedArgs, configPath }) => {

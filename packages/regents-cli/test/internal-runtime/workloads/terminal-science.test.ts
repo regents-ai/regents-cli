@@ -149,6 +149,7 @@ describe("terminal science workload", () => {
     expect(stdout).toBe("verifier passed\n");
     expect(stderr).toBe("");
     expect(envelope.publish.publish_run).toBe(false);
+    expect(envelope.task.commit).toBe("abc123");
     expect(envelope.ids.node_id).toBeNull();
     expect(envelope.ids.certificate_id).toBeNull();
     expect(envelope.artifacts.public.summary.uri).toBe("local:public-summary.json");
@@ -191,5 +192,26 @@ describe("terminal science workload", () => {
     expect(run.status).toBe("failed");
     expect(run.public_summary.reward).toBe(0);
     expect(await fs.readFile(run.files.harbor_stderr, "utf8")).toBe("verifier failed\n");
+  });
+
+  it("requires a science-enabled Harbor adapter for non-Codex agents", async () => {
+    const repoPath = await prepareTaskRepo();
+    const runDir = await makeTempDir("terminal-science-openclaw-run-");
+    const config = defaultConfig(path.join(runDir, "config.json"));
+
+    await expect(
+      buildAndRunTerminalScience(
+        config,
+        { task: taskUri, run_dir: runDir, agent: "openclaw" },
+        undefined,
+        undefined,
+        {
+          repoResolver: async () => ({ repoPath, commit: "abc123" }),
+          runner: async () => {
+            throw new Error("runner should not start");
+          },
+        },
+      ),
+    ).rejects.toThrow("OpenClaw needs a science-enabled Harbor adapter before it can run.");
   });
 });

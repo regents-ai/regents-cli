@@ -85,10 +85,11 @@ const configSchema = z.object({
     science: z.object({
       workspaceRoot: z.string().min(1),
       taskRepoRoot: z.string().min(1),
-      defaultHarness: executorHarnessSchema,
+      defaultAgent: executorHarnessSchema,
       defaultModel: z.string().min(1),
       defaultEnvironment: terminalScienceEnvironmentSchema,
       defaultTaskRef: z.string().min(1),
+      publishVisibility: z.literal("public"),
     }).strict(),
   }).strict(),
 }).strict();
@@ -295,10 +296,11 @@ export const workloadDefaultsForRoot = (rootDir: string): RegentConfig["workload
   science: {
     workspaceRoot: path.join(rootDir, "workspaces", "science"),
     taskRepoRoot: path.join(rootDir, "workspaces", "science", "repos"),
-    defaultHarness: "codex",
+    defaultAgent: "codex",
     defaultModel: "openai/gpt-5.4",
     defaultEnvironment: "docker",
     defaultTaskRef: "main",
+    publishVisibility: "public",
   },
 });
 

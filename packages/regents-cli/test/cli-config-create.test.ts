@@ -278,10 +278,11 @@ describe("CLI config flows", () => {
         science: {
           workspaceRoot: path.join(harness.tempDir, "workspaces", "science"),
           taskRepoRoot: path.join(harness.tempDir, "workspaces", "science", "repos"),
-          defaultHarness: "codex",
+          defaultAgent: "codex",
           defaultModel: "openai/gpt-5.4",
           defaultEnvironment: "docker",
           defaultTaskRef: "main",
+          publishVisibility: "public",
         },
       },
     });
@@ -388,10 +389,11 @@ describe("CLI config flows", () => {
           science: {
             workspaceRoot: path.join(harness.tempDir, "workspaces", "science"),
             taskRepoRoot: path.join(harness.tempDir, "workspaces", "science", "repos"),
-            defaultHarness: "codex",
+            defaultAgent: "codex",
             defaultModel: "openai/gpt-5.4",
             defaultEnvironment: "docker",
             defaultTaskRef: "main",
+            publishVisibility: "public",
           },
         },
       }),
@@ -509,10 +511,11 @@ describe("CLI config flows", () => {
           science: {
             workspaceRoot: path.join(harness.tempDir, "workspaces", "science"),
             taskRepoRoot: path.join(harness.tempDir, "workspaces", "science", "repos"),
-            defaultHarness: "codex",
+            defaultAgent: "codex",
             defaultModel: "openai/gpt-5.4",
             defaultEnvironment: "docker",
             defaultTaskRef: "main",
+            publishVisibility: "public",
           },
         },
       },

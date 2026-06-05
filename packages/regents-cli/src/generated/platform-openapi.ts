@@ -952,6 +952,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/agent-platform/billing/spend-controls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["agentPlatformBillingSpendControlsUpdate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/agent-platform/formation/companies": {
         parameters: {
             query?: never;
@@ -1106,6 +1122,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["agentPlatformBillingTopupCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent-platform/hermes/llm/v1/responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentPlatformHermesLlmResponsesCreate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2286,6 +2318,13 @@ export interface components {
                     bridge_service_name: string | null;
                     path: string | null;
                     registry_path: string | null;
+                    gbrain: {
+                        /** @enum {string} */
+                        status: "not_installed" | "installed" | "needs_setup" | "ready" | "warning";
+                        tool_repo_path: string | null;
+                        brain_repo_path: string | null;
+                        warnings: string[];
+                    };
                 };
             };
         };
@@ -2884,6 +2923,23 @@ export interface components {
             margin_bps: number;
             runtime_credit_balance_usd_cents: number;
             /** Format: date-time */
+            billing_period_started_at: string | null;
+            /** Format: date-time */
+            billing_period_ends_at: string | null;
+            runtime_monthly_limit_usd_cents: number;
+            runtime_monthly_spend_usd_cents: number;
+            runtime_monthly_remaining_usd_cents: number;
+            llm_monthly_limit_usd_cents: number;
+            llm_monthly_spend_usd_cents: number;
+            llm_monthly_reserved_usd_cents: number;
+            llm_monthly_remaining_usd_cents: number;
+            runtime_auto_topup_enabled: boolean;
+            runtime_auto_topup_amount_usd_cents: number;
+            runtime_auto_topup_threshold_usd_cents: number;
+            /** Format: date-time */
+            auto_topup_terms_accepted_at: string | null;
+            auto_topup_terms_version: string | null;
+            /** Format: date-time */
             free_day_ends_at: string | null;
             /** @enum {string} */
             prepaid_drawdown_state: "free_day" | "drawing_down" | "paused_at_zero" | "unavailable";
@@ -2899,8 +2955,31 @@ export interface components {
         BillingSetupCheckoutRequest: {
             claimedLabel?: string;
         };
+        BillingSpendControlsUpdateRequest: {
+            runtimeMonthlyLimitUsdCents: number;
+            llmMonthlyLimitUsdCents: number;
+            runtimeAutoTopupEnabled: boolean;
+            runtimeAutoTopupAmountUsdCents: number;
+            runtimeAutoTopupThresholdUsdCents: number;
+        };
+        BillingSpendControlsUpdateResponse: {
+            ok: boolean;
+            billing_account: components["schemas"]["BillingAccount"];
+            usage: components["schemas"]["BillingUsageSummary"];
+        };
         BillingUsageSummary: {
             runtime_credit_balance_usd_cents: number;
+            /** Format: date-time */
+            billing_period_started_at: string | null;
+            /** Format: date-time */
+            billing_period_ends_at: string | null;
+            runtime_monthly_limit_usd_cents: number;
+            runtime_monthly_spend_usd_cents: number;
+            runtime_monthly_remaining_usd_cents: number;
+            llm_monthly_limit_usd_cents: number;
+            llm_monthly_spend_usd_cents: number;
+            llm_monthly_reserved_usd_cents: number;
+            llm_monthly_remaining_usd_cents: number;
             /** Format: date-time */
             free_day_ends_at: string | null;
             /** @enum {string} */
@@ -5145,6 +5224,33 @@ export interface operations {
             429: components["responses"]["StatusMessage429"];
         };
     };
+    agentPlatformBillingSpendControlsUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingSpendControlsUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Saved billing spend controls for the signed-in human */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingSpendControlsUpdateResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
     agentPlatformFormationCreateCompany: {
         parameters: {
             query?: never;
@@ -5481,6 +5587,38 @@ export interface operations {
             403: components["responses"]["StatusMessage403"];
             429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformHermesLlmResponsesCreate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Model response for a hosted Hermes runtime */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            402: components["responses"]["StatusMessage402"];
+            429: components["responses"]["StatusMessage429"];
+            502: components["responses"]["StatusMessage502"];
         };
     };
     agentPlatformStripeWebhook: {

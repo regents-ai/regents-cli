@@ -207,6 +207,14 @@ export const requiredWorkspaceFiles = (manifest, cliRoot) => {
     .filter((contract) => contract.requiredForPublicBeta)
     .map((contract) => ({ label: `${contract.id} contract`, path: contract.resolvedPath, kind: "file" }));
 
+  const localDependencyRows = repos
+    .filter((repo) => repo.requiredForPublicBeta)
+    .flatMap((repo) => repo.localPathDependencies.map((dependency) => ({
+      label: `${repo.name} local dependency ${dependency}`,
+      path: path.resolve(repo.resolvedPath, dependency),
+      kind: "dir",
+    })));
+
   const generatedRows = allContractEntries(manifest, cliRoot)
     .filter((contract) => contract.requiredForPublicBeta)
     .flatMap((contract) => contract.generatedBindings.map((binding) => ({
@@ -215,7 +223,7 @@ export const requiredWorkspaceFiles = (manifest, cliRoot) => {
       kind: "file",
     })));
 
-  return [...repoRows, ...contractRows, ...generatedRows, {
+  return [...repoRows, ...localDependencyRows, ...contractRows, ...generatedRows, {
     label: "WalletAction schema",
     path: walletActionSchemaPath(manifest, cliRoot),
     kind: "file",

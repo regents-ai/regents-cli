@@ -7,7 +7,7 @@ export {
   runAutolaunchIdentitiesList,
   runAutolaunchIdentitiesMint,
 } from "./autolaunch/identities.js";
-export { runAutolaunchPair } from "./autolaunch/pairing.js";
+export { runAutolaunchConnectStart, runAutolaunchPair } from "./autolaunch/pairing.js";
 export {
   runAutolaunchContractsAdminShow,
   runAutolaunchContractsJobShow,
@@ -46,8 +46,10 @@ export {
   runAutolaunchVestingProposeBeneficiaryRotation,
 } from "./autolaunch/contracts.js";
 export {
+  runAutolaunchAuctionState,
   runAutolaunchJobsWatch,
   runAutolaunchLaunchPreview,
+  runAutolaunchLaunchState,
 } from "./autolaunch/launch.js";
 export {
   runAutolaunchAuctionReturnsList,

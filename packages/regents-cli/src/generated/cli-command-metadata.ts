@@ -22,12 +22,14 @@ export const CLI_COMMANDS = [
   "autolaunch agent readiness <id>",
   "autolaunch agents list",
   "autolaunch auction <id>",
+  "autolaunch auction state <id>",
   "autolaunch auction-returns list",
   "autolaunch auctions list",
   "autolaunch bids claim",
   "autolaunch bids exit",
   "autolaunch bids place",
   "autolaunch bids quote",
+  "autolaunch connect start",
   "autolaunch contracts admin",
   "autolaunch contracts job",
   "autolaunch contracts subject",
@@ -51,6 +53,7 @@ export const CLI_COMMANDS = [
   "autolaunch launch monitor",
   "autolaunch launch preview",
   "autolaunch launch run",
+  "autolaunch launch state",
   "autolaunch pair",
   "autolaunch payment-links create",
   "autolaunch payment-links set-canonical",
@@ -132,6 +135,7 @@ export const CLI_COMMANDS = [
   "platform auth logout",
   "platform auth status",
   "platform billing account",
+  "platform billing spend-controls set",
   "platform billing usage",
   "platform company runtime",
   "platform formation doctor",
@@ -255,6 +259,7 @@ export const CLI_COMMANDS = [
   "techtree runbook questions get <id>",
   "techtree runbook questions list",
   "techtree runbook unlock <answer_id>",
+  "techtree science agent set <agent>",
   "techtree science run",
   "techtree science set-goal",
   "techtree science-tasks checklist",
@@ -375,12 +380,14 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch agent readiness <id>",
     "autolaunch agents list",
     "autolaunch auction <id>",
+    "autolaunch auction state <id>",
     "autolaunch auction-returns list",
     "autolaunch auctions list",
     "autolaunch bids claim",
     "autolaunch bids exit",
     "autolaunch bids place",
     "autolaunch bids quote",
+    "autolaunch connect start",
     "autolaunch contracts admin",
     "autolaunch contracts job",
     "autolaunch contracts subject",
@@ -404,6 +411,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch launch monitor",
     "autolaunch launch preview",
     "autolaunch launch run",
+    "autolaunch launch state",
     "autolaunch pair",
     "autolaunch payment-links create",
     "autolaunch payment-links set-canonical",
@@ -509,6 +517,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "platform auth logout",
     "platform auth status",
     "platform billing account",
+    "platform billing spend-controls set",
     "platform billing usage",
     "platform company runtime",
     "platform formation doctor",
@@ -650,6 +659,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree runbook questions get <id>",
     "techtree runbook questions list",
     "techtree runbook unlock <answer_id>",
+    "techtree science agent set <agent>",
     "techtree science run",
     "techtree science set-goal",
     "techtree science-tasks checklist",
@@ -1481,6 +1491,31 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show Autolaunch auction."
   },
+  "autolaunch auction state <id>": {
+    "command": "autolaunch auction state <id>",
+    "owner": "autolaunch",
+    "group": "markets-subjects",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "market-envelopes",
+    "examples": [
+      "regents autolaunch auctions list",
+      "regents autolaunch subjects get <subject_id>",
+      "regents autolaunch bids quote --auction <auction_id>"
+    ],
+    "agent_metadata": {
+      "category": "market",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_quotes",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show Autolaunch auction state."
+  },
   "autolaunch auction-returns list": {
     "command": "autolaunch auction-returns list",
     "owner": "autolaunch",
@@ -1630,6 +1665,51 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Quote bids."
+  },
+  "autolaunch connect start": {
+    "command": "autolaunch connect start",
+    "owner": "autolaunch",
+    "group": "agent-pairings",
+    "interface": "http",
+    "auth_mode": "local-agent-signature",
+    "output_envelope": "agent-pairing-session",
+    "flags": [
+      {
+        "name": "--plan",
+        "type": "string",
+        "required": false,
+        "description": "Optional prelaunch plan ID to associate with this connection."
+      },
+      {
+        "name": "--label",
+        "type": "string",
+        "required": false,
+        "description": "Optional local label for this Agent account."
+      },
+      {
+        "name": "--watch",
+        "type": "boolean",
+        "required": false,
+        "description": "Poll until a signed-in human confirms the connection."
+      }
+    ],
+    "examples": [
+      "regents autolaunch pair --code AL-ABC234-DEF56789",
+      "regents autolaunch connect start"
+    ],
+    "agent_metadata": {
+      "category": "identity",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "pairing-write",
+      "retry_behavior": "use_new_pairing_code",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags"
+    },
+    "summary": "Start connect.",
+    "usage": "regents autolaunch connect start",
+    "next_step": "Ask the signed-in human to open the connection URL."
   },
   "autolaunch contracts admin": {
     "command": "autolaunch contracts admin",
@@ -2238,6 +2318,55 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
+  "autolaunch launch state": {
+    "command": "autolaunch launch state",
+    "owner": "autolaunch",
+    "group": "prelaunch-launch",
+    "interface": "mixed",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--plan",
+        "type": "string",
+        "required": false,
+        "description": "Read private launch state for a saved plan."
+      },
+      {
+        "name": "--job",
+        "type": "string",
+        "required": false,
+        "description": "Read private launch state for a launch job."
+      },
+      {
+        "name": "--auction",
+        "type": "string",
+        "required": false,
+        "description": "Read private launch state for an auction."
+      }
+    ],
+    "examples": [
+      "regents autolaunch prelaunch wizard",
+      "regents autolaunch prelaunch get --plan <id>",
+      "regents autolaunch prelaunch validate --plan <id>",
+      "regents autolaunch jobs watch <job_id>"
+    ],
+    "agent_metadata": {
+      "category": "launch",
+      "prompt_behavior": "confirm_before_publish_or_submit",
+      "json_support": "supported",
+      "mutation_class": "workflow-write",
+      "retry_behavior": "retry_status_and_prepare_only",
+      "pagination": "bounded",
+      "async_behavior": "job_or_polling",
+      "input_mode": "mixed",
+      "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
+    },
+    "summary": "Show Autolaunch launch state.",
+    "usage": "regents autolaunch prelaunch <command>",
+    "next_step": "Use `regents autolaunch jobs watch <job-id>`."
+  },
   "autolaunch pair": {
     "command": "autolaunch pair",
     "owner": "autolaunch",
@@ -2260,7 +2389,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       }
     ],
     "examples": [
-      "regents autolaunch pair --code AL-ABC234-DEF56789"
+      "regents autolaunch pair --code AL-ABC234-DEF56789",
+      "regents autolaunch connect start"
     ],
     "agent_metadata": {
       "category": "identity",
@@ -2273,8 +2403,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "flags"
     },
     "summary": "Pair Autolaunch.",
-    "usage": "regents autolaunch pair --code <pairing-code>",
-    "next_step": "Open Profile in Autolaunch to review the connected agent."
+    "usage": "regents autolaunch connect start",
+    "next_step": "Ask the signed-in human to open the connection URL."
   },
   "autolaunch payment-links create": {
     "command": "autolaunch payment-links create",
@@ -2560,6 +2690,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "evm-address",
         "required": true,
         "description": "Agent Safe address. This is the shared control wallet for the launch; use a well-protected 2-of-3 Safe."
+      },
+      {
+        "name": "--connect-profile",
+        "type": "boolean",
+        "required": false,
+        "description": "Start a terminal-first profile connection after saving the prelaunch plan."
       }
     ],
     "examples": [
@@ -4847,6 +4983,81 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show the billing account tied to the saved platform session."
+  },
+  "platform billing spend-controls set": {
+    "command": "platform billing spend-controls set",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http-cookie-session",
+    "auth_mode": "session-file",
+    "output_envelope": "json",
+    "operation_ids": [
+      "agentPlatformBillingSpendControlsUpdate"
+    ],
+    "args": [],
+    "flags": [
+      {
+        "name": "--runtime-monthly-limit-usd",
+        "type": "integer",
+        "required": true,
+        "description": "Workspace hosting monthly maximum in dollars."
+      },
+      {
+        "name": "--model-usage-monthly-limit-usd",
+        "type": "integer",
+        "required": true,
+        "description": "Model usage monthly maximum in dollars."
+      },
+      {
+        "name": "--runtime-auto-topup-enabled",
+        "type": "boolean",
+        "required": false,
+        "default": false,
+        "description": "Turn on automatic credit top-up."
+      },
+      {
+        "name": "--runtime-auto-topup-amount-usd",
+        "type": "integer",
+        "required": true,
+        "description": "Credit amount to add when automatic top-up runs."
+      },
+      {
+        "name": "--runtime-auto-topup-threshold-usd",
+        "type": "integer",
+        "required": true,
+        "description": "Credit balance that starts automatic top-up."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Save monthly hosting, model usage, and automatic credit top-up settings."
   },
   "platform billing usage": {
     "command": "platform billing usage",
@@ -8668,12 +8879,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Unlock a paid Runbook answer."
   },
+  "techtree science agent set <agent>": {
+    "command": "techtree science agent set <agent>",
+    "owner": "techtree",
+    "group": "science",
+    "interface": "mixed",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "terminal-science-bench-envelopes",
+    "flags": [
+      {
+        "name": "agent",
+        "type": "enum",
+        "enum": [
+          "codex",
+          "openclaw",
+          "hermes",
+          "custom"
+        ],
+        "required": true
+      }
+    ],
+    "examples": [
+      "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name",
+      "regents techtree science agent set codex",
+      "regents techtree science run --publish-run"
+    ],
+    "agent_metadata": {
+      "category": "terminal-science-bench",
+      "prompt_behavior": "confirm_before_publish",
+      "json_support": "supported",
+      "mutation_class": "local-and-http-write",
+      "retry_behavior": "retry_local_runs_and_http_publish",
+      "pagination": "none",
+      "async_behavior": "local-long-running",
+      "input_mode": "args-and-flags",
+      "summary": "Choose the default Terminal Science Bench agent."
+    },
+    "summary": "Choose the default Terminal Science Bench agent."
+  },
   "techtree science run": {
     "command": "techtree science run",
     "owner": "techtree",
     "group": "science",
-    "interface": "local-runtime",
-    "auth_mode": "none",
+    "interface": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "terminal-science-bench-envelopes",
     "flags": [
       {
@@ -8714,31 +8963,37 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--timeout-seconds",
         "type": "integer",
         "required": false
+      },
+      {
+        "name": "--publish-run",
+        "type": "boolean",
+        "required": false
       }
     ],
     "examples": [
       "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name",
-      "regents techtree science run --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name --run-dir ./science-runs/example-name"
+      "regents techtree science agent set codex",
+      "regents techtree science run --publish-run"
     ],
     "agent_metadata": {
       "category": "terminal-science-bench",
-      "prompt_behavior": "never_prompt",
+      "prompt_behavior": "confirm_before_publish",
       "json_support": "supported",
-      "mutation_class": "local-write",
-      "retry_behavior": "retry_local_runs",
+      "mutation_class": "local-and-http-write",
+      "retry_behavior": "retry_local_runs_and_http_publish",
       "pagination": "none",
       "async_behavior": "local-long-running",
       "input_mode": "args-and-flags",
-      "summary": "Run a Terminal Science Bench task locally."
+      "summary": "Run a Terminal Science Bench task locally and optionally publish the run."
     },
-    "summary": "Run a Terminal Science Bench task locally."
+    "summary": "Run a Terminal Science Bench task locally and optionally publish the run."
   },
   "techtree science set-goal": {
     "command": "techtree science set-goal",
     "owner": "techtree",
     "group": "science",
-    "interface": "local-runtime",
-    "auth_mode": "none",
+    "interface": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "terminal-science-bench-envelopes",
     "flags": [
       {
@@ -8773,14 +9028,15 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name",
-      "regents techtree science run --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name --run-dir ./science-runs/example-name"
+      "regents techtree science agent set codex",
+      "regents techtree science run --publish-run"
     ],
     "agent_metadata": {
       "category": "terminal-science-bench",
-      "prompt_behavior": "never_prompt",
+      "prompt_behavior": "confirm_before_publish",
       "json_support": "supported",
-      "mutation_class": "local-write",
-      "retry_behavior": "retry_local_runs",
+      "mutation_class": "local-and-http-write",
+      "retry_behavior": "retry_local_runs_and_http_publish",
       "pagination": "none",
       "async_behavior": "local-long-running",
       "input_mode": "args-and-flags",

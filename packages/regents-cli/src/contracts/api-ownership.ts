@@ -170,12 +170,22 @@ export const techtreeApiCommandGroups = [
   defineTechtreeGroup({
     commands: [
       "techtree science set-goal",
+      "techtree science agent set <agent>",
       "techtree science run",
     ],
     owner: "techtree",
-    status: "current-hybrid",
-    note: "Local Terminal Science goal and run folders only; no Techtree HTTP write is made in this slice.",
-    pathTemplates: [],
+    status: "current",
+    note: "Terminal Science runs execute locally and publish through Techtree when requested.",
+    pathTemplates: [
+      "/v1/science/goals",
+      "/v1/science/goals/{goal_id}",
+      "/v1/science/goals/active",
+      "/v1/science/runs",
+      "/v1/science/runs/{run_id}",
+      "/v1/science/runs/{run_id}/artifacts",
+      "/v1/science/runs/{run_id}/publish",
+      "/v1/science/tasks/resolve",
+    ],
   }),
   defineTechtreeGroup({
     commands: [
@@ -432,10 +442,14 @@ export const autolaunchApiCommandGroups = [
     pathTemplates: ["/v1/agent/agents", "/v1/agent/agents/{id}", "/v1/agent/agents/{id}/readiness"],
   }),
   defineAutolaunchGroup({
-    commands: ["autolaunch pair"],
+    commands: ["autolaunch pair", "autolaunch connect start"],
     owner: "autolaunch",
     status: "current",
-    pathTemplates: ["/v1/app/agent-pairings/complete"],
+    pathTemplates: [
+      "/v1/app/agent-pairings/complete",
+      "/v1/agent/agent-connections",
+      "/v1/agent/agent-connections/{id}",
+    ],
   }),
   defineAutolaunchGroup({
     commands: [
@@ -463,6 +477,7 @@ export const autolaunchApiCommandGroups = [
   defineAutolaunchGroup({
     commands: [
       "autolaunch launch run",
+      "autolaunch launch state",
       "autolaunch launch monitor",
       "autolaunch launch finalize",
       "autolaunch jobs watch",
@@ -476,6 +491,7 @@ export const autolaunchApiCommandGroups = [
     status: "current-hybrid",
     pathTemplates: [
       "/v1/agent/prelaunch/plans/{id}/launch",
+      "/v1/agent/launch/creation-state",
       "/v1/agent/launch/jobs/{id}",
       "/v1/agent/lifecycle/jobs/{id}",
       "/v1/agent/lifecycle/jobs/{id}/finalize/prepare",
@@ -489,6 +505,7 @@ export const autolaunchApiCommandGroups = [
       "autolaunch auctions list",
       "autolaunch auction-returns list",
       "autolaunch auction <id>",
+      "autolaunch auction state <id>",
       "autolaunch bids quote",
       "autolaunch bids place",
       "autolaunch bids exit",
@@ -500,6 +517,7 @@ export const autolaunchApiCommandGroups = [
       "/v1/agent/auctions",
       "/v1/agent/auction-returns",
       "/v1/agent/auctions/{id}",
+      "/v1/agent/launch/creation-state",
       "/v1/agent/auctions/{id}/bid_quote",
       "/v1/agent/auctions/{id}/bids",
       "/v1/agent/bids/{id}/return-quote-token" as keyof AutolaunchPaths,
@@ -625,6 +643,7 @@ export const platformApiCommandGroups = [
       "platform projection",
       "platform billing account",
       "platform billing usage",
+      "platform billing spend-controls set",
       "platform company runtime",
     ],
     owner: "platform",
@@ -638,6 +657,7 @@ export const platformApiCommandGroups = [
       "/api/agent-platform/projection",
       "/api/agent-platform/billing/account",
       "/api/agent-platform/billing/usage",
+      "/api/agent-platform/billing/spend-controls",
       "/api/agent-platform/agents/{slug}/runtime",
     ],
   }),

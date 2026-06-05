@@ -37,6 +37,7 @@ export interface TerminalScienceRunParams {
   env?: string;
   run_dir?: string;
   timeout_seconds?: number;
+  publish_run?: boolean;
 }
 
 export interface TerminalScienceSetGoalParams {
@@ -60,6 +61,7 @@ export interface TerminalScienceRunnerInvocation {
   repoPath: string;
   taskPath: string;
   agent: TerminalScienceAgentKey;
+  harborAgent: string;
   model: string;
   environment: TerminalScienceEnvironmentKind;
   timeoutSeconds: number;
@@ -119,7 +121,7 @@ export function buildTerminalScienceGoal(
   params: TerminalScienceSetGoalParams,
 ): TerminalScienceGoal {
   const parsed = parseTerminalScienceTaskUri(params.task);
-  const agent = normalizeAgent(params.agent ?? config.workloads.science.defaultHarness);
+  const agent = normalizeAgent(params.agent ?? config.workloads.science.defaultAgent);
   const environment = normalizeEnvironment(params.env ?? config.workloads.science.defaultEnvironment);
   const model = params.model ?? config.workloads.science.defaultModel;
   const goalHash = sha256Hex(`${parsed.taskUri}:${agent}:${model}:${environment}`).slice(0, 24);
@@ -165,6 +167,7 @@ export async function buildAndRunTerminalScience(
   const agent = normalizeAgent(params.agent ?? goal.agent_profile);
   const environment = normalizeEnvironment(params.env ?? goal.environment);
   const model = params.model ?? goal.model;
+  const agentAdapter = resolveHarborAgentAdapter(config, agent);
   const timeoutSeconds = params.timeout_seconds ?? DEFAULT_TIMEOUT_SECONDS;
   const checkout = await repoResolver(config, parsed.taskRepo, goal.task_ref);
   const repoPath = checkout.repoPath;
@@ -181,6 +184,7 @@ export async function buildAndRunTerminalScience(
     repoPath,
     taskPath: parsed.taskPath,
     agent,
+    harborAgent: agentAdapter.harborAgent,
     model,
     environment,
     timeoutSeconds,
@@ -237,6 +241,7 @@ export async function buildAndRunTerminalScience(
       repo_owner: parsed.repoOwner,
       repo_name: parsed.repoName,
       ref: goal.task_ref,
+      commit,
       path: parsed.taskPath,
       domain: parsed.domain,
       field: parsed.field,
@@ -264,7 +269,7 @@ export async function buildAndRunTerminalScience(
     agent: {
       agent_key: agent,
       agent_display_name: agentDisplayName(agent),
-      adapter: `harbor.${agent}`,
+      adapter: agentAdapter.adapter,
       adapter_version: null,
       model,
       model_provider: modelProvider(model),
@@ -354,8 +359,8 @@ export async function buildAndRunTerminalScience(
       redaction_policy: "regent.techtree.science_redaction.v1",
     },
     publish: {
-      publish_run: false,
-      visibility: "local",
+      publish_run: params.publish_run === true,
+      visibility: params.publish_run === true ? config.workloads.science.publishVisibility : "local",
       node_id: null,
       techtree_url: null,
       room_key: null,
@@ -396,6 +401,7 @@ export async function buildAndRunTerminalScience(
     exit_code: result.exitCode,
     command: result.command.join(" "),
     public_summary: publicSummary,
+    artifact_envelope: envelope,
     files,
     checksums,
   };
@@ -414,7 +420,7 @@ async function defaultTerminalScienceRunner(
     "-p",
     invocation.taskPath,
     "-a",
-    invocation.agent,
+    invocation.harborAgent,
     "-m",
     invocation.model,
   ];
@@ -603,6 +609,25 @@ function normalizeAgent(value: string): TerminalScienceAgentKey {
     return value;
   }
   throw new Error("--agent must be codex, openclaw, hermes, or custom");
+}
+
+function resolveHarborAgentAdapter(
+  config: RegentConfig,
+  agent: TerminalScienceAgentKey,
+): { harborAgent: string; adapter: string } {
+  if (agent === "codex") {
+    return { harborAgent: "codex", adapter: "harbor.codex" };
+  }
+
+  const harness = config.agents.harnesses[agent];
+  if (harness?.enabled && harness.profiles.includes("science")) {
+    return {
+      harborAgent: harness.entrypoint,
+      adapter: "harbor.external",
+    };
+  }
+
+  throw new Error(`${agentDisplayName(agent)} needs a science-enabled Harbor adapter before it can run.`);
 }
 
 function normalizeEnvironment(value: string): TerminalScienceEnvironmentKind {

@@ -256,6 +256,14 @@ describe("runtime commands", () => {
                 bridge_service_name: "regent-bridge",
                 path: "/regent/control-room",
                 registry_path: "/regent/control-room/agents.yaml",
+                gbrain: {
+                  status: "needs_setup",
+                  tool_repo_path: "~/gbrain",
+                  brain_repo_path: "/regent/company/BRAIN",
+                  warnings: [
+                    "Your Regent agent will be improved if you enable the recommended GBrain memory and search. This increases recall while reducing token spend.",
+                  ],
+                },
               },
             },
           }),
@@ -322,6 +330,14 @@ describe("runtime commands", () => {
               bridge_service_name: "regent-bridge",
               path: "/regent/control-room",
               registry_path: "/regent/control-room/agents.yaml",
+              gbrain: {
+                status: "needs_setup",
+                tool_repo_path: "~/gbrain",
+                brain_repo_path: "/regent/company/BRAIN",
+                warnings: [
+                  "Your Regent agent will be improved if you enable the recommended GBrain memory and search. This increases recall while reducing token spend.",
+                ],
+              },
             },
           },
         }),
@@ -353,6 +369,8 @@ describe("runtime commands", () => {
     expect(visible).toContain("HERMES CONTROL ROOM");
     expect(visible).toContain("one Sprite");
     expect(visible).toContain("hermes-workspace");
+    expect(visible).toContain("GBrain");
+    expect(visible).toContain("/regent/company/BRAIN");
   });
 
   it("pauses and resumes a runtime through the contracted routes", async () => {

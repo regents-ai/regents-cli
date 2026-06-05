@@ -66,6 +66,9 @@ import type {
   TechRewardsResponse,
   TechStatusResponse,
   TechWithdrawPrepareInput,
+  TerminalScienceApiRunResponse,
+  TerminalScienceGoalResponse,
+  TerminalSciencePublishResponse,
   TechtreeEvidencePacketResponse,
   TechtreeWorkKind,
   TechtreeWorkListResponse,
@@ -315,6 +318,34 @@ export class TechtreeClient {
 
   reviewUpdateScienceTask(id: number, input: ScienceTaskReviewUpdateInput): Promise<ScienceTaskMutationResponse> {
     return this.scienceTasks.reviewUpdateScienceTask(id, input);
+  }
+
+  createScienceGoal(input: Record<string, unknown>): Promise<TerminalScienceGoalResponse> {
+    return this.request.authedFetchJson<TerminalScienceGoalResponse>("POST", "/v1/science/goals", input);
+  }
+
+  getActiveScienceGoal(): Promise<TerminalScienceGoalResponse> {
+    return this.request.authedFetchJson<TerminalScienceGoalResponse>("GET", "/v1/science/goals/active");
+  }
+
+  createScienceRun(input: Record<string, unknown>): Promise<TerminalScienceApiRunResponse> {
+    return this.request.authedFetchJson<TerminalScienceApiRunResponse>("POST", "/v1/science/runs", input);
+  }
+
+  uploadScienceRunArtifacts(runId: string, input: Record<string, unknown>): Promise<TerminalScienceApiRunResponse> {
+    return this.request.authedFetchJson<TerminalScienceApiRunResponse>(
+      "POST",
+      `/v1/science/runs/${encodeURIComponent(runId)}/artifacts`,
+      input,
+    );
+  }
+
+  publishScienceRun(runId: string, input: Record<string, unknown>): Promise<TerminalSciencePublishResponse> {
+    return this.request.authedFetchJson<TerminalSciencePublishResponse>(
+      "POST",
+      `/v1/science/runs/${encodeURIComponent(runId)}/publish`,
+      input,
+    );
   }
 
   search(params: { q: string; limit?: number }): Promise<SearchResponse> {

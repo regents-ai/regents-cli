@@ -75,6 +75,7 @@ If you are operating Autolaunch as an agent, use the guided lifecycle through `r
 From an installed package:
 
 ```bash
+npm install -g @regentslabs/cli
 regents auth login --audience autolaunch
 regents identity ensure
 regents autolaunch ...
@@ -108,7 +109,7 @@ The recommended agent order is:
 ```bash
 regents autolaunch safe wizard --backup-signer-address <address>
 regents autolaunch safe create --backup-signer-address <address> --website-wallet-address <address>
-regents autolaunch prelaunch wizard --agent <agent-id> --name "Agent Coin Name" --symbol "AGENT" --agent-safe-address <safe-address>
+regents autolaunch prelaunch wizard --agent <agent-id> --name "Agent Coin Name" --symbol "AGENT" --agent-safe-address <safe-address> --connect-profile
 regents autolaunch prelaunch validate --plan <id>
 regents autolaunch prelaunch publish --plan <id>
 regents autolaunch launch run --plan <id>
@@ -121,6 +122,9 @@ Skip the Safe commands only when the agent Safe already exists and the launch pl
 
 For a first-time launch or bid walkthrough, use the Autolaunch tutorial:
 [`../../autolaunch/docs/first-time-autolaunch-tutorial.md`](/Users/sean/Documents/regent/autolaunch/docs/first-time-autolaunch-tutorial.md).
+
+For the shortest common-command guide, use:
+[`../../autolaunch/docs/start-here.md`](/Users/sean/Documents/regent/autolaunch/docs/start-here.md).
 
 ## Fixed economic rules
 
@@ -149,6 +153,7 @@ Start here:
 
 ```bash
 regents autolaunch prelaunch wizard
+regents autolaunch connect start [--plan <id>] [--watch]
 regents autolaunch prelaunch validate [--plan <id>]
 regents autolaunch prelaunch publish [--plan <id>]
 regents autolaunch launch run [--plan <id>]
@@ -175,14 +180,25 @@ regents autolaunch prelaunch wizard \
   [--subtitle <text>] \
   [--description <text>] \
   [--website-url <url>] \
-  [--image-url <url> | --image-file <path>]
+  [--image-url <url> | --image-file <path>] \
+  [--connect-profile]
 
+regents autolaunch connect start [--plan <id>] [--label <text>] [--watch]
 regents autolaunch prelaunch get [--plan <id>]
 regents autolaunch prelaunch validate [--plan <id>]
 regents autolaunch prelaunch publish [--plan <id>]
 ```
 
 `prelaunch wizard` creates or updates the saved launch draft, uploads the hosted image if needed, validates the draft, and saves the canonical local copy under the CLI state directory.
+
+Use `--connect-profile` when the human operator should confirm the agent from the browser during planning. The CLI prints a short code, a connection URL, the expiry time, and the agent identity summary. The connection is recommended before publish, but a missing profile connection warns rather than blocking v1 launch setup.
+
+There are two profile connection directions:
+
+- Web starts, CLI completes: `regents autolaunch pair --code <pairing-code>`.
+- CLI starts, web confirms: `regents autolaunch connect start [--plan <id>] [--watch]`.
+
+The credibility step belongs inside plan creation after name, ticker, image, and Safe, and before validate or publish. Agent sign-in and saved Agent identity are required before plan creation. Profile connection, ENS, World / AgentBook, and X are trust signals to review before publish when possible.
 
 Prelaunch plans can carry a Techtree evidence packet reference. Readiness output should show that evidence as supporting context only; operators still decide whether the launch story is strong enough.
 

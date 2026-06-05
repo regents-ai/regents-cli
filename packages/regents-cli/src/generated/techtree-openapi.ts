@@ -1140,6 +1140,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/science/goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createScienceGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science/goals/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getActiveScienceGoal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science/goals/{goal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getScienceGoal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createScienceRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getScienceRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science/runs/{run_id}/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["uploadScienceRunArtifacts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science/runs/{run_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publishScienceRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/science/tasks/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["resolveScienceTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/work": {
         parameters: {
             query?: never;
@@ -3515,6 +3643,83 @@ export interface components {
             visibility?: components["schemas"]["BenchmarkPublishVisibility"];
             idempotency_key?: string | null;
             paid_payload?: components["schemas"]["BenchmarkPaidPayloadCreateRequest"] | null;
+        };
+        /** @enum {string} */
+        ScienceAgentKey: "codex" | "openclaw" | "hermes" | "custom";
+        /** @enum {string} */
+        ScienceEnvironmentKind: "docker";
+        /** @enum {string} */
+        ScienceGoalStatus: "active";
+        ScienceTaskResolution: {
+            task_uri: string;
+            /** @enum {string} */
+            task_repo: "harbor-framework/terminal-bench-science";
+            task_ref: string;
+            task_path: string;
+            domain: string;
+            field: string;
+            task_name: string;
+        };
+        ScienceGoal: {
+            goal_id: string;
+            /** @enum {string} */
+            kind: "terminal_bench_science_goal";
+            task_uri: string;
+            /** @enum {string} */
+            task_repo: "harbor-framework/terminal-bench-science";
+            task_ref: string;
+            task_path: string;
+            agent_profile: components["schemas"]["ScienceAgentKey"];
+            model: string;
+            environment: components["schemas"]["ScienceEnvironmentKind"];
+            status: components["schemas"]["ScienceGoalStatus"];
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ScienceGoalCreateRequest: {
+            task: string;
+            agent?: components["schemas"]["ScienceAgentKey"];
+            model?: string;
+            env?: components["schemas"]["ScienceEnvironmentKind"];
+            task_ref?: string;
+        };
+        ScienceGoalResponse: {
+            data: components["schemas"]["ScienceGoal"];
+        };
+        ScienceRunCreateRequest: {
+            goal_id?: string | null;
+            artifact_envelope: components["schemas"]["TerminalScienceRunEnvelope"];
+            /** @default false */
+            publish_run: boolean;
+            visibility?: components["schemas"]["BenchmarkPublishVisibility"];
+        };
+        ScienceRunArtifactsRequest: {
+            artifacts: components["schemas"]["TerminalScienceArtifactRefs"];
+        };
+        ScienceRunPublishRequest: {
+            visibility?: components["schemas"]["BenchmarkPublishVisibility"];
+            title?: string | null;
+            summary?: string | null;
+            parent_id?: number | null;
+            idempotency_key?: string | null;
+        };
+        ScienceRun: {
+            run_id: string;
+            goal?: components["schemas"]["ScienceGoal"];
+            attempt: components["schemas"]["BenchmarkAttempt"];
+            artifact_envelope: components["schemas"]["TerminalScienceRunEnvelope"];
+        };
+        ScienceRunResponse: {
+            data: components["schemas"]["ScienceRun"];
+        };
+        ScienceRunPublishResponse: {
+            data: {
+                run: components["schemas"]["ScienceRun"];
+                publication: components["schemas"]["BenchmarkCapsulePublishResponse"];
+            };
+        };
+        ScienceTaskResolveResponse: {
+            data: components["schemas"]["ScienceTaskResolution"];
         };
         TerminalScienceRunEnvironment: {
             /** @enum {string} */
@@ -6936,6 +7141,254 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScienceTaskMutationResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createScienceGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceGoalCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Science goal saved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceGoalResponse"];
+                };
+            };
+            /** @description Science goal invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getActiveScienceGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active science goal */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceGoalResponse"];
+                };
+            };
+            /** @description No active science goal */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getScienceGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                goal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Science goal */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceGoalResponse"];
+                };
+            };
+            /** @description Science goal not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createScienceRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceRunCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Science run stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceRunResponse"];
+                };
+            };
+            /** @description Science run invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getScienceRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public science run */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceRunResponse"];
+                };
+            };
+            /** @description Science run not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    uploadScienceRunArtifacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScienceRunArtifactsRequest"];
+            };
+        };
+        responses: {
+            /** @description Science run artifacts updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceRunResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    publishScienceRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ScienceRunPublishRequest"];
+            };
+        };
+        responses: {
+            /** @description Science run published */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceRunPublishResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    resolveScienceTask: {
+        parameters: {
+            query: {
+                task_uri: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resolved science task */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScienceTaskResolveResponse"];
+                };
+            };
+            /** @description Science task URI invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];

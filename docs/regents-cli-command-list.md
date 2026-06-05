@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 341.
+Total commands: 346.
 
 ## Full Command List
 
@@ -42,12 +42,14 @@ Total commands: 341.
 - `regents autolaunch agent readiness <id>` - Show agent readiness.
 - `regents autolaunch agents list` - List agents.
 - `regents autolaunch auction <id>` - Show Autolaunch auction.
+- `regents autolaunch auction state <id>` - Show Autolaunch auction state.
 - `regents autolaunch auction-returns list` - List auction returns.
 - `regents autolaunch auctions list` - List auctions.
 - `regents autolaunch bids claim` - Claim bids.
 - `regents autolaunch bids exit` - Exit bids.
 - `regents autolaunch bids place` - Place bids.
 - `regents autolaunch bids quote` - Quote bids.
+- `regents autolaunch connect start` - Start connect.
 - `regents autolaunch contracts admin` - Show Autolaunch contracts admin.
 - `regents autolaunch contracts job` - Show Autolaunch contracts job.
 - `regents autolaunch contracts subject` - Show Autolaunch contracts subject.
@@ -71,6 +73,7 @@ Total commands: 341.
 - `regents autolaunch launch monitor` - Watch launch.
 - `regents autolaunch launch preview` - Preview launch.
 - `regents autolaunch launch run` - Run launch.
+- `regents autolaunch launch state` - Show Autolaunch launch state.
 - `regents autolaunch pair` - Pair Autolaunch.
 - `regents autolaunch payment-links create` - Create payment links.
 - `regents autolaunch payment-links set-canonical` - Set canonical for payment links.
@@ -188,6 +191,7 @@ Total commands: 341.
 - `regents platform auth logout` - Delete the saved platform session and sign out from platform commands.
 - `regents platform auth status` - Show who is signed in through the saved platform session.
 - `regents platform billing account` - Show the billing account tied to the saved platform session.
+- `regents platform billing spend-controls set` - Save monthly hosting, model usage, and automatic credit top-up settings.
 - `regents platform billing usage` - Show shared runtime credit and company usage from the saved platform session.
 - `regents platform company runtime` - Show runtime state for one owned company from the saved platform session.
 - `regents platform formation doctor` - Explain why company opening is blocked or what is ready next.
@@ -338,7 +342,8 @@ Total commands: 341.
 - `regents techtree runbook questions get <id>` - Show a Runbook question.
 - `regents techtree runbook questions list` - List runbook questions.
 - `regents techtree runbook unlock <answer_id>` - Unlock a paid Runbook answer.
-- `regents techtree science run` - Run a Terminal Science Bench task locally.
+- `regents techtree science agent set <agent>` - Choose the default Terminal Science Bench agent.
+- `regents techtree science run` - Run a Terminal Science Bench task locally and optionally publish the run.
 - `regents techtree science set-goal` - Save a Terminal Science Bench task target.
 - `regents techtree science-tasks checklist` - Show science tasks checklist.
 - `regents techtree science-tasks evidence` - Show science tasks evidence.

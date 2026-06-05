@@ -657,7 +657,7 @@ export interface TerminalScienceGoal {
   task_repo: string;
   task_ref: string;
   task_path: string;
-  agent_profile: string;
+  agent_profile: TerminalScienceAgentKey;
   model: string;
   environment: TerminalScienceEnvironmentKind;
   status: "active";
@@ -688,8 +688,26 @@ export interface TerminalScienceRunResponse {
   exit_code: number | null;
   command: string;
   public_summary: Record<string, unknown>;
+  artifact_envelope: Record<string, unknown>;
   files: TerminalScienceRunFileSet;
   checksums: Record<string, string>;
+  techtree_run?: Record<string, unknown>;
+  publication?: Record<string, unknown>;
+}
+
+export interface TerminalScienceGoalResponse {
+  data: TerminalScienceGoal;
+}
+
+export interface TerminalScienceApiRunResponse {
+  data: Record<string, unknown>;
+}
+
+export interface TerminalSciencePublishResponse {
+  data: {
+    run: Record<string, unknown>;
+    publication: Record<string, unknown>;
+  };
 }
 
 export interface BenchmarkReliabilitySummary {

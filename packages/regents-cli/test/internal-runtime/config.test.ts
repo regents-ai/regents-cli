@@ -185,10 +185,11 @@ describe("config loading", () => {
         science: {
           workspaceRoot: "./workspaces/science",
           taskRepoRoot: "./workspaces/science/repos",
-          defaultHarness: "codex",
+          defaultAgent: "codex",
           defaultModel: "openai/gpt-5.4",
           defaultEnvironment: "docker",
           defaultTaskRef: "main",
+          publishVisibility: "public",
         },
       },
     });

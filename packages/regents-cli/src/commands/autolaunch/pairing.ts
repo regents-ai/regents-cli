@@ -12,7 +12,9 @@ import {
   type KeyValueRow,
 } from "../../printer.js";
 import {
+  baseUrl,
   configuredPrivateKey,
+  parsePollingIntervalSeconds,
   requestTypedJson,
   type JsonObject,
 } from "./shared.js";
@@ -50,6 +52,35 @@ interface AgentPairingSession {
 interface AgentPairingSessionEnvelope {
   readonly ok: true;
   readonly session: AgentPairingSession;
+}
+
+export interface AgentConnectionHuman {
+  readonly id: number;
+  readonly privy_user_id: string;
+  readonly display_name?: string | null;
+  readonly wallet_address?: string | null;
+}
+
+export interface AgentConnectionSession {
+  readonly connection_id: string;
+  readonly status: "pending" | "completed" | "expired";
+  readonly connection_code?: string | null;
+  readonly connect_url?: string | null;
+  readonly expires_at: string;
+  readonly completed_at?: string | null;
+  readonly plan_id?: string | null;
+  readonly agent_id: string;
+  readonly agent_wallet_address: string;
+  readonly agent_chain_id: number;
+  readonly agent_registry_address: string;
+  readonly agent_token_id: string;
+  readonly agent_label?: string | null;
+  readonly human?: AgentConnectionHuman | null;
+}
+
+export interface AgentConnectionSessionEnvelope {
+  readonly ok: true;
+  readonly connection: AgentConnectionSession;
 }
 
 const requireIdentity = (identity: LocalAgentIdentity | null): Required<LocalAgentIdentity> => {
@@ -91,6 +122,18 @@ const requirePairedAgent = (session: AgentPairingSession): AgentPairingAgent => 
 const shortAddress = (address: string): string =>
   /^0x[0-9a-fA-F]{40}$/u.test(address) ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
 
+const fullConnectUrl = (connectUrl: string | null | undefined, configPath?: string): string | null => {
+  if (!connectUrl) {
+    return null;
+  }
+
+  if (/^https?:\/\//iu.test(connectUrl)) {
+    return connectUrl;
+  }
+
+  return `${baseUrl(configPath)}${connectUrl.startsWith("/") ? "" : "/"}${connectUrl}`;
+};
+
 const renderPairingReceipt = (payload: AgentPairingSessionEnvelope): string => {
   const session = payload.session;
   const pairedAgent = requirePairedAgent(session);
@@ -126,6 +169,121 @@ const renderPairingReceipt = (payload: AgentPairingSessionEnvelope): string => {
       titleColor: CLI_PALETTE.title,
     },
   );
+};
+
+export const renderConnectionStartReceipt = (
+  payload: AgentConnectionSessionEnvelope,
+  configPath?: string,
+): string => {
+  const connection = payload.connection;
+  const label = connection.agent_label?.trim();
+  const connectUrl = fullConnectUrl(connection.connect_url, configPath);
+  const rows: KeyValueRow[] = [
+    {
+      label: "status",
+      value: connection.status,
+      valueColor: connection.status === "completed" ? CLI_PALETTE.emphasis : CLI_PALETTE.accent,
+    },
+    { label: "connection", value: connection.connection_id },
+    {
+      label: "agent",
+      value: label ? `${label} (${connection.agent_id})` : connection.agent_id,
+      valueColor: CLI_PALETTE.primary,
+    },
+    { label: "chain", value: String(connection.agent_chain_id) },
+    { label: "wallet", value: shortAddress(connection.agent_wallet_address) },
+    { label: "registry", value: shortAddress(connection.agent_registry_address) },
+    { label: "token", value: connection.agent_token_id },
+    { label: "code", value: connection.connection_code ?? "shown only when started" },
+    { label: "url", value: connectUrl ?? "confirmed" },
+    { label: "expires", value: connection.expires_at },
+  ];
+
+  const nextLine =
+    connection.status === "completed"
+      ? "The profile connection is complete."
+      : "Ask the human operator to open the URL and confirm this agent.";
+
+  return renderPanel(
+    "AUTOLAUNCH PROFILE CONNECTION",
+    [
+      ...renderKeyValueLines(rows),
+      "",
+      tone(nextLine, CLI_PALETTE.secondary),
+      tone("No private keys are shared and no funds move.", CLI_PALETTE.secondary),
+    ],
+    {
+      borderColor: connection.status === "completed" ? CLI_PALETTE.emphasis : CLI_PALETTE.chrome,
+      titleColor: CLI_PALETTE.title,
+    },
+  );
+};
+
+export const createAutolaunchAgentConnection = async (
+  body: JsonObject,
+  configPath?: string,
+): Promise<AgentConnectionSessionEnvelope> =>
+  requestTypedJson<AgentConnectionSessionEnvelope>("POST", "/v1/agent/agent-connections", {
+    body,
+    requireAgentAuth: true,
+    configPath,
+  });
+
+const readAutolaunchAgentConnection = async (
+  connectionId: string,
+  configPath?: string,
+): Promise<AgentConnectionSessionEnvelope> =>
+  requestTypedJson<AgentConnectionSessionEnvelope>(
+    "GET",
+    `/v1/agent/agent-connections/${encodeURIComponent(connectionId)}`,
+    {
+      requireAgentAuth: true,
+      configPath,
+    },
+  );
+
+const waitForAutolaunchAgentConnection = async (
+  payload: AgentConnectionSessionEnvelope,
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<AgentConnectionSessionEnvelope> => {
+  let current = payload;
+  const intervalSeconds = parsePollingIntervalSeconds(args);
+
+  while (current.connection.status === "pending") {
+    await new Promise((resolve) => setTimeout(resolve, intervalSeconds * 1000));
+    current = await readAutolaunchAgentConnection(current.connection.connection_id, configPath);
+  }
+
+  return current;
+};
+
+export const runAutolaunchConnectStart = async (
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> => {
+  const planId = getFlag(args, "plan");
+  const label = getFlag(args, "label");
+  const body: JsonObject = {
+    ...(planId ? { plan_id: planId } : {}),
+    ...(label ? { agent_label: label } : {}),
+  };
+
+  const payload = await createAutolaunchAgentConnection(body, configPath);
+  const finalPayload = getBooleanFlag(args, "watch")
+    ? await waitForAutolaunchAgentConnection(payload, args, configPath)
+    : payload;
+
+  if (getBooleanFlag(args, "json")) {
+    printJson(finalPayload);
+    return;
+  }
+
+  printText(renderConnectionStartReceipt(payload, configPath));
+
+  if (finalPayload !== payload) {
+    printText(renderConnectionStartReceipt(finalPayload, configPath));
+  }
 };
 
 export const runAutolaunchPair = async (

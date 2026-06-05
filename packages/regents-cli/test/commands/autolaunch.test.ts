@@ -152,6 +152,109 @@ describe("autolaunch CLI command group", () => {
       },
     };
   };
+  const launchCreationStatePayload = () => ({
+    ok: true,
+    creation_state: {
+      selected: {
+        plan_id: "plan_alpha",
+        job_id: "job_alpha",
+        auction_id: "auc_alpha",
+        agent_id: "8453:42",
+        agent_name: "Atlas Agent",
+        token_name: "Atlas Coin",
+        token_symbol: "ATLAS",
+        state: "validated",
+        status: "active",
+        action_url: "/auctions/auc_alpha",
+      },
+      access_reason: "created_by_agent",
+      tiers: {
+        required: [
+          {
+            key: "identity",
+            label: "Identity",
+            tasks: [
+              {
+                label: "Agent identity",
+                status: "ready",
+                message: "Agent identity is selected.",
+                action_url: "/profile",
+                cli_command: null,
+                blocking: true,
+              },
+            ],
+          },
+          {
+            key: "launch_page",
+            label: "Launch page",
+            tasks: [
+              {
+                label: "Public details",
+                status: "needs_action",
+                message: "Add the title, description, and image people see before bidding.",
+                action_url: "/launch",
+                cli_command: "regents autolaunch prelaunch wizard",
+                blocking: true,
+              },
+            ],
+          },
+          { key: "treasury", label: "Treasury", tasks: [] },
+          {
+            key: "market",
+            label: "Market",
+            tasks: [
+              {
+                label: "Auction tracking",
+                status: "ready",
+                message: "Auction page is available for monitoring.",
+                action_url: "/auctions/auc_alpha",
+                cli_command: "regents autolaunch auction state auc_alpha",
+                blocking: false,
+              },
+            ],
+          },
+        ],
+        recommended: [
+          {
+            key: "identity",
+            label: "Identity",
+            tasks: [
+              {
+                label: "ENS name",
+                status: "optional",
+                message: "Link an ENS name.",
+                action_url: "/ens-link",
+                cli_command: null,
+                blocking: false,
+              },
+            ],
+          },
+          { key: "launch_page", label: "Launch page", tasks: [] },
+          { key: "treasury", label: "Treasury", tasks: [] },
+          { key: "market", label: "Market", tasks: [] },
+        ],
+        extra: [
+          {
+            key: "identity",
+            label: "Identity",
+            tasks: [
+              {
+                label: "X profile",
+                status: "optional",
+                message: "Connect X as an optional signal.",
+                action_url: "/x-link",
+                cli_command: null,
+                blocking: false,
+              },
+            ],
+          },
+          { key: "launch_page", label: "Launch page", tasks: [] },
+          { key: "treasury", label: "Treasury", tasks: [] },
+          { key: "market", label: "Market", tasks: [] },
+        ],
+      },
+    },
+  });
 
   const createConfigPath = () => {
     const tempDir = fs.mkdtempSync(
@@ -451,6 +554,113 @@ describe("autolaunch CLI command group", () => {
       session: { session_id: "pair_456" },
     });
     expect(output.stdout).not.toContain("AUTOLAUNCH PAIRING COMPLETE");
+  });
+
+  it("starts a terminal-created profile connection as JSON", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          connection: {
+            connection_id: "conn_123",
+            status: "pending",
+            connection_code: "AL-ABC234-DEF56789",
+            connect_url: "/connect/AL-ABC234-DEF56789",
+            expires_at: "2026-05-18T16:00:00Z",
+            completed_at: null,
+            plan_id: "plan_alpha",
+            agent_id: "84532:42",
+            agent_wallet_address: expectedAgentWallet,
+            agent_chain_id: 84532,
+            agent_registry_address: "0x3333333333333333333333333333333333333333",
+            agent_token_id: "42",
+            agent_label: "Atlas Agent",
+            human: null,
+          },
+        }),
+        {
+          status: 201,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "connect",
+        "start",
+        "--plan",
+        "plan_alpha",
+        "--label",
+        "Atlas Agent",
+        "--json",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/v1/agent/agent-connections`,
+    );
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    assertAgentAuthHeaders(requestInit?.headers as Headers);
+    expect(JSON.parse(String(requestInit?.body))).toMatchObject({
+      plan_id: "plan_alpha",
+      agent_label: "Atlas Agent",
+    });
+    expect(
+      parsePrintedJson<{ connection: { connection_id: string; connection_code: string } }>(
+        output.stdout,
+      ),
+    ).toMatchObject({
+      connection: {
+        connection_id: "conn_123",
+        connection_code: "AL-ABC234-DEF56789",
+      },
+    });
+  });
+
+  it("prints a terminal panel for profile connection links", async () => {
+    useHumanTerminal();
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          connection: {
+            connection_id: "conn_456",
+            status: "pending",
+            connection_code: "AL-ABC234-DEF56789",
+            connect_url: "/connect/AL-ABC234-DEF56789",
+            expires_at: "2026-05-18T16:00:00Z",
+            completed_at: null,
+            plan_id: null,
+            agent_id: "84532:42",
+            agent_wallet_address: expectedAgentWallet,
+            agent_chain_id: 84532,
+            agent_registry_address: "0x3333333333333333333333333333333333333333",
+            agent_token_id: "42",
+            agent_label: "Atlas Agent",
+            human: null,
+          },
+        }),
+        {
+          status: 201,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "connect", "start"]),
+    );
+
+    expect(output.result).toBe(0);
+    const text = collapsePanelText(stripAnsi(output.stdout));
+    expect(text).toContain("AUTOLAUNCH PROFILE CONNECTION");
+    expect(text).toContain("AL-ABC234-DEF56789");
+    expect(text).toContain(`${expectedBaseUrl}/connect/AL-ABC234-DEF56789`);
+    expect(text).toContain("Ask the human operator to open the URL");
   });
 
   it("lists active auctions via regents autolaunch", async () => {
@@ -1507,6 +1717,126 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
+  it("can start profile connection during the prelaunch wizard", async () => {
+    useHumanTerminal();
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_connect",
+              state: "draft",
+              agent_id: "8453:42",
+              token_name: "Atlas Coin",
+              metadata_draft: { title: "Atlas Coin" },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            connection: {
+              connection_id: "conn_plan",
+              status: "pending",
+              connection_code: "AL-ABC234-DEF56789",
+              connect_url: "/connect/AL-ABC234-DEF56789",
+              expires_at: "2026-05-18T16:00:00Z",
+              completed_at: null,
+              plan_id: "plan_connect",
+              agent_id: "84532:42",
+              agent_wallet_address: expectedAgentWallet,
+              agent_chain_id: 84532,
+              agent_registry_address: "0x3333333333333333333333333333333333333333",
+              agent_token_id: "42",
+              agent_label: "Atlas Coin",
+              human: null,
+            },
+          }),
+          { status: 201, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            plan: {
+              plan_id: "plan_connect",
+              state: "launchable",
+              validation_summary: { launchable: true },
+            },
+            validation: {
+              launchable: true,
+              blockers: [],
+              warnings: ["Connect a human profile before publishing."],
+              credibility: {
+                agent_identity: {
+                  label: "Agent identity",
+                  status: "ready",
+                  message: "Agent identity is ready.",
+                },
+                human_profile: {
+                  label: "Profile connected",
+                  status: "needs_action",
+                  message: "Connect a human profile before publishing.",
+                },
+                ens: { label: "ENS name", status: "needs_action", message: "Link an ENS name." },
+                erc8004_ensip25: {
+                  label: "Agent record",
+                  status: "needs_action",
+                  message: "Complete the public agent record.",
+                },
+                world_agentbook: {
+                  label: "World proof",
+                  status: "pending",
+                  message: "World proof can be completed during or after the auction.",
+                },
+                x: { label: "X", status: "skipped", message: "X is optional." },
+                warnings: ["Connect a human profile before publishing."],
+              },
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "prelaunch",
+        "wizard",
+        "--agent",
+        "8453:42",
+        "--name",
+        "Atlas Coin",
+        "--symbol",
+        "ATLAS",
+        "--minimum-raise-quote",
+        "10000",
+        "--agent-safe-address",
+        "0x1111111111111111111111111111111111111111",
+        "--connect-profile",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+      `${expectedBaseUrl}/v1/agent/agent-connections`,
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toMatchObject({
+      plan_id: "plan_connect",
+      agent_label: "Atlas Coin",
+    });
+    const text = collapsePanelText(stripAnsi(output.stdout));
+    expect(text).toContain("AUTOLAUNCH PROFILE CONNECTION");
+    expect(text).toContain("CREDIBILITY");
+    expect(text).toContain("Profile connected");
+  });
+
   it("defaults the prelaunch minimum raise to zero", async () => {
     fetchMock
       .mockResolvedValueOnce(
@@ -1771,6 +2101,62 @@ describe("autolaunch CLI command group", () => {
     ).toMatchObject({
       job: { job_id: "job_123", status: "ready" },
     });
+  });
+
+  it("prints exact JSON for private auction creation state", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify(launchCreationStatePayload()), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "auction", "state", "auc_alpha", "--json"]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/v1/agent/launch/creation-state?auction_id=auc_alpha`,
+    );
+    assertAgentAuthHeaders(fetchMock.mock.calls[0]?.[1]?.headers as Headers);
+    expect(parsePrintedJson(output.stdout)).toEqual(launchCreationStatePayload());
+  });
+
+  it("renders a terminal task board for private launch state", async () => {
+    useHumanTerminal();
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify(launchCreationStatePayload()), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "launch",
+        "state",
+        "--auction",
+        "auc_alpha",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/v1/agent/launch/creation-state?auction_id=auc_alpha`,
+    );
+    const text = collapsePanelText(stripAnsi(output.stdout));
+    expect(text).toContain("PRIVATE LAUNCH STATE");
+    expect(text).toContain("REQUIRED BEFORE LAUNCH");
+    expect(text).toContain("RECOMMENDED TRUST SIGNALS");
+    expect(text).toContain("EXTRA PUBLIC SIGNALS");
+    expect(text).toContain("needs action Public details");
+    expect(text).toContain("regents autolaunch prelaunch wizard");
+    expect(text).toContain("Auction tracking");
+    expect(text).toContain("X profile");
   });
 
   it("guides a prelaunch wizard flow and saves the local plan", async () => {

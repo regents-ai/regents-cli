@@ -492,6 +492,7 @@ export const printRuntimeHealthResult = (args: ParsedCliArgs, payload: RwrPayloa
   printRwrPayload(args, payload, () => {
     const health = asRecord(payload.result.health, "runtime health");
     const controlRoom = asRecord(health.control_room, "control room");
+    const gbrain = asRecord(controlRoom.gbrain, "gbrain");
     const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
     const runtimeId = displayValue(payload.result.runtime_id) ?? args.positionals[2] ?? "<runtime-id>";
 
@@ -512,6 +513,8 @@ export const printRuntimeHealthResult = (args: ParsedCliArgs, payload: RwrPayloa
         { label: "Workspace service", value: displayValue(controlRoom.workspace_service_name) ?? "none" },
         { label: "bridge service", value: displayValue(controlRoom.bridge_service_name) ?? "none" },
         { label: "control room", value: displayValue(controlRoom.path) ?? "none" },
+        { label: "GBrain", value: displayLabel(gbrain.status) ?? "unknown" },
+        { label: "GBrain brain", value: displayValue(gbrain.brain_repo_path) ?? "none" },
       ], {
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,

@@ -611,6 +611,16 @@ const commandCases: CommandCase[] = [
     },
   },
   {
+    name: "techtree science agent set",
+    args: ["techtree", "science", "agent", "set", "codex"],
+    expected: {
+      method: "techtree.science.agent.set",
+      params: {
+        agent: "codex",
+      },
+    },
+  },
+  {
     name: "techtree science run active goal",
     args: ["techtree", "science", "run"],
     expected: {
@@ -628,6 +638,7 @@ const commandCases: CommandCase[] = [
       "harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example",
       "--run-dir",
       "tsb-run",
+      "--publish-run",
       "--timeout-seconds",
       "12",
     ],
@@ -636,6 +647,7 @@ const commandCases: CommandCase[] = [
       params: {
         task: "harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example",
         run_dir: "tsb-run",
+        publish_run: true,
         timeout_seconds: 12,
       },
     },

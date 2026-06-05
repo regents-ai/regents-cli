@@ -179,4 +179,61 @@ describe("platform CLI command group", () => {
     });
   });
 
+  it("saves Platform billing spend controls in cents", async () => {
+    writeSession();
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          billing_account: { runtime_monthly_limit_usd_cents: 10_000 },
+          usage: { runtime_monthly_remaining_usd_cents: 10_000 },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "billing",
+        "spend-controls",
+        "set",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+        "--runtime-monthly-limit-usd",
+        "100",
+        "--model-usage-monthly-limit-usd",
+        "50",
+        "--runtime-auto-topup-enabled",
+        "--runtime-auto-topup-amount-usd",
+        "25",
+        "--runtime-auto-topup-threshold-usd",
+        "10",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/billing/spend-controls");
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("PUT");
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
+    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+      JSON.stringify({
+        runtimeMonthlyLimitUsdCents: 10_000,
+        llmMonthlyLimitUsdCents: 5_000,
+        runtimeAutoTopupEnabled: true,
+        runtimeAutoTopupAmountUsdCents: 2_500,
+        runtimeAutoTopupThresholdUsdCents: 1_000,
+      }),
+    );
+    expect(parsePrintedJson<{ command: string; billing: { ok: boolean } }>(output.stdout)).toMatchObject({
+      command: "regents platform billing spend-controls set",
+      billing: { ok: true },
+    });
+  });
+
 });

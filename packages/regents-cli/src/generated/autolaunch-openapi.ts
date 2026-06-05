@@ -516,6 +516,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/app/agent-connections/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAgentConnectionByCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/agent-connections/{code}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmAgentConnectionByCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/app/prelaunch/plans": {
         parameters: {
             query?: never;
@@ -670,6 +702,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["createLaunchJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/app/launch/creation-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLaunchCreationState"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1878,6 +1926,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agent/agent-connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createAgentConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/agent-connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAgentConnection"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/agent/prelaunch/plans/{id}": {
         parameters: {
             query?: never;
@@ -2176,6 +2256,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["agentCreateLaunchJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/launch/creation-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentGetLaunchCreationState"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2523,6 +2619,37 @@ export interface components {
             signature: components["schemas"]["HexData"];
             signed_at: components["schemas"]["DateTime"];
         };
+        AgentConnectionHuman: {
+            id: number;
+            privy_user_id: string;
+            display_name: string | null;
+            wallet_address: components["schemas"]["Address"] | null;
+        };
+        AgentConnectionCreateRequest: {
+            plan_id?: string | null;
+            agent_label?: string | null;
+        };
+        AgentConnectionSession: {
+            connection_id: string;
+            status: components["schemas"]["AgentPairingStatus"];
+            connection_code: components["schemas"]["PairingCode"] | null;
+            connect_url: string | null;
+            expires_at: components["schemas"]["DateTime"];
+            completed_at?: components["schemas"]["DateTime"] | null;
+            plan_id?: string | null;
+            agent_id: string;
+            agent_wallet_address: components["schemas"]["Address"];
+            agent_chain_id: components["schemas"]["AutolaunchChainId"];
+            agent_registry_address: components["schemas"]["Address"];
+            agent_token_id: string;
+            agent_label?: string | null;
+            human: components["schemas"]["AgentConnectionHuman"] | null;
+        };
+        AgentConnectionSessionEnvelope: {
+            /** @enum {boolean} */
+            ok: true;
+            connection: components["schemas"]["AgentConnectionSession"];
+        };
         ErrorEnvelope: {
             /** @enum {boolean} */
             ok: false;
@@ -2788,6 +2915,27 @@ export interface components {
             image_url?: string | null;
             image_asset_id?: string | null;
         };
+        PrelaunchCredibilityItem: {
+            /** @enum {string} */
+            status: "ready" | "needs_action" | "skipped" | "unavailable" | "pending";
+            label: string;
+            message: string;
+            action_url?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        PrelaunchCredibility: {
+            agent_identity: components["schemas"]["PrelaunchCredibilityItem"];
+            human_profile: components["schemas"]["PrelaunchCredibilityItem"];
+            ens: components["schemas"]["PrelaunchCredibilityItem"];
+            erc8004_ensip25: components["schemas"]["PrelaunchCredibilityItem"];
+            world_agentbook: components["schemas"]["PrelaunchCredibilityItem"];
+            x: components["schemas"]["PrelaunchCredibilityItem"];
+            warnings: string[];
+            action_urls: {
+                [key: string]: string | null;
+            };
+        };
         PrelaunchPlan: {
             plan_id: string;
             agent_id: string;
@@ -2797,6 +2945,7 @@ export interface components {
             launch_notes?: string | null;
             metadata_draft?: components["schemas"]["PrelaunchMetadataDraft"] | null;
             techtree_evidence_packet_ref?: string | null;
+            credibility?: components["schemas"]["PrelaunchCredibility"] | null;
             minimum_raise_quote: string;
             minimum_raise_quote_raw: string;
             status?: string | null;
@@ -2825,6 +2974,8 @@ export interface components {
         };
         PrelaunchValidation: {
             launchable?: boolean;
+            warnings?: string[];
+            credibility?: components["schemas"]["PrelaunchCredibility"];
         } & {
             [key: string]: unknown;
         };
@@ -2920,6 +3071,49 @@ export interface components {
             job: components["schemas"]["LaunchJob"];
         } & {
             [key: string]: unknown;
+        };
+        LaunchCreationSelected: {
+            plan_id?: string | null;
+            job_id?: string | null;
+            auction_id?: string | null;
+            agent_id: string;
+            agent_name?: string | null;
+            token_name?: string | null;
+            token_symbol?: string | null;
+            state?: string | null;
+            status?: string | null;
+            action_url?: string | null;
+        };
+        LaunchCreationTask: {
+            label: string;
+            /** @enum {string} */
+            status: "ready" | "needs_action" | "later" | "optional";
+            message: string;
+            action_url?: string | null;
+            cli_command?: string | null;
+            blocking: boolean;
+        };
+        LaunchCreationTaskColumn: {
+            /** @enum {string} */
+            key: "identity" | "launch_page" | "treasury" | "market";
+            label: string;
+            tasks: components["schemas"]["LaunchCreationTask"][];
+        };
+        LaunchCreationTaskTiers: {
+            required: components["schemas"]["LaunchCreationTaskColumn"][];
+            recommended: components["schemas"]["LaunchCreationTaskColumn"][];
+            extra: components["schemas"]["LaunchCreationTaskColumn"][];
+        };
+        LaunchCreationState: {
+            selected: components["schemas"]["LaunchCreationSelected"];
+            /** @enum {string} */
+            access_reason: "created_by_user" | "created_by_agent" | "paired_agent";
+            tiers: components["schemas"]["LaunchCreationTaskTiers"];
+        };
+        LaunchCreationStateEnvelope: {
+            /** @enum {boolean} */
+            ok: true;
+            creation_state: components["schemas"]["LaunchCreationState"];
         };
         UintLike: number | string | null;
         /** @enum {string} */
@@ -3593,6 +3787,8 @@ export interface components {
         TokenAddress: components["schemas"]["Address"];
         SessionId: string;
         AgentPairingSessionId: string;
+        AgentConnectionSessionId: string;
+        AgentConnectionCode: components["schemas"]["PairingCode"];
         /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
         Resource: string;
         /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
@@ -4713,6 +4909,108 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+        };
+    };
+    getAgentConnectionByCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: components["parameters"]["AgentConnectionCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Terminal-started agent connection status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentConnectionSessionEnvelope"];
+                };
+            };
+            /** @description Missing signed-in browser session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Connection code not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Connection cannot be used */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    confirmAgentConnectionByCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: components["parameters"]["AgentConnectionCode"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EmptyRequest"];
+            };
+        };
+        responses: {
+            /** @description Terminal-started agent connection confirmed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentConnectionSessionEnvelope"];
+                };
+            };
+            /** @description Missing signed-in browser session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Connection code not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Connection cannot be confirmed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
             429: components["responses"]["RateLimitError"];
         };
     };
@@ -5005,6 +5303,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LaunchJobEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getLaunchCreationState: {
+        parameters: {
+            query?: {
+                plan_id?: string;
+                job_id?: string;
+                auction_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private launch creation state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LaunchCreationStateEnvelope"];
+                };
+            };
+            /** @description Browser session required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Launch creation state not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Creation-state selector invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -6972,6 +7322,81 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
+    createAgentConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AgentConnectionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Terminal-started agent connection created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentConnectionSessionEnvelope"];
+                };
+            };
+            /** @description Missing signed agent request */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getAgentConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["AgentConnectionSessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Terminal-started agent connection status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentConnectionSessionEnvelope"];
+                };
+            };
+            /** @description Missing signed agent request */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Connection session not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
     agentGetPrelaunchPlan: {
         parameters: {
             query?: never;
@@ -7479,6 +7904,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LaunchJobEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    agentGetLaunchCreationState: {
+        parameters: {
+            query?: {
+                plan_id?: string;
+                job_id?: string;
+                auction_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private launch creation state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LaunchCreationStateEnvelope"];
+                };
+            };
+            /** @description Signed agent required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Launch creation state not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Creation-state selector invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];

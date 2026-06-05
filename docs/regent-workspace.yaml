@@ -76,7 +76,12 @@ repos:
         owner: techtree
         path: docs/cli-contract.yaml
         include_in_cli_command_check: true
-    local_path_dependencies: []
+    local_path_dependencies:
+      - ../elixir-utils/cache
+      - ../elixir-utils/siwa/siwa-elixir/apps/siwa
+      - ../elixir-utils/ens
+      - ../elixir-utils/xmtp
+      - ../design-system/regent_ui
     acceptance_commands:
       - cwd: ../techtree
         command: mix precommit

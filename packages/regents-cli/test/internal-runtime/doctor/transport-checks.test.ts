@@ -61,10 +61,11 @@ const testConfig = (root: string): RegentConfig => ({
     science: {
       workspaceRoot: path.join(root, "workspaces", "science"),
       taskRepoRoot: path.join(root, "workspaces", "science", "repos"),
-      defaultHarness: "codex",
+      defaultAgent: "codex",
       defaultModel: "openai/gpt-5.4",
       defaultEnvironment: "docker",
       defaultTaskRef: "main",
+      publishVisibility: "public",
     },
   },
 });

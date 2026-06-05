@@ -39,7 +39,7 @@ describe("config commands", () => {
       agents: { defaultHarness: string; harnesses: { hermes: { workspaceRoot: string }; codex: { workspaceRoot: string } } };
       workloads: {
         bbh: { workspaceRoot: string; defaultHarness: string; defaultProfile: string };
-        science: { workspaceRoot: string; taskRepoRoot: string; defaultHarness: string; defaultModel: string };
+        science: { workspaceRoot: string; taskRepoRoot: string; defaultAgent: string; defaultModel: string; publishVisibility: string };
       };
     }>(stdout);
 
@@ -80,7 +80,7 @@ describe("config commands", () => {
     expect(printed.workloads.science).toMatchObject({
       workspaceRoot: path.join(tempDir, "workspaces", "science"),
       taskRepoRoot: path.join(tempDir, "workspaces", "science", "repos"),
-      defaultHarness: "codex",
+      defaultAgent: "codex",
       defaultModel: "openai/gpt-5.4",
     });
   });
@@ -189,10 +189,11 @@ describe("config commands", () => {
           science: {
             workspaceRoot: path.join(tempDir, "workspaces", "science"),
             taskRepoRoot: path.join(tempDir, "workspaces", "science", "repos"),
-            defaultHarness: "codex",
+            defaultAgent: "codex",
             defaultModel: "openai/gpt-5.4",
             defaultEnvironment: "docker",
             defaultTaskRef: "main",
+            publishVisibility: "public",
           },
         },
       }),

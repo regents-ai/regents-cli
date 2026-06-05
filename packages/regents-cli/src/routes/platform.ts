@@ -3,6 +3,7 @@ import {
   runPlatformAuthLogout,
   runPlatformAuthStatus,
   runPlatformBillingAccount,
+  runPlatformBillingSpendControlsSet,
   runPlatformBillingUsage,
   runPlatformCompanyRuntime,
   runPlatformFormationDoctor,
@@ -42,6 +43,10 @@ export const platformRoutes: readonly CliRoute[] = [
   }),
   route("platform billing usage", async ({ parsedArgs }) => {
     await runPlatformBillingUsage(parsedArgs);
+    return 0;
+  }),
+  route("platform billing spend-controls set", async ({ parsedArgs }) => {
+    await runPlatformBillingSpendControlsSet(parsedArgs);
     return 0;
   }),
   route("platform company runtime", async ({ parsedArgs }) => {

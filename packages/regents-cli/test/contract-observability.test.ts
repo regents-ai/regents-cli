@@ -3,9 +3,11 @@ import os from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
+import YAML from "yaml";
 
 import { buildContractDoctorReport, buildWorkspaceDoctorReport } from "../src/commands/doctor.js";
 import { route, routeMatches } from "../src/routes/shared.js";
+import { readWorkspaceManifest, requiredWorkspaceFiles } from "../src/workspace/manifest.js";
 
 const workspaceRoot = path.resolve(import.meta.dirname, "../../..");
 const sharedApi = path.join(workspaceRoot, "docs/regent-services-contract.openapiv3.yaml");
@@ -101,6 +103,37 @@ incident_classes:
     );
     expect(report.walletActionSchemaLoaded).toBe(true);
     expect(report.moneyMovementRows).toBeGreaterThan(0);
+  });
+
+  it("checks declared local path dependencies as workspace requirements", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "regent-workspace-root-"));
+    const product = path.join(root, "product");
+    const dependency = path.join(root, "shared", "dependency");
+    fs.mkdirSync(product, { recursive: true });
+    fs.mkdirSync(dependency, { recursive: true });
+
+    const manifestPath = writeManifest(`
+repos:
+  product:
+    path: ${product}
+    required_for_public_beta: true
+    local_path_dependencies:
+      - ../shared/dependency
+schemas:
+  wallet_action:
+    path: ${walletActionSchema}
+`);
+    const manifest = readWorkspaceManifest(workspaceRoot, YAML, manifestPath);
+
+    expect(requiredWorkspaceFiles(manifest, workspaceRoot)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "product local dependency ../shared/dependency",
+          path: dependency,
+          kind: "dir",
+        }),
+      ]),
+    );
   });
 
   it("finds the workspace manifest when launched from the package directory", () => {

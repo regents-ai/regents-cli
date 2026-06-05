@@ -30,6 +30,11 @@ import {
 import { createPromptBoundary, type PromptBoundary } from "../../terminal/prompts.js";
 import { requireAgentAuthState } from "../agent-auth.js";
 import { printAlphaFundsWarning } from "./alpha-warning.js";
+import {
+  createAutolaunchAgentConnection,
+  renderConnectionStartReceipt,
+  type AgentConnectionSessionEnvelope,
+} from "./pairing.js";
 import { printAgentSafeExplainer } from "./safe-explainer.js";
 import {
   parsePollingIntervalSeconds,
@@ -562,12 +567,99 @@ const renderWorkflowPanel = (title: string, lines: string[]): void => {
   );
 };
 
+const startProfileConnectionForPlan = async (
+  plan: Record<string, unknown>,
+  configPath?: string,
+): Promise<AgentConnectionSessionEnvelope> => {
+  const planId = String(plan.plan_id ?? "");
+  const identity = plan.identity_snapshot as Record<string, unknown> | undefined;
+  const label =
+    normalizeText(String(identity?.name ?? "")) ??
+    normalizeText(String(plan.agent_name ?? "")) ??
+    normalizeText(String(plan.token_name ?? "")) ??
+    normalizeText(String(plan.agent_id ?? ""));
+
+  return createAutolaunchAgentConnection(
+    {
+      plan_id: planId,
+      ...(label ? { agent_label: label } : {}),
+    },
+    configPath,
+  );
+};
+
+const credibilityOrder = [
+  "agent_identity",
+  "human_profile",
+  "ens",
+  "erc8004_ensip25",
+  "world_agentbook",
+  "x",
+] as const;
+
+const renderCredibilityPanel = (validation: Record<string, unknown> | undefined): void => {
+  if (!isHumanTerminal()) {
+    return;
+  }
+
+  const credibility = validation?.credibility as Record<string, unknown> | undefined;
+  if (!credibility) {
+    return;
+  }
+
+  const statusColor = (status: string): string => {
+    if (status === "ready") {
+      return CLI_PALETTE.emphasis;
+    }
+
+    if (status === "skipped") {
+      return CLI_PALETTE.secondary;
+    }
+
+    return CLI_PALETTE.accent;
+  };
+
+  const lines = credibilityOrder.map((key) => {
+    const item = credibility[key] as Record<string, unknown> | undefined;
+    const label = String(item?.label ?? key);
+    const status = String(item?.status ?? "missing");
+    const message = String(item?.message ?? "");
+
+    return `${tone(status.padEnd(12), statusColor(status), status === "ready")} ${tone(label, CLI_PALETTE.primary, true)} ${message}`;
+  });
+
+  const warnings = Array.isArray(credibility.warnings)
+    ? credibility.warnings.map((warning) => String(warning))
+    : [];
+
+  printText(
+    renderPanel(
+      "◆ CREDIBILITY",
+      warnings.length > 0
+        ? [...lines, "", ...warnings.map((warning) => tone(warning, CLI_PALETTE.secondary))]
+        : lines,
+      {
+        borderColor: warnings.length > 0 ? CLI_PALETTE.accent : CLI_PALETTE.emphasis,
+        titleColor: CLI_PALETTE.title,
+      },
+    ),
+  );
+};
+
 export async function runAutolaunchPrelaunchWizard(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
   printAlphaFundsWarning();
   const plan = await createOrUpdateRemotePlan(args, configPath);
+  const connection = getBooleanFlag(args, "connect-profile")
+    ? await startProfileConnectionForPlan(plan, configPath)
+    : null;
+
+  if (connection && !getBooleanFlag(args, "json") && isHumanTerminal()) {
+    printText(renderConnectionStartReceipt(connection, configPath));
+  }
+
   const validation = await requestJson(
     "POST",
     `/v1/agent/prelaunch/plans/${encodeURIComponent(String(plan.plan_id))}/validate`,
@@ -583,6 +675,7 @@ export async function runAutolaunchPrelaunchWizard(
     `${tone("launchable", CLI_PALETTE.secondary)} ${String((validation.validation as Record<string, unknown> | undefined)?.launchable ?? false)}`,
   ]);
 
+  renderCredibilityPanel(validation.validation as Record<string, unknown> | undefined);
   printJson(validation);
 }
 
