@@ -73,25 +73,25 @@ export async function callJsonRpc<TMethod extends RegentRpcMethod>(
     let buffer = "";
     let settled = false;
 
-    const settle = (callback: () => void): void => {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      callback();
-    };
-
     const cleanup = (): void => {
       socket.removeAllListeners();
       socket.end();
       socket.destroy();
     };
 
+    const settle = (callback: () => void): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+      callback();
+    };
+
     socket.setEncoding("utf8");
     socket.once("error", (error) => {
       settle(() => {
-        cleanup();
         reject(
           new JsonRpcError("Regent local runtime is not running.", {
             code: "runtime_unavailable",
@@ -120,7 +120,6 @@ export async function callJsonRpc<TMethod extends RegentRpcMethod>(
 
       settle(() => {
         const line = buffer.slice(0, newlineIndex).trim();
-        cleanup();
 
         if (line === "") {
           reject(new JsonRpcError("daemon returned an empty JSON-RPC response"));

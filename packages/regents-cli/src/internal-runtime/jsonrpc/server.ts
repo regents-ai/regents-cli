@@ -96,7 +96,17 @@ export class JsonRpcServer {
             continue;
           }
 
-          void this.handleLine(socket, line);
+          this.handleLine(socket, line).catch(() => {
+            if (socket.destroyed) {
+              return;
+            }
+
+            try {
+              socket.write(`${JSON.stringify(jsonRpcError(null, -32603, "internal error"))}\n`);
+            } catch {
+              socket.destroy();
+            }
+          });
         }
       });
     });
