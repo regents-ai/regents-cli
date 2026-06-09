@@ -2314,6 +2314,7 @@ export interface components {
                     status: string;
                     one_sprite: boolean;
                     sprite_runtime_id: string | null;
+                    /** @description Hosted Hermes runtimes expose Agent OS as the `agent-os` workspace service. */
                     workspace_service_name: string | null;
                     bridge_service_name: string | null;
                     path: string | null;
