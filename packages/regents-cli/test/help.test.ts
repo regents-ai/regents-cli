@@ -73,7 +73,8 @@ describe("scoped CLI help", () => {
 
     expect(output.result).toBe(0);
     expect(output.stdout).toContain("PLUGIN INSTALL HELP");
-    expect(output.stdout).toContain("regents plugin install --runtime <auto|hermes|openclaw>");
+    expect(output.stdout).toContain("regents plugin install [--runtime <auto|hermes|openclaw>]");
+    expect(output.stdout).toContain("--runtime auto (default) installs both sets of tools");
     expect(output.stdout).toContain("--runtime hermes installs the Hermes tools and selects xAI Grok OAuth");
     expect(output.stdout).toContain("--runtime openclaw installs only the OpenClaw tools");
     expect(output.stdout).toContain("hermes auth add xai-oauth");

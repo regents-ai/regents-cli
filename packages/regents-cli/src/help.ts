@@ -124,15 +124,15 @@ const techtreeWorkspacePrerequisites = [
 const commandHelp: Record<string, HelpEntry> = {
   setup: {
     summary: "Check local Regent readiness for Hermes, OpenClaw, or both.",
-    usage: "regents setup --runtime <auto|hermes|openclaw>",
+    usage: "regents setup [--runtime <auto|hermes|openclaw>]",
     flags: [
-      "--runtime auto checks both Hermes and OpenClaw readiness.",
+      "--runtime auto (default) checks both Hermes and OpenClaw readiness.",
       "--runtime hermes checks the Hermes side only.",
       "--runtime openclaw checks the OpenClaw side only.",
       "--json",
       "--config <path>",
     ],
-    examples: ["regents setup --runtime auto", "regents setup --runtime hermes"],
+    examples: ["regents setup", "regents setup --runtime hermes"],
     auth: "No saved sign-in is needed.",
     output:
       "Shows whether the selected runtime looks ready and prints the next commands to run. It does not install the Hermes or OpenClaw Regent tools.",
@@ -150,18 +150,18 @@ const commandHelp: Record<string, HelpEntry> = {
   },
   "plugin install": {
     summary: "Install the Regent tools into Hermes, OpenClaw, or both.",
-    usage: "regents plugin install --runtime <auto|hermes|openclaw>",
+    usage: "regents plugin install [--runtime <auto|hermes|openclaw>]",
     flags: [
+      "--runtime auto (default) installs both sets of tools. Use this when the machine may run either Hermes or OpenClaw.",
       "--runtime hermes installs the Hermes tools and selects xAI Grok OAuth with grok-4.3.",
       "--runtime openclaw installs only the OpenClaw tools. Use this for an OpenClaw agent.",
-      "--runtime auto installs both sets of tools. Use this when the machine may run either Hermes or OpenClaw.",
       "--json",
       "--config <path>",
     ],
     examples: [
+      "regents plugin install",
       "regents plugin install --runtime hermes",
       "regents plugin install --runtime openclaw",
-      "regents plugin install --runtime auto",
     ],
     auth: "No saved sign-in is needed.",
     output:
@@ -173,7 +173,7 @@ const commandHelp: Record<string, HelpEntry> = {
     summary: "Check whether Hermes, OpenClaw, or both can see the Regent tools.",
     usage: "regents plugin status [--runtime <auto|hermes|openclaw>]",
     flags: [
-      "--runtime auto checks both Hermes and OpenClaw.",
+      "--runtime auto (default) checks both Hermes and OpenClaw.",
       "--runtime hermes checks only Hermes.",
       "--runtime openclaw checks only OpenClaw.",
       "--json",
@@ -194,7 +194,7 @@ const commandHelp: Record<string, HelpEntry> = {
     summary: "Diagnose missing Regent tools for Hermes, OpenClaw, or both.",
     usage: "regents plugin doctor [--runtime <auto|hermes|openclaw>]",
     flags: [
-      "--runtime auto diagnoses both Hermes and OpenClaw.",
+      "--runtime auto (default) diagnoses both Hermes and OpenClaw.",
       "--runtime hermes diagnoses only Hermes.",
       "--runtime openclaw diagnoses only OpenClaw.",
       "--json",
@@ -742,9 +742,13 @@ Object.assign(commandHelp, {
   },
   doctor: {
     summary: "Run the broad local Regent diagnostic.",
-    usage: "regents doctor [--json]",
-    flags: ["--json", "--config <path>"],
-    examples: ["regents doctor", "regents doctor --json"],
+    usage: "regents doctor [--fix] [--json]",
+    flags: [
+      "--fix applies safe local repairs only: create the default config, create missing runtime folders, remove a validated stale runtime socket, and create the default XMTP policy file. Everything else keeps its printed next step.",
+      "--json",
+      "--config <path>",
+    ],
+    examples: ["regents doctor", "regents doctor --fix", "regents doctor --json"],
     prerequisites: ["Run this before deeper product-specific doctor commands when the failure source is unclear."],
     auth: "No saved sign-in is needed for local checks. Signed remote checks may report missing auth.",
     output: "Shows local setup, runtime, wallet, identity, and service readiness with next moves.",
@@ -2179,6 +2183,11 @@ export function renderScopedHelp(positionals: readonly string[], configPath: str
     `No shipped command matches: regents ${positionals.join(" ")}`,
     "Check the spelling or run `regents --help`.",
   ]);
+}
+
+export function nextStepForPositionals(positionals: readonly string[]): string | undefined {
+  const command = commandForInput(positionals);
+  return command ? commandDetailsByCommand[command]?.next_step : undefined;
 }
 
 export function usageHintForPositionals(positionals: readonly string[]): {

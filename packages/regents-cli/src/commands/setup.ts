@@ -4,8 +4,9 @@ import { printJson } from "../printer.js";
 import { pluginStatus, type RegentAgentRuntimeSelector } from "../internal-runtime/plugin-bridge.js";
 
 const parseRuntime = (value: string | undefined): RegentAgentRuntimeSelector => {
-  if (value === "auto" || value === "hermes" || value === "openclaw") {
-    return value;
+  const runtime = value ?? "auto";
+  if (runtime === "auto" || runtime === "hermes" || runtime === "openclaw") {
+    return runtime;
   }
   throw new CliUsageError({
     code: "invalid_flag_value",
@@ -21,7 +22,7 @@ export async function runSetup(args: ParsedCliArgs): Promise<number> {
     runtime,
     plugin_status: pluginStatus(runtime),
     next: [
-      "regents plugin install --runtime auto",
+      "regents plugin install",
       "regents identity ensure",
       "regents run",
       "regents techtree work next --json",

@@ -12,6 +12,14 @@ help:
     registry address plus token ID. Protected shared commands use
     `regents auth login --audience regent-services`, then `regents identity ensure`,
     then the command.
+  bare_invocation: >
+    Running `regents` with no arguments prints a short readiness summary
+    (local runtime, wallet, identity, saved sign-ins, and Fold state when
+    active) followed by one line pointing to `regents --help`.
+  failure_next_step: >
+    When a command fails and its contract metadata carries a next_step, the
+    shared error output prints `Next: <step>` with the error. Errors that
+    already carry their own next steps keep them.
   output_modes:
     human: Panels, tables, status lines, examples, and next-step hints.
     json: Raw JSON for scripts when `--json` is supported or stdout is not a terminal.
@@ -43,15 +51,29 @@ command_groups:
       input_mode: args-and-flags
       examples:
         - regents status
-        - regents plugin install --runtime auto
-        - regents setup --runtime auto
+        - regents init
+        - regents plugin install
+        - regents setup
         - regents setup skills
-        - regents plugin status --runtime auto
+        - regents plugin status
         - regents runtime status --json
         - regents agent-context
         - regents config get
         - regents agent profile get
       commands:
+        regents init:
+          category: local-setup
+          prompt_behavior: never_prompt
+          json_support: supported
+          mutation_class: local-write
+          retry_behavior: safe
+          pagination: none
+          async_behavior: synchronous
+          input_mode: flags
+          summary: Set up Regent on this machine and report what is ready.
+          next_step: regents status
+          examples:
+            - regents init
         setup:
           category: local-setup
           prompt_behavior: never_prompt
@@ -61,9 +83,9 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
-          next_step: regents plugin status --runtime auto
+          next_step: regents plugin status
           examples:
-            - regents setup --runtime auto
+            - regents setup
             - regents setup --runtime hermes
         setup skills:
           category: local-setup
@@ -100,9 +122,9 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
-          next_step: regents plugin install --runtime auto
+          next_step: regents plugin install
           examples:
-            - regents plugin status --runtime auto
+            - regents plugin status
         plugin install:
           category: local-setup
           prompt_behavior: confirm_before_write
@@ -112,9 +134,9 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
-          next_step: regents plugin doctor --runtime auto
+          next_step: regents plugin doctor
           examples:
-            - regents plugin install --runtime auto
+            - regents plugin install
             - regents plugin install --runtime hermes
             - regents plugin install --runtime openclaw
         plugin doctor:
@@ -128,7 +150,7 @@ command_groups:
           input_mode: flags
           next_step: regents run
           examples:
-            - regents plugin doctor --runtime auto
+            - regents plugin doctor
     commands:
       - init
       - status
@@ -167,8 +189,8 @@ command_groups:
         - name: --runtime
           type: enum
           enum: [auto, hermes, openclaw]
-          required: true
-          description: Choose the local agent runtime to inspect before starting. This reports readiness only; it does not install the Hermes or OpenClaw Regent tools.
+          required: false
+          description: Local agent runtime to inspect before starting. Defaults to auto, which inspects both Hermes and OpenClaw. This reports readiness only; it does not install the Hermes or OpenClaw Regent tools.
       run:
         - name: --json
           type: boolean
@@ -184,19 +206,19 @@ command_groups:
           type: enum
           enum: [auto, hermes, openclaw]
           required: false
-          description: Runtime to inspect. Use auto to inspect both Hermes and OpenClaw. Use hermes or openclaw when checking whether one specific agent app can see Regent.
+          description: Runtime to inspect. Defaults to auto, which inspects both Hermes and OpenClaw. Use hermes or openclaw when checking whether one specific agent app can see Regent.
       plugin install:
         - name: --runtime
           type: enum
           enum: [auto, hermes, openclaw]
-          required: true
-          description: Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Hermes setup also selects xAI Grok OAuth with grok-4.3 and returns the Hermes sign-in command.
+          required: false
+          description: Runtime that should receive the Regent tools. Defaults to auto, which installs both. Use hermes for a Hermes agent or openclaw for an OpenClaw agent. Hermes setup also selects xAI Grok OAuth with grok-4.3 and returns the Hermes sign-in command.
       plugin doctor:
         - name: --runtime
           type: enum
           enum: [auto, hermes, openclaw]
           required: false
-          description: Runtime to diagnose. Use auto to diagnose both runtimes. Use hermes or openclaw when the agent app says Regent tools are missing.
+          description: Runtime to diagnose. Defaults to auto, which diagnoses both runtimes. Use hermes or openclaw when the agent app says Regent tools are missing.
   - name: wallet
     interface: runtime
     auth_mode: none
@@ -717,6 +739,7 @@ command_groups:
       input_mode: args
       examples:
         - regents doctor
+        - regents doctor --fix
         - regents xmtp doctor
     commands:
       - doctor
@@ -726,6 +749,12 @@ command_groups:
       - doctor transports
       - doctor contracts
       - doctor workspace
+    flags:
+      doctor:
+        - name: --fix
+          type: boolean
+          required: false
+          description: Apply safe local repairs for blockers doctor can fix mechanically, such as creating the default config file, creating missing runtime folders, removing a validated stale runtime socket, and creating the default XMTP policy file. Everything else keeps its printed next step. No destructive repairs.
   - name: ens
     interface: http
     auth_mode: agent-siwa

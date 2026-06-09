@@ -426,6 +426,10 @@ export interface components {
         };
         ReadinessResponse: {
             ready: boolean;
+            /** @description Reason strings for each failing readiness check */
+            failures?: {
+                [key: string]: string;
+            };
             checks: {
                 database: boolean;
                 endpoint_secret: boolean;

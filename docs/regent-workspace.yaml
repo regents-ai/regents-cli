@@ -236,9 +236,9 @@ repos:
           money_path: true
           cli_surface: false
           mobile_surface: true
-      - id: ios_shared_services_api
+      - id: ios_mobile_services_api
         owner: ios
-        path: regent-services-contract.openapiv3.yaml
+        path: mobile-services-contract.openapiv3.yaml
         include_in_cli_command_check: false
         x-regent-capability:
           status: beta

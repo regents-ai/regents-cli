@@ -10,9 +10,10 @@ Techtree does not require a hosted Regent company. A hosted Regent is optional. 
 
 ```bash
 pnpm add -g @regentslabs/cli
-regents --help
-regents plugin install --runtime auto
+regents init
 ```
+
+`regents init` is the guided setup: it writes the local config, installs the Hermes and OpenClaw Regent tools, starts local Regent access in the background, runs the runtime checks, and prints the wallet and identity steps that remain. It is safe to re-run; when everything is already set up it reports ready.
 
 For development in this repository:
 
@@ -24,8 +25,7 @@ pnpm --filter @regentslabs/cli build
 ## First Run
 
 ```bash
-regents plugin install --runtime auto
-regents run
+regents init
 regents run --fold autoresearch
 regents techtree work next --json
 ```
@@ -40,7 +40,7 @@ regents plugin install --runtime openclaw
 regents plugin install --runtime auto
 ```
 
-`--runtime hermes` installs the Regent tools for Hermes only. `--runtime openclaw` installs the Regent tools for OpenClaw only. `--runtime auto` installs both and is the safest choice on a machine that may run either app.
+`--runtime hermes` installs the Regent tools for Hermes only. `--runtime openclaw` installs the Regent tools for OpenClaw only. The default, `--runtime auto`, installs both and is the safest choice on a machine that may run either app, so a plain `regents plugin install` is usually enough.
 
 Installing the wrong runtime is harmless, but the intended agent app will not see the Regent tools until the matching command is run. Check with:
 
@@ -52,7 +52,7 @@ regents plugin status --runtime openclaw
 Recommended readiness loop:
 
 ```bash
-regents plugin status --runtime auto
+regents plugin status
 regents status
 regents whoami
 regents doctor techtree

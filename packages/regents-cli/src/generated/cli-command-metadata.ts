@@ -949,10 +949,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -979,10 +980,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -1095,10 +1097,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -1125,10 +1128,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -1155,10 +1159,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -1185,10 +1190,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -4270,10 +4276,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -4300,10 +4307,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -4328,8 +4336,17 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "none",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--fix",
+        "type": "boolean",
+        "required": false,
+        "description": "Apply safe local repairs for blockers doctor can fix mechanically, such as creating the default config file, creating missing runtime folders, removing a validated stale runtime socket, and creating the default XMTP policy file. Everything else keeps its printed next step. No destructive repairs."
+      }
+    ],
     "examples": [
       "regents doctor",
+      "regents doctor --fix",
       "regents xmtp doctor"
     ],
     "agent_metadata": {
@@ -4353,6 +4370,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
+      "regents doctor --fix",
       "regents xmtp doctor"
     ],
     "agent_metadata": {
@@ -4376,6 +4394,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
+      "regents doctor --fix",
       "regents xmtp doctor"
     ],
     "agent_metadata": {
@@ -4399,6 +4418,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
+      "regents doctor --fix",
       "regents xmtp doctor"
     ],
     "agent_metadata": {
@@ -4422,6 +4442,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
+      "regents doctor --fix",
       "regents xmtp doctor"
     ],
     "agent_metadata": {
@@ -4445,6 +4466,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
+      "regents doctor --fix",
       "regents xmtp doctor"
     ],
     "agent_metadata": {
@@ -4468,6 +4490,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "loose-object",
     "examples": [
       "regents doctor",
+      "regents doctor --fix",
       "regents xmtp doctor"
     ],
     "agent_metadata": {
@@ -4544,10 +4567,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -4650,27 +4674,22 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "none",
     "output_envelope": "operator-status-envelopes",
     "examples": [
-      "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
-      "regents setup skills",
-      "regents plugin status --runtime auto",
-      "regents runtime status --json",
-      "regents agent-context",
-      "regents config get",
-      "regents agent profile get"
+      "regents init"
     ],
     "agent_metadata": {
-      "category": "local-control",
+      "category": "local-setup",
       "prompt_behavior": "never_prompt",
       "json_support": "supported",
-      "mutation_class": "local-read-or-write",
-      "retry_behavior": "safe_for_reads",
-      "pagination": "bounded",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe",
+      "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "flags",
+      "summary": "Set up Regent on this machine and report what is ready.",
+      "next_step": "regents status"
     },
-    "summary": "Set up the local Regents config and working folders."
+    "summary": "Set up Regent on this machine and report what is ready.",
+    "next_step": "regents status"
   },
   "mcp doctor": {
     "command": "mcp doctor",
@@ -5302,11 +5321,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "openclaw"
         ],
         "required": false,
-        "description": "Runtime to diagnose. Use auto to diagnose both runtimes. Use hermes or openclaw when the agent app says Regent tools are missing."
+        "description": "Runtime to diagnose. Defaults to auto, which diagnoses both runtimes. Use hermes or openclaw when the agent app says Regent tools are missing."
       }
     ],
     "examples": [
-      "regents plugin doctor --runtime auto"
+      "regents plugin doctor"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -5338,12 +5357,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "hermes",
           "openclaw"
         ],
-        "required": true,
-        "description": "Runtime that should receive the Regent tools. Use hermes for a Hermes agent, openclaw for an OpenClaw agent, or auto to install both. Hermes setup also selects xAI Grok OAuth with grok-4.3 and returns the Hermes sign-in command."
+        "required": false,
+        "description": "Runtime that should receive the Regent tools. Defaults to auto, which installs both. Use hermes for a Hermes agent or openclaw for an OpenClaw agent. Hermes setup also selects xAI Grok OAuth with grok-4.3 and returns the Hermes sign-in command."
       }
     ],
     "examples": [
-      "regents plugin install --runtime auto",
+      "regents plugin install",
       "regents plugin install --runtime hermes",
       "regents plugin install --runtime openclaw"
     ],
@@ -5356,10 +5375,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags",
-      "next_step": "regents plugin doctor --runtime auto"
+      "next_step": "regents plugin doctor"
     },
     "summary": "Install a Regent plugin for the selected runtime.",
-    "next_step": "regents plugin doctor --runtime auto"
+    "next_step": "regents plugin doctor"
   },
   "plugin status": {
     "command": "plugin status",
@@ -5378,11 +5397,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "openclaw"
         ],
         "required": false,
-        "description": "Runtime to inspect. Use auto to inspect both Hermes and OpenClaw. Use hermes or openclaw when checking whether one specific agent app can see Regent."
+        "description": "Runtime to inspect. Defaults to auto, which inspects both Hermes and OpenClaw. Use hermes or openclaw when checking whether one specific agent app can see Regent."
       }
     ],
     "examples": [
-      "regents plugin status --runtime auto"
+      "regents plugin status"
     ],
     "agent_metadata": {
       "category": "local-setup",
@@ -5393,10 +5412,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags",
-      "next_step": "regents plugin install --runtime auto"
+      "next_step": "regents plugin install"
     },
     "summary": "Show installed Regent plugins.",
-    "next_step": "regents plugin install --runtime auto"
+    "next_step": "regents plugin install"
   },
   "receipt create": {
     "command": "receipt create",
@@ -6510,12 +6529,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
           "hermes",
           "openclaw"
         ],
-        "required": true,
-        "description": "Choose the local agent runtime to inspect before starting. This reports readiness only; it does not install the Hermes or OpenClaw Regent tools."
+        "required": false,
+        "description": "Local agent runtime to inspect before starting. Defaults to auto, which inspects both Hermes and OpenClaw. This reports readiness only; it does not install the Hermes or OpenClaw Regent tools."
       }
     ],
     "examples": [
-      "regents setup --runtime auto",
+      "regents setup",
       "regents setup --runtime hermes"
     ],
     "agent_metadata": {
@@ -6527,10 +6546,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags",
-      "next_step": "regents plugin status --runtime auto"
+      "next_step": "regents plugin status"
     },
     "summary": "Show setup guidance.",
-    "next_step": "regents plugin status --runtime auto"
+    "next_step": "regents plugin status"
   },
   "setup skills": {
     "command": "setup skills",
@@ -6578,10 +6597,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "operator-status-envelopes",
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",
@@ -10173,10 +10193,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents status",
-      "regents plugin install --runtime auto",
-      "regents setup --runtime auto",
+      "regents init",
+      "regents plugin install",
+      "regents setup",
       "regents setup skills",
-      "regents plugin status --runtime auto",
+      "regents plugin status",
       "regents runtime status --json",
       "regents agent-context",
       "regents config get",

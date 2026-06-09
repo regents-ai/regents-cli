@@ -6,7 +6,7 @@ import { CLI_PALETTE, escapeTerminalText, isHumanTerminal, tone } from "./palett
 
 const renderNextLines = (nextSteps: readonly string[] | undefined): string[] => {
   const steps = nextSteps && nextSteps.length > 0 ? nextSteps : ["regents --help"];
-  return steps.map((step) => `${tone("next", CLI_PALETTE.secondary)} ${tone(escapeTerminalText(step), CLI_PALETTE.emphasis, true)}`);
+  return steps.map((step) => `${tone("Next:", CLI_PALETTE.secondary)} ${tone(escapeTerminalText(step), CLI_PALETTE.emphasis, true)}`);
 };
 
 const renderErrorPanel = (
@@ -47,7 +47,9 @@ const jsonRpcDetails = (error: JsonRpcError): string[] => {
     : [];
 };
 
-export function printError(error: unknown): void {
+export function printError(error: unknown, options?: { readonly nextStep?: string }): void {
+  const fallbackNextSteps = options?.nextStep ? [options.nextStep] : undefined;
+
   if (error instanceof CliUsageError) {
     const details = [
       error.command ? `${tone("command", CLI_PALETTE.secondary)} ${tone(error.command, CLI_PALETTE.primary, true)}` : undefined,
@@ -77,13 +79,14 @@ export function printError(error: unknown): void {
   }
 
   if (error instanceof JsonRpcError) {
+    const nextSteps = error.nextSteps && error.nextSteps.length > 0 ? error.nextSteps : fallbackNextSteps;
     const payloadDetails = {
       ...(error.details ?? {}),
-      ...(error.nextSteps && error.nextSteps.length > 0 ? { next_steps: error.nextSteps } : {}),
+      ...(nextSteps && nextSteps.length > 0 ? { next_steps: nextSteps } : {}),
     };
 
     if (isHumanTerminal()) {
-      process.stderr.write(`${renderErrorPanel(error.message, error.code, jsonRpcDetails(error), error.nextSteps)}\n`);
+      process.stderr.write(`${renderErrorPanel(error.message, error.code, jsonRpcDetails(error), nextSteps)}\n`);
       return;
     }
 
@@ -91,31 +94,33 @@ export function printError(error: unknown): void {
     return;
   }
 
+  const fallbackDetails = fallbackNextSteps ? { next_steps: fallbackNextSteps } : undefined;
+
   if (error instanceof RegentError) {
     if (isHumanTerminal()) {
-      process.stderr.write(`${renderErrorPanel(error.message, error.code)}\n`);
+      process.stderr.write(`${renderErrorPanel(error.message, error.code, [], fallbackNextSteps)}\n`);
       return;
     }
 
-    process.stderr.write(`${JSON.stringify(errorPayload(error.message, error.code), null, 2)}\n`);
+    process.stderr.write(`${JSON.stringify(errorPayload(error.message, error.code, fallbackDetails), null, 2)}\n`);
     return;
   }
 
   if (error instanceof Error) {
     if (isHumanTerminal()) {
-      process.stderr.write(`${renderErrorPanel(error.message)}\n`);
+      process.stderr.write(`${renderErrorPanel(error.message, undefined, [], fallbackNextSteps)}\n`);
       return;
     }
 
-    process.stderr.write(`${JSON.stringify(errorPayload(error.message), null, 2)}\n`);
+    process.stderr.write(`${JSON.stringify(errorPayload(error.message, undefined, fallbackDetails), null, 2)}\n`);
     return;
   }
 
   const fallbackMessage = String(error);
   if (isHumanTerminal()) {
-    process.stderr.write(`${renderErrorPanel(fallbackMessage)}\n`);
+    process.stderr.write(`${renderErrorPanel(fallbackMessage, undefined, [], fallbackNextSteps)}\n`);
     return;
   }
 
-  process.stderr.write(`${JSON.stringify(errorPayload(fallbackMessage), null, 2)}\n`);
+  process.stderr.write(`${JSON.stringify(errorPayload(fallbackMessage, undefined, fallbackDetails), null, 2)}\n`);
 }

@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 
 import { isCliUsageError, withCliUsageContext } from "./cli-usage-error.js";
 import { knownCliCommand } from "./command-registry.js";
-import { printScopedHelp, usageHintForPositionals } from "./help.js";
+import { runOperatorOverview } from "./commands/operator.js";
+import { nextStepForPositionals, printScopedHelp, usageHintForPositionals } from "./help.js";
 import { defaultConfigPath, expandHome } from "./internal-runtime/index.js";
 import { getBooleanFlag, getFlag, parseCliArgs } from "./parse.js";
 import { printError, setRawJsonOutput } from "./printer.js";
@@ -40,9 +41,13 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       }
     }
 
-    if (!namespace || rawArgs.includes("--help") || rawArgs.includes("-h")) {
+    if (rawArgs.includes("--help") || rawArgs.includes("-h")) {
       printScopedHelp(helpPositionals(parsedArgs.positionals), configPath ?? defaultConfigPath());
       return 0;
+    }
+
+    if (!namespace) {
+      return runOperatorOverview(parsedArgs, configPath);
     }
 
     const routedResult = await dispatchRoute(cliRoutes, routeContext);
@@ -61,7 +66,7 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
     const usageError = isCliUsageError(error)
       ? withCliUsageContext(error, usageHintForPositionals(parsedArgs.positionals) ?? {})
       : error;
-    printError(usageError);
+    printError(usageError, { nextStep: nextStepForPositionals(parsedArgs.positionals) });
     return 1;
   }
 }

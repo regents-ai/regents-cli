@@ -147,10 +147,10 @@ describe("CLI config flows", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(JSON.parse(output.stdout)).toEqual({
+    expect(JSON.parse(output.stdout)).toMatchObject({
       ok: true,
       command: "init",
-      status: "ready",
+      status: "waiting",
       config_path: initPath,
       config_created: false,
       directories: {
@@ -161,7 +161,10 @@ describe("CLI config flows", () => {
         xmtp: path.join(harness.tempDir, "custom-xmtp"),
         xmtpPolicy: path.join(harness.tempDir, "custom-policies"),
       },
-      next_actions: ["regents status", "regents identity ensure"],
+      plugin: { selected_runtime: "auto", installed_now: [] },
+      daemon: { running: true, started_now: false },
+      doctor: { ok: true, fail: 0 },
+      next_actions: ["regents identity ensure"],
     });
     expect(fs.readFileSync(initPath, "utf8")).toBe(originalContents);
   });
@@ -536,6 +539,7 @@ describe("CLI config flows", () => {
     expect(JSON.parse(output.stderr)).toEqual({
       error: {
         message: expect.stringMatching(/EEXIST|ENOTDIR/),
+        next_steps: ["regents status"],
       },
     });
   });

@@ -19,15 +19,8 @@ const parseRuntimeSelector = (value: string | undefined): RegentAgentRuntimeSele
   });
 };
 
-const parseInstallRuntimeSelector = (value: string | undefined): RegentAgentRuntimeSelector => {
-  if (value === "auto" || value === "hermes" || value === "openclaw") {
-    return value;
-  }
-  throw new CliUsageError({
-    code: "invalid_flag_value",
-    message: "--runtime must be auto, hermes, or openclaw.",
-  });
-};
+const withRuntimeFlag = (command: string, runtime: RegentAgentRuntimeSelector): string =>
+  runtime === "auto" ? command : `${command} --runtime ${runtime}`;
 
 export async function runPluginStatus(args: ParsedCliArgs): Promise<number> {
   const report = pluginStatus(parseRuntimeSelector(getFlag(args, "runtime")));
@@ -36,14 +29,14 @@ export async function runPluginStatus(args: ParsedCliArgs): Promise<number> {
   printJson({
     ...report,
     next_steps: missing.length > 0
-      ? [`regents plugin install --runtime ${report.selectedRuntime}`]
+      ? [withRuntimeFlag("regents plugin install", report.selectedRuntime)]
       : ["regents run"],
   });
   return 0;
 }
 
 export async function runPluginInstall(args: ParsedCliArgs): Promise<number> {
-  const runtime = parseInstallRuntimeSelector(getFlag(args, "runtime"));
+  const runtime = parseRuntimeSelector(getFlag(args, "runtime"));
   const runtimes = selectedRuntimes(runtime);
   const includesHermes = runtimes.includes("hermes");
 
@@ -53,7 +46,7 @@ export async function runPluginInstall(args: ParsedCliArgs): Promise<number> {
     installed_plugins: runtimes.map((entry) => installPlugin(entry)),
     next_steps: [
       ...(includesHermes ? ["hermes auth add xai-oauth"] : []),
-      `regents plugin doctor --runtime ${runtime}`,
+      withRuntimeFlag("regents plugin doctor", runtime),
       "regents run",
     ],
   });
@@ -68,7 +61,7 @@ export async function runPluginDoctor(args: ParsedCliArgs): Promise<number> {
     ok: missing.length === 0,
     missing,
     next_steps: missing.length > 0
-      ? [`regents plugin install --runtime ${report.selectedRuntime}`]
+      ? [withRuntimeFlag("regents plugin install", report.selectedRuntime)]
       : ["regents run"],
   });
   return 0;

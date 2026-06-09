@@ -176,7 +176,7 @@ Total commands: 346.
 
 ### Init
 
-- `regents init` - Set up the local Regents config and working folders.
+- `regents init` - Set up Regent on this machine and report what is ready.
 
 ### Mcp
 

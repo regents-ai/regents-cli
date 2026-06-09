@@ -29,6 +29,30 @@ describe("plugin setup commands", () => {
     }
   });
 
+  it("defaults to the auto runtime when --runtime is omitted", async () => {
+    const output = await captureOutput(() => runPluginInstall(parseCliArgs([])));
+    const payload = parsePrintedJson(output.stdout) as {
+      selectedRuntime: string;
+      installed_plugins: Array<{ runtime: string }>;
+      next_steps: string[];
+    };
+
+    expect(payload.selectedRuntime).toBe("auto");
+    expect(payload.installed_plugins.map((entry) => entry.runtime)).toEqual(["hermes", "openclaw"]);
+    expect(payload.next_steps).toContain("regents plugin doctor");
+  });
+
+  it("defaults setup to the auto runtime when --runtime is omitted", async () => {
+    const output = await captureOutput(() => runSetup(parseCliArgs([])));
+    const payload = parsePrintedJson(output.stdout) as {
+      runtime: string;
+      plugin_status: { runtimes: Array<{ runtime: string }> };
+    };
+
+    expect(payload.runtime).toBe("auto");
+    expect(payload.plugin_status.runtimes.map((entry) => entry.runtime)).toEqual(["hermes", "openclaw"]);
+  });
+
   it("installs both runtime plugins when auto is selected", async () => {
     const output = await captureOutput(() => runPluginInstall(parseCliArgs(["--runtime", "auto"])));
     const payload = parsePrintedJson(output.stdout) as {
@@ -55,7 +79,7 @@ describe("plugin setup commands", () => {
     };
 
     expect(payload.installed_plugins).toBeUndefined();
-    expect(payload.next[0]).toBe("regents plugin install --runtime auto");
+    expect(payload.next[0]).toBe("regents plugin install");
     expect(fs.existsSync(path.join(tempHome, ".hermes", "plugins", "regent"))).toBe(false);
   });
 });

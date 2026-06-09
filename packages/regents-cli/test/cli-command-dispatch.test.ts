@@ -1305,7 +1305,7 @@ describe("CLI command dispatch", () => {
     });
   }
 
-  it("runs the top-level init command", async () => {
+  it("runs the top-level init command as a guided, re-runnable setup", async () => {
     const output = await captureOutput(async () =>
       harness.runCliEntrypoint(["init", "--config", harness.configPath]),
     );
@@ -1315,8 +1315,46 @@ describe("CLI command dispatch", () => {
     expect(JSON.parse(output.stdout)).toMatchObject({
       ok: true,
       command: "init",
-      status: "ready",
+      status: "waiting",
       config_path: harness.configPath,
+      plugin: {
+        selected_runtime: "auto",
+        installed_now: [],
+        runtimes: [
+          { runtime: "hermes", installed: true },
+          { runtime: "openclaw", installed: true },
+        ],
+      },
+      daemon: { running: true, started_now: false },
+      doctor: { ok: true, fail: 0 },
+      wallet: { name: "main", address: TEST_WALLET },
+      identity: null,
+      next_actions: ["regents identity ensure"],
+    });
+    expect(runScopedDoctorMock).toHaveBeenCalledWith(
+      { scope: "runtime" },
+      { configPath: harness.configPath },
+    );
+  });
+
+  it("prints a readiness summary for bare regents and points to --help", async () => {
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint(["--config", harness.configPath]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(output.stderr).toBe("");
+    expect(JSON.parse(output.stdout)).toMatchObject({
+      ok: true,
+      command: "overview",
+      status: "waiting",
+      components: expect.arrayContaining([
+        expect.objectContaining({ name: "runtime", status: "waiting" }),
+        expect.objectContaining({ name: "wallet", status: "ready" }),
+        expect.objectContaining({ name: "identity", status: "waiting" }),
+        expect.objectContaining({ name: "sign-ins", status: "waiting" }),
+      ]),
+      help: "Run regents --help for all commands.",
     });
   });
 
@@ -1392,6 +1430,35 @@ describe("CLI command dispatch", () => {
       { json: true, verbose: false, fix: false },
       { configPath: harness.configPath },
     );
+  });
+
+  it("passes doctor --fix through the local runtime doctor engine", async () => {
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint(["doctor", "--fix", "--json", "--config", harness.configPath]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(output.stderr).toBe("");
+    expect(runDoctorMock).toHaveBeenCalledWith(
+      { json: true, verbose: false, fix: true },
+      { configPath: harness.configPath },
+    );
+  });
+
+  it("prints the contract next_step when a command fails", async () => {
+    daemonCallMock.mockRejectedValueOnce(new Error("daemon unavailable"));
+
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint(["techtree", "fold", "status", "--json", "--config", harness.configPath]),
+    );
+
+    expect(output.result).toBe(1);
+    expect(JSON.parse(output.stderr)).toEqual({
+      error: {
+        message: "daemon unavailable",
+        next_steps: ["regents techtree fold report --agent <agent-id> --json"],
+      },
+    });
   });
 
   it("passes modern doctor output flags through the local runtime doctor engine", async () => {

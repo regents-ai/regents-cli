@@ -2555,6 +2555,7 @@ describe("autolaunch CLI command group", () => {
       error: {
         message:
           "Agent Safe is required. Run `regents autolaunch safe wizard` first, then rerun with --agent-safe-address <safe>.",
+        next_steps: ["Use `regents autolaunch jobs watch <job-id>`."],
       },
     });
   });
