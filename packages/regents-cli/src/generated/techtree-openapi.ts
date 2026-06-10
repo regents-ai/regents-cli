@@ -228,22 +228,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/internal/v1/published-nodes/ingest": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ingestInternalPublishedNode"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/internal/xmtp/shards": {
         parameters: {
             query?: never;
@@ -5537,40 +5521,6 @@ export interface operations {
                 };
             };
             /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    ingestInternalPublishedNode: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LooseObject"];
-            };
-        };
-        responses: {
-            /** @description Published node ingested */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseObject"];
-                };
-            };
-            /** @description Published node ingest failed */
             422: {
                 headers: {
                     [name: string]: unknown;
