@@ -43,6 +43,7 @@ describe("contract command route matching", () => {
       "doctor",
       "feynman",
       "regent-staking account",
+      "regent-staking verify",
       "runtime checkpoint",
       "runtime get",
       "runtime health",

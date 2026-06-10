@@ -100,6 +100,7 @@ import {
   runTechtreeIdentitiesMint,
 } from "../commands/techtree-identities.js";
 import { runTechtreeStartCommand } from "../commands/techtree-start.js";
+import { runTechtreeSettlementVerify } from "../commands/techtree-settlement-verify.js";
 import {
   runTechtreeBbhDraftApply,
   runTechtreeBbhDraftCreate,
@@ -210,6 +211,7 @@ export const techtreeHandlers: CliHandlerRegistry = {
   "techtree tech rewards root prepare": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsRootPrepare(parsedArgs, configPath) },
   "techtree tech rewards root confirm": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsRootConfirm(parsedArgs, configPath) },
   "techtree tech withdraw": { run: ({ parsedArgs, configPath }) => runTechtreeTechWithdraw(parsedArgs, configPath) },
+  "techtree settlement verify": { run: ({ parsedArgs, configPath }) => runTechtreeSettlementVerify(parsedArgs, configPath) },
   // `techtree start` owns its exit code via runTechtreeStartCommand (mirrors top-level `start`).
   "techtree start": { run: ({ parsedArgs, configPath }) => runTechtreeStartCommand(parsedArgs, configPath) },
   "techtree autoskill init skill": { run: ({ parsedArgs, configPath }) => runAutoskillInitSkill(parsedArgs, configPath), variadicTail: true },

@@ -157,6 +157,7 @@ export const CLI_COMMANDS = [
   "regent-staking get",
   "regent-staking stake",
   "regent-staking unstake",
+  "regent-staking verify",
   "run",
   "runtime checkpoint",
   "runtime create",
@@ -276,6 +277,7 @@ export const CLI_COMMANDS = [
   "techtree science-tasks review-update",
   "techtree science-tasks submit",
   "techtree search",
+  "techtree settlement verify",
   "techtree star <id>",
   "techtree start",
   "techtree status",
@@ -549,7 +551,8 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "regent-staking claim-usdc",
     "regent-staking get",
     "regent-staking stake",
-    "regent-staking unstake"
+    "regent-staking unstake",
+    "regent-staking verify"
   ],
   "run": [
     "run"
@@ -685,6 +688,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree science-tasks review-update",
     "techtree science-tasks submit",
     "techtree search",
+    "techtree settlement verify",
     "techtree star <id>",
     "techtree start",
     "techtree status",
@@ -5941,6 +5945,58 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Prepare a wallet action to unstake REGENT."
   },
+  "regent-staking verify": {
+    "command": "regent-staking verify",
+    "owner": "platform",
+    "group": "regent-staking",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "regent-services",
+    "output_envelope": "json",
+    "operation_ids": [
+      "getAgentRegentStakingOverview",
+      "getAgentRegentStakingAccount"
+    ],
+    "args": [
+      {
+        "name": "address",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address to check; defaults to the saved Agent wallet."
+      }
+    ],
+    "flags": [
+      {
+        "name": "--rpc-url",
+        "type": "string",
+        "required": false,
+        "description": "Base RPC URL to read the staking contract; defaults to BASE_MAINNET_RPC_URL or BASE_RPC_URL."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the reconciliation result as a single JSON object."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Check Regent staking state against the staking contract for a wallet."
+  },
   "run": {
     "command": "run",
     "owner": "shared-services",
@@ -9457,6 +9513,61 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Search Techtree."
+  },
+  "techtree settlement verify": {
+    "command": "techtree settlement verify",
+    "owner": "techtree",
+    "group": "settlement",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "tech-settlement-verify-envelope",
+    "flags": [
+      {
+        "name": "--epoch",
+        "type": "integer",
+        "required": false
+      },
+      {
+        "name": "--lane",
+        "type": "enum",
+        "enum": [
+          "science",
+          "usdc_input",
+          "fold"
+        ],
+        "required": false
+      },
+      {
+        "name": "--agent",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "--rpc-url",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "examples": [
+      "regents techtree settlement verify --epoch 0 --lane science",
+      "regents techtree settlement verify --epoch 0 --lane science --agent 1"
+    ],
+    "agent_metadata": {
+      "category": "settlement",
+      "prompt_behavior": "never_prompt_for_reads",
+      "json_support": "supported",
+      "mutation_class": "read-only",
+      "retry_behavior": "retry_reads_only",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Check settlement."
   },
   "techtree star <id>": {
     "command": "techtree star <id>",

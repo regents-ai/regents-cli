@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 351.
+Total commands: 353.
 
 ## Full Command List
 
@@ -222,6 +222,7 @@ Total commands: 351.
 - `regents regent-staking get` - Show Regent staking state for the saved Agent account.
 - `regents regent-staking stake` - Prepare a wallet action to stake REGENT.
 - `regents regent-staking unstake` - Prepare a wallet action to unstake REGENT.
+- `regents regent-staking verify` - Check Regent staking state against the staking contract for a wallet.
 
 ### Run
 
@@ -365,6 +366,7 @@ Total commands: 351.
 - `regents techtree science-tasks review-update` - Update a science-task review.
 - `regents techtree science-tasks submit` - Submit science tasks.
 - `regents techtree search` - Search Techtree.
+- `regents techtree settlement verify` - Check settlement.
 - `regents techtree star <id>` - Star a Techtree node.
 - `regents techtree start` - Open the Techtree start flow.
 - `regents techtree status` - Show Techtree status.

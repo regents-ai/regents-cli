@@ -305,6 +305,18 @@ export const techtreeApiCommandGroups = [
     ],
   }),
   defineTechtreeGroup({
+    commands: ["techtree settlement verify"],
+    owner: "techtree",
+    status: "current",
+    note: "Reconciles TECH reward manifests against onchain receipts and the reward-router allocation root.",
+    pathTemplates: [
+      "/v1/tech/status",
+      "/v1/tech/epochs/current",
+      "/v1/tech/rewards",
+      "/v1/tech/rewards/proof",
+    ],
+  }),
+  defineTechtreeGroup({
     commands: [
       "techtree runbook questions list",
       "techtree runbook questions get <id>",
@@ -716,6 +728,7 @@ export const platformApiCommandGroups = [
     commands: [
       "regent-staking get",
       "regent-staking account",
+      "regent-staking verify",
       "regent-staking stake",
       "regent-staking unstake",
       "regent-staking claim-usdc",
