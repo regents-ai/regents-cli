@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { runCliEntrypoint } from "../../src/index.js";
 import { writeInitialConfig } from "../../src/internal-runtime/index.js";
 import { startRegentsMcpHttpServer } from "../../src/mcp/http.js";
-import { redactRegentSecrets } from "../../src/mcp/redact.js";
+import { redactRegentErrorMessage, redactRegentSecrets } from "../../src/mcp/redact.js";
 import { createRegentsMcpServer } from "../../src/mcp/server.js";
 import { regentsMcpToolsList } from "../../src/mcp/tool-registry.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
@@ -179,6 +179,97 @@ describe("Regents MCP server", () => {
         wallet_address: "0x1111111111111111111111111111111111111111",
       },
     });
+  });
+
+  it("scrubs secret material from free-text error messages", () => {
+    const privateKey = `0x${"a".repeat(64)}`;
+    const signedTx = `0x${"b".repeat(140)}`;
+
+    expect(redactRegentErrorMessage(`upstream failed with key ${privateKey}`)).toBe(
+      "upstream failed with key [redacted]",
+    );
+    expect(redactRegentErrorMessage(`broadcast rejected raw tx ${signedTx}`)).toBe(
+      "broadcast rejected raw tx [redacted]",
+    );
+    expect(
+      redactRegentErrorMessage("401 from facilitator: Authorization Bearer abcdef0123456789"),
+    ).toBe("401 from facilitator: Authorization [redacted]");
+    expect(
+      redactRegentErrorMessage("decode failed: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abcdEF12"),
+    ).toBe("decode failed: [redacted]");
+    expect(redactRegentErrorMessage("plain failure, no secrets")).toBe(
+      "plain failure, no secrets",
+    );
+  });
+
+  it("redacts mnemonics and seed phrases by key in success results", () => {
+    expect(
+      redactRegentSecrets({
+        mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow",
+        seed_phrase: "abandon ability able about above absent",
+        ok: true,
+      }),
+    ).toEqual({
+      mnemonic: "[redacted]",
+      seed_phrase: "[redacted]",
+      ok: true,
+    });
+  });
+
+  it("returns a redacted tool error and keeps the server alive when a tool throws", async () => {
+    const mcp = await createRegentsMcpServer({ configPath, mode: "local-stdio" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "regents-mcp-error-test", version: "0.0.0" });
+
+    await mcp.server.connect(serverTransport);
+    await client.connect(clientTransport);
+
+    try {
+      // The test config points Techtree at a port with nothing listening, so the
+      // kernel call throws. The wrapper must turn that into a clean isError result.
+      const failed = await client.callTool({
+        name: "regents.techtree.search",
+        arguments: { q: "anything" },
+      });
+
+      expect(failed.isError).toBe(true);
+      const text = (failed.content as { type: string; text: string }[])[0]?.text ?? "";
+      // No private key, mnemonic, or signed-tx payload may survive in the message.
+      expect(text).not.toMatch(/0x[a-fA-F0-9]{64}/);
+      // The server must still answer a subsequent call.
+      const identity = await client.callTool({
+        name: "regents.identity.status",
+        arguments: {},
+      });
+      expect(identity.isError).toBeFalsy();
+      expect(identity.structuredContent).toEqual(
+        expect.objectContaining({ authenticated: false }),
+      );
+    } finally {
+      await client.close();
+      await mcp.close();
+    }
+  });
+
+  it("rejects malformed tool input with a protocol error", async () => {
+    const mcp = await createRegentsMcpServer({ configPath, mode: "local-stdio" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "regents-mcp-input-test", version: "0.0.0" });
+
+    await mcp.server.connect(serverTransport);
+    await client.connect(clientTransport);
+
+    try {
+      // techtree.search requires a non-empty `q`; an empty string violates the schema.
+      const result = await client.callTool({
+        name: "regents.techtree.search",
+        arguments: { q: "" },
+      });
+      expect(result.isError).toBe(true);
+    } finally {
+      await client.close();
+      await mcp.close();
+    }
   });
 
   it("exports Codex MCP config and local MCP diagnostics", async () => {

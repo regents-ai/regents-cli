@@ -3,10 +3,16 @@ import * as z from "zod/v4";
 
 import { lookupAgentbookTrust, prepareAgentbookRegistration } from "../commands/agentbook.js";
 import { RegentKernel } from "../internal-runtime/runtime.js";
-import { redactRegentSecrets } from "./redact.js";
+import { redactRegentErrorMessage, redactRegentSecrets } from "./redact.js";
 import { REGENTS_MCP_TOOL_DEFINITIONS, regentsMcpToolsList } from "./tool-registry.js";
 
-const textResult = (value: unknown) => {
+type ToolResult = {
+  content: { type: "text"; text: string }[];
+  structuredContent?: Record<string, unknown>;
+  isError?: boolean;
+};
+
+const textResult = (value: unknown): ToolResult => {
   const safeValue = redactRegentSecrets(value);
 
   return {
@@ -22,6 +28,35 @@ const textResult = (value: unknown) => {
         : { value: safeValue },
   };
 };
+
+const errorResult = (error: unknown): ToolResult => {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: redactRegentErrorMessage(message),
+      },
+    ],
+    isError: true,
+  };
+};
+
+// Every tool handler runs through this wrapper. A throwing tool becomes a
+// redacted JSON-RPC tool error rather than reaching the MCP SDK's own error
+// path, which would copy the raw thrown message (and any secret it carries)
+// into the result without redaction. The wrapper also keeps the server alive
+// across a single failing tool call and never leaks a stack trace.
+const safeTool =
+  <TArgs>(handler: (args: TArgs) => Promise<ToolResult>) =>
+  async (args: TArgs): Promise<ToolResult> => {
+    try {
+      return await handler(args);
+    } catch (error) {
+      return errorResult(error);
+    }
+  };
 
 const toolDefinition = (name: string) => {
   const definition = REGENTS_MCP_TOOL_DEFINITIONS.find((tool) => tool.name === name);
@@ -70,7 +105,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       inputSchema: {},
       annotations: toolAnnotations(identityStatus.riskClass),
     },
-    async () => textResult(await kernel.call("auth.siwa.status")),
+    safeTool(async () => textResult(await kernel.call("auth.siwa.status"))),
   );
 
   const runtimeStatus = toolDefinition("regents.runtime.status");
@@ -82,7 +117,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       inputSchema: {},
       annotations: toolAnnotations(runtimeStatus.riskClass),
     },
-    async () => textResult(await kernel.call("runtime.status")),
+    safeTool(async () => textResult(await kernel.call("runtime.status"))),
   );
 
   const techtreeSearch = toolDefinition("regents.techtree.search");
@@ -97,7 +132,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(techtreeSearch.riskClass),
     },
-    async ({ q, limit }) => textResult(await kernel.call("techtree.search.query", { q, limit })),
+    safeTool(async ({ q, limit }) => textResult(await kernel.call("techtree.search.query", { q, limit }))),
   );
 
   const techtreeNodeGet = toolDefinition("regents.techtree.node.get");
@@ -111,7 +146,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(techtreeNodeGet.riskClass),
     },
-    async ({ id }) => textResult(await kernel.call("techtree.nodes.get", { id })),
+    safeTool(async ({ id }) => textResult(await kernel.call("techtree.nodes.get", { id }))),
   );
 
   const techtreeNodeCreate = toolDefinition("regents.techtree.node.create");
@@ -141,7 +176,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(techtreeNodeCreate.riskClass),
     },
-    async (input) => textResult(await kernel.call("techtree.nodes.create", input)),
+    safeTool(async (input) => textResult(await kernel.call("techtree.nodes.create", input))),
   );
 
   const bbhDraftList = toolDefinition("regents.techtree.bbh.draft.list");
@@ -155,13 +190,14 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(bbhDraftList.riskClass),
     },
-    async ({ owner_wallet_address }) =>
+    safeTool(async ({ owner_wallet_address }) =>
       textResult(
         await kernel.call(
           "techtree.v1.bbh.draft.list",
           owner_wallet_address ? { owner_wallet_address: owner_wallet_address as `0x${string}` } : undefined,
         ),
       ),
+    ),
   );
 
   const bbhDraftCreate = toolDefinition("regents.techtree.bbh.draft.create");
@@ -178,7 +214,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(bbhDraftCreate.riskClass),
     },
-    async (input) => textResult(await kernel.call("techtree.v1.bbh.draft.create", input)),
+    safeTool(async (input) => textResult(await kernel.call("techtree.v1.bbh.draft.create", input))),
   );
 
   const agentbookStatus = toolDefinition("regents.agentbook.status");
@@ -190,7 +226,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       inputSchema: {},
       annotations: toolAnnotations(agentbookStatus.riskClass),
     },
-    async () => textResult(await lookupAgentbookTrust(options.configPath)),
+    safeTool(async () => textResult(await lookupAgentbookTrust(options.configPath))),
   );
 
   const agentbookRegisterPrepare = toolDefinition("regents.agentbook.register_prepare");
@@ -202,7 +238,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       inputSchema: {},
       annotations: toolAnnotations(agentbookRegisterPrepare.riskClass),
     },
-    async () => textResult(await prepareAgentbookRegistration(options.configPath, "regents-cli-mcp")),
+    safeTool(async () => textResult(await prepareAgentbookRegistration(options.configPath, "regents-cli-mcp"))),
   );
 
   const walletPrepare = toolDefinition("regents.wallet.action.prepare");
@@ -219,7 +255,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(walletPrepare.riskClass),
     },
-    async (input) =>
+    safeTool(async (input) =>
       textResult({
         ok: false,
         code: "product_prepare_required",
@@ -228,6 +264,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
           "Use the owning product's Regent command or MCP tool to prepare a WalletAction. Generic wallet submission is not exposed.",
         requested: input,
       }),
+    ),
   );
 
   const walletSimulate = toolDefinition("regents.wallet.action.simulate");
@@ -241,7 +278,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(walletSimulate.riskClass),
     },
-    async (input) =>
+    safeTool(async (input) =>
       textResult({
         ok: false,
         code: "simulation_not_configured",
@@ -250,6 +287,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
           "Wallet simulation must run through the owning product or the configured local chain client before any submit path is enabled.",
         requested: input,
       }),
+    ),
   );
 
   const x402Details = toolDefinition("regents.x402.details");
@@ -266,7 +304,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(x402Details.riskClass),
     },
-    async (input) => textResult(await kernel.call("x402.details", input)),
+    safeTool(async (input) => textResult(await kernel.call("x402.details", input))),
   );
 
   const x402Quote = toolDefinition("regents.x402.quote");
@@ -285,7 +323,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(x402Quote.riskClass),
     },
-    async (input) => textResult(await kernel.call("x402.quote", input)),
+    safeTool(async (input) => textResult(await kernel.call("x402.quote", input))),
   );
 
   const x402IntentPrepare = toolDefinition("regents.x402.intent.prepare");
@@ -304,7 +342,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(x402IntentPrepare.riskClass),
     },
-    async (input) => textResult(await kernel.call("x402.prepare", { ...input, approve: false })),
+    safeTool(async (input) => textResult(await kernel.call("x402.prepare", { ...input, approve: false }))),
   );
 
   const x402Fetch = toolDefinition("regents.x402.fetch");
@@ -322,7 +360,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(x402Fetch.riskClass),
     },
-    async (input) => textResult(await kernel.call("x402.fetch", input)),
+    safeTool(async (input) => textResult(await kernel.call("x402.fetch", input))),
   );
 
   const x402Refund = toolDefinition("regents.x402.refund");
@@ -338,7 +376,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(x402Refund.riskClass),
     },
-    async (input) => textResult(await kernel.call("x402.refund", input)),
+    safeTool(async (input) => textResult(await kernel.call("x402.refund", input))),
   );
 
   const x402ReceiptGet = toolDefinition("regents.x402.receipt.get");
@@ -352,7 +390,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(x402ReceiptGet.riskClass),
     },
-    async (input) => textResult(await kernel.call("x402.receipts.get", input)),
+    safeTool(async (input) => textResult(await kernel.call("x402.receipts.get", input))),
   );
 
   const x402HeaderPrepare = toolDefinition("regents.x402.header.prepare");
@@ -367,7 +405,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
       },
       annotations: toolAnnotations(x402HeaderPrepare.riskClass),
     },
-    async (input) =>
+    safeTool(async (input) =>
       textResult({
         ok: false,
         code: "regent_x402_wrapper_required",
@@ -376,6 +414,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
           "AgentKit/x402 headers are only exposed through Regent wrappers. Codex should not hand-write signed payment headers.",
         requested: input,
       }),
+    ),
   );
 
   return {
