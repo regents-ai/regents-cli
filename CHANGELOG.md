@@ -10,6 +10,7 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 - `regents init` is now a guided, re-runnable setup: it writes the local config, installs the missing Hermes/OpenClaw Regent tools, starts local Regent access in the background, runs the runtime doctor checks, and prints the remaining wallet and identity steps. Re-running it when everything is set up reports ready.
 - `regents doctor --fix` is now part of the shared CLI contract. It applies only safe local repairs: create the default config, create missing runtime folders, remove a validated stale runtime socket, and create the default XMTP policy file.
 - Failed commands now print `Next: <step>` from the command's contract next_step metadata through the shared error path.
+- `regents identity graph` now shows the saved agent identity, product-owned links when available, and chain-owner checks for the identity token.
 - Added bundled Regents agent skills for Regents, Platform, Autolaunch, and Techtree.
 - Added `regents setup skills` to install those skills through the Agent Skills installer.
 - Added a package install note that points users to `regents setup skills`.
