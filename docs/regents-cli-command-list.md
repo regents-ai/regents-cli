@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 346.
+Total commands: 349.
 
 ## Full Command List
 
@@ -243,10 +243,18 @@ Total commands: 346.
 
 - `regents security-report` - Send a signed security report to Platform.
 
+### Settings
+
+- `regents settings` - Show local Regent configuration. Alias for regents config get.
+
 ### Setup
 
 - `regents setup` - Show setup guidance.
 - `regents setup skills` - Install recommended Regent skills.
+
+### Start
+
+- `regents start` - Open the first-run Techtree start flow. Alias for regents techtree start.
 
 ### Status
 
@@ -374,6 +382,7 @@ Total commands: 346.
 - `regents techtree watch <id>` - Watch a Techtree node.
 - `regents techtree watch list` - List watch.
 - `regents techtree watch tail` - Watch updates from followed Techtree nodes.
+- `regents techtree work` - Show a paginated summary of available Techtree work.
 - `regents techtree work accept` - Accept work.
 - `regents techtree work list` - List work.
 - `regents techtree work next` - Show the next work.

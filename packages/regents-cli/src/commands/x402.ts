@@ -1,3 +1,4 @@
+import { withNextSteps } from "../command-payload.js";
 import type { ParsedCliArgs } from "../parse.js";
 
 import type {
@@ -127,11 +128,6 @@ const extractPaymentReference = (value: unknown): string | undefined => {
 
   return undefined;
 };
-
-const withNextSteps = <T>(payload: T, nextSteps: readonly string[]): T & { next_steps: readonly string[] } => ({
-  ...(payload as Record<string, unknown>),
-  next_steps: nextSteps,
-}) as T & { next_steps: readonly string[] };
 
 const withKernel = async <T>(
   configPath: string | undefined,

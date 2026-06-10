@@ -48,6 +48,7 @@ import {
   runTechtreeWorkList,
   runTechtreeWorkNext,
   runTechtreeWorkPublish,
+  runTechtreeWorkSummary,
   runTechtreeScienceAgentSet,
   runTechtreeNotebooksInit,
   runTechtreeNotebooksPair,
@@ -313,6 +314,10 @@ export const techtreeRoutes: readonly CliRoute[] = [
   }),
   route("techtree work publish", async ({ parsedArgs, configPath }) => {
     await runTechtreeWorkPublish(parsedArgs, configPath);
+    return 0;
+  }),
+  route("techtree work", async ({ parsedArgs, configPath }) => {
+    await runTechtreeWorkSummary(parsedArgs, configPath);
     return 0;
   }),
   route("techtree notebooks init", async ({ parsedArgs, configPath }) => {

@@ -74,6 +74,32 @@ command_groups:
           next_step: regents status
           examples:
             - regents init
+        start:
+          category: local-setup
+          prompt_behavior: never_prompt
+          json_support: supported
+          mutation_class: local-read-or-write
+          retry_behavior: safe_for_reads
+          pagination: none
+          async_behavior: synchronous
+          input_mode: flags
+          summary: Open the first-run Techtree start flow. Alias for regents techtree start.
+          next_step: regents techtree work next --json
+          examples:
+            - regents start
+        settings:
+          category: local-setup
+          prompt_behavior: never_prompt
+          json_support: supported
+          mutation_class: local-read
+          retry_behavior: safe
+          pagination: none
+          async_behavior: synchronous
+          input_mode: flags
+          summary: Show local Regent configuration. Alias for regents config get.
+          next_step: regents config write --input @config.json
+          examples:
+            - regents settings
         setup:
           category: local-setup
           prompt_behavior: never_prompt
@@ -153,6 +179,8 @@ command_groups:
             - regents plugin doctor
     commands:
       - init
+      - start
+      - settings
       - status
       - whoami
       - agent-context

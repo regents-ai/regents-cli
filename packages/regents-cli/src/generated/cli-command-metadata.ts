@@ -168,8 +168,10 @@ export const CLI_COMMANDS = [
   "runtime status",
   "runtime tools",
   "security-report",
+  "settings",
   "setup",
   "setup skills",
+  "start",
   "status",
   "techtree activity",
   "techtree autoskill buy",
@@ -291,6 +293,7 @@ export const CLI_COMMANDS = [
   "techtree watch <id>",
   "techtree watch list",
   "techtree watch tail",
+  "techtree work",
   "techtree work accept",
   "techtree work list",
   "techtree work next",
@@ -563,9 +566,15 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   "security-report": [
     "security-report"
   ],
+  "settings": [
+    "settings"
+  ],
   "setup": [
     "setup",
     "setup skills"
+  ],
+  "start": [
+    "start"
   ],
   "status": [
     "status"
@@ -691,6 +700,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree watch <id>",
     "techtree watch list",
     "techtree watch tail",
+    "techtree work",
     "techtree work accept",
     "techtree work list",
     "techtree work next",
@@ -6513,6 +6523,31 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Send a signed security report to Platform."
   },
+  "settings": {
+    "command": "settings",
+    "owner": "shared-services",
+    "group": "operator",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "operator-status-envelopes",
+    "examples": [
+      "regents settings"
+    ],
+    "agent_metadata": {
+      "category": "local-setup",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Show local Regent configuration. Alias for regents config get.",
+      "next_step": "regents config write --input @config.json"
+    },
+    "summary": "Show local Regent configuration. Alias for regents config get.",
+    "next_step": "regents config write --input @config.json"
+  },
   "setup": {
     "command": "setup",
     "owner": "shared-services",
@@ -6587,6 +6622,31 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "flags"
     },
     "summary": "Install recommended Regent skills."
+  },
+  "start": {
+    "command": "start",
+    "owner": "shared-services",
+    "group": "operator",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "operator-status-envelopes",
+    "examples": [
+      "regents start"
+    ],
+    "agent_metadata": {
+      "category": "local-setup",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_reads",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Open the first-run Techtree start flow. Alias for regents techtree start.",
+      "next_step": "regents techtree work next --json"
+    },
+    "summary": "Open the first-run Techtree start flow. Alias for regents techtree start.",
+    "next_step": "regents techtree work next --json"
   },
   "status": {
     "command": "status",
@@ -9761,6 +9821,63 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Watch updates from followed Techtree nodes."
+  },
+  "techtree work": {
+    "command": "techtree work",
+    "owner": "techtree",
+    "group": "work",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "output_envelope": "techtree-work-envelopes",
+    "flags": [
+      {
+        "name": "--kind",
+        "type": "enum",
+        "enum": [
+          "autoresearch",
+          "benchmark",
+          "bbh-train",
+          "science-task",
+          "terminal-science-bench",
+          "biomysterybench",
+          "paper-notebook",
+          "freeform-notebook",
+          "autoskill",
+          "fold-proof"
+        ],
+        "required": false
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false
+      },
+      {
+        "name": "--page",
+        "type": "integer",
+        "required": false
+      }
+    ],
+    "examples": [
+      "regents techtree work list",
+      "regents techtree work next --kind benchmark",
+      "regents techtree work accept --work-unit benchmark:bench_...",
+      "regents techtree work publish --workspace-path ./work"
+    ],
+    "agent_metadata": {
+      "category": "work",
+      "prompt_behavior": "confirm_before_accept_or_publish",
+      "json_support": "supported",
+      "mutation_class": "local-and-http-write",
+      "retry_behavior": "retry_reads_and_local_packaging",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags",
+      "summary": "Show a paginated summary of available Techtree work.",
+      "next_step": "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>"
+    },
+    "summary": "Show a paginated summary of available Techtree work.",
+    "next_step": "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>"
   },
   "techtree work accept": {
     "command": "techtree work accept",

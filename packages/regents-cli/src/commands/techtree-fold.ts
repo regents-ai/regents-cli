@@ -1,13 +1,9 @@
 import { CliUsageError } from "../cli-usage-error.js";
+import { withNextSteps } from "../command-payload.js";
 import { daemonCall } from "../daemon-client.js";
 import type { BenchmarkProofLevel, FoldPolicyInput } from "../internal-types/index.js";
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
-
-const withNextSteps = <T>(payload: T, nextSteps: readonly string[]): T & { next_steps: readonly string[] } => ({
-  ...(payload as Record<string, unknown>),
-  next_steps: nextSteps,
-}) as T & { next_steps: readonly string[] };
 
 const proofLevels = new Set(["self_reported", "external_eval", "reproducible", "tee_attested", "cross_provider"]);
 const privacyClasses = new Set(["public", "blinded", "hidden_scorer"]);

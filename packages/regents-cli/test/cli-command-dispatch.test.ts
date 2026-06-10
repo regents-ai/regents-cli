@@ -377,6 +377,15 @@ const commandCases: CommandCase[] = [
     args: ["techtree", "node", "work-packet", "42"],
     expected: { method: "techtree.nodes.workPacket", params: { id: 42 } },
   },
+  {
+    name: "techtree work summary",
+    args: ["techtree", "work", "--kind", "benchmark", "--limit", "5"],
+    expected: {
+      method: "techtree.work.list",
+      params: { kind: "benchmark", limit: 5 },
+      next_steps: ["regents techtree work next --json"],
+    },
+  },
   { name: "techtree watch list", args: ["techtree", "watch", "list"], expected: { method: "techtree.watch.list" } },
   {
     name: "techtree watch",
@@ -1390,6 +1399,58 @@ describe("CLI command dispatch", () => {
     });
   });
 
+
+  it("aliases regents settings to the config get output", async () => {
+    const settingsOutput = await captureOutput(async () =>
+      harness.runCliEntrypoint(["settings", "--config", harness.configPath]),
+    );
+    const configGetOutput = await captureOutput(async () =>
+      harness.runCliEntrypoint(["config", "get", "--config", harness.configPath]),
+    );
+
+    expect(settingsOutput.result).toBe(0);
+    expect(settingsOutput.stderr).toBe("");
+    expect(JSON.parse(settingsOutput.stdout)).toEqual(JSON.parse(configGetOutput.stdout));
+  });
+
+  it("shows a paginated work summary for bare regents techtree work on a terminal", async () => {
+    daemonCallMock.mockImplementationOnce(async () => ({
+      data: [
+        { id: "benchmark:bench_1", kind: "benchmark", title: "First benchmark" },
+        { id: "autoresearch:ar_2", kind: "autoresearch", title: "Second study" },
+      ],
+    }));
+
+    const originalIsTty = process.stdout.isTTY;
+    const originalNoColor = process.env.NO_COLOR;
+    const originalTerm = process.env.TERM;
+    process.stdout.isTTY = true;
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm";
+    try {
+      const output = await captureOutput(async () =>
+        harness.runCliEntrypoint(["techtree", "work", "--config", harness.configPath]),
+      );
+
+      expect(output.result).toBe(0);
+      expect(output.stderr).toBe("");
+      expect(output.stdout).toContain("AVAILABLE WORK");
+      expect(output.stdout).toContain("benchmark:bench_1");
+      expect(output.stdout).toContain("Page 1 of 1");
+    } finally {
+      process.stdout.isTTY = originalIsTty;
+      if (originalNoColor === undefined) {
+        delete process.env.NO_COLOR;
+      } else {
+        process.env.NO_COLOR = originalNoColor;
+      }
+      if (originalTerm === undefined) {
+        delete process.env.TERM;
+      } else {
+        process.env.TERM = originalTerm;
+      }
+    }
+  });
 
   it("returns an error for unknown commands", async () => {
     const output = await captureOutput(async () =>

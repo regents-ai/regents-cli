@@ -1,12 +1,8 @@
 import { CliUsageError } from "../cli-usage-error.js";
+import { withNextSteps } from "../command-payload.js";
 import { daemonCall } from "../daemon-client.js";
 import { getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
-
-const withNextSteps = <T>(payload: T, nextSteps: readonly string[]): T & { next_steps: readonly string[] } => ({
-  ...(payload as Record<string, unknown>),
-  next_steps: nextSteps,
-}) as T & { next_steps: readonly string[] };
 
 const parseKind = (value: string | undefined): "paper" | "freeform" => {
   if (value === "paper" || value === "freeform") {

@@ -26,6 +26,7 @@ import { runReceiptCreate, runReceiptGet, runReceiptList, runReceiptShareDraft }
 import { runRuntime } from "../commands/run.js";
 import { runSetup } from "../commands/setup.js";
 import { runSetupSkills } from "../commands/setup-skills.js";
+import { runTechtreeStart } from "../commands/techtree-start.js";
 import {
   runX402Details,
   runX402Fetch,
@@ -40,6 +41,14 @@ import { route, type CliRoute } from "./shared.js";
 
 export const coreRoutes: readonly CliRoute[] = [
   route("init", async ({ parsedArgs, configPath }) => runOperatorInit(parsedArgs, configPath)),
+  route("start", async ({ parsedArgs, configPath }) => {
+    const result = await runTechtreeStart(parsedArgs, configPath);
+    return result.ready ? 0 : 1;
+  }),
+  route("settings", async ({ parsedArgs }) => {
+    await runConfigGet(parsedArgs);
+    return 0;
+  }),
   route("status", async ({ parsedArgs, configPath }) => runOperatorStatus(parsedArgs, configPath)),
   route("whoami", async ({ parsedArgs, configPath }) => runOperatorWhoami(parsedArgs, configPath)),
   route("agent-context", async ({ configPath }) => {

@@ -1,12 +1,58 @@
+import { withNextSteps } from "../command-payload.js";
 import { daemonCall } from "../daemon-client.js";
-import { getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
-import { printJson } from "../printer.js";
+import type { TechtreeWorkItem, TechtreeWorkListResponse } from "../internal-types/index.js";
+import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { isHumanTerminal, printJson, printText } from "../printer.js";
+import { renderTablePanel } from "../terminal/table.js";
 import { parseWorkKind } from "../internal-runtime/workloads/work.js";
 
-const withNextSteps = <T>(payload: T, nextSteps: readonly string[]): T & { next_steps: readonly string[] } => ({
-  ...(payload as Record<string, unknown>),
-  next_steps: nextSteps,
-}) as T & { next_steps: readonly string[] };
+const WORK_SUMMARY_PAGE_SIZE = 10;
+
+const renderWorkSummary = (
+  items: readonly TechtreeWorkItem[],
+  page: number,
+  pageSize: number,
+): string => {
+  if (items.length === 0) {
+    return "No work is available right now. Run `regents techtree work next --json` to check again.";
+  }
+
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const clampedPage = Math.min(Math.max(page, 1), totalPages);
+  const start = (clampedPage - 1) * pageSize;
+  const pageItems = items.slice(start, start + pageSize);
+
+  return [
+    renderTablePanel(
+      "AVAILABLE WORK",
+      [{ header: "id" }, { header: "kind" }, { header: "title" }],
+      pageItems.map((item) => ({ cells: [item.id, item.kind, item.title] })),
+    ),
+    `Page ${clampedPage} of ${totalPages} (${items.length} item${items.length === 1 ? "" : "s"}).`,
+    totalPages > 1 && clampedPage < totalPages
+      ? `Next: regents techtree work --page ${clampedPage + 1}`
+      : "Next: regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>",
+  ].join("\n\n");
+};
+
+export async function runTechtreeWorkSummary(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const response = (await daemonCall(
+    "techtree.work.list",
+    {
+      kind: parseWorkKind(getFlag(args, "kind")),
+      limit: parseIntegerFlag(args, "limit"),
+    },
+    configPath,
+  )) as TechtreeWorkListResponse;
+
+  if (isHumanTerminal() && !getBooleanFlag(args, "json")) {
+    const page = parseIntegerFlag(args, "page") ?? 1;
+    printText(renderWorkSummary(response.data ?? [], page, WORK_SUMMARY_PAGE_SIZE));
+    return;
+  }
+
+  printJson(withNextSteps(response, ["regents techtree work next --json"]));
+}
 
 export async function runTechtreeWorkList(args: ParsedCliArgs, configPath?: string): Promise<void> {
   printJson(

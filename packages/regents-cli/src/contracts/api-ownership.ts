@@ -245,6 +245,7 @@ export const techtreeApiCommandGroups = [
   }),
   defineTechtreeGroup({
     commands: [
+      "techtree work",
       "techtree work list",
       "techtree work next",
       "techtree work accept",
