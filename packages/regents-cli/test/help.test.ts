@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { CLI_COMMANDS } from "../src/command-registry.js";
 import { renderScopedHelp } from "../src/help.js";
 import { runCliEntrypoint } from "../src/index.js";
 import { captureOutput } from "../../../test-support/test-helpers.js";
@@ -141,6 +142,31 @@ describe("scoped CLI help", () => {
 
     expect(openclaw.result).toBe(0);
     expect(openclaw.stdout).toContain("Shows the worker id and the local Regents Work skill path.");
+  });
+
+  it("renders non-empty metadata-driven help for every shipped command", () => {
+    const helpless: string[] = [];
+
+    for (const command of CLI_COMMANDS) {
+      const help = renderScopedHelp(command.split(" "), "/tmp/regent.json");
+      const heading = `◆ ${command.toUpperCase()} HELP`;
+      if (!help.includes(heading) || !help.includes("usage") || !help.includes("◆ FLAGS")) {
+        helpless.push(command);
+      }
+    }
+
+    expect(helpless).toEqual([]);
+  });
+
+  it("keeps bespoke prerequisite and failure prose on top of the metadata skeleton", () => {
+    // techtree work next carries hand-written prose (prerequisites + "if it fails")
+    // that has no metadata source; it must survive the metadata-driven skeleton.
+    const help = renderScopedHelp(["techtree", "work", "next"], "/tmp/regent.json");
+
+    expect(help).toContain("BEFORE YOU RUN THIS");
+    expect(help).toContain("regents auth login --audience techtree");
+    expect(help).toContain("IF THIS FAILS");
+    expect(help).toContain("regents techtree work accept --work-unit <id>");
   });
 
   it("keeps command help stable", () => {

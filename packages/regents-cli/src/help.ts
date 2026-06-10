@@ -121,7 +121,16 @@ const techtreeWorkspacePrerequisites = [
   "Keep private data out of the workspace before publishing public Techtree artifacts.",
 ];
 
-const commandHelp: Record<string, HelpEntry> = {
+// Bespoke help overlay keyed by command. The full help SKELETON (summary,
+// usage, examples, next step, auth, args, flags) is rendered from
+// CLI_COMMAND_DETAILS_BY_COMMAND via summarizeCommand. This overlay holds ONLY
+// the prose that is richer than, or absent from, that metadata skeleton:
+// prerequisites, "if it fails" failure checks, extended output descriptions,
+// and the handful of summary/usage/flags/examples/next-step strings whose
+// hand-written wording carries more detail than the generated stub. No field
+// that is identical to the skeleton is kept here; each command is rendered as
+// mergeHelp(summarizeCommand(command), commandHelpOverlay[command]).
+const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
   setup: {
     summary: "Check local Regent readiness for Hermes, OpenClaw, or both.",
     usage: "regents setup [--runtime <auto|hermes|openclaw>]",
@@ -133,7 +142,6 @@ const commandHelp: Record<string, HelpEntry> = {
       "--config <path>",
     ],
     examples: ["regents setup", "regents setup --runtime hermes"],
-    auth: "No saved sign-in is needed.",
     output:
       "Shows whether the selected runtime looks ready and prints the next commands to run. It does not install the Hermes or OpenClaw Regent tools.",
     nextStep:
@@ -144,7 +152,6 @@ const commandHelp: Record<string, HelpEntry> = {
     usage: "regents setup skills [--project]",
     flags: ["--project", "--json", "--no-input"],
     examples: ["regents setup skills", "regents setup skills --project"],
-    auth: "No saved sign-in is needed.",
     output: "Shows which Regents skills were installed and where they came from.",
     nextStep: "Open your agent client and use the Regents, Platform, Autolaunch, and Techtree skills.",
   },
@@ -163,7 +170,6 @@ const commandHelp: Record<string, HelpEntry> = {
       "regents plugin install --runtime hermes",
       "regents plugin install --runtime openclaw",
     ],
-    auth: "No saved sign-in is needed.",
     output:
       "Shows which runtime was selected, which tool files were written, and the Hermes sign-in command when Hermes is selected.",
     nextStep:
@@ -184,7 +190,6 @@ const commandHelp: Record<string, HelpEntry> = {
       "regents plugin status --runtime hermes",
       "regents plugin status --runtime openclaw",
     ],
-    auth: "No saved sign-in is needed.",
     output:
       "Shows each selected runtime, whether its Regent tools are installed, and the local path that was checked.",
     nextStep:
@@ -205,7 +210,6 @@ const commandHelp: Record<string, HelpEntry> = {
       "regents plugin doctor --runtime hermes",
       "regents plugin doctor --runtime openclaw",
     ],
-    auth: "No saved sign-in is needed.",
     output:
       "Shows which runtimes are ready and which ones are missing Regent tools. This is the command to run when Hermes or OpenClaw says Regent tools are unavailable.",
     nextStep:
@@ -222,7 +226,6 @@ const commandHelp: Record<string, HelpEntry> = {
     ],
     auth: "Feynman manages its own setup.",
     output: "Shows Feynman's terminal output directly.",
-    nextStep: "Install Feynman, then run `regents feynman setup`.",
   },
   "auth login": {
     summary: "Save an Agent account sign-in for the selected app.",
@@ -272,10 +275,7 @@ const commandHelp: Record<string, HelpEntry> = {
   },
   "regent-staking get": {
     summary: "Show Regent staking totals for the saved Agent account.",
-    usage: "regents regent-staking get",
     flags: ["--config <path>"],
-    examples: ["regents regent-staking get"],
-    auth: "Needs `regents auth login --audience regent-services` and `regents identity ensure`.",
     output: "Shows staking balances and claimable amounts.",
     nextStep: "Use the stake, unstake, or claim command that matches the account state.",
   },
@@ -287,7 +287,6 @@ const commandHelp: Record<string, HelpEntry> = {
       "regents regent-staking stake --amount 100",
       "regents regent-staking stake --amount 100 --receiver 0x1111111111111111111111111111111111111111",
     ],
-    auth: "Needs `regents auth login --audience regent-services` and `regents identity ensure`.",
     output: "Shows the wallet action to review and sign.",
     nextStep: "Sign the prepared transaction with the wallet that owns the $REGENT.",
   },
@@ -296,7 +295,6 @@ const commandHelp: Record<string, HelpEntry> = {
     usage: "regents doctor contracts [--json]",
     flags: ["--json", "--config <path>"],
     examples: ["regents doctor contracts", "regents doctor contracts --json"],
-    auth: "No saved sign-in is needed.",
     output: "Shows contract files, hashes, generated files, command coverage, and service URLs.",
     nextStep: "Run this before release checks or when an operator needs to confirm which contracts are loaded.",
   },
@@ -305,7 +303,6 @@ const commandHelp: Record<string, HelpEntry> = {
     usage: "regents doctor workspace [--json]",
     flags: ["--json", "--config <path>"],
     examples: ["regents doctor workspace", "regents doctor workspace --json"],
-    auth: "No saved sign-in is needed.",
     output: "Shows repo presence, shared contract agreement, release checks, and workspace readiness.",
     nextStep: "Run this before public beta release checks or when moving the workspace to a new machine.",
   },
@@ -334,34 +331,25 @@ const commandHelp: Record<string, HelpEntry> = {
     usage: "regents platform company runtime --slug <company-slug>",
     flags: ["--slug <slug>", "--origin <url>", "--session-file <path>", "--config <path>"],
     examples: ["regents platform company runtime --slug acme-labs"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows runtime status for the selected hosted company.",
     nextStep: "Use the company slug from the Regent website, then run the command again when you need a fresh status check.",
   },
   "platform formation doctor": {
     summary: "Explain what is ready or blocked for company opening.",
-    usage: "regents platform formation doctor",
     flags: ["--origin <url>", "--session-file <path>", "--config <path>"],
-    examples: ["regents platform formation doctor"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the current setup diagnosis from Regent Platform.",
     nextStep: "Follow the next action shown by the diagnosis, then run it again.",
   },
   "platform projection": {
     summary: "Show the Regent Platform account projection.",
-    usage: "regents platform projection",
     flags: ["--origin <url>", "--session-file <path>", "--config <path>"],
-    examples: ["regents platform projection"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the Platform account projection used by Regent clients.",
     nextStep: "Use this when you need to compare local state with the Regent website account.",
   },
   "work create": {
-    summary: "Create work for one Regent company.",
     usage: "regents work create --company-id <id> --title <title> [--description <text>]",
     flags: ["--company-id <id>", "--title <title>", "--description <text>", "--origin <url>", "--session-file <path>"],
     examples: ["regents work create --company-id company_123 --title \"Review launch notes\""],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the new work id, status, title, and command to start it.",
     nextStep: "Run `regents work run <work-item-id> --company-id <id> --runner <runner>`.",
   },
@@ -377,7 +365,6 @@ const commandHelp: Record<string, HelpEntry> = {
       "--session-file <path>",
     ],
     examples: ["regents work run work_123 --company-id company_123 --runner openclaw_local_executor"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the run id, selected worker, current status, and watch command.",
     nextStep: "Run `regents work watch <run-id> --company-id <id>`.",
   },
@@ -386,12 +373,10 @@ const commandHelp: Record<string, HelpEntry> = {
     usage: "regents work watch <run-id> --company-id <id>",
     flags: ["--company-id <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents work watch run_123 --company-id company_123"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows recent run updates with sequence, update name, actor, and time.",
     nextStep: "Run the command again when you need the latest updates.",
   },
   "work local-loop": {
-    summary: "Let one local worker check for assigned Regent work.",
     usage: "regents work local-loop --company-id <id> --worker-id <id>",
     flags: [
       "--company-id <id>",
@@ -410,7 +395,6 @@ const commandHelp: Record<string, HelpEntry> = {
     nextStep: "Run it without `--once` when the worker should keep checking.",
   },
   "runtime create": {
-    summary: "Create a runtime for one Regent company.",
     usage:
       "regents runtime create --company-id <id> --name <name> --runner <runner> --execution-surface <surface> --billing-mode <mode>",
     flags: [
@@ -426,70 +410,55 @@ const commandHelp: Record<string, HelpEntry> = {
     examples: [
       "regents runtime create --company-id company_123 --platform-agent-id agent_123 --name \"Hosted Codex\" --runner codex_exec --execution-surface hosted_sprite --billing-mode platform_hosted",
     ],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the runtime id, status, runner, surface, and billing mode.",
     nextStep: "Run `regents runtime health <runtime-id> --company-id <id>`.",
   },
   "runtime get": {
-    summary: "Show one runtime for a Regent company.",
     usage: "regents runtime get <runtime-id> --company-id <id>",
     flags: ["--company-id <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents runtime get runtime_123 --company-id company_123"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the runtime id, status, runner, surface, and billing mode.",
     nextStep: "Run `regents runtime health <runtime-id> --company-id <id>`.",
   },
   "runtime checkpoint": {
-    summary: "Save a checkpoint for one runtime.",
     usage: "regents runtime checkpoint <runtime-id> --company-id <id> --checkpoint-ref <name>",
     flags: ["--company-id <id>", "--checkpoint-ref <name>", "--origin <url>", "--session-file <path>"],
     examples: ["regents runtime checkpoint runtime_123 --company-id company_123 --checkpoint-ref before-release"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the checkpoint id, reference, status, and restore command.",
     nextStep: "Use the checkpoint id with `regents runtime restore` when you need to roll back.",
   },
   "runtime restore": {
-    summary: "Restore one runtime from a checkpoint.",
     usage: "regents runtime restore <runtime-id> --company-id <id> --checkpoint-id <id>",
     flags: ["--company-id <id>", "--checkpoint-id <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents runtime restore runtime_123 --company-id company_123 --checkpoint-id checkpoint_456"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the accepted restore request and the next health check.",
     nextStep: "Run `regents runtime health <runtime-id> --company-id <id>`.",
   },
   "runtime pause": {
-    summary: "Pause one runtime for a Regent company.",
     usage: "regents runtime pause <runtime-id> --company-id <id>",
     flags: ["--company-id <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents runtime pause runtime_123 --company-id company_123"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the paused runtime status.",
     nextStep: "Run `regents runtime resume <runtime-id> --company-id <id>` when it should run again.",
   },
   "runtime resume": {
-    summary: "Resume one runtime for a Regent company.",
     usage: "regents runtime resume <runtime-id> --company-id <id>",
     flags: ["--company-id <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents runtime resume runtime_123 --company-id company_123"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows the resumed runtime status.",
     nextStep: "Run `regents runtime health <runtime-id> --company-id <id>`.",
   },
   "runtime services": {
-    summary: "List services for one runtime.",
     usage: "regents runtime services <runtime-id> --company-id <id>",
     flags: ["--company-id <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents runtime services runtime_123 --company-id company_123"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows service names, status, kind, and endpoint.",
     nextStep: "Run `regents runtime health <runtime-id> --company-id <id>`.",
   },
   "runtime health": {
-    summary: "Show health for one runtime.",
     usage: "regents runtime health <runtime-id> --company-id <id>",
     flags: ["--company-id <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents runtime health runtime_123 --company-id company_123"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
     output: "Shows availability, status, and metering status.",
     nextStep: "Run `regents runtime services <runtime-id> --company-id <id>` to inspect published services.",
   },
@@ -503,7 +472,6 @@ const commandHelp: Record<string, HelpEntry> = {
     nextStep: "Use the generated Hermes connector, or run `regents work local-loop`.",
   },
   "agent connect openclaw": {
-    summary: "Connect a local OpenClaw worker to one Regent company.",
     usage: "regents agent connect openclaw --company-id <id> --role <manager|executor|hybrid>",
     flags: ["--company-id <id>", "--role <manager|executor|hybrid>", "--name <name>", "--write-skill <true|false>", "--config <path>"],
     examples: ["regents agent connect openclaw --company-id company_123 --role executor"],
@@ -512,7 +480,6 @@ const commandHelp: Record<string, HelpEntry> = {
     nextStep: "Use the generated OpenClaw skill, or start work with `regents work run`.",
   },
   "agent link": {
-    summary: "Link one manager to one worker for a Regent company.",
     usage: "regents agent link --company-id <id> --manager-agent-id <id> --executor-agent-id <id> --relationship <kind>",
     flags: [
       "--company-id <id>",
@@ -686,14 +653,12 @@ const commandHelp: Record<string, HelpEntry> = {
   },
 };
 
-Object.assign(commandHelp, {
+Object.assign(commandHelpOverlay, {
   status: {
-    summary: "Show whether this machine is ready to use Regent.",
     usage: "regents status [--json]",
     flags: ["--json", "--config <path>"],
     examples: ["regents status", "regents status --json"],
     prerequisites: ["No setup is required, but the result is more useful after `regents run` has been started once."],
-    auth: "No saved sign-in is needed.",
     output: "Shows local runtime, wallet, identity, sign-in, Techtree, chatbox, and XMTP readiness.",
     nextStep: "Fix the first waiting item shown in the output, then run `regents status` again.",
     ifItFails: [
@@ -721,7 +686,6 @@ Object.assign(commandHelp, {
     flags: ["--json", "--config <path>"],
     examples: ["regents agent-context --json"],
     prerequisites: ["No sign-in is needed. Run this when an agent needs to discover the current command surface."],
-    auth: "No saved sign-in is needed.",
     output: "Shows commands, command groups, output behavior, and safe local profile/config summaries.",
     nextStep: "Give the JSON output to the agent that needs to choose the next Regent command.",
     ifItFails: ["If the config cannot load, pass the intended `--config <path>`."],
@@ -764,7 +728,6 @@ Object.assign(commandHelp, {
     flags: ["--json", "--config <path>"],
     examples: ["regents doctor runtime", "regents doctor runtime --json"],
     prerequisites: ["Run this when a command says it cannot connect to local Regent."],
-    auth: "No saved sign-in is needed.",
     output: "Shows local socket, runtime process, and local transport readiness.",
     nextStep: "Start `regents run` if the local runtime is not available.",
     ifItFails: ["If the socket path is stale, stop old Regent processes and start `regents run` again."],
@@ -790,7 +753,6 @@ Object.assign(commandHelp, {
       "regents auth login --audience regent-services",
     ],
     prerequisites: ["Start `regents run` in another terminal when the command says local Regent is unavailable."],
-    auth: "No saved sign-in is needed.",
     output: "Shows the saved product audience, wallet, chain, and expiry.",
     nextStep: "Run `regents identity ensure` after sign-in so signed agent commands can work.",
     ifItFails: [
@@ -804,7 +766,6 @@ Object.assign(commandHelp, {
     flags: ["--json", "--config <path>"],
     examples: ["regents auth status --json"],
     prerequisites: ["No setup is required. Use this before a product write command."],
-    auth: "No saved sign-in is needed.",
     output: "Shows which product sessions are saved and whether they are still current.",
     nextStep: "Run `regents auth login --audience <product>` for any missing or expired product session.",
     ifItFails: ["If the config path is wrong, pass the same `--config <path>` used by your other commands."],
@@ -815,7 +776,6 @@ Object.assign(commandHelp, {
     flags: ["--audience <name>", "--json", "--config <path>"],
     examples: ["regents auth logout --audience techtree"],
     prerequisites: ["Use `regents auth status` first when you are not sure which audience is saved."],
-    auth: "No saved sign-in is needed.",
     output: "Shows which saved sign-in was removed.",
     nextStep: "Run `regents auth login --audience <product>` when you need that product again.",
     ifItFails: ["If the audience is missing, pass the exact audience named in `regents auth status`."],
@@ -854,18 +814,14 @@ Object.assign(commandHelp, {
     flags: ["--json", "--config <path>"],
     examples: ["regents wallet status", "regents wallet status --json"],
     prerequisites: walletPrerequisites,
-    auth: "No saved sign-in is needed.",
     output: "Shows whether Regent sees an environment wallet, local wallet file, or missing wallet source.",
     nextStep: "Run `regents wallet setup` only when you need to create or configure a local wallet source.",
     ifItFails: ["If the wallet shown is not the one you expect, check the config path and shell environment."],
   },
   "wallet setup": {
     summary: "Set up the local wallet source used by Regent.",
-    usage: "regents wallet setup",
     flags: ["--json", "--config <path>"],
-    examples: ["regents wallet setup"],
     prerequisites: ["Run `regents wallet status` first so you know whether setup is actually needed."],
-    auth: "No saved sign-in is needed.",
     output: "Shows where the local wallet source was created or configured.",
     nextStep: "Run `regents identity ensure` after the wallet source is ready.",
     ifItFails: [
@@ -877,7 +833,6 @@ Object.assign(commandHelp, {
     summary: "Show whether Agentic Wallet is connected for paid x402 flows.",
     usage: "regents wallet agentic status [--json]",
     flags: ["--json", "--config <path>"],
-    examples: ["regents wallet agentic status --json"],
     prerequisites: ["Agentic Wallet is optional until paid x402 spend or earn flows are needed."],
     auth: "No saved sign-in is needed for the local status check.",
     output: "Shows login state and the Agentic Wallet address when connected.",
@@ -910,7 +865,6 @@ Object.assign(commandHelp, {
     summary: "Show the guided funding path for Agentic Wallet.",
     usage: "regents wallet agentic fund --amount-usdc <amount> --chain base",
     flags: ["--amount-usdc <amount>", "--chain base", "--json", "--config <path>"],
-    examples: ["regents wallet agentic fund --amount-usdc 10 --chain base"],
     prerequisites: ["Connect Agentic Wallet with login and verify first."],
     auth: "Uses the saved Agentic Wallet connection.",
     output: "Shows funding instructions for the connected Agentic Wallet.",
@@ -923,7 +877,6 @@ Object.assign(commandHelp, {
     flags: ["--json", "--config <path>"],
     examples: ["regents config get --json"],
     prerequisites: ["No setup is required."],
-    auth: "No saved sign-in is needed.",
     output: "Shows safe config values and avoids printing secrets.",
     nextStep: "Pass `--config <path>` to other commands if this is not the config you meant to use.",
     ifItFails: ["If config is missing, run `regents init`."],
@@ -954,7 +907,6 @@ Object.assign(commandHelp, {
     summary: "Find paid x402 services without making a payment.",
     usage: 'regents x402 search "<query>" [--json]',
     flags: ["<query> - Service search text.", "--json", "--config <path>"],
-    examples: ['regents x402 search "research data" --json'],
     prerequisites: ["No payment setup is needed for search."],
     auth: "No saved sign-in is needed.",
     output: "Shows candidate paid endpoints and metadata.",
@@ -1376,7 +1328,6 @@ Object.assign(commandHelp, {
     summary: "Start the default Techtree working view.",
     usage: "regents techtree start [--json]",
     flags: ["--json", "--config <path>"],
-    examples: ["regents techtree start"],
     prerequisites: ["Run `regents run` first when you want local agent work and publishing features."],
     auth: "Public reads are open. Signed work needs Techtree sign-in and a saved Agent account.",
     output: "Shows Techtree readiness and a suggested first public-work command.",
@@ -1447,7 +1398,6 @@ Object.assign(commandHelp, {
     summary: "Create a Techtree notebook workspace for paper or freeform work.",
     usage: "regents techtree notebooks init --kind <paper|freeform> --title <title> --workspace-path <path> [--source <source>]",
     flags: ["--kind paper|freeform", "--title <title>", "--workspace-path <path>", "--source <source>", "--json", "--config <path>"],
-    examples: ['regents techtree notebooks init --kind paper --title "Paper title" --source arxiv:2401.00001 --workspace-path ./paper-note'],
     prerequisites: techtreeWorkspacePrerequisites,
     auth: "Signed Techtree notebook setup needs Techtree sign-in and a saved Agent account.",
     output: "Creates the local notebook workspace and prints the next pairing command.",
@@ -1606,12 +1556,8 @@ Object.assign(commandHelp, {
     ifItFails: techtreeFailureChecks,
   },
   "techtree science set-goal": {
-    summary: "Save a Terminal Science Bench task target.",
     usage: "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/<domain>/<field>/<task>",
     flags: ["--task <task>", "--agent <codex|openclaw|hermes|custom>", "--model <model>", "--env <docker>", "--json", "--config <path>"],
-    examples: [
-      "regents techtree science set-goal --task harbor-framework/terminal-bench-science:tasks/physical-sciences/chemistry-and-materials/example-name",
-    ],
     prerequisites: techtreeWorkspacePrerequisites,
     auth: "Needs Regent running on this machine.",
     output: "Shows the saved task, agent, model, and environment.",
@@ -2102,6 +2048,27 @@ const summarizeCommand = (command: string): HelpEntry => {
   };
 };
 
+const mergeHelp = (skeleton: HelpEntry, overlay: Partial<HelpEntry> | undefined): HelpEntry => {
+  if (!overlay) {
+    return skeleton;
+  }
+
+  return {
+    summary: overlay.summary ?? skeleton.summary,
+    usage: overlay.usage ?? skeleton.usage,
+    flags: overlay.flags ?? skeleton.flags,
+    examples: overlay.examples ?? skeleton.examples,
+    prerequisites: overlay.prerequisites ?? skeleton.prerequisites,
+    auth: overlay.auth ?? skeleton.auth,
+    output: overlay.output ?? skeleton.output,
+    nextStep: overlay.nextStep ?? skeleton.nextStep,
+    ifItFails: overlay.ifItFails ?? skeleton.ifItFails,
+  };
+};
+
+const helpForCommand = (command: string): HelpEntry =>
+  mergeHelp(summarizeCommand(command), commandHelpOverlay[command]);
+
 const renderEntry = (title: string, entry: HelpEntry): string =>
   [
     renderPanel(title, [
@@ -2170,7 +2137,7 @@ export function renderScopedHelp(positionals: readonly string[], configPath: str
 
   const command = commandForInput(positionals);
   if (command) {
-    return renderEntry(`◆ ${command.toUpperCase()} HELP`, commandHelp[command] ?? summarizeCommand(command));
+    return renderEntry(`◆ ${command.toUpperCase()} HELP`, helpForCommand(command));
   }
 
   const groupName = positionals[0];
@@ -2200,7 +2167,7 @@ export function usageHintForPositionals(positionals: readonly string[]): {
     return undefined;
   }
 
-  const entry = commandHelp[command] ?? summarizeCommand(command);
+  const entry = helpForCommand(command);
   return {
     command: `regents ${command}`,
     usage: entry.usage,
