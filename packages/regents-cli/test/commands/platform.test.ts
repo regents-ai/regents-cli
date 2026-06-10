@@ -8,7 +8,10 @@ import { runCliEntrypoint } from "../../src/index.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
 describe("platform CLI command group", () => {
-  const originalEnv = { ...process.env };
+  // Only mutate individual keys on process.env: replacing the whole object
+  // detaches it from the real environment, and os.homedir() would keep
+  // returning the real home directory instead of the per-test temp HOME.
+  let originalHome: string | undefined;
   const fetchMock = vi.fn<typeof fetch>();
   let homeDir = "";
   let sessionFile = "";
@@ -17,13 +20,18 @@ describe("platform CLI command group", () => {
     vi.stubGlobal("fetch", fetchMock);
     homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-platform-home-"));
     sessionFile = path.join(homeDir, "platform-session.json");
-    process.env = { ...originalEnv, HOME: homeDir };
+    originalHome = process.env.HOME;
+    process.env.HOME = homeDir;
     fetchMock.mockReset();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    process.env = { ...originalEnv };
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
     fs.rmSync(homeDir, { recursive: true, force: true });
   });
 

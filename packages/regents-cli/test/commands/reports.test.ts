@@ -15,7 +15,18 @@ const TEST_PRIVATE_KEY =
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 
 describe("reporting CLI commands", () => {
-  const originalEnv = { ...process.env };
+  // Only mutate individual keys on process.env: replacing the whole object
+  // detaches it from the real environment, and os.homedir() would keep
+  // returning the real home directory instead of the per-test temp HOME.
+  const touchedEnvKeys = [
+    "HOME",
+    "PATH",
+    "CDP_KEY_ID",
+    "CDP_KEY_SECRET",
+    "CDP_WALLET_SECRET",
+    "REGENT_WALLET_PRIVATE_KEY",
+  ] as const;
+  const savedEnv: Partial<Record<(typeof touchedEnvKeys)[number], string | undefined>> = {};
   const fetchMock = vi.fn<typeof fetch>();
   let tempDir = "";
   let configPath = "";
@@ -89,11 +100,13 @@ describe("reporting CLI commands", () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-reports-"));
     configPath = path.join(tempDir, "regent.config.json");
     vi.stubGlobal("fetch", fetchMock);
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      savedEnv[key] = process.env[key];
+    }
     process.env.HOME = tempDir;
     process.env.PATH = `${writeFakeCdp(tempDir, {
       accounts: [{ name: "main", address: TEST_WALLET }],
-    })}:${originalEnv.PATH ?? ""}`;
+    })}:${savedEnv.PATH ?? ""}`;
     process.env.CDP_KEY_ID = "test-key";
     process.env.CDP_KEY_SECRET = "test-secret";
     process.env.CDP_WALLET_SECRET = "test-wallet-secret";
@@ -103,7 +116,14 @@ describe("reporting CLI commands", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      const saved = savedEnv[key];
+      if (saved === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = saved;
+      }
+    }
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 

@@ -61,7 +61,20 @@ describe("regent-staking CLI command group", () => {
   const testWallet = "0x1111111111111111111111111111111111111111";
   const submitWallet = "0x00000000000000000000000000000000000000aa";
   const testRegistry = "0x2222222222222222222222222222222222222222";
-  const originalEnv = { ...process.env };
+  // Only mutate individual keys on process.env: replacing the whole object
+  // detaches it from the real environment, and os.homedir() would keep
+  // returning the real home directory instead of the per-test temp HOME.
+  const touchedEnvKeys = [
+    "HOME",
+    "PATH",
+    "CDP_KEY_ID",
+    "CDP_KEY_SECRET",
+    "CDP_WALLET_SECRET",
+    "REGENT_WALLET_PRIVATE_KEY",
+    "AUTOLAUNCH_BASE_URL",
+    "BASE_MAINNET_RPC_URL",
+  ] as const;
+  const savedEnv: Partial<Record<(typeof touchedEnvKeys)[number], string | undefined>> = {};
   const fetchMock = vi.fn<typeof fetch>();
   let homeDir = "";
   let configPath = "";
@@ -151,11 +164,13 @@ describe("regent-staking CLI command group", () => {
     vi.stubGlobal("fetch", fetchMock);
     homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-staking-home-"));
     configPath = path.join(homeDir, "regent.config.json");
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      savedEnv[key] = process.env[key];
+    }
     process.env.HOME = homeDir;
     process.env.PATH = `${writeFakeCdp(homeDir, {
       accounts: [{ name: "main", address: testWallet }],
-    })}:${originalEnv.PATH ?? ""}`;
+    })}:${savedEnv.PATH ?? ""}`;
     process.env.CDP_KEY_ID = "test-key";
     process.env.CDP_KEY_SECRET = "test-secret";
     process.env.CDP_WALLET_SECRET = "test-wallet-secret";
@@ -179,7 +194,14 @@ describe("regent-staking CLI command group", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      const saved = savedEnv[key];
+      if (saved === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = saved;
+      }
+    }
     fs.rmSync(homeDir, { recursive: true, force: true });
   });
 

@@ -52,13 +52,19 @@ vi.mock("viem", () => ({
 
 describe("ENS CLI command group", () => {
   const fetchMock = vi.fn<typeof fetch>();
-  const originalEnv = { ...process.env };
+  // Only mutate individual keys on process.env: replacing the whole object
+  // detaches it from the real environment, and os.homedir() would keep
+  // returning the real home directory instead of the per-test temp HOME.
+  const touchedEnvKeys = ["REGENT_WALLET_PRIVATE_KEY", "ETH_MAINNET_RPC_URL"] as const;
+  const savedEnv: Partial<Record<(typeof touchedEnvKeys)[number], string | undefined>> = {};
   let tempDir = "";
   let configPath = "";
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      savedEnv[key] = process.env[key];
+    }
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-ens-cli-"));
     configPath = path.join(tempDir, "regent.config.json");
 
@@ -122,7 +128,14 @@ describe("ENS CLI command group", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      const saved = savedEnv[key];
+      if (saved === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = saved;
+      }
+    }
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 

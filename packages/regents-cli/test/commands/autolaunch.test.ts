@@ -100,7 +100,26 @@ vi.mock("@safe-global/protocol-kit", () => ({
 
 describe("autolaunch CLI command group", () => {
   const expectedBaseUrl = "http://127.0.0.1:4010";
-  const originalEnv = { ...process.env };
+  // Only mutate individual keys on process.env: replacing the whole object
+  // detaches it from the real environment, and os.homedir() would keep
+  // returning the real home directory instead of the per-test temp HOME.
+  const touchedEnvKeys = [
+    "HOME",
+    "AUTOLAUNCH_SESSION_COOKIE",
+    "AUTOLAUNCH_PRIVY_BEARER_TOKEN",
+    "AUTOLAUNCH_DISPLAY_NAME",
+    "AUTOLAUNCH_WALLET_ADDRESS",
+    "AUTOLAUNCH_AGENT_PRIVATE_KEY",
+    "REGENT_PRIVATE_KEY",
+    "REGENT_WALLET_PRIVATE_KEY",
+    "BASE_MAINNET_RPC_URL",
+    "BASE_SEPOLIA_RPC_URL",
+    "AUTOLAUNCH_ERC8004_SUBGRAPH_URL",
+    "AUTOLAUNCH_IDENTITY_REGISTRY_ADDRESS",
+    "NO_COLOR",
+    "TERM",
+  ] as const;
+  const savedEnv: Partial<Record<(typeof touchedEnvKeys)[number], string | undefined>> = {};
   const originalStdoutIsTTY = process.stdout.isTTY;
   const fetchMock = vi.fn<typeof fetch>();
   const tempDirs: string[] = [];
@@ -325,7 +344,14 @@ describe("autolaunch CLI command group", () => {
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      savedEnv[key] = process.env[key];
+    }
+    // Commands that run without --config fall back to ~/.regent; point HOME
+    // at a temp dir so those writes (plans, logs) never touch the real home.
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-autolaunch-home-"));
+    tempDirs.push(homeDir);
+    process.env.HOME = homeDir;
     delete process.env.AUTOLAUNCH_SESSION_COOKIE;
     delete process.env.AUTOLAUNCH_PRIVY_BEARER_TOKEN;
     delete process.env.AUTOLAUNCH_DISPLAY_NAME;
@@ -429,7 +455,14 @@ describe("autolaunch CLI command group", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      const saved = savedEnv[key];
+      if (saved === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = saved;
+      }
+    }
     setStdoutTty(originalStdoutIsTTY);
     while (tempDirs.length > 0) {
       const dir = tempDirs.pop();

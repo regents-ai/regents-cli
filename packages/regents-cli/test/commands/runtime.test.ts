@@ -56,7 +56,11 @@ const checkpoint = (overrides: Record<string, unknown> = {}): Record<string, unk
 });
 
 describe("runtime commands", () => {
-  const originalEnv = { ...process.env };
+  // Only mutate individual keys on process.env: replacing the whole object
+  // detaches it from the real environment, and os.homedir() would keep
+  // returning the real home directory instead of the per-test temp HOME.
+  const touchedEnvKeys = ["HOME", "NO_COLOR", "TERM"] as const;
+  const savedEnv: Partial<Record<(typeof touchedEnvKeys)[number], string | undefined>> = {};
   const fetchMock = vi.fn<typeof fetch>();
   let homeDir = "";
   let sessionFile = "";
@@ -65,7 +69,10 @@ describe("runtime commands", () => {
     vi.stubGlobal("fetch", fetchMock);
     homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-runtime-home-"));
     sessionFile = path.join(homeDir, "platform-session.json");
-    process.env = { ...originalEnv, HOME: homeDir };
+    for (const key of touchedEnvKeys) {
+      savedEnv[key] = process.env[key];
+    }
+    process.env.HOME = homeDir;
     fs.writeFileSync(
       sessionFile,
       JSON.stringify(
@@ -85,7 +92,14 @@ describe("runtime commands", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    process.env = { ...originalEnv };
+    for (const key of touchedEnvKeys) {
+      const saved = savedEnv[key];
+      if (saved === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = saved;
+      }
+    }
     setStdoutTty(Boolean(originalIsTTY));
     fs.rmSync(homeDir, { recursive: true, force: true });
   });

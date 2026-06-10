@@ -102,6 +102,7 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
   let tempDir = "";
   let configPath = "";
   let socketPath = "";
+  let originalHome: string | undefined;
   let originalPrivateKey: string | undefined;
   let originalPath: string | undefined;
   let originalKeyId: string | undefined;
@@ -115,11 +116,18 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-daemon-"));
     configPath = path.join(tempDir, "regent.config.json");
     socketPath = path.join(tempDir, "runtime", "regent.sock");
+    originalHome = process.env.HOME;
     originalPrivateKey = process.env.REGENT_WALLET_PRIVATE_KEY;
     originalPath = process.env.PATH;
     originalKeyId = process.env.CDP_KEY_ID;
     originalKeySecret = process.env.CDP_KEY_SECRET;
     originalWalletSecret = process.env.CDP_WALLET_SECRET;
+    // Redirect HOME to the per-test temp dir so writeIdentityReceipt (which
+    // resolves os.homedir()) never touches the real ~/.regent directory.
+    // Only mutate individual keys on process.env: replacing the whole object
+    // detaches it from the real environment, and os.homedir() would keep
+    // returning the real home directory instead of the per-test temp HOME.
+    process.env.HOME = tempDir;
     process.env.REGENT_WALLET_PRIVATE_KEY = TEST_PRIVATE_KEY;
     process.env.PATH = `${writeFakeCdp(tempDir, {
       accounts: [{ name: "main", address: TEST_WALLET }],
@@ -181,6 +189,11 @@ describeNetwork.sequential("RegentRuntime daemon functional coverage", () => {
   });
 
   afterEach(async () => {
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
     process.env.REGENT_WALLET_PRIVATE_KEY = originalPrivateKey;
     process.env.PATH = originalPath;
     process.env.CDP_KEY_ID = originalKeyId;
