@@ -85,6 +85,8 @@ import {
   runAutolaunchVestingRelease,
   runAutolaunchVestingStatus,
 } from "../commands/autolaunch.js";
+import { runAutolaunchContractsVerify } from "../commands/autolaunch-contracts-verify.js";
+import { runAutolaunchSubjectsVerify } from "../commands/autolaunch-subjects-verify.js";
 import { requireArg } from "../parse.js";
 import type { CliHandlerRegistry } from "./shared.js";
 
@@ -151,6 +153,8 @@ export const autolaunchHandlers: CliHandlerRegistry = {
   "autolaunch contracts admin": { run: ({ configPath }) => runAutolaunchContractsAdminShow(configPath) },
   "autolaunch contracts job": { run: ({ parsedArgs, configPath }) => runAutolaunchContractsJobShow(parsedArgs, configPath) },
   "autolaunch contracts subject": { run: ({ parsedArgs, configPath }) => runAutolaunchContractsSubjectShow(parsedArgs, configPath) },
+  "autolaunch contracts verify": { run: ({ parsedArgs, configPath }) => runAutolaunchContractsVerify(parsedArgs, configPath) },
+  "autolaunch subjects verify": { run: ({ parsedArgs, configPath }) => runAutolaunchSubjectsVerify(parsedArgs, configPath), pattern: "autolaunch subjects verify <subject-id>" },
   "autolaunch strategy migrate": { run: ({ parsedArgs, configPath }) => runAutolaunchStrategyMigrate(parsedArgs, configPath) },
   "autolaunch strategy sweep-token": { run: ({ parsedArgs, configPath }) => runAutolaunchStrategySweepToken(parsedArgs, configPath) },
   "autolaunch strategy sweep-quote-token": { run: ({ parsedArgs, configPath }) => runAutolaunchStrategySweepQuoteToken(parsedArgs, configPath) },

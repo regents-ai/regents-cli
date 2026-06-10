@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 349.
+Total commands: 351.
 
 ## Full Command List
 
@@ -53,6 +53,7 @@ Total commands: 349.
 - `regents autolaunch contracts admin` - Show Autolaunch contracts admin.
 - `regents autolaunch contracts job` - Show Autolaunch contracts job.
 - `regents autolaunch contracts subject` - Show Autolaunch contracts subject.
+- `regents autolaunch contracts verify` - Check contracts.
 - `regents autolaunch ens plan` - Show Autolaunch ENS plan.
 - `regents autolaunch ens prepare-bidirectional` - Prepare bidirectional for ENS.
 - `regents autolaunch ens prepare-ensip25` - Prepare ensip25 for ENS.
@@ -118,6 +119,7 @@ Total commands: 349.
 - `regents autolaunch subjects staking` - Show Autolaunch subjects staking.
 - `regents autolaunch subjects sweep-ingress` - Sweep ingress for subjects.
 - `regents autolaunch subjects unstake` - Unstake subjects.
+- `regents autolaunch subjects verify` - Check subjects.
 - `regents autolaunch vesting cancel-beneficiary-rotation` - Cancel beneficiary rotation for vesting.
 - `regents autolaunch vesting execute-beneficiary-rotation` - Execute beneficiary rotation for vesting.
 - `regents autolaunch vesting propose-beneficiary-rotation` - Propose beneficiary rotation vesting.

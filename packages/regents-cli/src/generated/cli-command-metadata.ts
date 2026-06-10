@@ -33,6 +33,7 @@ export const CLI_COMMANDS = [
   "autolaunch contracts admin",
   "autolaunch contracts job",
   "autolaunch contracts subject",
+  "autolaunch contracts verify",
   "autolaunch ens plan",
   "autolaunch ens prepare-bidirectional",
   "autolaunch ens prepare-ensip25",
@@ -98,6 +99,7 @@ export const CLI_COMMANDS = [
   "autolaunch subjects staking",
   "autolaunch subjects sweep-ingress",
   "autolaunch subjects unstake",
+  "autolaunch subjects verify",
   "autolaunch vesting cancel-beneficiary-rotation",
   "autolaunch vesting execute-beneficiary-rotation",
   "autolaunch vesting propose-beneficiary-rotation",
@@ -394,6 +396,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch contracts admin",
     "autolaunch contracts job",
     "autolaunch contracts subject",
+    "autolaunch contracts verify",
     "autolaunch ens plan",
     "autolaunch ens prepare-bidirectional",
     "autolaunch ens prepare-ensip25",
@@ -459,6 +462,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch subjects staking",
     "autolaunch subjects sweep-ingress",
     "autolaunch subjects unstake",
+    "autolaunch subjects verify",
     "autolaunch vesting cancel-beneficiary-rotation",
     "autolaunch vesting execute-beneficiary-rotation",
     "autolaunch vesting propose-beneficiary-rotation",
@@ -1804,6 +1808,58 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch contracts subject."
+  },
+  "autolaunch contracts verify": {
+    "command": "autolaunch contracts verify",
+    "owner": "autolaunch",
+    "group": "ens-contracts",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": false,
+        "description": "Verify the contracts overview for a launch job instead of the admin scope."
+      },
+      {
+        "name": "--subject",
+        "type": "bytes32",
+        "required": false,
+        "description": "Verify the contracts overview for a subject instead of the admin scope."
+      },
+      {
+        "name": "--rpc-url",
+        "type": "url",
+        "required": false,
+        "description": "Base RPC URL for the onchain reads (defaults to BASE_MAINNET_RPC_URL or BASE_RPC_URL)."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the reconciliation result as JSON."
+      }
+    ],
+    "examples": [
+      "regents autolaunch fee-registry get --job <job_id>",
+      "regents autolaunch fee-vault get --job <job_id>",
+      "regents autolaunch splitter get --subject <subject_id>",
+      "regents autolaunch registry get --subject <subject_id>"
+    ],
+    "agent_metadata": {
+      "category": "contracts",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_prepares",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Check contracts."
   },
   "autolaunch ens plan": {
     "command": "autolaunch ens plan",
@@ -3832,6 +3888,53 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Unstake subjects."
+  },
+  "autolaunch subjects verify": {
+    "command": "autolaunch subjects verify",
+    "owner": "autolaunch",
+    "group": "markets-subjects",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "autolaunch",
+    "output_envelope": "market-envelopes",
+    "args": [
+      {
+        "name": "<subject_id>",
+        "type": "string",
+        "required": true,
+        "description": "Subject id to reconcile against onchain token, splitter, and ingress state."
+      }
+    ],
+    "flags": [
+      {
+        "name": "--rpc-url",
+        "type": "url",
+        "required": false,
+        "description": "Base RPC URL for the onchain reads (defaults to BASE_MAINNET_RPC_URL or BASE_RPC_URL)."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the reconciliation result as JSON."
+      }
+    ],
+    "examples": [
+      "regents autolaunch auctions list",
+      "regents autolaunch subjects get <subject_id>",
+      "regents autolaunch bids quote --auction <auction_id>"
+    ],
+    "agent_metadata": {
+      "category": "market",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_quotes",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Check subjects."
   },
   "autolaunch vesting cancel-beneficiary-rotation": {
     "command": "autolaunch vesting cancel-beneficiary-rotation",
