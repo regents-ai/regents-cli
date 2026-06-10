@@ -4,7 +4,8 @@ import {
   runAuthSiwaStatus,
 } from "../commands/auth.js";
 import { runEnsSetPrimary } from "../commands/ens.js";
-import { runIdentityEnsure, runIdentityGraph, runIdentityStatus } from "../commands/identity.js";
+import { runIdentityGraph } from "../commands/identity-graph.js";
+import { runIdentityEnsure, runIdentityStatus } from "../commands/identity.js";
 import {
   runWalletAgenticBalance,
   runWalletAgenticFund,
@@ -30,7 +31,7 @@ export const walletIdentityAuthRoutes: readonly CliRoute[] = [
   }),
   route("identity ensure", async ({ parsedArgs, configPath }) => runIdentityEnsure(parsedArgs, configPath)),
   route("identity status", async ({ parsedArgs, configPath }) => runIdentityStatus(parsedArgs, configPath)),
-  route("identity graph", async ({ parsedArgs }) => runIdentityGraph(parsedArgs)),
+  route("identity graph", async ({ parsedArgs, configPath }) => runIdentityGraph(parsedArgs, configPath)),
   route("wallet status", async ({ parsedArgs, configPath }) => runWalletStatus(parsedArgs, configPath)),
   route("wallet setup", async ({ parsedArgs, configPath }) => runWalletSetup(parsedArgs, configPath)),
   route("wallet agentic status", async ({ parsedArgs }) => runWalletAgenticStatus(parsedArgs)),
