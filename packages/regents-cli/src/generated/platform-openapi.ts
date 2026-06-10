@@ -1304,6 +1304,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mcp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Remote MCP entry point. Accepts a single JSON-RPC 2.0 request (`initialize`, `tools/list`, or `tools/call`) authenticated with a Regents MCP access token. Wallet-action submit tool calls are routed through the human-approval ledger, so an unapproved, expired, or changed action is rejected as a JSON-RPC error. */
+        post: operations["mcpRpc"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/agent-platform/rwr/account": {
         parameters: {
             query?: never;
@@ -1894,6 +1911,27 @@ export interface components {
                 request_id: string | null;
                 message: string;
                 next_steps?: string | null;
+            };
+        };
+        McpJsonRpcRequest: {
+            /** @enum {string} */
+            jsonrpc: "2.0";
+            id?: string | number | null;
+            /** @enum {string} */
+            method: "initialize" | "tools/list" | "tools/call";
+            /** @description Method parameters. For `tools/call`, includes `name` and `arguments`. */
+            params?: Record<string, never>;
+        };
+        McpJsonRpcResponse: {
+            /** @enum {string} */
+            jsonrpc: "2.0";
+            id?: string | number | null;
+            /** @description Method result. Present on success. */
+            result?: Record<string, never>;
+            /** @description JSON-RPC error. Present when the request or tool call failed. */
+            error?: {
+                code: number;
+                message: string;
             };
         };
         InternalXmtpRoom: {
@@ -5902,6 +5940,31 @@ export interface operations {
             401: components["responses"]["StatusMessage401"];
             404: components["responses"]["StatusMessage404"];
             422: components["responses"]["StatusMessage422"];
+        };
+    };
+    mcpRpc: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpJsonRpcRequest"];
+            };
+        };
+        responses: {
+            /** @description JSON-RPC response envelope. Application-level failures, including rejected wallet-action submits, are returned as a JSON-RPC error object with HTTP 200. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpJsonRpcResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
         };
     };
     rwrAccount: {

@@ -1,6 +1,6 @@
 # Chain / API Reconciliation Commands
 
-Status: design accepted, `identity graph` shipped, four verify commands design-only pending sibling-repo contract entries.
+Status: SHIPPED (2026-06-10). All five commands are live — `identity graph`, `autolaunch contracts verify`, `autolaunch subjects verify`, `regent-staking verify`, `techtree settlement verify`. The four verify commands gained their owning-contract entries (autolaunch/docs/cli-contract.yaml, platform/cli-contract.yaml, techtree/docs/cli-contract.yaml) and full implementations + tests. Several checks render `UNVERIFIABLE` until the sibling-API gaps below are closed (untyped autolaunch contract overviews; subject ingress expected-unswept amount + subject→launch link; no published splitter pending-balance read ABI). The vendored read ABIs are pinned to RegentRevenueStaking.sol and TechRewardRouter.sol; if those contracts change, update the ABIs in the command files. The "Required sibling-repo entries" and API-gap lists below are retained as the record of what was added and what remains to file with owners.
 
 The Regents CLI is the bridge that checks product workflow state against onchain truth.
 These commands read public product APIs and chain RPC, then report where the two views
