@@ -28,6 +28,64 @@ export const route = (
   handler,
 });
 
+/**
+ * A declarative handler-registry entry. `run` is a plain reference to the
+ * command handler (it may return void for the common case or a number when the
+ * command owns its own exit code). `variadicTail`/`pattern` mirror the matching
+ * options accepted by `route()`.
+ */
+export type CliHandlerEntry = {
+  readonly run: (context: CliRouteContext) => number | void | Promise<number | void>;
+  readonly variadicTail?: boolean;
+  readonly pattern?: string;
+};
+
+export type CliHandlerRegistry = Readonly<Record<string, CliHandlerEntry>>;
+
+/**
+ * Build the route table by iterating the generated command metadata. For every
+ * command name in `commands`, the matching registry entry supplies the handler
+ * plus its variadicTail/pattern matching behaviour. A uniform wrapper subsumes
+ * the void-vs-number return split: void handlers resolve to exit code 0.
+ *
+ * Throws if a command has no registry handler (or a registry entry has no
+ * command) so a coverage gap surfaces as a hard failure rather than a silently
+ * unroutable command.
+ */
+export const buildRoutesFromRegistry = (
+  commands: readonly string[],
+  registry: CliHandlerRegistry,
+): readonly CliRoute[] => {
+  const missingHandlers = commands.filter((command) => registry[command] === undefined);
+  const extraHandlers = Object.keys(registry).filter((command) => !commands.includes(command));
+  if (missingHandlers.length > 0 || extraHandlers.length > 0) {
+    throw new Error(
+      [
+        missingHandlers.length > 0
+          ? `CLI commands missing registry handlers: ${missingHandlers.join(", ")}`
+          : undefined,
+        extraHandlers.length > 0
+          ? `Registry handlers missing CLI commands: ${extraHandlers.join(", ")}`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
+  }
+
+  return commands.map((command) => {
+    const entry = registry[command];
+    return route(
+      command,
+      async (context) => {
+        const result = await entry.run(context);
+        return typeof result === "number" ? result : 0;
+      },
+      { variadicTail: entry.variadicTail, pattern: entry.pattern },
+    );
+  });
+};
+
 const isPlaceholderPart = (part: string): boolean => part.startsWith("<") && part.endsWith(">");
 
 const inputIsReservedLiteralCommandPrefix = (

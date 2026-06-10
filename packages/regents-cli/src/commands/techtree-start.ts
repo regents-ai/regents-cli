@@ -561,3 +561,11 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
     selectedIdentity: identity,
   };
 }
+
+// Route-facing entrypoint that owns the guided-start exit-code decision so the
+// handler registry can reference a plain Promise<number> handler instead of
+// embedding `result.ready ? 0 : 1` in a route adapter.
+export async function runTechtreeStartCommand(args: ParsedCliArgs, configPath?: string): Promise<number> {
+  const result = await runTechtreeStart(args, configPath);
+  return result.ready ? 0 : 1;
+}

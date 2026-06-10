@@ -10,47 +10,17 @@ import {
   runPlatformFormationStatus,
   runPlatformProjection,
 } from "../commands/platform.js";
-import { route, type CliRoute } from "./shared.js";
+import type { CliHandlerRegistry } from "./shared.js";
 
-export const platformRoutes: readonly CliRoute[] = [
-  route("platform auth login", async ({ parsedArgs }) => {
-    await runPlatformAuthLogin(parsedArgs);
-    return 0;
-  }),
-  route("platform auth status", async ({ parsedArgs }) => {
-    await runPlatformAuthStatus(parsedArgs);
-    return 0;
-  }),
-  route("platform auth logout", async ({ parsedArgs }) => {
-    await runPlatformAuthLogout(parsedArgs);
-    return 0;
-  }),
-  route("platform formation status", async ({ parsedArgs }) => {
-    await runPlatformFormationStatus(parsedArgs);
-    return 0;
-  }),
-  route("platform formation doctor", async ({ parsedArgs }) => {
-    await runPlatformFormationDoctor(parsedArgs);
-    return 0;
-  }),
-  route("platform projection", async ({ parsedArgs }) => {
-    await runPlatformProjection(parsedArgs);
-    return 0;
-  }),
-  route("platform billing account", async ({ parsedArgs }) => {
-    await runPlatformBillingAccount(parsedArgs);
-    return 0;
-  }),
-  route("platform billing usage", async ({ parsedArgs }) => {
-    await runPlatformBillingUsage(parsedArgs);
-    return 0;
-  }),
-  route("platform billing spend-controls set", async ({ parsedArgs }) => {
-    await runPlatformBillingSpendControlsSet(parsedArgs);
-    return 0;
-  }),
-  route("platform company runtime", async ({ parsedArgs }) => {
-    await runPlatformCompanyRuntime(parsedArgs);
-    return 0;
-  }),
-];
+export const platformHandlers: CliHandlerRegistry = {
+  "platform auth login": { run: ({ parsedArgs }) => runPlatformAuthLogin(parsedArgs) },
+  "platform auth status": { run: ({ parsedArgs }) => runPlatformAuthStatus(parsedArgs) },
+  "platform auth logout": { run: ({ parsedArgs }) => runPlatformAuthLogout(parsedArgs) },
+  "platform formation status": { run: ({ parsedArgs }) => runPlatformFormationStatus(parsedArgs) },
+  "platform formation doctor": { run: ({ parsedArgs }) => runPlatformFormationDoctor(parsedArgs) },
+  "platform projection": { run: ({ parsedArgs }) => runPlatformProjection(parsedArgs) },
+  "platform billing account": { run: ({ parsedArgs }) => runPlatformBillingAccount(parsedArgs) },
+  "platform billing usage": { run: ({ parsedArgs }) => runPlatformBillingUsage(parsedArgs) },
+  "platform billing spend-controls set": { run: ({ parsedArgs }) => runPlatformBillingSpendControlsSet(parsedArgs) },
+  "platform company runtime": { run: ({ parsedArgs }) => runPlatformCompanyRuntime(parsedArgs) },
+};

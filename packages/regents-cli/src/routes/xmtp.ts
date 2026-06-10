@@ -31,122 +31,38 @@ import {
   runXmtpTrustedList,
   runXmtpTrustedRemove,
 } from "../commands/xmtp.js";
-import { route, type CliRoute } from "./shared.js";
+import type { CliHandlerRegistry } from "./shared.js";
 
-export const xmtpRoutes: readonly CliRoute[] = [
-  route("xmtp init", async ({ parsedArgs, configPath }) => runXmtpInit(parsedArgs, configPath)),
-  route("xmtp status", async ({ configPath }) => {
-    await runXmtpStatus(configPath);
-    return 0;
-  }),
-  route("xmtp resolve", async ({ parsedArgs, configPath }) => {
-    await runXmtpResolve(parsedArgs, configPath);
-    return 0;
-  }),
-  route("xmtp owner add", async ({ parsedArgs, configPath }) => {
-    await runXmtpOwnerAdd(parsedArgs, configPath);
-    return 0;
-  }),
-  route("xmtp owner list", async ({ configPath }) => {
-    await runXmtpOwnerList(configPath);
-    return 0;
-  }),
-  route("xmtp owner remove", async ({ parsedArgs, configPath }) => {
-    await runXmtpOwnerRemove(parsedArgs, configPath);
-    return 0;
-  }),
-  route("xmtp trusted add", async ({ parsedArgs, configPath }) => {
-    await runXmtpTrustedAdd(parsedArgs, configPath);
-    return 0;
-  }),
-  route("xmtp trusted list", async ({ configPath }) => {
-    await runXmtpTrustedList(configPath);
-    return 0;
-  }),
-  route("xmtp trusted remove", async ({ parsedArgs, configPath }) => {
-    await runXmtpTrustedRemove(parsedArgs, configPath);
-    return 0;
-  }),
-  route("xmtp policy init", async ({ configPath }) => {
-    await runXmtpPolicyInit(configPath);
-    return 0;
-  }),
-  route("xmtp policy get", async ({ configPath }) => {
-    await runXmtpPolicyGet(configPath);
-    return 0;
-  }),
-  route("xmtp policy validate", async ({ configPath }) => runXmtpPolicyValidate(configPath)),
-  route("xmtp policy edit", async ({ configPath }) => {
-    await runXmtpPolicyEdit(configPath);
-    return 0;
-  }),
-  route("xmtp test dm", async ({ parsedArgs, configPath }) => {
-    await runXmtpTestDm(parsedArgs, configPath);
-    return 0;
-  }),
-  route("xmtp group create", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupCreate(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group add-member", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupAddMember(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group remove-member", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupRemoveMember(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group list", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("xmtp group members", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupMembers(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group permissions", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupPermissions(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group update-permission", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupUpdatePermission(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group admins", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupAdmins(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group super-admins", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupSuperAdmins(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group add-admin", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupAddAdmin(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group remove-admin", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupRemoveAdmin(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group add-super-admin", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupAddSuperAdmin(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp group remove-super-admin", async ({ parsedArgs, configPath }) => {
-    await runXmtpGroupRemoveSuperAdmin(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("xmtp revoke-other-installations", async ({ configPath }) => {
-    await runXmtpRevokeOtherInstallations(configPath);
-    return 0;
-  }),
-  route("xmtp rotate-db-key", async ({ configPath }) => {
-    await runXmtpRotateDbKey(configPath);
-    return 0;
-  }),
-  route("xmtp rotate-wallet", async ({ configPath }) => {
-    await runXmtpRotateWallet(configPath);
-    return 0;
-  }),
-  route("xmtp doctor", async ({ parsedArgs, configPath }) => runXmtpDoctor(parsedArgs, configPath)),
-];
+export const xmtpHandlers: CliHandlerRegistry = {
+  "xmtp init": { run: ({ parsedArgs, configPath }) => runXmtpInit(parsedArgs, configPath) },
+  "xmtp status": { run: ({ configPath }) => runXmtpStatus(configPath) },
+  "xmtp resolve": { run: ({ parsedArgs, configPath }) => runXmtpResolve(parsedArgs, configPath) },
+  "xmtp owner add": { run: ({ parsedArgs, configPath }) => runXmtpOwnerAdd(parsedArgs, configPath) },
+  "xmtp owner list": { run: ({ configPath }) => runXmtpOwnerList(configPath) },
+  "xmtp owner remove": { run: ({ parsedArgs, configPath }) => runXmtpOwnerRemove(parsedArgs, configPath) },
+  "xmtp trusted add": { run: ({ parsedArgs, configPath }) => runXmtpTrustedAdd(parsedArgs, configPath) },
+  "xmtp trusted list": { run: ({ configPath }) => runXmtpTrustedList(configPath) },
+  "xmtp trusted remove": { run: ({ parsedArgs, configPath }) => runXmtpTrustedRemove(parsedArgs, configPath) },
+  "xmtp policy init": { run: ({ configPath }) => runXmtpPolicyInit(configPath) },
+  "xmtp policy get": { run: ({ configPath }) => runXmtpPolicyGet(configPath) },
+  "xmtp policy validate": { run: ({ configPath }) => runXmtpPolicyValidate(configPath) },
+  "xmtp policy edit": { run: ({ configPath }) => runXmtpPolicyEdit(configPath) },
+  "xmtp test dm": { run: ({ parsedArgs, configPath }) => runXmtpTestDm(parsedArgs, configPath) },
+  "xmtp group create": { run: ({ parsedArgs, configPath }) => runXmtpGroupCreate(parsedArgs, configPath), variadicTail: true },
+  "xmtp group add-member": { run: ({ parsedArgs, configPath }) => runXmtpGroupAddMember(parsedArgs, configPath), variadicTail: true },
+  "xmtp group remove-member": { run: ({ parsedArgs, configPath }) => runXmtpGroupRemoveMember(parsedArgs, configPath), variadicTail: true },
+  "xmtp group list": { run: ({ parsedArgs, configPath }) => runXmtpGroupList(parsedArgs, configPath) },
+  "xmtp group members": { run: ({ parsedArgs, configPath }) => runXmtpGroupMembers(parsedArgs, configPath), variadicTail: true },
+  "xmtp group permissions": { run: ({ parsedArgs, configPath }) => runXmtpGroupPermissions(parsedArgs, configPath), variadicTail: true },
+  "xmtp group update-permission": { run: ({ parsedArgs, configPath }) => runXmtpGroupUpdatePermission(parsedArgs, configPath), variadicTail: true },
+  "xmtp group admins": { run: ({ parsedArgs, configPath }) => runXmtpGroupAdmins(parsedArgs, configPath), variadicTail: true },
+  "xmtp group super-admins": { run: ({ parsedArgs, configPath }) => runXmtpGroupSuperAdmins(parsedArgs, configPath), variadicTail: true },
+  "xmtp group add-admin": { run: ({ parsedArgs, configPath }) => runXmtpGroupAddAdmin(parsedArgs, configPath), variadicTail: true },
+  "xmtp group remove-admin": { run: ({ parsedArgs, configPath }) => runXmtpGroupRemoveAdmin(parsedArgs, configPath), variadicTail: true },
+  "xmtp group add-super-admin": { run: ({ parsedArgs, configPath }) => runXmtpGroupAddSuperAdmin(parsedArgs, configPath), variadicTail: true },
+  "xmtp group remove-super-admin": { run: ({ parsedArgs, configPath }) => runXmtpGroupRemoveSuperAdmin(parsedArgs, configPath), variadicTail: true },
+  "xmtp revoke-other-installations": { run: ({ configPath }) => runXmtpRevokeOtherInstallations(configPath) },
+  "xmtp rotate-db-key": { run: ({ configPath }) => runXmtpRotateDbKey(configPath) },
+  "xmtp rotate-wallet": { run: ({ configPath }) => runXmtpRotateWallet(configPath) },
+  "xmtp doctor": { run: ({ parsedArgs, configPath }) => runXmtpDoctor(parsedArgs, configPath) },
+};

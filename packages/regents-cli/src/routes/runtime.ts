@@ -13,42 +13,18 @@ import {
   runRuntimeLocalStatus,
   runRuntimeLocalTools,
 } from "../commands/runtime-local.js";
-import { route, type CliRoute } from "./shared.js";
+import type { CliHandlerRegistry } from "./shared.js";
 
-export const runtimeRoutes: readonly CliRoute[] = [
-  route("runtime status", async ({ configPath }) => runRuntimeLocalStatus(configPath)),
-  route("runtime tools", async () => runRuntimeLocalTools()),
-  route("runtime policy", async ({ configPath }) => runRuntimeLocalPolicy(configPath)),
-  route("runtime create", async ({ parsedArgs }) => {
-    await runRuntimeCreate(parsedArgs);
-    return 0;
-  }),
-  route("runtime get", async ({ parsedArgs }) => {
-    await runRuntimeGet(parsedArgs);
-    return 0;
-  }, { variadicTail: true }),
-  route("runtime checkpoint", async ({ parsedArgs }) => {
-    await runRuntimeCheckpoint(parsedArgs);
-    return 0;
-  }, { variadicTail: true }),
-  route("runtime restore", async ({ parsedArgs }) => {
-    await runRuntimeRestore(parsedArgs);
-    return 0;
-  }, { variadicTail: true }),
-  route("runtime pause", async ({ parsedArgs }) => {
-    await runRuntimePause(parsedArgs);
-    return 0;
-  }, { variadicTail: true }),
-  route("runtime resume", async ({ parsedArgs }) => {
-    await runRuntimeResume(parsedArgs);
-    return 0;
-  }, { variadicTail: true }),
-  route("runtime services", async ({ parsedArgs }) => {
-    await runRuntimeServices(parsedArgs);
-    return 0;
-  }, { variadicTail: true }),
-  route("runtime health", async ({ parsedArgs }) => {
-    await runRuntimeHealth(parsedArgs);
-    return 0;
-  }, { variadicTail: true }),
-];
+export const runtimeHandlers: CliHandlerRegistry = {
+  "runtime status": { run: ({ configPath }) => runRuntimeLocalStatus(configPath) },
+  "runtime tools": { run: () => runRuntimeLocalTools() },
+  "runtime policy": { run: ({ configPath }) => runRuntimeLocalPolicy(configPath) },
+  "runtime create": { run: ({ parsedArgs }) => runRuntimeCreate(parsedArgs) },
+  "runtime get": { run: ({ parsedArgs }) => runRuntimeGet(parsedArgs), variadicTail: true },
+  "runtime checkpoint": { run: ({ parsedArgs }) => runRuntimeCheckpoint(parsedArgs), variadicTail: true },
+  "runtime restore": { run: ({ parsedArgs }) => runRuntimeRestore(parsedArgs), variadicTail: true },
+  "runtime pause": { run: ({ parsedArgs }) => runRuntimePause(parsedArgs), variadicTail: true },
+  "runtime resume": { run: ({ parsedArgs }) => runRuntimeResume(parsedArgs), variadicTail: true },
+  "runtime services": { run: ({ parsedArgs }) => runRuntimeServices(parsedArgs), variadicTail: true },
+  "runtime health": { run: ({ parsedArgs }) => runRuntimeHealth(parsedArgs), variadicTail: true },
+};

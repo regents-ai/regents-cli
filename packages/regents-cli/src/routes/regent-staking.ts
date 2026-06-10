@@ -7,35 +7,14 @@ import {
   runRegentStakingStake,
   runRegentStakingUnstake,
 } from "../commands/regent-staking.js";
-import { route, type CliRoute } from "./shared.js";
+import type { CliHandlerRegistry } from "./shared.js";
 
-export const regentStakingRoutes: readonly CliRoute[] = [
-  route("regent-staking get", async ({ configPath }) => {
-    await runRegentStakingGet(configPath);
-    return 0;
-  }),
-  route("regent-staking account", async ({ parsedArgs, configPath }) => {
-    await runRegentStakingAccount(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("regent-staking stake", async ({ parsedArgs, configPath }) => {
-    await runRegentStakingStake(parsedArgs, configPath);
-    return 0;
-  }),
-  route("regent-staking unstake", async ({ parsedArgs, configPath }) => {
-    await runRegentStakingUnstake(parsedArgs, configPath);
-    return 0;
-  }),
-  route("regent-staking claim-usdc", async ({ parsedArgs, configPath }) => {
-    await runRegentStakingClaimUsdc(parsedArgs, configPath);
-    return 0;
-  }),
-  route("regent-staking claim-regent", async ({ parsedArgs, configPath }) => {
-    await runRegentStakingClaimRegent(parsedArgs, configPath);
-    return 0;
-  }),
-  route("regent-staking claim-and-restake-regent", async ({ parsedArgs, configPath }) => {
-    await runRegentStakingClaimAndRestakeRegent(parsedArgs, configPath);
-    return 0;
-  }),
-];
+export const regentStakingHandlers: CliHandlerRegistry = {
+  "regent-staking get": { run: ({ configPath }) => runRegentStakingGet(configPath) },
+  "regent-staking account": { run: ({ parsedArgs, configPath }) => runRegentStakingAccount(parsedArgs, configPath), variadicTail: true },
+  "regent-staking stake": { run: ({ parsedArgs, configPath }) => runRegentStakingStake(parsedArgs, configPath) },
+  "regent-staking unstake": { run: ({ parsedArgs, configPath }) => runRegentStakingUnstake(parsedArgs, configPath) },
+  "regent-staking claim-usdc": { run: ({ parsedArgs, configPath }) => runRegentStakingClaimUsdc(parsedArgs, configPath) },
+  "regent-staking claim-regent": { run: ({ parsedArgs, configPath }) => runRegentStakingClaimRegent(parsedArgs, configPath) },
+  "regent-staking claim-and-restake-regent": { run: ({ parsedArgs, configPath }) => runRegentStakingClaimAndRestakeRegent(parsedArgs, configPath) },
+};

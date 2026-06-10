@@ -1,17 +1,8 @@
 import { runAgentbookLookup, runAgentbookRegister, runAgentbookSessionsWatch } from "../commands/agentbook.js";
-import { route, type CliRoute } from "./shared.js";
+import type { CliHandlerRegistry } from "./shared.js";
 
-export const agentbookRoutes: readonly CliRoute[] = [
-  route("agentbook register", async ({ parsedArgs, configPath }) => {
-    await runAgentbookRegister(parsedArgs, configPath);
-    return 0;
-  }),
-  route("agentbook sessions watch", async ({ parsedArgs, configPath }) => {
-    await runAgentbookSessionsWatch(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("agentbook lookup", async ({ parsedArgs, configPath }) => {
-    await runAgentbookLookup(parsedArgs, configPath);
-    return 0;
-  }),
-];
+export const agentbookHandlers: CliHandlerRegistry = {
+  "agentbook register": { run: ({ parsedArgs, configPath }) => runAgentbookRegister(parsedArgs, configPath) },
+  "agentbook sessions watch": { run: ({ parsedArgs, configPath }) => runAgentbookSessionsWatch(parsedArgs, configPath), variadicTail: true },
+  "agentbook lookup": { run: ({ parsedArgs, configPath }) => runAgentbookLookup(parsedArgs, configPath) },
+};

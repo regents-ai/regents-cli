@@ -527,8 +527,15 @@ const readRouteSources = (dir) =>
     .join("\n");
 
 const cliRoutesSource = readRouteSources(cliRoutesDir);
+// Commands are registered as handler-registry entries keyed by command name and
+// pointing at a `{ run: ... }` handler (quoted keys for multi-word commands,
+// bare identifiers for single-word commands). The route table is generated from
+// this registry, so the registry keys are the authoritative route command list.
 const routeCommands = new Set(
-  Array.from(cliRoutesSource.matchAll(/route\(\s*"([^"]+)"/g), (match) => match[1]),
+  Array.from(
+    cliRoutesSource.matchAll(/(?:"([^"]+)"|([A-Za-z][\w-]*))\s*:\s*\{\s*run\b/g),
+    (match) => match[1] ?? match[2],
+  ),
 );
 
 for (const command of registryCommands) {
@@ -550,9 +557,9 @@ for (const command of requiredChatboxCommands) {
   }
 }
 
-for (const snippet of ['route("chatbox history"', 'route("chatbox tail"', 'route("chatbox post"']) {
-  if (!cliRoutesSource.includes(snippet)) {
-    fail(`CLI dispatcher is missing required chatbox route: ${snippet}`);
+for (const command of requiredChatboxCommands) {
+  if (!routeCommands.has(command)) {
+    fail(`CLI dispatcher is missing required chatbox route: ${command}`);
   }
 }
 

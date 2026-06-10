@@ -26,7 +26,7 @@ import { runReceiptCreate, runReceiptGet, runReceiptList, runReceiptShareDraft }
 import { runRuntime } from "../commands/run.js";
 import { runSetup } from "../commands/setup.js";
 import { runSetupSkills } from "../commands/setup-skills.js";
-import { runTechtreeStart } from "../commands/techtree-start.js";
+import { runTechtreeStartCommand } from "../commands/techtree-start.js";
 import {
   runX402Details,
   runX402Fetch,
@@ -37,105 +37,55 @@ import {
   runX402Refund,
   runX402Search,
 } from "../commands/x402.js";
-import { route, type CliRoute } from "./shared.js";
+import type { CliHandlerRegistry } from "./shared.js";
 
-export const coreRoutes: readonly CliRoute[] = [
-  route("init", async ({ parsedArgs, configPath }) => runOperatorInit(parsedArgs, configPath)),
-  route("start", async ({ parsedArgs, configPath }) => {
-    const result = await runTechtreeStart(parsedArgs, configPath);
-    return result.ready ? 0 : 1;
-  }),
-  route("settings", async ({ parsedArgs }) => {
-    await runConfigGet(parsedArgs);
-    return 0;
-  }),
-  route("status", async ({ parsedArgs, configPath }) => runOperatorStatus(parsedArgs, configPath)),
-  route("whoami", async ({ parsedArgs, configPath }) => runOperatorWhoami(parsedArgs, configPath)),
-  route("agent-context", async ({ configPath }) => {
-    await runAgentContext(configPath);
-    return 0;
-  }),
-  route("setup", async ({ parsedArgs }) => {
-    await runSetup(parsedArgs);
-    return 0;
-  }),
-  route("plugin status", async ({ parsedArgs }) => {
-    await runPluginStatus(parsedArgs);
-    return 0;
-  }),
-  route("plugin install", async ({ parsedArgs }) => {
-    await runPluginInstall(parsedArgs);
-    return 0;
-  }),
-  route("plugin doctor", async ({ parsedArgs }) => {
-    await runPluginDoctor(parsedArgs);
-    return 0;
-  }),
-  route("setup skills", async ({ parsedArgs }) => {
-    await runSetupSkills(parsedArgs);
-    return 0;
-  }),
-  route("run", async ({ parsedArgs, configPath }) => {
-    await runRuntime(parsedArgs, configPath);
-    return 0;
-  }),
-  route("config get", async ({ parsedArgs }) => {
-    await runConfigGet(parsedArgs);
-    return 0;
-  }),
-  route("config write", async ({ parsedArgs }) => {
-    await runConfigWrite(parsedArgs);
-    return 0;
-  }),
-  route("doctor runtime", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
-  route("doctor auth", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
-  route("doctor techtree", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
-  route("doctor transports", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath)),
-  route("doctor contracts", async ({ parsedArgs, configPath }) => runDoctorContractsCommand(parsedArgs, configPath)),
-  route("doctor workspace", async ({ parsedArgs, configPath }) => runDoctorWorkspaceCommand(parsedArgs, configPath)),
-  route("doctor", async ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath), { variadicTail: true }),
-  route("mcp export codex", async () => runMcpExportCodex()),
-  route("mcp tools list", async () => runMcpToolsList()),
-  route("mcp doctor", async ({ parsedArgs, configPath }) => runMcpDoctor(parsedArgs, configPath)),
-  route("mcp serve", async ({ parsedArgs, configPath }) => runMcpServe(parsedArgs, configPath)),
-  route("x402 search", async ({ parsedArgs }) => runX402Search(parsedArgs), { variadicTail: true }),
-  route("x402 details", async ({ parsedArgs, configPath }) => runX402Details(parsedArgs, configPath)),
-  route("x402 quote", async ({ parsedArgs, configPath }) => runX402Quote(parsedArgs, configPath)),
-  route("x402 prepare", async ({ parsedArgs, configPath }) => runX402Prepare(parsedArgs, configPath)),
-  route("x402 fetch", async ({ parsedArgs, configPath }) => runX402Fetch(parsedArgs, configPath)),
-  route("x402 refund", async ({ parsedArgs, configPath }) => runX402Refund(parsedArgs, configPath)),
-  route("x402 pay", async ({ parsedArgs, configPath }) => runX402Pay(parsedArgs, configPath), { pattern: "x402 pay <url>" }),
-  route("x402 receipts get", async ({ parsedArgs, configPath }) => runX402ReceiptsGet(parsedArgs, configPath)),
-  route("budget grant", async ({ parsedArgs, configPath }) => runBudgetGrant(parsedArgs, configPath)),
-  route("budget status", async ({ parsedArgs, configPath }) => runBudgetStatus(parsedArgs, configPath)),
-  route("budget ledger", async ({ parsedArgs, configPath }) => runBudgetLedger(parsedArgs, configPath)),
-  route("budget revoke", async ({ parsedArgs, configPath }) => runBudgetRevoke(parsedArgs, configPath)),
-  route("receipt create", async ({ parsedArgs, configPath }) => runReceiptCreate(parsedArgs, configPath)),
-  route("receipt get", async ({ parsedArgs, configPath }) => runReceiptGet(parsedArgs, configPath)),
-  route("receipt list", async ({ parsedArgs, configPath }) => runReceiptList(parsedArgs, configPath)),
-  route("receipt share-draft", async ({ parsedArgs, configPath }) => runReceiptShareDraft(parsedArgs, configPath)),
-  route("agent init", async ({ configPath }) => {
-    await runAgentInit(configPath);
-    return 0;
-  }),
-  route("agent status", async ({ configPath }) => {
-    await runAgentStatus(configPath);
-    return 0;
-  }),
-  route("agent profile list", async ({ configPath }) => {
-    await runAgentProfileList(configPath);
-    return 0;
-  }),
-  route("agent profile get", async ({ parsedArgs, configPath }) => {
-    await runAgentProfileGet(parsedArgs, configPath);
-    return 0;
-  }),
-  route("agent harness list", async ({ configPath }) => {
-    await runAgentHarnessList(configPath);
-    return 0;
-  }),
-  route("gossipsub status", async ({ configPath }) => {
-    await runGossipsubStatus(configPath);
-    return 0;
-  }),
-];
+export const coreHandlers: CliHandlerRegistry = {
+  init: { run: ({ parsedArgs, configPath }) => runOperatorInit(parsedArgs, configPath) },
+  // `start` and `techtree start` own their exit code via runTechtreeStartCommand.
+  start: { run: ({ parsedArgs, configPath }) => runTechtreeStartCommand(parsedArgs, configPath) },
+  settings: { run: ({ parsedArgs }) => runConfigGet(parsedArgs) },
+  status: { run: ({ parsedArgs, configPath }) => runOperatorStatus(parsedArgs, configPath) },
+  whoami: { run: ({ parsedArgs, configPath }) => runOperatorWhoami(parsedArgs, configPath) },
+  "agent-context": { run: ({ configPath }) => runAgentContext(configPath) },
+  setup: { run: ({ parsedArgs }) => runSetup(parsedArgs) },
+  "plugin status": { run: ({ parsedArgs }) => runPluginStatus(parsedArgs) },
+  "plugin install": { run: ({ parsedArgs }) => runPluginInstall(parsedArgs) },
+  "plugin doctor": { run: ({ parsedArgs }) => runPluginDoctor(parsedArgs) },
+  "setup skills": { run: ({ parsedArgs }) => runSetupSkills(parsedArgs) },
+  run: { run: ({ parsedArgs, configPath }) => runRuntime(parsedArgs, configPath) },
+  "config get": { run: ({ parsedArgs }) => runConfigGet(parsedArgs) },
+  "config write": { run: ({ parsedArgs }) => runConfigWrite(parsedArgs) },
+  "doctor runtime": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
+  "doctor auth": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
+  "doctor techtree": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
+  "doctor transports": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
+  "doctor contracts": { run: ({ parsedArgs, configPath }) => runDoctorContractsCommand(parsedArgs, configPath) },
+  "doctor workspace": { run: ({ parsedArgs, configPath }) => runDoctorWorkspaceCommand(parsedArgs, configPath) },
+  doctor: { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath), variadicTail: true },
+  "mcp export codex": { run: () => runMcpExportCodex() },
+  "mcp tools list": { run: () => runMcpToolsList() },
+  "mcp doctor": { run: ({ parsedArgs, configPath }) => runMcpDoctor(parsedArgs, configPath) },
+  "mcp serve": { run: ({ parsedArgs, configPath }) => runMcpServe(parsedArgs, configPath) },
+  "x402 search": { run: ({ parsedArgs }) => runX402Search(parsedArgs), variadicTail: true },
+  "x402 details": { run: ({ parsedArgs, configPath }) => runX402Details(parsedArgs, configPath) },
+  "x402 quote": { run: ({ parsedArgs, configPath }) => runX402Quote(parsedArgs, configPath) },
+  "x402 prepare": { run: ({ parsedArgs, configPath }) => runX402Prepare(parsedArgs, configPath) },
+  "x402 fetch": { run: ({ parsedArgs, configPath }) => runX402Fetch(parsedArgs, configPath) },
+  "x402 refund": { run: ({ parsedArgs, configPath }) => runX402Refund(parsedArgs, configPath) },
+  "x402 pay": { run: ({ parsedArgs, configPath }) => runX402Pay(parsedArgs, configPath), pattern: "x402 pay <url>" },
+  "x402 receipts get": { run: ({ parsedArgs, configPath }) => runX402ReceiptsGet(parsedArgs, configPath) },
+  "budget grant": { run: ({ parsedArgs, configPath }) => runBudgetGrant(parsedArgs, configPath) },
+  "budget status": { run: ({ parsedArgs, configPath }) => runBudgetStatus(parsedArgs, configPath) },
+  "budget ledger": { run: ({ parsedArgs, configPath }) => runBudgetLedger(parsedArgs, configPath) },
+  "budget revoke": { run: ({ parsedArgs, configPath }) => runBudgetRevoke(parsedArgs, configPath) },
+  "receipt create": { run: ({ parsedArgs, configPath }) => runReceiptCreate(parsedArgs, configPath) },
+  "receipt get": { run: ({ parsedArgs, configPath }) => runReceiptGet(parsedArgs, configPath) },
+  "receipt list": { run: ({ parsedArgs, configPath }) => runReceiptList(parsedArgs, configPath) },
+  "receipt share-draft": { run: ({ parsedArgs, configPath }) => runReceiptShareDraft(parsedArgs, configPath) },
+  "agent init": { run: ({ configPath }) => runAgentInit(configPath) },
+  "agent status": { run: ({ configPath }) => runAgentStatus(configPath) },
+  "agent profile list": { run: ({ configPath }) => runAgentProfileList(configPath) },
+  "agent profile get": { run: ({ parsedArgs, configPath }) => runAgentProfileGet(parsedArgs, configPath) },
+  "agent harness list": { run: ({ configPath }) => runAgentHarnessList(configPath) },
+  "gossipsub status": { run: ({ configPath }) => runGossipsubStatus(configPath) },
+};

@@ -99,7 +99,7 @@ import {
   runTechtreeIdentitiesList,
   runTechtreeIdentitiesMint,
 } from "../commands/techtree-identities.js";
-import { runTechtreeStart } from "../commands/techtree-start.js";
+import { runTechtreeStartCommand } from "../commands/techtree-start.js";
 import {
   runTechtreeBbhDraftApply,
   runTechtreeBbhDraftCreate,
@@ -142,7 +142,7 @@ import {
   runTechtreeReviewerStatus,
 } from "../commands/techtree-v1-reviewer.js";
 import { parsePositiveInteger } from "../parse.js";
-import { dispatchRoute, route, type CliRoute, type CliRouteContext } from "./shared.js";
+import type { CliHandlerRegistry } from "./shared.js";
 
 const requireNodeId = (value: string | undefined): number => {
   if (!value) {
@@ -152,512 +152,134 @@ const requireNodeId = (value: string | undefined): number => {
   return parsePositiveInteger(value, "invalid node id");
 };
 
-export const techtreeNamedTreeRoutes: readonly CliRoute[] = [
-  route("techtree bbh run exec", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhRunExec(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh run solve", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhRunSolve(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh notebook pair", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhNotebookPair(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh capsules list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhCapsulesList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree bbh capsules get", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhCapsulesGet(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh submit", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhSubmit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree bbh validate", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhValidate(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree bbh leaderboard", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhLeaderboard(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree bbh draft init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhDraftInit(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh draft create", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhDraftCreate(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh draft list", async ({ configPath }) => {
-    await runTechtreeBbhDraftList(configPath);
-    return 0;
-  }),
-  route("techtree bbh draft pull", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhDraftPull(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh draft propose", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhDraftPropose(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh draft proposals", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhDraftProposals(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree bbh draft apply", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhDraftApply(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh draft ready", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhDraftReady(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh genome init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhGenomeInit(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh genome score", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhGenomeScore(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh genome improve", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhGenomeImprove(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh genome propose", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhGenomePropose(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree bbh sync", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBbhSync(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree main fetch", async ({ parsedArgs, configPath }) => {
-    await runTechtreeFetch("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree main verify", async ({ parsedArgs, configPath }) => {
-    await runTechtreeVerify("main", parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-];
-
-export const techtreeRoutes: readonly CliRoute[] = [
-  route("techtree status", async ({ configPath }) => {
-    await runTechtreeStatus(configPath);
-    return 0;
-  }),
-  route("techtree science-tasks list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science-tasks get", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksGet(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree science-tasks init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksInit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science-tasks checklist", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksChecklist(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science-tasks evidence", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksEvidence(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science-tasks export", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksExport(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science-tasks submit", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksSubmit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science-tasks review-update", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksReviewUpdate(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science-tasks review-loop", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceTasksReviewLoop(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science set-goal", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceSetGoal(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science agent set <agent>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceAgentSet(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree science run", async ({ parsedArgs, configPath }) => {
-    await runTechtreeScienceRun(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree work list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeWorkList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree work next", async ({ parsedArgs, configPath }) => {
-    await runTechtreeWorkNext(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree work accept", async ({ parsedArgs, configPath }) => {
-    await runTechtreeWorkAccept(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree work publish", async ({ parsedArgs, configPath }) => {
-    await runTechtreeWorkPublish(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree work", async ({ parsedArgs, configPath }) => {
-    await runTechtreeWorkSummary(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree notebooks init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNotebooksInit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree notebooks pair", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNotebooksPair(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree notebooks publish", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNotebooksPublish(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks get <capsule_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksGet(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks scoreboard <capsule_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksScoreboard(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks reliability <capsule_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksReliability(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks capsule init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksCapsuleInit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks capsule pack", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksCapsulePack(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks capsule submit", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksCapsuleSubmit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks run materialize", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksRunMaterialize(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks run submit", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksRunSubmit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks run repeat", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksRunRepeat(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree benchmarks validate", async ({ parsedArgs, configPath }) => {
-    await runTechtreeBenchmarksValidate(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree fold policy init", async ({ parsedArgs, configPath }) => {
-    await runTechtreeFoldPolicyInit(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree fold status", async ({ parsedArgs, configPath }) => {
-    await runTechtreeFoldStatus(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree fold proof", async ({ parsedArgs, configPath }) => {
-    await runTechtreeFoldProof(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree fold report", async ({ parsedArgs, configPath }) => {
-    await runTechtreeFoldReport(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook questions list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookQuestionsList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook questions get <id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookQuestionsGet(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook payment-address set", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookPaymentAddressSet(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook question post", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookQuestionPost(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook answer post <question_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookAnswerPost(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook answer attach-paid-solution <answer_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookAnswerAttachPaidSolution(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook answer vote <answer_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookAnswerVote(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook mark-solved <question_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookMarkSolved(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook unlock <answer_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookUnlock(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree runbook invite-request <question_id>", async ({ parsedArgs, configPath }) => {
-    await runTechtreeRunbookInviteRequest(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech status", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechStatus(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech epochs current", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechEpochCurrent(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech leaderboards list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechLeaderboardsList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech leaderboards register", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechLeaderboardsRegister(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech leaderboards confirm", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechLeaderboardsConfirm(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech rewards list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechRewardsList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech rewards proof", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechRewardsProof(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech rewards claim", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechRewardsClaim(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech rewards root prepare", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechRewardsRootPrepare(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech rewards root confirm", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechRewardsRootConfirm(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree tech withdraw", async ({ parsedArgs, configPath }) => {
-    await runTechtreeTechWithdraw(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree start", async ({ parsedArgs, configPath }) => {
-    const result = await runTechtreeStart(parsedArgs, configPath);
-    return result.ready ? 0 : 1;
-  }),
-  route("techtree autoskill init skill", async ({ parsedArgs, configPath }) => {
-    await runAutoskillInitSkill(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill init eval", async ({ parsedArgs, configPath }) => {
-    await runAutoskillInitEval(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill notebook pair", async ({ parsedArgs, configPath }) => {
-    await runAutoskillNotebookPair(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill publish skill", async ({ parsedArgs, configPath }) => {
-    await runAutoskillPublishSkill(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill publish eval", async ({ parsedArgs, configPath }) => {
-    await runAutoskillPublishEval(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill publish result", async ({ parsedArgs, configPath }) => {
-    await runAutoskillPublishResult(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill review", async ({ parsedArgs, configPath }) => {
-    await runAutoskillReview(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree autoskill listing create", async ({ parsedArgs, configPath }) => {
-    await runAutoskillListingCreate(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree autoskill buy", async ({ parsedArgs, configPath }) => {
-    await runAutoskillBuy(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill refund", async ({ parsedArgs, configPath }) => {
-    await runAutoskillRefund(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree autoskill pull", async ({ parsedArgs, configPath }) => {
-    await runAutoskillPull(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree reviewer orcid link", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewerOrcidLink(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree reviewer apply", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewerApply(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree reviewer status", async ({ configPath }) => {
-    await runTechtreeReviewerStatus(configPath);
-    return 0;
-  }),
-  route("techtree review list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewList(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree review claim", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewClaim(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree review pull", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewPull(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree review submit", async ({ parsedArgs, configPath }) => {
-    await runTechtreeReviewSubmit(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree certificate verify", async ({ parsedArgs, configPath }) => {
-    await runTechtreeCertificateVerify(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree activity", async ({ parsedArgs, configPath }) => {
-    await runTechtreeActivity(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree search", async ({ parsedArgs, configPath }) => {
-    await runTechtreeSearch(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree nodes list", async ({ rawArgs, configPath }) => {
-    await runTechtreeNodesList(rawArgs, configPath);
-    return 0;
-  }),
-  route("techtree node get <id>", async ({ positionals, configPath }) => {
-    await runTechtreeNodeGet(requireNodeId(positionals[3]), configPath);
-    return 0;
-  }),
-  route("techtree node children <id>", async ({ rawArgs, positionals, configPath }) => {
-    await runTechtreeNodeChildren(rawArgs, requireNodeId(positionals[3]), configPath);
-    return 0;
-  }),
-  route("techtree node comments <id>", async ({ rawArgs, positionals, configPath }) => {
-    await runTechtreeNodeComments(rawArgs, requireNodeId(positionals[3]), configPath);
-    return 0;
-  }),
-  route("techtree node lineage list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNodeLineageList(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree node lineage claim", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNodeLineageClaim(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree node lineage withdraw", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNodeLineageWithdraw(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree node cross-chain-links list", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNodeCrossChainLinksList(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree node cross-chain-links create", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNodeCrossChainLinksCreate(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree node cross-chain-links clear", async ({ parsedArgs, configPath }) => {
-    await runTechtreeNodeCrossChainLinksClear(parsedArgs, configPath);
-    return 0;
-  }, { variadicTail: true }),
-  route("techtree node create", async ({ rawArgs, configPath }) => {
-    await runTechtreeNodeCreate(rawArgs, configPath);
-    return 0;
-  }),
-  route("techtree comment add", async ({ rawArgs, configPath }) => {
-    await runTechtreeCommentAdd(rawArgs, configPath);
-    return 0;
-  }),
-  route("techtree node work-packet <id>", async ({ positionals, configPath }) => {
-    await runTechtreeNodeWorkPacket(requireNodeId(positionals[3]), configPath);
-    return 0;
-  }),
-  route("techtree identities list", async ({ parsedArgs }) => {
-    await runTechtreeIdentitiesList(parsedArgs);
-    return 0;
-  }),
-  route("techtree identities mint", async ({ parsedArgs }) => {
-    await runTechtreeIdentitiesMint(parsedArgs);
-    return 0;
-  }),
-  route("techtree watch list", async ({ configPath }) => {
-    await runTechtreeWatchList(configPath);
-    return 0;
-  }),
-  route("techtree watch tail", async ({ parsedArgs, configPath }) => {
-    await runTechtreeWatchTail(parsedArgs, configPath);
-    return 0;
-  }),
-  route("techtree watch <id>", async ({ positionals, configPath }) => {
-    await runTechtreeWatch(requireNodeId(positionals[2]), configPath);
-    return 0;
-  }),
-  route("techtree unwatch <id>", async ({ positionals, configPath }) => {
-    await runTechtreeUnwatch(requireNodeId(positionals[2]), configPath);
-    return 0;
-  }),
-  route("techtree star <id>", async ({ positionals, configPath }) => {
-    await runTechtreeStar(requireNodeId(positionals[2]), configPath);
-    return 0;
-  }),
-  route("techtree unstar <id>", async ({ positionals, configPath }) => {
-    await runTechtreeUnstar(requireNodeId(positionals[2]), configPath);
-    return 0;
-  }),
-  route("techtree inbox", async ({ rawArgs, configPath }) => {
-    await runTechtreeInbox(rawArgs, configPath);
-    return 0;
-  }),
-  route("techtree opportunities", async ({ rawArgs, configPath }) => {
-    await runTechtreeOpportunities(rawArgs, configPath);
-    return 0;
-  }),
-  ...techtreeNamedTreeRoutes,
-];
-
-export const dispatchTechtreeRoute = async (context: CliRouteContext): Promise<number | undefined> =>
-  dispatchRoute(techtreeRoutes, context);
+export const techtreeHandlers: CliHandlerRegistry = {
+  "techtree status": { run: ({ configPath }) => runTechtreeStatus(configPath) },
+  "techtree science-tasks list": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksList(parsedArgs, configPath) },
+  "techtree science-tasks get": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksGet(parsedArgs, configPath), variadicTail: true },
+  "techtree science-tasks init": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksInit(parsedArgs, configPath) },
+  "techtree science-tasks checklist": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksChecklist(parsedArgs, configPath) },
+  "techtree science-tasks evidence": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksEvidence(parsedArgs, configPath) },
+  "techtree science-tasks export": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksExport(parsedArgs, configPath) },
+  "techtree science-tasks submit": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksSubmit(parsedArgs, configPath) },
+  "techtree science-tasks review-update": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksReviewUpdate(parsedArgs, configPath) },
+  "techtree science-tasks review-loop": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksReviewLoop(parsedArgs, configPath) },
+  "techtree science set-goal": { run: ({ parsedArgs, configPath }) => runTechtreeScienceSetGoal(parsedArgs, configPath) },
+  "techtree science agent set <agent>": { run: ({ parsedArgs, configPath }) => runTechtreeScienceAgentSet(parsedArgs, configPath) },
+  "techtree science run": { run: ({ parsedArgs, configPath }) => runTechtreeScienceRun(parsedArgs, configPath) },
+  "techtree work list": { run: ({ parsedArgs, configPath }) => runTechtreeWorkList(parsedArgs, configPath) },
+  "techtree work next": { run: ({ parsedArgs, configPath }) => runTechtreeWorkNext(parsedArgs, configPath) },
+  "techtree work accept": { run: ({ parsedArgs, configPath }) => runTechtreeWorkAccept(parsedArgs, configPath) },
+  "techtree work publish": { run: ({ parsedArgs, configPath }) => runTechtreeWorkPublish(parsedArgs, configPath) },
+  "techtree work": { run: ({ parsedArgs, configPath }) => runTechtreeWorkSummary(parsedArgs, configPath) },
+  "techtree notebooks init": { run: ({ parsedArgs, configPath }) => runTechtreeNotebooksInit(parsedArgs, configPath) },
+  "techtree notebooks pair": { run: ({ parsedArgs, configPath }) => runTechtreeNotebooksPair(parsedArgs, configPath) },
+  "techtree notebooks publish": { run: ({ parsedArgs, configPath }) => runTechtreeNotebooksPublish(parsedArgs, configPath) },
+  "techtree benchmarks list": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksList(parsedArgs, configPath) },
+  "techtree benchmarks get <capsule_id>": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksGet(parsedArgs, configPath) },
+  "techtree benchmarks scoreboard <capsule_id>": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksScoreboard(parsedArgs, configPath) },
+  "techtree benchmarks reliability <capsule_id>": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksReliability(parsedArgs, configPath) },
+  "techtree benchmarks capsule init": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksCapsuleInit(parsedArgs, configPath) },
+  "techtree benchmarks capsule pack": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksCapsulePack(parsedArgs, configPath) },
+  "techtree benchmarks capsule submit": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksCapsuleSubmit(parsedArgs, configPath) },
+  "techtree benchmarks run materialize": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksRunMaterialize(parsedArgs, configPath) },
+  "techtree benchmarks run submit": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksRunSubmit(parsedArgs, configPath) },
+  "techtree benchmarks run repeat": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksRunRepeat(parsedArgs, configPath) },
+  "techtree benchmarks validate": { run: ({ parsedArgs, configPath }) => runTechtreeBenchmarksValidate(parsedArgs, configPath) },
+  "techtree fold policy init": { run: ({ parsedArgs, configPath }) => runTechtreeFoldPolicyInit(parsedArgs, configPath) },
+  "techtree fold status": { run: ({ parsedArgs, configPath }) => runTechtreeFoldStatus(parsedArgs, configPath) },
+  "techtree fold proof": { run: ({ parsedArgs, configPath }) => runTechtreeFoldProof(parsedArgs, configPath) },
+  "techtree fold report": { run: ({ parsedArgs, configPath }) => runTechtreeFoldReport(parsedArgs, configPath) },
+  "techtree runbook questions list": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookQuestionsList(parsedArgs, configPath) },
+  "techtree runbook questions get <id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookQuestionsGet(parsedArgs, configPath) },
+  "techtree runbook payment-address set": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookPaymentAddressSet(parsedArgs, configPath) },
+  "techtree runbook question post": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookQuestionPost(parsedArgs, configPath) },
+  "techtree runbook answer post <question_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookAnswerPost(parsedArgs, configPath) },
+  "techtree runbook answer attach-paid-solution <answer_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookAnswerAttachPaidSolution(parsedArgs, configPath) },
+  "techtree runbook answer vote <answer_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookAnswerVote(parsedArgs, configPath) },
+  "techtree runbook mark-solved <question_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookMarkSolved(parsedArgs, configPath) },
+  "techtree runbook unlock <answer_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookUnlock(parsedArgs, configPath) },
+  "techtree runbook invite-request <question_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookInviteRequest(parsedArgs, configPath) },
+  "techtree tech status": { run: ({ parsedArgs, configPath }) => runTechtreeTechStatus(parsedArgs, configPath) },
+  "techtree tech epochs current": { run: ({ parsedArgs, configPath }) => runTechtreeTechEpochCurrent(parsedArgs, configPath) },
+  "techtree tech leaderboards list": { run: ({ parsedArgs, configPath }) => runTechtreeTechLeaderboardsList(parsedArgs, configPath) },
+  "techtree tech leaderboards register": { run: ({ parsedArgs, configPath }) => runTechtreeTechLeaderboardsRegister(parsedArgs, configPath) },
+  "techtree tech leaderboards confirm": { run: ({ parsedArgs, configPath }) => runTechtreeTechLeaderboardsConfirm(parsedArgs, configPath) },
+  "techtree tech rewards list": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsList(parsedArgs, configPath) },
+  "techtree tech rewards proof": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsProof(parsedArgs, configPath) },
+  "techtree tech rewards claim": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsClaim(parsedArgs, configPath) },
+  "techtree tech rewards root prepare": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsRootPrepare(parsedArgs, configPath) },
+  "techtree tech rewards root confirm": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsRootConfirm(parsedArgs, configPath) },
+  "techtree tech withdraw": { run: ({ parsedArgs, configPath }) => runTechtreeTechWithdraw(parsedArgs, configPath) },
+  // `techtree start` owns its exit code via runTechtreeStartCommand (mirrors top-level `start`).
+  "techtree start": { run: ({ parsedArgs, configPath }) => runTechtreeStartCommand(parsedArgs, configPath) },
+  "techtree autoskill init skill": { run: ({ parsedArgs, configPath }) => runAutoskillInitSkill(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill init eval": { run: ({ parsedArgs, configPath }) => runAutoskillInitEval(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill notebook pair": { run: ({ parsedArgs, configPath }) => runAutoskillNotebookPair(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill publish skill": { run: ({ parsedArgs, configPath }) => runAutoskillPublishSkill(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill publish eval": { run: ({ parsedArgs, configPath }) => runAutoskillPublishEval(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill publish result": { run: ({ parsedArgs, configPath }) => runAutoskillPublishResult(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill review": { run: ({ parsedArgs, configPath }) => runAutoskillReview(parsedArgs, configPath) },
+  "techtree autoskill listing create": { run: ({ parsedArgs, configPath }) => runAutoskillListingCreate(parsedArgs, configPath) },
+  "techtree autoskill buy": { run: ({ parsedArgs, configPath }) => runAutoskillBuy(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill refund": { run: ({ parsedArgs, configPath }) => runAutoskillRefund(parsedArgs, configPath), variadicTail: true },
+  "techtree autoskill pull": { run: ({ parsedArgs, configPath }) => runAutoskillPull(parsedArgs, configPath), variadicTail: true },
+  "techtree reviewer orcid link": { run: ({ parsedArgs, configPath }) => runTechtreeReviewerOrcidLink(parsedArgs, configPath) },
+  "techtree reviewer apply": { run: ({ parsedArgs, configPath }) => runTechtreeReviewerApply(parsedArgs, configPath) },
+  "techtree reviewer status": { run: ({ configPath }) => runTechtreeReviewerStatus(configPath) },
+  "techtree review list": { run: ({ parsedArgs, configPath }) => runTechtreeReviewList(parsedArgs, configPath) },
+  "techtree review claim": { run: ({ parsedArgs, configPath }) => runTechtreeReviewClaim(parsedArgs, configPath), variadicTail: true },
+  "techtree review pull": { run: ({ parsedArgs, configPath }) => runTechtreeReviewPull(parsedArgs, configPath), variadicTail: true },
+  "techtree review submit": { run: ({ parsedArgs, configPath }) => runTechtreeReviewSubmit(parsedArgs, configPath), variadicTail: true },
+  "techtree certificate verify": { run: ({ parsedArgs, configPath }) => runTechtreeCertificateVerify(parsedArgs, configPath), variadicTail: true },
+  "techtree activity": { run: ({ parsedArgs, configPath }) => runTechtreeActivity(parsedArgs, configPath) },
+  "techtree search": { run: ({ parsedArgs, configPath }) => runTechtreeSearch(parsedArgs, configPath) },
+  "techtree nodes list": { run: ({ rawArgs, configPath }) => runTechtreeNodesList(rawArgs, configPath) },
+  // Placeholder-bearing node commands read their numeric id from positionals by index.
+  "techtree node get <id>": { run: ({ positionals, configPath }) => runTechtreeNodeGet(requireNodeId(positionals[3]), configPath) },
+  "techtree node children <id>": { run: ({ rawArgs, positionals, configPath }) => runTechtreeNodeChildren(rawArgs, requireNodeId(positionals[3]), configPath) },
+  "techtree node comments <id>": { run: ({ rawArgs, positionals, configPath }) => runTechtreeNodeComments(rawArgs, requireNodeId(positionals[3]), configPath) },
+  "techtree node lineage list": { run: ({ parsedArgs, configPath }) => runTechtreeNodeLineageList(parsedArgs, configPath), variadicTail: true },
+  "techtree node lineage claim": { run: ({ parsedArgs, configPath }) => runTechtreeNodeLineageClaim(parsedArgs, configPath), variadicTail: true },
+  "techtree node lineage withdraw": { run: ({ parsedArgs, configPath }) => runTechtreeNodeLineageWithdraw(parsedArgs, configPath), variadicTail: true },
+  "techtree node cross-chain-links list": { run: ({ parsedArgs, configPath }) => runTechtreeNodeCrossChainLinksList(parsedArgs, configPath), variadicTail: true },
+  "techtree node cross-chain-links create": { run: ({ parsedArgs, configPath }) => runTechtreeNodeCrossChainLinksCreate(parsedArgs, configPath), variadicTail: true },
+  "techtree node cross-chain-links clear": { run: ({ parsedArgs, configPath }) => runTechtreeNodeCrossChainLinksClear(parsedArgs, configPath), variadicTail: true },
+  "techtree node create": { run: ({ rawArgs, configPath }) => runTechtreeNodeCreate(rawArgs, configPath) },
+  "techtree comment add": { run: ({ rawArgs, configPath }) => runTechtreeCommentAdd(rawArgs, configPath) },
+  "techtree node work-packet <id>": { run: ({ positionals, configPath }) => runTechtreeNodeWorkPacket(requireNodeId(positionals[3]), configPath) },
+  "techtree identities list": { run: ({ parsedArgs }) => runTechtreeIdentitiesList(parsedArgs) },
+  "techtree identities mint": { run: ({ parsedArgs }) => runTechtreeIdentitiesMint(parsedArgs) },
+  "techtree watch list": { run: ({ configPath }) => runTechtreeWatchList(configPath) },
+  "techtree watch tail": { run: ({ parsedArgs, configPath }) => runTechtreeWatchTail(parsedArgs, configPath) },
+  "techtree watch <id>": { run: ({ positionals, configPath }) => runTechtreeWatch(requireNodeId(positionals[2]), configPath) },
+  "techtree unwatch <id>": { run: ({ positionals, configPath }) => runTechtreeUnwatch(requireNodeId(positionals[2]), configPath) },
+  "techtree star <id>": { run: ({ positionals, configPath }) => runTechtreeStar(requireNodeId(positionals[2]), configPath) },
+  "techtree unstar <id>": { run: ({ positionals, configPath }) => runTechtreeUnstar(requireNodeId(positionals[2]), configPath) },
+  "techtree inbox": { run: ({ rawArgs, configPath }) => runTechtreeInbox(rawArgs, configPath) },
+  "techtree opportunities": { run: ({ rawArgs, configPath }) => runTechtreeOpportunities(rawArgs, configPath) },
+  // Named-tree (bbh / main) commands.
+  "techtree bbh run exec": { run: ({ parsedArgs, configPath }) => runTechtreeBbhRunExec(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh run solve": { run: ({ parsedArgs, configPath }) => runTechtreeBbhRunSolve(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh notebook pair": { run: ({ parsedArgs, configPath }) => runTechtreeBbhNotebookPair(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh capsules list": { run: ({ parsedArgs, configPath }) => runTechtreeBbhCapsulesList(parsedArgs, configPath) },
+  "techtree bbh capsules get": { run: ({ parsedArgs, configPath }) => runTechtreeBbhCapsulesGet(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh submit": { run: ({ parsedArgs, configPath }) => runTechtreeBbhSubmit(parsedArgs, configPath) },
+  "techtree bbh validate": { run: ({ parsedArgs, configPath }) => runTechtreeBbhValidate(parsedArgs, configPath) },
+  "techtree bbh leaderboard": { run: ({ parsedArgs, configPath }) => runTechtreeBbhLeaderboard(parsedArgs, configPath) },
+  "techtree bbh draft init": { run: ({ parsedArgs, configPath }) => runTechtreeBbhDraftInit(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh draft create": { run: ({ parsedArgs, configPath }) => runTechtreeBbhDraftCreate(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh draft list": { run: ({ configPath }) => runTechtreeBbhDraftList(configPath) },
+  "techtree bbh draft pull": { run: ({ parsedArgs, configPath }) => runTechtreeBbhDraftPull(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh draft propose": { run: ({ parsedArgs, configPath }) => runTechtreeBbhDraftPropose(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh draft proposals": { run: ({ parsedArgs, configPath }) => runTechtreeBbhDraftProposals(parsedArgs, configPath) },
+  "techtree bbh draft apply": { run: ({ parsedArgs, configPath }) => runTechtreeBbhDraftApply(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh draft ready": { run: ({ parsedArgs, configPath }) => runTechtreeBbhDraftReady(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh genome init": { run: ({ parsedArgs, configPath }) => runTechtreeBbhGenomeInit(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh genome score": { run: ({ parsedArgs, configPath }) => runTechtreeBbhGenomeScore(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh genome improve": { run: ({ parsedArgs, configPath }) => runTechtreeBbhGenomeImprove(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh genome propose": { run: ({ parsedArgs, configPath }) => runTechtreeBbhGenomePropose(parsedArgs, configPath), variadicTail: true },
+  "techtree bbh sync": { run: ({ parsedArgs, configPath }) => runTechtreeBbhSync(parsedArgs, configPath) },
+  // `main fetch`/`main verify` pass the tree name explicitly to the shared handler.
+  "techtree main fetch": { run: ({ parsedArgs, configPath }) => runTechtreeFetch("main", parsedArgs, configPath), variadicTail: true },
+  "techtree main verify": { run: ({ parsedArgs, configPath }) => runTechtreeVerify("main", parsedArgs, configPath), variadicTail: true },
+};
