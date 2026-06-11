@@ -187,6 +187,142 @@ describe("platform CLI command group", () => {
     });
   });
 
+  it("starts a billing top-up checkout in whole dollars", async () => {
+    writeSession();
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          checkout_url: "https://checkout.stripe.test/session-1",
+          billing_account: { runtime_credit_balance_usd_cents: 0 },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "billing",
+        "topup",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+        "--amount-usd",
+        "25",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/billing/topups/checkout");
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(JSON.stringify({ amountUsdCents: 2_500 }));
+    expect(
+      parsePrintedJson<{ command: string; checkout: { checkout_url: string } }>(output.stdout),
+    ).toMatchObject({
+      command: "regents platform billing topup",
+      checkout: { checkout_url: "https://checkout.stripe.test/session-1" },
+    });
+  });
+
+  it("pauses a company's hosted runtime", async () => {
+    writeSession();
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          sprite: {
+            slug: "tempo",
+            desired_runtime_state: "paused",
+            observed_runtime_state: "paused",
+            runtime_status: "paused",
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "company",
+        "pause",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+        "--slug",
+        "tempo",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/sprites/tempo/pause");
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(parsePrintedJson<{ command: string; sprite: { runtime_status: string } }>(output.stdout)).toMatchObject({
+      command: "regents platform company pause",
+      sprite: { slug: "tempo", runtime_status: "paused" },
+    });
+  });
+
+  it("resumes a company's hosted runtime", async () => {
+    writeSession();
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          sprite: {
+            slug: "tempo",
+            desired_runtime_state: "active",
+            observed_runtime_state: "active",
+            runtime_status: "ready",
+          },
+          billing_account: { runtime_credit_balance_usd_cents: 5_000 },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "company",
+        "resume",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+        "--slug",
+        "tempo",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/sprites/tempo/resume");
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(
+      parsePrintedJson<{
+        command: string;
+        sprite: { runtime_status: string };
+        billing_account: { runtime_credit_balance_usd_cents: number };
+      }>(output.stdout),
+    ).toMatchObject({
+      command: "regents platform company resume",
+      sprite: { slug: "tempo", runtime_status: "ready" },
+      billing_account: { runtime_credit_balance_usd_cents: 5_000 },
+    });
+  });
+
   it("saves Platform billing spend controls in cents", async () => {
     writeSession();
     fetchMock.mockResolvedValue(

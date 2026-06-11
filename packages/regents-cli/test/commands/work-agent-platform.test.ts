@@ -273,6 +273,66 @@ describe("work and agent platform commands", () => {
     expect(parsePrintedJson<{ result: { run: { id: number } } }>(output.stdout).result.run.id).toBe(456);
   });
 
+  it("cancels a run through the run cancel route", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, run: runRecord() }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "work",
+        "cancel",
+        "run_456",
+        "--company-id",
+        "company_123",
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_456/cancel",
+    );
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
+      command: "regents work cancel",
+    });
+  });
+
+  it("retries a run through the run retry route", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, run: runRecord() }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "work",
+        "retry",
+        "run_456",
+        "--company-id",
+        "company_123",
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_456/retry",
+    );
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
+      command: "regents work retry",
+    });
+  });
+
   it("renders a readable work run summary for human terminals", async () => {
     useHumanTerminal();
     fetchMock.mockResolvedValue(

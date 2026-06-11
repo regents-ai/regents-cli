@@ -22,7 +22,6 @@ export const CLI_COMMANDS = [
   "autolaunch agent readiness <id>",
   "autolaunch agents list",
   "autolaunch auction <id>",
-  "autolaunch auction state <id>",
   "autolaunch auction-returns list",
   "autolaunch auctions list",
   "autolaunch bids claim",
@@ -141,7 +140,10 @@ export const CLI_COMMANDS = [
   "platform auth status",
   "platform billing account",
   "platform billing spend-controls set",
+  "platform billing topup",
   "platform billing usage",
+  "platform company pause",
+  "platform company resume",
   "platform company runtime",
   "platform formation doctor",
   "platform formation status",
@@ -320,10 +322,12 @@ export const CLI_COMMANDS = [
   "wallet setup",
   "wallet status",
   "whoami",
+  "work cancel",
   "work create",
   "work get",
   "work list",
   "work local-loop",
+  "work retry",
   "work run",
   "work watch",
   "x402 details",
@@ -400,7 +404,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch agent readiness <id>",
     "autolaunch agents list",
     "autolaunch auction <id>",
-    "autolaunch auction state <id>",
     "autolaunch auction-returns list",
     "autolaunch auctions list",
     "autolaunch bids claim",
@@ -541,7 +544,10 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "platform auth status",
     "platform billing account",
     "platform billing spend-controls set",
+    "platform billing topup",
     "platform billing usage",
+    "platform company pause",
+    "platform company resume",
     "platform company runtime",
     "platform formation doctor",
     "platform formation status",
@@ -748,10 +754,12 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "whoami"
   ],
   "work": [
+    "work cancel",
     "work create",
     "work get",
     "work list",
     "work local-loop",
+    "work retry",
     "work run",
     "work watch"
   ],
@@ -1538,31 +1546,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch auction."
-  },
-  "autolaunch auction state <id>": {
-    "command": "autolaunch auction state <id>",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Show Autolaunch auction state."
   },
   "autolaunch auction-returns list": {
     "command": "autolaunch auction-returns list",
@@ -5324,6 +5307,56 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Save monthly hosting, model usage, and automatic credit top-up settings."
   },
+  "platform billing topup": {
+    "command": "platform billing topup",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http-cookie-session",
+    "auth_mode": "session-file",
+    "output_envelope": "json",
+    "operation_ids": [
+      "agentPlatformBillingTopupCheckout"
+    ],
+    "args": [],
+    "flags": [
+      {
+        "name": "--amount-usd",
+        "type": "integer",
+        "required": true,
+        "description": "Credit amount to add, in whole dollars."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Start a Stripe checkout that adds shared runtime credit."
+  },
   "platform billing usage": {
     "command": "platform billing usage",
     "owner": "platform",
@@ -5367,6 +5400,106 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show shared runtime credit and company usage from the saved platform session."
+  },
+  "platform company pause": {
+    "command": "platform company pause",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http-cookie-session",
+    "auth_mode": "session-file",
+    "output_envelope": "json",
+    "operation_ids": [
+      "agentPlatformPauseSprite"
+    ],
+    "args": [],
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug to pause."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Pause the hosted runtime for one owned company."
+  },
+  "platform company resume": {
+    "command": "platform company resume",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http-cookie-session",
+    "auth_mode": "session-file",
+    "output_envelope": "json",
+    "operation_ids": [
+      "agentPlatformResumeSprite"
+    ],
+    "args": [],
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug to resume."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Resume the hosted runtime for one owned company."
   },
   "platform company runtime": {
     "command": "platform company runtime",
@@ -10857,6 +10990,63 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show the local Agent account and saved sign-in context."
   },
+  "work cancel": {
+    "command": "work cancel",
+    "owner": "platform",
+    "group": "work",
+    "interface": "http-cookie-session",
+    "auth_mode": "session-file",
+    "output_envelope": "json",
+    "operation_ids": [
+      "cancelRwrRun"
+    ],
+    "args": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "required": true,
+        "description": "Work run id."
+      }
+    ],
+    "flags": [
+      {
+        "name": "--company-id",
+        "type": "string",
+        "required": true,
+        "description": "Regent company id."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Cancel one work run."
+  },
   "work create": {
     "command": "work create",
     "owner": "platform",
@@ -11124,6 +11314,63 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Let one local worker check for assigned Regent work."
+  },
+  "work retry": {
+    "command": "work retry",
+    "owner": "platform",
+    "group": "work",
+    "interface": "http-cookie-session",
+    "auth_mode": "session-file",
+    "output_envelope": "json",
+    "operation_ids": [
+      "retryRwrRun"
+    ],
+    "args": [
+      {
+        "name": "run_id",
+        "type": "string",
+        "required": true,
+        "description": "Work run id."
+      }
+    ],
+    "flags": [
+      {
+        "name": "--company-id",
+        "type": "string",
+        "required": true,
+        "description": "Regent company id."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Start a new attempt for one work run."
   },
   "work run": {
     "command": "work run",

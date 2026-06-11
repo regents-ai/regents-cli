@@ -245,6 +245,68 @@ export async function runPlatformCompanyRuntime(args: ParsedCliArgs): Promise<vo
   });
 }
 
+export async function runPlatformCompanyPause(args: ParsedCliArgs): Promise<void> {
+  const slug = requireArg(getFlag(args, "slug"), "slug");
+  const { origin, session } = await loadResolvedPlatformSession(args);
+  const { data } = await requestPlatformSessionJson({
+    origin,
+    path: `/api/agent-platform/sprites/${encodeURIComponent(slug)}/pause`,
+    method: "POST",
+    session,
+    commandName: "regents platform company pause",
+    configPath: getFlag(args, "config"),
+  });
+
+  printJson({
+    ok: true,
+    command: "regents platform company pause",
+    origin,
+    sprite: data.sprite,
+  });
+}
+
+export async function runPlatformCompanyResume(args: ParsedCliArgs): Promise<void> {
+  const slug = requireArg(getFlag(args, "slug"), "slug");
+  const { origin, session } = await loadResolvedPlatformSession(args);
+  const { data } = await requestPlatformSessionJson({
+    origin,
+    path: `/api/agent-platform/sprites/${encodeURIComponent(slug)}/resume`,
+    method: "POST",
+    session,
+    commandName: "regents platform company resume",
+    configPath: getFlag(args, "config"),
+  });
+
+  printJson({
+    ok: true,
+    command: "regents platform company resume",
+    origin,
+    sprite: data.sprite,
+    billing_account: data.billing_account,
+  });
+}
+
+export async function runPlatformBillingTopup(args: ParsedCliArgs): Promise<void> {
+  const amountUsdCents = dollarsToCents(args, "amount-usd");
+  const { origin, session } = await loadResolvedPlatformSession(args);
+  const { data } = await requestPlatformSessionJson({
+    origin,
+    path: "/api/agent-platform/billing/topups/checkout",
+    method: "POST",
+    session,
+    body: { amountUsdCents },
+    commandName: "regents platform billing topup",
+    configPath: getFlag(args, "config"),
+  });
+
+  printJson({
+    ok: true,
+    command: "regents platform billing topup",
+    origin,
+    checkout: data,
+  });
+}
+
 const resolveOrigin = (args: ParsedCliArgs): string =>
   normalizeOrigin(
     getFlag(args, "origin") ??

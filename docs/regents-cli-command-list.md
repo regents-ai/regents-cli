@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 366.
+Total commands: 370.
 
 ## Full Command List
 
@@ -42,7 +42,6 @@ Total commands: 366.
 - `regents autolaunch agent readiness <id>` - Show agent readiness.
 - `regents autolaunch agents list` - List agents.
 - `regents autolaunch auction <id>` - Show Autolaunch auction.
-- `regents autolaunch auction state <id>` - Show Autolaunch auction state.
 - `regents autolaunch auction-returns list` - List auction returns.
 - `regents autolaunch auctions list` - List auctions.
 - `regents autolaunch bids claim` - Claim bids.
@@ -194,7 +193,10 @@ Total commands: 366.
 - `regents platform auth status` - Show who is signed in through the saved platform session.
 - `regents platform billing account` - Show the billing account tied to the saved platform session.
 - `regents platform billing spend-controls set` - Save monthly hosting, model usage, and automatic credit top-up settings.
+- `regents platform billing topup` - Start a Stripe checkout that adds shared runtime credit.
 - `regents platform billing usage` - Show shared runtime credit and company usage from the saved platform session.
+- `regents platform company pause` - Pause the hosted runtime for one owned company.
+- `regents platform company resume` - Resume the hosted runtime for one owned company.
 - `regents platform company runtime` - Show runtime state for one owned company from the saved platform session.
 - `regents platform formation doctor` - Explain why company opening is blocked or what is ready next.
 - `regents platform formation status` - Show launch readiness from the saved session, including claimed names, billing, and owned companies.
@@ -415,10 +417,12 @@ Total commands: 366.
 
 ### Work
 
+- `regents work cancel` - Cancel one work run.
 - `regents work create` - Create work for one Regent company.
 - `regents work get` - Show one work item for a Regent company.
 - `regents work list` - List work for one Regent company.
 - `regents work local-loop` - Let one local worker check for assigned Regent work.
+- `regents work retry` - Start a new attempt for one work run.
 - `regents work run` - Start a run for one work item.
 - `regents work watch` - Watch events for one work run.
 

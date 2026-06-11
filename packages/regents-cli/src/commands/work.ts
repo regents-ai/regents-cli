@@ -117,6 +117,28 @@ export async function runWorkRun(args: ParsedCliArgs): Promise<void> {
   printWorkRunResult(args, { ok: true, command: "regents work run", origin, result: data });
 }
 
+export async function runWorkCancel(args: ParsedCliArgs): Promise<void> {
+  const resolvedCompanyId = companyId(args);
+  const runId = positional(args, 2, "run_id");
+  const { origin, data } = await requestWorkJson(args, {
+    method: "POST",
+    path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(runId)}/cancel`,
+  });
+
+  printWorkRunResult(args, { ok: true, command: "regents work cancel", origin, result: data });
+}
+
+export async function runWorkRetry(args: ParsedCliArgs): Promise<void> {
+  const resolvedCompanyId = companyId(args);
+  const runId = positional(args, 2, "run_id");
+  const { origin, data } = await requestWorkJson(args, {
+    method: "POST",
+    path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(runId)}/retry`,
+  });
+
+  printWorkRunResult(args, { ok: true, command: "regents work retry", origin, result: data });
+}
+
 export async function runWorkWatch(args: ParsedCliArgs): Promise<void> {
   const resolvedCompanyId = companyId(args);
   const runId = positional(args, 2, "run_id");
