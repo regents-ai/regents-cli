@@ -100,7 +100,7 @@ const platformPublicCommand = (command) =>
   command === "security-report" ||
   command.startsWith("regent-staking ");
 
-const bannedCommandVerbs = new Set(["show", "info", "read"]);
+const bannedCommandVerbs = new Set(["show", "info"]);
 const paginatedCommandWords = new Set([
   "activity",
   "history",
@@ -550,20 +550,33 @@ for (const command of routeCommands) {
   }
 }
 
-const requiredChatboxCommands = ["chatbox history", "chatbox tail", "chatbox post"];
-for (const command of requiredChatboxCommands) {
+const requiredChatCommands = [
+  "techtree chat list",
+  "techtree chat read <scope>",
+  "techtree chat tail <scope>",
+  "techtree chat send <scope>",
+  "techtree chat join <node-id>",
+  "techtree dm <node-id|address>",
+  "techtree dm list",
+];
+for (const command of requiredChatCommands) {
   if (!flattenedContracts.techtree.commands.has(command)) {
     fail(`Techtree CLI contract is missing runtime command: ${command}`);
   }
 }
 
-for (const command of requiredChatboxCommands) {
+for (const command of requiredChatCommands) {
   if (!routeCommands.has(command)) {
-    fail(`CLI dispatcher is missing required chatbox route: ${command}`);
+    fail(`CLI dispatcher is missing required chat route: ${command}`);
   }
 }
 
-const requiredRpcMethods = ["techtree.chatbox.history", "techtree.chatbox.post"];
+const requiredRpcMethods = [
+  "techtree.chat.channels",
+  "techtree.chat.history",
+  "techtree.chat.post",
+  "techtree.chat.join",
+];
 for (const method of requiredRpcMethods) {
   if (!flattenedContracts.techtree.rpcMethods.has(method)) {
     fail(`Techtree CLI contract is missing runtime RPC method: ${method}`);

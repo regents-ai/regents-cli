@@ -1,7 +1,9 @@
 import type {
-  ChatboxListResponse,
-  ChatboxPostInput,
-  ChatboxPostResponse,
+  ChatChannelListResponse,
+  ChatListResponse,
+  ChatPostInput,
+  ChatPostResponse,
+  NodeRoomMembershipResponse,
   NodeStarRecord,
   WatchRecord,
 } from "../../../internal-types/index.js";
@@ -40,16 +42,32 @@ export async function handleTechtreeStarDelete(
   return ctx.techtree.unstarNode(params.nodeId);
 }
 
-export async function handleTechtreeChatboxHistory(
-  ctx: RuntimeContext,
-  params?: { before?: number; limit?: number; room?: "webapp" | "agent" },
-): Promise<ChatboxListResponse> {
-  return ctx.techtree.listChatboxMessages(params);
+export async function handleTechtreeChatChannels(ctx: RuntimeContext): Promise<ChatChannelListResponse> {
+  return ctx.techtree.listChatChannels();
 }
 
-export async function handleTechtreeChatboxPost(
+export async function handleTechtreeChatHistory(
   ctx: RuntimeContext,
-  params: ChatboxPostInput,
-): Promise<ChatboxPostResponse> {
-  return ctx.techtree.createAgentChatboxMessage(params);
+  params: { scope: string; before?: number; limit?: number },
+): Promise<ChatListResponse> {
+  const { scope, ...rest } = params;
+  return ctx.techtree.listChatMessages(scope, rest);
+}
+
+export async function handleTechtreeChatPost(
+  ctx: RuntimeContext,
+  params: { scope: string } & ChatPostInput,
+): Promise<ChatPostResponse> {
+  const { scope, ...input } = params;
+  return ctx.techtree.createAgentChatMessage(scope, input);
+}
+
+export async function handleTechtreeChatJoin(
+  ctx: RuntimeContext,
+  params: { nodeId: number; xmtpInboxId?: string },
+): Promise<NodeRoomMembershipResponse> {
+  return ctx.techtree.requestNodeRoomMembership(
+    params.nodeId,
+    params.xmtpInboxId ? { xmtp_inbox_id: params.xmtpInboxId } : undefined,
+  );
 }

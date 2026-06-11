@@ -1,17 +1,18 @@
-import type { GossipsubStatus, RegentConfig, ChatboxLiveEvent } from "../../internal-types/index.js";
+import type { GossipsubStatus, RegentConfig, ChatLiveEvent } from "../../internal-types/index.js";
 
 import { RegentError, errorMessage } from "../errors.js";
 import type { TechtreeClient } from "../techtree/client.js";
 import type { TransportAdapter } from "./transport-adapter.js";
 
-type ChatboxListener = (event: ChatboxLiveEvent) => void;
-type ChatboxRoom = "webapp" | "agent";
+type ChatListener = (event: ChatLiveEvent) => void;
+
+export const DEFAULT_CHAT_SCOPE = "system";
 
 export interface GossipsubAdapter {
   start(): Promise<void>;
   stop(): Promise<void>;
   status(): Promise<GossipsubStatus>;
-  subscribeChatbox(listener: ChatboxListener, room?: ChatboxRoom): Promise<() => void>;
+  subscribeChat(listener: ChatListener, scope?: string): Promise<() => void>;
 }
 
 const baseDisabledStatus = (eventSocketPath: string | null): GossipsubStatus => ({
@@ -23,10 +24,10 @@ const baseDisabledStatus = (eventSocketPath: string | null): GossipsubStatus => 
   lastError: null,
   eventSocketPath,
   status: "disabled",
-  note: "Chatbox transport disabled",
+  note: "Chat transport disabled",
 });
 
-export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAdapter {
+export class PublicChatRelayAdapter implements GossipsubAdapter, TransportAdapter {
   private readonly config: RegentConfig["gossipsub"];
   private readonly techtree: TechtreeClient;
   private readonly eventSocketPath: string;
@@ -75,15 +76,15 @@ export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAda
         status: "degraded",
         eventSocketPath: this.eventSocketPath,
         lastError: errorMessage(error),
-        note: "Chatbox transport status could not be refreshed",
+        note: "Chat transport status could not be refreshed",
       };
       return this.currentStatus;
     }
   }
 
-  async subscribeChatbox(listener: ChatboxListener, room: ChatboxRoom = "webapp"): Promise<() => void> {
+  async subscribeChat(listener: ChatListener, scope: string = DEFAULT_CHAT_SCOPE): Promise<() => void> {
     if (!this.config.enabled) {
-      throw new RegentError("chatbox_relay_disabled", "chatbox transport is disabled in config");
+      throw new RegentError("chat_relay_disabled", "chat transport is disabled in config");
     }
 
     const controller = new AbortController();
@@ -92,8 +93,8 @@ export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAda
     void (async () => {
       while (!controller.signal.aborted) {
         try {
-          await this.techtree.streamChatbox(
-            room,
+          await this.techtree.streamChat(
+            scope,
             (payload: unknown) => {
               if (controller.signal.aborted) {
                 return;
@@ -104,9 +105,9 @@ export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAda
                 connected: true,
                 status: "ready",
                 lastError: null,
-                note: `Chatbox relay subscribed to ${room}`,
+                note: `Chat relay subscribed to ${scope}`,
               };
-              listener(payload as ChatboxLiveEvent);
+              listener(payload as ChatLiveEvent);
             },
             controller.signal,
           );
@@ -116,7 +117,7 @@ export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAda
               ...this.currentStatus,
               connected: false,
               status: "degraded",
-              note: "Chatbox relay stream ended; reconnecting",
+              note: "Chat relay stream ended; reconnecting",
             };
           }
         } catch (error: unknown) {
@@ -126,7 +127,7 @@ export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAda
               connected: false,
               status: "degraded",
               lastError: errorMessage(error),
-              note: "Chatbox relay subscription failed; reconnecting",
+              note: "Chat relay subscription failed; reconnecting",
             };
           }
         }
@@ -157,7 +158,7 @@ export class PublicChatboxRelayAdapter implements GossipsubAdapter, TransportAda
       lastError: null,
       eventSocketPath: this.eventSocketPath,
       status: "starting",
-      note: "Chatbox transport initialized",
+      note: "Chat transport initialized",
     };
   }
 }
@@ -171,7 +172,7 @@ export class StubGossipsubAdapter implements GossipsubAdapter {
     return baseDisabledStatus(null);
   }
 
-  async subscribeChatbox(): Promise<() => void> {
-    throw new RegentError("chatbox_relay_disabled", "chatbox transport is disabled in config");
+  async subscribeChat(): Promise<() => void> {
+    throw new RegentError("chat_relay_disabled", "chat transport is disabled in config");
   }
 }

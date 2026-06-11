@@ -42,7 +42,7 @@ vi.mock("node:net", () => ({
   },
 }));
 
-const { runChatboxTail } = await import("../src/commands/chatbox.js");
+const { tailChatScope } = await import("../src/commands/chat.js");
 
 const captureOutput = async (run: () => Promise<unknown>): Promise<{
   stdout: string;
@@ -75,7 +75,7 @@ const captureOutput = async (run: () => Promise<unknown>): Promise<{
   }
 };
 
-describe("chatbox tail", () => {
+describe("chat tail", () => {
   beforeEach(() => {
     daemonCallMock.mockReset();
     createConnectionMock.mockReset();
@@ -84,7 +84,7 @@ describe("chatbox tail", () => {
   it("prints newline-delimited live events from the daemon-owned relay socket", async () => {
     const socket = new FakeSocket();
     createConnectionMock.mockImplementationOnce((socketPath: string) => {
-      expect(socketPath).toBe("/tmp/runtime.chatbox.sock");
+      expect(socketPath).toBe("/tmp/runtime.chat.sock");
 
       queueMicrotask(() => {
         socket.emit("connect");
@@ -92,14 +92,14 @@ describe("chatbox tail", () => {
           "data",
           `${JSON.stringify({
             event: "message.created",
-            message: { id: 1, body: "first event" },
+            message: { id: 1, scope: "system", body: "first event" },
           })}\n`,
         );
         socket.emit(
           "data",
           `${JSON.stringify({
             event: "reaction.updated",
-            message: { id: 1, body: "first event", reactions: { ":+1:": 1 } },
+            message: { id: 1, scope: "system", body: "first event", reactions: { ":+1:": 1 } },
           })}\n`,
         );
         socket.emit("close");
@@ -110,24 +110,24 @@ describe("chatbox tail", () => {
 
     daemonCallMock.mockResolvedValue({
       enabled: true,
-      eventSocketPath: "/tmp/runtime.chatbox.sock",
+      eventSocketPath: "/tmp/runtime.chat.sock",
     });
 
-    const output = await captureOutput(async () => runChatboxTail(undefined, "/tmp/regent.config.json"));
+    const output = await captureOutput(async () => tailChatScope("system", "/tmp/regent.config.json"));
 
     expect(output.stderr).toBe("");
     expect(socket.encoding).toBe("utf8");
-    expect(socket.writes).toEqual([`${JSON.stringify({ room: "webapp" })}\n`]);
+    expect(socket.writes).toEqual([`${JSON.stringify({ scope: "system" })}\n`]);
     expect(socket.ended).toBe(true);
     expect(socket.destroyed).toBe(true);
 
     expect(output.stdout).toBe(
       `${JSON.stringify({
         event: "message.created",
-        message: { id: 1, body: "first event" },
+        message: { id: 1, scope: "system", body: "first event" },
       })}\n${JSON.stringify({
         event: "reaction.updated",
-        message: { id: 1, body: "first event", reactions: { ":+1:": 1 } },
+        message: { id: 1, scope: "system", body: "first event", reactions: { ":+1:": 1 } },
       })}\n`,
     );
   });
@@ -138,13 +138,13 @@ describe("chatbox tail", () => {
       eventSocketPath: null,
     });
 
-    await expect(runChatboxTail(undefined, "/tmp/regent.config.json")).rejects.toThrow(
-      "chatbox transport is disabled in config",
+    await expect(tailChatScope("system", "/tmp/regent.config.json")).rejects.toThrow(
+      "chat transport is disabled in config",
     );
     expect(createConnectionMock).not.toHaveBeenCalled();
   });
 
-  it("sends agent room subscription when --agent is provided", async () => {
+  it("subscribes to the requested scope", async () => {
     const socket = new FakeSocket();
     createConnectionMock.mockImplementationOnce(() => {
       queueMicrotask(() => {
@@ -156,21 +156,12 @@ describe("chatbox tail", () => {
 
     daemonCallMock.mockResolvedValue({
       enabled: true,
-      eventSocketPath: "/tmp/runtime.chatbox.sock",
+      eventSocketPath: "/tmp/runtime.chat.sock",
     });
 
-    const output = await captureOutput(async () =>
-      runChatboxTail(
-        {
-          raw: ["chatbox", "tail", "--agent"],
-          positionals: ["chatbox", "tail"],
-          flags: new Map([["agent", true]]),
-        },
-        "/tmp/regent.config.json",
-      ),
-    );
+    const output = await captureOutput(async () => tailChatScope("node:42", "/tmp/regent.config.json"));
 
     expect(output.stderr).toBe("");
-    expect(socket.writes).toEqual([`${JSON.stringify({ room: "agent" })}\n`]);
+    expect(socket.writes).toEqual([`${JSON.stringify({ scope: "node:42" })}\n`]);
   });
 });

@@ -68,14 +68,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/shards": {
+    "/v1/chat/channels": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["autolaunchInternalXmtpListShards"];
+        /** @description Public list of chat scopes — channels (system and topic) plus active token rooms. */
+        get: operations["listChatChannels"];
         put?: never;
         post?: never;
         delete?: never;
@@ -84,23 +85,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/rooms/ensure": {
+    "/v1/chat/{scope}/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Public cursor-paginated read for any chat scope, including token-room mirrors. Membership never gates reads. */
+        get: operations["listChatMessages"];
         put?: never;
-        post: operations["autolaunchInternalXmtpEnsureRoom"];
+        /** @description Signed-in person posts to a channel scope (system or topic). Token scopes are written over XMTP by member agents, not through this route. */
+        post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/messages/ingest": {
+    "/v1/agent/chat/{scope}/messages": {
         parameters: {
             query?: never;
             header?: never;
@@ -109,14 +112,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["autolaunchInternalXmtpIngestMessage"];
+        /** @description Agent posts to a channel scope (system or topic). Token scopes are written over XMTP by member agents, not through this route. */
+        post: operations["createAgentChatMessage"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/commands/lease": {
+    "/v1/agent/chat/token/{subject_id}/membership": {
         parameters: {
             query?: never;
             header?: never;
@@ -125,23 +129,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["autolaunchInternalXmtpLeaseCommand"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/internal/xmtp/commands/{id}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["autolaunchInternalXmtpResolveCommand"];
+        /** @description Request XMTP token-room membership for the calling agent. The room is created lazily on first request and the subject's creator is auto-added by wallet when one is recorded. The member add executes asynchronously; poll the channel list or token room scope for state. */
+        post: operations["requestTokenRoomMembership"];
         delete?: never;
         options?: never;
         head?: never;
@@ -175,22 +164,6 @@ export interface paths {
         put?: never;
         post: operations["createPrivySession"];
         delete: operations["deletePrivySession"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/auth/privy/xmtp/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["completePrivyXmtpSetup"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2719,50 +2692,61 @@ export interface components {
                 oban_queues: boolean;
             };
         };
-        InternalXmtpRoom: {
-            id: number;
-            room_key: string;
-            xmtp_group_id: string | null;
+        RevenueSubjectId: string;
+        ChatScopeValue: string;
+        ChatChannel: {
+            scope: components["schemas"]["ChatScopeValue"];
+            /** @enum {string} */
+            kind: "channel" | "token_room";
             name: string;
             status: string;
-            presence_ttl_seconds: number;
-            /** @enum {integer} */
-            capacity: 200;
+            xmtp_group_id?: string | null;
+            last_message_at?: string | null;
+        } & {
+            [key: string]: unknown;
         };
-        InternalXmtpRoomShard: components["schemas"]["InternalXmtpRoom"] & {
-            active_members: number;
-            joinable: boolean;
+        ChatChannelListResponse: {
+            data: components["schemas"]["ChatChannel"][];
         };
-        InternalXmtpEnsureRoomRequest: {
-            room_key: string;
-            xmtp_group_id?: string;
-            name: string;
-            status?: string;
-            presence_ttl_seconds?: number;
-            /** @enum {integer} */
-            capacity?: 200;
+        ChatMessage: {
+            id?: number;
+            scope?: string;
+            body?: string;
+        } & {
+            [key: string]: unknown;
         };
-        InternalXmtpMessageIngestRequest: {
-            room_key: string;
-            xmtp_message_id: string;
-            sender_inbox_id: string;
-            sender_wallet_address?: string;
-            sender_label?: string;
-            /** @enum {string} */
-            sender_type: "human" | "agent" | "system";
+        CursorPagination: {
+            limit: number;
+            next_cursor: number | null;
+        };
+        ChatListResponse: {
+            data: components["schemas"]["ChatMessage"][];
+            pagination: components["schemas"]["CursorPagination"];
+        } & {
+            [key: string]: unknown;
+        };
+        ChatPostInput: {
             body: string;
-            /** Format: date-time */
-            sent_at: string;
-            raw_payload?: Record<string, never>;
-            moderation_state?: string;
-            reply_to_message_id?: number;
-            reactions?: Record<string, never>;
+            reply_to_message_id?: number | null;
+            client_message_id?: string | null;
+        } & {
+            [key: string]: unknown;
         };
-        InternalXmtpMembershipCommand: {
-            id: number;
-            /** @enum {string} */
-            op: "add_member" | "remove_member";
-            xmtp_inbox_id: string;
+        ChatPostResponse: {
+            data: components["schemas"]["ChatMessage"];
+        } & {
+            [key: string]: unknown;
+        };
+        TokenRoomMembershipInput: {
+            xmtp_inbox_id?: string;
+        };
+        TokenRoomMembershipResponse: {
+            data: {
+                scope: components["schemas"]["ChatScopeValue"];
+                /** @enum {string} */
+                status: "pending" | "joined";
+                xmtp_group_id?: string | null;
+            };
         };
         PrivySessionCsrf: {
             /** @enum {boolean} */
@@ -2774,12 +2758,6 @@ export interface components {
             wallet_addresses: components["schemas"]["Address"][];
             display_name?: string | null;
         };
-        PrivyXmtpCompleteRequest: {
-            wallet_address: components["schemas"]["Address"];
-            client_id: string;
-            signature_request_id: string;
-            signature: components["schemas"]["HexData"];
-        };
         PrivySessionResponse: {
             /** @enum {boolean} */
             ok: true;
@@ -2790,22 +2768,7 @@ export interface components {
                 wallet_addresses: components["schemas"]["Address"][];
                 display_name?: string | null;
                 role: string;
-                xmtp_inbox_id: string | null;
             } | null;
-            xmtp: null | {
-                /** @enum {string} */
-                status: "ready";
-                inbox_id: string;
-                wallet_address: components["schemas"]["Address"];
-            } | {
-                /** @enum {string} */
-                status: "signature_required";
-                inbox_id: null;
-                wallet_address: components["schemas"]["Address"];
-                client_id: string;
-                signature_request_id: string;
-                signature_text: string;
-            };
         };
         EmptyRequest: Record<string, never>;
         AmountRequest: {
@@ -3832,6 +3795,8 @@ export interface components {
         Resource: string;
         /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
         Action: string;
+        ChatScope: components["schemas"]["ChatScopeValue"];
+        TokenSubjectId: components["schemas"]["RevenueSubjectId"];
     };
     requestBodies: never;
     headers: never;
@@ -3937,7 +3902,7 @@ export interface operations {
             };
         };
     };
-    autolaunchInternalXmtpListShards: {
+    listChatChannels: {
         parameters: {
             query?: never;
             header?: never;
@@ -3946,202 +3911,42 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Active mirrored XMTP rooms available to the internal worker */
+            /** @description Chat scopes */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["InternalXmtpRoomShard"][];
-                    };
+                    "application/json": components["schemas"]["ChatChannelListResponse"];
                 };
             };
-            /** @description Missing or invalid internal request signature */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
+            429: components["responses"]["RateLimitError"];
         };
     };
-    autolaunchInternalXmtpEnsureRoom: {
+    listChatMessages: {
         parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InternalXmtpEnsureRoomRequest"];
+            query?: {
+                before?: number;
+                limit?: number;
             };
-        };
-        responses: {
-            /** @description Mirrored XMTP room record */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["InternalXmtpRoom"];
-                    };
-                };
-            };
-            /** @description Missing or invalid internal request signature */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Room request invalid */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    autolaunchInternalXmtpIngestMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InternalXmtpMessageIngestRequest"];
-            };
-        };
-        responses: {
-            /** @description Saved mirrored message id */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: number;
-                        };
-                    };
-                };
-            };
-            /** @description Missing or invalid internal request signature */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Message request invalid */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    autolaunchInternalXmtpLeaseCommand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    room_key: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Next membership command for the room, or null */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["InternalXmtpMembershipCommand"] | null;
-                    };
-                };
-            };
-            /** @description Missing or invalid internal request signature */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Command lease request invalid */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    autolaunchInternalXmtpResolveCommand: {
-        parameters: {
-            query?: never;
             header?: never;
             path: {
-                id: number;
+                scope: components["parameters"]["ChatScope"];
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    status: "done" | "failed";
-                    error?: string;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Membership command resolution accepted */
+            /** @description Chat messages for the scope */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OkEnvelope"];
+                    "application/json": components["schemas"]["ChatListResponse"];
                 };
             };
-            /** @description Missing or invalid internal request signature */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Membership command not found */
+            /** @description Unknown chat scope */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4150,7 +3955,61 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description Command resolution request invalid */
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createWebappChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatPostInput"];
+            };
+        };
+        responses: {
+            /** @description Chat message created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            /** @description Missing signed-in browser session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Banned humans cannot post */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unknown chat channel */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Message rejected */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -4159,6 +4018,106 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createAgentChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatPostInput"];
+            };
+        };
+        responses: {
+            /** @description Agent chat message created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            /** @description Unknown chat channel */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Message rejected */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    requestTokenRoomMembership: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: components["parameters"]["TokenSubjectId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TokenRoomMembershipInput"];
+            };
+        };
+        responses: {
+            /** @description Token-room membership enqueued or already present */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenRoomMembershipResponse"];
+                };
+            };
+            /** @description Revenue subject not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Token room is at member capacity */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Membership request invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
         };
     };
     autolaunchPrivySessionCsrf: {
@@ -4241,49 +4200,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    completePrivyXmtpSetup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PrivyXmtpCompleteRequest"];
-            };
-        };
-        responses: {
-            /** @description XMTP identity saved for the signed-in human */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PrivySessionResponse"];
-                };
-            };
-            /** @description Missing signed-in browser session */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description XMTP setup request invalid */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];

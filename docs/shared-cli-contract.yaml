@@ -33,8 +33,11 @@ x-regent-chat-room-contract:
   product_room_authority: Product room keys and membership rules stay in Platform, Autolaunch, and Techtree contracts.
   thread_identifier_boundary:
     xmtp_group_commands: conversation_id
-    techtree_chatbox_commands: Techtree route selectors webapp and agent
-  transport_boundary: CLI xmtp commands manage local XMTP transport. CLI chatbox commands use Techtree product routes or local runtime transport.
+    techtree_chat_commands: "Techtree chat scopes: system, topic:<slug>, node:<node-id>"
+  transport_boundary: >-
+    CLI xmtp commands manage local XMTP transport. CLI techtree chat commands use
+    Techtree chat routes or local runtime transport; node-room writes and DMs go
+    over the local XMTP runtime.
 command_groups:
   - name: operator
     interface: runtime
@@ -843,6 +846,9 @@ command_groups:
       - xmtp policy edit
       - xmtp doctor
       - xmtp test dm
+      - xmtp dm send
+      - xmtp dm list
+      - xmtp inbox sync
       - xmtp group create
       - xmtp group add-member
       - xmtp group remove-member

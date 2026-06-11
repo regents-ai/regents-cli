@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 353.
+Total commands: 366.
 
 ## Full Command List
 
@@ -49,11 +49,17 @@ Total commands: 353.
 - `regents autolaunch bids exit` - Exit bids.
 - `regents autolaunch bids place` - Place bids.
 - `regents autolaunch bids quote` - Quote bids.
+- `regents autolaunch chat join <subject-id>` - Show Autolaunch chat join.
+- `regents autolaunch chat list` - List chat.
+- `regents autolaunch chat read <scope>` - Show Autolaunch chat read.
+- `regents autolaunch chat send <scope>` - Show Autolaunch chat send.
 - `regents autolaunch connect start` - Start connect.
 - `regents autolaunch contracts admin` - Show Autolaunch contracts admin.
 - `regents autolaunch contracts job` - Show Autolaunch contracts job.
 - `regents autolaunch contracts subject` - Show Autolaunch contracts subject.
 - `regents autolaunch contracts verify` - Check contracts.
+- `regents autolaunch dm <subject-id|address>` - Show Autolaunch dm.
+- `regents autolaunch dm list` - List dm.
 - `regents autolaunch ens plan` - Show Autolaunch ENS plan.
 - `regents autolaunch ens prepare-bidirectional` - Prepare bidirectional for ENS.
 - `regents autolaunch ens prepare-ensip25` - Prepare ensip25 for ENS.
@@ -136,12 +142,6 @@ Total commands: 353.
 ### Bug
 
 - `regents bug` - Send a signed bug report to Platform.
-
-### Chatbox
-
-- `regents chatbox history` - Show chatbox message history.
-- `regents chatbox post` - Post a chatbox message.
-- `regents chatbox tail` - Watch new chatbox messages.
 
 ### Config
 
@@ -310,7 +310,14 @@ Total commands: 353.
 - `regents techtree benchmarks scoreboard <capsule_id>` - Show Techtree benchmarks scoreboard.
 - `regents techtree benchmarks validate` - Check benchmarks.
 - `regents techtree certificate verify` - Check certificate.
+- `regents techtree chat join <node-id>` - Join a Techtree node room over XMTP.
+- `regents techtree chat list` - List Techtree chat channels and node rooms.
+- `regents techtree chat read <scope>` - Show chat messages for a scope.
+- `regents techtree chat send <scope>` - Send a chat message to a scope.
+- `regents techtree chat tail <scope>` - Watch live chat messages for a scope.
 - `regents techtree comment add` - Add comment.
+- `regents techtree dm <node-id|address>` - Send a direct message to a node author or wallet address.
+- `regents techtree dm list` - List local XMTP direct message conversations.
 - `regents techtree fold policy init` - Set up fold policy.
 - `regents techtree fold proof` - Show fold proof.
 - `regents techtree fold report` - Create fold report.
@@ -428,6 +435,8 @@ Total commands: 353.
 
 ### Xmtp
 
+- `regents xmtp dm list` - List XMTP direct message conversations.
+- `regents xmtp dm send` - Send an XMTP direct message.
 - `regents xmtp doctor` - Check XMTP readiness.
 - `regents xmtp group add-admin` - Add admin to group.
 - `regents xmtp group add-member` - Add member to group.
@@ -442,6 +451,7 @@ Total commands: 353.
 - `regents xmtp group remove-super-admin` - Remove super admin from group.
 - `regents xmtp group super-admins` - List group super admins.
 - `regents xmtp group update-permission` - Update permission for group.
+- `regents xmtp inbox sync` - Sync local XMTP conversations.
 - `regents xmtp init` - Set up local XMTP identity.
 - `regents xmtp owner add` - Add owner.
 - `regents xmtp owner list` - List owner.

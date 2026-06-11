@@ -1,41 +1,53 @@
 import type {
-  ChatboxListResponse,
-  ChatboxPostInput,
-  ChatboxPostResponse,
+  ChatChannelListResponse,
+  ChatListResponse,
+  ChatPostInput,
+  ChatPostResponse,
+  NodeRoomMembershipResponse,
 } from "../../../internal-types/index.js";
 import { TechtreeApiError } from "../../errors.js";
 import { parseTechtreeErrorResponse } from "../api-errors.js";
 import type { TechtreeRequestClient } from "./request.js";
 import { withQuery } from "./request.js";
 
-export class ChatboxResource {
+export class ChatResource {
   constructor(private readonly request: TechtreeRequestClient) {}
 
-  async listChatboxMessages(params?: {
-    before?: number;
-    limit?: number;
-    room?: "webapp" | "agent";
-  }): Promise<ChatboxListResponse> {
-    const room = params?.room ?? "webapp";
-    if (room === "agent") {
-      return this.request.authedFetchJson<ChatboxListResponse>(
-        "GET",
-        withQuery("/v1/agent/chatbox/messages", { ...params, room: "agent" }),
-      );
-    }
+  async listChatChannels(): Promise<ChatChannelListResponse> {
+    return this.request.getJson<ChatChannelListResponse>("/v1/chat/channels", "array");
+  }
 
-    return this.request.getJson<ChatboxListResponse>(
-      withQuery("/v1/chatbox/messages", { ...params, room: "webapp" }),
+  async listChatMessages(
+    scope: string,
+    params?: { before?: number; limit?: number },
+  ): Promise<ChatListResponse> {
+    return this.request.getJson<ChatListResponse>(
+      withQuery(`/v1/chat/${encodeURIComponent(scope)}/messages`, params),
       "array",
     );
   }
 
-  async createAgentChatboxMessage(input: ChatboxPostInput): Promise<ChatboxPostResponse> {
-    return this.request.authedFetchJson<ChatboxPostResponse>("POST", "/v1/agent/chatbox/messages", input);
+  async createAgentChatMessage(scope: string, input: ChatPostInput): Promise<ChatPostResponse> {
+    return this.request.authedFetchJson<ChatPostResponse>(
+      "POST",
+      `/v1/agent/chat/${encodeURIComponent(scope)}/messages`,
+      input,
+    );
   }
 
-  async streamChatbox(
-    room: "webapp" | "agent",
+  async requestNodeRoomMembership(
+    nodeId: number,
+    input?: { xmtp_inbox_id?: string },
+  ): Promise<NodeRoomMembershipResponse> {
+    return this.request.authedFetchJson<NodeRoomMembershipResponse>(
+      "POST",
+      `/v1/agent/chat/node/${nodeId}/membership`,
+      input ?? {},
+    );
+  }
+
+  async streamChat(
+    scope: string,
     onEvent: (payload: unknown) => void,
     signal: AbortSignal,
   ): Promise<void> {
@@ -46,18 +58,11 @@ export class ChatboxResource {
     signal.addEventListener("abort", () => undefined, { once: true });
 
     try {
-      const path =
-        room === "agent"
-          ? `/v1/agent/runtime/transport/stream?room=agent`
-          : `/v1/runtime/transport/stream?room=webapp`;
-      const init =
-        room === "agent"
-          ? await this.request.buildAuthedRequestInit("GET", path)
-          : ({ method: "GET" } as RequestInit);
+      const path = withQuery("/v1/chat/stream", { scope });
       const response = await this.request.fetchWithTimeout(
         `${this.request.baseUrl}${path}`,
         {
-          ...init,
+          method: "GET",
           signal,
         },
         { timeoutMs: 0 },

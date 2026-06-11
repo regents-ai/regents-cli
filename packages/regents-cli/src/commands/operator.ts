@@ -293,7 +293,7 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
     component("identity", receipt ? "ready" : "waiting", receipt ? `${receipt.network}:${receipt.agent_id}` : "Run regents identity ensure"),
     component("runtime", runtimeSocketReady ? "ready" : "waiting", config.runtime.socketPath),
     component("techtree", "ready", config.services.techtree.baseUrl),
-    component("chatbox", runtimeSocketReady ? "ready" : "waiting"),
+    component("chat", runtimeSocketReady ? "ready" : "waiting"),
     component("xmtp", config.xmtp.enabled ? "ready" : "waiting", config.xmtp.env),
   ];
   const blocked = components.filter((item) => item.status === "blocked").length;

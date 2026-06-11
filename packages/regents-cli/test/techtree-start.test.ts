@@ -189,7 +189,7 @@ describe("techtree start wizard", () => {
     expect(output.stdout).toContain("GUIDED START COMPLETE");
     expect(output.stdout).toContain("regents techtree bbh run exec");
     expect(output.stdout).toContain("NEXT STEPS");
-    expect(output.stdout).toContain("regents chatbox tail");
+    expect(output.stdout).toContain("regents techtree chat tail system");
     expect(startWizardDeps.authLogin).toHaveBeenCalledWith(
       {
         registryAddress: TEST_REGISTRY,

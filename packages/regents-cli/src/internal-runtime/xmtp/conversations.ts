@@ -1,6 +1,10 @@
 import type {
   RegentConfig,
+  XmtpConversationSendResult,
+  XmtpDmListResult,
+  XmtpDmSendResult,
   XmtpDmTestResult,
+  XmtpInboxSyncResult,
   XmtpRecentConversation,
 } from "../../internal-types/index.js";
 
@@ -35,36 +39,50 @@ export const normalizeXmtpRecentConversation = (payload: XmtpCliConversationReco
   name: payload.name,
 });
 
-export const syncXmtpConversations = async (config: RegentConfig["xmtp"]): Promise<void> => {
+export const syncXmtpConversations = async (config: RegentConfig["xmtp"]): Promise<XmtpInboxSyncResult> => {
   await runConnectedXmtpCli(config, ["conversations", "sync-all"]);
+  const syncedAt = new Date().toISOString();
   updateXmtpRuntimeState(config, (current) => ({
     ...current,
     metrics: {
       ...current.metrics,
-      lastSyncAt: new Date().toISOString(),
+      lastSyncAt: syncedAt,
     },
   }));
+
+  return {
+    ok: true,
+    syncedAt,
+  };
 };
 
-export const testXmtpDm = async (
+export const listXmtpDms = async (
   config: RegentConfig["xmtp"],
-  to: `0x${string}`,
-  message: string,
-): Promise<XmtpDmTestResult> => {
-  const dm = await runConnectedXmtpCliJson<XmtpCliCreateDmResult>(config, [
+  options?: { sync?: boolean },
+): Promise<XmtpDmListResult> => {
+  const payload = await runConnectedXmtpCliJson<XmtpCliConversationRecord[]>(config, [
     "conversations",
-    "create-dm",
-    to.toLowerCase(),
+    "list",
+    "--type",
+    "dm",
+    ...(options?.sync ? ["--sync"] : []),
   ]);
 
-  if (!dm.id) {
-    throw new RegentError("xmtp_cli_error", "DM create did not return a conversation id");
-  }
+  return {
+    ok: true,
+    conversations: payload.map(normalizeXmtpRecentConversation),
+  };
+};
 
+export const sendXmtpConversationText = async (
+  config: RegentConfig["xmtp"],
+  conversationId: string,
+  message: string,
+): Promise<XmtpConversationSendResult> => {
   const sendResult = await runConnectedXmtpCliJson<XmtpCliSendTextResult>(config, [
     "conversation",
     "send-text",
-    dm.id,
+    conversationId,
     message,
   ]);
 
@@ -76,13 +94,9 @@ export const testXmtpDm = async (
         sendFailures: current.metrics.sendFailures + 1,
       },
     }));
-    throw new RegentError("xmtp_cli_error", "DM send did not return a message id");
+    throw new RegentError("xmtp_cli_error", "conversation send did not return a message id");
   }
 
-  recordXmtpRecentConversation(config, {
-    id: dm.id,
-    type: "dm",
-  });
   updateXmtpRuntimeState(config, (current) => ({
     ...current,
     metrics: {
@@ -93,9 +107,51 @@ export const testXmtpDm = async (
 
   return {
     ok: true,
+    conversationId,
+    messageId: sendResult.messageId,
+    text: message,
+  };
+};
+
+export const sendXmtpDm = async (
+  config: RegentConfig["xmtp"],
+  to: string,
+  message: string,
+): Promise<XmtpDmSendResult> => {
+  const dm = await runConnectedXmtpCliJson<XmtpCliCreateDmResult>(config, [
+    "conversations",
+    "create-dm",
+    to.toLowerCase(),
+  ]);
+
+  if (!dm.id) {
+    throw new RegentError("xmtp_cli_error", "DM create did not return a conversation id");
+  }
+
+  const sendResult = await sendXmtpConversationText(config, dm.id, message);
+
+  recordXmtpRecentConversation(config, {
+    id: dm.id,
+    type: "dm",
+  });
+
+  return {
+    ok: true,
     to,
     conversationId: dm.id,
     messageId: sendResult.messageId,
     text: message,
+  };
+};
+
+export const testXmtpDm = async (
+  config: RegentConfig["xmtp"],
+  to: `0x${string}`,
+  message: string,
+): Promise<XmtpDmTestResult> => {
+  const result = await sendXmtpDm(config, to, message);
+  return {
+    ...result,
+    to,
   };
 };

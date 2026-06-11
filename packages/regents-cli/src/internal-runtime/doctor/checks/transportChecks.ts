@@ -18,7 +18,7 @@ export function transportChecks(): DoctorCheckDefinition[] {
         return {
           status: "ok",
           message: ctx.config.gossipsub.enabled
-            ? "Backend chatbox transport config parsed; live mode is reported by Techtree as libp2p, local_only, or degraded"
+            ? "Backend chat transport config parsed; live mode is reported by Techtree as libp2p, local_only, or degraded"
             : "Gossipsub is disabled in config",
           details: {
             enabled: ctx.config.gossipsub.enabled,
@@ -69,14 +69,15 @@ export function transportChecks(): DoctorCheckDefinition[] {
         return {
           status: "ok",
           message:
-            "Room keys stay with the owning app; CLI chatbox uses Techtree routes and CLI XMTP groups use raw conversation ids",
+            "Room keys stay with the owning app; CLI chat uses Techtree and Autolaunch scopes and CLI XMTP groups use raw conversation ids",
           details: {
             appRoomId: "room_key",
             threadId: "xmtp_group_id",
-            techtreeChatboxSelectors: ["webapp", "agent"],
+            techtreeChatScopes: ["system", "topic:<slug>", "node:<node-id>"],
+            autolaunchChatScopes: ["system", "topic:<slug>", "token:<subject-id>"],
             productRoomOwners: ["platform", "autolaunch", "techtree"],
             cliBoundaries: {
-              chatbox: "techtree product routes or local runtime transport",
+              chat: "techtree or autolaunch chat routes, the local runtime transport, or the local XMTP runtime",
               xmtpGroup: "local XMTP conversation id",
               iosTalk: "Platform RWR records, not XMTP rooms",
             },

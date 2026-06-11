@@ -1512,34 +1512,30 @@ export interface AgentOpportunitiesResponse {
   opportunities: AgentOpportunity[];
 }
 
-export interface ChatboxMessage {
-  id: number;
-  room_id: string;
-  transport_msg_id: string;
-  transport_topic: string;
-  origin_peer_id: string | null;
-  origin_node_id: string | null;
-  author_kind: "human" | "agent";
-  author_human_id: number | null;
-  author_agent_id: number | null;
-  author_display_name: string | null;
-  author_label: string | null;
-  author_wallet_address: `0x${string}` | null;
-  author_transport_id: string | null;
-  body: string;
-  client_message_id: string | null;
-  reply_to_message_id: number | null;
-  reply_to_transport_msg_id: string | null;
-  reactions: Record<string, number>;
-  moderation_state: "visible" | "hidden";
-  sent_at: string;
-  inserted_at: string;
-  updated_at: string;
+export interface ChatChannel {
+  scope: string;
+  kind: "channel" | "node_room";
+  name: string;
+  status: string;
+  xmtp_group_id: string | null;
+  last_message_at: string | null;
+  [key: string]: unknown;
 }
 
-export interface ChatboxLiveEvent {
+export interface ChatChannelListResponse {
+  data: ChatChannel[];
+}
+
+export interface ChatMessage {
+  id?: number;
+  scope?: string;
+  body?: string;
+  [key: string]: unknown;
+}
+
+export interface ChatLiveEvent {
   event: string;
-  message: ChatboxMessage;
+  message: ChatMessage;
 }
 
 export interface WatchedNodeLiveEvent {
@@ -1547,20 +1543,30 @@ export interface WatchedNodeLiveEvent {
   data: WorkPacketResponse;
 }
 
-export interface ChatboxListResponse {
-  data: ChatboxMessage[];
-  next_cursor: number | null;
+export interface ChatListResponse {
+  data: ChatMessage[];
+  pagination: {
+    limit: number;
+    next_cursor: number | null;
+  };
 }
 
-export interface ChatboxPostInput {
+export interface ChatPostInput {
   body: string;
-  room?: "webapp" | "agent";
   reply_to_message_id?: number;
   client_message_id?: string;
 }
 
-export interface ChatboxPostResponse {
-  data: ChatboxMessage;
+export interface ChatPostResponse {
+  data: ChatMessage;
+}
+
+export interface NodeRoomMembershipResponse {
+  data: {
+    scope: string;
+    status: "pending" | "joined";
+    xmtp_group_id: string | null;
+  };
 }
 
 export type SkillTextResponse = string;

@@ -92,31 +92,6 @@ export const nodeStarRecordSchema = z.object({
   inserted_at: z.string(),
 });
 
-export const chatboxMessageSchema = z.object({
-  id: z.number().int(),
-  room_id: z.string(),
-  transport_msg_id: z.string(),
-  transport_topic: z.string(),
-  origin_peer_id: z.string().nullable(),
-  origin_node_id: z.string().nullable(),
-  author_kind: z.enum(["human", "agent"]),
-  author_human_id: z.number().int().nullable(),
-  author_agent_id: z.number().int().nullable(),
-  author_display_name: z.string().nullable(),
-  author_label: z.string().nullable(),
-  author_wallet_address: hexAddressSchema.nullable(),
-  author_transport_id: z.string().nullable(),
-  body: z.string(),
-  client_message_id: z.string().nullable(),
-  reply_to_message_id: z.number().int().nullable(),
-  reply_to_transport_msg_id: z.string().nullable(),
-  reactions: z.record(z.string(), z.number().int()),
-  moderation_state: z.enum(["visible", "hidden"]),
-  sent_at: z.string(),
-  inserted_at: z.string(),
-  updated_at: z.string(),
-});
-
 export const techtreeHealthSchema = z.object({}).catchall(z.unknown());
 
 export const nodeListResponseSchema = z.object({
@@ -174,15 +149,6 @@ export const starCreateResponseSchema = z.object({
 
 export const starDeleteResponseSchema = z.object({
   ok: z.literal(true),
-});
-
-export const chatboxListResponseSchema = z.object({
-  data: z.array(chatboxMessageSchema),
-  next_cursor: z.number().int().nullable(),
-});
-
-export const chatboxPostResponseSchema = z.object({
-  data: chatboxMessageSchema,
 });
 
 export const inboxResponseSchema = z.object({

@@ -372,10 +372,10 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
       },
       {
         state: config.gossipsub.enabled ? "ready" : "off",
-        label: "Chatbox event relay checked",
+        label: "Chat event relay checked",
         detail: config.gossipsub.enabled
-          ? "Chatbox tail commands can open live room streams from another terminal."
-          : "Chatbox relay is off in config; direct Techtree chatbox commands can still run.",
+          ? "Chat tail commands can open live scope streams from another terminal."
+          : "Chat relay is off in config; direct Techtree chat commands can still run.",
       },
       {
         state: "ready",
@@ -425,7 +425,7 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
       {
         label: "Readiness",
         command: "regents status",
-        when: "see wallet, identity, Techtree, chatbox, and XMTP readiness.",
+        when: "see wallet, identity, Techtree, chat, and XMTP readiness.",
       },
       {
         label: "Account",
@@ -464,8 +464,8 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
       },
       {
         label: "Live chat",
-        command: "regents chatbox tail --webapp",
-        when: "watch Techtree chatbox events if the relay is enabled.",
+        command: "regents techtree chat tail system",
+        when: "watch Techtree chat events if the relay is enabled.",
       },
       {
         label: "Diagnostics",

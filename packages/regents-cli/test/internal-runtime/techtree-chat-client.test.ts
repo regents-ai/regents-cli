@@ -100,7 +100,35 @@ const createHarness = async (): Promise<ClientHarness> => {
       return true;
     };
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/chatbox/messages") {
+    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/channels") {
+      res.statusCode = 200;
+      res.setHeader("content-type", "application/json");
+      res.end(
+        `${JSON.stringify({
+          data: [
+            {
+              scope: "system",
+              kind: "channel",
+              name: "System",
+              status: "active",
+              xmtp_group_id: null,
+              last_message_at: "2026-03-10T00:00:00.000Z",
+            },
+            {
+              scope: "node:42",
+              kind: "node_room",
+              name: "Node 42",
+              status: "active",
+              xmtp_group_id: "xmtp-group-42",
+              last_message_at: null,
+            },
+          ],
+        })}\n`,
+      );
+      return;
+    }
+
+    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/system/messages") {
       res.statusCode = 200;
       res.setHeader("content-type", "application/json");
       res.end(
@@ -108,77 +136,35 @@ const createHarness = async (): Promise<ClientHarness> => {
           data: [
             {
               id: 10,
-              room_id: "global",
-              transport_msg_id: "transport-10",
-              transport_topic: "techtree.webapp",
-              origin_peer_id: null,
-              origin_node_id: null,
-              author_kind: "human",
-              author_human_id: 1,
-              author_agent_id: null,
-              author_display_name: "Public operator",
-              author_label: "Public operator",
-              author_wallet_address: null,
-              author_transport_id: null,
-              body: "Existing public chatbox message",
-              client_message_id: null,
-              reply_to_message_id: null,
-              reply_to_transport_msg_id: null,
-              reactions: {},
-              moderation_state: "visible",
-              sent_at: "2026-03-10T00:00:00.000Z",
-              inserted_at: "2026-03-10T00:00:00.000Z",
-              updated_at: "2026-03-10T00:00:00.000Z",
+              scope: "system",
+              body: "Existing public chat message",
             },
           ],
-          next_cursor: null,
+          pagination: { limit: 1, next_cursor: null },
         })}\n`,
       );
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/agent/chatbox/messages") {
-      if (!requireAgentHeaders()) {
-        return;
-      }
-
+    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/topic%3Aprotein-folding/messages") {
       res.statusCode = 200;
       res.setHeader("content-type", "application/json");
       res.end(
         `${JSON.stringify({
           data: [
             {
-              id: 1,
-              room_id: "agent:1",
-              transport_msg_id: "transport-1",
-              transport_topic: "techtree.agent.1",
-              origin_peer_id: null,
-              origin_node_id: null,
-              author_kind: "agent",
-              author_human_id: null,
-              author_agent_id: 1,
-              author_display_name: null,
-              author_label: "Contract test agent",
-              author_wallet_address: TEST_WALLET,
-              author_transport_id: null,
-              body: "Existing chatbox message",
-              client_message_id: null,
-              reply_to_message_id: null,
-              reply_to_transport_msg_id: null,
-              reactions: {},
-              moderation_state: "visible",
-              sent_at: "2026-03-10T00:00:00.000Z",
-              inserted_at: "2026-03-10T00:00:00.000Z",
-              updated_at: "2026-03-10T00:00:00.000Z",
+              id: 11,
+              scope: "topic:protein-folding",
+              body: "Existing topic chat message",
             },
           ],
-          next_cursor: null,
+          pagination: { limit: 1, next_cursor: null },
         })}\n`,
       );
       return;
     }
 
-    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chatbox/messages") {
+    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chat/system/messages") {
       if (!requireAgentHeaders()) {
         return;
       }
@@ -189,34 +175,36 @@ const createHarness = async (): Promise<ClientHarness> => {
         `${JSON.stringify({
           data: {
             id: 2,
-            room_id: "agent:1",
-            transport_msg_id: "transport-2",
-            transport_topic: "techtree.agent.1",
-            origin_peer_id: null,
-            origin_node_id: null,
-            author_kind: "agent",
-            author_human_id: null,
-            author_agent_id: 1,
-            author_display_name: null,
-            author_label: "Contract test agent",
-            author_wallet_address: TEST_WALLET,
-            author_transport_id: null,
+            scope: "system",
             body: body && typeof body === "object" ? (body as { body?: string }).body ?? "" : "",
-            client_message_id: body && typeof body === "object" ? (body as { client_message_id?: string }).client_message_id ?? null : null,
-            reply_to_message_id: null,
-            reply_to_transport_msg_id: null,
-            reactions: {},
-            moderation_state: "visible",
-            sent_at: "2026-03-10T00:00:00.000Z",
-            inserted_at: "2026-03-10T00:00:00.000Z",
-            updated_at: "2026-03-10T00:00:00.000Z",
+            client_message_id:
+              body && typeof body === "object" ? (body as { client_message_id?: string }).client_message_id ?? null : null,
           },
         })}\n`,
       );
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/runtime/transport/stream") {
+    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chat/node/42/membership") {
+      if (!requireAgentHeaders()) {
+        return;
+      }
+
+      res.statusCode = 202;
+      res.setHeader("content-type", "application/json");
+      res.end(
+        `${JSON.stringify({
+          data: {
+            scope: "node:42",
+            status: "pending",
+            xmtp_group_id: "xmtp-group-42",
+          },
+        })}\n`,
+      );
+      return;
+    }
+
+    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/stream") {
       if (shouldFailPublicStream) {
         res.statusCode = 503;
         res.setHeader("content-type", "application/json");
@@ -231,34 +219,15 @@ const createHarness = async (): Promise<ClientHarness> => {
           event: "message.created",
           message: {
             id: 11,
-            room_id: "global",
-            transport_msg_id: "transport-11",
-            transport_topic: "techtree.webapp",
-            origin_peer_id: null,
-            origin_node_id: null,
-            author_kind: "human",
-            author_human_id: 1,
-            author_agent_id: null,
-            author_display_name: "Public operator",
-            author_label: "Public operator",
-            author_wallet_address: null,
-            author_transport_id: null,
-            body: "Streaming public chatbox event",
-            client_message_id: null,
-            reply_to_message_id: null,
-            reply_to_transport_msg_id: null,
-            reactions: {},
-            moderation_state: "visible",
-            sent_at: "2026-03-10T00:00:00.000Z",
-            inserted_at: "2026-03-10T00:00:00.000Z",
-            updated_at: "2026-03-10T00:00:00.000Z",
+            scope: requestUrl.searchParams.get("scope") ?? "system",
+            body: "Streaming public chat event",
           },
         })}\n`,
       );
 
       const timer = setTimeout(() => {
         if (!res.writableEnded) {
-          res.end(`${JSON.stringify({ event: "heartbeat", room_id: "global" })}\n`);
+          res.end(`${JSON.stringify({ event: "heartbeat", scope: requestUrl.searchParams.get("scope") ?? "system" })}\n`);
         }
       }, 50);
 
@@ -275,51 +244,12 @@ const createHarness = async (): Promise<ClientHarness> => {
             mode: "libp2p",
             ready: true,
             peer_count: 2,
-            subscriptions: ["public-chatbox"],
+            subscriptions: ["public-chat"],
             last_error: null,
             local_peer_id: "peer-local",
             origin_node_id: "node-1",
           },
         })}\n`,
-      );
-      return;
-    }
-
-    if (req.method === "GET" && requestUrl.pathname === "/v1/agent/runtime/transport/stream") {
-      if (!requireAgentHeaders()) {
-        return;
-      }
-
-      res.statusCode = 200;
-      res.setHeader("content-type", "application/x-ndjson");
-      res.end(
-        `${JSON.stringify({
-          event: "message.created",
-          message: {
-            id: 3,
-            room_id: "agent:1",
-            transport_msg_id: "transport-3",
-            transport_topic: "techtree.agent.1",
-            origin_peer_id: null,
-            origin_node_id: null,
-            author_kind: "agent",
-            author_human_id: null,
-            author_agent_id: 1,
-            author_display_name: null,
-            author_label: "Contract test agent",
-            author_wallet_address: TEST_WALLET,
-            author_transport_id: null,
-            body: "Streamed chatbox event",
-            client_message_id: null,
-            reply_to_message_id: null,
-            reply_to_transport_msg_id: null,
-            reactions: {},
-            moderation_state: "visible",
-            sent_at: "2026-03-10T00:00:00.000Z",
-            inserted_at: "2026-03-10T00:00:00.000Z",
-            updated_at: "2026-03-10T00:00:00.000Z",
-          },
-        })}\n${JSON.stringify({ event: "heartbeat", room_id: "agent:1" })}\n`,
       );
       return;
     }
@@ -332,7 +262,7 @@ const createHarness = async (): Promise<ClientHarness> => {
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-chatbox-client-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-chat-client-"));
   const address = server.address() as AddressInfo;
   const baseUrl = `http://127.0.0.1:${address.port}`;
   const configPath = path.join(tempDir, "regent.config.json");
@@ -410,7 +340,7 @@ const createHarness = async (): Promise<ClientHarness> => {
   };
 };
 
-describe("Techtree chatbox client routes", () => {
+describe("Techtree chat client routes", () => {
   let harness: ClientHarness;
   let originalPath: string | undefined;
   let originalKeyId: string | undefined;
@@ -423,7 +353,7 @@ describe("Techtree chatbox client routes", () => {
     originalKeyId = process.env.CDP_KEY_ID;
     originalKeySecret = process.env.CDP_KEY_SECRET;
     originalWalletSecret = process.env.CDP_WALLET_SECRET;
-    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "regent-chatbox-home-"));
+    tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "regent-chat-home-"));
     process.env.PATH = `${writeFakeCdp(tempHome, {
       accounts: [{ name: "main", address: TEST_WALLET }],
     })}:${originalPath ?? ""}`;
@@ -442,10 +372,17 @@ describe("Techtree chatbox client routes", () => {
     fs.rmSync(tempHome, { recursive: true, force: true });
   });
 
-  it("uses the public webapp chatbox contract and emits stream events before the response closes", async () => {
-    await expect(harness.client.listChatboxMessages({ room: "webapp", limit: 1 })).resolves.toMatchObject({
-      data: [expect.objectContaining({ body: "Existing public chatbox message" })],
-      next_cursor: null,
+  it("uses the public chat contract and emits stream events before the response closes", async () => {
+    await expect(harness.client.listChatChannels()).resolves.toMatchObject({
+      data: [
+        expect.objectContaining({ scope: "system", kind: "channel" }),
+        expect.objectContaining({ scope: "node:42", kind: "node_room", xmtp_group_id: "xmtp-group-42" }),
+      ],
+    });
+
+    await expect(harness.client.listChatMessages("system", { limit: 1 })).resolves.toMatchObject({
+      data: [expect.objectContaining({ body: "Existing public chat message" })],
+      pagination: { limit: 1, next_cursor: null },
     });
 
     const streamed: unknown[] = [];
@@ -453,7 +390,7 @@ describe("Techtree chatbox client routes", () => {
     let streamFinished = false;
 
     const streamPromise = harness.client
-      .streamChatbox("webapp", (payload) => streamed.push(payload), controller.signal)
+      .streamChat("system", (payload) => streamed.push(payload), controller.signal)
       .then(() => {
         streamFinished = true;
       });
@@ -465,7 +402,7 @@ describe("Techtree chatbox client routes", () => {
     expect(streamed[0]).toEqual(
       expect.objectContaining({
         event: "message.created",
-        message: expect.objectContaining({ body: "Streaming public chatbox event" }),
+        message: expect.objectContaining({ body: "Streaming public chat event" }),
       }),
     );
     expect(streamFinished).toBe(false);
@@ -475,32 +412,44 @@ describe("Techtree chatbox client routes", () => {
 
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
-      "GET /v1/chatbox/messages?room=webapp&limit=1",
-      "GET /v1/runtime/transport/stream?room=webapp",
+      "GET /v1/chat/channels",
+      "GET /v1/chat/system/messages?limit=1",
+      "GET /v1/chat/stream?scope=system",
     ]);
 
-    const publicRequests = harness.requests.filter((request) => request.pathname.startsWith("/v1/") && !request.pathname.startsWith("/v1/agent/"));
-    for (const request of publicRequests) {
+    for (const request of harness.requests) {
       expect(request.headers["x-siwa-receipt"]).toBeUndefined();
       expect(request.headers["signature-input"]).toBeUndefined();
       expect(request.headers["signature"]).toBeUndefined();
     }
   });
 
-  it("uses the authenticated agent chatbox and transport contracts", async () => {
-    await expect(harness.client.listChatboxMessages({ room: "agent", limit: 1 })).resolves.toMatchObject({
-      data: [expect.objectContaining({ body: "Existing chatbox message" })],
-      next_cursor: null,
+  it("url-encodes scope path segments for public reads", async () => {
+    await expect(harness.client.listChatMessages("topic:protein-folding", { limit: 1 })).resolves.toMatchObject({
+      data: [expect.objectContaining({ body: "Existing topic chat message" })],
     });
 
+    expect(harness.requests.map((request) => `${request.method} ${request.pathname}`)).toEqual([
+      "GET /v1/chat/topic%3Aprotein-folding/messages",
+    ]);
+  });
+
+  it("uses the authenticated agent chat and membership contracts", async () => {
     await expect(
-      harness.client.createAgentChatboxMessage({
+      harness.client.createAgentChatMessage("system", {
         body: "Posted from Regent",
-        room: "agent",
         client_message_id: "client-1",
       }),
     ).resolves.toMatchObject({
       data: expect.objectContaining({ body: "Posted from Regent" }),
+    });
+
+    await expect(harness.client.requestNodeRoomMembership(42, { xmtp_inbox_id: "inbox-1" })).resolves.toEqual({
+      data: {
+        scope: "node:42",
+        status: "pending",
+        xmtp_group_id: "xmtp-group-42",
+      },
     });
 
     await expect(harness.client.transportStatus()).resolves.toEqual({
@@ -508,7 +457,7 @@ describe("Techtree chatbox client routes", () => {
         enabled: true,
         configured: true,
         connected: true,
-        subscribedTopics: ["public-chatbox"],
+        subscribedTopics: ["public-chat"],
         peerCount: 2,
         lastError: null,
         eventSocketPath: null,
@@ -519,26 +468,15 @@ describe("Techtree chatbox client routes", () => {
       },
     });
 
-    const streamed: unknown[] = [];
-    await harness.client.streamChatbox("agent", (payload) => streamed.push(payload), new AbortController().signal);
-
-    expect(streamed).toEqual([
-      expect.objectContaining({
-        event: "message.created",
-        message: expect.objectContaining({ body: "Streamed chatbox event" }),
-      }),
-      expect.objectContaining({
-        event: "heartbeat",
-      }),
-    ]);
-
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
-      "GET /v1/agent/chatbox/messages?room=agent&limit=1",
-      "POST /v1/agent/chatbox/messages",
+      "POST /v1/agent/chat/system/messages",
+      "POST /v1/agent/chat/node/42/membership",
       "GET /v1/runtime/transport",
-      "GET /v1/agent/runtime/transport/stream?room=agent",
     ]);
+
+    const membershipRequest = harness.requests[1];
+    expect(membershipRequest?.body).toEqual({ xmtp_inbox_id: "inbox-1" });
 
     const protectedRequests = harness.requests.filter((request) => request.pathname.startsWith("/v1/agent/"));
     for (const request of protectedRequests) {
@@ -556,7 +494,7 @@ describe("Techtree chatbox client routes", () => {
     harness.failPublicStream();
 
     await expect(
-      harness.client.streamChatbox("webapp", () => undefined, new AbortController().signal),
+      harness.client.streamChat("system", () => undefined, new AbortController().signal),
     ).rejects.toThrow("stream unavailable");
   });
 });

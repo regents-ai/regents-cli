@@ -100,10 +100,11 @@ describe("transport doctor checks", () => {
         details: expect.objectContaining({
           appRoomId: "room_key",
           threadId: "xmtp_group_id",
-          techtreeChatboxSelectors: ["webapp", "agent"],
+          techtreeChatScopes: ["system", "topic:<slug>", "node:<node-id>"],
+          autolaunchChatScopes: ["system", "topic:<slug>", "token:<subject-id>"],
           productRoomOwners: ["platform", "autolaunch", "techtree"],
           cliBoundaries: {
-            chatbox: "techtree product routes or local runtime transport",
+            chat: "techtree or autolaunch chat routes, the local runtime transport, or the local XMTP runtime",
             xmtpGroup: "local XMTP conversation id",
             iosTalk: "Platform RWR records, not XMTP rooms",
           },

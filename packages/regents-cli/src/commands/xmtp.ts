@@ -12,6 +12,7 @@ import {
   listXmtpGroupMembers,
   listXmtpGroupSuperAdmins,
   listXmtpAllowlist,
+  listXmtpDms,
   listXmtpGroups,
   loadConfig,
   openXmtpPolicyInEditor,
@@ -23,7 +24,9 @@ import {
   revokeAllOtherXmtpInstallations,
   rotateXmtpDbKey,
   rotateXmtpWallet,
+  sendXmtpDm,
   showXmtpPolicy,
+  syncXmtpConversations,
   testXmtpDm,
   updateXmtpGroupPermission,
   updateXmtpAllowlist,
@@ -241,6 +244,24 @@ export async function runXmtpTestDm(args: ParsedCliArgs, configPath?: string): P
   const message = requireArg(getFlag(args, "message"), "--message");
 
   printJson(await testXmtpDm(config.xmtp, to, message));
+}
+
+export async function runXmtpDmSend(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const { config } = loadResolvedConfig(configPath);
+  const to = requireArg(getFlag(args, "to") ?? getFlag(args, "address") ?? getFlag(args, "inbox-id"), "--to");
+  const message = requireArg(getFlag(args, "message"), "--message");
+
+  printJson(await sendXmtpDm(config.xmtp, to, message));
+}
+
+export async function runXmtpDmList(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const { config } = loadResolvedConfig(configPath);
+  printJson(await listXmtpDms(config.xmtp, { sync: getBooleanFlag(args, "sync") }));
+}
+
+export async function runXmtpInboxSync(configPath?: string): Promise<void> {
+  const { config } = loadResolvedConfig(configPath);
+  printJson(await syncXmtpConversations(config.xmtp));
 }
 
 export async function runXmtpGroupCreate(args: ParsedCliArgs, configPath?: string): Promise<void> {

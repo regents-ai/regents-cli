@@ -1,24 +1,22 @@
 import fs from "node:fs";
 import net from "node:net";
 
-import type { ChatboxLiveEvent } from "../../internal-types/index.js";
-
 import { ensureParentDir } from "../paths.js";
-import type { GossipsubAdapter } from "./gossipsub-adapter.js";
+import { DEFAULT_CHAT_SCOPE, type GossipsubAdapter } from "./gossipsub-adapter.js";
 import { resolveRelaySocketPath } from "./unix-socket-path.js";
 
-export const resolveChatboxRelaySocketPath = (runtimeSocketPath: string): string => {
-  return resolveRelaySocketPath(runtimeSocketPath, "chatbox");
+export const resolveChatRelaySocketPath = (runtimeSocketPath: string): string => {
+  return resolveRelaySocketPath(runtimeSocketPath, "chat");
 };
 
-export class ChatboxRelaySocketServer {
+export class ChatRelaySocketServer {
   readonly socketPath: string;
 
   private readonly adapter: GossipsubAdapter;
   private server: net.Server | null = null;
 
   constructor(runtimeSocketPath: string, adapter: GossipsubAdapter) {
-    this.socketPath = resolveChatboxRelaySocketPath(runtimeSocketPath);
+    this.socketPath = resolveChatRelaySocketPath(runtimeSocketPath);
     this.adapter = adapter;
   }
 
@@ -39,7 +37,7 @@ export class ChatboxRelaySocketServer {
       let buffer = "";
       let subscribed = false;
 
-      const subscribe = (room: "webapp" | "agent") => {
+      const subscribe = (scope: string) => {
         if (subscribed) {
           return;
         }
@@ -47,14 +45,14 @@ export class ChatboxRelaySocketServer {
         subscribed = true;
 
         void this.adapter
-          .subscribeChatbox((event) => {
+          .subscribeChat((event) => {
             socket.write(`${JSON.stringify(event)}\n`);
-          }, room)
+          }, scope)
           .then((dispose) => {
             unsubscribe = dispose;
           })
           .catch((error: unknown) => {
-            const message = error instanceof Error ? error.message : "unable to subscribe to chatbox relay";
+            const message = error instanceof Error ? error.message : "unable to subscribe to chat relay";
             socket.write(`${JSON.stringify({ error: message })}\n`);
             socket.end();
           });
@@ -86,20 +84,18 @@ export class ChatboxRelaySocketServer {
           buffer = buffer.slice(newlineIndex + 1);
 
           if (line === "") {
-            subscribe("webapp");
+            subscribe(DEFAULT_CHAT_SCOPE);
             continue;
           }
 
           try {
-            const payload = JSON.parse(line) as { room?: unknown };
-            subscribe(payload.room === "agent" ? "agent" : "webapp");
+            const payload = JSON.parse(line) as { scope?: unknown };
+            subscribe(typeof payload.scope === "string" && payload.scope !== "" ? payload.scope : DEFAULT_CHAT_SCOPE);
           } catch {
-            subscribe("webapp");
+            subscribe(DEFAULT_CHAT_SCOPE);
           }
         }
       });
-
-      setImmediate(() => subscribe("webapp"));
     });
 
     await new Promise<void>((resolve, reject) => {

@@ -445,7 +445,7 @@ export async function runTechtreeStart(args: ParsedCliArgs, configPath?: string)
   startWizardDeps.printText(nextCommandPanel("◆ NEXT STEPS", [
     `regents techtree bbh run exec --config ${resolvedConfigPath} --lane climb ~/regent-bbh/climb-run`,
     `regents techtree bbh leaderboard --config ${resolvedConfigPath} --lane benchmark`,
-    `regents chatbox tail --config ${resolvedConfigPath} --webapp`,
+    `regents techtree chat tail system --config ${resolvedConfigPath}`,
   ]));
 
   return {

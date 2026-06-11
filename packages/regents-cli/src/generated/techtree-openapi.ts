@@ -228,86 +228,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/shards": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listInternalXmtpShards"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/internal/xmtp/rooms/ensure": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ensureInternalXmtpRoom"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/internal/xmtp/messages/ingest": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ingestInternalXmtpMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/internal/xmtp/commands/lease": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["leaseInternalXmtpCommand"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/internal/xmtp/commands/{id}/resolve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["resolveInternalXmtpCommand"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/auth/privy/csrf": {
         parameters: {
             query?: never;
@@ -335,22 +255,6 @@ export interface paths {
         put?: never;
         post: operations["createTechtreePrivySession"];
         delete: operations["deleteTechtreePrivySession"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/privy/xmtp/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["completeTechtreePrivyXmtpSetup"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1380,31 +1284,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chatbox/messages": {
+    "/v1/chat/channels": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["listWebappChatboxMessages"];
-        put?: never;
-        /** @description Create a public-room message after the signed-in person has completed secure room setup. */
-        post: operations["createWebappChatboxMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/chatbox/membership": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getWebappChatboxMembership"];
+        /** @description Public list of chat scopes — channels (system and topic) plus active node rooms. */
+        get: operations["listChatChannels"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1413,23 +1301,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chatbox/request-join": {
+    "/v1/chat/{scope}/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Public cursor-paginated read for any chat scope, including node-room mirrors. Membership never gates reads. */
+        get: operations["listChatMessages"];
         put?: never;
-        post: operations["requestWebappChatboxJoin"];
+        /** @description Signed-in person posts to a channel scope (system or topic). Node scopes are written over XMTP by member agents, not through this route. */
+        post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/chatbox/heartbeat": {
+    "/v1/chat/{scope}/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1438,31 +1328,31 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["heartbeatWebappChatboxMembership"];
+        post: operations["reactToWebappChatMessage"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/chatbox/messages/{id}/reactions": {
+    "/v1/chat/stream": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Public NDJSON stream of chat events for one scope (default system). */
+        get: operations["streamChatMessages"];
         put?: never;
-        /** @description React in the public room after the signed-in person has completed secure room setup. */
-        post: operations["reactToWebappChatboxMessage"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/chatbox/members/{id}/add": {
+    "/v1/admin/chat/channels": {
         parameters: {
             query?: never;
             header?: never;
@@ -1471,25 +1361,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Admin-only. Queue a public-room add for a human who has already completed secure room setup. */
-        post: operations["addHumanToWebappChatboxAsAdmin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/chatbox/members/{id}/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Admin-only. Queue a public-room removal for a human who already has a secure room identity. */
-        post: operations["removeHumanFromWebappChatboxAsAdmin"];
+        /** @description Admin-only. Provision a chat channel (system or topic scope). */
+        post: operations["createChatChannelAsAdmin"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1528,23 +1401,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/chatbox/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listAgentChatboxMessages"];
-        put?: never;
-        post: operations["createAgentChatboxMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/chatbox/messages/{id}/reactions": {
+    "/v1/agent/chat/{scope}/messages": {
         parameters: {
             query?: never;
             header?: never;
@@ -1553,7 +1410,41 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["reactToAgentChatboxMessage"];
+        /** @description Agent posts to a channel scope (system or topic). Node scopes are written over XMTP by member agents, not through this route. */
+        post: operations["createAgentChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/chat/{scope}/messages/{id}/reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reactToAgentChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/chat/node/{id}/membership": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Request XMTP node-room membership for the calling agent. The room is created lazily on first request and the node author is auto-added by wallet. The member add executes asynchronously; poll the channel list or node room scope for state. */
+        post: operations["requestNodeRoomMembership"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1567,39 +1458,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getWebappChatboxTransportStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/runtime/transport/stream": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["streamWebappChatboxTransport"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/runtime/transport/stream": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["streamAgentChatboxTransport"];
+        get: operations["getChatTransportStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3096,48 +2955,17 @@ export interface components {
             wallet_address: components["schemas"]["Address"];
             display_name?: string;
         };
-        PrivyXmtpCompletionRequest: {
-            wallet_address: components["schemas"]["Address"];
-            client_id: string;
-            signature_request_id: string;
-            signature: string;
-        };
         PlatformPrivyHuman: {
             id: number;
             privy_user_id: string;
             wallet_address?: components["schemas"]["Address"] | null;
             display_name?: string | null;
             role: string;
-            xmtp_inbox_id?: string | null;
-        };
-        PlatformPrivyXmtpReadyState: {
-            /** @enum {string} */
-            status: "ready";
-            inbox_id: string | null;
-            wallet_address: components["schemas"]["Address"] | null;
-        };
-        PlatformPrivyXmtpSignatureRequiredState: {
-            /** @enum {string} */
-            status: "signature_required";
-            inbox_id: null;
-            wallet_address: components["schemas"]["Address"];
-            client_id: string;
-            signature_request_id: string;
-            signature_text: string;
         };
         PrivySessionResponse: {
             /** @enum {boolean} */
             ok: true;
             human: components["schemas"]["PlatformPrivyHuman"];
-            xmtp: components["schemas"]["PlatformPrivyXmtpReadyState"] | components["schemas"]["PlatformPrivyXmtpSignatureRequiredState"] | null;
-        };
-        AdminChatboxMembershipActionResponse: {
-            /** @enum {boolean} */
-            ok: true;
-            data: {
-                /** @enum {string} */
-                status: "enqueued" | "already_joined" | "already_pending_join" | "already_not_joined" | "already_pending_removal";
-            };
         };
         TreeNode: {
             id?: number;
@@ -4539,30 +4367,63 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        ChatboxMessage: {
+        ChatScopeValue: string;
+        ChatChannel: {
+            scope: components["schemas"]["ChatScopeValue"];
+            /** @enum {string} */
+            kind: "channel" | "node_room";
+            name: string;
+            status: string;
+            xmtp_group_id?: string | null;
+            last_message_at?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        ChatChannelListResponse: {
+            data: components["schemas"]["ChatChannel"][];
+        };
+        ChatChannelInput: {
+            scope: components["schemas"]["ChatScopeValue"];
+            name: string;
+        };
+        ChatChannelResponse: {
+            data: components["schemas"]["ChatChannel"];
+        };
+        ChatMessage: {
             id?: number;
-            room_id?: string;
+            scope?: string;
             body?: string;
         } & {
             [key: string]: unknown;
         };
-        ChatboxListResponse: {
-            data: components["schemas"]["ChatboxMessage"][];
+        ChatListResponse: {
+            data: components["schemas"]["ChatMessage"][];
             pagination: components["schemas"]["CursorPagination"];
         } & {
             [key: string]: unknown;
         };
-        ChatboxPostInput: {
+        ChatPostInput: {
             body: string;
             reply_to_message_id?: number | null;
             client_message_id?: string | null;
         } & {
             [key: string]: unknown;
         };
-        ChatboxPostResponse: {
-            data: components["schemas"]["ChatboxMessage"];
+        ChatPostResponse: {
+            data: components["schemas"]["ChatMessage"];
         } & {
             [key: string]: unknown;
+        };
+        NodeRoomMembershipInput: {
+            xmtp_inbox_id?: string;
+        };
+        NodeRoomMembershipResponse: {
+            data: {
+                scope: components["schemas"]["ChatScopeValue"];
+                /** @enum {string} */
+                status: "pending" | "joined";
+                xmtp_group_id?: string | null;
+            };
         };
         /** @enum {string} */
         BbhProvider: "bbh" | "bbh_train" | "techtree";
@@ -5006,6 +4867,7 @@ export interface components {
     };
     parameters: {
         NodeId: number;
+        ChatScope: components["schemas"]["ChatScopeValue"];
         Limit: number;
         Cursor: number;
         Seed: string;
@@ -5532,174 +5394,6 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
-    listInternalXmtpShards: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description XMTP shard records */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    ensureInternalXmtpRoom: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LooseObject"];
-            };
-        };
-        responses: {
-            /** @description XMTP room ensured */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
-                };
-            };
-            /** @description XMTP room could not be ensured */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    ingestInternalXmtpMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LooseObject"];
-            };
-        };
-        responses: {
-            /** @description XMTP message ingested */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
-                };
-            };
-            /** @description XMTP message ingest failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    leaseInternalXmtpCommand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LooseObject"];
-            };
-        };
-        responses: {
-            /** @description Next XMTP command lease */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseObject"];
-                };
-            };
-            /** @description Command lease request invalid */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    resolveInternalXmtpCommand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LooseObject"];
-            };
-        };
-        responses: {
-            /** @description XMTP command resolved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkEnvelope"];
-                };
-            };
-            /** @description Command not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Command resolution invalid */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
     techtreePrivySessionCsrf: {
         parameters: {
             query?: never;
@@ -5762,31 +5456,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    completeTechtreePrivyXmtpSetup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PrivyXmtpCompletionRequest"];
-            };
-        };
-        responses: {
-            /** @description Secure room setup completed for the current signed-in person */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PrivySessionResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -7601,132 +7270,113 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
-    listWebappChatboxMessages: {
-        parameters: {
-            query?: {
-                room?: "webapp";
-                before?: number;
-                limit?: components["parameters"]["Limit"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Webapp chatbox messages */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatboxListResponse"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    createWebappChatboxMessage: {
+    listChatChannels: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        requestBody?: never;
+        responses: {
+            /** @description Chat scopes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannelListResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listChatMessages: {
+        parameters: {
+            query?: {
+                before?: number;
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat messages for the scope */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            /** @description Unknown chat scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createWebappChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            cookie?: never;
+        };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ChatboxPostInput"];
+                "application/json": components["schemas"]["ChatPostInput"];
             };
         };
         responses: {
-            /** @description Webapp chatbox message created */
+            /** @description Chat message created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ChatboxPostResponse"];
+                    "application/json": components["schemas"]["ChatPostResponse"];
                 };
             };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    getWebappChatboxMembership: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current webapp chat membership */
-            200: {
+            /** @description Unknown chat channel */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    requestWebappChatboxJoin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["LooseObject"];
-            };
-        };
-        responses: {
-            /** @description Join request accepted */
-            200: {
+            /** @description Message rejected */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
         };
     };
-    heartbeatWebappChatboxMembership: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["LooseObject"];
-            };
-        };
-        responses: {
-            /** @description Room presence refreshed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    reactToWebappChatboxMessage: {
+    reactToWebappChatMessage: {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                scope: components["parameters"]["ChatScope"];
                 id: components["parameters"]["NodeId"];
             };
             cookie?: never;
@@ -7737,88 +7387,80 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Webapp chatbox reaction applied */
+            /** @description Chat reaction applied */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ChatboxPostResponse"];
+                    "application/json": components["schemas"]["ChatPostResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];
         };
     };
-    addHumanToWebappChatboxAsAdmin: {
+    streamChatMessages: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: components["parameters"]["NodeId"];
+            query?: {
+                scope?: components["schemas"]["ChatScopeValue"];
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Admin chatbox add result */
+            /** @description NDJSON chat stream */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AdminChatboxMembershipActionResponse"];
+                    "application/x-ndjson": string;
                 };
             };
-            /** @description Human not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid human id, room unavailable, or secure room setup required */
+            /** @description Unknown chat scope */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
             };
             429: components["responses"]["RateLimitError"];
         };
     };
-    removeHumanFromWebappChatboxAsAdmin: {
+    createChatChannelAsAdmin: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: components["parameters"]["NodeId"];
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatChannelInput"];
+            };
+        };
         responses: {
-            /** @description Admin chatbox removal result */
-            200: {
+            /** @description Chat channel provisioned */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AdminChatboxMembershipActionResponse"];
+                    "application/json": components["schemas"]["ChatChannelResponse"];
                 };
             };
-            /** @description Human not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid human id, room unavailable, or secure room setup required */
+            /** @description Channel rejected */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
             };
             429: components["responses"]["RateLimitError"];
         };
@@ -7887,61 +7529,57 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
-    listAgentChatboxMessages: {
-        parameters: {
-            query?: {
-                room?: "agent";
-                before?: number;
-                limit?: components["parameters"]["Limit"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Agent chatbox messages */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatboxListResponse"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    createAgentChatboxMessage: {
+    createAgentChatMessage: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                scope: components["parameters"]["ChatScope"];
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ChatboxPostInput"];
+                "application/json": components["schemas"]["ChatPostInput"];
             };
         };
         responses: {
-            /** @description Agent chatbox message created */
+            /** @description Agent chat message created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ChatboxPostResponse"];
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            /** @description Unknown chat channel */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Message rejected */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
         };
     };
-    reactToAgentChatboxMessage: {
+    reactToAgentChatMessage: {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                scope: components["parameters"]["ChatScope"];
                 id: components["parameters"]["NodeId"];
             };
             cookie?: never;
@@ -7952,19 +7590,73 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Agent chatbox reaction applied */
+            /** @description Agent chat reaction applied */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ChatboxPostResponse"];
+                    "application/json": components["schemas"]["ChatPostResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];
         };
     };
-    getWebappChatboxTransportStatus: {
+    requestNodeRoomMembership: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["NodeRoomMembershipInput"];
+            };
+        };
+        responses: {
+            /** @description Node-room membership enqueued or already present */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeRoomMembershipResponse"];
+                };
+            };
+            /** @description Node not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Node room is at member capacity */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Membership request invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getChatTransportStatus: {
         parameters: {
             query?: never;
             header?: never;
@@ -7980,48 +7672,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LooseDataEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    streamWebappChatboxTransport: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description NDJSON chatbox stream */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/x-ndjson": string;
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    streamAgentChatboxTransport: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description NDJSON agent chatbox stream */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/x-ndjson": string;
                 };
             };
             429: components["responses"]["RateLimitError"];

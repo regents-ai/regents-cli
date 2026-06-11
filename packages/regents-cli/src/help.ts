@@ -659,7 +659,7 @@ Object.assign(commandHelpOverlay, {
     flags: ["--json", "--config <path>"],
     examples: ["regents status", "regents status --json"],
     prerequisites: ["No setup is required, but the result is more useful after `regents run` has been started once."],
-    output: "Shows local runtime, wallet, identity, sign-in, Techtree, chatbox, and XMTP readiness.",
+    output: "Shows local runtime, wallet, identity, sign-in, Techtree, chat, and XMTP readiness.",
     nextStep: "Fix the first waiting item shown in the output, then run `regents status` again.",
     ifItFails: [
       "If config cannot load, run `regents init` or pass the right `--config <path>`.",
@@ -1937,7 +1937,7 @@ const generatedPrerequisites = (command: string, detail: CommandDetailMetadata |
     return autolaunchPrerequisites;
   }
 
-  if (command.startsWith("techtree ") || command.startsWith("chatbox ")) {
+  if (command.startsWith("techtree ")) {
     return techtreePrerequisites;
   }
 
@@ -1973,7 +1973,7 @@ const generatedFailureChecks = (command: string): readonly string[] => {
     return autolaunchFailureChecks;
   }
 
-  if (command.startsWith("techtree ") || command.startsWith("chatbox ")) {
+  if (command.startsWith("techtree ")) {
     return techtreeFailureChecks;
   }
 

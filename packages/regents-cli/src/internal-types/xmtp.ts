@@ -92,6 +92,31 @@ export interface XmtpDmTestResult {
   text: string;
 }
 
+export interface XmtpDmSendResult {
+  ok: true;
+  to: string;
+  conversationId: string;
+  messageId: string;
+  text: string;
+}
+
+export interface XmtpDmListResult {
+  ok: true;
+  conversations: XmtpRecentConversation[];
+}
+
+export interface XmtpConversationSendResult {
+  ok: true;
+  conversationId: string;
+  messageId: string;
+  text: string;
+}
+
+export interface XmtpInboxSyncResult {
+  ok: true;
+  syncedAt: string;
+}
+
 export interface XmtpGroupCreateResult {
   ok: true;
   id: string;

@@ -1,7 +1,7 @@
 import { daemonCall } from "../daemon-client.js";
 import { getFlag, parseIntegerFlag, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
-import { runChatboxTail } from "./chatbox.js";
+import { tailChatScope } from "./chat.js";
 
 const parseCsvFlag = (args: string[] | ParsedCliArgs, name: string): string[] | undefined => {
   const value = getFlag(args, name);
@@ -21,8 +21,8 @@ export async function runTechtreeWatchList(configPath?: string): Promise<void> {
   printJson(await daemonCall("techtree.watch.list", undefined, configPath));
 }
 
-export async function runTechtreeWatchTail(args?: ParsedCliArgs, configPath?: string): Promise<void> {
-  await runChatboxTail(args, configPath);
+export async function runTechtreeWatchTail(configPath?: string): Promise<void> {
+  await tailChatScope("system", configPath);
 }
 
 export async function runTechtreeUnwatch(nodeId: number, configPath?: string): Promise<void> {

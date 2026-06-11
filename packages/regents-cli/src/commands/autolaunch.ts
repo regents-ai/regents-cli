@@ -4,6 +4,14 @@ export {
   runAutolaunchAgentShow,
 } from "./autolaunch/agents.js";
 export {
+  runAutolaunchChatJoin,
+  runAutolaunchChatList,
+  runAutolaunchChatRead,
+  runAutolaunchChatSend,
+  runAutolaunchDm,
+  runAutolaunchDmList,
+} from "./autolaunch/chat.js";
+export {
   runAutolaunchIdentitiesList,
   runAutolaunchIdentitiesMint,
 } from "./autolaunch/identities.js";

@@ -102,15 +102,17 @@ import type {
   BbhSyncResponse,
   BbhValidationSubmitRequest,
   BbhValidationSubmitResponse,
-  ChatboxListResponse,
-  ChatboxPostInput,
-  ChatboxPostResponse,
+  ChatChannelListResponse,
+  ChatListResponse,
+  ChatPostInput,
+  ChatPostResponse,
   CommentCreateInput,
   CommentCreateResponse,
   GossipsubStatus,
   NodeCreateInput,
   NodeCreateResponse,
   NodePaidPayloadAccessResponse,
+  NodeRoomMembershipResponse,
   NodeStarRecord,
   RegentConfig,
   ScienceTaskChecklistUpdateInput,
@@ -139,7 +141,7 @@ import { AuthResource } from "./client/auth.js";
 import { AutoskillResource } from "./client/autoskill.js";
 import { BenchmarksResource } from "./client/benchmarks.js";
 import { BbhResource } from "./client/bbh.js";
-import { ChatboxResource } from "./client/chatbox.js";
+import { ChatResource } from "./client/chat.js";
 import { TechtreeRequestClient, type TechtreeRequestMethod } from "./client/request.js";
 import { ReviewsResource } from "./client/reviews.js";
 import { RunbookResource } from "./client/runbook.js";
@@ -164,7 +166,7 @@ export class TechtreeClient {
   private readonly autoskill: AutoskillResource;
   private readonly benchmarks: BenchmarksResource;
   private readonly bbh: BbhResource;
-  private readonly chatbox: ChatboxResource;
+  private readonly chat: ChatResource;
   private readonly reviews: ReviewsResource;
   private readonly runbook: RunbookResource;
   private readonly scienceTasks: ScienceTasksResource;
@@ -198,7 +200,7 @@ export class TechtreeClient {
     this.autoskill = new AutoskillResource(this.request);
     this.benchmarks = new BenchmarksResource(this.request);
     this.bbh = new BbhResource(this.request);
-    this.chatbox = new ChatboxResource(this.request);
+    this.chat = new ChatResource(this.request);
     this.reviews = new ReviewsResource(this.request);
     this.runbook = new RunbookResource(this.request);
     this.scienceTasks = new ScienceTasksResource(this.request);
@@ -741,27 +743,37 @@ export class TechtreeClient {
     return this.tree.getOpportunities(params);
   }
 
-  listChatboxMessages(params?: {
-    before?: number;
-    limit?: number;
-    room?: "webapp" | "agent";
-  }): Promise<ChatboxListResponse> {
-    return this.chatbox.listChatboxMessages(params);
+  listChatChannels(): Promise<ChatChannelListResponse> {
+    return this.chat.listChatChannels();
   }
 
-  createAgentChatboxMessage(input: ChatboxPostInput): Promise<ChatboxPostResponse> {
-    return this.chatbox.createAgentChatboxMessage(input);
+  listChatMessages(
+    scope: string,
+    params?: { before?: number; limit?: number },
+  ): Promise<ChatListResponse> {
+    return this.chat.listChatMessages(scope, params);
+  }
+
+  createAgentChatMessage(scope: string, input: ChatPostInput): Promise<ChatPostResponse> {
+    return this.chat.createAgentChatMessage(scope, input);
+  }
+
+  requestNodeRoomMembership(
+    nodeId: number,
+    input?: { xmtp_inbox_id?: string },
+  ): Promise<NodeRoomMembershipResponse> {
+    return this.chat.requestNodeRoomMembership(nodeId, input);
   }
 
   transportStatus(): Promise<{ data: GossipsubStatus }> {
     return this.transport.transportStatus();
   }
 
-  streamChatbox(
-    room: "webapp" | "agent",
+  streamChat(
+    scope: string,
     onEvent: (payload: unknown) => void,
     signal: AbortSignal,
   ): Promise<void> {
-    return this.chatbox.streamChatbox(room, onEvent, signal);
+    return this.chat.streamChat(scope, onEvent, signal);
   }
 }

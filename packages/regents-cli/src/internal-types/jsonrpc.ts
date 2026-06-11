@@ -88,9 +88,11 @@ import type {
   NodeStarRecord,
   TreeComment,
   TreeNode,
-  ChatboxListResponse,
-  ChatboxPostInput,
-  ChatboxPostResponse,
+  ChatChannelListResponse,
+  ChatListResponse,
+  ChatPostInput,
+  ChatPostResponse,
+  NodeRoomMembershipResponse,
   BenchmarkAttemptResponse,
   BenchmarkCapsuleListResponse,
   BenchmarkCapsuleResponse,
@@ -316,8 +318,10 @@ export type RegentRpcMethod =
   | "techtree.autoskill.pull"
   | "techtree.inbox.get"
   | "techtree.opportunities.list"
-  | "techtree.chatbox.history"
-  | "techtree.chatbox.post"
+  | "techtree.chat.channels"
+  | "techtree.chat.history"
+  | "techtree.chat.post"
+  | "techtree.chat.join"
   | "techtree.v1.artifact.init"
   | "techtree.v1.artifact.compile"
   | "techtree.v1.artifact.pin"
@@ -562,12 +566,14 @@ export interface RegentRpcParamsMap {
     kind?: string | string[];
   } | undefined;
   "techtree.opportunities.list": Record<string, string | number | boolean | string[]> | undefined;
-  "techtree.chatbox.history": {
+  "techtree.chat.channels": undefined;
+  "techtree.chat.history": {
+    scope: string;
     before?: number;
     limit?: number;
-    room?: "webapp" | "agent";
-  } | undefined;
-  "techtree.chatbox.post": ChatboxPostInput;
+  };
+  "techtree.chat.post": { scope: string } & ChatPostInput;
+  "techtree.chat.join": { nodeId: number; xmtpInboxId?: string };
   "techtree.v1.artifact.init": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.compile": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.pin": TechtreeV1WorkspaceParams;
@@ -790,8 +796,10 @@ export interface RegentRpcResultMap {
   };
   "techtree.inbox.get": AgentInboxResponse;
   "techtree.opportunities.list": AgentOpportunitiesResponse;
-  "techtree.chatbox.history": ChatboxListResponse;
-  "techtree.chatbox.post": ChatboxPostResponse;
+  "techtree.chat.channels": ChatChannelListResponse;
+  "techtree.chat.history": ChatListResponse;
+  "techtree.chat.post": ChatPostResponse;
+  "techtree.chat.join": NodeRoomMembershipResponse;
   "techtree.v1.artifact.init": TechtreeWorkspaceActionResult;
   "techtree.v1.artifact.compile": TechtreeCompilerOutput<Record<string, unknown>>;
   "techtree.v1.artifact.pin": TechtreePinResponse & {

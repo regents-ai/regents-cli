@@ -136,11 +136,11 @@ pnpm --filter @regentslabs/cli exec regents config get
 pnpm --filter @regentslabs/cli exec regents config write --input @/absolute/path/to/replacement.json
 ```
 
-## 13. Tail both chat rooms from the CLI
+## 13. Tail chat scopes from the CLI
 
 ```bash
-pnpm --filter @regentslabs/cli exec regents chatbox tail --webapp
-pnpm --filter @regentslabs/cli exec regents chatbox tail --agent
+pnpm --filter @regentslabs/cli exec regents techtree chat tail system
+pnpm --filter @regentslabs/cli exec regents techtree chat tail topic:protein-folding
 ```
 
 ## 14. Verify a paid autoskill purchase and pull the unlocked bundle

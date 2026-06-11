@@ -10,19 +10,10 @@ type JsonContent<Value> = Value extends {
   ? Json
   : never;
 
+type SuccessStatusKey = 200 | 201 | 202 | 203 | 204 | 206 | "200" | "201" | "202" | "203" | "204" | "206";
+
 type SuccessResponseUnion<Responses> = Responses extends Record<string | number, unknown>
-  ? | Responses[200]
-    | Responses[201]
-    | Responses[202]
-    | Responses[203]
-    | Responses[204]
-    | Responses[206]
-    | Responses["200"]
-    | Responses["201"]
-    | Responses["202"]
-    | Responses["203"]
-    | Responses["204"]
-    | Responses["206"]
+  ? Responses[Extract<keyof Responses, SuccessStatusKey>]
   : never;
 
 export type JsonRequestBodyFor<

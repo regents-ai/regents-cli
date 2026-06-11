@@ -5,41 +5,22 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { ChatboxLiveEvent } from "../../src/internal-types/index.js";
+import type { ChatLiveEvent } from "../../src/internal-types/index.js";
 
 import { RegentError } from "../../src/internal-runtime/errors.js";
-import { PublicChatboxRelayAdapter } from "../../src/internal-runtime/transports/gossipsub-adapter.js";
+import { PublicChatRelayAdapter } from "../../src/internal-runtime/transports/gossipsub-adapter.js";
 import {
-  resolveChatboxRelaySocketPath,
-  ChatboxRelaySocketServer,
-} from "../../src/internal-runtime/transports/chatbox-relay-socket.js";
+  resolveChatRelaySocketPath,
+  ChatRelaySocketServer,
+} from "../../src/internal-runtime/transports/chat-relay-socket.js";
 import { resolveWatchedNodeRelaySocketPath } from "../../src/internal-runtime/transports/watched-node-relay-socket.js";
 
-const TEST_EVENT: ChatboxLiveEvent = {
+const TEST_EVENT: ChatLiveEvent = {
   event: "message.created",
   message: {
     id: 77,
-    room_id: "public-chatbox",
-    transport_msg_id: "transport-77",
-    transport_topic: "global",
-    origin_peer_id: "peer-1",
-    origin_node_id: null,
-    author_kind: "agent",
-    author_human_id: null,
-    author_agent_id: 1,
-    author_display_name: null,
-    author_label: "Relay agent",
-    author_wallet_address: "0x1111111111111111111111111111111111111111",
-    author_transport_id: "peer-1",
+    scope: "system",
     body: "relay hello",
-    client_message_id: null,
-    reply_to_message_id: null,
-    reply_to_transport_msg_id: null,
-    reactions: {},
-    moderation_state: "visible",
-    sent_at: "2026-03-10T00:00:00.000Z",
-    inserted_at: "2026-03-10T00:00:00.000Z",
-    updated_at: "2026-03-10T00:00:00.000Z",
   },
 };
 
@@ -53,7 +34,7 @@ describe("gossipsub relay adapter", () => {
   });
 
   it("returns disabled status and rejects subscriptions when the relay is off", async () => {
-    const adapter = new PublicChatboxRelayAdapter(
+    const adapter = new PublicChatRelayAdapter(
       {
         enabled: false,
         listenAddrs: [],
@@ -62,9 +43,9 @@ describe("gossipsub relay adapter", () => {
       },
       {
         transportStatus: vi.fn(),
-        streamChatbox: vi.fn(),
+        streamChat: vi.fn(),
       } as never,
-      "/tmp/regent-disabled.chatbox.sock",
+      "/tmp/regent-disabled.chat.sock",
     );
 
     await adapter.start();
@@ -77,11 +58,11 @@ describe("gossipsub relay adapter", () => {
       lastError: null,
       eventSocketPath: null,
       status: "disabled",
-      note: "Chatbox transport disabled",
+      note: "Chat transport disabled",
     });
 
-    await expect(adapter.subscribeChatbox(() => undefined)).rejects.toMatchObject(
-      new RegentError("chatbox_relay_disabled", "chatbox transport is disabled in config"),
+    await expect(adapter.subscribeChat(() => undefined)).rejects.toMatchObject(
+      new RegentError("chat_relay_disabled", "chat transport is disabled in config"),
     );
   });
 
@@ -91,7 +72,7 @@ describe("gossipsub relay adapter", () => {
         enabled: true,
         configured: true,
         connected: true,
-        subscribedTopics: ["public-chatbox"],
+        subscribedTopics: ["public-chat"],
         peerCount: 2,
         lastError: null,
         status: "ready" as const,
@@ -100,15 +81,15 @@ describe("gossipsub relay adapter", () => {
         ready: true,
       },
     }));
-    const streamChatbox = vi.fn(
-      async (_room: "webapp" | "agent", onEvent: (payload: unknown) => void, signal: AbortSignal) => {
+    const streamChat = vi.fn(
+      async (_scope: string, onEvent: (payload: unknown) => void, signal: AbortSignal) => {
         onEvent(TEST_EVENT);
         await new Promise<void>((resolve) => {
           signal.addEventListener("abort", () => resolve(), { once: true });
         });
       },
     );
-    const adapter = new PublicChatboxRelayAdapter(
+    const adapter = new PublicChatRelayAdapter(
       {
         enabled: true,
         listenAddrs: [],
@@ -117,9 +98,9 @@ describe("gossipsub relay adapter", () => {
       },
       {
         transportStatus,
-        streamChatbox,
+        streamChat,
       } as never,
-      "/tmp/regent-enabled.chatbox.sock",
+      "/tmp/regent-enabled.chat.sock",
     );
 
     await adapter.start();
@@ -128,23 +109,23 @@ describe("gossipsub relay adapter", () => {
       enabled: true,
       configured: true,
       connected: true,
-      subscribedTopics: ["public-chatbox"],
+      subscribedTopics: ["public-chat"],
       peerCount: 2,
-      eventSocketPath: "/tmp/regent-enabled.chatbox.sock",
+      eventSocketPath: "/tmp/regent-enabled.chat.sock",
       status: "ready",
       note: "Backend mesh mode: libp2p",
       mode: "libp2p",
       ready: true,
     });
 
-    const receivedEvents: ChatboxLiveEvent[] = [];
-    const dispose = await adapter.subscribeChatbox((event) => receivedEvents.push(event));
+    const receivedEvents: ChatLiveEvent[] = [];
+    const dispose = await adapter.subscribeChat((event) => receivedEvents.push(event));
 
     await vi.waitFor(() => {
       expect(receivedEvents).toEqual([TEST_EVENT]);
     });
 
-    expect(streamChatbox).toHaveBeenCalledWith("webapp", expect.any(Function), expect.any(AbortSignal));
+    expect(streamChat).toHaveBeenCalledWith("system", expect.any(Function), expect.any(AbortSignal));
 
     await dispose();
     await expect(adapter.status()).resolves.toMatchObject({
@@ -153,28 +134,58 @@ describe("gossipsub relay adapter", () => {
     });
   });
 
-  it("writes relay events to the chatbox event socket", async () => {
+  it("subscribes with an explicit scope", async () => {
+    const streamChat = vi.fn(
+      async (_scope: string, _onEvent: (payload: unknown) => void, signal: AbortSignal) => {
+        await new Promise<void>((resolve) => {
+          signal.addEventListener("abort", () => resolve(), { once: true });
+        });
+      },
+    );
+    const adapter = new PublicChatRelayAdapter(
+      {
+        enabled: true,
+        listenAddrs: [],
+        bootstrap: [],
+        peerIdPath: "/tmp/regent-scoped-peer-id.json",
+      },
+      {
+        transportStatus: vi.fn(),
+        streamChat,
+      } as never,
+      "/tmp/regent-scoped.chat.sock",
+    );
+
+    const dispose = await adapter.subscribeChat(() => undefined, "node:42");
+    await vi.waitFor(() => {
+      expect(streamChat).toHaveBeenCalledWith("node:42", expect.any(Function), expect.any(AbortSignal));
+    });
+    await dispose();
+  });
+
+  it("writes relay events to the chat event socket", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-gossipsub-socket-"));
     tempArtifacts.push(tempDir);
 
-    let listener: ((event: ChatboxLiveEvent) => void) | null = null;
+    let listener: ((event: ChatLiveEvent) => void) | null = null;
     const unsubscribe = vi.fn(async () => undefined);
     const adapter = {
-      subscribeChatbox: vi.fn(async (nextListener: (event: ChatboxLiveEvent) => void) => {
+      subscribeChat: vi.fn(async (nextListener: (event: ChatLiveEvent) => void) => {
         listener = nextListener;
         return unsubscribe;
       }),
     };
 
-    const server = new ChatboxRelaySocketServer(path.join(tempDir, "regent.sock"), adapter as never);
+    const server = new ChatRelaySocketServer(path.join(tempDir, "regent.sock"), adapter as never);
     await server.start();
 
-    const received = await new Promise<ChatboxLiveEvent>((resolve, reject) => {
+    const received = await new Promise<ChatLiveEvent>((resolve, reject) => {
       const socket = net.createConnection(server.socketPath);
       let buffer = "";
 
       socket.setEncoding("utf8");
       socket.on("connect", () => {
+        socket.write(`${JSON.stringify({ scope: "system" })}\n`);
         setTimeout(() => {
           if (!listener) {
             reject(new Error("listener was not registered"));
@@ -193,7 +204,7 @@ describe("gossipsub relay adapter", () => {
 
         const line = buffer.slice(0, newlineIndex).trim();
         socket.end();
-        resolve(JSON.parse(line) as ChatboxLiveEvent);
+        resolve(JSON.parse(line) as ChatLiveEvent);
       });
       socket.on("error", reject);
     });
@@ -206,14 +217,46 @@ describe("gossipsub relay adapter", () => {
     await server.stop();
   });
 
+  it("forwards the requested scope from the socket subscription line", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-gossipsub-scope-"));
+    tempArtifacts.push(tempDir);
+
+    const unsubscribe = vi.fn(async () => undefined);
+    const subscribeChat = vi.fn(async () => unsubscribe);
+    const server = new ChatRelaySocketServer(
+      path.join(tempDir, "regent.sock"),
+      { subscribeChat } as never,
+    );
+    await server.start();
+
+    await new Promise<void>((resolve, reject) => {
+      const socket = net.createConnection(server.socketPath);
+      socket.setEncoding("utf8");
+      socket.on("connect", () => {
+        socket.write(`${JSON.stringify({ scope: "topic:protein-folding" })}\n`);
+        setTimeout(() => {
+          socket.end();
+          resolve();
+        }, 50);
+      });
+      socket.on("error", reject);
+    });
+
+    await vi.waitFor(() => {
+      expect(subscribeChat).toHaveBeenCalledWith(expect.any(Function), "topic:protein-folding");
+    });
+
+    await server.stop();
+  });
+
   it("falls back to short /tmp relay socket paths when runtime path is too long", () => {
     const veryLongRuntimeSocketPath = `/tmp/${"regent-long-runtime-path-".repeat(8)}.sock`;
-    const chatboxPath = resolveChatboxRelaySocketPath(veryLongRuntimeSocketPath);
+    const chatPath = resolveChatRelaySocketPath(veryLongRuntimeSocketPath);
     const watchPath = resolveWatchedNodeRelaySocketPath(veryLongRuntimeSocketPath);
 
-    expect(chatboxPath.startsWith("/tmp/regent-")).toBe(true);
-    expect(chatboxPath.endsWith(".chatbox.sock")).toBe(true);
-    expect(Buffer.byteLength(chatboxPath, "utf8")).toBeLessThanOrEqual(100);
+    expect(chatPath.startsWith("/tmp/regent-")).toBe(true);
+    expect(chatPath.endsWith(".chat.sock")).toBe(true);
+    expect(Buffer.byteLength(chatPath, "utf8")).toBeLessThanOrEqual(100);
 
     expect(watchPath.startsWith("/tmp/regent-")).toBe(true);
     expect(watchPath.endsWith(".watch.sock")).toBe(true);
