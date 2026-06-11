@@ -103,7 +103,7 @@ export const writeIdentityReceipt = (receipt: RegentIdentityReceipt): string => 
   try {
     writeJsonFileAtomicSync(cachePath, receipt);
   } catch (error) {
-    throw new CommandExitError("CACHE_WRITE_FAILED", "Could not save the Regent identity receipt.", 22, {
+    throw new CommandExitError("CACHE_WRITE_FAILED", "Could not save the Regent identity receipt.", {
       cause: error,
       details: { cachePath },
     });
@@ -120,9 +120,7 @@ export const updateIdentityReceipt = (
   if (!receipt) {
     throw new CommandExitError(
       "CACHE_WRITE_FAILED",
-      "This machine does not have a saved Regent identity yet. Run `regents identity ensure` first.",
-      22,
-      { details: { cachePath: identityCachePath() } },
+      "This machine does not have a saved Regent identity yet. Run `regents identity ensure` first.", { details: { cachePath: identityCachePath() } },
     );
   }
 

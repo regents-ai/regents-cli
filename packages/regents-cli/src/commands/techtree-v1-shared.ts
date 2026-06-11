@@ -2,6 +2,7 @@ import path from "node:path";
 
 import type { TechtreeNodeId, TechtreeTreeName } from "../internal-types/index.js";
 
+import { CliUsageError } from "../cli-usage-error.js";
 import { getFlag, getFlags, requireArg, type ParsedCliArgs } from "../parse.js";
 
 export const normalizeTree = (value: string): TechtreeTreeName => {
@@ -29,7 +30,10 @@ export const optionalWorkspacePath = (args: ParsedCliArgs): string | null => wor
 export const normalizeNodeId = (value: string | undefined, name = "node id"): TechtreeNodeId => {
   const required = requireArg(value, name);
   if (!/^0x[0-9a-f]{64}$/.test(required)) {
-    throw new Error(`invalid ${name}`);
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `invalid ${name}`,
+    });
   }
 
   return required as TechtreeNodeId;

@@ -538,6 +538,7 @@ describe("CLI config flows", () => {
     expect(output.stdout).toBe("");
     expect(JSON.parse(output.stderr)).toEqual({
       error: {
+        code: "command_failed",
         message: expect.stringMatching(/EEXIST|ENOTDIR/),
         next_steps: ["regents status"],
       },
@@ -552,6 +553,7 @@ describe("CLI config flows", () => {
     expect(output.result).toBe(1);
     expect(JSON.parse(output.stderr)).toEqual({
       error: {
+        code: "command_failed",
         message: "--input must use @/absolute/or/relative/path.json syntax",
       },
     });

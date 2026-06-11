@@ -23,6 +23,16 @@ help:
   output_modes:
     human: Panels, tables, status lines, examples, and next-step hints.
     json: Raw JSON for scripts when `--json` is supported or stdout is not a terminal.
+  error_envelope:
+    shape: '{"error": {"code": "<stable_code>", "message": "<text>", ...}}'
+    code_guarantee: Every JSON error envelope carries a stable machine-readable `code` string.
+  exit_codes:
+    "0": Success.
+    "1": The command ran but the operation failed.
+    "2": Usage error - unknown command, missing argument, or invalid flag value.
+    "3": Sign-in or Agent identity is missing, expired, or rejected.
+    "4": The requested record was not found.
+    "5": The Regent service or local runtime could not be reached.
   terminal_constraints:
     - Honor NO_COLOR.
     - Avoid rich formatting for non-TTY output and TERM=dumb.
@@ -180,6 +190,21 @@ command_groups:
           next_step: regents run
           examples:
             - regents plugin doctor
+        agent-context:
+          category: local-control
+          prompt_behavior: never_prompt
+          json_support: required
+          mutation_class: local-read
+          retry_behavior: safe
+          pagination: none
+          async_behavior: synchronous
+          input_mode: flags
+          summary: Print the safe command and setup context for another agent.
+          next_step: regents status
+          examples:
+            - regents agent-context
+            - regents agent-context --area techtree
+            - regents agent-context --command "techtree node create"
     commands:
       - init
       - start
@@ -207,6 +232,19 @@ command_groups:
           type: boolean
           required: false
           description: Include the saved Platform account projection when a Platform session is present.
+      agent-context:
+        - name: --area
+          type: string
+          required: false
+          description: Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, xmtp, chat, work, or mcp.
+        - name: --command
+          type: string
+          required: false
+          description: Only include the one exact command named, such as "techtree node create".
+        - name: --json
+          type: boolean
+          required: false
+          description: Print the agent context as JSON. The command always prints JSON; the flag is accepted for consistency.
       setup skills:
         - name: --project
           type: boolean

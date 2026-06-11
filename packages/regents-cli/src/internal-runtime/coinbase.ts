@@ -108,9 +108,7 @@ const runCdpJsonCommand = async (args: string[], timeoutMs: number): Promise<unk
     const cause = error instanceof Error ? error.message : String(error);
     throw new CommandExitError(
       "COINBASE_CDP_MISSING",
-      "Coinbase wallet setup is not ready on this machine.",
-      10,
-      { details: { cause, command: `${CDP_BIN} ${args.join(" ")}` } },
+      "Coinbase wallet setup is not ready on this machine.", { details: { cause, command: `${CDP_BIN} ${args.join(" ")}` } },
     );
   }
 };
@@ -322,9 +320,7 @@ const requireCdpReadyForWrites = (): void => {
   if (!process.env.CDP_KEY_ID || !process.env.CDP_KEY_SECRET || !process.env.CDP_WALLET_SECRET) {
     throw new CommandExitError(
       "COINBASE_CDP_MISSING",
-      "Coinbase credentials are not ready for wallet setup.",
-      10,
-      {
+      "Coinbase credentials are not ready for wallet setup.", {
         details: {
           api_key_present: Boolean(process.env.CDP_KEY_ID) && Boolean(process.env.CDP_KEY_SECRET),
           wallet_secret_present: Boolean(process.env.CDP_WALLET_SECRET),
@@ -357,7 +353,7 @@ export const setupCoinbaseWallet = async (
     created = true;
   }
   if (!wallet) {
-    throw new CommandExitError("COINBASE_CDP_MISSING", "Coinbase did not return a wallet account.", 10);
+    throw new CommandExitError("COINBASE_CDP_MISSING", "Coinbase did not return a wallet account.");
   }
 
   const statePath = writeWalletState(config, wallet);
@@ -381,14 +377,12 @@ export const signMessageWithCoinbase = async (
     expectedAddress: input.expectedAddress,
   });
   if (!wallet) {
-    throw new CommandExitError("COINBASE_CDP_MISSING", "No Coinbase wallet account is ready on this machine.", 10);
+    throw new CommandExitError("COINBASE_CDP_MISSING", "No Coinbase wallet account is ready on this machine.");
   }
   if (input.expectedAddress && wallet.address.toLowerCase() !== input.expectedAddress.toLowerCase()) {
     throw new CommandExitError(
       "COINBASE_CDP_MISSING",
-      "The saved Regent identity no longer matches the current Coinbase wallet.",
-      10,
-      { details: { expectedAddress: input.expectedAddress, address: wallet.address } },
+      "The saved Regent identity no longer matches the current Coinbase wallet.", { details: { expectedAddress: input.expectedAddress, address: wallet.address } },
     );
   }
 
@@ -401,7 +395,7 @@ export const signMessageWithCoinbase = async (
     (typeof record.signature === "string" && record.signature.startsWith("0x") && record.signature) ||
     (typeof record.signedMessage === "string" && record.signedMessage.startsWith("0x") && record.signedMessage);
   if (!signature) {
-    throw new CommandExitError("COINBASE_CDP_MISSING", "Coinbase did not return a message signature.", 10);
+    throw new CommandExitError("COINBASE_CDP_MISSING", "Coinbase did not return a message signature.");
   }
 
   return {

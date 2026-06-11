@@ -70,12 +70,10 @@ export class DoctorInternalError extends RegentError {
 }
 
 export class CommandExitError extends RegentError {
-  readonly exitCode: number;
   readonly details?: unknown;
 
-  constructor(code: string, message: string, exitCode: number, options?: { cause?: unknown; details?: unknown }) {
+  constructor(code: string, message: string, options?: { cause?: unknown; details?: unknown }) {
     super(code, message, options?.cause);
-    this.exitCode = exitCode;
     this.details = options?.details;
   }
 }

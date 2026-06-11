@@ -1264,29 +1264,45 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "none",
     "output_envelope": "operator-status-envelopes",
+    "flags": [
+      {
+        "name": "--area",
+        "type": "string",
+        "required": false,
+        "description": "Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, xmtp, chat, work, or mcp."
+      },
+      {
+        "name": "--command",
+        "type": "string",
+        "required": false,
+        "description": "Only include the one exact command named, such as \"techtree node create\"."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the agent context as JSON. The command always prints JSON; the flag is accepted for consistency."
+      }
+    ],
     "examples": [
-      "regents status",
-      "regents init",
-      "regents plugin install",
-      "regents setup",
-      "regents setup skills",
-      "regents plugin status",
-      "regents runtime status --json",
       "regents agent-context",
-      "regents config get",
-      "regents agent profile get"
+      "regents agent-context --area techtree",
+      "regents agent-context --command \"techtree node create\""
     ],
     "agent_metadata": {
       "category": "local-control",
       "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "local-read-or-write",
-      "retry_behavior": "safe_for_reads",
-      "pagination": "bounded",
+      "json_support": "required",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
       "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
+      "input_mode": "flags",
+      "summary": "Print the safe command and setup context for another agent.",
+      "next_step": "regents status"
     },
-    "summary": "Print the safe command and setup context for another agent."
+    "summary": "Print the safe command and setup context for another agent.",
+    "next_step": "regents status"
   },
   "agentbook lookup": {
     "command": "agentbook lookup",
@@ -1493,7 +1509,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch agent.",
-    "usage": "regents autolaunch agents list",
     "next_step": "Use `regents autolaunch agent readiness <id>`."
   },
   "autolaunch agent readiness <id>": {
@@ -1519,7 +1534,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show agent readiness.",
-    "usage": "regents autolaunch agents list",
     "next_step": "Use `regents autolaunch agent readiness <id>`."
   },
   "autolaunch agents list": {
@@ -1530,6 +1544,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--launchable",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show agents that are close to launch-ready."
+      }
+    ],
     "examples": [
       "regents autolaunch agents list",
       "regents autolaunch agent <id>"
@@ -1545,7 +1567,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "List agents.",
-    "usage": "regents autolaunch agents list",
     "next_step": "Use `regents autolaunch agent readiness <id>`."
   },
   "autolaunch auction <id>": {
@@ -1581,6 +1602,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--limit",
+        "type": "string",
+        "required": false,
+        "description": "Maximum number of results to return."
+      },
+      {
+        "name": "--offset",
+        "type": "string",
+        "required": false,
+        "description": "Number of results to skip before the first returned result."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -1606,6 +1641,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--sort",
+        "type": "string",
+        "required": false,
+        "description": "Sort order for the list."
+      },
+      {
+        "name": "--status",
+        "type": "string",
+        "required": false,
+        "description": "Only return entries with this status."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--mine-only",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show auctions for your own subjects."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -1631,6 +1692,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--tx-hash",
+        "type": "string",
+        "required": true,
+        "description": "Transaction hash of the onchain action."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -1656,6 +1725,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--tx-hash",
+        "type": "string",
+        "required": true,
+        "description": "Transaction hash of the onchain action."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -1681,6 +1758,68 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--auction",
+        "type": "string",
+        "required": true,
+        "description": "Auction id."
+      },
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Bid amount in quote token base units."
+      },
+      {
+        "name": "--max-price",
+        "type": "string",
+        "required": true,
+        "description": "Highest price you accept, in quote token base units."
+      },
+      {
+        "name": "--tx-hash",
+        "type": "string",
+        "required": true,
+        "description": "Transaction hash of the onchain action."
+      },
+      {
+        "name": "--current-clearing-price",
+        "type": "string",
+        "required": false,
+        "description": "Clearing price shown when the bid was placed."
+      },
+      {
+        "name": "--projected-clearing-price",
+        "type": "string",
+        "required": false,
+        "description": "Projected clearing price shown when the bid was placed."
+      },
+      {
+        "name": "--estimated-tokens-if-end-now",
+        "type": "string",
+        "required": false,
+        "description": "Token estimate shown if the auction ended now."
+      },
+      {
+        "name": "--estimated-tokens-if-no-other-bids-change",
+        "type": "string",
+        "required": false,
+        "description": "Token estimate shown if no other bids change."
+      },
+      {
+        "name": "--inactive-above-price",
+        "type": "string",
+        "required": false,
+        "description": "Price above which the bid goes inactive."
+      },
+      {
+        "name": "--status-band",
+        "type": "string",
+        "required": false,
+        "description": "Status band shown when the bid was placed."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -1706,6 +1845,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--auction",
+        "type": "string",
+        "required": true,
+        "description": "Auction id."
+      },
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Bid amount in quote token base units."
+      },
+      {
+        "name": "--max-price",
+        "type": "string",
+        "required": true,
+        "description": "Highest price you accept, in quote token base units."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -1750,7 +1909,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "List chat.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch chat read <scope>": {
@@ -1762,6 +1920,18 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_audience": "autolaunch",
     "output_envelope": "chat-list-or-messages",
     "flags": [
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of messages to return."
+      },
+      {
+        "name": "--before",
+        "type": "integer",
+        "required": false,
+        "description": "Only return messages older than this message id."
+      },
       {
         "name": "--from",
         "type": "string",
@@ -1794,7 +1964,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch chat read.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch chat send <scope>": {
@@ -1805,6 +1974,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "chat-list-or-messages",
+    "flags": [
+      {
+        "name": "--message",
+        "type": "string",
+        "required": true,
+        "description": "Message text to send."
+      },
+      {
+        "name": "--client-message-id",
+        "type": "string",
+        "required": false,
+        "description": "Caller-chosen message id so a retried send does not post twice."
+      },
+      {
+        "name": "--reply-to",
+        "type": "integer",
+        "required": false,
+        "description": "Message id this message replies to."
+      }
+    ],
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
@@ -1824,7 +2013,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch chat send.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch chat subscribe add <scope>": {
@@ -1854,7 +2042,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Add a scope to the saved Autolaunch chat subscriptions.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch chat subscribe list": {
@@ -1884,7 +2071,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "List the saved Autolaunch chat subscriptions.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch chat subscribe remove <scope>": {
@@ -1914,7 +2100,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Remove a scope from the saved Autolaunch chat subscriptions.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch chat unread [scope...]": {
@@ -1964,7 +2149,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show new chat messages since the saved cursors.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch connect start": {
@@ -2009,7 +2193,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "flags"
     },
     "summary": "Start connect.",
-    "usage": "regents autolaunch connect start",
     "next_step": "Ask the signed-in human to open the connection URL."
   },
   "autolaunch contracts admin": {
@@ -2046,6 +2229,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2072,6 +2263,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2150,6 +2349,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "chat-list-or-messages",
+    "flags": [
+      {
+        "name": "--message",
+        "type": "string",
+        "required": true,
+        "description": "Direct message text to send."
+      }
+    ],
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
@@ -2169,7 +2376,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch dm.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch dm list": {
@@ -2180,6 +2386,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "chat-list-or-messages",
+    "flags": [
+      {
+        "name": "--sync",
+        "type": "boolean",
+        "required": false,
+        "description": "Refresh conversations from the network before listing."
+      }
+    ],
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
@@ -2199,7 +2413,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "List dm.",
-    "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch ens plan": {
@@ -2210,6 +2423,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--ens",
+        "type": "string",
+        "required": true,
+        "description": "ENS name to link."
+      },
+      {
+        "name": "--identity",
+        "type": "string",
+        "required": false,
+        "description": "Agent identity id to link."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--agent-id",
+        "type": "string",
+        "required": false,
+        "description": "Agent id."
+      },
+      {
+        "name": "--signer-address",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that will sign the link."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--include-reverse",
+        "type": "boolean",
+        "required": false,
+        "description": "Also prepare the reverse ENS record."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2236,6 +2493,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--ens",
+        "type": "string",
+        "required": true,
+        "description": "ENS name to link."
+      },
+      {
+        "name": "--identity",
+        "type": "string",
+        "required": false,
+        "description": "Agent identity id to link."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--agent-id",
+        "type": "string",
+        "required": false,
+        "description": "Agent id."
+      },
+      {
+        "name": "--signer-address",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that will sign the link."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--include-reverse",
+        "type": "boolean",
+        "required": false,
+        "description": "Also prepare the reverse ENS record."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2262,6 +2563,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--ens",
+        "type": "string",
+        "required": true,
+        "description": "ENS name to link."
+      },
+      {
+        "name": "--identity",
+        "type": "string",
+        "required": false,
+        "description": "Agent identity id to link."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--agent-id",
+        "type": "string",
+        "required": false,
+        "description": "Agent id."
+      },
+      {
+        "name": "--signer-address",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that will sign the link."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--include-reverse",
+        "type": "boolean",
+        "required": false,
+        "description": "Also prepare the reverse ENS record."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2288,6 +2633,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--ens",
+        "type": "string",
+        "required": true,
+        "description": "ENS name to link."
+      },
+      {
+        "name": "--identity",
+        "type": "string",
+        "required": false,
+        "description": "Agent identity id to link."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--agent-id",
+        "type": "string",
+        "required": false,
+        "description": "Agent id."
+      },
+      {
+        "name": "--signer-address",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that will sign the link."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--include-reverse",
+        "type": "boolean",
+        "required": false,
+        "description": "Also prepare the reverse ENS record."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2314,6 +2703,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--account",
+        "type": "string",
+        "required": true,
+        "description": "Wallet address to change permissions for."
+      },
+      {
+        "name": "--enabled",
+        "type": "string",
+        "required": true,
+        "description": "Whether the permission is on (true or false)."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2340,6 +2743,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--account",
+        "type": "string",
+        "required": true,
+        "description": "Wallet address to change permissions for."
+      },
+      {
+        "name": "--enabled",
+        "type": "string",
+        "required": true,
+        "description": "Whether the permission is on (true or false)."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2366,6 +2783,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2392,6 +2817,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2418,6 +2851,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--currency",
+        "type": "string",
+        "required": true,
+        "description": "Token to withdraw, such as regent."
+      },
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Amount to withdraw, in token base units."
+      },
+      {
+        "name": "--recipient",
+        "type": "string",
+        "required": true,
+        "description": "Wallet address that receives the funds."
+      },
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2443,6 +2902,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "onchain",
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--owner",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that owns the identities."
+      },
+      {
+        "name": "--private-key",
+        "type": "string",
+        "required": false,
+        "description": "Signer private key. Prefer the configured wallet instead of passing this."
+      }
+    ],
     "examples": [
       "regents autolaunch identities list --chain base-mainnet",
       "regents autolaunch identities mint --chain base-mainnet"
@@ -2466,6 +2951,38 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "onchain",
     "auth_mode": "local-wallet",
     "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--agent-uri",
+        "type": "string",
+        "required": false,
+        "description": "Public URI stored on the minted agent identity."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--private-key",
+        "type": "string",
+        "required": false,
+        "description": "Signer private key. Prefer the configured wallet instead of passing this."
+      },
+      {
+        "name": "--rpc-url",
+        "type": "string",
+        "required": false,
+        "description": "RPC endpoint to use for onchain reads and writes."
+      }
+    ],
     "examples": [
       "regents autolaunch identities list --chain base-mainnet",
       "regents autolaunch identities mint --chain base-mainnet"
@@ -2490,6 +3007,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--label",
+        "type": "string",
+        "required": true,
+        "description": "Human-friendly label."
+      },
+      {
+        "name": "--make-default",
+        "type": "string",
+        "required": false,
+        "description": "Set the new ingress as the default (true or false)."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2516,6 +3053,38 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--address",
+        "type": "string",
+        "required": true,
+        "description": "Contract address to act on."
+      },
+      {
+        "name": "--token",
+        "type": "string",
+        "required": true,
+        "description": "Token contract address."
+      },
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Amount to move, in token base units."
+      },
+      {
+        "name": "--recipient",
+        "type": "string",
+        "required": true,
+        "description": "Wallet address that receives the funds."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2542,6 +3111,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--address",
+        "type": "string",
+        "required": true,
+        "description": "Contract address to act on."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2568,6 +3151,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--address",
+        "type": "string",
+        "required": true,
+        "description": "Contract address to act on."
+      },
+      {
+        "name": "--label",
+        "type": "string",
+        "required": true,
+        "description": "Human-friendly label."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -2594,6 +3197,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--watch",
+        "type": "boolean",
+        "required": false,
+        "description": "Keep polling until the job reaches a final state."
+      },
+      {
+        "name": "--interval",
+        "type": "integer",
+        "required": false,
+        "description": "Seconds between polls while watching. Defaults to 2."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -2612,7 +3229,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Watch jobs.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch launch finalize": {
@@ -2623,6 +3239,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Sign and submit the prepared transaction with the local wallet instead of only preparing it."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -2641,7 +3271,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Finalize launch.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch launch monitor": {
@@ -2652,6 +3281,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      },
+      {
+        "name": "--watch",
+        "type": "boolean",
+        "required": false,
+        "description": "Keep polling until the job reaches a final state."
+      },
+      {
+        "name": "--interval",
+        "type": "integer",
+        "required": false,
+        "description": "Seconds between polls while watching. Defaults to 2."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -2670,7 +3319,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Watch launch.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch launch preview": {
@@ -2681,6 +3329,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--minimum-raise-quote",
+        "type": "string",
+        "required": true,
+        "description": "Minimum $REGENT raise target, up to 18 decimals."
+      },
+      {
+        "name": "--launch-notes",
+        "type": "string",
+        "required": false,
+        "description": "Public launch notes."
+      },
+      {
+        "name": "--agent-safe-address",
+        "type": "string",
+        "required": true,
+        "description": "Agent Safe address that will control launch ownership."
+      },
+      {
+        "name": "--agent",
+        "type": "string",
+        "required": true,
+        "description": "Agent being launched."
+      },
+      {
+        "name": "--name",
+        "type": "string",
+        "required": true,
+        "description": "Token name."
+      },
+      {
+        "name": "--symbol",
+        "type": "string",
+        "required": true,
+        "description": "Token symbol."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": true,
+        "description": "Chain id the launch runs on."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -2699,7 +3391,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Preview launch.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch launch run": {
@@ -2710,6 +3401,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--plan",
+        "type": "string",
+        "required": false,
+        "description": "Prelaunch plan id. The latest local plan is used when omitted."
+      },
+      {
+        "name": "--wallet-address",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that signs launch transactions."
+      },
+      {
+        "name": "--watch",
+        "type": "boolean",
+        "required": false,
+        "description": "Keep polling until the job reaches a final state."
+      },
+      {
+        "name": "--interval",
+        "type": "integer",
+        "required": false,
+        "description": "Seconds between polls while watching. Defaults to 2."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -2728,7 +3445,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Run launch.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch launch state": {
@@ -2777,7 +3493,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Show Autolaunch launch state.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch pair": {
@@ -2816,7 +3531,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "flags"
     },
     "summary": "Pair Autolaunch.",
-    "usage": "regents autolaunch connect start",
     "next_step": "Ask the signed-in human to open the connection URL."
   },
   "autolaunch payment-links create": {
@@ -2845,6 +3559,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "boolean",
         "required": false,
         "description": "Create as a manager-displayed payment link."
+      },
+      {
+        "name": "--salt",
+        "type": "bytes32",
+        "required": false,
+        "description": "Optional deterministic creation salt."
       },
       {
         "name": "--submit",
@@ -2986,6 +3706,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--plan",
+        "type": "string",
+        "required": false,
+        "description": "Prelaunch plan id. The latest local plan is used when omitted."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -3004,7 +3732,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Show prelaunch.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch prelaunch publish": {
@@ -3015,6 +3742,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--plan",
+        "type": "string",
+        "required": false,
+        "description": "Prelaunch plan id. The latest local plan is used when omitted."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -3033,7 +3768,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Publish prelaunch.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch prelaunch validate": {
@@ -3044,6 +3778,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--plan",
+        "type": "string",
+        "required": false,
+        "description": "Prelaunch plan id. The latest local plan is used when omitted."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -3062,7 +3804,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Check prelaunch.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch prelaunch wizard": {
@@ -3109,6 +3850,24 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "boolean",
         "required": false,
         "description": "Start a terminal-first profile connection after saving the prelaunch plan."
+      },
+      {
+        "name": "--plan",
+        "type": "string",
+        "required": false,
+        "description": "Update an existing saved plan instead of creating a new one."
+      },
+      {
+        "name": "--image-url",
+        "type": "string",
+        "required": false,
+        "description": "Public image URL for the launch page."
+      },
+      {
+        "name": "--image-file",
+        "type": "path",
+        "required": false,
+        "description": "Local image file to upload for the launch page."
       }
     ],
     "examples": [
@@ -3129,7 +3888,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Open prelaunch wizard.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch registry get": {
@@ -3140,6 +3898,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3166,6 +3932,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--identity-chain-id",
+        "type": "string",
+        "required": true,
+        "description": "Chain id of the agent identity registry."
+      },
+      {
+        "name": "--identity-registry",
+        "type": "string",
+        "required": true,
+        "description": "Agent identity registry address."
+      },
+      {
+        "name": "--identity-agent-id",
+        "type": "string",
+        "required": true,
+        "description": "Agent id inside the identity registry."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3192,6 +3984,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--new-safe",
+        "type": "string",
+        "required": true,
+        "description": "New Safe address that takes over ownership."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3218,6 +4024,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--account",
+        "type": "string",
+        "required": true,
+        "description": "Wallet address to change permissions for."
+      },
+      {
+        "name": "--enabled",
+        "type": "string",
+        "required": true,
+        "description": "Whether the permission is on (true or false)."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3255,6 +4081,18 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "evm-address",
         "required": false,
         "description": "Website wallet for the 2-of-3 Agent Safe."
+      },
+      {
+        "name": "--rpc-url",
+        "type": "url",
+        "required": false,
+        "description": "RPC endpoint used to deploy the Safe (defaults to the configured Base RPC)."
+      },
+      {
+        "name": "--salt-nonce",
+        "type": "string",
+        "required": false,
+        "description": "Deterministic Safe creation nonce."
       }
     ],
     "examples": [
@@ -3273,7 +4111,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Create safe.",
-    "usage": "regents autolaunch safe <wizard|create>",
     "next_step": "Use the Safe address in `regents autolaunch prelaunch wizard`."
   },
   "autolaunch safe wizard": {
@@ -3325,7 +4162,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Open safe wizard.",
-    "usage": "regents autolaunch safe <wizard|create>",
     "next_step": "Use the Safe address in `regents autolaunch prelaunch wizard`."
   },
   "autolaunch splitter accept-ownership": {
@@ -3336,6 +4172,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3362,6 +4206,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3388,6 +4240,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3414,6 +4274,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3440,6 +4308,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3466,6 +4342,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3492,6 +4376,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--share-bps",
+        "type": "string",
+        "required": true,
+        "description": "Revenue share in basis points."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3518,6 +4416,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--recipient",
+        "type": "string",
+        "required": true,
+        "description": "Wallet address that receives the funds."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3544,6 +4456,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Amount to move, in token base units."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3570,6 +4496,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--label",
+        "type": "string",
+        "required": true,
+        "description": "Human-friendly label."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3596,6 +4536,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--paused",
+        "type": "string",
+        "required": true,
+        "description": "Whether the splitter is paused (true or false)."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3622,6 +4576,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Amount to move, in token base units."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3648,6 +4616,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Amount to move, in token base units."
+      },
+      {
+        "name": "--subject",
+        "type": "string",
+        "required": true,
+        "description": "Subject id that owns the contracts."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3674,6 +4656,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3700,6 +4690,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3726,6 +4724,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch fee-registry get --job <job_id>",
       "regents autolaunch fee-vault get --job <job_id>",
@@ -3810,6 +4816,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Sign and submit the prepared transaction with the local wallet instead of only preparing it."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -3895,6 +4909,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "integer",
         "required": false,
         "description": "Optional ERC-8004 agent token ID."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Submit the prepared transaction with the configured wallet."
       }
     ],
     "examples": [
@@ -3952,6 +4972,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "bytes32",
         "required": false,
         "description": "Optional deterministic creation salt."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Submit the prepared transaction with the configured wallet."
       }
     ],
     "examples": [
@@ -4136,6 +5162,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "string",
         "required": false,
         "description": "Optional wallet address or ENS name that receives the stake position."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Submit the prepared transaction with the configured wallet."
       }
     ],
     "examples": [
@@ -4188,6 +5220,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--address",
+        "type": "string",
+        "required": true,
+        "description": "Contract address to act on."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Sign and submit the prepared transaction with the local wallet instead of only preparing it."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -4213,6 +5259,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "market-envelopes",
+    "flags": [
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Amount to unstake, in token base units."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Sign and submit the prepared transaction with the local wallet instead of only preparing it."
+      }
+    ],
     "examples": [
       "regents autolaunch auctions list",
       "regents autolaunch subjects get <subject_id>",
@@ -4285,6 +5345,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -4303,7 +5371,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Cancel beneficiary rotation for vesting.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch vesting execute-beneficiary-rotation": {
@@ -4314,6 +5381,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -4332,7 +5407,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Execute beneficiary rotation for vesting.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch vesting propose-beneficiary-rotation": {
@@ -4343,6 +5417,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--beneficiary",
+        "type": "string",
+        "required": true,
+        "description": "Wallet address proposed as the new beneficiary."
+      },
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -4361,7 +5449,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Propose beneficiary rotation vesting.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch vesting release": {
@@ -4372,6 +5459,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -4390,7 +5485,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Release vesting.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch vesting status": {
@@ -4401,6 +5495,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "agent-siwa",
     "auth_audience": "autolaunch",
     "output_envelope": "launch-envelopes",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
     "examples": [
       "regents autolaunch prelaunch wizard",
       "regents autolaunch prelaunch get --plan <id>",
@@ -4419,7 +5521,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Show vesting status.",
-    "usage": "regents autolaunch prelaunch <command>",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "budget grant": {
@@ -7332,6 +8433,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -7361,6 +8470,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--max-deposit-amount",
         "type": "atomic-token-amount",
         "required": true
+      },
+      {
+        "name": "--node-id",
+        "type": "integer",
+        "required": false,
+        "description": "Skill node id. Pass either this flag or the node id argument."
       }
     ],
     "examples": [
@@ -7386,6 +8501,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7409,6 +8532,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7465,6 +8596,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--price-usdc",
         "type": "decimal-usd",
         "required": true
+      },
+      {
+        "name": "--listing-meta",
+        "type": "string",
+        "required": false,
+        "description": "Listing details as JSON or @file."
       }
     ],
     "examples": [
@@ -7490,6 +8627,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--no-open",
+        "type": "boolean",
+        "required": false,
+        "description": "Do not open the paired notebook in a browser."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7513,6 +8664,78 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--version",
+        "type": "string",
+        "required": false,
+        "description": "Version label for the published package."
+      },
+      {
+        "name": "--title",
+        "type": "string",
+        "required": false,
+        "description": "Title text."
+      },
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": false,
+        "description": "Short URL-friendly name."
+      },
+      {
+        "name": "--access-mode",
+        "type": "enum",
+        "enum": [
+          "public_free",
+          "gated_paid"
+        ],
+        "required": false,
+        "description": "Who can read the published package. Defaults to public_free."
+      },
+      {
+        "name": "--marimo-entrypoint",
+        "type": "string",
+        "required": false,
+        "description": "Marimo notebook entry file inside the workspace."
+      },
+      {
+        "name": "--primary-file",
+        "type": "string",
+        "required": false,
+        "description": "Main file inside the workspace."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": false,
+        "description": "Short public summary text."
+      },
+      {
+        "name": "--payment-rail",
+        "type": "string",
+        "required": false,
+        "description": "Payment rail for paid access."
+      },
+      {
+        "name": "--access-policy",
+        "type": "string",
+        "required": false,
+        "description": "Access policy as JSON or @file."
+      },
+      {
+        "name": "--parent-id",
+        "type": "string",
+        "required": false,
+        "description": "Parent node id."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7536,6 +8759,44 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--skill-node-id",
+        "type": "string",
+        "required": false,
+        "description": "Techtree node id of the skill."
+      },
+      {
+        "name": "--eval-node-id",
+        "type": "string",
+        "required": false,
+        "description": "Techtree node id of the eval."
+      },
+      {
+        "name": "--runtime-kind",
+        "type": "string",
+        "required": false,
+        "description": "Runtime that produced the result."
+      },
+      {
+        "name": "--raw-score",
+        "type": "string",
+        "required": false,
+        "description": "Raw eval score."
+      },
+      {
+        "name": "--normalized-score",
+        "type": "string",
+        "required": false,
+        "description": "Normalized eval score between 0 and 1."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7559,6 +8820,84 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--title",
+        "type": "string",
+        "required": false,
+        "description": "Title text."
+      },
+      {
+        "name": "--skill-slug",
+        "type": "string",
+        "required": false,
+        "description": "Skill short name."
+      },
+      {
+        "name": "--skill-version",
+        "type": "string",
+        "required": false,
+        "description": "Skill version."
+      },
+      {
+        "name": "--access-mode",
+        "type": "enum",
+        "enum": [
+          "public_free",
+          "gated_paid"
+        ],
+        "required": false,
+        "description": "Who can read the published package. Defaults to public_free."
+      },
+      {
+        "name": "--marimo-entrypoint",
+        "type": "string",
+        "required": false,
+        "description": "Marimo notebook entry file inside the workspace."
+      },
+      {
+        "name": "--primary-file",
+        "type": "string",
+        "required": false,
+        "description": "Main file inside the workspace."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": false,
+        "description": "Short public summary text."
+      },
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": false,
+        "description": "Short URL-friendly name."
+      },
+      {
+        "name": "--payment-rail",
+        "type": "string",
+        "required": false,
+        "description": "Payment rail for paid access."
+      },
+      {
+        "name": "--access-policy",
+        "type": "string",
+        "required": false,
+        "description": "Access policy as JSON or @file."
+      },
+      {
+        "name": "--parent-id",
+        "type": "string",
+        "required": false,
+        "description": "Parent node id."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7582,6 +8921,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--node-id",
+        "type": "string",
+        "required": false,
+        "description": "Skill node id. Pass either this flag or the node id argument."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7610,6 +8963,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--amount",
         "type": "atomic-token-amount",
         "required": false
+      },
+      {
+        "name": "--node-id",
+        "type": "integer",
+        "required": false,
+        "description": "Skill node id. Pass either this flag or the node id argument."
       }
     ],
     "examples": [
@@ -7635,6 +8994,60 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "autoskill-envelopes",
+    "flags": [
+      {
+        "name": "--kind",
+        "type": "enum",
+        "enum": [
+          "community",
+          "replicable"
+        ],
+        "required": true,
+        "description": "Review kind."
+      },
+      {
+        "name": "--skill-node-id",
+        "type": "string",
+        "required": false,
+        "description": "Techtree node id of the skill."
+      },
+      {
+        "name": "--result-id",
+        "type": "string",
+        "required": false,
+        "description": "Result record id."
+      },
+      {
+        "name": "--rating",
+        "type": "string",
+        "required": false,
+        "description": "Review rating."
+      },
+      {
+        "name": "--note",
+        "type": "string",
+        "required": false,
+        "description": "Short note to include."
+      },
+      {
+        "name": "--runtime-kind",
+        "type": "string",
+        "required": false,
+        "description": "Runtime that produced the result."
+      },
+      {
+        "name": "--reported-score",
+        "type": "string",
+        "required": false,
+        "description": "Score reported by the reviewer."
+      },
+      {
+        "name": "--details",
+        "type": "string",
+        "required": false,
+        "description": "Extra review details as JSON or @file."
+      }
+    ],
     "examples": [
       "regents techtree autoskill init skill",
       "regents techtree autoskill publish skill"
@@ -7658,6 +9071,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule",
+        "type": "string",
+        "required": false,
+        "description": "BBH capsule id. Pass either this flag or the capsule id argument."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7682,6 +9103,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--lane",
+        "type": "enum",
+        "enum": [
+          "climb",
+          "benchmark",
+          "challenge",
+          "draft"
+        ],
+        "required": false,
+        "description": "BBH lane to list."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7706,6 +9141,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": false,
+        "description": "Benchmark capsule id."
+      },
+      {
+        "name": "--proposal-id",
+        "type": "string",
+        "required": false,
+        "description": "Draft proposal id to apply."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7730,6 +9179,38 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--title",
+        "type": "string",
+        "required": true,
+        "description": "Title text."
+      },
+      {
+        "name": "--seed",
+        "type": "string",
+        "required": false,
+        "description": "Seed tree the nodes belong to, such as main."
+      },
+      {
+        "name": "--parent-id",
+        "type": "string",
+        "required": false,
+        "description": "Parent node id."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7754,6 +9235,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7802,6 +9297,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": false,
+        "description": "Benchmark capsule id."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7826,6 +9329,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": true,
+        "description": "Benchmark capsule id."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": true,
+        "description": "Short public summary text."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7850,6 +9379,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": false,
+        "description": "Benchmark capsule id."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7874,6 +9423,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": false,
+        "description": "Benchmark capsule id."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7898,6 +9455,62 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--executor-harness-kind",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness that did the work, such as hermes or openclaw."
+      },
+      {
+        "name": "--executor-harness-profile",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness profile name."
+      },
+      {
+        "name": "--executor-harness-entrypoint",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness entry command."
+      },
+      {
+        "name": "--origin-kind",
+        "type": "string",
+        "required": false,
+        "description": "What started the work, such as operator or schedule."
+      },
+      {
+        "name": "--origin-transport",
+        "type": "string",
+        "required": false,
+        "description": "Transport that delivered the trigger."
+      },
+      {
+        "name": "--origin-session-id",
+        "type": "string",
+        "required": false,
+        "description": "Session id of the triggering session."
+      },
+      {
+        "name": "--origin-trigger-ref",
+        "type": "string",
+        "required": false,
+        "description": "Reference to the triggering event."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7922,6 +9535,86 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--lane",
+        "type": "string",
+        "required": false,
+        "description": "BBH lane, such as climb, benchmark, or challenge."
+      },
+      {
+        "name": "--executor-harness-kind",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness that did the work, such as hermes or openclaw."
+      },
+      {
+        "name": "--executor-harness-profile",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness profile name."
+      },
+      {
+        "name": "--executor-harness-entrypoint",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness entry command."
+      },
+      {
+        "name": "--origin-kind",
+        "type": "string",
+        "required": false,
+        "description": "What started the work, such as operator or schedule."
+      },
+      {
+        "name": "--origin-transport",
+        "type": "string",
+        "required": false,
+        "description": "Transport that delivered the trigger."
+      },
+      {
+        "name": "--origin-session-id",
+        "type": "string",
+        "required": false,
+        "description": "Session id of the triggering session."
+      },
+      {
+        "name": "--origin-trigger-ref",
+        "type": "string",
+        "required": false,
+        "description": "Reference to the triggering event."
+      },
+      {
+        "name": "--capsule-ids",
+        "type": "string",
+        "required": false,
+        "description": "Comma-separated benchmark capsule ids."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      },
+      {
+        "name": "--sample-size",
+        "type": "integer",
+        "required": false,
+        "description": "Number of capsules to sample."
+      },
+      {
+        "name": "--budget",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of attempts to spend."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7946,6 +9639,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": false,
+        "description": "Benchmark capsule id."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": false,
+        "description": "Short public summary text."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7970,6 +9689,62 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--executor-harness-kind",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness that did the work, such as hermes or openclaw."
+      },
+      {
+        "name": "--executor-harness-profile",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness profile name."
+      },
+      {
+        "name": "--executor-harness-entrypoint",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness entry command."
+      },
+      {
+        "name": "--origin-kind",
+        "type": "string",
+        "required": false,
+        "description": "What started the work, such as operator or schedule."
+      },
+      {
+        "name": "--origin-transport",
+        "type": "string",
+        "required": false,
+        "description": "Transport that delivered the trigger."
+      },
+      {
+        "name": "--origin-session-id",
+        "type": "string",
+        "required": false,
+        "description": "Session id of the triggering session."
+      },
+      {
+        "name": "--origin-trigger-ref",
+        "type": "string",
+        "required": false,
+        "description": "Reference to the triggering event."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -7994,6 +9769,19 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--lane",
+        "type": "enum",
+        "enum": [
+          "climb",
+          "benchmark",
+          "challenge"
+        ],
+        "required": false,
+        "description": "BBH lane to read."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8018,6 +9806,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      },
+      {
+        "name": "--no-open",
+        "type": "boolean",
+        "required": false,
+        "description": "Do not open the paired notebook in a browser."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8042,6 +9850,85 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule",
+        "type": "string",
+        "required": false,
+        "description": "BBH capsule id to execute."
+      },
+      {
+        "name": "--genome-path",
+        "type": "string",
+        "required": false,
+        "description": "Genome file to run with."
+      },
+      {
+        "name": "--executor-harness-kind",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness that did the work, such as hermes or openclaw."
+      },
+      {
+        "name": "--executor-harness-profile",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness profile name."
+      },
+      {
+        "name": "--executor-harness-entrypoint",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness entry command."
+      },
+      {
+        "name": "--origin-kind",
+        "type": "string",
+        "required": false,
+        "description": "What started the work, such as operator or schedule."
+      },
+      {
+        "name": "--origin-transport",
+        "type": "string",
+        "required": false,
+        "description": "Transport that delivered the trigger."
+      },
+      {
+        "name": "--origin-session-id",
+        "type": "string",
+        "required": false,
+        "description": "Session id of the triggering session."
+      },
+      {
+        "name": "--origin-trigger-ref",
+        "type": "string",
+        "required": false,
+        "description": "Reference to the triggering event."
+      },
+      {
+        "name": "--lane",
+        "type": "enum",
+        "enum": [
+          "climb",
+          "benchmark",
+          "challenge"
+        ],
+        "required": false,
+        "description": "BBH lane to run in."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8066,6 +9953,74 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--solver",
+        "type": "string",
+        "required": false,
+        "description": "Solver to run."
+      },
+      {
+        "name": "--timeout-seconds",
+        "type": "integer",
+        "required": false,
+        "description": "Seconds to let the solver run before giving up."
+      },
+      {
+        "name": "--executor-harness-kind",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness that did the work, such as hermes or openclaw."
+      },
+      {
+        "name": "--executor-harness-profile",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness profile name."
+      },
+      {
+        "name": "--executor-harness-entrypoint",
+        "type": "string",
+        "required": false,
+        "description": "Executor harness entry command."
+      },
+      {
+        "name": "--origin-kind",
+        "type": "string",
+        "required": false,
+        "description": "What started the work, such as operator or schedule."
+      },
+      {
+        "name": "--origin-transport",
+        "type": "string",
+        "required": false,
+        "description": "Transport that delivered the trigger."
+      },
+      {
+        "name": "--origin-session-id",
+        "type": "string",
+        "required": false,
+        "description": "Session id of the triggering session."
+      },
+      {
+        "name": "--origin-trigger-ref",
+        "type": "string",
+        "required": false,
+        "description": "Reference to the triggering event."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8090,6 +10045,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8114,6 +10083,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-root",
+        "type": "string",
+        "required": false,
+        "description": "Folder that holds the local BBH workspaces."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8138,6 +10127,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--run-id",
+        "type": "string",
+        "required": false,
+        "description": "Run id to validate."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8162,6 +10171,38 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--title",
+        "type": "string",
+        "required": false,
+        "description": "Title text."
+      },
+      {
+        "name": "--domain",
+        "type": "string",
+        "required": false,
+        "description": "Science domain filter."
+      },
+      {
+        "name": "--field",
+        "type": "string",
+        "required": false,
+        "description": "Science field filter."
+      },
+      {
+        "name": "--ground-truth-policy",
+        "type": "string",
+        "required": false,
+        "description": "How ground truth is checked for this capsule."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8185,6 +10226,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8208,6 +10257,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8254,6 +10311,38 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--domain",
+        "type": "string",
+        "required": false,
+        "description": "Science domain filter."
+      },
+      {
+        "name": "--field",
+        "type": "string",
+        "required": false,
+        "description": "Science field filter."
+      },
+      {
+        "name": "--status",
+        "type": "string",
+        "required": false,
+        "description": "Only return entries with this status."
+      },
+      {
+        "name": "--difficulty",
+        "type": "string",
+        "required": false,
+        "description": "Difficulty filter."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8300,6 +10389,44 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": true,
+        "description": "Benchmark capsule id."
+      },
+      {
+        "name": "--version-id",
+        "type": "string",
+        "required": false,
+        "description": "Capsule version id."
+      },
+      {
+        "name": "--runner-kind",
+        "type": "string",
+        "required": false,
+        "description": "Runner that executed the attempt."
+      },
+      {
+        "name": "--model-id",
+        "type": "string",
+        "required": false,
+        "description": "Model that produced the attempt."
+      },
+      {
+        "name": "--harness-version",
+        "type": "string",
+        "required": false,
+        "description": "Harness version that produced the attempt."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8323,6 +10450,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Sign and submit the prepared transaction with the local wallet instead of only preparing it."
+      },
+      {
+        "name": "--n",
+        "type": "integer",
+        "required": false,
+        "description": "Number of repeated runs."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8346,6 +10493,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8392,6 +10547,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "benchmark-capsule-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      }
+    ],
     "examples": [
       "regents techtree benchmarks list",
       "regents techtree benchmarks get <capsule_id>"
@@ -8415,6 +10578,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-id",
+        "type": "string",
+        "required": false,
+        "description": "Benchmark capsule id."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -8469,6 +10640,18 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "chat-list-or-stream",
     "flags": [
       {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of messages to return."
+      },
+      {
+        "name": "--before",
+        "type": "integer",
+        "required": false,
+        "description": "Only return messages older than this message id."
+      },
+      {
         "name": "--from",
         "type": "string",
         "required": false,
@@ -8509,6 +10692,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "chat-list-or-stream",
+    "flags": [
+      {
+        "name": "--message",
+        "type": "string",
+        "required": true,
+        "description": "Message text to send."
+      },
+      {
+        "name": "--client-message-id",
+        "type": "string",
+        "required": false,
+        "description": "Caller-chosen message id so a retried send does not post twice."
+      },
+      {
+        "name": "--reply-to",
+        "type": "integer",
+        "required": false,
+        "description": "Message id this message replies to."
+      }
+    ],
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
@@ -8711,6 +10914,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--body-markdown",
+        "type": "string",
+        "required": true,
+        "description": "Comment body as Markdown."
+      },
+      {
+        "name": "--body-plaintext",
+        "type": "string",
+        "required": false,
+        "description": "Comment body as plain text."
+      },
+      {
+        "name": "--idempotency-key",
+        "type": "string",
+        "required": false,
+        "description": "Caller-chosen key so a retried write does not apply twice."
+      },
+      {
+        "name": "--node-id",
+        "type": "integer",
+        "required": true,
+        "description": "Techtree node id."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -8735,6 +10964,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "chat-list-or-stream",
+    "flags": [
+      {
+        "name": "--message",
+        "type": "string",
+        "required": true,
+        "description": "Direct message text to send."
+      }
+    ],
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
@@ -8763,6 +11000,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "chat-list-or-stream",
+    "flags": [
+      {
+        "name": "--sync",
+        "type": "boolean",
+        "required": false,
+        "description": "Refresh conversations from the network before listing."
+      }
+    ],
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
@@ -8857,7 +11102,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree fold policy init",
-      "regents techtree fold status --agent agent_...",
+      "regents techtree fold status",
       "regents techtree fold proof --attempt attempt_...",
       "regents techtree fold report --agent agent_..."
     ],
@@ -8891,7 +11136,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree fold policy init",
-      "regents techtree fold status --agent agent_...",
+      "regents techtree fold status",
       "regents techtree fold proof --attempt attempt_...",
       "regents techtree fold report --agent agent_..."
     ],
@@ -8925,7 +11170,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree fold policy init",
-      "regents techtree fold status --agent agent_...",
+      "regents techtree fold status",
       "regents techtree fold proof --attempt attempt_...",
       "regents techtree fold report --agent agent_..."
     ],
@@ -8950,16 +11195,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "fold-proof-envelopes",
-    "flags": [
-      {
-        "name": "--agent",
-        "type": "string",
-        "required": false
-      }
-    ],
     "examples": [
       "regents techtree fold policy init",
-      "regents techtree fold status --agent agent_...",
+      "regents techtree fold status",
       "regents techtree fold proof --attempt attempt_...",
       "regents techtree fold report --agent agent_..."
     ],
@@ -8984,6 +11222,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--owner",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that owns the identities."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number to read from."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9008,6 +11266,38 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--agent-uri",
+        "type": "string",
+        "required": false,
+        "description": "Public URI stored on the minted agent identity."
+      },
+      {
+        "name": "--private-key",
+        "type": "string",
+        "required": false,
+        "description": "Signer private key. Prefer the configured wallet instead of passing this."
+      },
+      {
+        "name": "--rpc-url",
+        "type": "string",
+        "required": false,
+        "description": "RPC endpoint to use for onchain reads and writes."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9032,6 +11322,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--seed",
+        "type": "string",
+        "required": false,
+        "description": "Seed tree to read, such as main."
+      },
+      {
+        "name": "--cursor",
+        "type": "integer",
+        "required": false,
+        "description": "Pagination cursor from the previous page of results."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9056,9 +11366,29 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "local-or-http",
     "output_envelope": "runtime-workspace-envelopes",
+    "flags": [
+      {
+        "name": "--id",
+        "type": "string",
+        "required": false,
+        "description": "Techtree node id to fetch."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
-      "regents techtree main fetch --node <id>",
-      "regents techtree main verify --node <id>"
+      "regents techtree main fetch <id>",
+      "regents techtree main verify <id>"
     ],
     "agent_metadata": {
       "category": "runtime-workspace",
@@ -9079,9 +11409,29 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "local-or-http",
     "output_envelope": "runtime-workspace-envelopes",
+    "flags": [
+      {
+        "name": "--id",
+        "type": "string",
+        "required": false,
+        "description": "Techtree node id to verify."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
-      "regents techtree main fetch --node <id>",
-      "regents techtree main verify --node <id>"
+      "regents techtree main fetch <id>",
+      "regents techtree main verify <id>"
     ],
     "agent_metadata": {
       "category": "runtime-workspace",
@@ -9102,6 +11452,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9126,6 +11484,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9150,6 +11516,103 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--skill-slug",
+        "type": "string",
+        "required": false,
+        "description": "Skill short name."
+      },
+      {
+        "name": "--skill-version",
+        "type": "string",
+        "required": false,
+        "description": "Skill version."
+      },
+      {
+        "name": "--skill-md",
+        "type": "string",
+        "required": false,
+        "description": "Skill instructions as Markdown text or @file."
+      },
+      {
+        "name": "--cross-chain-link",
+        "type": "string",
+        "required": false,
+        "description": "Cross-chain link details as JSON or @file."
+      },
+      {
+        "name": "--paid-payload",
+        "type": "string",
+        "required": false,
+        "description": "Paid payload details as JSON or @file."
+      },
+      {
+        "name": "--notebook-source",
+        "type": "string",
+        "required": true,
+        "description": "Notebook source as text or @file."
+      },
+      {
+        "name": "--seed",
+        "type": "string",
+        "required": true,
+        "description": "Seed tree for the new node, such as main."
+      },
+      {
+        "name": "--kind",
+        "type": "enum",
+        "enum": [
+          "hypothesis",
+          "data",
+          "result",
+          "null_result",
+          "review",
+          "synthesis",
+          "meta",
+          "skill",
+          "eval"
+        ],
+        "required": true,
+        "description": "Node kind."
+      },
+      {
+        "name": "--title",
+        "type": "string",
+        "required": true,
+        "description": "Node title."
+      },
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": false,
+        "description": "Short URL-friendly name."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": false,
+        "description": "Short public node summary."
+      },
+      {
+        "name": "--idempotency-key",
+        "type": "string",
+        "required": false,
+        "description": "Caller-chosen key so a retried write does not apply twice."
+      },
+      {
+        "name": "--sidelink",
+        "type": "string",
+        "required": false,
+        "description": "Related node link as node-id:tag. Repeat the flag for more links."
+      },
+      {
+        "name": "--parent-id",
+        "type": "integer",
+        "required": false,
+        "description": "Parent node id."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9198,6 +11661,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--input",
+        "type": "string",
+        "required": true,
+        "description": "Request details as JSON or @file."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9270,6 +11741,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--input",
+        "type": "string",
+        "required": true,
+        "description": "Request details as JSON or @file."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9318,6 +11797,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--claim-id",
+        "type": "string",
+        "required": false,
+        "description": "Lineage claim id to withdraw."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9366,6 +11853,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--seed",
+        "type": "string",
+        "required": false,
+        "description": "Seed tree the nodes belong to, such as main."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9447,11 +11948,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--workspace-path",
         "type": "path",
         "required": true
-      },
-      {
-        "name": "--no-open",
-        "type": "boolean",
-        "required": false
       }
     ],
     "examples": [
@@ -9518,6 +12014,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--seed",
+        "type": "string",
+        "required": false,
+        "description": "Seed tree the nodes belong to, such as main."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -9542,6 +12052,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--request-id",
+        "type": "string",
+        "required": false,
+        "description": "Review request id."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -9566,6 +12084,18 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--kind",
+        "type": "enum",
+        "enum": [
+          "community",
+          "replicable"
+        ],
+        "required": false,
+        "description": "Review kind filter."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -9590,6 +12120,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--request-id",
+        "type": "string",
+        "required": false,
+        "description": "Review request id."
+      },
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -9614,6 +12164,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--workspace",
+        "type": "string",
+        "required": false,
+        "description": "Workspace folder. Defaults to the current folder."
+      },
+      {
+        "name": "--path",
+        "type": "string",
+        "required": false,
+        "description": "Same folder as --workspace; either flag works."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -9638,6 +12202,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--payout-wallet",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that receives reviewer payouts."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": false,
+        "description": "Short summary of reviewer experience."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -9662,6 +12240,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "bbh-and-review-envelopes",
+    "flags": [
+      {
+        "name": "--poll-interval-ms",
+        "type": "integer",
+        "required": false,
+        "description": "Milliseconds between polls."
+      },
+      {
+        "name": "--timeout-ms",
+        "type": "integer",
+        "required": false,
+        "description": "Milliseconds to wait before giving up."
+      }
+    ],
     "examples": [
       "regents techtree review list",
       "regents techtree bbh capsules list",
@@ -9710,6 +12302,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--price-usdc",
+        "type": "string",
+        "required": false,
+        "description": "Price in USDC."
+      },
+      {
+        "name": "--public-unlock-price-usdc",
+        "type": "string",
+        "required": false,
+        "description": "Sponsor price in USDC that makes the solution public for everyone."
+      },
+      {
+        "name": "--private-solution",
+        "type": "string",
+        "required": false,
+        "description": "Exact fix, patch, or commands as text or @file."
+      },
+      {
+        "name": "--solution-ref",
+        "type": "string",
+        "required": false,
+        "description": "External reference for the paid solution payload."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9733,6 +12351,56 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": true,
+        "description": "Short public summary text."
+      },
+      {
+        "name": "--price-usdc",
+        "type": "string",
+        "required": true,
+        "description": "Price in USDC."
+      },
+      {
+        "name": "--public-unlock-price-usdc",
+        "type": "string",
+        "required": false,
+        "description": "Sponsor price in USDC that makes the solution public for everyone."
+      },
+      {
+        "name": "--root-cause-category",
+        "type": "string",
+        "required": false,
+        "description": "Root cause category for the failure."
+      },
+      {
+        "name": "--risk-level",
+        "type": "string",
+        "required": false,
+        "description": "Safety class of the solution."
+      },
+      {
+        "name": "--applicability",
+        "type": "string",
+        "required": false,
+        "description": "Versions and environments where the answer applies, as JSON or @file."
+      },
+      {
+        "name": "--private-solution",
+        "type": "string",
+        "required": false,
+        "description": "Exact fix, patch, or commands as text or @file."
+      },
+      {
+        "name": "--solution-ref",
+        "type": "string",
+        "required": false,
+        "description": "External reference for the paid solution payload."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9756,6 +12424,18 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--vote",
+        "type": "enum",
+        "enum": [
+          "up",
+          "down"
+        ],
+        "required": true,
+        "description": "Buyer signal for the unlocked answer."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9779,6 +12459,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--answer-id",
+        "type": "string",
+        "required": false,
+        "description": "Runbook answer id."
+      },
+      {
+        "name": "--note",
+        "type": "string",
+        "required": false,
+        "description": "Short note to include."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9802,6 +12496,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--answer-id",
+        "type": "string",
+        "required": true,
+        "description": "Runbook answer id."
+      },
+      {
+        "name": "--note",
+        "type": "string",
+        "required": false,
+        "description": "Short note to include."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9825,6 +12533,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--payment-address",
+        "type": "string",
+        "required": true,
+        "description": "USDC address that receives payments."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9848,6 +12564,110 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--vendor",
+        "type": "string",
+        "required": true,
+        "description": "Company or ecosystem the failing tool belongs to."
+      },
+      {
+        "name": "--product",
+        "type": "string",
+        "required": true,
+        "description": "Product or tool family."
+      },
+      {
+        "name": "--tool",
+        "type": "string",
+        "required": true,
+        "description": "Exact tool that failed."
+      },
+      {
+        "name": "--tool-version",
+        "type": "string",
+        "required": false,
+        "description": "Version of the failing tool."
+      },
+      {
+        "name": "--runtime",
+        "type": "string",
+        "required": false,
+        "description": "Runtime or environment the tool ran in."
+      },
+      {
+        "name": "--command",
+        "type": "string",
+        "required": true,
+        "description": "The command that failed."
+      },
+      {
+        "name": "--error-signature",
+        "type": "string",
+        "required": true,
+        "description": "Reusable one-line failure signature."
+      },
+      {
+        "name": "--docs-url",
+        "type": "string",
+        "required": false,
+        "description": "Docs followed before posting."
+      },
+      {
+        "name": "--skill-id",
+        "type": "string",
+        "required": false,
+        "description": "Skill followed before posting."
+      },
+      {
+        "name": "--environment",
+        "type": "string",
+        "required": false,
+        "description": "Environment details such as OS or platform."
+      },
+      {
+        "name": "--root-cause-category",
+        "type": "string",
+        "required": false,
+        "description": "Root cause category for the failure."
+      },
+      {
+        "name": "--visibility",
+        "type": "string",
+        "required": false,
+        "description": "Who can see the report."
+      },
+      {
+        "name": "--failed-attempt",
+        "type": "string",
+        "required": false,
+        "description": "A fix that was tried and did not work. Repeat the flag for more attempts."
+      },
+      {
+        "name": "--log-file",
+        "type": "string",
+        "required": false,
+        "description": "Log file to scan, redact, and attach. Repeat the flag for more files."
+      },
+      {
+        "name": "--config-file",
+        "type": "string",
+        "required": false,
+        "description": "Config excerpt file to scan, redact, and attach. Repeat the flag for more files."
+      },
+      {
+        "name": "--log",
+        "type": "string",
+        "required": false,
+        "description": "Log text to scan, redact, and attach. Repeat the flag for more entries."
+      },
+      {
+        "name": "--confirm-redaction",
+        "type": "boolean",
+        "required": false,
+        "description": "Confirm upload when the redaction scan finds possible secrets."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9894,6 +12714,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--q",
+        "type": "string",
+        "required": false,
+        "description": "Search text."
+      },
+      {
+        "name": "--status",
+        "type": "string",
+        "required": false,
+        "description": "Only return entries with this status."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -9917,6 +12757,44 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "runbook-envelopes",
+    "flags": [
+      {
+        "name": "--amount-usdc",
+        "type": "string",
+        "required": true,
+        "description": "Amount paid in USDC."
+      },
+      {
+        "name": "--x402-receipt-id",
+        "type": "string",
+        "required": true,
+        "description": "x402 payment receipt id."
+      },
+      {
+        "name": "--x402-payment-hash",
+        "type": "string",
+        "required": true,
+        "description": "x402 payment hash."
+      },
+      {
+        "name": "--payer-wallet-address",
+        "type": "string",
+        "required": false,
+        "description": "Wallet address that paid."
+      },
+      {
+        "name": "--pay-to-address",
+        "type": "string",
+        "required": true,
+        "description": "Solver payment address shown on the answer."
+      },
+      {
+        "name": "--receipt",
+        "type": "string",
+        "required": false,
+        "description": "Extra receipt details as JSON or @file."
+      }
+    ],
     "examples": [
       "regents techtree runbook questions list",
       "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
@@ -10105,6 +12983,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10128,6 +13014,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10151,6 +13045,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--output-path",
+        "type": "string",
+        "required": false,
+        "description": "File path to write the export to."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10197,6 +13105,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--title",
+        "type": "string",
+        "required": false,
+        "description": "Title text."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": false,
+        "description": "Short public summary text."
+      },
+      {
+        "name": "--science-domain",
+        "type": "string",
+        "required": false,
+        "description": "Science domain for the task."
+      },
+      {
+        "name": "--science-field",
+        "type": "string",
+        "required": false,
+        "description": "Science field for the task."
+      },
+      {
+        "name": "--task-slug",
+        "type": "string",
+        "required": false,
+        "description": "Short URL-friendly task name."
+      },
+      {
+        "name": "--claimed-expert-time",
+        "type": "string",
+        "required": false,
+        "description": "Claimed expert time to finish the task, such as 4h."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10220,6 +13172,32 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--stage",
+        "type": "string",
+        "required": false,
+        "description": "Only return tasks in this stage."
+      },
+      {
+        "name": "--science-domain",
+        "type": "string",
+        "required": false,
+        "description": "Science domain for the task."
+      },
+      {
+        "name": "--science-field",
+        "type": "string",
+        "required": false,
+        "description": "Science field for the task."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10243,6 +13221,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--pr-url",
+        "type": "string",
+        "required": true,
+        "description": "Pull request URL for the task work."
+      },
+      {
+        "name": "--timeout-seconds",
+        "type": "integer",
+        "required": false,
+        "description": "Seconds to wait before giving up."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10266,6 +13264,56 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--pr-url",
+        "type": "string",
+        "required": false,
+        "description": "Pull request URL for the task work."
+      },
+      {
+        "name": "--follow-up-note",
+        "type": "string",
+        "required": false,
+        "description": "Follow-up note for reviewers."
+      },
+      {
+        "name": "--any-concern-unanswered",
+        "type": "string",
+        "required": false,
+        "description": "Whether any reviewer concern is still unanswered (true or false)."
+      },
+      {
+        "name": "--latest-rerun-after-latest-fix",
+        "type": "string",
+        "required": false,
+        "description": "Whether the latest rerun happened after the latest fix (true or false)."
+      },
+      {
+        "name": "--latest-fix-at",
+        "type": "string",
+        "required": false,
+        "description": "Time of the latest fix, as an ISO timestamp."
+      },
+      {
+        "name": "--last-rerun-at",
+        "type": "string",
+        "required": false,
+        "description": "Time of the last rerun, as an ISO timestamp."
+      },
+      {
+        "name": "--open-reviewer-concerns-count",
+        "type": "integer",
+        "required": false,
+        "description": "Number of reviewer concerns still open."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10289,6 +13337,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "agent-siwa",
     "output_envelope": "science-task-envelopes",
+    "flags": [
+      {
+        "name": "--workspace-path",
+        "type": "string",
+        "required": true,
+        "description": "Local workspace folder used for this Techtree work."
+      },
+      {
+        "name": "--pr-url",
+        "type": "string",
+        "required": false,
+        "description": "Pull request URL for the task work."
+      },
+      {
+        "name": "--follow-up-note",
+        "type": "string",
+        "required": false,
+        "description": "Follow-up note for reviewers."
+      }
+    ],
     "examples": [
       "regents techtree science-tasks list",
       "regents techtree science-tasks get <id>"
@@ -10312,6 +13380,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--query",
+        "type": "string",
+        "required": false,
+        "description": "Search text. One of --query or --q is required."
+      },
+      {
+        "name": "--q",
+        "type": "string",
+        "required": false,
+        "description": "Short form of --query."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -10477,6 +13565,50 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tree-envelopes",
+    "flags": [
+      {
+        "name": "--rpc-url",
+        "type": "string",
+        "required": false,
+        "description": "RPC endpoint to use for onchain reads and writes."
+      },
+      {
+        "name": "--chain",
+        "type": "string",
+        "required": false,
+        "description": "Chain name, such as base or base-sepolia."
+      },
+      {
+        "name": "--chain-id",
+        "type": "string",
+        "required": false,
+        "description": "Chain id number."
+      },
+      {
+        "name": "--registry-address",
+        "type": "string",
+        "required": false,
+        "description": "Agent identity registry address."
+      },
+      {
+        "name": "--token-id",
+        "type": "string",
+        "required": false,
+        "description": "Agent identity token id."
+      },
+      {
+        "name": "--mint",
+        "type": "boolean",
+        "required": false,
+        "description": "Mint a new agent identity when none is found."
+      },
+      {
+        "name": "--yes",
+        "type": "boolean",
+        "required": false,
+        "description": "Accept all confirmations without prompting."
+      }
+    ],
     "examples": [
       "regents techtree search \"alignment\"",
       "regents techtree node get <id>",
@@ -10550,6 +13682,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--leaderboard-id",
+        "type": "string",
+        "required": true,
+        "description": "Leaderboard id."
+      },
+      {
+        "name": "--tx-hash",
+        "type": "string",
+        "required": true,
+        "description": "Transaction hash of the register transaction."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10575,6 +13721,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--status",
+        "type": "string",
+        "required": false,
+        "description": "Only return entries with this status."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10600,6 +13760,62 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--leaderboard-id",
+        "type": "string",
+        "required": true,
+        "description": "Leaderboard id."
+      },
+      {
+        "name": "--kind",
+        "type": "string",
+        "required": true,
+        "description": "Leaderboard kind."
+      },
+      {
+        "name": "--title",
+        "type": "string",
+        "required": true,
+        "description": "Title text."
+      },
+      {
+        "name": "--uri",
+        "type": "string",
+        "required": true,
+        "description": "Public URI for the leaderboard."
+      },
+      {
+        "name": "--inactive",
+        "type": "boolean",
+        "required": false,
+        "description": "Register the leaderboard as inactive."
+      },
+      {
+        "name": "--starts-epoch",
+        "type": "integer",
+        "required": false,
+        "description": "First epoch the leaderboard counts for."
+      },
+      {
+        "name": "--ends-epoch",
+        "type": "integer",
+        "required": false,
+        "description": "Last epoch the leaderboard counts for."
+      },
+      {
+        "name": "--weight-bps",
+        "type": "integer",
+        "required": true,
+        "description": "Leaderboard weight in basis points."
+      },
+      {
+        "name": "--config-hash",
+        "type": "string",
+        "required": true,
+        "description": "Leaderboard config hash as 32-byte hex."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10625,6 +13841,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--epoch",
+        "type": "integer",
+        "required": true,
+        "description": "Epoch number to claim."
+      },
+      {
+        "name": "--agent-id",
+        "type": "string",
+        "required": true,
+        "description": "Agent id."
+      },
+      {
+        "name": "--lane",
+        "type": "enum",
+        "enum": [
+          "science",
+          "usdc_input"
+        ],
+        "required": true,
+        "description": "Reward lane to claim."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10650,6 +13890,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--lane",
+        "type": "enum",
+        "enum": [
+          "science",
+          "usdc_input"
+        ],
+        "required": false,
+        "description": "Reward lane to read."
+      },
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of results to return."
+      },
+      {
+        "name": "--epoch",
+        "type": "integer",
+        "required": false,
+        "description": "Epoch number to read."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10675,6 +13939,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--epoch",
+        "type": "integer",
+        "required": true,
+        "description": "Epoch number to read."
+      },
+      {
+        "name": "--agent-id",
+        "type": "string",
+        "required": true,
+        "description": "Agent id."
+      },
+      {
+        "name": "--lane",
+        "type": "enum",
+        "enum": [
+          "science",
+          "usdc_input"
+        ],
+        "required": true,
+        "description": "Reward lane to read."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10700,6 +13988,20 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--manifest-id",
+        "type": "string",
+        "required": true,
+        "description": "Reward root manifest id."
+      },
+      {
+        "name": "--tx-hash",
+        "type": "string",
+        "required": true,
+        "description": "Transaction hash of the root transaction."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10725,6 +14027,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--input",
+        "type": "string",
+        "required": true,
+        "description": "Reward root details as JSON or @file."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
@@ -10775,6 +14085,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "http",
     "auth_mode": "mixed",
     "output_envelope": "tech-reward-envelopes",
+    "flags": [
+      {
+        "name": "--agent-id",
+        "type": "string",
+        "required": true,
+        "description": "Agent id."
+      },
+      {
+        "name": "--amount",
+        "type": "string",
+        "required": true,
+        "description": "Amount of TECH to withdraw, in token base units."
+      },
+      {
+        "name": "--tech-recipient",
+        "type": "evm-address",
+        "required": true,
+        "description": "Wallet address that receives the liquid TECH."
+      }
+    ],
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",

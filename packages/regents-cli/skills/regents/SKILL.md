@@ -18,6 +18,7 @@ Do not move money, stake tokens, submit transactions, create paid work, or publi
 - Check local setup: `regents status`
 - Show active account: `regents whoami`
 - Show machine-readable command context: `regents agent-context`
+- Show one area or command only: `regents agent-context --area techtree` or `regents agent-context --command "techtree node create"`
 - Install these skills again: `regents setup skills`
 - Install Regent tools for Hermes: `regents plugin install --runtime hermes`
 - Install Regent tools for OpenClaw: `regents plugin install --runtime openclaw`
@@ -46,6 +47,12 @@ After sign-in, run:
 regents identity ensure
 ```
 
+## Messaging
+
+- XMTP inbox with new-message counts: `regents xmtp inbox`
+- Watch live XMTP messages: `regents xmtp tail`
+- Saved chat follows: `regents chat follows list`
+
 ## Automation
 
 For scripts and agents, prefer:
@@ -54,4 +61,4 @@ For scripts and agents, prefer:
 regents <command> --json --no-input
 ```
 
-If a command fails, read the error fields and retry with the missing flags named in the error.
+If a command fails, read the `error.code` and `error.message` fields and retry with the missing flags named in the error. Exit codes: 0 success, 1 operation failed, 2 usage error, 3 sign-in or identity missing, 4 not found, 5 service or local runtime unreachable.

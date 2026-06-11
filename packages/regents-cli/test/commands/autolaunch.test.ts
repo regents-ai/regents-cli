@@ -1952,7 +1952,7 @@ describe("autolaunch CLI command group", () => {
 
     const output = await captureOutput(() => runCliEntrypoint(args));
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(output.stderr).toContain(error);
   });
@@ -2032,7 +2032,7 @@ describe("autolaunch CLI command group", () => {
       ]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(output.stderr).toContain("Minimum $REGENT raise above 50000 requires confirmation.");
   });
@@ -2048,7 +2048,7 @@ describe("autolaunch CLI command group", () => {
       ]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     const humanOutput = collapsePanelText(stripAnsi(output.stdout));
     expect(humanOutput).toContain("ALPHA TESTING");
     expect(humanOutput).toContain(
@@ -2075,7 +2075,9 @@ describe("autolaunch CLI command group", () => {
       parsePrintedJson<{ error: { message: string } }>(output.stderr),
     ).toEqual({
       error: {
+        code: "command_failed",
         message: "--interval must be a positive number",
+        next_steps: ["regents autolaunch --help"],
       },
     });
   });
@@ -2343,7 +2345,7 @@ describe("autolaunch CLI command group", () => {
       ]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(output.stderr).toContain("Pass --agent <agent>.");
   });
@@ -2593,6 +2595,7 @@ describe("autolaunch CLI command group", () => {
       parsePrintedJson<{ error: { message: string } }>(output.stderr),
     ).toEqual({
       error: {
+        code: "command_failed",
         message:
           "Agent Safe is required. Run `regents autolaunch safe wizard` first, then rerun with --agent-safe-address <safe>.",
         next_steps: ["Use `regents autolaunch jobs watch <job-id>`."],

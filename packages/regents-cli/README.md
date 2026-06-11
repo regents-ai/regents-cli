@@ -270,6 +270,20 @@ If you are an agent using this package:
 5. Do not read `.env` files. Use `.env.example` or docs when you need example configuration.
 6. Redact wallet secrets, auth receipts, private keys, connector URIs, local database paths, and report details from logs.
 7. Use only the current command names and response shapes.
+8. Use `regents agent-context --area <name>` or `regents agent-context --command "<command>"` for a scoped command map instead of the full dump.
+
+### Errors And Exit Codes
+
+Every JSON error envelope has the shape `{"error": {"code": "<stable_code>", "message": "<text>", ...}}` and always carries a stable `code` string. Exit codes:
+
+| Code | Meaning |
+| --- | --- |
+| 0 | Success. |
+| 1 | The command ran but the operation failed. |
+| 2 | Usage error: unknown command, missing argument, or invalid flag value. |
+| 3 | Sign-in or Agent identity is missing, expired, or rejected. |
+| 4 | The requested record was not found. |
+| 5 | The Regent service or local runtime could not be reached. |
 
 ## Command Areas
 

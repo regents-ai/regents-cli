@@ -69,9 +69,7 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
     } catch (error) {
       throw new CommandExitError(
         "REGISTRATION_FAILED",
-        "Regent could not complete ERC-8004 registration on Base for this signer. No SIWA session was created.",
-        20,
-        { cause: error },
+        "Regent could not complete ERC-8004 registration on Base for this signer. No SIWA session was created.", { cause: error },
       );
     }
 
@@ -89,7 +87,6 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
     throw new CommandExitError(
       "REGISTRATION_FAILED",
       "Regent could not complete ERC-8004 registration on Base for this signer. No SIWA session was created.",
-      20,
     );
   }
 
@@ -106,9 +103,7 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
   } catch (error) {
     throw new CommandExitError(
       "SIWA_VERIFY_FAILED",
-      "ERC-8004 registration exists, but SIWA verification failed.",
-      21,
-      { cause: error },
+      "ERC-8004 registration exists, but SIWA verification failed.", { cause: error },
     );
   }
 

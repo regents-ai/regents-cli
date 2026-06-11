@@ -2,6 +2,7 @@ import type { IdentityEnsureFailure, IdentityStatusResponse, RegentIdentityNetwo
 
 import { coinbaseStatus, ensureIdentity, IdentityServiceClient, loadConfig } from "../internal-runtime/index.js";
 import { CommandExitError } from "../internal-runtime/errors.js";
+import { exitCodeForError } from "../exit-codes.js";
 import { readIdentityReceipt } from "../internal-runtime/identity/cache.js";
 import { getBooleanFlag, getFlag, parseIntegerFlag, type ParsedCliArgs } from "../parse.js";
 import { CLI_PALETTE, printError, printJson, printText, renderKeyValuePanel, renderPanel, renderTablePanel, tone } from "../printer.js";
@@ -13,7 +14,7 @@ const parseNetwork = (value: string | undefined): RegentIdentityNetwork => {
   if (value === "base-sepolia") {
     return "base-sepolia";
   }
-  throw new CommandExitError("UNSUPPORTED_NETWORK", `Unsupported network: ${value}`, 31);
+  throw new CommandExitError("UNSUPPORTED_NETWORK", `Unsupported network: ${value}`);
 };
 
 const failurePayload = (error: CommandExitError): IdentityEnsureFailure => ({
@@ -192,7 +193,6 @@ export async function runIdentityStatus(
         : new CommandExitError(
             "SERVICE_UNAVAILABLE",
             error instanceof Error ? error.message : "Coinbase identity status failed.",
-            30,
           );
 
     if (json) {
@@ -200,7 +200,7 @@ export async function runIdentityStatus(
     } else {
       printError(failure);
     }
-    return failure.exitCode;
+    return exitCodeForError(failure);
   }
 }
 
@@ -239,7 +239,6 @@ export async function runIdentityEnsure(
         : new CommandExitError(
             "SERVICE_UNAVAILABLE",
             error instanceof Error ? error.message : "Regent identity setup failed.",
-            30,
           );
 
     if (json) {
@@ -247,6 +246,6 @@ export async function runIdentityEnsure(
     } else {
       printError(failure);
     }
-    return failure.exitCode;
+    return exitCodeForError(failure);
   }
 }

@@ -34,32 +34,43 @@ Prelaunch plans can include a Techtree evidence packet reference. Treat it as su
 Validate:
 
 ```bash
-regents autolaunch prelaunch validate --agent <agent-id>
+regents autolaunch prelaunch validate --plan <plan-id>
 ```
 
-Preview launch:
+Publish the launch page draft:
 
 ```bash
-regents autolaunch launch preview --agent <agent-id>
+regents autolaunch prelaunch publish --plan <plan-id>
 ```
 
-Create launch:
+Run the launch:
 
 ```bash
-regents autolaunch launch create --agent <agent-id>
+regents autolaunch launch run --plan <plan-id>
 ```
 
 Watch a job:
 
 ```bash
-regents autolaunch jobs watch <job-id>
+regents autolaunch jobs watch <job-id> --watch
 ```
 
 ## Operations
 
-- Subject details: `regents autolaunch subjects get --subject <address>`
+- Subject details: `regents autolaunch subjects get <subject-id>`
 - Auctions: `regents autolaunch auctions list`
-- Holdings: `regents autolaunch holdings claim-usdc --subject <address>`
-- Contracts: `regents autolaunch registry get`
+- Claim subject USDC: `regents autolaunch subjects claim-usdc <subject-id>`
+- Contracts: `regents autolaunch registry get --subject <subject-id>`
+
+## Chat And DMs
+
+```bash
+regents autolaunch chat list
+regents autolaunch chat read system --limit 50
+regents autolaunch chat send token:<subject-id> --message "<text>"
+regents autolaunch chat unread
+regents autolaunch chat subscribe add token:<subject-id>
+regents autolaunch dm <subject-id|address> --message "<text>"
+```
 
 Use `--json --no-input` when running from an automated agent.

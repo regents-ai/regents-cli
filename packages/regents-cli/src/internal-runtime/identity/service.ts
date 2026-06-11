@@ -41,7 +41,7 @@ const parseError = async (response: Response): Promise<never> => {
   const normalizedCode = typeof envelope.error?.code === "string" ? envelope.error.code.toUpperCase() : undefined;
 
   if (normalizedCode === "UNSUPPORTED_NETWORK") {
-    throw new CommandExitError("UNSUPPORTED_NETWORK", message, 31, {
+    throw new CommandExitError("UNSUPPORTED_NETWORK", message, {
       details: {
         status: response.status,
         error_code: envelope.error?.code,
@@ -50,7 +50,7 @@ const parseError = async (response: Response): Promise<never> => {
   }
 
   if (normalizedCode === "REGISTRATION_FAILED") {
-    throw new CommandExitError("REGISTRATION_FAILED", message, 20, {
+    throw new CommandExitError("REGISTRATION_FAILED", message, {
       details: {
         status: response.status,
         error_code: envelope.error?.code,
@@ -59,7 +59,7 @@ const parseError = async (response: Response): Promise<never> => {
   }
 
   if (normalizedCode === "SIWA_VERIFY_FAILED") {
-    throw new CommandExitError("SIWA_VERIFY_FAILED", message, 21, {
+    throw new CommandExitError("SIWA_VERIFY_FAILED", message, {
       details: {
         status: response.status,
         error_code: envelope.error?.code,
@@ -67,7 +67,7 @@ const parseError = async (response: Response): Promise<never> => {
     });
   }
 
-  throw new CommandExitError("SERVICE_UNAVAILABLE", message, 30, {
+  throw new CommandExitError("SERVICE_UNAVAILABLE", message, {
     details: {
       status: response.status,
       error_code: envelope.error?.code,
@@ -146,11 +146,10 @@ export class IdentityServiceClient {
         throw new CommandExitError(
           "SERVICE_UNAVAILABLE",
           `Shared Regent service timed out after ${this.requestTimeoutMs}ms.`,
-          30,
         );
       }
 
-      throw new CommandExitError("SERVICE_UNAVAILABLE", "Shared Regent service unavailable.", 30, {
+      throw new CommandExitError("SERVICE_UNAVAILABLE", "Shared Regent service unavailable.", {
         cause: error,
       });
     }

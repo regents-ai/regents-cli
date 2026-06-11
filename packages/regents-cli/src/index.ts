@@ -4,9 +4,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { isCliUsageError, withCliUsageContext } from "./cli-usage-error.js";
-import { knownCliCommand } from "./command-registry.js";
 import { runOperatorOverview } from "./commands/operator.js";
-import { nextStepForPositionals, printScopedHelp, usageHintForPositionals } from "./help.js";
+import { exitCodeForError } from "./exit-codes.js";
+import {
+  nextStepForPositionals,
+  printScopedHelp,
+  unroutedCommandError,
+  usageHintForPositionals,
+} from "./help.js";
 import { defaultConfigPath, expandHome } from "./internal-runtime/index.js";
 import { getBooleanFlag, getFlag, parseCliArgs } from "./parse.js";
 import { printError, setRawJsonOutput } from "./printer.js";
@@ -55,19 +60,14 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       return routedResult;
     }
 
-    const enteredCommand = parsedArgs.positionals.join(" ");
-    throw new Error(
-      knownCliCommand(parsedArgs.positionals)
-        ? `Command is not available yet: ${enteredCommand}`
-        : `Unknown command: ${enteredCommand}`,
-    );
+    throw unroutedCommandError(parsedArgs.positionals);
   } catch (error) {
     const parsedArgs = parseCliArgs(rawArgs);
     const usageError = isCliUsageError(error)
       ? withCliUsageContext(error, usageHintForPositionals(parsedArgs.positionals) ?? {})
       : error;
     printError(usageError, { nextStep: nextStepForPositionals(parsedArgs.positionals) });
-    return 1;
+    return exitCodeForError(usageError);
   }
 }
 

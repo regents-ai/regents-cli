@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { CliUsageError } from "../cli-usage-error.js";
 import {
   CLI_COMMANDS,
   CLI_COMMANDS_BY_TOP_LEVEL_GROUP,
@@ -9,6 +10,7 @@ import {
 import type { RegentConfig } from "../internal-types/index.js";
 import { loadConfig } from "../internal-runtime/config.js";
 import { defaultConfigPath, expandHome } from "../internal-runtime/paths.js";
+import { getFlag, type ParsedCliArgs } from "../parse.js";
 
 interface PackageMetadata {
   readonly name: string;
@@ -127,21 +129,90 @@ const safeConfigSummary = (configPath?: string) => {
   };
 };
 
-export const buildAgentContext = (configPath?: string): AgentContextPayload => ({
-  schema_version: "1",
-  package: readPackageMetadata(),
-  command_count: CLI_COMMANDS.length,
-  command_groups: CLI_COMMANDS_BY_TOP_LEVEL_GROUP as unknown as Readonly<Record<string, readonly string[]>>,
-  commands: CLI_COMMAND_DETAILS_BY_COMMAND as unknown as Readonly<Record<string, unknown>>,
-  profile: safeConfigSummary(configPath),
-  conventions: {
-    json_flag: "--json",
-    no_input_flag: "--no-input",
-    value_movement: "prepare first; submit only with --submit",
-    aliases: "none",
-  },
-});
+export interface AgentContextFilters {
+  readonly area?: string;
+  readonly command?: string;
+}
 
-export async function runAgentContext(configPath?: string): Promise<void> {
-  process.stdout.write(`${JSON.stringify(buildAgentContext(configPath), null, 2)}\n`);
+const allCommandGroups = CLI_COMMANDS_BY_TOP_LEVEL_GROUP as unknown as Readonly<
+  Record<string, readonly string[]>
+>;
+const allCommandDetails = CLI_COMMAND_DETAILS_BY_COMMAND as unknown as Readonly<
+  Record<string, unknown>
+>;
+
+const filteredCommandNames = (filters: AgentContextFilters): readonly string[] => {
+  if (filters.command !== undefined) {
+    if (!(filters.command in allCommandDetails)) {
+      throw new CliUsageError({
+        code: "unknown_command",
+        message: `No shipped command matches: ${filters.command}`,
+        command: "regents agent-context",
+        usage: 'regents agent-context [--area <name>] [--command "<command>"]',
+        example: 'regents agent-context --command "techtree node create"',
+      });
+    }
+
+    return [filters.command];
+  }
+
+  if (filters.area !== undefined) {
+    const areaCommands = allCommandGroups[filters.area];
+    if (!areaCommands) {
+      throw new CliUsageError({
+        code: "invalid_flag_value",
+        message: `Unknown area: ${filters.area}`,
+        command: "regents agent-context",
+        usage: 'regents agent-context [--area <name>] [--command "<command>"]',
+        validValues: Object.keys(allCommandGroups),
+        example: "regents agent-context --area techtree",
+      });
+    }
+
+    return areaCommands;
+  }
+
+  return CLI_COMMANDS;
+};
+
+export const buildAgentContext = (
+  configPath?: string,
+  filters: AgentContextFilters = {},
+): AgentContextPayload => {
+  const commandNames = filteredCommandNames(filters);
+  const commandNameSet = new Set(commandNames);
+  const commandGroups = Object.fromEntries(
+    Object.entries(allCommandGroups)
+      .map(([groupName, groupCommands]) => [
+        groupName,
+        groupCommands.filter((command) => commandNameSet.has(command)),
+      ])
+      .filter(([, groupCommands]) => groupCommands.length > 0),
+  );
+  const commands = Object.fromEntries(
+    commandNames.map((command) => [command, allCommandDetails[command]]),
+  );
+
+  return {
+    schema_version: "1",
+    package: readPackageMetadata(),
+    command_count: commandNames.length,
+    command_groups: commandGroups,
+    commands,
+    profile: safeConfigSummary(configPath),
+    conventions: {
+      json_flag: "--json",
+      no_input_flag: "--no-input",
+      value_movement: "prepare first; submit only with --submit",
+      aliases: "none",
+    },
+  };
+};
+
+export async function runAgentContext(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const filters: AgentContextFilters = {
+    area: getFlag(args, "area"),
+    command: getFlag(args, "command"),
+  };
+  process.stdout.write(`${JSON.stringify(buildAgentContext(configPath, filters), null, 2)}\n`);
 }

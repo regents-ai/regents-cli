@@ -1,4 +1,5 @@
-import { CLI_COMMANDS } from "./command-registry.js";
+import { CliUsageError } from "./cli-usage-error.js";
+import { CLI_COMMANDS, knownCliCommand } from "./command-registry.js";
 import {
   CLI_COMMANDS_BY_TOP_LEVEL_GROUP,
   CLI_COMMAND_DETAILS_BY_COMMAND,
@@ -29,6 +30,7 @@ interface HelpGroup {
 interface CommandFieldMetadata {
   readonly name?: string;
   readonly type?: string;
+  readonly enum?: readonly string[];
   readonly required?: boolean;
   readonly description?: string;
 }
@@ -41,6 +43,7 @@ interface CommandAgentMetadata {
 
 interface CommandDetailMetadata {
   readonly command: string;
+  readonly group?: string;
   readonly auth_mode?: string;
   readonly auth_audience?: string;
   readonly output_envelope?: string;
@@ -683,9 +686,17 @@ Object.assign(commandHelpOverlay, {
   },
   "agent-context": {
     summary: "Print the command map and local context that another agent can safely read.",
-    usage: "regents agent-context [--json]",
-    flags: ["--json", "--config <path>"],
-    examples: ["regents agent-context --json"],
+    usage: 'regents agent-context [--area <name>] [--command "<command>"] [--json]',
+    flags: [
+      "--area <name> - Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, xmtp, chat, work, or mcp.",
+      '--command "<command>" - Only include the one exact command named.',
+      "--json",
+      "--config <path>",
+    ],
+    examples: [
+      "regents agent-context --area techtree",
+      'regents agent-context --command "techtree node create"',
+    ],
     prerequisites: ["No sign-in is needed. Run this when an agent needs to discover the current command surface."],
     output: "Shows commands, command groups, output behavior, and safe local profile/config summaries.",
     nextStep: "Give the JSON output to the agent that needs to choose the next Regent command.",
@@ -1737,6 +1748,46 @@ const groupHelp: Record<string, HelpGroup> = {
   },
 };
 
+const AREA_SUMMARIES: Readonly<Record<string, string>> = {
+  techtree: "research, publishing, reviews, BBH, chat",
+  autolaunch: "launches, auctions, bids, subjects, holdings",
+  platform: "hosted account, billing, pause and resume",
+  work: "company work runs and the local worker loop",
+  wallet: "wallet setup and the agentic wallet",
+  x402: "paid endpoints, quotes, payments, receipts",
+  xmtp: "messaging setup and direct messages",
+  mcp: "the Regents MCP server and Codex setup",
+  chat: "saved chat follows for Techtree and Autolaunch chat",
+  budget: "capped local spending budgets for paid agent calls",
+  receipt: "local receipts for completed paid or published work",
+  doctor: "local and product readiness diagnostics",
+};
+
+const sentenceCase = (value: string): string =>
+  value.length === 0 ? value : `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+
+const sentenceFromAreaSummary = (area: string): string => {
+  const summary = AREA_SUMMARIES[area];
+  return summary ? `${sentenceCase(summary)}.` : `Commands in the ${area} area.`;
+};
+
+const fallbackGroupHelp = (area: string): HelpGroup | undefined => {
+  const commands = (CLI_COMMANDS_BY_TOP_LEVEL_GROUP as Readonly<Record<string, readonly string[]>>)[
+    area
+  ];
+  if (!commands || commands.length === 0) {
+    return undefined;
+  }
+
+  return {
+    summary: sentenceFromAreaSummary(area),
+    auth: "Run a command with `--help` to see its sign-in needs.",
+    output: "Human output uses panels and status lines. `--json` prints raw JSON.",
+    commands,
+    nextStep: `Run \`regents ${area} <command> --help\` for one command.`,
+  };
+};
+
 const helpGroupForCommand = (command: string): HelpGroup | null => {
   if (command.startsWith("autolaunch ")) {
     return groupHelp.autolaunch;
@@ -1873,6 +1924,10 @@ const fieldTypeSuffix = (field: CommandFieldMetadata): string => {
     return "";
   }
 
+  if (field.enum && field.enum.length > 0) {
+    return ` <${field.enum.join("|")}>`;
+  }
+
   return ` <${field.type}>`;
 };
 
@@ -1991,8 +2046,26 @@ const generatedFailureChecks = (command: string): readonly string[] => {
   return ["Check the command spelling, required flags, saved sign-in, and local Regent status, then run the command again."];
 };
 
-const generatedUsage = (command: string, detail: CommandDetailMetadata | undefined): string =>
-  detail?.usage ?? `regents ${command}`;
+const requiredFlagUsage = (field: CommandFieldMetadata): string | undefined => {
+  if (!field.name || !field.required || !field.name.startsWith("--")) {
+    return undefined;
+  }
+
+  return field.type === "boolean" ? field.name : `${field.name} <${field.name.slice(2)}>`;
+};
+
+const generatedUsage = (command: string, detail: CommandDetailMetadata | undefined): string => {
+  if (detail?.usage) {
+    return detail.usage;
+  }
+
+  const flagFields = Array.isArray(detail?.flags) ? detail.flags.filter(isCommandFieldMetadata) : [];
+  const requiredParts = flagFields
+    .map(requiredFlagUsage)
+    .filter((part): part is string => Boolean(part));
+
+  return ["regents", command, ...requiredParts].join(" ");
+};
 
 const exampleParts = (example: string): readonly string[] => {
   const trimmed = example.trim();
@@ -2109,9 +2182,36 @@ const renderEntry = (title: string, entry: HelpEntry): string =>
     .filter((part): part is string => Boolean(part))
     .join("\n\n");
 
+const sectionTitle = (name: string): string => name.split("-").join(" ").toUpperCase();
+
+const commandRowLines = (
+  rows: ReadonlyArray<readonly [string, string]>,
+  width: number,
+): string[] =>
+  rows.map(([command, summary]) =>
+    summary
+      ? `${padRight(commandLine(command), width)}  ${tone(summary, CLI_PALETTE.secondary)}`
+      : commandLine(command),
+  );
+
 const renderGroup = (name: string, group: HelpGroup): string => {
-  const visibleCommands = group.commands.slice(0, 36).map((command) => commandLine(`regents ${command}`));
-  const remaining = group.commands.length - visibleCommands.length;
+  const sections = new Map<string, Array<readonly [string, string]>>();
+  for (const command of group.commands) {
+    const detail = commandDetailsByCommand[command];
+    const section = detail?.group ?? name;
+    const rows = sections.get(section) ?? [];
+    rows.push([`regents ${command}`, detail?.summary ?? ""] as const);
+    sections.set(section, rows);
+  }
+
+  const width = group.commands.reduce((max, command) => Math.max(max, `regents ${command}`.length), 0);
+  const commandLines = Array.from(sections.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .flatMap(([section, rows], index) => [
+      ...(index > 0 ? [""] : []),
+      ...(sections.size > 1 ? [tone(sectionTitle(section), CLI_PALETTE.title, true)] : []),
+      ...commandRowLines(rows, width),
+    ]);
 
   return [
     renderPanel(`◆ ${name.toUpperCase()} HELP`, [
@@ -2121,12 +2221,7 @@ const renderGroup = (name: string, group: HelpGroup): string => {
       `${tone("output", CLI_PALETTE.secondary, true)} ${group.output}`,
       `${tone("next", CLI_PALETTE.secondary, true)} ${group.nextStep}`,
     ]),
-    renderPanel(
-      "◆ COMMANDS",
-      remaining > 0
-        ? [...visibleCommands, tone(`and ${remaining} more commands. Use command-level --help for details.`, CLI_PALETTE.secondary)]
-        : visibleCommands,
-    ),
+    renderPanel("◆ COMMANDS", commandLines),
   ].join("\n\n");
 };
 
@@ -2155,16 +2250,11 @@ const renderRootHelp = (configPath: string): string =>
     renderPanel(
       "◆ COMMAND AREAS",
       [
-        ...columnLines([
-          ["techtree", "research, publishing, reviews, BBH, chat"],
-          ["autolaunch", "launches, auctions, bids, subjects, holdings"],
-          ["platform", "hosted account, billing, pause and resume"],
-          ["work", "company work runs and the local worker loop"],
-          ["wallet", "wallet setup and the agentic wallet"],
-          ["x402", "paid endpoints, quotes, payments, receipts"],
-          ["xmtp", "messaging setup and direct messages"],
-          ["mcp", "the Regents MCP server and Codex setup"],
-        ]),
+        ...columnLines(
+          ["techtree", "autolaunch", "platform", "work", "wallet", "x402", "xmtp", "mcp"].map(
+            (area) => [area, AREA_SUMMARIES[area] ?? ""] as const,
+          ),
+        ),
         "",
         tone("use `regents <area> --help` for every command in an area", CLI_PALETTE.secondary),
       ],
@@ -2176,6 +2266,17 @@ const renderRootHelp = (configPath: string): string =>
         ["--config <path>", "pin a specific config file"],
         ["--no-input", "never prompt; fail instead"],
         ["--help", "scoped help for any command"],
+      ]),
+    ),
+    renderPanel(
+      "◆ EXIT CODES",
+      columnLines([
+        ["0", "success"],
+        ["1", "operation failed"],
+        ["2", "usage error: unknown command, missing argument, or invalid flag"],
+        ["3", "sign-in or Agent identity missing"],
+        ["4", "not found"],
+        ["5", "service or local runtime unreachable"],
       ]),
     ),
   ]
@@ -2193,9 +2294,11 @@ export function renderScopedHelp(positionals: readonly string[], configPath: str
   }
 
   const groupName = positionals[0];
-  const group = groupName ? groupHelp[groupName] : undefined;
-  if (group && positionals.length === 1) {
-    return renderGroup(groupName, group);
+  if (groupName && positionals.length === 1) {
+    const group = groupHelp[groupName] ?? fallbackGroupHelp(groupName);
+    if (group) {
+      return renderGroup(groupName, group);
+    }
   }
 
   return renderPanel("◆ COMMAND NOT FOUND", [
@@ -2206,7 +2309,84 @@ export function renderScopedHelp(positionals: readonly string[], configPath: str
 
 export function nextStepForPositionals(positionals: readonly string[]): string | undefined {
   const command = commandForInput(positionals);
-  return command ? commandDetailsByCommand[command]?.next_step : undefined;
+  if (command) {
+    return commandDetailsByCommand[command]?.next_step;
+  }
+
+  const area = positionals[0];
+  return area && area in CLI_COMMANDS_BY_TOP_LEVEL_GROUP ? `regents ${area} --help` : undefined;
+}
+
+const levenshtein = (left: string, right: string): number => {
+  let previousRow = Array.from({ length: right.length + 1 }, (_, index) => index);
+
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const currentRow = [leftIndex];
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const substitutionCost = left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
+      currentRow.push(
+        Math.min(
+          (currentRow[rightIndex - 1] ?? 0) + 1,
+          (previousRow[rightIndex] ?? 0) + 1,
+          (previousRow[rightIndex - 1] ?? 0) + substitutionCost,
+        ),
+      );
+    }
+    previousRow = currentRow;
+  }
+
+  return previousRow[right.length] ?? 0;
+};
+
+const literalCommandText = (command: string): string =>
+  command
+    .split(" ")
+    .filter((part) => !isPlaceholderPart(part))
+    .join(" ");
+
+const nearestCommands = (positionals: readonly string[]): string[] => {
+  const input = positionals.join(" ");
+  const threshold = Math.max(3, Math.ceil(input.length / 2));
+
+  return CLI_COMMANDS.map((command) => ({
+    command,
+    distance: levenshtein(input, literalCommandText(command)),
+  }))
+    .filter((entry) => entry.distance <= threshold)
+    .sort((leftEntry, rightEntry) => leftEntry.distance - rightEntry.distance)
+    .slice(0, 3)
+    .map((entry) => `regents ${entry.command}`);
+};
+
+export function unroutedCommandError(positionals: readonly string[]): CliUsageError {
+  const entered = positionals.join(" ");
+  const command = commandForInput(positionals);
+
+  if (command && command.split(" ").length > positionals.length) {
+    const missing = command.split(" ").slice(positionals.length);
+    const entry = helpForCommand(command);
+    return new CliUsageError({
+      code: "missing_required_argument",
+      message: `Missing required argument${missing.length > 1 ? "s" : ""}: ${missing.join(" ")}.`,
+      command: `regents ${command}`,
+      usage: entry.usage,
+      missing,
+      example: entry.examples?.[0],
+    });
+  }
+
+  if (knownCliCommand(positionals)) {
+    return new CliUsageError({
+      code: "command_not_available",
+      message: `Command is not available yet: ${entered}`,
+    });
+  }
+
+  return new CliUsageError({
+    code: "unknown_command",
+    message: `Unknown command: ${entered}`,
+    validValues: nearestCommands(positionals),
+  });
 }
 
 export function usageHintForPositionals(positionals: readonly string[]): {

@@ -1457,13 +1457,45 @@ describe("CLI command dispatch", () => {
       harness.runCliEntrypoint(["definitely-not-real", "--config", harness.configPath]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(output.stdout).toBe("");
     expect(JSON.parse(output.stderr)).toEqual({
-      error: {
+      error: expect.objectContaining({
+        code: "unknown_command",
         message: "Unknown command: definitely-not-real",
-      },
+      }),
     });
+  });
+
+  it("returns a structured usage error when a required positional is missing", async () => {
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint(["techtree", "node", "get", "--config", harness.configPath]),
+    );
+
+    expect(output.result).toBe(2);
+    expect(output.stdout).toBe("");
+    expect(JSON.parse(output.stderr)).toEqual({
+      error: expect.objectContaining({
+        code: "missing_required_argument",
+        message: "Missing required argument: <id>.",
+        command: "regents techtree node get <id>",
+        usage: "regents techtree node get <id>",
+        missing: ["<id>"],
+      }),
+    });
+  });
+
+  it("suggests the nearest commands for a close misspelling", async () => {
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint(["techtree", "node", "gte", "5", "--config", harness.configPath]),
+    );
+
+    expect(output.result).toBe(2);
+    const payload = JSON.parse(output.stderr) as {
+      error: { code: string; valid_values: string[] };
+    };
+    expect(payload.error.code).toBe("unknown_command");
+    expect(payload.error.valid_values).toContain("regents techtree node get <id>");
   });
 
   it("dispatches techtree science-tasks get when --config comes first", async () => {
@@ -1516,6 +1548,7 @@ describe("CLI command dispatch", () => {
     expect(output.result).toBe(1);
     expect(JSON.parse(output.stderr)).toEqual({
       error: {
+        code: "command_failed",
         message: "daemon unavailable",
         next_steps: ["regents techtree fold report --agent <agent-id> --json"],
       },
@@ -1610,7 +1643,7 @@ describe("CLI command dispatch", () => {
       harness.runCliEntrypoint(["techtree", "node", "get", "0", "--config", harness.configPath]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(output.stdout).toBe("");
     expect(JSON.parse(output.stderr)).toEqual({
       error: expect.objectContaining({
@@ -1627,11 +1660,12 @@ describe("CLI command dispatch", () => {
       harness.runCliEntrypoint(["techtree", "main", "fetch", "0", "--config", harness.configPath]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(JSON.parse(output.stderr)).toEqual({
-      error: {
+      error: expect.objectContaining({
+        code: "invalid_flag_value",
         message: "invalid node id",
-      },
+      }),
     });
   });
 
@@ -1640,7 +1674,7 @@ describe("CLI command dispatch", () => {
       harness.runCliEntrypoint(["techtree", "search", "--config", harness.configPath]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(JSON.parse(output.stderr)).toEqual({
       error: expect.objectContaining({
         code: "missing_required_argument",
@@ -1655,14 +1689,14 @@ describe("CLI command dispatch", () => {
   it("returns daemon errors as JSON", async () => {
     const { CommandExitError } = await import("../src/internal-runtime/errors.js");
     ensureIdentityMock.mockRejectedValueOnce(
-      new CommandExitError("SERVICE_UNAVAILABLE", "Shared Regent service unavailable.", 30),
+      new CommandExitError("SERVICE_UNAVAILABLE", "Shared Regent service unavailable."),
     );
 
     const output = await captureOutput(async () =>
       harness.runCliEntrypoint(["identity", "ensure", "--json", "--config", harness.configPath]),
     );
 
-    expect(output.result).toBe(30);
+    expect(output.result).toBe(5);
     expect(output.stderr).toBe("");
     expect(JSON.parse(output.stdout)).toEqual({
       status: "error",
@@ -1714,7 +1748,7 @@ describe("CLI command dispatch", () => {
       ]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(JSON.parse(output.stderr)).toEqual({
       error: expect.objectContaining({
         code: "missing_required_argument",

@@ -614,6 +614,10 @@ const readContractGroups = (owner, contract) => {
       const normalizedCommand = normalizeCommandName(command);
       const agentMetadata = readAgentMetadata(group.agent_metadata, normalizedCommand);
       const help = group.help ?? {};
+      // Group-level usage only describes the command itself when the group
+      // ships exactly one command; otherwise leave usage unset so the CLI
+      // derives it from the command name and its required flags.
+      const singleCommandGroup = (group.commands ?? []).length === 1;
 
       return compactObject({
         command: normalizedCommand,
@@ -628,7 +632,7 @@ const readContractGroups = (owner, contract) => {
         examples: agentMetadata?.examples ?? group.examples,
         agent_metadata: metadataWithoutExamples(agentMetadata),
         summary: commandSummary(normalizedCommand, agentMetadata?.summary),
-        usage: help.usage ?? group.usage,
+        usage: singleCommandGroup ? help.usage ?? group.usage : undefined,
         next_step: agentMetadata?.next_step ?? help.next_step ?? group.next_step,
       });
     }),

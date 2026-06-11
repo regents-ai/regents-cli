@@ -2,6 +2,7 @@ import type { ParsedCliArgs } from "../parse.js";
 
 import { coinbaseStatus, loadConfig, setupCoinbaseWallet } from "../internal-runtime/index.js";
 import { CommandExitError } from "../internal-runtime/errors.js";
+import { exitCodeForError } from "../exit-codes.js";
 import { getBooleanFlag, getFlag } from "../parse.js";
 import { printJson, printText } from "../printer.js";
 
@@ -51,13 +52,13 @@ export async function runWalletStatus(
     const failure =
       error instanceof CommandExitError
         ? error
-        : new CommandExitError("COINBASE_CDP_MISSING", error instanceof Error ? error.message : "Wallet status failed.", 10);
+        : new CommandExitError("COINBASE_CDP_MISSING", error instanceof Error ? error.message : "Wallet status failed.");
     if (json) {
       printJson(failurePayload(failure));
     } else {
       printText(failure.message);
     }
-    return failure.exitCode;
+    return exitCodeForError(failure);
   }
 }
 
@@ -82,12 +83,12 @@ export async function runWalletSetup(
     const failure =
       error instanceof CommandExitError
         ? error
-        : new CommandExitError("COINBASE_CDP_MISSING", error instanceof Error ? error.message : "Wallet setup failed.", 10);
+        : new CommandExitError("COINBASE_CDP_MISSING", error instanceof Error ? error.message : "Wallet setup failed.");
     if (json) {
       printJson(failurePayload(failure));
     } else {
       printText(failure.message);
     }
-    return failure.exitCode;
+    return exitCodeForError(failure);
   }
 }

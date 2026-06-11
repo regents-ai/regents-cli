@@ -1,4 +1,5 @@
 import { CliUsageError } from "../cli-usage-error.js";
+import { codeForError } from "../exit-codes.js";
 import { JsonRpcError, RegentError } from "../internal-runtime/index.js";
 
 import { renderPanel } from "./panel.js";
@@ -30,11 +31,11 @@ const renderErrorPanel = (
 
 const errorPayload = (
   message: string,
-  code?: string,
+  code: string,
   details?: Record<string, unknown>,
 ): Record<string, Record<string, unknown>> => ({
   error: {
-    ...(code ? { code } : {}),
+    code,
     message,
     ...(details ?? {}),
   },
@@ -69,7 +70,7 @@ export function printError(error: unknown, options?: { readonly nextStep?: strin
     };
 
     if (isHumanTerminal()) {
-      const nextSteps = error.command ? [`${error.command} --help`] : undefined;
+      const nextSteps = error.command ? [`${error.command} --help`] : fallbackNextSteps;
       process.stderr.write(`${renderErrorPanel(error.message, error.code, details, nextSteps)}\n`);
       return;
     }
@@ -108,19 +109,19 @@ export function printError(error: unknown, options?: { readonly nextStep?: strin
 
   if (error instanceof Error) {
     if (isHumanTerminal()) {
-      process.stderr.write(`${renderErrorPanel(error.message, undefined, [], fallbackNextSteps)}\n`);
+      process.stderr.write(`${renderErrorPanel(error.message, codeForError(error), [], fallbackNextSteps)}\n`);
       return;
     }
 
-    process.stderr.write(`${JSON.stringify(errorPayload(error.message, undefined, fallbackDetails), null, 2)}\n`);
+    process.stderr.write(`${JSON.stringify(errorPayload(error.message, codeForError(error), fallbackDetails), null, 2)}\n`);
     return;
   }
 
   const fallbackMessage = String(error);
   if (isHumanTerminal()) {
-    process.stderr.write(`${renderErrorPanel(fallbackMessage, undefined, [], fallbackNextSteps)}\n`);
+    process.stderr.write(`${renderErrorPanel(fallbackMessage, codeForError(error), [], fallbackNextSteps)}\n`);
     return;
   }
 
-  process.stderr.write(`${JSON.stringify(errorPayload(fallbackMessage, undefined, fallbackDetails), null, 2)}\n`);
+  process.stderr.write(`${JSON.stringify(errorPayload(fallbackMessage, codeForError(error), fallbackDetails), null, 2)}\n`);
 }

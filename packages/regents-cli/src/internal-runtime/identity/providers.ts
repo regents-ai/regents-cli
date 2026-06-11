@@ -28,7 +28,7 @@ interface ProviderResolutionOptions {
 
 export const resolveIdentitySigner = async (options: ProviderResolutionOptions): Promise<IdentitySigner> => {
   if (!options.config) {
-    throw new CommandExitError("COINBASE_CDP_MISSING", "Regents CLI config is required for Coinbase identity.", 10);
+    throw new CommandExitError("COINBASE_CDP_MISSING", "Regents CLI config is required for Coinbase identity.");
   }
 
   const probe = await signMessageWithCoinbase(options.config, {
