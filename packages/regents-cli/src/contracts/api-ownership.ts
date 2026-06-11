@@ -226,6 +226,17 @@ export const techtreeApiCommandGroups = [
     ],
   }),
   defineTechtreeGroup({
+    commands: ["techtree skills optimize"],
+    owner: "techtree",
+    status: "current-hybrid",
+    note: "Local skill optimization loop; the held-out gate records runs and steps over Techtree skill-opt HTTP endpoints.",
+    pathTemplates: [
+      "/v1/agent/skill-opt/runs",
+      "/v1/agent/skill-opt/runs/{id}/steps",
+      "/v1/benchmarks/capsules",
+    ],
+  }),
+  defineTechtreeGroup({
     commands: [
       "techtree fold policy init",
       "techtree fold status",

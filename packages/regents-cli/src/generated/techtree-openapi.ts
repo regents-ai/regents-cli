@@ -6742,7 +6742,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Step recorded; the server recomputes the held-out solve rates from benchmark reliability data and decides acceptance itself (client-supplied gate fields are ignored) */
+            /** @description Step recorded; the server recomputes the held-out solve rates from benchmark reliability data and decides acceptance itself (client-supplied gate fields are ignored). The candidate/incumbent harnesses must exist server-side, the client must commit to the candidate's normalized bundle hash via candidate_harness_hash, and the server persists its own stored harness hashes on the step */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -6769,7 +6769,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description Step rejected because required fields are missing or invalid */
+            /** @description Step rejected because required fields are missing or invalid, a referenced harness does not exist, or a committed harness hash does not match the server's stored normalized bundle hash */
             422: {
                 headers: {
                     [name: string]: unknown;

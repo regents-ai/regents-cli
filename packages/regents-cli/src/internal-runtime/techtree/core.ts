@@ -33,7 +33,7 @@ export interface TechtreeCoreProcessResult {
 
 type JsonRecord = Record<string, unknown>;
 
-const resolveCoreDir = async (): Promise<string> => {
+export const resolveTechtreeCoreDir = async (): Promise<string> => {
   const envOverride = process.env.REGENT_TECHTREE_CORE_DIR;
   if (envOverride) {
     return path.resolve(envOverride);
@@ -156,7 +156,7 @@ const buildCompilePayload = async (
   input: unknown,
 ): Promise<JsonRecord> => {
   const nodeType = entrypoint.split(".")[0] as "artifact" | "run" | "review";
-  const coreDir = await resolveCoreDir();
+  const coreDir = await resolveTechtreeCoreDir();
   const { stdout } = await runProcess(
     "uv",
     ["run", "--directory", coreDir, "python", "-m", "techtree_core", "compile", workspacePath],
@@ -321,7 +321,7 @@ const verifyCompiledPayload = async (
   entrypoint: TechtreeCoreEntrypoint,
   payload: JsonRecord,
 ): Promise<JsonRecord> => {
-  const coreDir = await resolveCoreDir();
+  const coreDir = await resolveTechtreeCoreDir();
   const script = `
 import json
 import sys
@@ -384,7 +384,7 @@ const verifyWorkspaceOrFetched = async (input: JsonRecord): Promise<JsonRecord> 
     }));
 
     if (hasSource.some(Boolean)) {
-      const coreDir = await resolveCoreDir();
+      const coreDir = await resolveTechtreeCoreDir();
       const { stdout } = await runProcess(
         "uv",
         ["run", "--directory", coreDir, "python", "-m", "techtree_core", "verify", workspacePath],

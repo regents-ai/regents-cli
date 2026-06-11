@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 370.
+Total commands: 371.
 
 ## Full Command List
 
@@ -376,6 +376,7 @@ Total commands: 370.
 - `regents techtree science-tasks submit` - Submit science tasks.
 - `regents techtree search` - Search Techtree.
 - `regents techtree settlement verify` - Check settlement.
+- `regents techtree skills optimize` - Optimize a skill document against a benchmark capsule set behind the server's held-out validation gate.
 - `regents techtree star <id>` - Star a Techtree node.
 - `regents techtree start` - Open the Techtree start flow.
 - `regents techtree status` - Show Techtree status.

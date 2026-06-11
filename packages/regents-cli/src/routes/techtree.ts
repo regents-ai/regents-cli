@@ -99,6 +99,7 @@ import {
   runTechtreeIdentitiesList,
   runTechtreeIdentitiesMint,
 } from "../commands/techtree-identities.js";
+import { runTechtreeSkillsOptimize } from "../commands/techtree-skills.js";
 import { runTechtreeStartCommand } from "../commands/techtree-start.js";
 import { runTechtreeSettlementVerify } from "../commands/techtree-settlement-verify.js";
 import {
@@ -214,6 +215,7 @@ export const techtreeHandlers: CliHandlerRegistry = {
   "techtree settlement verify": { run: ({ parsedArgs, configPath }) => runTechtreeSettlementVerify(parsedArgs, configPath) },
   // `techtree start` owns its exit code via runTechtreeStartCommand (mirrors top-level `start`).
   "techtree start": { run: ({ parsedArgs, configPath }) => runTechtreeStartCommand(parsedArgs, configPath) },
+  "techtree skills optimize": { run: ({ parsedArgs, configPath }) => runTechtreeSkillsOptimize(parsedArgs, configPath) },
   "techtree autoskill init skill": { run: ({ parsedArgs, configPath }) => runAutoskillInitSkill(parsedArgs, configPath), variadicTail: true },
   "techtree autoskill init eval": { run: ({ parsedArgs, configPath }) => runAutoskillInitEval(parsedArgs, configPath), variadicTail: true },
   "techtree autoskill notebook pair": { run: ({ parsedArgs, configPath }) => runAutoskillNotebookPair(parsedArgs, configPath), variadicTail: true },

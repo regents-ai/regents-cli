@@ -290,6 +290,7 @@ export const CLI_COMMANDS = [
   "techtree science-tasks submit",
   "techtree search",
   "techtree settlement verify",
+  "techtree skills optimize",
   "techtree star <id>",
   "techtree start",
   "techtree status",
@@ -716,6 +717,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree science-tasks submit",
     "techtree search",
     "techtree settlement verify",
+    "techtree skills optimize",
     "techtree star <id>",
     "techtree start",
     "techtree status",
@@ -10012,6 +10014,68 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Check settlement."
+  },
+  "techtree skills optimize": {
+    "command": "techtree skills optimize",
+    "owner": "techtree",
+    "group": "skills",
+    "interface": "mixed",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "skill-opt-envelopes",
+    "flags": [
+      {
+        "name": "--capsule-set",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "--workspace",
+        "type": "path",
+        "required": false
+      },
+      {
+        "name": "--skill-slug",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "--val-fraction",
+        "type": "decimal",
+        "required": true
+      },
+      {
+        "name": "--rounds",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "name": "--frozen-harness-base",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "--budget-tokens",
+        "type": "integer",
+        "required": true
+      }
+    ],
+    "examples": [
+      "regents techtree skills optimize --capsule-set chem-synthesis --workspace ./skill --skill-slug chem-helper --val-fraction 0.25 --rounds 4 --frozen-harness-base harness_123 --budget-tokens 1200"
+    ],
+    "agent_metadata": {
+      "category": "skills",
+      "prompt_behavior": "confirm_before_publish",
+      "json_support": "supported",
+      "mutation_class": "local-and-http-write",
+      "retry_behavior": "retry_reads_and_local_runs",
+      "pagination": "none",
+      "async_behavior": "local-long-running",
+      "input_mode": "args-and-flags",
+      "summary": "Optimize a skill document against a benchmark capsule set behind the server's held-out validation gate.",
+      "next_step": "regents techtree autoskill publish skill --workspace <workspace> --skill-slug <slug>"
+    },
+    "summary": "Optimize a skill document against a benchmark capsule set behind the server's held-out validation gate.",
+    "next_step": "regents techtree autoskill publish skill --workspace <workspace> --skill-slug <slug>"
   },
   "techtree star <id>": {
     "command": "techtree star <id>",
