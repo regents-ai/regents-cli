@@ -528,7 +528,6 @@ export const autolaunchApiCommandGroups = [
       "autolaunch auctions list",
       "autolaunch auction-returns list",
       "autolaunch auction <id>",
-      "autolaunch auction state <id>",
       "autolaunch bids quote",
       "autolaunch bids place",
       "autolaunch bids exit",

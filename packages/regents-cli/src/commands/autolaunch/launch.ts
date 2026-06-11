@@ -350,22 +350,6 @@ export async function runAutolaunchLaunchState(
   printLaunchCreationState(args, payload);
 }
 
-export async function runAutolaunchAuctionState(
-  auctionId: string,
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const payload = await requestTypedJson<LaunchCreationStateResponse>(
-    "GET",
-    appendQuery("/v1/agent/launch/creation-state", {
-      auction_id: auctionId,
-    }),
-    { requireAgentAuth: true, configPath },
-  );
-
-  printLaunchCreationState(args, payload);
-}
-
 export async function runAutolaunchJobsWatch(
   args: ParsedCliArgs,
   configPath?: string,

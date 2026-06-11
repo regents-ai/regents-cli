@@ -227,7 +227,7 @@ describe("autolaunch CLI command group", () => {
                 status: "ready",
                 message: "Auction page is available for monitoring.",
                 action_url: "/auctions/auc_alpha",
-                cli_command: "regents autolaunch auction state auc_alpha",
+                cli_command: "regents autolaunch launch state --auction auc_alpha",
                 blocking: false,
               },
             ],
@@ -2145,7 +2145,14 @@ describe("autolaunch CLI command group", () => {
     );
 
     const output = await captureOutput(() =>
-      runCliEntrypoint(["autolaunch", "auction", "state", "auc_alpha", "--json"]),
+      runCliEntrypoint([
+        "autolaunch",
+        "launch",
+        "state",
+        "--auction",
+        "auc_alpha",
+        "--json",
+      ]),
     );
 
     expect(output.result).toBe(0);

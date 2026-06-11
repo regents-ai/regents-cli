@@ -54,7 +54,6 @@ export {
   runAutolaunchVestingProposeBeneficiaryRotation,
 } from "./autolaunch/contracts.js";
 export {
-  runAutolaunchAuctionState,
   runAutolaunchJobsWatch,
   runAutolaunchLaunchPreview,
   runAutolaunchLaunchState,

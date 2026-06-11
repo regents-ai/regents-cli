@@ -27,7 +27,6 @@ import {
   runAutolaunchIngressSetLabel,
   runAutolaunchJobsWatch,
   runAutolaunchConnectStart,
-  runAutolaunchAuctionState,
   runAutolaunchPair,
   runAutolaunchPaymentLinkCreate,
   runAutolaunchPaymentLinkSetCanonical,
@@ -103,10 +102,6 @@ export const autolaunchHandlers: CliHandlerRegistry = {
   "autolaunch auction-returns list": { run: ({ parsedArgs, configPath }) => runAutolaunchAuctionReturnsList(parsedArgs, configPath) },
   "autolaunch auction <id>": {
     run: ({ positionals, configPath }) => runAutolaunchAuctionShow(positionals[2] as string, configPath),
-  },
-  "autolaunch auction state <id>": {
-    run: ({ parsedArgs, positionals, configPath }) =>
-      runAutolaunchAuctionState(requireArg(positionals[3], "auction-id"), parsedArgs, configPath),
   },
   "autolaunch bids quote": { run: ({ parsedArgs, configPath }) => runAutolaunchBidsQuote(parsedArgs, configPath) },
   "autolaunch bids place": { run: ({ parsedArgs, configPath }) => runAutolaunchBidsPlace(parsedArgs, configPath) },

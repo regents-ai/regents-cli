@@ -1231,17 +1231,6 @@ Object.assign(commandHelpOverlay, {
     nextStep: "Run `regents autolaunch bids quote --auction <id> --amount <regent> --max-price <price>` before placing a bid.",
     ifItFails: autolaunchFailureChecks,
   },
-  "autolaunch auction state <id>": {
-    summary: "Show the private creation checklist for an auction you can manage.",
-    usage: "regents autolaunch auction state <id> [--json]",
-    flags: ["<id> - Auction id from launch output or auction monitoring.", "--json", "--config <path>"],
-    examples: ["regents autolaunch auction state auc_123", "regents autolaunch auction state auc_123 --json"],
-    prerequisites: autolaunchPrerequisites,
-    auth: "Needs Autolaunch sign-in and a saved Agent account connected to the launch work.",
-    output: "Shows the private task board for the auction creation flow.",
-    nextStep: "Use the command or page shown beside any task that still needs action.",
-    ifItFails: autolaunchFailureChecks,
-  },
   "autolaunch bids quote": {
     summary: "Quote a bid before spending funds.",
     usage: "regents autolaunch bids quote --auction <auction-id> --amount <regent> --max-price <price> [--json]",
