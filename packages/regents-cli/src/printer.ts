@@ -1,3 +1,4 @@
+export { cliVersion, renderBanner } from "./terminal/banner.js";
 export { printError } from "./terminal/errors.js";
 export { printJson, printJsonLine, setRawJsonOutput } from "./terminal/json.js";
 export { renderPanel } from "./terminal/panel.js";

@@ -7,7 +7,7 @@ import { RegentRuntime, defaultConfigPath } from "../internal-runtime/index.js";
 import { pluginStatus, type PluginRuntimeStatus } from "../internal-runtime/plugin-bridge.js";
 import type { RegentConfig } from "../internal-types/index.js";
 import { getBooleanFlag, getFlag, type ParsedCliArgs } from "../parse.js";
-import { CLI_PALETTE, isHumanTerminal, printJson, printText, renderPanel, tone } from "../printer.js";
+import { CLI_PALETTE, isHumanTerminal, printJson, printText, renderBanner, renderPanel, tone } from "../printer.js";
 
 export type RuntimeCapabilityState = "ready" | "waiting" | "off";
 
@@ -493,6 +493,7 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
 
 export const renderRuntimeRunScreen = (report: RuntimeRunReport): string =>
   [
+    renderBanner(),
     renderPanel("◆ REGENT IS RUNNING", [
       "Regent is running on this machine.",
       "Keep this terminal open. Use another terminal for Regent commands.",
@@ -528,7 +529,9 @@ export const renderRuntimeRunScreen = (report: RuntimeRunReport): string =>
           titleColor: CLI_PALETTE.title,
         })]
       : []),
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
 const renderRuntimeStoppedScreen = (): string =>
   renderPanel("◆ REGENT STOPPED", [

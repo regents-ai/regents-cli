@@ -187,7 +187,7 @@ describe("scoped CLI help", () => {
         Start this after a command prints a launch job id.
 
         ◆ FLAGS
-        <job-id> - Job id from launch run.
+        <job-id>  Job id from launch run.
         --watch
         --interval <seconds>
         --json

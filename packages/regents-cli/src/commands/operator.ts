@@ -24,6 +24,7 @@ import {
   isHumanTerminal,
   printJson,
   printText,
+  renderBanner,
   renderKeyValuePanel,
   renderPanel,
   renderTablePanel,
@@ -243,6 +244,7 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
 
   printOperatorPayload(payload, () =>
     [
+      renderBanner(),
       renderKeyValuePanel(ready ? "◆ REGENT READY" : "◆ REGENT INIT", [
         { label: "status", value: payload.status, valueColor: statusColor(payload.status) },
         { label: "config", value: resolvedConfigPath },
@@ -410,6 +412,7 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
 
   printOperatorPayload(payload, () =>
     [
+      renderBanner(),
       renderTablePanel(
         "◆ REGENT",
         [

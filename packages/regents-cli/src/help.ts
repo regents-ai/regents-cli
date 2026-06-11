@@ -3,7 +3,8 @@ import {
   CLI_COMMANDS_BY_TOP_LEVEL_GROUP,
   CLI_COMMAND_DETAILS_BY_COMMAND,
 } from "./generated/cli-command-metadata.js";
-import { CLI_PALETTE, printText, renderPanel, tone } from "./printer.js";
+import { CLI_PALETTE, printText, renderBanner, renderPanel, tone } from "./printer.js";
+import { padRight } from "./terminal/palette.js";
 
 interface HelpEntry {
   readonly summary: string;
@@ -2058,6 +2059,30 @@ const mergeHelp = (skeleton: HelpEntry, overlay: Partial<HelpEntry> | undefined)
 const helpForCommand = (command: string): HelpEntry =>
   mergeHelp(summarizeCommand(command), commandHelpOverlay[command]);
 
+const columnLines = (rows: ReadonlyArray<readonly [string, string]>): string[] => {
+  const width = rows.reduce((max, [left, right]) => (right ? Math.max(max, left.length) : max), 0);
+  return rows.map(([left, right]) =>
+    right
+      ? `${padRight(tone(left, CLI_PALETTE.accent, true), width)}  ${tone(right, CLI_PALETTE.secondary)}`
+      : tone(left, CLI_PALETTE.accent, true),
+  );
+};
+
+const flagLines = (flags: readonly string[]): string[] =>
+  columnLines(
+    flags.map((flag) => {
+      const separator = flag.indexOf(" - ");
+      return separator === -1
+        ? ([flag, ""] as const)
+        : ([flag.slice(0, separator), flag.slice(separator + 3)] as const);
+    }),
+  );
+
+const commandLine = (command: string): string =>
+  command.startsWith("regents ")
+    ? `${tone("regents", CLI_PALETTE.accent, true)} ${tone(command.slice("regents ".length), CLI_PALETTE.primary)}`
+    : command;
+
 const renderEntry = (title: string, entry: HelpEntry): string =>
   [
     renderPanel(title, [
@@ -2072,10 +2097,10 @@ const renderEntry = (title: string, entry: HelpEntry): string =>
       ? renderPanel("◆ BEFORE YOU RUN THIS", entry.prerequisites.map((prerequisite) => prerequisite))
       : undefined,
     entry.flags?.length
-      ? renderPanel("◆ FLAGS", entry.flags.map((flag) => flag))
+      ? renderPanel("◆ FLAGS", flagLines(entry.flags))
       : undefined,
     entry.examples?.length
-      ? renderPanel("◆ EXAMPLES", entry.examples.map((example) => example))
+      ? renderPanel("◆ EXAMPLES", entry.examples.map(commandLine))
       : undefined,
     entry.ifItFails?.length
       ? renderPanel("◆ IF THIS FAILS", entry.ifItFails.map((failure) => failure))
@@ -2085,7 +2110,7 @@ const renderEntry = (title: string, entry: HelpEntry): string =>
     .join("\n\n");
 
 const renderGroup = (name: string, group: HelpGroup): string => {
-  const visibleCommands = group.commands.slice(0, 36).map((command) => `regents ${command}`);
+  const visibleCommands = group.commands.slice(0, 36).map((command) => commandLine(`regents ${command}`));
   const remaining = group.commands.length - visibleCommands.length;
 
   return [
@@ -2099,29 +2124,67 @@ const renderGroup = (name: string, group: HelpGroup): string => {
     renderPanel(
       "◆ COMMANDS",
       remaining > 0
-        ? [...visibleCommands, `and ${remaining} more commands. Use command-level --help for details.`]
+        ? [...visibleCommands, tone(`and ${remaining} more commands. Use command-level --help for details.`, CLI_PALETTE.secondary)]
         : visibleCommands,
     ),
   ].join("\n\n");
 };
 
+const renderRootHelp = (configPath: string): string =>
+  [
+    renderBanner(),
+    renderPanel("◆ REGENT CLI HELP", [
+      "Work with Regent from the terminal.",
+      "",
+      `${tone("usage", CLI_PALETTE.secondary, true)} regents <command> [flags]`,
+      `${tone("auth", CLI_PALETTE.secondary, true)} Protected commands use a saved Agent account.`,
+      `${tone("output", CLI_PALETTE.secondary, true)} Human output uses panels and status lines. \`--json\` prints raw JSON.`,
+      `${tone("next", CLI_PALETTE.secondary, true)} Default config: ${configPath}. ${globalNextStep}`,
+    ]),
+    renderPanel(
+      "◆ GETTING STARTED",
+      columnLines([
+        ["regents init", "guided setup for this machine"],
+        ["regents setup skills", "install the Regents agent skills"],
+        ["regents run", "start local Regent and keep it ready"],
+        ["regents run --fold autoresearch", "start local Techtree research"],
+        ["regents status", "readiness at a glance"],
+        ["regents doctor", "check the local stack"],
+      ]),
+    ),
+    renderPanel(
+      "◆ COMMAND AREAS",
+      [
+        ...columnLines([
+          ["techtree", "research, publishing, reviews, BBH, chat"],
+          ["autolaunch", "launches, auctions, bids, subjects, holdings"],
+          ["platform", "hosted account, billing, pause and resume"],
+          ["work", "company work runs and the local worker loop"],
+          ["wallet", "wallet setup and the agentic wallet"],
+          ["x402", "paid endpoints, quotes, payments, receipts"],
+          ["xmtp", "messaging setup and direct messages"],
+          ["mcp", "the Regents MCP server and Codex setup"],
+        ]),
+        "",
+        tone("use `regents <area> --help` for every command in an area", CLI_PALETTE.secondary),
+      ],
+    ),
+    renderPanel(
+      "◆ FLAGS",
+      columnLines([
+        ["--json", "plain JSON output where supported"],
+        ["--config <path>", "pin a specific config file"],
+        ["--no-input", "never prompt; fail instead"],
+        ["--help", "scoped help for any command"],
+      ]),
+    ),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
 export function renderScopedHelp(positionals: readonly string[], configPath: string): string {
   if (positionals.length === 0) {
-    return renderEntry("◆ REGENT CLI HELP", {
-      summary: "Work with Regent from the terminal.",
-      usage: "regents <command> [flags]",
-      flags: ["--config <path>", "--help", "--json where supported", "--no-input"],
-      examples: [
-        "regents setup skills",
-        "regents run",
-        "regents auth login --audience autolaunch",
-        "regents identity ensure",
-        "regents autolaunch agents list --launchable",
-      ],
-      auth: "Protected commands use a saved Agent account.",
-      output: "Human output uses panels and status lines. `--json` prints raw JSON.",
-      nextStep: `Default config: ${configPath}. ${globalNextStep}`,
-    });
+    return renderRootHelp(configPath);
   }
 
   const command = commandForInput(positionals);
