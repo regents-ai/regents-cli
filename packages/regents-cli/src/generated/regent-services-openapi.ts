@@ -276,8 +276,6 @@ export interface components {
             audience: string;
         };
         SiwaNonceResponse: {
-            /** @enum {boolean} */
-            ok: true;
             /** @enum {string} */
             code: "nonce_issued";
             data: {
@@ -303,8 +301,6 @@ export interface components {
             signature: components["schemas"]["HexData"];
         };
         SiwaVerifyResponse: {
-            /** @enum {boolean} */
-            ok: true;
             /** @enum {string} */
             code: "siwa_verified";
             data: {
@@ -335,8 +331,6 @@ export interface components {
             body?: string;
         };
         SiwaHttpVerifyResponse: {
-            /** @enum {boolean} */
-            ok: true;
             /** @enum {string} */
             code: "http_envelope_valid";
             data: {
@@ -452,8 +446,6 @@ export interface components {
             [key: string]: unknown;
         };
         ErrorEnvelope: {
-            /** @enum {boolean} */
-            ok: false;
             error: components["schemas"]["ServiceError"];
         } & {
             [key: string]: unknown;

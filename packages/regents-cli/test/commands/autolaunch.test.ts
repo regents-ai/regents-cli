@@ -2655,7 +2655,6 @@ describe("autolaunch CLI command group", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            ok: true,
             code: "nonce_issued",
             data: {
               nonce: "nonce_alpha",

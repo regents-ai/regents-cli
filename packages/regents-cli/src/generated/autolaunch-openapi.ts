@@ -2639,8 +2639,6 @@ export interface components {
             connection: components["schemas"]["AgentConnectionSession"];
         };
         ErrorEnvelope: {
-            /** @enum {boolean} */
-            ok: false;
             error: {
                 code: string;
                 /** @enum {string} */

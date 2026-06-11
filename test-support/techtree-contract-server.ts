@@ -667,7 +667,6 @@ export class TechtreeContractServer {
         expiresAtUnixSeconds: currentUnixSeconds() + 300,
       });
       const response: SiwaNonceResponse = {
-        ok: true,
         code: "nonce_issued",
         data: {
           nonce,
@@ -1019,7 +1018,6 @@ export class TechtreeContractServer {
         ...(payload.token_id ? { tokenId: payload.token_id } : {}),
       };
       const response: SiwaVerifyResponse = {
-        ok: true,
         code: "siwa_verified",
         data: {
           verified: true,
@@ -1778,7 +1776,7 @@ export class TechtreeContractServer {
     headers: Record<string, string>,
   ): Promise<boolean> {
     const verification = await this.verifyHttpEnvelope(method, path, headers);
-    if (verification.statusCode === 200 && verification.payload.ok === true && verification.payload.code === "http_envelope_valid") {
+    if (verification.statusCode === 200 && verification.payload.code === "http_envelope_valid") {
       return true;
     }
 
@@ -1799,15 +1797,14 @@ export class TechtreeContractServer {
   ): Promise<{
     statusCode: number;
     payload:
-      | { ok: true; code: "http_envelope_valid"; details: Record<string, unknown> }
-      | { ok: false; code: "http_envelope_invalid"; message: string; details?: Record<string, unknown> };
+      | { code: "http_envelope_valid"; details: Record<string, unknown> }
+      | { code: "http_envelope_invalid"; message: string; details?: Record<string, unknown> };
   }> {
     for (const header of REQUIRED_AUTH_HEADERS) {
       if (!headers[header]) {
         return {
           statusCode: 401,
           payload: {
-            ok: false,
             code: "http_envelope_invalid",
             message: `missing required header: ${header}`,
           },
@@ -1820,7 +1817,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "invalid SIWA receipt",
         },
@@ -1832,7 +1828,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "SIWA receipt is expired",
         },
@@ -1843,7 +1838,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "x-key-id is not bound to the SIWA receipt",
         },
@@ -1854,7 +1848,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "x-agent-wallet-address does not match the SIWA receipt binding",
         },
@@ -1865,7 +1858,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "x-agent-chain-id does not match the SIWA receipt binding",
         },
@@ -1876,7 +1868,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "x-agent-registry-address does not match the SIWA receipt binding",
         },
@@ -1887,7 +1878,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "x-agent-token-id does not match the SIWA receipt binding",
         },
@@ -1899,7 +1889,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "signature-input is malformed",
         },
@@ -1911,7 +1900,6 @@ export class TechtreeContractServer {
         return {
           statusCode: 401,
           payload: {
-            ok: false,
             code: "http_envelope_invalid",
             message: `signature-input missing covered component: ${component}`,
           },
@@ -1934,7 +1922,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "signature-input is missing replay-safety parameters",
         },
@@ -1945,7 +1932,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "signature-input created does not match x-timestamp",
         },
@@ -1956,7 +1942,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "signature-input keyid does not match x-key-id",
         },
@@ -1968,7 +1953,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "signature timestamp is outside the accepted freshness window",
         },
@@ -1980,7 +1964,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "signature replay detected",
         },
@@ -1997,7 +1980,6 @@ export class TechtreeContractServer {
       return {
         statusCode: 401,
         payload: {
-          ok: false,
           code: "http_envelope_invalid",
           message: "signature verification failed",
         },
@@ -2008,7 +1990,6 @@ export class TechtreeContractServer {
     return {
       statusCode: 200,
       payload: {
-        ok: true,
         code: "http_envelope_valid",
         details: {
           walletAddress: receiptClaims.walletAddress,

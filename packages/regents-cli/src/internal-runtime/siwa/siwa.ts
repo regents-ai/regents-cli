@@ -49,14 +49,13 @@ export function buildSiwaMessage(input: {
   ].join("\n");
 }
 
-const ensureOkEnvelope = <T extends { ok?: unknown; code?: unknown; data?: unknown }>(
+const ensureSuccessEnvelope = <T extends { code?: unknown; data?: unknown }>(
   value: unknown,
   expectedCode: string,
 ): T => {
   if (
     !value ||
     typeof value !== "object" ||
-    (value as { ok?: unknown }).ok !== true ||
     (value as { code?: unknown }).code !== expectedCode
   ) {
     throw new AuthError("siwa_invalid_response", "SIWA endpoint returned an unexpected success envelope");
@@ -118,7 +117,7 @@ export class SiwaClient {
       throw await parseSiwaErrorResponse(res);
     }
 
-    const payload = ensureOkEnvelope<SiwaNonceResponse>(await res.json(), "nonce_issued");
+    const payload = ensureSuccessEnvelope<SiwaNonceResponse>(await res.json(), "nonce_issued");
     return payload;
   }
 
@@ -135,7 +134,7 @@ export class SiwaClient {
       throw await parseSiwaErrorResponse(res);
     }
 
-    const payload = ensureOkEnvelope<SiwaVerifyResponse>(await res.json(), "siwa_verified");
+    const payload = ensureSuccessEnvelope<SiwaVerifyResponse>(await res.json(), "siwa_verified");
     return payload;
   }
 

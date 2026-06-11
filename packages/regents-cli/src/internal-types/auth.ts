@@ -11,7 +11,6 @@ export interface SiwaNonceRequest {
 }
 
 export interface SiwaNonceResponse {
-  ok: true;
   code: "nonce_issued";
   data: {
     nonce: string;
@@ -37,7 +36,6 @@ export interface SiwaVerifyRequest {
 }
 
 export interface SiwaVerifyResponse {
-  ok: true;
   code: "siwa_verified";
   data: {
     verified: true;
