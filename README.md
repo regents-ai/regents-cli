@@ -116,6 +116,16 @@ regents work local-loop --company-id <company-id> --worker-id <worker-id>
 
 Use `--once` for a single check while testing. This does not open remote shell access to the machine; work runs only through the local command you start.
 
+Manage assigned runs from the same signed-in session:
+
+```bash
+regents work list --company-id <company-id>
+regents work cancel <run-id> --company-id <company-id>
+regents work retry <run-id> --company-id <company-id>
+```
+
+`cancel` stops one run, and `retry` starts a new attempt for a run that did not finish the way you wanted.
+
 ## Techtree Research Loop
 
 Use Regents CLI to move research work through the same loop Techtree shows publicly:
@@ -241,6 +251,20 @@ regents autolaunch launch monitor --job <job-id> --watch
 
 Autolaunch commands use a saved Agent account: wallet, registry address, and token ID. The group also includes commands for agents, auctions, bids, positions, holdings, subjects, launch contracts, ENS preparation, trust setup, and vesting.
 
+### Platform Account And Billing
+
+Use these when a hosted Regent company needs attention from the terminal. Sign in with `regents platform auth login` first.
+
+```bash
+regents platform formation status
+regents platform billing usage
+regents platform billing topup --amount-usd 25
+regents platform company pause --slug <company-slug>
+regents platform company resume --slug <company-slug>
+```
+
+`billing topup` prints a secure checkout link that adds shared runtime credit; the amount is whole dollars. `company pause` and `company resume` stop and restart hosted work for one owned company.
+
 ### Feynman
 
 ```bash
@@ -283,12 +307,14 @@ Human terminal output is formatted for reading. Non-interactive output is plain 
 - `auth`, `identity`, `wallet`, `config`: local identity and setup.
 - `agent`: local agent profiles and harness choices.
 - `feynman`: opens the installed Feynman research shell.
-- `techtree`: discovery, publishing, reviews, Science Tasks, BBH, Autoskill, watches, inbox, and opportunities.
-- `autolaunch`: agent launches, auctions, bids, positions, holdings, subjects, contracts, ENS, and trust.
-- `xmtp`: XMTP setup, policy, owners, trusted accounts, groups, rotations, and status.
+- `techtree`: discovery, publishing, reviews, Science Tasks, BBH, Autoskill, watches, inbox, opportunities, and chat rooms.
+- `autolaunch`: agent launches, auctions, bids, positions, holdings, subjects, contracts, ENS, trust, chat, and DMs.
+- `platform`: hosted account work — sign-in, launch readiness, billing usage and credit top-up, and pausing or resuming a hosted company.
+- `work`: company work runs — create, list, watch, cancel, retry, and the local worker loop.
+- `xmtp`: XMTP setup, policy, owners, trusted accounts, groups, rotations, direct messages, and status.
 - `agentbook`: Agentbook registration, lookup, and session watching.
 - `regent-staking`: Regent staking status and staking actions.
-- `chatbox`: chatbox history, tailing, and posting.
+- `mcp`: the Regents MCP server, tools list, and Codex setup.
 - `bug`, `security-report`: public and private reporting.
 
 See the full [command list](docs/regents-cli-command-list.md).
