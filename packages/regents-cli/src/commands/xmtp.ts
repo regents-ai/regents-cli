@@ -6,8 +6,12 @@ import {
   defaultConfigPath,
   ensureXmtpPolicyFile,
   getXmtpGroupPermissions,
+  getXmtpInbox,
   getXmtpStatus,
   initializeXmtp,
+  parseXmtpStreamLine,
+  spawnXmtpCliProcess,
+  xmtpSenderMatches,
   listXmtpGroupAdmins,
   listXmtpGroupMembers,
   listXmtpGroupSuperAdmins,
@@ -35,8 +39,8 @@ import {
 } from "../internal-runtime/index.js";
 
 import { daemonCall } from "../daemon-client.js";
-import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
-import { printJson } from "../printer.js";
+import { getBooleanFlag, getFlag, getFlags, requireArg, type ParsedCliArgs } from "../parse.js";
+import { CLI_PALETTE, isHumanTerminal, printJson, printJsonLine, renderPanel, tone } from "../printer.js";
 import { runDoctorCommand } from "./doctor.js";
 
 const XMTP_GROUP_CREATE_PERMISSIONS = ["all-members", "admin-only"] as const;
@@ -262,6 +266,149 @@ export async function runXmtpDmList(args: ParsedCliArgs, configPath?: string): P
 export async function runXmtpInboxSync(configPath?: string): Promise<void> {
   const { config } = loadResolvedConfig(configPath);
   printJson(await syncXmtpConversations(config.xmtp));
+}
+
+export async function runXmtpInbox(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const { config } = loadResolvedConfig(configPath);
+  printJson(await getXmtpInbox(config.xmtp, { sync: !getBooleanFlag(args, "no-sync") }));
+}
+
+const truncateXmtpBody = (value: string, max = 96): string =>
+  value.length <= max ? value : `${value.slice(0, Math.max(0, max - 1))}…`;
+
+const renderXmtpStreamedMessage = (message: {
+  id?: string;
+  conversationId?: string;
+  senderInboxId?: string;
+  content?: unknown;
+  sentAt?: string;
+}): string => {
+  const lines: string[] = [];
+
+  if (typeof message.id === "string") {
+    lines.push(`${tone("id", CLI_PALETTE.secondary)} ${tone(message.id, CLI_PALETTE.primary)}`);
+  }
+
+  if (typeof message.conversationId === "string") {
+    lines.push(`${tone("conversation", CLI_PALETTE.secondary)} ${tone(message.conversationId, CLI_PALETTE.primary)}`);
+  }
+
+  if (typeof message.senderInboxId === "string") {
+    lines.push(`${tone("sender", CLI_PALETTE.secondary)} ${tone(message.senderInboxId, CLI_PALETTE.primary)}`);
+  }
+
+  const body = typeof message.content === "string" ? message.content.trim() : "";
+  if (body !== "") {
+    lines.push(`${tone("body", CLI_PALETTE.secondary)} ${tone(truncateXmtpBody(body), CLI_PALETTE.primary)}`);
+  }
+
+  if (typeof message.sentAt === "string") {
+    lines.push(`${tone("time", CLI_PALETTE.secondary)} ${tone(message.sentAt, CLI_PALETTE.secondary)}`);
+  }
+
+  const conversationLabel = typeof message.conversationId === "string" ? message.conversationId : "message";
+  return renderPanel(`◆ XMTP · ${truncateXmtpBody(conversationLabel, 24)}`, lines, {
+    borderColor: CLI_PALETTE.emphasis,
+    titleColor: CLI_PALETTE.title,
+  });
+};
+
+export async function runXmtpTail(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const { config } = loadResolvedConfig(configPath);
+  const froms = getFlags(args, "from");
+  const child = spawnXmtpCliProcess(config.xmtp, ["conversations", "stream-all-messages", "--json"]);
+
+  await new Promise<void>((resolve, reject) => {
+    let stdoutBuffer = "";
+    let stderrBuffer = "";
+    let settled = false;
+    let interrupted = false;
+
+    const finish = (error?: Error): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      process.off("SIGINT", handleSignal);
+      process.off("SIGTERM", handleSignal);
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    };
+
+    const handleSignal = (): void => {
+      interrupted = true;
+      child.kill("SIGTERM");
+    };
+
+    process.on("SIGINT", handleSignal);
+    process.on("SIGTERM", handleSignal);
+
+    if (isHumanTerminal()) {
+      process.stdout.write(
+        `${renderPanel("◆ XMTP LISTENING", [
+          `${tone("stream", CLI_PALETTE.secondary)} ${tone("all conversations", CLI_PALETTE.primary, true)}`,
+          ...(froms.length > 0
+            ? [`${tone("from", CLI_PALETTE.secondary)} ${tone(froms.join(", "), CLI_PALETTE.primary)}`]
+            : []),
+        ], {
+          borderColor: CLI_PALETTE.emphasis,
+          titleColor: CLI_PALETTE.title,
+        })}\n\n`,
+      );
+    }
+
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", (chunk: string) => {
+      stdoutBuffer += chunk;
+
+      while (true) {
+        const newlineIndex = stdoutBuffer.indexOf("\n");
+        if (newlineIndex < 0) {
+          break;
+        }
+
+        const line = stdoutBuffer.slice(0, newlineIndex);
+        stdoutBuffer = stdoutBuffer.slice(newlineIndex + 1);
+
+        const message = parseXmtpStreamLine(line);
+        if (!message || !xmtpSenderMatches(message, froms)) {
+          continue;
+        }
+
+        if (isHumanTerminal()) {
+          process.stdout.write(`${renderXmtpStreamedMessage(message)}\n\n`);
+        } else {
+          printJsonLine(message);
+        }
+      }
+    });
+
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk: string) => {
+      stderrBuffer += chunk;
+    });
+
+    child.on("error", (error) => {
+      finish(new Error(`unable to start the bundled XMTP CLI stream (${error.message})`));
+    });
+
+    child.on("close", (code, signal) => {
+      if (interrupted || signal !== null || code === 0) {
+        finish();
+        return;
+      }
+
+      finish(
+        new Error(
+          `XMTP message stream exited with code ${String(code)}${stderrBuffer.trim() !== "" ? `: ${stderrBuffer.trim()}` : ""}`,
+        ),
+      );
+    });
+  });
 }
 
 export async function runXmtpGroupCreate(args: ParsedCliArgs, configPath?: string): Promise<void> {

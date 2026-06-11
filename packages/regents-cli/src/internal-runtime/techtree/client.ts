@@ -112,7 +112,6 @@ import type {
   NodeCreateInput,
   NodeCreateResponse,
   NodePaidPayloadAccessResponse,
-  NodeRoomMembershipResponse,
   NodeStarRecord,
   RegentConfig,
   ScienceTaskChecklistUpdateInput,
@@ -758,22 +757,15 @@ export class TechtreeClient {
     return this.chat.createAgentChatMessage(scope, input);
   }
 
-  requestNodeRoomMembership(
-    nodeId: number,
-    input?: { xmtp_inbox_id?: string },
-  ): Promise<NodeRoomMembershipResponse> {
-    return this.chat.requestNodeRoomMembership(nodeId, input);
-  }
-
   transportStatus(): Promise<{ data: GossipsubStatus }> {
     return this.transport.transportStatus();
   }
 
   streamChat(
-    scope: string,
+    scopes: readonly string[],
     onEvent: (payload: unknown) => void,
     signal: AbortSignal,
   ): Promise<void> {
-    return this.chat.streamChat(scope, onEvent, signal);
+    return this.chat.streamChat(scopes, onEvent, signal);
   }
 }

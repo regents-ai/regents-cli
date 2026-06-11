@@ -37,7 +37,7 @@ export class ChatRelaySocketServer {
       let buffer = "";
       let subscribed = false;
 
-      const subscribe = (scope: string) => {
+      const subscribe = (scopes: readonly string[]) => {
         if (subscribed) {
           return;
         }
@@ -47,7 +47,7 @@ export class ChatRelaySocketServer {
         void this.adapter
           .subscribeChat((event) => {
             socket.write(`${JSON.stringify(event)}\n`);
-          }, scope)
+          }, scopes)
           .then((dispose) => {
             unsubscribe = dispose;
           })
@@ -84,15 +84,18 @@ export class ChatRelaySocketServer {
           buffer = buffer.slice(newlineIndex + 1);
 
           if (line === "") {
-            subscribe(DEFAULT_CHAT_SCOPE);
+            subscribe([DEFAULT_CHAT_SCOPE]);
             continue;
           }
 
           try {
-            const payload = JSON.parse(line) as { scope?: unknown };
-            subscribe(typeof payload.scope === "string" && payload.scope !== "" ? payload.scope : DEFAULT_CHAT_SCOPE);
+            const payload = JSON.parse(line) as { scopes?: unknown };
+            const scopes = Array.isArray(payload.scopes)
+              ? payload.scopes.filter((scope): scope is string => typeof scope === "string" && scope !== "")
+              : [];
+            subscribe(scopes.length > 0 ? scopes : [DEFAULT_CHAT_SCOPE]);
           } catch {
-            subscribe(DEFAULT_CHAT_SCOPE);
+            subscribe([DEFAULT_CHAT_SCOPE]);
           }
         }
       });

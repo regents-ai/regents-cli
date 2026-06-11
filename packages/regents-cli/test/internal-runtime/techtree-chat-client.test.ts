@@ -108,18 +108,16 @@ const createHarness = async (): Promise<ClientHarness> => {
           data: [
             {
               scope: "system",
-              kind: "channel",
+              kind: "system",
               name: "System",
               status: "active",
-              xmtp_group_id: null,
               last_message_at: "2026-03-10T00:00:00.000Z",
             },
             {
               scope: "node:42",
-              kind: "node_room",
+              kind: "node",
               name: "Node 42",
               status: "active",
-              xmtp_group_id: "xmtp-group-42",
               last_message_at: null,
             },
           ],
@@ -128,43 +126,37 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/system/messages") {
+    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/messages") {
+      const scope = requestUrl.searchParams.get("scope");
+      const messageByScope: Record<string, { id: number; scope: string; body: string }> = {
+        system: { id: 10, scope: "system", body: "Existing public chat message" },
+        "topic:protein-folding": {
+          id: 11,
+          scope: "topic:protein-folding",
+          body: "Existing topic chat message",
+        },
+      };
+      const message = scope ? messageByScope[scope] : undefined;
+
+      if (!message) {
+        res.statusCode = 404;
+        res.setHeader("content-type", "application/json");
+        res.end(`${JSON.stringify({ error: { code: "chat_scope_not_found" } })}\n`);
+        return;
+      }
+
       res.statusCode = 200;
       res.setHeader("content-type", "application/json");
       res.end(
         `${JSON.stringify({
-          data: [
-            {
-              id: 10,
-              scope: "system",
-              body: "Existing public chat message",
-            },
-          ],
+          data: [message],
           pagination: { limit: 1, next_cursor: null },
         })}\n`,
       );
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/topic%3Aprotein-folding/messages") {
-      res.statusCode = 200;
-      res.setHeader("content-type", "application/json");
-      res.end(
-        `${JSON.stringify({
-          data: [
-            {
-              id: 11,
-              scope: "topic:protein-folding",
-              body: "Existing topic chat message",
-            },
-          ],
-          pagination: { limit: 1, next_cursor: null },
-        })}\n`,
-      );
-      return;
-    }
-
-    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chat/system/messages") {
+    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chat/messages" && requestUrl.searchParams.get("scope") === "system") {
       if (!requireAgentHeaders()) {
         return;
       }
@@ -185,25 +177,6 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chat/node/42/membership") {
-      if (!requireAgentHeaders()) {
-        return;
-      }
-
-      res.statusCode = 202;
-      res.setHeader("content-type", "application/json");
-      res.end(
-        `${JSON.stringify({
-          data: {
-            scope: "node:42",
-            status: "pending",
-            xmtp_group_id: "xmtp-group-42",
-          },
-        })}\n`,
-      );
-      return;
-    }
-
     if (req.method === "GET" && requestUrl.pathname === "/v1/chat/stream") {
       if (shouldFailPublicStream) {
         res.statusCode = 503;
@@ -212,6 +185,7 @@ const createHarness = async (): Promise<ClientHarness> => {
         return;
       }
 
+      const firstScope = (requestUrl.searchParams.get("scopes") ?? "system").split(",")[0] ?? "system";
       res.statusCode = 200;
       res.setHeader("content-type", "application/x-ndjson");
       res.write(
@@ -219,7 +193,7 @@ const createHarness = async (): Promise<ClientHarness> => {
           event: "message.created",
           message: {
             id: 11,
-            scope: requestUrl.searchParams.get("scope") ?? "system",
+            scope: firstScope,
             body: "Streaming public chat event",
           },
         })}\n`,
@@ -227,7 +201,7 @@ const createHarness = async (): Promise<ClientHarness> => {
 
       const timer = setTimeout(() => {
         if (!res.writableEnded) {
-          res.end(`${JSON.stringify({ event: "heartbeat", scope: requestUrl.searchParams.get("scope") ?? "system" })}\n`);
+          res.end(`${JSON.stringify({ event: "heartbeat", scope: firstScope })}\n`);
         }
       }, 50);
 
@@ -375,8 +349,8 @@ describe("Techtree chat client routes", () => {
   it("uses the public chat contract and emits stream events before the response closes", async () => {
     await expect(harness.client.listChatChannels()).resolves.toMatchObject({
       data: [
-        expect.objectContaining({ scope: "system", kind: "channel" }),
-        expect.objectContaining({ scope: "node:42", kind: "node_room", xmtp_group_id: "xmtp-group-42" }),
+        expect.objectContaining({ scope: "system", kind: "system" }),
+        expect.objectContaining({ scope: "node:42", kind: "node" }),
       ],
     });
 
@@ -390,7 +364,7 @@ describe("Techtree chat client routes", () => {
     let streamFinished = false;
 
     const streamPromise = harness.client
-      .streamChat("system", (payload) => streamed.push(payload), controller.signal)
+      .streamChat(["system"], (payload) => streamed.push(payload), controller.signal)
       .then(() => {
         streamFinished = true;
       });
@@ -413,8 +387,8 @@ describe("Techtree chat client routes", () => {
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
       "GET /v1/chat/channels",
-      "GET /v1/chat/system/messages?limit=1",
-      "GET /v1/chat/stream?scope=system",
+      "GET /v1/chat/messages?scope=system&limit=1",
+      "GET /v1/chat/stream?scopes=system",
     ]);
 
     for (const request of harness.requests) {
@@ -424,17 +398,17 @@ describe("Techtree chat client routes", () => {
     }
   });
 
-  it("url-encodes scope path segments for public reads", async () => {
+  it("url-encodes scope query values for public reads", async () => {
     await expect(harness.client.listChatMessages("topic:protein-folding", { limit: 1 })).resolves.toMatchObject({
       data: [expect.objectContaining({ body: "Existing topic chat message" })],
     });
 
-    expect(harness.requests.map((request) => `${request.method} ${request.pathname}`)).toEqual([
-      "GET /v1/chat/topic%3Aprotein-folding/messages",
+    expect(harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`)).toEqual([
+      "GET /v1/chat/messages?scope=topic%3Aprotein-folding&limit=1",
     ]);
   });
 
-  it("uses the authenticated agent chat and membership contracts", async () => {
+  it("uses the authenticated agent chat contract", async () => {
     await expect(
       harness.client.createAgentChatMessage("system", {
         body: "Posted from Regent",
@@ -442,14 +416,6 @@ describe("Techtree chat client routes", () => {
       }),
     ).resolves.toMatchObject({
       data: expect.objectContaining({ body: "Posted from Regent" }),
-    });
-
-    await expect(harness.client.requestNodeRoomMembership(42, { xmtp_inbox_id: "inbox-1" })).resolves.toEqual({
-      data: {
-        scope: "node:42",
-        status: "pending",
-        xmtp_group_id: "xmtp-group-42",
-      },
     });
 
     await expect(harness.client.transportStatus()).resolves.toEqual({
@@ -470,13 +436,9 @@ describe("Techtree chat client routes", () => {
 
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
-      "POST /v1/agent/chat/system/messages",
-      "POST /v1/agent/chat/node/42/membership",
+      "POST /v1/agent/chat/messages?scope=system",
       "GET /v1/runtime/transport",
     ]);
-
-    const membershipRequest = harness.requests[1];
-    expect(membershipRequest?.body).toEqual({ xmtp_inbox_id: "inbox-1" });
 
     const protectedRequests = harness.requests.filter((request) => request.pathname.startsWith("/v1/agent/"));
     for (const request of protectedRequests) {
@@ -494,7 +456,7 @@ describe("Techtree chat client routes", () => {
     harness.failPublicStream();
 
     await expect(
-      harness.client.streamChat("system", () => undefined, new AbortController().signal),
+      harness.client.streamChat(["system"], () => undefined, new AbortController().signal),
     ).rejects.toThrow("stream unavailable");
   });
 });

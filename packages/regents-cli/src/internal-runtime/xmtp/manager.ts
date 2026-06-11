@@ -1,6 +1,7 @@
 export * from "./cli-adapter.js";
 export * from "./conversations.js";
 export * from "./groups.js";
+export * from "./inbox.js";
 export * from "./material.js";
 export * from "./policy.js";
 export * from "./roles.js";

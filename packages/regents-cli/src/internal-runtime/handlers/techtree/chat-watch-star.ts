@@ -3,7 +3,6 @@ import type {
   ChatListResponse,
   ChatPostInput,
   ChatPostResponse,
-  NodeRoomMembershipResponse,
   NodeStarRecord,
   WatchRecord,
 } from "../../../internal-types/index.js";
@@ -60,14 +59,4 @@ export async function handleTechtreeChatPost(
 ): Promise<ChatPostResponse> {
   const { scope, ...input } = params;
   return ctx.techtree.createAgentChatMessage(scope, input);
-}
-
-export async function handleTechtreeChatJoin(
-  ctx: RuntimeContext,
-  params: { nodeId: number; xmtpInboxId?: string },
-): Promise<NodeRoomMembershipResponse> {
-  return ctx.techtree.requestNodeRoomMembership(
-    params.nodeId,
-    params.xmtpInboxId ? { xmtp_inbox_id: params.xmtpInboxId } : undefined,
-  );
 }

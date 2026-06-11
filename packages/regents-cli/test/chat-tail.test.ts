@@ -42,7 +42,7 @@ vi.mock("node:net", () => ({
   },
 }));
 
-const { tailChatScope } = await import("../src/commands/chat.js");
+const { tailChatScopes } = await import("../src/commands/chat.js");
 
 const captureOutput = async (run: () => Promise<unknown>): Promise<{
   stdout: string;
@@ -113,11 +113,11 @@ describe("chat tail", () => {
       eventSocketPath: "/tmp/runtime.chat.sock",
     });
 
-    const output = await captureOutput(async () => tailChatScope("system", "/tmp/regent.config.json"));
+    const output = await captureOutput(async () => tailChatScopes(["system"], null, "/tmp/regent.config.json"));
 
     expect(output.stderr).toBe("");
     expect(socket.encoding).toBe("utf8");
-    expect(socket.writes).toEqual([`${JSON.stringify({ scope: "system" })}\n`]);
+    expect(socket.writes).toEqual([`${JSON.stringify({ scopes: ["system"] })}\n`]);
     expect(socket.ended).toBe(true);
     expect(socket.destroyed).toBe(true);
 
@@ -138,13 +138,13 @@ describe("chat tail", () => {
       eventSocketPath: null,
     });
 
-    await expect(tailChatScope("system", "/tmp/regent.config.json")).rejects.toThrow(
+    await expect(tailChatScopes(["system"], null, "/tmp/regent.config.json")).rejects.toThrow(
       "chat transport is disabled in config",
     );
     expect(createConnectionMock).not.toHaveBeenCalled();
   });
 
-  it("subscribes to the requested scope", async () => {
+  it("subscribes to the requested scopes", async () => {
     const socket = new FakeSocket();
     createConnectionMock.mockImplementationOnce(() => {
       queueMicrotask(() => {
@@ -159,9 +159,11 @@ describe("chat tail", () => {
       eventSocketPath: "/tmp/runtime.chat.sock",
     });
 
-    const output = await captureOutput(async () => tailChatScope("node:42", "/tmp/regent.config.json"));
+    const output = await captureOutput(async () =>
+      tailChatScopes(["node:42", "topic:protein-folding"], null, "/tmp/regent.config.json"),
+    );
 
     expect(output.stderr).toBe("");
-    expect(socket.writes).toEqual([`${JSON.stringify({ scope: "node:42" })}\n`]);
+    expect(socket.writes).toEqual([`${JSON.stringify({ scopes: ["node:42", "topic:protein-folding"] })}\n`]);
   });
 });

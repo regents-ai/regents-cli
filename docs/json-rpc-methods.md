@@ -123,7 +123,6 @@ This file is generated from the current runtime method registry.
 - `techtree.chat.channels`
 - `techtree.chat.history`
 - `techtree.chat.post`
-- `techtree.chat.join`
 - `techtree.v1.artifact.init`
 - `techtree.v1.artifact.compile`
 - `techtree.v1.artifact.pin`

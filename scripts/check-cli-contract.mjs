@@ -553,9 +553,12 @@ for (const command of routeCommands) {
 const requiredChatCommands = [
   "techtree chat list",
   "techtree chat read <scope>",
-  "techtree chat tail <scope>",
+  "techtree chat tail [scope...]",
   "techtree chat send <scope>",
-  "techtree chat join <node-id>",
+  "techtree chat unread [scope...]",
+  "techtree chat subscribe add <scope>",
+  "techtree chat subscribe remove <scope>",
+  "techtree chat subscribe list",
   "techtree dm <node-id|address>",
   "techtree dm list",
 ];
@@ -575,7 +578,6 @@ const requiredRpcMethods = [
   "techtree.chat.channels",
   "techtree.chat.history",
   "techtree.chat.post",
-  "techtree.chat.join",
 ];
 for (const method of requiredRpcMethods) {
   if (!flattenedContracts.techtree.rpcMethods.has(method)) {

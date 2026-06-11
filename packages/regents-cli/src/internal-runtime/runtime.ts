@@ -117,7 +117,6 @@ import {
   handleTechtreeStatus,
   handleTechtreeChatChannels,
   handleTechtreeChatHistory,
-  handleTechtreeChatJoin,
   handleTechtreeChatPost,
   handleTechtreeV1ArtifactCompile,
   handleTechtreeV1ArtifactInit,
@@ -832,8 +831,6 @@ export class RegentKernel {
         );
       case "techtree.chat.post":
         return handleTechtreeChatPost(ctx, params as Parameters<typeof handleTechtreeChatPost>[1]);
-      case "techtree.chat.join":
-        return handleTechtreeChatJoin(ctx, params as Parameters<typeof handleTechtreeChatJoin>[1]);
       case "techtree.v1.artifact.init":
         return handleTechtreeV1ArtifactInit(ctx, params as Parameters<typeof handleTechtreeV1ArtifactInit>[1]);
       case "techtree.v1.artifact.compile":

@@ -63,6 +63,7 @@ describe("XMTP runtime state", () => {
       },
       recentErrors: [],
       recentConversations: [],
+      lastSeenByConversation: { "conversation-1": "2026-04-23T00:00:00.000Z" },
     };
 
     writeXmtpRuntimeState(config, state);

@@ -5,7 +5,6 @@ const {
   runTechtreeChatReadMock,
   runTechtreeChatTailMock,
   runTechtreeChatSendMock,
-  runTechtreeChatJoinMock,
   runTechtreeDmMock,
   runTechtreeDmListMock,
 } = vi.hoisted(() => ({
@@ -13,7 +12,6 @@ const {
   runTechtreeChatReadMock: vi.fn(async () => undefined),
   runTechtreeChatTailMock: vi.fn(async () => undefined),
   runTechtreeChatSendMock: vi.fn(async () => undefined),
-  runTechtreeChatJoinMock: vi.fn(async () => undefined),
   runTechtreeDmMock: vi.fn(async () => undefined),
   runTechtreeDmListMock: vi.fn(async () => undefined),
 }));
@@ -29,7 +27,6 @@ vi.mock("../src/commands/chat.js", async () => {
     runTechtreeChatRead: runTechtreeChatReadMock,
     runTechtreeChatTail: runTechtreeChatTailMock,
     runTechtreeChatSend: runTechtreeChatSendMock,
-    runTechtreeChatJoin: runTechtreeChatJoinMock,
     runTechtreeDm: runTechtreeDmMock,
     runTechtreeDmList: runTechtreeDmListMock,
   };
@@ -41,7 +38,6 @@ describe("techtree chat command dispatch", () => {
     runTechtreeChatReadMock.mockClear();
     runTechtreeChatTailMock.mockClear();
     runTechtreeChatSendMock.mockClear();
-    runTechtreeChatJoinMock.mockClear();
     runTechtreeDmMock.mockClear();
     runTechtreeDmListMock.mockClear();
   });
@@ -76,13 +72,6 @@ describe("techtree chat command dispatch", () => {
       runCliEntrypoint(["techtree", "chat", "send", "system", "--message", "hello"]),
     ).resolves.toBe(0);
     expect(runTechtreeChatSendMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("routes techtree chat join with a node id", async () => {
-    const { runCliEntrypoint } = await import("../src/index.js");
-
-    await expect(runCliEntrypoint(["techtree", "chat", "join", "123"])).resolves.toBe(0);
-    expect(runTechtreeChatJoinMock).toHaveBeenCalledTimes(1);
   });
 
   it("routes techtree dm with a target", async () => {

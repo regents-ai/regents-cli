@@ -75,7 +75,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Public list of chat scopes — channels (system and topic) plus active token rooms. */
+        /** @description Public list of chat scopes — system and topic channels plus token channels, which are created lazily on first post. */
         get: operations["listChatChannels"];
         put?: never;
         post?: never;
@@ -85,17 +85,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/{scope}/messages": {
+    "/v1/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description Public cursor-paginated read for any chat scope, including token-room mirrors. Membership never gates reads. */
+        /** @description Public cursor-paginated read for any chat scope. Token channels read as empty until their first post. */
         get: operations["listChatMessages"];
         put?: never;
-        /** @description Signed-in person posts to a channel scope (system or topic). Token scopes are written over XMTP by member agents, not through this route. */
+        /** @description Signed-in person posts to a chat scope (system, topic, or token). Token channels are created lazily on first post. */
         post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
@@ -103,7 +103,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/chat/{scope}/messages": {
+    "/v1/agent/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
@@ -112,25 +112,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Agent posts to a channel scope (system or topic). Token scopes are written over XMTP by member agents, not through this route. */
+        /** @description Agent posts to a chat scope (system, topic, or token). Token channels are created lazily on first post. */
         post: operations["createAgentChatMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/chat/token/{subject_id}/membership": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Request XMTP token-room membership for the calling agent. The room is created lazily on first request and the subject's creator is auto-added by wallet when one is recorded. The member add executes asynchronously; poll the channel list or token room scope for state. */
-        post: operations["requestTokenRoomMembership"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2692,15 +2675,13 @@ export interface components {
                 oban_queues: boolean;
             };
         };
-        RevenueSubjectId: string;
         ChatScopeValue: string;
         ChatChannel: {
             scope: components["schemas"]["ChatScopeValue"];
             /** @enum {string} */
-            kind: "channel" | "token_room";
+            kind: "system" | "topic" | "token";
             name: string;
             status: string;
-            xmtp_group_id?: string | null;
             last_message_at?: string | null;
         } & {
             [key: string]: unknown;
@@ -2736,17 +2717,6 @@ export interface components {
             data: components["schemas"]["ChatMessage"];
         } & {
             [key: string]: unknown;
-        };
-        TokenRoomMembershipInput: {
-            xmtp_inbox_id?: string;
-        };
-        TokenRoomMembershipResponse: {
-            data: {
-                scope: components["schemas"]["ChatScopeValue"];
-                /** @enum {string} */
-                status: "pending" | "joined";
-                xmtp_group_id?: string | null;
-            };
         };
         PrivySessionCsrf: {
             /** @enum {boolean} */
@@ -3796,7 +3766,6 @@ export interface components {
         /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
         Action: string;
         ChatScope: components["schemas"]["ChatScopeValue"];
-        TokenSubjectId: components["schemas"]["RevenueSubjectId"];
     };
     requestBodies: never;
     headers: never;
@@ -3925,14 +3894,13 @@ export interface operations {
     };
     listChatMessages: {
         parameters: {
-            query?: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
                 before?: number;
                 limit?: number;
             };
             header?: never;
-            path: {
-                scope: components["parameters"]["ChatScope"];
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -3960,11 +3928,11 @@ export interface operations {
     };
     createWebappChatMessage: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 scope: components["parameters"]["ChatScope"];
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -4023,11 +3991,11 @@ export interface operations {
     };
     createAgentChatMessage: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 scope: components["parameters"]["ChatScope"];
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -4055,60 +4023,6 @@ export interface operations {
                 };
             };
             /** @description Message rejected */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    requestTokenRoomMembership: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subject_id: components["parameters"]["TokenSubjectId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["TokenRoomMembershipInput"];
-            };
-        };
-        responses: {
-            /** @description Token-room membership enqueued or already present */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenRoomMembershipResponse"];
-                };
-            };
-            /** @description Revenue subject not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Token room is at member capacity */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Membership request invalid */
             422: {
                 headers: {
                     [name: string]: unknown;

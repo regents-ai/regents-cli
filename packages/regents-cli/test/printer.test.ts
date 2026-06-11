@@ -79,7 +79,11 @@ describe("printer surface", () => {
     expect(output).toContain("regents techtree autoskill notebook pair [path]");
     expect(output).toContain("regents techtree autoskill buy <node-id>");
     expect(output).toContain("regents techtree autoskill refund <node-id>");
-    expect(output).toContain("regents techtree chat tail <scope>");
+    expect(output).toContain("regents techtree chat tail [scope...]");
+    expect(output).toContain("regents techtree chat unread [scope...] [--peek]");
+    expect(output).toContain("regents techtree chat subscribe add|remove|list");
+    expect(output).toContain("regents xmtp inbox sync");
+    expect(output).toContain("regents xmtp tail");
     expect(output).toContain("regents bug --summary");
     expect(output).toContain("regents security-report --summary");
     expect(output).toContain("regents xmtp group permissions <conversation-id>");

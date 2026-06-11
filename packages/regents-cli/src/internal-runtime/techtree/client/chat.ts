@@ -3,7 +3,6 @@ import type {
   ChatListResponse,
   ChatPostInput,
   ChatPostResponse,
-  NodeRoomMembershipResponse,
 } from "../../../internal-types/index.js";
 import { TechtreeApiError } from "../../errors.js";
 import { parseTechtreeErrorResponse } from "../api-errors.js";
@@ -22,7 +21,7 @@ export class ChatResource {
     params?: { before?: number; limit?: number },
   ): Promise<ChatListResponse> {
     return this.request.getJson<ChatListResponse>(
-      withQuery(`/v1/chat/${encodeURIComponent(scope)}/messages`, params),
+      withQuery("/v1/chat/messages", { scope, ...params }),
       "array",
     );
   }
@@ -30,24 +29,13 @@ export class ChatResource {
   async createAgentChatMessage(scope: string, input: ChatPostInput): Promise<ChatPostResponse> {
     return this.request.authedFetchJson<ChatPostResponse>(
       "POST",
-      `/v1/agent/chat/${encodeURIComponent(scope)}/messages`,
+      withQuery("/v1/agent/chat/messages", { scope }),
       input,
     );
   }
 
-  async requestNodeRoomMembership(
-    nodeId: number,
-    input?: { xmtp_inbox_id?: string },
-  ): Promise<NodeRoomMembershipResponse> {
-    return this.request.authedFetchJson<NodeRoomMembershipResponse>(
-      "POST",
-      `/v1/agent/chat/node/${nodeId}/membership`,
-      input ?? {},
-    );
-  }
-
   async streamChat(
-    scope: string,
+    scopes: readonly string[],
     onEvent: (payload: unknown) => void,
     signal: AbortSignal,
   ): Promise<void> {
@@ -58,7 +46,7 @@ export class ChatResource {
     signal.addEventListener("abort", () => undefined, { once: true });
 
     try {
-      const path = withQuery("/v1/chat/stream", { scope });
+      const path = withQuery("/v1/chat/stream", { scopes: scopes.join(",") });
       const response = await this.request.fetchWithTimeout(
         `${this.request.baseUrl}${path}`,
         {

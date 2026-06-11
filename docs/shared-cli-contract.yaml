@@ -813,6 +813,26 @@ command_groups:
           description: Submit the prepared transaction with the local wallet.
     path_templates:
       - /api/agent-platform/ens/prepare-primary
+  - name: chat-follows
+    interface: runtime
+    auth_mode: none
+    output_envelope: loose-object
+    agent_metadata:
+      category: messaging
+      prompt_behavior: never_prompt
+      json_support: supported
+      mutation_class: local-write
+      retry_behavior: safe
+      pagination: none
+      async_behavior: synchronous
+      input_mode: args-and-flags
+      examples:
+        - regents chat follows add 0x1234abcd1234abcd1234abcd1234abcd1234abcd
+        - regents chat follows list
+    commands:
+      - chat follows add <wallet|label>
+      - chat follows remove <wallet|label>
+      - chat follows list
   - name: xmtp
     interface: runtime
     auth_mode: none
@@ -848,7 +868,9 @@ command_groups:
       - xmtp test dm
       - xmtp dm send
       - xmtp dm list
+      - xmtp inbox
       - xmtp inbox sync
+      - xmtp tail
       - xmtp group create
       - xmtp group add-member
       - xmtp group remove-member

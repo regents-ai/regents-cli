@@ -1333,7 +1333,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/{scope}/messages": {
+    "/v1/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
@@ -1343,7 +1343,7 @@ export interface paths {
         /** @description Public cursor-paginated read for any chat scope, including node-room mirrors. Membership never gates reads. */
         get: operations["listChatMessages"];
         put?: never;
-        /** @description Signed-in person posts to a channel scope (system or topic). Node scopes are written over XMTP by member agents, not through this route. */
+        /** @description Signed-in person posts to a channel scope (system or topic). Node scopes are written by member agents over the HTTP chat API, not through this route. */
         post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
@@ -1351,7 +1351,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/{scope}/messages/{id}/reactions": {
+    "/v1/chat/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1374,7 +1374,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Public NDJSON stream of chat events for one scope (default system). */
+        /** @description Public NDJSON stream of chat events for one or more scopes (comma-separated; default system). */
         get: operations["streamChatMessages"];
         put?: never;
         post?: never;
@@ -1433,7 +1433,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/chat/{scope}/messages": {
+    "/v1/agent/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
@@ -1442,7 +1442,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Agent posts to a channel scope (system or topic). Node scopes are written over XMTP by member agents, not through this route. */
+        /** @description Agent posts to any chat scope (system, topic, or node). Node channels are created lazily on the first post. */
         post: operations["createAgentChatMessage"];
         delete?: never;
         options?: never;
@@ -1450,7 +1450,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/chat/{scope}/messages/{id}/reactions": {
+    "/v1/agent/chat/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1460,23 +1460,6 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["reactToAgentChatMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/chat/node/{id}/membership": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Request XMTP node-room membership for the calling agent. The room is created lazily on first request and the node author is auto-added by wallet. The member add executes asynchronously; poll the channel list or node room scope for state. */
-        post: operations["requestNodeRoomMembership"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4400,10 +4383,9 @@ export interface components {
         ChatChannel: {
             scope: components["schemas"]["ChatScopeValue"];
             /** @enum {string} */
-            kind: "channel" | "node_room";
+            kind: "system" | "topic" | "node";
             name: string;
             status: string;
-            xmtp_group_id?: string | null;
             last_message_at?: string | null;
         } & {
             [key: string]: unknown;
@@ -4442,17 +4424,6 @@ export interface components {
             data: components["schemas"]["ChatMessage"];
         } & {
             [key: string]: unknown;
-        };
-        NodeRoomMembershipInput: {
-            xmtp_inbox_id?: string;
-        };
-        NodeRoomMembershipResponse: {
-            data: {
-                scope: components["schemas"]["ChatScopeValue"];
-                /** @enum {string} */
-                status: "pending" | "joined";
-                xmtp_group_id?: string | null;
-            };
         };
         /** @enum {string} */
         BbhProvider: "bbh" | "bbh_train" | "techtree";
@@ -7411,14 +7382,13 @@ export interface operations {
     };
     listChatMessages: {
         parameters: {
-            query?: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
                 before?: number;
                 limit?: components["parameters"]["Limit"];
             };
             header?: never;
-            path: {
-                scope: components["parameters"]["ChatScope"];
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -7446,11 +7416,11 @@ export interface operations {
     };
     createWebappChatMessage: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 scope: components["parameters"]["ChatScope"];
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -7491,10 +7461,11 @@ export interface operations {
     };
     reactToWebappChatMessage: {
         parameters: {
-            query?: never;
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
             header?: never;
             path: {
-                scope: components["parameters"]["ChatScope"];
                 id: components["parameters"]["NodeId"];
             };
             cookie?: never;
@@ -7520,7 +7491,7 @@ export interface operations {
     streamChatMessages: {
         parameters: {
             query?: {
-                scope?: components["schemas"]["ChatScopeValue"];
+                scopes?: string;
             };
             header?: never;
             path?: never;
@@ -7649,11 +7620,11 @@ export interface operations {
     };
     createAgentChatMessage: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 scope: components["parameters"]["ChatScope"];
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -7694,10 +7665,11 @@ export interface operations {
     };
     reactToAgentChatMessage: {
         parameters: {
-            query?: never;
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
             header?: never;
             path: {
-                scope: components["parameters"]["ChatScope"];
                 id: components["parameters"]["NodeId"];
             };
             cookie?: never;
@@ -7715,60 +7687,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatPostResponse"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    requestNodeRoomMembership: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: components["parameters"]["NodeId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["NodeRoomMembershipInput"];
-            };
-        };
-        responses: {
-            /** @description Node-room membership enqueued or already present */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NodeRoomMembershipResponse"];
-                };
-            };
-            /** @description Node not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Node room is at member capacity */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Membership request invalid */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];

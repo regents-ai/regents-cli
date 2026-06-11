@@ -54,6 +54,7 @@ export const rotateXmtpDbKey = async (config: RegentConfig["xmtp"]): Promise<Xmt
     connected: false,
     recentErrors: current.recentErrors,
     recentConversations: [],
+    lastSeenByConversation: {},
     metrics: {
       ...defaultXmtpMetrics(),
       dbKeyRotations: current.metrics.dbKeyRotations + 1,
@@ -82,6 +83,7 @@ export const rotateXmtpWallet = async (config: RegentConfig["xmtp"]): Promise<Xm
     connected: false,
     recentErrors: current.recentErrors,
     recentConversations: [],
+    lastSeenByConversation: {},
     metrics: {
       ...defaultXmtpMetrics(),
       walletRotations: current.metrics.walletRotations + 1,

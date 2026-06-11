@@ -106,7 +106,6 @@ export const REGENT_RPC_METHODS = {
   techtreeChatChannels: "techtree.chat.channels",
   techtreeChatHistory: "techtree.chat.history",
   techtreeChatPost: "techtree.chat.post",
-  techtreeChatJoin: "techtree.chat.join",
   techtreeV1ArtifactInit: "techtree.v1.artifact.init",
   techtreeV1ArtifactCompile: "techtree.v1.artifact.compile",
   techtreeV1ArtifactPin: "techtree.v1.artifact.pin",

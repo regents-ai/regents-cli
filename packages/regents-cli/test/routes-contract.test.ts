@@ -38,6 +38,7 @@ describe("contract command route matching", () => {
 
     expect(variadicRoutes.map((route) => route.command).sort()).toEqual([
       "agentbook sessions watch",
+      "autolaunch chat unread [scope...]",
       "autolaunch jobs watch",
       "autolaunch launch monitor",
       "doctor",
@@ -75,6 +76,8 @@ describe("contract command route matching", () => {
       "techtree bbh run exec",
       "techtree bbh run solve",
       "techtree certificate verify",
+      "techtree chat tail [scope...]",
+      "techtree chat unread [scope...]",
       "techtree main fetch",
       "techtree main verify",
       "techtree node cross-chain-links clear",

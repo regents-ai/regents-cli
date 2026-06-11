@@ -28,10 +28,13 @@ export const CLI_COMMANDS = [
   "autolaunch bids exit",
   "autolaunch bids place",
   "autolaunch bids quote",
-  "autolaunch chat join <subject-id>",
   "autolaunch chat list",
   "autolaunch chat read <scope>",
   "autolaunch chat send <scope>",
+  "autolaunch chat subscribe add <scope>",
+  "autolaunch chat subscribe list",
+  "autolaunch chat subscribe remove <scope>",
+  "autolaunch chat unread [scope...]",
   "autolaunch connect start",
   "autolaunch contracts admin",
   "autolaunch contracts job",
@@ -115,6 +118,9 @@ export const CLI_COMMANDS = [
   "budget revoke",
   "budget status",
   "bug",
+  "chat follows add <wallet|label>",
+  "chat follows list",
+  "chat follows remove <wallet|label>",
   "config get",
   "config write",
   "doctor",
@@ -226,11 +232,14 @@ export const CLI_COMMANDS = [
   "techtree benchmarks scoreboard <capsule_id>",
   "techtree benchmarks validate",
   "techtree certificate verify",
-  "techtree chat join <node-id>",
   "techtree chat list",
   "techtree chat read <scope>",
   "techtree chat send <scope>",
-  "techtree chat tail <scope>",
+  "techtree chat subscribe add <scope>",
+  "techtree chat subscribe list",
+  "techtree chat subscribe remove <scope>",
+  "techtree chat tail [scope...]",
+  "techtree chat unread [scope...]",
   "techtree comment add",
   "techtree dm <node-id|address>",
   "techtree dm list",
@@ -355,6 +364,7 @@ export const CLI_COMMANDS = [
   "xmtp group remove-super-admin",
   "xmtp group super-admins",
   "xmtp group update-permission",
+  "xmtp inbox",
   "xmtp inbox sync",
   "xmtp init",
   "xmtp owner add",
@@ -369,6 +379,7 @@ export const CLI_COMMANDS = [
   "xmtp rotate-db-key",
   "xmtp rotate-wallet",
   "xmtp status",
+  "xmtp tail",
   "xmtp test dm",
   "xmtp trusted add",
   "xmtp trusted list",
@@ -411,10 +422,13 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch bids exit",
     "autolaunch bids place",
     "autolaunch bids quote",
-    "autolaunch chat join <subject-id>",
     "autolaunch chat list",
     "autolaunch chat read <scope>",
     "autolaunch chat send <scope>",
+    "autolaunch chat subscribe add <scope>",
+    "autolaunch chat subscribe list",
+    "autolaunch chat subscribe remove <scope>",
+    "autolaunch chat unread [scope...]",
     "autolaunch connect start",
     "autolaunch contracts admin",
     "autolaunch contracts job",
@@ -502,6 +516,11 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   ],
   "bug": [
     "bug"
+  ],
+  "chat": [
+    "chat follows add <wallet|label>",
+    "chat follows list",
+    "chat follows remove <wallet|label>"
   ],
   "config": [
     "config get",
@@ -653,11 +672,14 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree benchmarks scoreboard <capsule_id>",
     "techtree benchmarks validate",
     "techtree certificate verify",
-    "techtree chat join <node-id>",
     "techtree chat list",
     "techtree chat read <scope>",
     "techtree chat send <scope>",
-    "techtree chat tail <scope>",
+    "techtree chat subscribe add <scope>",
+    "techtree chat subscribe list",
+    "techtree chat subscribe remove <scope>",
+    "techtree chat tail [scope...]",
+    "techtree chat unread [scope...]",
     "techtree comment add",
     "techtree dm <node-id|address>",
     "techtree dm list",
@@ -792,6 +814,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "xmtp group remove-super-admin",
     "xmtp group super-admins",
     "xmtp group update-permission",
+    "xmtp inbox",
     "xmtp inbox sync",
     "xmtp init",
     "xmtp owner add",
@@ -806,6 +829,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "xmtp rotate-db-key",
     "xmtp rotate-wallet",
     "xmtp status",
+    "xmtp tail",
     "xmtp test dm",
     "xmtp trusted add",
     "xmtp trusted list",
@@ -1699,35 +1723,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Quote bids."
   },
-  "autolaunch chat join <subject-id>": {
-    "command": "autolaunch chat join <subject-id>",
-    "owner": "autolaunch",
-    "group": "chat",
-    "interface": "mixed",
-    "auth_mode": "mixed",
-    "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
-    "examples": [
-      "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
-      "regents autolaunch chat send topic:cca --message \"Auction opens at noon\"",
-      "regents autolaunch chat join 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
-      "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "read-or-message-write",
-      "retry_behavior": "retry_history_only",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Show Autolaunch chat join.",
-    "usage": "regents autolaunch chat <command>",
-    "next_step": "Use `regents autolaunch chat read system` to read the public room."
-  },
   "autolaunch chat list": {
     "command": "autolaunch chat list",
     "owner": "autolaunch",
@@ -1739,8 +1734,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
-      "regents autolaunch chat send topic:cca --message \"Auction opens at noon\"",
-      "regents autolaunch chat join 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
       "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
     ],
     "agent_metadata": {
@@ -1765,11 +1761,26 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "chat-list-or-messages",
+    "flags": [
+      {
+        "name": "--from",
+        "type": "string",
+        "required": false,
+        "description": "Only show messages from this wallet or label. Repeatable."
+      },
+      {
+        "name": "--following",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show messages from the saved follow list."
+      }
+    ],
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
-      "regents autolaunch chat send topic:cca --message \"Auction opens at noon\"",
-      "regents autolaunch chat join 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
       "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
     ],
     "agent_metadata": {
@@ -1797,8 +1808,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
-      "regents autolaunch chat send topic:cca --message \"Auction opens at noon\"",
-      "regents autolaunch chat join 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
       "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
     ],
     "agent_metadata": {
@@ -1812,6 +1824,146 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch chat send.",
+    "usage": "regents autolaunch chat <command>",
+    "next_step": "Use `regents autolaunch chat read system` to read the public room."
+  },
+  "autolaunch chat subscribe add <scope>": {
+    "command": "autolaunch chat subscribe add <scope>",
+    "owner": "autolaunch",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "auth_audience": "autolaunch",
+    "output_envelope": "chat-list-or-messages",
+    "examples": [
+      "regents autolaunch chat list",
+      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
+      "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Add a scope to the saved Autolaunch chat subscriptions.",
+    "usage": "regents autolaunch chat <command>",
+    "next_step": "Use `regents autolaunch chat read system` to read the public room."
+  },
+  "autolaunch chat subscribe list": {
+    "command": "autolaunch chat subscribe list",
+    "owner": "autolaunch",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "auth_audience": "autolaunch",
+    "output_envelope": "chat-list-or-messages",
+    "examples": [
+      "regents autolaunch chat list",
+      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
+      "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "List the saved Autolaunch chat subscriptions.",
+    "usage": "regents autolaunch chat <command>",
+    "next_step": "Use `regents autolaunch chat read system` to read the public room."
+  },
+  "autolaunch chat subscribe remove <scope>": {
+    "command": "autolaunch chat subscribe remove <scope>",
+    "owner": "autolaunch",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "auth_audience": "autolaunch",
+    "output_envelope": "chat-list-or-messages",
+    "examples": [
+      "regents autolaunch chat list",
+      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
+      "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Remove a scope from the saved Autolaunch chat subscriptions.",
+    "usage": "regents autolaunch chat <command>",
+    "next_step": "Use `regents autolaunch chat read system` to read the public room."
+  },
+  "autolaunch chat unread [scope...]": {
+    "command": "autolaunch chat unread [scope...]",
+    "owner": "autolaunch",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "auth_audience": "autolaunch",
+    "output_envelope": "chat-list-or-messages",
+    "flags": [
+      {
+        "name": "--peek",
+        "type": "boolean",
+        "required": false,
+        "description": "Show new messages without advancing the saved cursors."
+      },
+      {
+        "name": "--from",
+        "type": "string",
+        "required": false,
+        "description": "Only show messages from this wallet or label. Repeatable."
+      },
+      {
+        "name": "--following",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show messages from the saved follow list."
+      }
+    ],
+    "examples": [
+      "regents autolaunch chat list",
+      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
+      "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show new chat messages since the saved cursors.",
     "usage": "regents autolaunch chat <command>",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
@@ -2001,8 +2153,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
-      "regents autolaunch chat send topic:cca --message \"Auction opens at noon\"",
-      "regents autolaunch chat join 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
       "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
     ],
     "agent_metadata": {
@@ -2030,8 +2183,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
-      "regents autolaunch chat send topic:cca --message \"Auction opens at noon\"",
-      "regents autolaunch chat join 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
       "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
     ],
     "agent_metadata": {
@@ -4497,6 +4651,75 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Send a signed bug report to Platform."
+  },
+  "chat follows add <wallet|label>": {
+    "command": "chat follows add <wallet|label>",
+    "owner": "shared-services",
+    "group": "chat-follows",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents chat follows add 0x1234abcd1234abcd1234abcd1234abcd1234abcd",
+      "regents chat follows list"
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Add a wallet or label to the saved chat follow list."
+  },
+  "chat follows list": {
+    "command": "chat follows list",
+    "owner": "shared-services",
+    "group": "chat-follows",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents chat follows add 0x1234abcd1234abcd1234abcd1234abcd1234abcd",
+      "regents chat follows list"
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "List the saved chat follow list."
+  },
+  "chat follows remove <wallet|label>": {
+    "command": "chat follows remove <wallet|label>",
+    "owner": "shared-services",
+    "group": "chat-follows",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents chat follows add 0x1234abcd1234abcd1234abcd1234abcd1234abcd",
+      "regents chat follows list"
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Remove a wallet or label from the saved chat follow list."
   },
   "config get": {
     "command": "config get",
@@ -8209,32 +8432,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Check certificate."
   },
-  "techtree chat join <node-id>": {
-    "command": "techtree chat join <node-id>",
-    "owner": "techtree",
-    "group": "chat",
-    "interface": "mixed",
-    "auth_mode": "mixed",
-    "output_envelope": "chat-list-or-stream",
-    "examples": [
-      "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
-      "regents techtree chat send topic:protein-folding --message \"Ready\"",
-      "regents techtree chat join 123",
-      "regents techtree dm 123 --message \"Question about your result\""
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "never_prompt",
-      "json_support": "supported",
-      "mutation_class": "read-or-message-write",
-      "retry_behavior": "retry_history_only",
-      "pagination": "cursor",
-      "async_behavior": "stream_or_synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Join a Techtree node room over XMTP."
-  },
   "techtree chat list": {
     "command": "techtree chat list",
     "owner": "techtree",
@@ -8245,8 +8442,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
-      "regents techtree chat send topic:protein-folding --message \"Ready\"",
-      "regents techtree chat join 123",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
       "regents techtree dm 123 --message \"Question about your result\""
     ],
     "agent_metadata": {
@@ -8259,7 +8458,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "List Techtree chat channels and node rooms."
+    "summary": "List Techtree chat channels."
   },
   "techtree chat read <scope>": {
     "command": "techtree chat read <scope>",
@@ -8268,11 +8467,27 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "chat-list-or-stream",
+    "flags": [
+      {
+        "name": "--from",
+        "type": "string",
+        "required": false,
+        "description": "Only show messages from this wallet or label. Repeatable."
+      },
+      {
+        "name": "--following",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show messages from the saved follow list."
+      }
+    ],
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
-      "regents techtree chat send topic:protein-folding --message \"Ready\"",
-      "regents techtree chat join 123",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
       "regents techtree dm 123 --message \"Question about your result\""
     ],
     "agent_metadata": {
@@ -8297,8 +8512,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
-      "regents techtree chat send topic:protein-folding --message \"Ready\"",
-      "regents techtree chat join 123",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
       "regents techtree dm 123 --message \"Question about your result\""
     ],
     "agent_metadata": {
@@ -8313,8 +8530,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Send a chat message to a scope."
   },
-  "techtree chat tail <scope>": {
-    "command": "techtree chat tail <scope>",
+  "techtree chat subscribe add <scope>": {
+    "command": "techtree chat subscribe add <scope>",
     "owner": "techtree",
     "group": "chat",
     "interface": "mixed",
@@ -8323,8 +8540,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
-      "regents techtree chat send topic:protein-folding --message \"Ready\"",
-      "regents techtree chat join 123",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
       "regents techtree dm 123 --message \"Question about your result\""
     ],
     "agent_metadata": {
@@ -8337,7 +8556,153 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "Watch live chat messages for a scope."
+    "summary": "Add a scope to the saved Techtree chat subscriptions."
+  },
+  "techtree chat subscribe list": {
+    "command": "techtree chat subscribe list",
+    "owner": "techtree",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "output_envelope": "chat-list-or-stream",
+    "examples": [
+      "regents techtree chat list",
+      "regents techtree chat read system --limit 50",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
+      "regents techtree dm 123 --message \"Question about your result\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "stream_or_synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "List the saved Techtree chat subscriptions."
+  },
+  "techtree chat subscribe remove <scope>": {
+    "command": "techtree chat subscribe remove <scope>",
+    "owner": "techtree",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "output_envelope": "chat-list-or-stream",
+    "examples": [
+      "regents techtree chat list",
+      "regents techtree chat read system --limit 50",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
+      "regents techtree dm 123 --message \"Question about your result\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "stream_or_synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Remove a scope from the saved Techtree chat subscriptions."
+  },
+  "techtree chat tail [scope...]": {
+    "command": "techtree chat tail [scope...]",
+    "owner": "techtree",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "output_envelope": "chat-list-or-stream",
+    "flags": [
+      {
+        "name": "--from",
+        "type": "string",
+        "required": false,
+        "description": "Only show messages from this wallet or label. Repeatable."
+      },
+      {
+        "name": "--following",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show messages from the saved follow list."
+      }
+    ],
+    "examples": [
+      "regents techtree chat list",
+      "regents techtree chat read system --limit 50",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
+      "regents techtree dm 123 --message \"Question about your result\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "stream_or_synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Watch live chat messages for one or more scopes."
+  },
+  "techtree chat unread [scope...]": {
+    "command": "techtree chat unread [scope...]",
+    "owner": "techtree",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "output_envelope": "chat-list-or-stream",
+    "flags": [
+      {
+        "name": "--peek",
+        "type": "boolean",
+        "required": false,
+        "description": "Show new messages without advancing the saved cursors."
+      },
+      {
+        "name": "--from",
+        "type": "string",
+        "required": false,
+        "description": "Only show messages from this wallet or label. Repeatable."
+      },
+      {
+        "name": "--following",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show messages from the saved follow list."
+      }
+    ],
+    "examples": [
+      "regents techtree chat list",
+      "regents techtree chat read system --limit 50",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
+      "regents techtree dm 123 --message \"Question about your result\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "stream_or_synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show new chat messages since the saved cursors."
   },
   "techtree comment add": {
     "command": "techtree comment add",
@@ -8373,8 +8738,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
-      "regents techtree chat send topic:protein-folding --message \"Ready\"",
-      "regents techtree chat join 123",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
       "regents techtree dm 123 --message \"Question about your result\""
     ],
     "agent_metadata": {
@@ -8399,8 +8766,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
-      "regents techtree chat send topic:protein-folding --message \"Ready\"",
-      "regents techtree chat join 123",
+      "regents techtree chat send node:123 --message \"Ready\"",
+      "regents techtree chat tail system topic:protein-folding node:123",
+      "regents techtree chat unread",
+      "regents techtree chat tail --following",
       "regents techtree dm 123 --message \"Question about your result\""
     ],
     "agent_metadata": {
@@ -12411,6 +12780,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Update permission for group."
   },
+  "xmtp inbox": {
+    "command": "xmtp inbox",
+    "owner": "shared-services",
+    "group": "xmtp",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents xmtp status",
+      "regents xmtp policy get",
+      "regents xmtp group list"
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "prompt_for_local_identity_changes",
+      "json_support": "supported",
+      "mutation_class": "local-and-network-write",
+      "retry_behavior": "retry_idempotent_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show XMTP conversations with new-message counts."
+  },
   "xmtp inbox sync": {
     "command": "xmtp inbox sync",
     "owner": "shared-services",
@@ -12746,6 +13139,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show XMTP readiness."
+  },
+  "xmtp tail": {
+    "command": "xmtp tail",
+    "owner": "shared-services",
+    "group": "xmtp",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "examples": [
+      "regents xmtp status",
+      "regents xmtp policy get",
+      "regents xmtp group list"
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "prompt_for_local_identity_changes",
+      "json_support": "supported",
+      "mutation_class": "local-and-network-write",
+      "retry_behavior": "retry_idempotent_reads",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Watch live incoming XMTP messages."
   },
   "xmtp test dm": {
     "command": "xmtp test dm",

@@ -1511,10 +1511,9 @@ export interface AgentOpportunitiesResponse {
 
 export interface ChatChannel {
   scope: string;
-  kind: "channel" | "node_room";
+  kind: "system" | "topic" | "node";
   name: string;
   status: string;
-  xmtp_group_id: string | null;
   last_message_at: string | null;
   [key: string]: unknown;
 }
@@ -1527,6 +1526,8 @@ export interface ChatMessage {
   id?: number;
   scope?: string;
   body?: string;
+  author_label?: string | null;
+  author_wallet_address?: string | null;
   [key: string]: unknown;
 }
 
@@ -1556,14 +1557,6 @@ export interface ChatPostInput {
 
 export interface ChatPostResponse {
   data: ChatMessage;
-}
-
-export interface NodeRoomMembershipResponse {
-  data: {
-    scope: string;
-    status: "pending" | "joined";
-    xmtp_group_id: string | null;
-  };
 }
 
 export type SkillTextResponse = string;

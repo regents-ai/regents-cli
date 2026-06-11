@@ -101,13 +101,25 @@ const summaryOverrides = new Map([
   ["x402 refund", "Request an x402 refund."],
   ["x402 search", "Search for x402 services."],
   ["techtree activity", "Show recent Techtree activity."],
-  ["techtree chat list", "List Techtree chat channels and node rooms."],
+  ["techtree chat list", "List Techtree chat channels."],
   ["techtree chat read <scope>", "Show chat messages for a scope."],
-  ["techtree chat tail <scope>", "Watch live chat messages for a scope."],
+  ["techtree chat tail [scope...]", "Watch live chat messages for one or more scopes."],
   ["techtree chat send <scope>", "Send a chat message to a scope."],
-  ["techtree chat join <node-id>", "Join a Techtree node room over XMTP."],
+  ["techtree chat unread [scope...]", "Show new chat messages since the saved cursors."],
+  ["techtree chat subscribe add <scope>", "Add a scope to the saved Techtree chat subscriptions."],
+  ["techtree chat subscribe remove <scope>", "Remove a scope from the saved Techtree chat subscriptions."],
+  ["techtree chat subscribe list", "List the saved Techtree chat subscriptions."],
+  ["autolaunch chat unread [scope...]", "Show new chat messages since the saved cursors."],
+  ["autolaunch chat subscribe add <scope>", "Add a scope to the saved Autolaunch chat subscriptions."],
+  ["autolaunch chat subscribe remove <scope>", "Remove a scope from the saved Autolaunch chat subscriptions."],
+  ["autolaunch chat subscribe list", "List the saved Autolaunch chat subscriptions."],
+  ["chat follows add <wallet|label>", "Add a wallet or label to the saved chat follow list."],
+  ["chat follows remove <wallet|label>", "Remove a wallet or label from the saved chat follow list."],
+  ["chat follows list", "List the saved chat follow list."],
   ["techtree dm <node-id|address>", "Send a direct message to a node author or wallet address."],
   ["techtree dm list", "List local XMTP direct message conversations."],
+  ["xmtp inbox", "Show XMTP conversations with new-message counts."],
+  ["xmtp tail", "Watch live incoming XMTP messages."],
   ["techtree autoskill review", "Review an autoskill package."],
   ["techtree inbox", "Show your Techtree inbox."],
   ["techtree opportunities", "Show available Techtree opportunities."],
@@ -506,15 +518,24 @@ const metadataWithoutExamples = (metadata) => {
   return compactObject(rest);
 };
 
+const literalCommandTokens = (command) =>
+  command
+    .split(" ")
+    .filter((part) => !part.startsWith("<") && !part.startsWith("["));
+
 const commandSpecificMapValue = (map, normalizedCommand) => {
   if (!map || typeof map !== "object") {
     return undefined;
   }
 
+  const literalTokens = literalCommandTokens(normalizedCommand);
+
   return (
     map[normalizedCommand] ??
     map[`regents ${normalizedCommand}`] ??
     map[commandKey(normalizedCommand)] ??
+    map[literalTokens.join(" ")] ??
+    map[literalTokens.slice(1).join(" ")] ??
     map[normalizedCommand.split(" ").at(-1)]
   );
 };

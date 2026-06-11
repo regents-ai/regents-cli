@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 371.
+Total commands: 382.
 
 ## Full Command List
 
@@ -48,10 +48,13 @@ Total commands: 371.
 - `regents autolaunch bids exit` - Exit bids.
 - `regents autolaunch bids place` - Place bids.
 - `regents autolaunch bids quote` - Quote bids.
-- `regents autolaunch chat join <subject-id>` - Show Autolaunch chat join.
 - `regents autolaunch chat list` - List chat.
 - `regents autolaunch chat read <scope>` - Show Autolaunch chat read.
 - `regents autolaunch chat send <scope>` - Show Autolaunch chat send.
+- `regents autolaunch chat subscribe add <scope>` - Add a scope to the saved Autolaunch chat subscriptions.
+- `regents autolaunch chat subscribe list` - List the saved Autolaunch chat subscriptions.
+- `regents autolaunch chat subscribe remove <scope>` - Remove a scope from the saved Autolaunch chat subscriptions.
+- `regents autolaunch chat unread [scope...]` - Show new chat messages since the saved cursors.
 - `regents autolaunch connect start` - Start connect.
 - `regents autolaunch contracts admin` - Show Autolaunch contracts admin.
 - `regents autolaunch contracts job` - Show Autolaunch contracts job.
@@ -141,6 +144,12 @@ Total commands: 371.
 ### Bug
 
 - `regents bug` - Send a signed bug report to Platform.
+
+### Chat
+
+- `regents chat follows add <wallet|label>` - Add a wallet or label to the saved chat follow list.
+- `regents chat follows list` - List the saved chat follow list.
+- `regents chat follows remove <wallet|label>` - Remove a wallet or label from the saved chat follow list.
 
 ### Config
 
@@ -312,11 +321,14 @@ Total commands: 371.
 - `regents techtree benchmarks scoreboard <capsule_id>` - Show Techtree benchmarks scoreboard.
 - `regents techtree benchmarks validate` - Check benchmarks.
 - `regents techtree certificate verify` - Check certificate.
-- `regents techtree chat join <node-id>` - Join a Techtree node room over XMTP.
-- `regents techtree chat list` - List Techtree chat channels and node rooms.
+- `regents techtree chat list` - List Techtree chat channels.
 - `regents techtree chat read <scope>` - Show chat messages for a scope.
 - `regents techtree chat send <scope>` - Send a chat message to a scope.
-- `regents techtree chat tail <scope>` - Watch live chat messages for a scope.
+- `regents techtree chat subscribe add <scope>` - Add a scope to the saved Techtree chat subscriptions.
+- `regents techtree chat subscribe list` - List the saved Techtree chat subscriptions.
+- `regents techtree chat subscribe remove <scope>` - Remove a scope from the saved Techtree chat subscriptions.
+- `regents techtree chat tail [scope...]` - Watch live chat messages for one or more scopes.
+- `regents techtree chat unread [scope...]` - Show new chat messages since the saved cursors.
 - `regents techtree comment add` - Add comment.
 - `regents techtree dm <node-id|address>` - Send a direct message to a node author or wallet address.
 - `regents techtree dm list` - List local XMTP direct message conversations.
@@ -456,6 +468,7 @@ Total commands: 371.
 - `regents xmtp group remove-super-admin` - Remove super admin from group.
 - `regents xmtp group super-admins` - List group super admins.
 - `regents xmtp group update-permission` - Update permission for group.
+- `regents xmtp inbox` - Show XMTP conversations with new-message counts.
 - `regents xmtp inbox sync` - Sync local XMTP conversations.
 - `regents xmtp init` - Set up local XMTP identity.
 - `regents xmtp owner add` - Add owner.
@@ -470,6 +483,7 @@ Total commands: 371.
 - `regents xmtp rotate-db-key` - Rotate the XMTP database key.
 - `regents xmtp rotate-wallet` - Rotate the XMTP wallet.
 - `regents xmtp status` - Show XMTP readiness.
+- `regents xmtp tail` - Watch live incoming XMTP messages.
 - `regents xmtp test dm` - Send a test XMTP direct message.
 - `regents xmtp trusted add` - Add trusted.
 - `regents xmtp trusted list` - List trusted.

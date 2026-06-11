@@ -92,7 +92,6 @@ import type {
   ChatListResponse,
   ChatPostInput,
   ChatPostResponse,
-  NodeRoomMembershipResponse,
   BenchmarkAttemptResponse,
   BenchmarkCapsuleListResponse,
   BenchmarkCapsuleResponse,
@@ -321,7 +320,6 @@ export type RegentRpcMethod =
   | "techtree.chat.channels"
   | "techtree.chat.history"
   | "techtree.chat.post"
-  | "techtree.chat.join"
   | "techtree.v1.artifact.init"
   | "techtree.v1.artifact.compile"
   | "techtree.v1.artifact.pin"
@@ -573,7 +571,6 @@ export interface RegentRpcParamsMap {
     limit?: number;
   };
   "techtree.chat.post": { scope: string } & ChatPostInput;
-  "techtree.chat.join": { nodeId: number; xmtpInboxId?: string };
   "techtree.v1.artifact.init": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.compile": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.pin": TechtreeV1WorkspaceParams;
@@ -799,7 +796,6 @@ export interface RegentRpcResultMap {
   "techtree.chat.channels": ChatChannelListResponse;
   "techtree.chat.history": ChatListResponse;
   "techtree.chat.post": ChatPostResponse;
-  "techtree.chat.join": NodeRoomMembershipResponse;
   "techtree.v1.artifact.init": TechtreeWorkspaceActionResult;
   "techtree.v1.artifact.compile": TechtreeCompilerOutput<Record<string, unknown>>;
   "techtree.v1.artifact.pin": TechtreePinResponse & {

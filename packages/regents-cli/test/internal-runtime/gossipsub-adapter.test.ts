@@ -82,7 +82,7 @@ describe("gossipsub relay adapter", () => {
       },
     }));
     const streamChat = vi.fn(
-      async (_scope: string, onEvent: (payload: unknown) => void, signal: AbortSignal) => {
+      async (_scopes: readonly string[], onEvent: (payload: unknown) => void, signal: AbortSignal) => {
         onEvent(TEST_EVENT);
         await new Promise<void>((resolve) => {
           signal.addEventListener("abort", () => resolve(), { once: true });
@@ -125,7 +125,7 @@ describe("gossipsub relay adapter", () => {
       expect(receivedEvents).toEqual([TEST_EVENT]);
     });
 
-    expect(streamChat).toHaveBeenCalledWith("system", expect.any(Function), expect.any(AbortSignal));
+    expect(streamChat).toHaveBeenCalledWith(["system"], expect.any(Function), expect.any(AbortSignal));
 
     await dispose();
     await expect(adapter.status()).resolves.toMatchObject({
@@ -134,9 +134,9 @@ describe("gossipsub relay adapter", () => {
     });
   });
 
-  it("subscribes with an explicit scope", async () => {
+  it("subscribes with explicit scopes", async () => {
     const streamChat = vi.fn(
-      async (_scope: string, _onEvent: (payload: unknown) => void, signal: AbortSignal) => {
+      async (_scopes: readonly string[], _onEvent: (payload: unknown) => void, signal: AbortSignal) => {
         await new Promise<void>((resolve) => {
           signal.addEventListener("abort", () => resolve(), { once: true });
         });
@@ -156,9 +156,13 @@ describe("gossipsub relay adapter", () => {
       "/tmp/regent-scoped.chat.sock",
     );
 
-    const dispose = await adapter.subscribeChat(() => undefined, "node:42");
+    const dispose = await adapter.subscribeChat(() => undefined, ["node:42", "topic:protein-folding"]);
     await vi.waitFor(() => {
-      expect(streamChat).toHaveBeenCalledWith("node:42", expect.any(Function), expect.any(AbortSignal));
+      expect(streamChat).toHaveBeenCalledWith(
+        ["node:42", "topic:protein-folding"],
+        expect.any(Function),
+        expect.any(AbortSignal),
+      );
     });
     await dispose();
   });
@@ -185,7 +189,7 @@ describe("gossipsub relay adapter", () => {
 
       socket.setEncoding("utf8");
       socket.on("connect", () => {
-        socket.write(`${JSON.stringify({ scope: "system" })}\n`);
+        socket.write(`${JSON.stringify({ scopes: ["system"] })}\n`);
         setTimeout(() => {
           if (!listener) {
             reject(new Error("listener was not registered"));
@@ -217,7 +221,7 @@ describe("gossipsub relay adapter", () => {
     await server.stop();
   });
 
-  it("forwards the requested scope from the socket subscription line", async () => {
+  it("forwards the requested scopes from the socket subscription line", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-gossipsub-scope-"));
     tempArtifacts.push(tempDir);
 
@@ -233,7 +237,7 @@ describe("gossipsub relay adapter", () => {
       const socket = net.createConnection(server.socketPath);
       socket.setEncoding("utf8");
       socket.on("connect", () => {
-        socket.write(`${JSON.stringify({ scope: "topic:protein-folding" })}\n`);
+        socket.write(`${JSON.stringify({ scopes: ["topic:protein-folding", "node:42"] })}\n`);
         setTimeout(() => {
           socket.end();
           resolve();
@@ -243,7 +247,7 @@ describe("gossipsub relay adapter", () => {
     });
 
     await vi.waitFor(() => {
-      expect(subscribeChat).toHaveBeenCalledWith(expect.any(Function), "topic:protein-folding");
+      expect(subscribeChat).toHaveBeenCalledWith(expect.any(Function), ["topic:protein-folding", "node:42"]);
     });
 
     await server.stop();

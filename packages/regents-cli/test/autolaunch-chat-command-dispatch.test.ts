@@ -4,14 +4,12 @@ const {
   runAutolaunchChatListMock,
   runAutolaunchChatReadMock,
   runAutolaunchChatSendMock,
-  runAutolaunchChatJoinMock,
   runAutolaunchDmMock,
   runAutolaunchDmListMock,
 } = vi.hoisted(() => ({
   runAutolaunchChatListMock: vi.fn(async () => undefined),
   runAutolaunchChatReadMock: vi.fn(async () => undefined),
   runAutolaunchChatSendMock: vi.fn(async () => undefined),
-  runAutolaunchChatJoinMock: vi.fn(async () => undefined),
   runAutolaunchDmMock: vi.fn(async () => undefined),
   runAutolaunchDmListMock: vi.fn(async () => undefined),
 }));
@@ -26,7 +24,6 @@ vi.mock("../src/commands/autolaunch/chat.js", async () => {
     runAutolaunchChatList: runAutolaunchChatListMock,
     runAutolaunchChatRead: runAutolaunchChatReadMock,
     runAutolaunchChatSend: runAutolaunchChatSendMock,
-    runAutolaunchChatJoin: runAutolaunchChatJoinMock,
     runAutolaunchDm: runAutolaunchDmMock,
     runAutolaunchDmList: runAutolaunchDmListMock,
   };
@@ -39,7 +36,6 @@ describe("autolaunch chat command dispatch", () => {
     runAutolaunchChatListMock.mockClear();
     runAutolaunchChatReadMock.mockClear();
     runAutolaunchChatSendMock.mockClear();
-    runAutolaunchChatJoinMock.mockClear();
     runAutolaunchDmMock.mockClear();
     runAutolaunchDmListMock.mockClear();
   });
@@ -67,13 +63,6 @@ describe("autolaunch chat command dispatch", () => {
       runCliEntrypoint(["autolaunch", "chat", "send", "topic:cca", "--message", "hello"]),
     ).resolves.toBe(0);
     expect(runAutolaunchChatSendMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("routes autolaunch chat join with a subject id", async () => {
-    const { runCliEntrypoint } = await import("../src/index.js");
-
-    await expect(runCliEntrypoint(["autolaunch", "chat", "join", SUBJECT_ID])).resolves.toBe(0);
-    expect(runAutolaunchChatJoinMock).toHaveBeenCalledTimes(1);
   });
 
   it("routes autolaunch dm with a target", async () => {

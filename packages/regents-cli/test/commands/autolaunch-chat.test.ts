@@ -20,10 +20,6 @@ const { sendXmtpConversationTextMock, sendXmtpDmMock, listXmtpDmsMock } = vi.hoi
   listXmtpDmsMock: vi.fn(),
 }));
 
-const { loadXmtpClientInfoMock } = vi.hoisted(() => ({
-  loadXmtpClientInfoMock: vi.fn(),
-}));
-
 vi.mock("../../src/commands/agent-auth.js", () => ({
   buildAgentAuthHeaders: buildAgentAuthHeadersMock,
   loadAgentAuthState: loadAgentAuthStateMock,
@@ -40,17 +36,6 @@ vi.mock("../../src/internal-runtime/xmtp/conversations.js", async () => {
     sendXmtpConversationText: sendXmtpConversationTextMock,
     sendXmtpDm: sendXmtpDmMock,
     listXmtpDms: listXmtpDmsMock,
-  };
-});
-
-vi.mock("../../src/internal-runtime/xmtp/material.js", async () => {
-  const actual = await vi.importActual<typeof import("../../src/internal-runtime/xmtp/material.js")>(
-    "../../src/internal-runtime/xmtp/material.js",
-  );
-
-  return {
-    ...actual,
-    loadXmtpClientInfo: loadXmtpClientInfoMock,
   };
 });
 
@@ -78,20 +63,10 @@ describe("autolaunch chat CLI commands", () => {
       headers: { "content-type": "application/json" },
     });
 
-  const channelsPayload = (tokenRoom?: { xmtp_group_id: string | null }) => ({
+  const channelsPayload = () => ({
     data: [
-      { scope: "system", kind: "channel", name: "System", status: "active", xmtp_group_id: null },
-      ...(tokenRoom
-        ? [
-            {
-              scope: TOKEN_SCOPE,
-              kind: "token_room",
-              name: "Token room",
-              status: "active",
-              xmtp_group_id: tokenRoom.xmtp_group_id,
-            },
-          ]
-        : []),
+      { scope: "system", kind: "system", name: "System", status: "active", last_message_at: null },
+      { scope: TOKEN_SCOPE, kind: "token", name: "Token channel", status: "active", last_message_at: null },
     ],
   });
 
@@ -109,7 +84,6 @@ describe("autolaunch chat CLI commands", () => {
     sendXmtpConversationTextMock.mockReset();
     sendXmtpDmMock.mockReset();
     listXmtpDmsMock.mockReset();
-    loadXmtpClientInfoMock.mockReset();
 
     buildAgentAuthHeadersMock.mockResolvedValue({
       "x-siwa-receipt": "receipt_123",
@@ -166,7 +140,7 @@ describe("autolaunch chat CLI commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/chat/system/messages?before=10&limit=5`,
+      `${expectedBaseUrl}/v1/chat/messages?scope=system&before=10&limit=5`,
     );
     expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
@@ -192,7 +166,7 @@ describe("autolaunch chat CLI commands", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/chat/${encodeURIComponent("topic:cca")}/messages`,
+      `${expectedBaseUrl}/v1/agent/chat/messages?scope=${encodeURIComponent("topic:cca")}`,
     );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(requestInit?.method).toBe("POST");
@@ -202,15 +176,10 @@ describe("autolaunch chat CLI commands", () => {
     expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
 
-  it("sends to a token scope over the local XMTP runtime", async () => {
+  it("sends to a token scope over the agent HTTP route", async () => {
     const configPath = createConfigPath();
-    fetchMock.mockResolvedValueOnce(jsonResponse(channelsPayload({ xmtp_group_id: "group_1" })));
-    sendXmtpConversationTextMock.mockResolvedValueOnce({
-      ok: true,
-      conversationId: "group_1",
-      messageId: "msg_1",
-      text: "hi room",
-    });
+    const payload = { data: { id: 9, scope: TOKEN_SCOPE, body: "hi room" } };
+    fetchMock.mockResolvedValueOnce(jsonResponse(payload, 201));
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -223,99 +192,19 @@ describe("autolaunch chat CLI commands", () => {
         "--config",
         configPath,
       ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/chat/channels`);
-    expect(sendXmtpConversationTextMock).toHaveBeenCalledTimes(1);
-    expect(sendXmtpConversationTextMock.mock.calls[0]?.[1]).toBe("group_1");
-    expect(sendXmtpConversationTextMock.mock.calls[0]?.[2]).toBe("hi room");
-    expect(parsePrintedJson(output.stdout)).toEqual({
-      ok: true,
-      conversationId: "group_1",
-      messageId: "msg_1",
-      text: "hi room",
-      scope: TOKEN_SCOPE,
-    });
-  });
-
-  it("points at chat join when the token room does not exist yet", async () => {
-    const configPath = createConfigPath();
-    fetchMock.mockResolvedValueOnce(jsonResponse(channelsPayload()));
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "chat",
-        "send",
-        TOKEN_SCOPE,
-        "--message",
-        "hi room",
-        "--config",
-        configPath,
-      ]),
-    );
-
-    expect(output.result).toBe(1);
-    expect(sendXmtpConversationTextMock).not.toHaveBeenCalled();
-    expect(output.stderr).toContain(`regents autolaunch chat join ${SUBJECT_ID}`);
-  });
-
-  it("points at chat join when the token room has no XMTP group yet", async () => {
-    const configPath = createConfigPath();
-    fetchMock.mockResolvedValueOnce(jsonResponse(channelsPayload({ xmtp_group_id: null })));
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "chat",
-        "send",
-        TOKEN_SCOPE,
-        "--message",
-        "hi room",
-        "--config",
-        configPath,
-      ]),
-    );
-
-    expect(output.result).toBe(1);
-    expect(sendXmtpConversationTextMock).not.toHaveBeenCalled();
-    expect(output.stderr).toContain(`regents autolaunch chat join ${SUBJECT_ID}`);
-  });
-
-  it("requests token-room membership with the local XMTP inbox id", async () => {
-    const configPath = createConfigPath();
-    loadXmtpClientInfoMock.mockResolvedValueOnce({ inboxId: "inbox_1" });
-    const payload = { data: { scope: TOKEN_SCOPE, status: "pending", xmtp_group_id: null } };
-    fetchMock.mockResolvedValueOnce(jsonResponse(payload, 202));
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint(["autolaunch", "chat", "join", SUBJECT_ID, "--config", configPath]),
     );
 
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/chat/token/${SUBJECT_ID}/membership`,
+      `${expectedBaseUrl}/v1/agent/chat/messages?scope=${encodeURIComponent(TOKEN_SCOPE)}`,
     );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(requestInit?.method).toBe("POST");
     assertAgentAuthHeaders(requestInit?.headers as Headers);
-    expect(JSON.parse(String(requestInit?.body))).toEqual({ xmtp_inbox_id: "inbox_1" });
+    expect(JSON.parse(String(requestInit?.body))).toEqual({ body: "hi room" });
+    expect(sendXmtpConversationTextMock).not.toHaveBeenCalled();
     expect(parsePrintedJson(output.stdout)).toEqual(payload);
-  });
-
-  it("rejects chat join without a 64-hex subject id", async () => {
-    const configPath = createConfigPath();
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint(["autolaunch", "chat", "join", "0x1234", "--config", configPath]),
-    );
-
-    expect(output.result).toBe(1);
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(output.stderr).toContain("invalid subject-id");
   });
 
   it("DMs a subject creator wallet resolved from the revenue subject", async () => {

@@ -12,7 +12,7 @@ export interface GossipsubAdapter {
   start(): Promise<void>;
   stop(): Promise<void>;
   status(): Promise<GossipsubStatus>;
-  subscribeChat(listener: ChatListener, scope?: string): Promise<() => void>;
+  subscribeChat(listener: ChatListener, scopes?: readonly string[]): Promise<() => void>;
 }
 
 const baseDisabledStatus = (eventSocketPath: string | null): GossipsubStatus => ({
@@ -82,7 +82,10 @@ export class PublicChatRelayAdapter implements GossipsubAdapter, TransportAdapte
     }
   }
 
-  async subscribeChat(listener: ChatListener, scope: string = DEFAULT_CHAT_SCOPE): Promise<() => void> {
+  async subscribeChat(
+    listener: ChatListener,
+    scopes: readonly string[] = [DEFAULT_CHAT_SCOPE],
+  ): Promise<() => void> {
     if (!this.config.enabled) {
       throw new RegentError("chat_relay_disabled", "chat transport is disabled in config");
     }
@@ -94,7 +97,7 @@ export class PublicChatRelayAdapter implements GossipsubAdapter, TransportAdapte
       while (!controller.signal.aborted) {
         try {
           await this.techtree.streamChat(
-            scope,
+            scopes,
             (payload: unknown) => {
               if (controller.signal.aborted) {
                 return;
@@ -105,7 +108,7 @@ export class PublicChatRelayAdapter implements GossipsubAdapter, TransportAdapte
                 connected: true,
                 status: "ready",
                 lastError: null,
-                note: `Chat relay subscribed to ${scope}`,
+                note: `Chat relay subscribed to ${scopes.join(", ")}`,
               };
               listener(payload as ChatLiveEvent);
             },

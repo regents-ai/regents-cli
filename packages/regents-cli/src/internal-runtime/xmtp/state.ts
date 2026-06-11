@@ -19,6 +19,8 @@ export interface XmtpRuntimeState {
   metrics: XmtpRuntimeMetrics;
   recentErrors: XmtpRecentError[];
   recentConversations: XmtpRecentConversation[];
+  /** Per-conversation last-seen timestamps in nanoseconds (as strings). */
+  lastSeenByConversation: Record<string, string>;
 }
 
 export const defaultXmtpMetrics = (): XmtpRuntimeMetrics => ({
@@ -42,6 +44,7 @@ export const defaultXmtpRuntimeState = (): XmtpRuntimeState => ({
   metrics: defaultXmtpMetrics(),
   recentErrors: [],
   recentConversations: [],
+  lastSeenByConversation: {},
 });
 
 export const xmtpRuntimeStatePath = (config: RegentConfig["xmtp"]): string => {
@@ -68,6 +71,14 @@ const parseRuntimeState = (raw: string): XmtpRuntimeState => {
           .filter((item): item is XmtpRecentConversation => !!item && typeof item.id === "string")
           .slice(0, MAX_RECENT_CONVERSATIONS)
       : [],
+    lastSeenByConversation:
+      parsed.lastSeenByConversation && typeof parsed.lastSeenByConversation === "object"
+        ? Object.fromEntries(
+            Object.entries(parsed.lastSeenByConversation).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string",
+            ),
+          )
+        : {},
   };
 };
 
