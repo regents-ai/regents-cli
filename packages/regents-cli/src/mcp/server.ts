@@ -96,7 +96,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
     },
   );
 
-  const identityStatus = toolDefinition("regents.identity.status");
+  const identityStatus = toolDefinition("regents.runtime.identity.status");
   server.registerTool(
     identityStatus.name,
     {
@@ -241,7 +241,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
     safeTool(async () => textResult(await prepareAgentbookRegistration(options.configPath, "regents-cli-mcp"))),
   );
 
-  const walletPrepare = toolDefinition("regents.wallet.action.prepare");
+  const walletPrepare = toolDefinition("regents.wallet.action.policy");
   server.registerTool(
     walletPrepare.name,
     {

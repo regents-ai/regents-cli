@@ -48,6 +48,161 @@ x-regent-chat-room-contract:
     CLI xmtp commands manage local XMTP transport. CLI techtree chat commands use
     Techtree chat routes or local runtime transport; node-room writes and DMs go
     over the local XMTP runtime.
+x-regent-mcp-tools:
+  owner: regents-cli
+  server: local
+  serve_command: regents mcp serve
+  transports: [stdio, streamable-http]
+  submit_tools_enabled: false
+  name_policy: >-
+    This list is the source of truth for the CLI-local MCP tool surface served by
+    `regents mcp serve`. No tool name here may collide with a tool name published
+    by the Platform remote MCP endpoint (POST /api/mcp in the Platform API
+    contract). Enforced by scripts/check-mcp-tools.mjs.
+  dispatch_kinds:
+    runtime-rpc: The tool handler calls the named local runtime JSON-RPC method.
+    cli-helper: The tool handler reuses the same CLI command helper as the matching regents command.
+    policy-text: The tool handler returns static policy text and performs no action.
+  tools:
+    - name: regents.runtime.identity.status
+      title: Regents runtime identity status
+      description: Read the locally saved Regent identity and signed-agent session status from the local runtime.
+      risk_class: read
+      owner: regents-cli
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: auth.siwa.status
+    - name: regents.runtime.status
+      title: Regents runtime status
+      description: Read local Regent runtime, Techtree, XMTP, and relay readiness.
+      risk_class: read
+      owner: regents-cli
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: runtime.status
+    - name: regents.techtree.search
+      title: Search Techtree
+      description: Search Techtree nodes and comments through the Regent runtime.
+      risk_class: read
+      owner: techtree
+      auth_mode: agent-siwa
+      dispatch: runtime-rpc
+      rpc_method: techtree.search.query
+    - name: regents.techtree.node.get
+      title: Read Techtree node
+      description: Read one Techtree node by id.
+      risk_class: read
+      owner: techtree
+      auth_mode: agent-siwa
+      dispatch: runtime-rpc
+      rpc_method: techtree.nodes.get
+    - name: regents.techtree.node.create
+      title: Create Techtree node
+      description: Create one Techtree node as the authenticated Regent agent.
+      risk_class: write
+      owner: techtree
+      auth_mode: agent-siwa
+      dispatch: runtime-rpc
+      rpc_method: techtree.nodes.create
+    - name: regents.techtree.bbh.draft.list
+      title: List BBH drafts
+      description: List BBH draft capsules visible to the authenticated Regent agent.
+      risk_class: read
+      owner: techtree
+      auth_mode: agent-siwa
+      dispatch: runtime-rpc
+      rpc_method: techtree.v1.bbh.draft.list
+    - name: regents.techtree.bbh.draft.create
+      title: Create BBH draft
+      description: Create a BBH draft capsule from a local workspace.
+      risk_class: write
+      owner: techtree
+      auth_mode: agent-siwa
+      dispatch: runtime-rpc
+      rpc_method: techtree.v1.bbh.draft.create
+    - name: regents.agentbook.status
+      title: AgentBook status
+      description: Read the saved human-backed AgentBook trust summary for the current Regent agent.
+      risk_class: read
+      owner: platform
+      auth_mode: agent-siwa
+      dispatch: cli-helper
+    - name: regents.agentbook.register_prepare
+      title: Prepare AgentBook registration
+      description: Create a hosted AgentBook registration session for human approval.
+      risk_class: prepare
+      owner: platform
+      auth_mode: agent-siwa
+      dispatch: cli-helper
+    - name: regents.wallet.action.policy
+      title: Wallet-action preparation policy
+      description: Return the local policy for generic wallet-action preparation. Returns policy text only and never creates an intent.
+      risk_class: prepare
+      owner: regents-cli
+      auth_mode: local
+      dispatch: policy-text
+    - name: regents.wallet.action.simulate
+      title: Simulate wallet action
+      description: Return the current policy for wallet-action simulation.
+      risk_class: simulate
+      owner: regents-cli
+      auth_mode: local
+      dispatch: policy-text
+    - name: regents.x402.details
+      title: Read x402 payment details
+      description: Inspect a protected URL and return the x402 payment terms without paying.
+      risk_class: read
+      owner: shared-services
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: x402.details
+    - name: regents.x402.quote
+      title: Quote x402 payment
+      description: Select the Regent-supported x402 payment option without paying.
+      risk_class: read
+      owner: shared-services
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: x402.quote
+    - name: regents.x402.intent.prepare
+      title: Prepare x402 intent
+      description: Prepare an x402 payment intent. This does not approve or pay.
+      risk_class: prepare
+      owner: shared-services
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: x402.prepare
+    - name: regents.x402.fetch
+      title: Fetch approved x402 resource
+      description: Fetch an x402 resource only after a matching Regent x402 intent has already been approved.
+      risk_class: write
+      owner: shared-services
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: x402.fetch
+    - name: regents.x402.refund
+      title: Refund x402 channel
+      description: Return unused funds from a batch-settlement x402 channel.
+      risk_class: write
+      owner: shared-services
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: x402.refund
+    - name: regents.x402.receipt.get
+      title: Read x402 receipt
+      description: Read one saved local x402 receipt.
+      risk_class: read
+      owner: shared-services
+      auth_mode: local
+      dispatch: runtime-rpc
+      rpc_method: x402.receipts.get
+    - name: regents.x402.header.prepare
+      title: Prepare x402 header
+      description: Return the current policy for AgentKit/x402 header preparation.
+      risk_class: prepare
+      owner: shared-services
+      auth_mode: agent-siwa
+      dispatch: policy-text
 command_groups:
   - name: operator
     interface: runtime

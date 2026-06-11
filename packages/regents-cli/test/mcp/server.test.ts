@@ -68,7 +68,7 @@ describe("Regents MCP server", () => {
       const tools = await client.listTools();
       const toolNames = tools.tools.map((tool) => tool.name);
 
-      expect(toolNames).toContain("regents.identity.status");
+      expect(toolNames).toContain("regents.runtime.identity.status");
       expect(toolNames).toContain("regents.runtime.status");
       expect(toolNames).toContain("regents.techtree.search");
       expect(toolNames).toContain("regents.techtree.node.create");
@@ -78,7 +78,7 @@ describe("Regents MCP server", () => {
       expect(toolNames.some((name) => name.includes(".submit"))).toBe(false);
 
       const identity = await client.callTool({
-        name: "regents.identity.status",
+        name: "regents.runtime.identity.status",
         arguments: {},
       });
 
@@ -142,7 +142,7 @@ describe("Regents MCP server", () => {
       );
 
       const tools = await client.listTools();
-      expect(tools.tools.map((tool) => tool.name)).toContain("regents.identity.status");
+      expect(tools.tools.map((tool) => tool.name)).toContain("regents.runtime.identity.status");
     } finally {
       await client.close().catch(() => undefined);
       await running.close();
@@ -238,7 +238,7 @@ describe("Regents MCP server", () => {
       expect(text).not.toMatch(/0x[a-fA-F0-9]{64}/);
       // The server must still answer a subsequent call.
       const identity = await client.callTool({
-        name: "regents.identity.status",
+        name: "regents.runtime.identity.status",
         arguments: {},
       });
       expect(identity.isError).toBeFalsy();

@@ -14,9 +14,10 @@ export interface RegentMcpToolDefinition {
 
 export const REGENTS_MCP_TOOL_DEFINITIONS: readonly RegentMcpToolDefinition[] = [
   {
-    name: "regents.identity.status",
-    title: "Regents identity status",
-    description: "Read the current saved Regent identity and signed-agent session status.",
+    name: "regents.runtime.identity.status",
+    title: "Regents runtime identity status",
+    description:
+      "Read the locally saved Regent identity and signed-agent session status from the local runtime.",
     riskClass: "read",
     owner: "regents-cli",
     authMode: "local",
@@ -93,9 +94,10 @@ export const REGENTS_MCP_TOOL_DEFINITIONS: readonly RegentMcpToolDefinition[] = 
     authMode: "agent-siwa",
   },
   {
-    name: "regents.wallet.action.prepare",
-    title: "Prepare wallet action",
-    description: "Return the current policy for generic wallet-action preparation.",
+    name: "regents.wallet.action.policy",
+    title: "Wallet-action preparation policy",
+    description:
+      "Return the local policy for generic wallet-action preparation. Returns policy text only and never creates an intent.",
     riskClass: "prepare",
     owner: "regents-cli",
     authMode: "local",
