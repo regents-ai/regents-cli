@@ -10095,7 +10095,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10120,7 +10120,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10145,7 +10145,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10170,7 +10170,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10195,7 +10195,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10220,7 +10220,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10245,7 +10245,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10270,7 +10270,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10295,7 +10295,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10320,7 +10320,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {
@@ -10345,7 +10345,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents techtree tech status",
       "regents techtree tech rewards proof --epoch 0 --lane science --agent-id 1",
-      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001 --min-usdc-out 1 --deadline 1900000000",
+      "regents techtree tech withdraw --agent-id 1 --amount 1000000000000000000 --tech-recipient 0x0000000000000000000000000000000000000001",
       "regents techtree tech rewards root confirm --manifest-id techm_... --tx-hash 0x..."
     ],
     "agent_metadata": {

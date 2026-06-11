@@ -1249,8 +1249,6 @@ export interface TechWithdrawPrepareInput {
   agent_id: string;
   amount: string;
   tech_recipient: `0x${string}`;
-  min_usdc_out: string;
-  deadline: number;
 }
 
 export interface TechLeaderboardRegisterPrepareInput {

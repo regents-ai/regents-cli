@@ -71,7 +71,7 @@ describe("techtree TECH command runners", () => {
     expect(parsePrintedJson(output.stdout).data.wallet_action.chain_id).toBe(8453);
   });
 
-  it("prepares withdrawals with explicit USDC protection", async () => {
+  it("prepares withdrawals with the vault arguments", async () => {
     daemonCallMock.mockResolvedValue(preparedWalletActionResponse());
 
     const { runTechtreeTechWithdraw } = await import("../../src/commands/techtree-tech.js");
@@ -89,10 +89,6 @@ describe("techtree TECH command runners", () => {
           "1000000000000000000",
           "--tech-recipient",
           "0x1111111111111111111111111111111111111111",
-          "--min-usdc-out",
-          "1",
-          "--deadline",
-          "1900000000",
         ]),
       ),
     );
@@ -103,8 +99,6 @@ describe("techtree TECH command runners", () => {
         agent_id: "42",
         amount: "1000000000000000000",
         tech_recipient: "0x1111111111111111111111111111111111111111",
-        min_usdc_out: "1",
-        deadline: 1_900_000_000,
       },
       undefined,
     );

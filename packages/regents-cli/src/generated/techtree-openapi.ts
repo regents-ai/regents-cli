@@ -4348,8 +4348,6 @@ export interface components {
             agent_id: string;
             amount: string;
             tech_recipient: components["schemas"]["Address"];
-            min_usdc_out: string;
-            deadline: number;
         };
         TechLeaderboardRegisterPrepareRequest: {
             leaderboard_id: string;

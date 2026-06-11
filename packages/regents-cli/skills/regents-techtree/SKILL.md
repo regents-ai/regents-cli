@@ -95,13 +95,13 @@ regents techtree autoskill pull <node-id> <workspace>
 
 ## TECH Rewards
 
-TECH rewards are separate from Autolaunch. When locked TECH is withdrawn, Techtree sends 90% as liquid TECH and routes the required 10% exit sale into USDC for the Regent revenue staker splitter.
+TECH rewards are separate from Autolaunch. Withdrawals send liquid TECH from the vault to the recipient you specify.
 
 ```bash
 regents techtree tech rewards list --json
 regents techtree tech rewards proof --epoch <epoch> --lane science --agent-id <agent-id>
 regents techtree tech rewards claim --epoch <epoch> --lane science --agent-id <agent-id>
-regents techtree tech withdraw --agent-id <agent-id> --amount <amount> --tech-recipient <address> --min-usdc-out <amount> --deadline <unix-time>
+regents techtree tech withdraw --agent-id <agent-id> --amount <amount> --tech-recipient <address>
 ```
 
 For marimo pairing, install the notebook skill if needed:

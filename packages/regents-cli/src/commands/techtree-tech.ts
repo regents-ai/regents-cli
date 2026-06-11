@@ -6,7 +6,6 @@ import {
   getBooleanFlag,
   getFlag,
   parseIntegerFlag,
-  parsePositiveInteger,
   requireArg,
   type ParsedCliArgs,
 } from "../parse.js";
@@ -38,12 +37,6 @@ const readJsonObjectFlag = (args: ParsedCliArgs, name: string): Record<string, u
     });
   }
 };
-
-const requireIntegerFlag = (args: ParsedCliArgs, name: string): number =>
-  parsePositiveInteger(
-    requireArg(getFlag(args, name), `--${name}`),
-    `invalid integer for --${name}`,
-  );
 
 const parseNonNegativeInteger = (value: string, errorMessage: string): number => {
   const parsed = Number(value);
@@ -260,8 +253,6 @@ export async function runTechtreeTechWithdraw(args: ParsedCliArgs, configPath?: 
         agent_id: requireArg(getFlag(args, "agent-id"), "--agent-id"),
         amount: requireArg(getFlag(args, "amount"), "--amount"),
         tech_recipient: requireHexAddressFlag(args, "tech-recipient"),
-        min_usdc_out: requireArg(getFlag(args, "min-usdc-out"), "--min-usdc-out"),
-        deadline: requireIntegerFlag(args, "deadline"),
       },
       configPath,
     ),
