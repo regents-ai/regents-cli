@@ -948,6 +948,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/agent/skill-opt/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createSkillOptRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/agent/skill-opt/runs/{id}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recordSkillOptStep"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/science-tasks": {
         parameters: {
             query?: never;
@@ -4174,7 +4206,6 @@ export interface components {
             agent_reward_vault: components["schemas"]["Address"];
             emission_controller: components["schemas"]["Address"];
             leaderboard_registry: components["schemas"]["Address"];
-            exit_fee_splitter: components["schemas"]["Address"];
             root_manager: components["schemas"]["Address"];
             leaderboard_manager: components["schemas"]["Address"];
         };
@@ -6658,6 +6689,95 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createSkillOptRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Optimization run opened with a committed, disjoint train/val capsule-version split; ownership is taken from the signed agent */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+            /** @description Run rejected because the train/val splits overlap or required fields are missing */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    recordSkillOptStep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The optimization run id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LooseObject"];
+            };
+        };
+        responses: {
+            /** @description Step recorded; the server recomputes the held-out solve rates from benchmark reliability data and decides acceptance itself (client-supplied gate fields are ignored) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+            /** @description The signed agent does not own the run */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unknown run */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Step rejected because required fields are missing or invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];

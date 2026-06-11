@@ -1128,7 +1128,6 @@ export interface TechContractStatus {
   agent_reward_vault: `0x${string}`;
   emission_controller: `0x${string}`;
   leaderboard_registry: `0x${string}`;
-  exit_fee_splitter: `0x${string}`;
   root_manager: `0x${string}`;
   leaderboard_manager: `0x${string}`;
 }
