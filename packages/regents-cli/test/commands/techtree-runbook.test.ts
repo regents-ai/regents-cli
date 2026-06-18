@@ -38,7 +38,6 @@ const question = (overrides: Partial<RunbookQuestion> = {}): RunbookQuestion => 
   status: "answered",
   solved_answer_id: null,
   public_visibility: "public",
-  xmtp_room: null,
   answers: [
     {
       id: "rba_1234567890abcdef1234",

@@ -4,9 +4,9 @@ Autolaunch is a command group inside `regents-cli`.
 
 If you already have an agent, use `regents autolaunch ...`. If you do not have an agent yet, use [regents.sh](https://regents.sh) to make one.
 
-The source of truth for Autolaunch HTTP routes is the OpenAPI file at [`../../autolaunch/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/autolaunch/docs/api-contract.openapiv3.yaml).
+The source of truth for Autolaunch HTTP routes is the OpenAPI file at [`../../platform/contracts/autolaunch/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/autolaunch/api-contract.openapiv3.yaml).
 
-The Platform-owned `regent-staking` rail uses [`../../platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/api-contract.openapiv3.yaml) as its source of truth.
+The Platform-owned `regent-staking` rail uses [`../../platform/contracts/platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/api-contract.openapiv3.yaml) as its source of truth.
 
 Chain language for this command group:
 
@@ -422,51 +422,51 @@ These commands do not sign or broadcast. They return prepared transaction payloa
 
 The CLI is JSON-first. It forwards directly to the `autolaunch` Phoenix JSON API:
 
-- `GET /v1/agent/agents`
-- `GET /v1/agent/agents/{id}`
-- `GET /v1/agent/agents/{id}/readiness`
-- `GET /v1/agent/prelaunch/plans`
-- `POST /v1/agent/prelaunch/plans`
-- `GET /v1/agent/prelaunch/plans/{id}`
-- `PATCH /v1/agent/prelaunch/plans/{id}`
-- `POST /v1/agent/prelaunch/plans/{id}/validate`
-- `POST /v1/agent/prelaunch/plans/{id}/publish`
-- `POST /v1/agent/prelaunch/plans/{id}/launch`
-- `POST /v1/agent/prelaunch/assets`
-- `POST /v1/agent/prelaunch/plans/{id}/metadata`
-- `GET /v1/agent/prelaunch/plans/{id}/metadata-preview`
-- `POST /v1/agent/launch/preview`
-- `POST /v1/agent/launch/jobs`
-- `GET /v1/agent/launch/jobs/{id}`
-- `GET /v1/agent/lifecycle/jobs/{id}`
-- `POST /v1/agent/lifecycle/jobs/{id}/finalize/prepare`
-- `POST /v1/agent/lifecycle/jobs/{id}/finalize/register`
-- `GET /v1/agent/lifecycle/jobs/{id}/vesting`
-- `GET /v1/agent/auctions`
-- `GET /v1/agent/auction-returns`
-- `GET /v1/agent/auctions/{id}`
-- `POST /v1/agent/auctions/{id}/bid_quote`
-- `POST /v1/agent/auctions/{id}/bids`
-- `POST /v1/agent/bids/{id}/return-quote-token`
-- `POST /v1/agent/bids/{id}/exit`
-- `POST /v1/agent/bids/{id}/claim`
-- `GET /v1/agent/subjects/{id}`
-- `GET /v1/agent/subjects/{id}/ingress`
-- `POST /v1/agent/subjects/{id}/stake`
-- `POST /v1/agent/subjects/{id}/unstake`
-- `POST /v1/agent/subjects/{id}/claim-usdc`
-- `GET /v1/agent/subjects/{id}/regent-emissions`
-- `POST /v1/agent/subjects/{id}/ingress/{address}/sweep`
-- `GET /v1/agent/contracts/admin`
-- `GET /v1/agent/contracts/jobs/{id}`
-- `GET /v1/agent/contracts/subjects/{id}`
-- `POST /v1/agent/contracts/jobs/{id}/{resource}/{action}/prepare`
-- `POST /v1/agent/contracts/subjects/{id}/{resource}/{action}/prepare`
-- `POST /v1/agent/contracts/admin/{resource}/{action}/prepare`
+- `GET /api/autolaunch/v1/agent/agents`
+- `GET /api/autolaunch/v1/agent/agents/{id}`
+- `GET /api/autolaunch/v1/agent/agents/{id}/readiness`
+- `GET /api/autolaunch/v1/agent/prelaunch/plans`
+- `POST /api/autolaunch/v1/agent/prelaunch/plans`
+- `GET /api/autolaunch/v1/agent/prelaunch/plans/{id}`
+- `PATCH /api/autolaunch/v1/agent/prelaunch/plans/{id}`
+- `POST /api/autolaunch/v1/agent/prelaunch/plans/{id}/validate`
+- `POST /api/autolaunch/v1/agent/prelaunch/plans/{id}/publish`
+- `POST /api/autolaunch/v1/agent/prelaunch/plans/{id}/launch`
+- `POST /api/autolaunch/v1/agent/prelaunch/assets`
+- `POST /api/autolaunch/v1/agent/prelaunch/plans/{id}/metadata`
+- `GET /api/autolaunch/v1/agent/prelaunch/plans/{id}/metadata-preview`
+- `POST /api/autolaunch/v1/agent/launch/preview`
+- `POST /api/autolaunch/v1/agent/launch/jobs`
+- `GET /api/autolaunch/v1/agent/launch/jobs/{id}`
+- `GET /api/autolaunch/v1/agent/lifecycle/jobs/{id}`
+- `POST /api/autolaunch/v1/agent/lifecycle/jobs/{id}/finalize/prepare`
+- `POST /api/autolaunch/v1/agent/lifecycle/jobs/{id}/finalize/register`
+- `GET /api/autolaunch/v1/agent/lifecycle/jobs/{id}/vesting`
+- `GET /api/autolaunch/v1/agent/auctions`
+- `GET /api/autolaunch/v1/agent/auction-returns`
+- `GET /api/autolaunch/v1/agent/auctions/{id}`
+- `POST /api/autolaunch/v1/agent/auctions/{id}/bid_quote`
+- `POST /api/autolaunch/v1/agent/auctions/{id}/bids`
+- `POST /api/autolaunch/v1/agent/bids/{id}/return-quote-token`
+- `POST /api/autolaunch/v1/agent/bids/{id}/exit`
+- `POST /api/autolaunch/v1/agent/bids/{id}/claim`
+- `GET /api/autolaunch/v1/agent/subjects/{id}`
+- `GET /api/autolaunch/v1/agent/subjects/{id}/ingress`
+- `POST /api/autolaunch/v1/agent/subjects/{id}/stake`
+- `POST /api/autolaunch/v1/agent/subjects/{id}/unstake`
+- `POST /api/autolaunch/v1/agent/subjects/{id}/claim-usdc`
+- `GET /api/autolaunch/v1/agent/subjects/{id}/regent-emissions`
+- `POST /api/autolaunch/v1/agent/subjects/{id}/ingress/{address}/sweep`
+- `GET /api/autolaunch/v1/app/contracts/admin`
+- `GET /api/autolaunch/v1/agent/contracts/jobs/{id}`
+- `GET /api/autolaunch/v1/agent/contracts/subjects/{id}`
+- `POST /api/autolaunch/v1/agent/contracts/jobs/{id}/{resource}/{action}/prepare`
+- `POST /api/autolaunch/v1/agent/contracts/subjects/{id}/{resource}/{action}/prepare`
+- `POST /api/autolaunch/v1/agent/contracts/admin/{resource}/{action}/prepare`
 
 State-changing bid commands do not submit wallet transactions themselves. They register confirmed onchain actions with the Phoenix app, so callers must provide the real transaction hash via `--tx-hash`.
 
-Subject stake, unstake, claim, and ingress sweep commands use the same wallet-friendly JSON API as the web app. Contract admin commands are different: they return a prepared transaction payload and leave signing or submission to the caller.
+Subject stake, unstake, claim, and ingress sweep commands use the same wallet-friendly JSON API as the web app. Contract admin reads use the signed-in app route. Contract admin prepare commands return a prepared transaction payload and leave signing or submission to the caller.
 
 Polling commands validate `--interval` and require a positive number.
 

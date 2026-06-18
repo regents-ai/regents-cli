@@ -136,20 +136,38 @@ const techtreeWorkspacePrerequisites = [
 // mergeHelp(summarizeCommand(command), commandHelpOverlay[command]).
 const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
   setup: {
-    summary: "Check local Regent readiness for Hermes, OpenClaw, or both.",
-    usage: "regents setup [--runtime <auto|hermes|openclaw>]",
+    summary: "Set up Regents for the agent runtimes on this machine.",
+    usage: "regents setup [--quick] [--runtime <auto|hermes|openclaw>]",
     flags: [
-      "--runtime auto (default) checks both Hermes and OpenClaw readiness.",
-      "--runtime hermes checks the Hermes side only.",
-      "--runtime openclaw checks the OpenClaw side only.",
-      "--json",
+      "--quick installs missing plugins and MCP registrations without prompting.",
+      "--runtime auto (default) covers every detected runtime.",
+      "--runtime hermes or --runtime openclaw narrows the status report.",
+      "--json prints the read-only status report.",
       "--config <path>",
     ],
-    examples: ["regents setup", "regents setup --runtime hermes"],
+    examples: ["regents setup", "regents setup --quick", "regents setup --json"],
     output:
-      "Shows whether the selected runtime looks ready and prints the next commands to run. It does not install the Hermes or OpenClaw Regent tools.",
-    nextStep:
-      "Install the matching runtime tools with `regents plugin install --runtime hermes`, `regents plugin install --runtime openclaw`, or `regents plugin install --runtime auto`.",
+      "On a terminal, runs the setup wizard: detects Hermes, OpenClaw, Claude Code, and Codex, installs the Regent plugins, and registers the regents MCP server. With --json or no terminal, prints the readiness report instead.",
+    nextStep: "Run `regents identity ensure`, then `regents doctor`.",
+  },
+  version: {
+    summary: "Print the installed Regents CLI version.",
+    usage: "regents version [--json]",
+    flags: ["--json"],
+    examples: ["regents version", "regents --version"],
+    output: "The version string, or {name, version} with --json.",
+    nextStep: "Update with `regents update`.",
+  },
+  update: {
+    summary: "Update the Regents CLI in place via npm.",
+    usage: "regents update [--version <x.y.z>] [--json]",
+    flags: [
+      "--version <x.y.z> installs a specific release instead of the latest.",
+      "--json",
+    ],
+    examples: ["regents update", "regents update --version 0.6.0"],
+    output: "Streams the npm install and reports the result.",
+    nextStep: "Run `regents setup --quick` to refresh plugins after updating.",
   },
   "setup skills": {
     summary: "Install the Regents agent skills for supported agent clients.",
@@ -646,15 +664,6 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
     output: "Shows the saved payment address.",
     nextStep: "Post or update a Runbook answer.",
   },
-  "techtree runbook invite-request <question_id>": {
-    summary: "Request access to the solver room for a Runbook report.",
-    usage: "regents techtree runbook invite-request <question_id> [--answer-id <answer_id>] [--note <text>]",
-    flags: ["<question_id> - The report id.", "--answer-id <answer_id> - Optional answer context.", "--note <text>", "--json"],
-    examples: ["regents techtree runbook invite-request rbq_123 --note \"I can test this on Linux\""],
-    auth: "Needs a signed Techtree agent session.",
-    output: "Shows that the invite request was saved.",
-    nextStep: "Open the branch while you wait for room access.",
-  },
 };
 
 Object.assign(commandHelpOverlay, {
@@ -663,7 +672,7 @@ Object.assign(commandHelpOverlay, {
     flags: ["--json", "--config <path>"],
     examples: ["regents status", "regents status --json"],
     prerequisites: ["No setup is required, but the result is more useful after `regents run` has been started once."],
-    output: "Shows local runtime, wallet, identity, sign-in, Techtree, chat, and XMTP readiness.",
+    output: "Shows local runtime, wallet, identity, sign-in, Techtree, and chat readiness.",
     nextStep: "Fix the first waiting item shown in the output, then run `regents status` again.",
     ifItFails: [
       "If config cannot load, run `regents init` or pass the right `--config <path>`.",
@@ -688,7 +697,7 @@ Object.assign(commandHelpOverlay, {
     summary: "Print the command map and local context that another agent can safely read.",
     usage: 'regents agent-context [--area <name>] [--command "<command>"] [--json]',
     flags: [
-      "--area <name> - Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, xmtp, chat, work, or mcp.",
+      "--area <name> - Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, chat, work, or mcp.",
       '--command "<command>" - Only include the one exact command named.',
       "--json",
       "--config <path>",
@@ -720,7 +729,7 @@ Object.assign(commandHelpOverlay, {
     summary: "Run the broad local Regent diagnostic.",
     usage: "regents doctor [--fix] [--json]",
     flags: [
-      "--fix applies safe local repairs only: create the default config, create missing runtime folders, remove a validated stale runtime socket, and create the default XMTP policy file. Everything else keeps its printed next step.",
+      "--fix applies safe local repairs only: create the default config, create missing runtime folders, and remove a validated stale runtime socket. Everything else keeps its printed next step.",
       "--json",
       "--config <path>",
     ],
@@ -1755,7 +1764,6 @@ const AREA_SUMMARIES: Readonly<Record<string, string>> = {
   work: "company work runs and the local worker loop",
   wallet: "wallet setup and the agentic wallet",
   x402: "paid endpoints, quotes, payments, receipts",
-  xmtp: "messaging setup and direct messages",
   mcp: "the Regents MCP server and Codex setup",
   chat: "saved chat follows for Techtree and Autolaunch chat",
   budget: "capped local spending budgets for paid agent calls",
@@ -2002,10 +2010,6 @@ const generatedPrerequisites = (command: string, detail: CommandDetailMetadata |
     return walletPrerequisites;
   }
 
-  if (command.startsWith("xmtp ")) {
-    return ["Run `regents xmtp status` first when you are not sure the local XMTP identity is ready."];
-  }
-
   if (detail?.auth_audience) {
     return [`Run \`regents auth login --audience ${detail.auth_audience}\`.`, "Run `regents identity ensure` before signed agent actions."];
   }
@@ -2033,13 +2037,6 @@ const generatedFailureChecks = (command: string): readonly string[] => {
     return [
       "If the command needs payment, check `regents wallet agentic status` and `regents budget status`.",
       "If the endpoint is unavailable, run `regents x402 details --url <url>` before paying.",
-    ];
-  }
-
-  if (command.startsWith("xmtp ")) {
-    return [
-      "If local XMTP identity is missing, run `regents xmtp init`.",
-      "If a room command fails, check the conversation id and your room permissions.",
     ];
   }
 
@@ -2251,7 +2248,7 @@ const renderRootHelp = (configPath: string): string =>
       "◆ COMMAND AREAS",
       [
         ...columnLines(
-          ["techtree", "autolaunch", "platform", "work", "wallet", "x402", "xmtp", "mcp"].map(
+          ["techtree", "autolaunch", "platform", "work", "wallet", "x402", "mcp"].map(
             (area) => [area, AREA_SUMMARIES[area] ?? ""] as const,
           ),
         ),

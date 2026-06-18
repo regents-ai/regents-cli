@@ -325,7 +325,7 @@ const uploadImageIfNeeded = async (
 ): Promise<{ image_url?: string; image_asset_id?: string }> => {
   const image = await readImageInput(args);
   if (image.image_url) {
-    const payload = await requestJson("POST", "/v1/agent/prelaunch/assets", {
+    const payload = await requestJson("POST", "/api/autolaunch/v1/agent/prelaunch/assets", {
       body: { source_url: image.image_url },
       requireAgentAuth: true,
     });
@@ -343,7 +343,7 @@ const uploadImageIfNeeded = async (
     image.image_file_name &&
     image.image_media_type
   ) {
-    const payload = await requestJson("POST", "/v1/agent/prelaunch/assets", {
+    const payload = await requestJson("POST", "/api/autolaunch/v1/agent/prelaunch/assets", {
       body: {
         file_name: image.image_file_name,
         media_type: image.image_media_type,
@@ -444,14 +444,14 @@ const createOrUpdateRemotePlan = async (
   const response = planId
     ? await requestJson(
         "PATCH",
-        `/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}`,
+        `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}`,
         {
           body: payload,
           requireAgentAuth: true,
           configPath,
         },
       )
-    : await requestJson("POST", "/v1/agent/prelaunch/plans", {
+    : await requestJson("POST", "/api/autolaunch/v1/agent/prelaunch/plans", {
         body: payload,
         requireAgentAuth: true,
         configPath,
@@ -462,7 +462,7 @@ const createOrUpdateRemotePlan = async (
   if (uploaded.image_url || uploaded.image_asset_id) {
     const metadataResponse = await requestJson(
       "POST",
-      `/v1/agent/prelaunch/plans/${encodeURIComponent(String(plan.plan_id))}/metadata`,
+      `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(String(plan.plan_id))}/metadata`,
       {
         body: {
           metadata: {
@@ -549,7 +549,7 @@ const watchJobOnce = async (
   jobId: string,
   configPath?: string,
 ): Promise<Record<string, unknown>> =>
-  requestJson("GET", `/v1/agent/launch/jobs/${encodeURIComponent(jobId)}`, {
+  requestJson("GET", `/api/autolaunch/v1/agent/launch/jobs/${encodeURIComponent(jobId)}`, {
     requireAgentAuth: true,
     configPath,
   });
@@ -662,7 +662,7 @@ export async function runAutolaunchPrelaunchWizard(
 
   const validation = await requestJson(
     "POST",
-    `/v1/agent/prelaunch/plans/${encodeURIComponent(String(plan.plan_id))}/validate`,
+    `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(String(plan.plan_id))}/validate`,
     { body: {}, requireAgentAuth: true, configPath },
   );
 
@@ -686,7 +686,7 @@ export async function runAutolaunchPrelaunchGet(
   const planId = resolvePlanId(args, configPath);
   const payload = await requestJson(
     "GET",
-    `/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}`,
+    `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}`,
     {
       requireAgentAuth: true,
       configPath,
@@ -703,7 +703,7 @@ export async function runAutolaunchPrelaunchValidate(
   const planId = resolvePlanId(args, configPath);
   const payload = await requestJson(
     "POST",
-    `/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/validate`,
+    `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/validate`,
     { body: {}, requireAgentAuth: true, configPath },
   );
   saveLocalPlan(payload.plan as Record<string, unknown>, configPath);
@@ -717,7 +717,7 @@ export async function runAutolaunchPrelaunchPublish(
   const planId = resolvePlanId(args, configPath);
   const payload = await requestJson(
     "POST",
-    `/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/publish`,
+    `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/publish`,
     { body: {}, requireAgentAuth: true, configPath },
   );
   saveLocalPlan(payload.plan as Record<string, unknown>, configPath);
@@ -731,13 +731,13 @@ export async function runAutolaunchLaunchRun(
   const planId = resolvePlanId(args, configPath);
   const planPayload = await requestJson(
     "GET",
-    `/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}`,
+    `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}`,
     { requireAgentAuth: true, configPath },
   );
   const plan = planPayload.plan as Record<string, unknown>;
   const validationPayload = await requestJson(
     "POST",
-    `/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/validate`,
+    `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/validate`,
     { body: {}, requireAgentAuth: true, configPath },
   );
 
@@ -758,7 +758,7 @@ export async function runAutolaunchLaunchRun(
 
   const payload = await requestJson(
     "POST",
-    `/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/launch`,
+    `/api/autolaunch/v1/agent/prelaunch/plans/${encodeURIComponent(planId)}/launch`,
     { body: siwaBundle, requireAgentAuth: true, configPath },
   );
 
@@ -805,7 +805,7 @@ export async function runAutolaunchLaunchMonitor(
   for (;;) {
     const payload = await requestJson(
       "GET",
-      `/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}`,
+      `/api/autolaunch/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}`,
       {
         requireAgentAuth: true,
         configPath,
@@ -833,7 +833,7 @@ export async function runAutolaunchLaunchFinalize(
   const jobId = requireArg(getFlag(args, "job"), "job");
   const prepared = await requestJson(
     "POST",
-    `/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}/finalize/prepare`,
+    `/api/autolaunch/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}/finalize/prepare`,
     { body: {}, requireAgentAuth: true, configPath },
   );
 
@@ -853,7 +853,7 @@ export async function runAutolaunchLaunchFinalize(
 
   const registered = await requestJson(
     "POST",
-    `/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}/finalize/register`,
+    `/api/autolaunch/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}/finalize/register`,
     { body: { tx_hash: txHash }, requireAgentAuth: true, configPath },
   );
 
@@ -868,7 +868,7 @@ export async function runAutolaunchVestingStatus(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}/vesting`,
+      `/api/autolaunch/v1/agent/lifecycle/jobs/${encodeURIComponent(jobId)}/vesting`,
       {
         requireAgentAuth: true,
         configPath,
@@ -887,7 +887,7 @@ export async function runAutolaunchVestingRelease(
     printJson(
       await requestJson(
         "POST",
-        `/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}/vesting/release/prepare`,
+        `/api/autolaunch/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}/vesting/release/prepare`,
         { body: {}, requireAgentAuth: true, configPath },
       ),
     );
@@ -896,7 +896,7 @@ export async function runAutolaunchVestingRelease(
 
   const prepared = await requestJson(
     "POST",
-    `/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}/vesting/release/prepare`,
+    `/api/autolaunch/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}/vesting/release/prepare`,
     { body: {}, requireAgentAuth: true, configPath },
   );
   const preparedAction = prepared.prepared as Record<string, unknown> | undefined;

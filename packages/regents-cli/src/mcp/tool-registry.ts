@@ -26,7 +26,7 @@ export const REGENTS_MCP_TOOL_DEFINITIONS: readonly RegentMcpToolDefinition[] = 
   {
     name: "regents.runtime.status",
     title: "Regents runtime status",
-    description: "Read local Regent runtime, Techtree, XMTP, and relay readiness.",
+    description: "Read local Regent runtime, Techtree, and relay readiness.",
     riskClass: "read",
     owner: "regents-cli",
     authMode: "local",
@@ -49,6 +49,26 @@ export const REGENTS_MCP_TOOL_DEFINITIONS: readonly RegentMcpToolDefinition[] = 
     owner: "techtree",
     authMode: "agent-siwa",
     rpcMethod: "techtree.nodes.get",
+  },
+  {
+    name: "regents.techtree.node.reviews",
+    title: "Read Techtree node reviews",
+    description:
+      "Read the threaded reviews for one Techtree node, including reviews of reviews.",
+    riskClass: "read",
+    owner: "techtree",
+    authMode: "agent-siwa",
+    rpcMethod: "techtree.nodes.reviews",
+  },
+  {
+    name: "regents.techtree.agent.profile",
+    title: "Read Techtree agent profile",
+    description:
+      "Read the public profile for one Techtree agent: published work, counts by kind, and review activity.",
+    riskClass: "read",
+    owner: "techtree",
+    authMode: "agent-siwa",
+    rpcMethod: "techtree.agents.profile",
   },
   {
     name: "regents.techtree.node.create",

@@ -190,7 +190,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/identity/status") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/shared/identity/status") {
     json(res, 200, {
       ok: true,
       code: "identity_status_resolved",
@@ -205,7 +205,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/identity/registration-intents") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/shared/identity/registration-intents") {
     json(res, 200, {
       ok: true,
       code: "identity_registration_intent_created",
@@ -220,7 +220,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/identity/registration-completions") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/shared/identity/registration-completions") {
     json(res, 200, {
       ok: true,
       code: "identity_registration_completed",
@@ -233,7 +233,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/identity/siwa/nonce") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/shared/identity/siwa/nonce") {
     json(res, 200, {
       ok: true,
       code: "identity_siwa_nonce_issued",
@@ -249,7 +249,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/identity/siwa/verify") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/shared/identity/siwa/verify") {
     json(res, 200, {
       ok: true,
       code: "identity_siwa_verified",
@@ -268,7 +268,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/agent/siwa/nonce") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/shared/siwa/nonce") {
     const walletAddress = String(body?.wallet_address ?? "0x0").toLowerCase();
     const chainId = Number(body?.chain_id ?? 8453);
     const registryAddress = String(body?.registry_address ?? "0x2222222222222222222222222222222222222222").toLowerCase();
@@ -300,7 +300,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/agent/siwa/verify") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/shared/siwa/verify") {
     const walletAddress = String(body?.wallet_address ?? "0x0").toLowerCase();
     const chainId = Number(body?.chain_id ?? 8453);
     const registryAddress = String(body?.registry_address ?? "0x2222222222222222222222222222222222222222").toLowerCase();
@@ -336,7 +336,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "GET" && requestUrl.pathname === "/v1/tree/nodes") {
+  if (req.method === "GET" && requestUrl.pathname === "/api/techtree/v1/tree/nodes") {
     json(res, 200, {
       data: [{
         id: 1,
@@ -368,7 +368,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "POST" && requestUrl.pathname === "/v1/tree/nodes") {
+  if (req.method === "POST" && requestUrl.pathname === "/api/techtree/v1/tree/nodes") {
     if (!req.headers["x-siwa-receipt"]) {
       json(res, 401, { error: { code: "http_envelope_invalid", message: "missing SIWA receipt" } });
       return;
@@ -441,21 +441,6 @@ cat > "${WORK_DIR}/replacement.json" <<EOF
     "listenAddrs": [],
     "bootstrap": [],
     "peerIdPath": "${WORK_DIR}/peer-id.json"
-  },
-  "xmtp": {
-    "enabled": false,
-    "env": "production",
-    "dbPath": "${WORK_DIR}/xmtp/client.db",
-    "dbEncryptionKeyPath": "${WORK_DIR}/xmtp/db.key",
-    "walletKeyPath": "${WORK_DIR}/xmtp/wallet.key",
-    "ownerInboxIds": [],
-    "trustedInboxIds": [],
-    "publicPolicyPath": "${WORK_DIR}/xmtp/public-policy.md",
-    "profiles": {
-      "owner": "full",
-      "public": "messaging",
-      "group": "messaging"
-    }
   },
   "agents": {
     "defaultHarness": "hermes",

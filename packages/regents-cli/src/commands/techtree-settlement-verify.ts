@@ -135,7 +135,7 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
   const chainView: Record<string, unknown> = {};
 
   const { payload: status, error: statusError } = await fetchTechtreeJson(
-    "/v1/tech/status",
+    "/api/techtree/v1/tech/status",
     configPath,
   );
   const statusData = asRecord(status?.data);
@@ -164,7 +164,7 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
   // Resolve the epoch from the flag or the current epoch.
   let epoch = asInteger(getFlag(args, "epoch"));
   if (epoch === null) {
-    const { payload: current } = await fetchTechtreeJson("/v1/tech/epochs/current", configPath);
+    const { payload: current } = await fetchTechtreeJson("/api/techtree/v1/tech/epochs/current", configPath);
     epoch = asInteger(asRecord(current?.data)?.epoch);
   }
   if (epoch === null) {
@@ -187,7 +187,7 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
   const lane = asText(getFlag(args, "lane"));
   const laneQuery = lane ? `&lane=${encodeURIComponent(lane)}` : "";
   const { payload: rewards } = await fetchTechtreeJson(
-    `/v1/tech/rewards?epoch=${epoch}${laneQuery}`,
+    `/api/techtree/v1/tech/rewards?epoch=${epoch}${laneQuery}`,
     configPath,
   );
   const manifests = asRecordArray(rewards?.data);
@@ -362,7 +362,7 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
       });
     } else {
       const { payload: proof, error: proofError } = await fetchTechtreeJson(
-        `/v1/tech/rewards/proof?epoch=${epoch}&lane=${encodeURIComponent(proofLane)}&agent_id=${encodeURIComponent(agent)}`,
+        `/api/techtree/v1/tech/rewards/proof?epoch=${epoch}&lane=${encodeURIComponent(proofLane)}&agent_id=${encodeURIComponent(agent)}`,
         configPath,
       );
       proofPayload = proof;

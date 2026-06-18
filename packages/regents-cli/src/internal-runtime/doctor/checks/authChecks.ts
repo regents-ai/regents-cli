@@ -215,7 +215,7 @@ export function authChecks(): DoctorCheckDefinition[] {
         const nonce = `doctor-unverifiable-${Date.now()}`;
         const message = buildSiwaMessage({
           domain: "regent.cx",
-          uri: "https://regent.cx/v1/agent/siwa/verify",
+          uri: "https://regent.cx/api/shared/siwa/verify",
           walletAddress: identity.walletAddress,
           chainId: identity.chainId,
           registryAddress: identity.registryAddress,
@@ -526,7 +526,7 @@ export function authChecks(): DoctorCheckDefinition[] {
         try {
           const request = await buildAuthenticatedFetchInit({
             method: "GET",
-            path: "/v1/agent/opportunities",
+            path: "/api/techtree/v1/agent/opportunities",
             session,
             agentIdentity: identity,
             signMessage: signer.signMessage,

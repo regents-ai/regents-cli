@@ -14,7 +14,6 @@ import {
 } from "./paths.js";
 
 const logLevelSchema = z.enum(["debug", "info", "warn", "error"]);
-const xmtpEnvSchema = z.enum(["local", "dev", "production"]);
 const siwaAudienceSchema = z.enum(["platform", "autolaunch", "techtree", "regent-services"]);
 const executorHarnessSchema = z.enum(["openclaw", "hermes", "claude_code", "codex", "custom"]);
 const terminalScienceEnvironmentSchema = z.enum(["docker"]);
@@ -48,21 +47,6 @@ const configSchema = z.object({
     listenAddrs: z.array(z.string()),
     bootstrap: z.array(z.string()),
     peerIdPath: z.string().min(1),
-  }).strict(),
-  xmtp: z.object({
-    enabled: z.boolean(),
-    env: xmtpEnvSchema,
-    dbPath: z.string().min(1),
-    dbEncryptionKeyPath: z.string().min(1),
-    walletKeyPath: z.string().min(1),
-    ownerInboxIds: z.array(z.string().min(1)),
-    trustedInboxIds: z.array(z.string().min(1)),
-    publicPolicyPath: z.string().min(1),
-    profiles: z.object({
-      owner: z.string().min(1),
-      public: z.string().min(1),
-      group: z.string().min(1),
-    }).strict(),
   }).strict(),
   agents: z.object({
     defaultHarness: executorHarnessSchema,
@@ -108,12 +92,6 @@ const configOverrideSchema = z.object({
     .optional(),
   wallet: configSchema.shape.wallet.partial().optional(),
   gossipsub: configSchema.shape.gossipsub.partial().optional(),
-  xmtp: configSchema.shape.xmtp
-    .extend({
-      profiles: configSchema.shape.xmtp.shape.profiles.partial().optional(),
-    })
-    .partial()
-    .optional(),
   agents: configSchema.shape.agents
     .extend({
       harnesses: z.record(
@@ -130,7 +108,7 @@ const configOverrideSchema = z.object({
     })
     .partial()
     .optional(),
-}).strict();
+});
 
 const normalizePath = (input: string, rootDir?: string): string => {
   const expanded = expandHome(input);
@@ -201,13 +179,6 @@ const normalizeConfig = (config: RegentConfig, configPath?: string): RegentConfi
       ...config.gossipsub,
       peerIdPath: normalizePath(config.gossipsub.peerIdPath, resolvedConfigRootDir),
     },
-    xmtp: {
-      ...config.xmtp,
-      dbPath: normalizePath(config.xmtp.dbPath, resolvedConfigRootDir),
-      dbEncryptionKeyPath: normalizePath(config.xmtp.dbEncryptionKeyPath, resolvedConfigRootDir),
-      walletKeyPath: normalizePath(config.xmtp.walletKeyPath, resolvedConfigRootDir),
-      publicPolicyPath: normalizePath(config.xmtp.publicPolicyPath, resolvedConfigRootDir),
-    },
     agents: {
       ...config.agents,
       harnesses: Object.fromEntries(
@@ -234,22 +205,6 @@ const normalizeConfig = (config: RegentConfig, configPath?: string): RegentConfi
     },
   };
 };
-
-export const xmtpDefaultsForRoot = (rootDir: string, env: RegentConfig["xmtp"]["env"]): RegentConfig["xmtp"] => ({
-  enabled: false,
-  env,
-  dbPath: path.join(rootDir, "xmtp", env, "client.db"),
-  dbEncryptionKeyPath: path.join(rootDir, "xmtp", env, "db.key"),
-  walletKeyPath: path.join(rootDir, "xmtp", env, "wallet.key"),
-  ownerInboxIds: [],
-  trustedInboxIds: [],
-  publicPolicyPath: path.join(rootDir, "policies", "xmtp-public.md"),
-  profiles: {
-    owner: "full",
-    public: "messaging",
-    group: "messaging",
-  },
-});
 
 export const agentDefaultsForRoot = (rootDir: string): RegentConfig["agents"] => ({
   defaultHarness: "hermes",
@@ -309,10 +264,6 @@ const ensureConfigDirectories = (config: RegentConfig): void => {
   ensureSecureDir(path.dirname(config.runtime.socketPath));
   ensureSecureDir(path.dirname(config.wallet.keystorePath));
   ensureSecureDir(path.dirname(config.gossipsub.peerIdPath));
-  ensureSecureDir(path.dirname(config.xmtp.dbPath));
-  ensureSecureDir(path.dirname(config.xmtp.dbEncryptionKeyPath));
-  ensureSecureDir(path.dirname(config.xmtp.walletKeyPath));
-  ensureSecureDir(path.dirname(config.xmtp.publicPolicyPath));
   for (const harness of Object.values(config.agents.harnesses)) {
     ensureSecureDir(harness.workspaceRoot);
   }
@@ -362,7 +313,6 @@ export function defaultConfig(configPath?: string): RegentConfig {
       bootstrap: [],
       peerIdPath: path.join(rootDir, "p2p", "peer-id.json"),
     },
-    xmtp: xmtpDefaultsForRoot(rootDir, "production"),
     agents: agentDefaultsForRoot(rootDir),
     workloads: workloadDefaultsForRoot(rootDir),
   };

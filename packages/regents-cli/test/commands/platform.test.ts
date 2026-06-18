@@ -84,8 +84,8 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/auth/privy/csrf");
-    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/auth/privy/session");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/auth/privy/csrf");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/platform/auth/privy/session");
     expect((fetchMock.mock.calls[1]?.[1]?.headers as Headers).get("authorization")).toBe("Bearer privy-token");
     expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ display_name: "Regent Operator" }));
     expect(parsePrintedJson<{ ok: boolean; profile: { authenticated: boolean } }>(output.stdout)).toMatchObject({
@@ -121,7 +121,7 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/auth/privy/profile");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/auth/privy/profile");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
     expect(parsePrintedJson<{ profile: { authenticated: boolean } }>(output.stdout)).toMatchObject({
       profile: { authenticated: true },
@@ -150,7 +150,7 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/formation/doctor");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/formation/doctor");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
     expect(parsePrintedJson<{ command: string; doctor: { status: string } }>(output.stdout)).toMatchObject({
       command: "regents platform formation doctor",
@@ -179,7 +179,7 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/projection");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/projection");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
     expect(parsePrintedJson<{ command: string; projection: { agent_id: string } }>(output.stdout)).toMatchObject({
       command: "regents platform projection",
@@ -218,7 +218,7 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/billing/topups/checkout");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/billing/topups/checkout");
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(JSON.stringify({ amountUsdCents: 2_500 }));
     expect(
@@ -264,7 +264,7 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/sprites/tempo/pause");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/tempo/pause");
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; sprite: { runtime_status: string } }>(output.stdout)).toMatchObject({
       command: "regents platform company pause",
@@ -308,7 +308,7 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/sprites/tempo/resume");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/tempo/resume");
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
     expect(
       parsePrintedJson<{
@@ -362,7 +362,7 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/agent-platform/billing/spend-controls");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/billing/spend-controls");
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("PUT");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(

@@ -33,21 +33,6 @@ const testConfig = (root: string): RegentConfig => ({
     bootstrap: [],
     peerIdPath: path.join(root, "p2p", "peer-id.json"),
   },
-  xmtp: {
-    enabled: true,
-    env: "production",
-    dbPath: path.join(root, "xmtp", "client.db"),
-    dbEncryptionKeyPath: path.join(root, "xmtp", "db.key"),
-    walletKeyPath: path.join(root, "xmtp", "wallet.key"),
-    ownerInboxIds: ["inbox-owner"],
-    trustedInboxIds: [],
-    publicPolicyPath: path.join(root, "policies", "xmtp-public.md"),
-    profiles: {
-      owner: "full",
-      public: "messaging",
-      group: "messaging",
-    },
-  },
   agents: {
     defaultHarness: "hermes",
     harnesses: {},
@@ -73,7 +58,7 @@ const testConfig = (root: string): RegentConfig => ({
 describe("transport doctor checks", () => {
   it("reports the current chat room authority and transport boundaries", async () => {
     const root = path.join(os.tmpdir(), "regent-room-contract");
-    const check = transportChecks().find((candidate) => candidate.id === "xmtp.room.contract");
+    const check = transportChecks().find((candidate) => candidate.id === "transports.chat.room-contract");
 
     expect(check).toBeDefined();
 
@@ -99,14 +84,13 @@ describe("transport doctor checks", () => {
         status: "ok",
         details: expect.objectContaining({
           appRoomId: "room_key",
-          threadId: "xmtp_group_id",
-          techtreeChatScopes: ["system", "topic:<slug>", "node:<node-id>"],
-          autolaunchChatScopes: ["system", "topic:<slug>", "token:<subject-id>"],
+          techtreeChatScopes: ["system", "topic:<slug>", "node:<node-id>", "dm:<walletA>:<walletB>"],
+          autolaunchChatScopes: ["system", "topic:<slug>", "token:<subject-id>", "dm:<walletA>:<walletB>"],
           productRoomOwners: ["platform", "autolaunch", "techtree"],
           cliBoundaries: {
-            chat: "techtree or autolaunch chat routes, the local runtime transport, or the local XMTP runtime",
-            xmtpGroup: "local XMTP conversation id",
-            iosTalk: "Platform RWR records, not XMTP rooms",
+            chat: "techtree or autolaunch chat routes or the local runtime transport",
+            dm: "participant-gated dm scopes on product agent chat routes",
+            iosTalk: "Platform RWR records",
           },
         }),
       }),

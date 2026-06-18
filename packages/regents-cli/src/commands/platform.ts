@@ -42,7 +42,7 @@ export async function runPlatformAuthLogin(args: ParsedCliArgs): Promise<void> {
   const bootstrap = await bootstrapCsrf(origin);
   const { data, session } = await requestPlatformSessionJson({
     origin,
-    path: "/api/auth/privy/session",
+    path: "/api/platform/auth/privy/session",
     method: "POST",
     session: bootstrap,
     authorization: `Bearer ${identityToken}`,
@@ -66,7 +66,7 @@ export async function runPlatformAuthStatus(args: ParsedCliArgs): Promise<void> 
   const { origin, session, sessionFile } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/auth/privy/profile",
+    path: "/api/platform/auth/privy/profile",
     method: "GET",
     session,
     commandName: "regents platform auth status",
@@ -86,7 +86,7 @@ export async function runPlatformAuthLogout(args: ParsedCliArgs): Promise<void> 
   const { origin, session, sessionFile } = await loadResolvedPlatformSession(args);
   await requestPlatformSessionJson({
     origin,
-    path: "/api/auth/privy/session",
+    path: "/api/platform/auth/privy/session",
     method: "DELETE",
     session,
     commandName: "regents platform auth logout",
@@ -106,7 +106,7 @@ export async function runPlatformFormationStatus(args: ParsedCliArgs): Promise<v
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/agent-platform/formation",
+    path: "/api/platform/formation",
     method: "GET",
     session,
     commandName: "regents platform formation status",
@@ -125,7 +125,7 @@ export async function runPlatformFormationDoctor(args: ParsedCliArgs): Promise<v
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/agent-platform/formation/doctor",
+    path: "/api/platform/formation/doctor",
     method: "GET",
     session,
     commandName: "regents platform formation doctor",
@@ -144,7 +144,7 @@ export async function runPlatformProjection(args: ParsedCliArgs): Promise<void> 
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/agent-platform/projection",
+    path: "/api/platform/projection",
     method: "GET",
     session,
     commandName: "regents platform projection",
@@ -163,7 +163,7 @@ export async function runPlatformBillingAccount(args: ParsedCliArgs): Promise<vo
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/agent-platform/billing/account",
+    path: "/api/platform/billing/account",
     method: "GET",
     session,
     commandName: "regents platform billing account",
@@ -182,7 +182,7 @@ export async function runPlatformBillingUsage(args: ParsedCliArgs): Promise<void
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/agent-platform/billing/usage",
+    path: "/api/platform/billing/usage",
     method: "GET",
     session,
     commandName: "regents platform billing usage",
@@ -209,7 +209,7 @@ export async function runPlatformBillingSpendControlsSet(args: ParsedCliArgs): P
 
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/agent-platform/billing/spend-controls",
+    path: "/api/platform/billing/spend-controls",
     method: "PUT",
     session,
     body,
@@ -230,7 +230,7 @@ export async function runPlatformCompanyRuntime(args: ParsedCliArgs): Promise<vo
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: `/api/agent-platform/agents/${encodeURIComponent(slug)}/runtime`,
+    path: `/api/platform/agents/${encodeURIComponent(slug)}/runtime`,
     method: "GET",
     session,
     commandName: "regents platform company runtime",
@@ -250,7 +250,7 @@ export async function runPlatformCompanyPause(args: ParsedCliArgs): Promise<void
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: `/api/agent-platform/sprites/${encodeURIComponent(slug)}/pause`,
+    path: `/api/platform/sprites/${encodeURIComponent(slug)}/pause`,
     method: "POST",
     session,
     commandName: "regents platform company pause",
@@ -270,7 +270,7 @@ export async function runPlatformCompanyResume(args: ParsedCliArgs): Promise<voi
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: `/api/agent-platform/sprites/${encodeURIComponent(slug)}/resume`,
+    path: `/api/platform/sprites/${encodeURIComponent(slug)}/resume`,
     method: "POST",
     session,
     commandName: "regents platform company resume",
@@ -291,7 +291,7 @@ export async function runPlatformBillingTopup(args: ParsedCliArgs): Promise<void
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
-    path: "/api/agent-platform/billing/topups/checkout",
+    path: "/api/platform/billing/topups/checkout",
     method: "POST",
     session,
     body: { amountUsdCents },
@@ -355,7 +355,7 @@ const bootstrapCsrf = async (origin: string): Promise<PlatformSessionState> => {
   const { response } = await requestProductResponse({
     service: "platform",
     method: "GET",
-    path: "/api/auth/privy/csrf",
+    path: "/api/platform/auth/privy/csrf",
     baseUrlOverride: origin,
     commandName: "regents platform auth login",
     headers: { accept: "application/json" },

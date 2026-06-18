@@ -196,7 +196,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/webhooks/onramp": {
+    "/api/platform/webhooks/onramp": {
         parameters: {
             query?: never;
             header?: never;
@@ -212,7 +212,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/config": {
+    "/api/platform/basenames/config": {
         parameters: {
             query?: never;
             header?: never;
@@ -228,7 +228,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/allowances": {
+    "/api/platform/basenames/allowances": {
         parameters: {
             query?: never;
             header?: never;
@@ -244,7 +244,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/allowance": {
+    "/api/platform/basenames/allowance": {
         parameters: {
             query?: never;
             header?: never;
@@ -260,7 +260,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/availability": {
+    "/api/platform/basenames/availability": {
         parameters: {
             query?: never;
             header?: never;
@@ -276,7 +276,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/credits": {
+    "/api/platform/basenames/credits": {
         parameters: {
             query?: never;
             header?: never;
@@ -292,7 +292,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/owned": {
+    "/api/platform/basenames/owned": {
         parameters: {
             query?: never;
             header?: never;
@@ -308,7 +308,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/recent": {
+    "/api/platform/basenames/recent": {
         parameters: {
             query?: never;
             header?: never;
@@ -324,7 +324,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/credit": {
+    "/api/platform/basenames/credit": {
         parameters: {
             query?: never;
             header?: never;
@@ -340,7 +340,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/mint": {
+    "/api/platform/basenames/mint": {
         parameters: {
             query?: never;
             header?: never;
@@ -356,7 +356,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/basenames/use": {
+    "/api/platform/basenames/use": {
         parameters: {
             query?: never;
             header?: never;
@@ -372,7 +372,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/bug-report": {
+    "/api/platform/bug-report": {
         parameters: {
             query?: never;
             header?: never;
@@ -388,7 +388,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/security-report": {
+    "/api/platform/security-report": {
         parameters: {
             query?: never;
             header?: never;
@@ -404,7 +404,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bug-report": {
+    "/api/platform/v1/agent/bug-report": {
         parameters: {
             query?: never;
             header?: never;
@@ -421,7 +421,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/security-report": {
+    "/api/platform/v1/agent/security-report": {
         parameters: {
             query?: never;
             header?: never;
@@ -438,7 +438,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/agent/session": {
+    "/api/platform/auth/agent/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -455,7 +455,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agentbook/sessions": {
+    "/api/platform/agentbook/sessions": {
         parameters: {
             query?: never;
             header?: never;
@@ -472,7 +472,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agentbook/sessions/{id}": {
+    "/api/platform/agentbook/sessions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -488,7 +488,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agentbook/sessions/{id}/submit": {
+    "/api/platform/agentbook/sessions/{id}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -504,7 +504,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agentbook/lookup": {
+    "/api/platform/agentbook/lookup": {
         parameters: {
             query?: never;
             header?: never;
@@ -520,7 +520,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/templates": {
+    "/api/platform/templates": {
         parameters: {
             query?: never;
             header?: never;
@@ -536,7 +536,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/resolve": {
+    "/api/platform/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -552,7 +552,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/agents/{slug}/feed": {
+    "/api/platform/agents/{slug}/feed": {
         parameters: {
             query?: never;
             header?: never;
@@ -568,7 +568,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/privy/session": {
+    "/api/platform/auth/privy/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -584,23 +584,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/privy/xmtp/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["privyXmtpComplete"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/privy/csrf": {
+    "/api/platform/auth/privy/csrf": {
         parameters: {
             query?: never;
             header?: never;
@@ -616,7 +600,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/privy/profile": {
+    "/api/platform/auth/privy/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -632,7 +616,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/privy/profile/avatar": {
+    "/api/platform/auth/privy/profile/avatar": {
         parameters: {
             query?: never;
             header?: never;
@@ -648,7 +632,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/regent/staking": {
+    "/api/shared/regent/staking": {
         parameters: {
             query?: never;
             header?: never;
@@ -664,7 +648,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/regent/staking/account/{address}": {
+    "/api/shared/regent/staking/account/{address}": {
         parameters: {
             query?: never;
             header?: never;
@@ -680,7 +664,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/regent/staking/stake": {
+    "/api/shared/regent/staking/stake": {
         parameters: {
             query?: never;
             header?: never;
@@ -696,7 +680,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/regent/staking/unstake": {
+    "/api/shared/regent/staking/unstake": {
         parameters: {
             query?: never;
             header?: never;
@@ -712,7 +696,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/regent/staking/claim-usdc": {
+    "/api/shared/regent/staking/claim-usdc": {
         parameters: {
             query?: never;
             header?: never;
@@ -728,7 +712,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/regent/staking/claim-regent": {
+    "/api/shared/regent/staking/claim-regent": {
         parameters: {
             query?: never;
             header?: never;
@@ -744,7 +728,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/regent/staking/claim-and-restake-regent": {
+    "/api/shared/regent/staking/claim-and-restake-regent": {
         parameters: {
             query?: never;
             header?: never;
@@ -760,7 +744,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/mobile/regent/staking": {
+    "/api/platform/mobile/regent/staking": {
         parameters: {
             query?: never;
             header?: never;
@@ -776,7 +760,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/mobile/regent/staking/stake": {
+    "/api/platform/mobile/regent/staking/stake": {
         parameters: {
             query?: never;
             header?: never;
@@ -792,7 +776,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/mobile/regent/staking/unstake": {
+    "/api/platform/mobile/regent/staking/unstake": {
         parameters: {
             query?: never;
             header?: never;
@@ -808,7 +792,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/mobile/regent/staking/claim-usdc": {
+    "/api/platform/mobile/regent/staking/claim-usdc": {
         parameters: {
             query?: never;
             header?: never;
@@ -824,7 +808,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/mobile/regent/staking/claim-regent": {
+    "/api/platform/mobile/regent/staking/claim-regent": {
         parameters: {
             query?: never;
             header?: never;
@@ -840,7 +824,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/mobile/regent/staking/claim-and-restake-regent": {
+    "/api/platform/mobile/regent/staking/claim-and-restake-regent": {
         parameters: {
             query?: never;
             header?: never;
@@ -856,7 +840,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/formation": {
+    "/api/platform/formation": {
         parameters: {
             query?: never;
             header?: never;
@@ -872,7 +856,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/formation/doctor": {
+    "/api/platform/formation/doctor": {
         parameters: {
             query?: never;
             header?: never;
@@ -888,7 +872,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/projection": {
+    "/api/platform/projection": {
         parameters: {
             query?: never;
             header?: never;
@@ -904,7 +888,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/billing/setup/checkout": {
+    "/api/platform/billing/setup/checkout": {
         parameters: {
             query?: never;
             header?: never;
@@ -920,7 +904,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/billing/account": {
+    "/api/platform/billing/account": {
         parameters: {
             query?: never;
             header?: never;
@@ -936,7 +920,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/billing/usage": {
+    "/api/platform/billing/usage": {
         parameters: {
             query?: never;
             header?: never;
@@ -952,7 +936,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/billing/spend-controls": {
+    "/api/platform/billing/spend-controls": {
         parameters: {
             query?: never;
             header?: never;
@@ -968,7 +952,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/formation/companies": {
+    "/api/platform/formation/companies": {
         parameters: {
             query?: never;
             header?: never;
@@ -984,7 +968,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/agents/{slug}/runtime": {
+    "/api/platform/agents/{slug}/runtime": {
         parameters: {
             query?: never;
             header?: never;
@@ -1000,7 +984,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/ens/claims/{claim_id}/prepare-upgrade": {
+    "/api/platform/ens/claims/{claim_id}/prepare-upgrade": {
         parameters: {
             query?: never;
             header?: never;
@@ -1016,7 +1000,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/ens/claims/{claim_id}/confirm-upgrade": {
+    "/api/platform/ens/claims/{claim_id}/confirm-upgrade": {
         parameters: {
             query?: never;
             header?: never;
@@ -1032,7 +1016,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/agents/{slug}/ens/attach": {
+    "/api/platform/agents/{slug}/ens/attach": {
         parameters: {
             query?: never;
             header?: never;
@@ -1048,7 +1032,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/agents/{slug}/ens/detach": {
+    "/api/platform/agents/{slug}/ens/detach": {
         parameters: {
             query?: never;
             header?: never;
@@ -1064,7 +1048,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/agents/{slug}/ens/link/plan": {
+    "/api/platform/agents/{slug}/ens/link/plan": {
         parameters: {
             query?: never;
             header?: never;
@@ -1080,7 +1064,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/agents/{slug}/ens/link/prepare-bidirectional": {
+    "/api/platform/agents/{slug}/ens/link/prepare-bidirectional": {
         parameters: {
             query?: never;
             header?: never;
@@ -1096,7 +1080,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/ens/prepare-primary": {
+    "/api/platform/ens/prepare-primary": {
         parameters: {
             query?: never;
             header?: never;
@@ -1112,7 +1096,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/billing/topups/checkout": {
+    "/api/platform/billing/topups/checkout": {
         parameters: {
             query?: never;
             header?: never;
@@ -1128,7 +1112,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/hermes/llm/v1/responses": {
+    "/api/platform/hermes/llm/v1/responses": {
         parameters: {
             query?: never;
             header?: never;
@@ -1144,7 +1128,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/stripe/webhooks": {
+    "/api/platform/stripe/webhooks": {
         parameters: {
             query?: never;
             header?: never;
@@ -1160,7 +1144,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/sprites/{slug}/pause": {
+    "/api/platform/sprites/{slug}/pause": {
         parameters: {
             query?: never;
             header?: never;
@@ -1176,7 +1160,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/sprites/{slug}/resume": {
+    "/api/platform/sprites/{slug}/resume": {
         parameters: {
             query?: never;
             header?: never;
@@ -1192,7 +1176,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/opensea": {
+    "/api/platform/sprites/{slug}/workspace-password/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch the message to sign for the next Workspace password
+         * @description Returns the canonical message for the company's next password epoch. Signing it and submitting the signature sets a fresh Workspace password; every successful reset rotates the password, so a leaked one can always be replaced from the owner wallet.
+         */
+        get: operations["agentPlatformWorkspacePasswordMessage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/sprites/{slug}/workspace-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set the Workspace password from a wallet signature
+         * @description The owner signs the company's next-epoch Workspace access message with the wallet that owns the company. The signature both proves ownership and seeds the password, which is derived, applied to the Sprite, and never stored. The epoch advances only after the Sprite accepts the new password, so each successful reset invalidates the previous password.
+         */
+        post: operations["agentPlatformResetWorkspacePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/sprites/{slug}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete the Sprite, optionally also the Hermes profile config
+         * @description Tears down the running Sprite. By default the Hermes profile configuration is kept so the owner can relaunch later; set deleteProfileConfig to also purge that stored setup. Paused Sprites are auto-deleted after the retention window if not deleted sooner.
+         */
+        post: operations["agentPlatformDeleteSprite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/sprites/{slug}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry a failed company launch
+         * @description Resets a failed formation and re-runs the launch. Allowed only when the company is in a failed state.
+         */
+        post: operations["agentPlatformRetryFormation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/opensea": {
         parameters: {
             query?: never;
             header?: never;
@@ -1208,7 +1272,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/opensea/redeem-stats": {
+    "/api/platform/opensea/redeem-stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -1224,14 +1288,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/shards": {
+    "/api/platform/chat/channels": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["internalXmtpListShards"];
+        /** @description Public list of chat channels (system and topic scopes plus active company rooms). */
+        get: operations["listChatChannels"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1240,23 +1305,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/rooms/ensure": {
+    "/api/platform/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Public cursor-paginated read for any channel scope. Membership never gates channel reads. Reading a dm scope requires a signed-in session whose wallet is one of the two participants; any other request gets 404 scope_not_found. */
+        get: operations["listChatMessages"];
         put?: never;
-        post: operations["internalXmtpEnsureRoom"];
+        /** @description Signed-in person posts to a channel scope (system, topic, or company) or to a dm scope they participate in. Company and dm channels are created lazily on first post; non-participants get 404 scope_not_found. */
+        post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/messages/ingest": {
+    "/api/platform/chat/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1265,46 +1332,67 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["internalXmtpIngestMessage"];
+        /** @description Signed-in person adds or removes an emoji reaction on a message in the scope. */
+        post: operations["reactToWebappChatMessage"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/commands/lease": {
+    "/api/platform/chat/dms": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Lists the signed-in person's direct-message channels (dm scopes where their wallet is a participant), most recently active first. */
+        get: operations["listChatDms"];
         put?: never;
-        post: operations["internalXmtpLeaseCommand"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/internal/xmtp/commands/{id}/resolve": {
+    "/api/platform/profiles/{wallet}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Public profile for a wallet: identity (the verified ENS primary name when one exists, otherwise the stored display name or company name), whether the wallet is known as a person or a company agent here, member-since, and chat activity. 404 when the wallet has no presence here. */
+        get: operations["getPublicProfile"];
         put?: never;
-        post: operations["internalXmtpResolveCommand"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/mcp": {
+    "/api/platform/v1/agent/chat/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Agent cursor-paginated read for any chat scope, including dm scopes the agent's wallet participates in (non-participants get 404 scope_not_found). Requires a platform-audience SIWA receipt. */
+        get: operations["listAgentChatMessages"];
+        put?: never;
+        /** @description Agent posts to any chat scope (system, topic, company, or a dm scope the agent's wallet participates in). Company and dm channels are created lazily on the first post. Requires a platform-audience SIWA receipt. */
+        post: operations["createAgentChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/v1/agent/chat/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1313,7 +1401,41 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Remote MCP entry point. Accepts a single JSON-RPC 2.0 request (`initialize`, `tools/list`, or `tools/call`) authenticated with a Regents MCP access token. Wallet-action submit tool calls are routed through the human-approval ledger, so an unapproved, expired, or changed action is rejected as a JSON-RPC error. */
+        /** @description Agent adds or removes an emoji reaction on a message in the scope. Requires a platform-audience SIWA receipt. */
+        post: operations["reactToAgentChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/v1/agent/chat/dms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Lists the agent's direct-message channels (dm scopes where its wallet is a participant), most recently active first. Requires a platform-audience SIWA receipt. */
+        get: operations["listAgentChatDms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/mcp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Remote MCP entry point. Accepts a single JSON-RPC 2.0 request (`initialize`, `tools/list`, or `tools/call`) authenticated with a Regents MCP access token. Wallet-action submit tool calls are routed through the human-approval ledger, so an unapproved, expired, or changed action is rejected as a JSON-RPC error. The curated tool surface this endpoint publishes is documented in `x-regent-mcp-tools` below; these tool names are live and must stay collision-free with the CLI-local MCP tool list declared in the shared CLI contract. */
         post: operations["mcpRpc"];
         delete?: never;
         options?: never;
@@ -1321,7 +1443,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/rwr/account": {
+    "/api/platform/rwr/account": {
         parameters: {
             query?: never;
             header?: never;
@@ -1337,7 +1459,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/work-items": {
+    "/api/platform/companies/{company_id}/rwr/work-items": {
         parameters: {
             query?: never;
             header?: never;
@@ -1353,7 +1475,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/work-items/{work_item_id}": {
+    "/api/platform/companies/{company_id}/rwr/work-items/{work_item_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1369,7 +1491,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/work-items/{work_item_id}/runs": {
+    "/api/platform/companies/{company_id}/rwr/work-items/{work_item_id}/runs": {
         parameters: {
             query?: never;
             header?: never;
@@ -1385,7 +1507,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1401,7 +1523,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/tree": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/tree": {
         parameters: {
             query?: never;
             header?: never;
@@ -1417,7 +1539,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/cancel": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -1433,7 +1555,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/retry": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/retry": {
         parameters: {
             query?: never;
             header?: never;
@@ -1449,7 +1571,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/events": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/events": {
         parameters: {
             query?: never;
             header?: never;
@@ -1465,7 +1587,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/events/stream": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/events/stream": {
         parameters: {
             query?: never;
             header?: never;
@@ -1481,7 +1603,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/events/batch": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/events/batch": {
         parameters: {
             query?: never;
             header?: never;
@@ -1497,7 +1619,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/artifacts": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/artifacts": {
         parameters: {
             query?: never;
             header?: never;
@@ -1513,7 +1635,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/artifacts/{artifact_id}": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/artifacts/{artifact_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1529,7 +1651,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/artifacts/{artifact_id}/publish": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/artifacts/{artifact_id}/publish": {
         parameters: {
             query?: never;
             header?: never;
@@ -1545,7 +1667,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/artifacts/{artifact_id}": {
+    "/api/platform/companies/{company_id}/rwr/artifacts/{artifact_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1561,7 +1683,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/approvals": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/approvals": {
         parameters: {
             query?: never;
             header?: never;
@@ -1577,7 +1699,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/approvals/{approval_id}": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/approvals/{approval_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1593,7 +1715,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/approvals/{approval_id}/resolve": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/approvals/{approval_id}/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -1609,7 +1731,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/workers": {
+    "/api/platform/companies/{company_id}/rwr/workers": {
         parameters: {
             query?: never;
             header?: never;
@@ -1625,7 +1747,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/workers/{worker_id}/heartbeat": {
+    "/api/platform/companies/{company_id}/rwr/workers/{worker_id}/heartbeat": {
         parameters: {
             query?: never;
             header?: never;
@@ -1641,7 +1763,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/workers/{worker_id}/assignments": {
+    "/api/platform/companies/{company_id}/rwr/workers/{worker_id}/assignments": {
         parameters: {
             query?: never;
             header?: never;
@@ -1657,7 +1779,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/assignments/{assignment_id}/claim": {
+    "/api/platform/companies/{company_id}/rwr/assignments/{assignment_id}/claim": {
         parameters: {
             query?: never;
             header?: never;
@@ -1673,7 +1795,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/assignments/{assignment_id}/release": {
+    "/api/platform/companies/{company_id}/rwr/assignments/{assignment_id}/release": {
         parameters: {
             query?: never;
             header?: never;
@@ -1689,7 +1811,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/assignments/{assignment_id}/complete": {
+    "/api/platform/companies/{company_id}/rwr/assignments/{assignment_id}/complete": {
         parameters: {
             query?: never;
             header?: never;
@@ -1705,7 +1827,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes": {
+    "/api/platform/companies/{company_id}/rwr/runtimes": {
         parameters: {
             query?: never;
             header?: never;
@@ -1721,7 +1843,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes/{runtime_id}": {
+    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1737,7 +1859,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes/{runtime_id}/checkpoint": {
+    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/checkpoint": {
         parameters: {
             query?: never;
             header?: never;
@@ -1753,7 +1875,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes/{runtime_id}/restore": {
+    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -1769,7 +1891,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes/{runtime_id}/pause": {
+    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/pause": {
         parameters: {
             query?: never;
             header?: never;
@@ -1785,7 +1907,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes/{runtime_id}/resume": {
+    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/resume": {
         parameters: {
             query?: never;
             header?: never;
@@ -1801,7 +1923,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes/{runtime_id}/services": {
+    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/services": {
         parameters: {
             query?: never;
             header?: never;
@@ -1817,7 +1939,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runtimes/{runtime_id}/health": {
+    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -1833,7 +1955,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/runs/{run_id}/delegations": {
+    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/delegations": {
         parameters: {
             query?: never;
             header?: never;
@@ -1849,7 +1971,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/agents/{source_id}/relationships": {
+    "/api/platform/companies/{company_id}/rwr/agents/{source_id}/relationships": {
         parameters: {
             query?: never;
             header?: never;
@@ -1865,7 +1987,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/agents/{manager_id}/execution-pool": {
+    "/api/platform/companies/{company_id}/rwr/agents/{manager_id}/execution-pool": {
         parameters: {
             query?: never;
             header?: never;
@@ -1881,7 +2003,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/agent-platform/companies/{company_id}/rwr/agent-relationships/{relationship_id}": {
+    "/api/platform/companies/{company_id}/rwr/agent-relationships/{relationship_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1933,51 +2055,6 @@ export interface components {
                 code: number;
                 message: string;
             };
-        };
-        InternalXmtpRoom: {
-            id: number;
-            room_key: string;
-            xmtp_group_id: string | null;
-            name: string;
-            status: string;
-            presence_ttl_seconds: number;
-            /** @enum {integer} */
-            capacity: 200;
-        };
-        InternalXmtpRoomShard: components["schemas"]["InternalXmtpRoom"] & {
-            active_members: number;
-            joinable: boolean;
-        };
-        InternalXmtpEnsureRoomRequest: {
-            room_key: string;
-            xmtp_group_id?: string;
-            name: string;
-            status?: string;
-            presence_ttl_seconds?: number;
-            /** @enum {integer} */
-            capacity?: 200;
-        };
-        InternalXmtpMessageIngestRequest: {
-            room_key: string;
-            xmtp_message_id: string;
-            sender_inbox_id: string;
-            sender_wallet_address?: string;
-            sender_label?: string;
-            /** @enum {string} */
-            sender_type: "human" | "agent" | "system";
-            body: string;
-            /** Format: date-time */
-            sent_at: string;
-            raw_payload?: Record<string, never>;
-            moderation_state?: string;
-            reply_to_message_id?: number;
-            reactions?: Record<string, never>;
-        };
-        InternalXmtpMembershipCommand: {
-            id: number;
-            /** @enum {string} */
-            op: "add_member" | "remove_member";
-            xmtp_inbox_id: string;
         };
         /** @enum {string} */
         AgentKind: "hermes" | "openclaw" | "codex" | "custom" | "human_operator" | "regent_bridge";
@@ -2738,26 +2815,6 @@ export interface components {
         PrivySessionRequest: {
             display_name?: string | null;
         };
-        PrivyXmtpCompleteRequest: {
-            wallet_address: string;
-            client_id: string;
-            signature_request_id: string;
-            signature: string;
-        };
-        PrivyXmtpState: {
-            /** @enum {string} */
-            status: "ready";
-            inbox_id: string;
-            wallet_address: string;
-        } | {
-            /** @enum {string} */
-            status: "signature_required";
-            inbox_id: null;
-            wallet_address: string;
-            client_id: string;
-            signature_request_id: string;
-            signature_text: string;
-        } | null;
         PrivySessionCsrf: {
             ok: boolean;
             csrf_token: string;
@@ -3210,7 +3267,6 @@ export interface components {
             privy_user_id: string;
             wallet_address?: string | null;
             wallet_addresses: string[];
-            xmtp_inbox_id: string | null;
             display_name?: string | null;
             avatar: components["schemas"]["AvatarSelection"] | null;
             billing_account: components["schemas"]["BillingAccount"];
@@ -3221,7 +3277,6 @@ export interface components {
             human?: components["schemas"]["CurrentHuman"] | null;
             claimed_names: components["schemas"]["ClaimedName"][];
             agents: components["schemas"]["AgentRecord"][];
-            xmtp: components["schemas"]["PrivyXmtpState"];
         };
         AgentFormation: {
             id: number;
@@ -3580,6 +3635,84 @@ export interface components {
             animata: number;
             "regent-animata-ii": number;
         };
+        /** @description A chat scope: system, topic:{slug}, company:{slug}, or dm:{walletA}:{walletB} (lowercased, lexicographically sorted participant wallets). */
+        ChatScopeValue: string;
+        ChatChannel: {
+            scope: components["schemas"]["ChatScopeValue"];
+            /** @enum {string} */
+            kind: "system" | "topic" | "company" | "dm";
+            name: string;
+            status: string;
+            last_message_at?: string | null;
+        };
+        ChatChannelListResponse: {
+            data: components["schemas"]["ChatChannel"][];
+        };
+        ChatMessage: {
+            id: number;
+            scope: components["schemas"]["ChatScopeValue"];
+            /** @enum {string} */
+            author_kind: "human" | "agent";
+            author_human_id?: number | null;
+            author_label?: string | null;
+            author_wallet_address?: string | null;
+            body: string;
+            client_message_id?: string | null;
+            reply_to_message_id?: number | null;
+            reactions?: Record<string, never>;
+            /** @enum {string} */
+            moderation_state: "visible" | "hidden";
+            /** Format: date-time */
+            sent_at?: string;
+            /** Format: date-time */
+            inserted_at: string;
+            /** Format: date-time */
+            updated_at?: string;
+        };
+        ChatListResponse: {
+            data: components["schemas"]["ChatMessage"][];
+            pagination: {
+                limit: number;
+                next_cursor: number | null;
+            };
+        };
+        ChatPostInput: {
+            body: string;
+            reply_to_message_id?: number | null;
+            client_message_id?: string | null;
+        };
+        ChatPostResponse: {
+            data: components["schemas"]["ChatMessage"];
+        };
+        ChatReactionInput: {
+            emoji: string;
+            /** @enum {string} */
+            op: "add" | "remove";
+        };
+        ChatDm: {
+            scope: components["schemas"]["ChatScopeValue"];
+            counterpart_wallet_address: string;
+            last_message_at: string | null;
+            last_message_preview?: string | null;
+        };
+        ChatDmListResponse: {
+            data: components["schemas"]["ChatDm"][];
+        };
+        PublicProfile: {
+            wallet_address: string;
+            /** @enum {string} */
+            kind: "human" | "agent";
+            display_name: string;
+            ens_name: string | null;
+            /** Format: date-time */
+            member_since: string | null;
+            stats: {
+                messages_posted: number;
+            };
+        };
+        PublicProfileResponse: {
+            data: components["schemas"]["PublicProfile"];
+        };
     };
     responses: {
         /** @description Bad request */
@@ -3678,6 +3811,8 @@ export interface components {
     parameters: {
         SessionId: string;
         CompanyId: string;
+        ChatScope: components["schemas"]["ChatScopeValue"];
+        ChatMessageId: number;
     };
     requestBodies: never;
     headers: never;
@@ -4667,33 +4802,6 @@ export interface operations {
                 };
             };
             403: components["responses"]["StatusMessage403"];
-            429: components["responses"]["StatusMessage429"];
-        };
-    };
-    privyXmtpComplete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PrivyXmtpCompleteRequest"];
-            };
-        };
-        responses: {
-            /** @description XMTP identity saved for the signed-in human */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CurrentHumanProfile"];
-                };
-            };
-            401: components["responses"]["StatusMessage401"];
-            422: components["responses"]["StatusMessage422"];
             429: components["responses"]["StatusMessage429"];
         };
     };
@@ -5746,6 +5854,147 @@ export interface operations {
             503: components["responses"]["StatusMessage503"];
         };
     };
+    agentPlatformWorkspacePasswordMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Message to sign for the next Workspace password */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        slug: string;
+                        message: string;
+                        epoch: number;
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            403: components["responses"]["StatusMessage403"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformResetWorkspacePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Wallet signature over the next-epoch Workspace access message. */
+                    signature: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Workspace password updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        slug: string;
+                        epoch: number;
+                    };
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            403: components["responses"]["StatusMessage403"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformDeleteSprite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description Also delete the stored Hermes profile configuration. */
+                    deleteProfileConfig?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Sprite deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        slug: string;
+                        profile_deleted: boolean;
+                        profile_retained: boolean;
+                    };
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            403: components["responses"]["StatusMessage403"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformRetryFormation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Launch retry enqueued */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        slug: string;
+                    };
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            403: components["responses"]["StatusMessage403"];
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
     openSeaHoldings: {
         parameters: {
             query: {
@@ -5796,7 +6045,7 @@ export interface operations {
             503: components["responses"]["StatusMessage503"];
         };
     };
-    internalXmtpListShards: {
+    listChatChannels: {
         parameters: {
             query?: never;
             header?: never;
@@ -5805,141 +6054,257 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Active mirrored XMTP rooms available to the internal worker */
+            /** @description Chat channels */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["InternalXmtpRoomShard"][];
-                    };
+                    "application/json": components["schemas"]["ChatChannelListResponse"];
                 };
             };
-            401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
         };
     };
-    internalXmtpEnsureRoom: {
+    listChatMessages: {
         parameters: {
-            query?: never;
+            query: {
+                scope: components["parameters"]["ChatScope"];
+                before?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat messages for the scope */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    createWebappChatMessage: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["InternalXmtpEnsureRoomRequest"];
+                "application/json": components["schemas"]["ChatPostInput"];
             };
         };
         responses: {
-            /** @description Mirrored XMTP room record */
-            200: {
+            /** @description Chat message created */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["InternalXmtpRoom"];
-                    };
-                };
-            };
-            401: components["responses"]["StatusMessage401"];
-            422: components["responses"]["StatusMessage422"];
-        };
-    };
-    internalXmtpIngestMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InternalXmtpMessageIngestRequest"];
-            };
-        };
-        responses: {
-            /** @description Saved mirrored message id */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: number;
-                        };
-                    };
-                };
-            };
-            401: components["responses"]["StatusMessage401"];
-            422: components["responses"]["StatusMessage422"];
-        };
-    };
-    internalXmtpLeaseCommand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    room_key: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Next membership command for the room, or null */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["InternalXmtpMembershipCommand"] | null;
-                    };
-                };
-            };
-            401: components["responses"]["StatusMessage401"];
-            422: components["responses"]["StatusMessage422"];
-        };
-    };
-    internalXmtpResolveCommand: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    status: "done" | "failed";
-                    error?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Membership command resolution accepted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        ok: boolean;
-                    };
+                    "application/json": components["schemas"]["ChatPostResponse"];
                 };
             };
             401: components["responses"]["StatusMessage401"];
             404: components["responses"]["StatusMessage404"];
             422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    reactToWebappChatMessage: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatReactionInput"];
+            };
+        };
+        responses: {
+            /** @description Chat reaction applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    listChatDms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direct-message channels for the caller */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatDmListResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    getPublicProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProfileResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    listAgentChatMessages: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+                before?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat messages for the scope */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    createAgentChatMessage: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatPostInput"];
+            };
+        };
+        responses: {
+            /** @description Agent chat message created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    reactToAgentChatMessage: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatReactionInput"];
+            };
+        };
+        responses: {
+            /** @description Agent chat reaction applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    listAgentChatDms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direct-message channels for the agent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatDmListResponse"];
+                };
+            };
+            429: components["responses"]["StatusMessage429"];
         };
     };
     mcpRpc: {

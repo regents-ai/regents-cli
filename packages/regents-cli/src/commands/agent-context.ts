@@ -70,7 +70,6 @@ const safeHarnesses = (config: RegentConfig) =>
 const availableProfiles = (config: RegentConfig): readonly string[] =>
   Array.from(
     new Set([
-      ...Object.values(config.xmtp.profiles),
       ...Object.values(config.agents.harnesses).flatMap((harness) => harness.profiles),
       config.workloads.bbh.defaultProfile,
     ]),
@@ -109,14 +108,6 @@ const safeConfigSummary = (configPath?: string) => {
     agents: {
       default_harness: config.agents.defaultHarness,
       harnesses: safeHarnesses(config),
-    },
-    xmtp: {
-      enabled: config.xmtp.enabled,
-      env: config.xmtp.env,
-      profiles: config.xmtp.profiles,
-      owner_inbox_count: config.xmtp.ownerInboxIds.length,
-      trusted_inbox_count: config.xmtp.trustedInboxIds.length,
-      public_policy_path: config.xmtp.publicPolicyPath,
     },
     workloads: {
       bbh: {

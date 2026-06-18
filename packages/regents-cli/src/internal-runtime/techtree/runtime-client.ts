@@ -6,8 +6,6 @@ import type {
   RegentConfig,
   TechtreeFetchRequest,
   TechtreeFetchResponse,
-  TechtreePinRequest,
-  TechtreePinResponse,
   TechtreePublishRequest,
   TechtreePublishResponse,
 } from "../../internal-types/index.js";
@@ -125,7 +123,7 @@ export class TechtreeRuntimeClient {
   }
 
   async fetchNode(input: TechtreeFetchRequest): Promise<TechtreeFetchResponse> {
-    const response = await this.requestJson<NodeApiResponse>("GET", `/v1/runtime/nodes/${encodeURIComponent(input.node_id)}`);
+    const response = await this.requestJson<NodeApiResponse>("GET", `/api/techtree/v1/runtime/nodes/${encodeURIComponent(input.node_id)}`);
     const data = response.data;
     const materializedTo =
       input.materialize_to && data.manifest && data.payload_index && data.header
@@ -146,32 +144,11 @@ export class TechtreeRuntimeClient {
     };
   }
 
-  async pinNode(input: TechtreePinRequest): Promise<TechtreePinResponse> {
-    const response = await this.requestJson<{
-      data: {
-        node_id: string;
-        manifest_cid: string;
-        payload_cid: string;
-      };
-    }>("POST", "/v1/agent/runtime/pin", {
-      path: input.dist_path ?? input.workspace_path,
-      node_type: input.node_type,
-    });
-
-    return {
-      ok: true,
-      node_id: response.data.node_id as TechtreePinResponse["node_id"],
-      manifest_cid: response.data.manifest_cid,
-      payload_cid: response.data.payload_cid,
-    };
-  }
-
   async publishNode(input: TechtreePublishRequest): Promise<TechtreePublishResponse> {
-    const response = await this.requestJson<NodeApiResponse>("POST", "/v1/agent/runtime/publish/submit", {
-      path: input.dist_path ?? input.workspace_path,
+    const response = await this.requestJson<NodeApiResponse>("POST", "/api/techtree/v1/agent/runtime/publish/submit", {
       node_type: input.node_type,
-      manifest_cid: input.manifest_cid,
-      payload_cid: input.payload_cid,
+      manifest: input.manifest,
+      payload_index: input.payload_index,
       header: {
         id: input.header.id,
         subject_id: input.header.subjectId,
@@ -187,8 +164,8 @@ export class TechtreeRuntimeClient {
     return {
       ok: true,
       node_id: response.data.id as TechtreePublishResponse["node_id"],
-      manifest_cid: response.data.manifest_cid ?? input.manifest_cid,
-      payload_cid: response.data.payload_cid ?? input.payload_cid,
+      manifest_cid: response.data.manifest_cid ?? null,
+      payload_cid: response.data.payload_cid ?? null,
       tx_hash: null,
     };
   }
@@ -197,7 +174,7 @@ export class TechtreeRuntimeClient {
     split?: "climb" | "benchmark" | "challenge" | "draft";
   }): Promise<BbhLeaderboardResponse> {
     const query = params?.split ? `?split=${encodeURIComponent(params.split)}` : "";
-    return this.requestJson<BbhLeaderboardResponse>("GET", `/v1/bbh/leaderboard${query}`);
+    return this.requestJson<BbhLeaderboardResponse>("GET", `/api/techtree/v1/bbh/leaderboard${query}`);
   }
 }
 

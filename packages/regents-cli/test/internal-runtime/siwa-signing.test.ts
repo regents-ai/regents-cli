@@ -75,7 +75,7 @@ describe("http signing", () => {
   it("builds the canonical signing message", () => {
     const signingMessage = buildHttpSignatureSigningMessage({
       method: "POST",
-      path: "/v1/tree/nodes",
+      path: "/api/techtree/v1/tree/nodes",
       headers: {
         "x-siwa-receipt": "receipt-token",
         "x-key-id": "0xabc",
@@ -92,7 +92,7 @@ describe("http signing", () => {
     expect(signingMessage).toBe(
       [
         '"@method": post',
-        '"@path": /v1/tree/nodes',
+        '"@path": /api/techtree/v1/tree/nodes',
         '"x-siwa-receipt": receipt-token',
         '"x-key-id": 0xabc',
         '"x-timestamp": 1700000000',
@@ -108,7 +108,7 @@ describe("http signing", () => {
   it("keeps the query string in the signed path", () => {
     const signingMessage = buildHttpSignatureSigningMessage({
       method: "GET",
-      path: "/v1/agent/agents?launchable=true",
+      path: "/api/autolaunch/v1/agent/agents?launchable=true",
       headers: {
         "x-siwa-receipt": "receipt-token",
         "x-key-id": "0xabc",
@@ -122,7 +122,7 @@ describe("http signing", () => {
       },
     });
 
-    expect(signingMessage).toContain('"@path": /v1/agent/agents?launchable=true');
+    expect(signingMessage).toContain('"@path": /api/autolaunch/v1/agent/agents?launchable=true');
   });
 
   it("parses the signature-input parameters used by shared SIWA verification", () => {
@@ -155,7 +155,7 @@ describe("http signing", () => {
   it("generates signed agent headers", async () => {
     const headers = await buildSignedAgentHeaders({
       method: "POST",
-      path: "/v1/tree/nodes",
+      path: "/api/techtree/v1/tree/nodes",
       walletAddress: "0x1111111111111111111111111111111111111111",
       chainId: 8453,
       registryAddress: "0x2222222222222222222222222222222222222222",
@@ -192,7 +192,7 @@ describe("http signing", () => {
 
     const request = await buildAuthenticatedFetchInit({
       method: "POST",
-      path: "/v1/tree/nodes",
+      path: "/api/techtree/v1/tree/nodes",
       body: {
         seed: "ml",
         kind: "hypothesis",
@@ -207,14 +207,14 @@ describe("http signing", () => {
       buildProtectedAgentAuthDebugSnapshot({
         method: "POST",
         signedPath: request.urlPath,
-        finalUrl: "https://techtree.example/v1/tree/nodes",
+        finalUrl: "https://techtree.example/api/techtree/v1/tree/nodes",
         serializedJsonBody: request.serializedJsonBody,
         headers: request.init.headers,
       }),
     ).toMatchObject({
       method: "POST",
-      signedPath: "/v1/tree/nodes",
-      finalUrl: "https://techtree.example/v1/tree/nodes",
+      signedPath: "/api/techtree/v1/tree/nodes",
+      finalUrl: "https://techtree.example/api/techtree/v1/tree/nodes",
       serializedJsonBody: JSON.stringify({
         seed: "ml",
         kind: "hypothesis",

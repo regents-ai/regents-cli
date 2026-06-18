@@ -11,7 +11,7 @@ export { CliUsageError } from "../cli-usage-error.js";
 export { buildContractDoctorReport, runDoctorContractsCommand } from "./doctor-contracts.js";
 export { buildWorkspaceDoctorReport, runDoctorWorkspaceCommand } from "./doctor-workspace.js";
 
-const DOCTOR_SCOPES = ["runtime", "auth", "techtree", "transports", "xmtp"] as const satisfies readonly DoctorScope[];
+const DOCTOR_SCOPES = ["runtime", "auth", "techtree", "transports"] as const satisfies readonly DoctorScope[];
 type DoctorCommandScope = (typeof DOCTOR_SCOPES)[number] | "contracts" | "workspace";
 
 const DOCTOR_SCOPE_SET = new Set<string>([...DOCTOR_SCOPES, "contracts", "workspace"]);

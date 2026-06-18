@@ -52,7 +52,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/prelaunch-assets/{file}": {
+    "/api/autolaunch/prelaunch-assets/{file}": {
         parameters: {
             query?: never;
             header?: never;
@@ -68,7 +68,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/channels": {
+    "/api/autolaunch/v1/chat/channels": {
         parameters: {
             query?: never;
             header?: never;
@@ -85,17 +85,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/messages": {
+    "/api/autolaunch/v1/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description Public cursor-paginated read for any chat scope. Token channels read as empty until their first post. */
+        /** @description Public cursor-paginated read for any channel scope. Token channels read as empty until their first post. Reading a dm scope requires a signed-in session whose wallet is one of the two participants; any other request gets 404 scope_not_found. */
         get: operations["listChatMessages"];
         put?: never;
-        /** @description Signed-in person posts to a chat scope (system, topic, or token). Token channels are created lazily on first post. */
+        /** @description Signed-in person posts to a chat scope (system, topic, or token) or to a dm scope they participate in (token and dm channels are created lazily on first post; dm non-participants get 404 scope_not_found). */
         post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
@@ -103,7 +103,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/chat/messages": {
+    "/api/autolaunch/v1/chat/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -112,7 +112,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Agent posts to a chat scope (system, topic, or token). Token channels are created lazily on first post. */
+        /** @description Signed-in person adds or removes an emoji reaction on a message in the given scope. Reacting in a dm scope requires the session wallet to be one of the two participants. */
+        post: operations["reactToWebappChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/autolaunch/v1/chat/dms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Lists the signed-in person's direct-message channels (dm scopes where their wallet is a participant), most recently active first. */
+        get: operations["listChatDms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/autolaunch/v1/agent/chat/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Agent cursor-paginated read for any chat scope, including dm scopes the agent's wallet participates in (non-participants get 404 scope_not_found). */
+        get: operations["listAgentChatMessages"];
+        put?: never;
+        /** @description Agent posts to a chat scope (system, topic, token, or a dm scope the agent's wallet participates in). Token and dm channels are created lazily on first post. */
         post: operations["createAgentChatMessage"];
         delete?: never;
         options?: never;
@@ -120,7 +155,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/privy/csrf": {
+    "/api/autolaunch/v1/agent/chat/messages/{id}/reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Agent adds or removes an emoji reaction on a message in the given scope. Reacting in a dm scope requires the agent's wallet to be one of the two participants. */
+        post: operations["reactToAgentChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/autolaunch/v1/agent/chat/dms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Lists the agent's direct-message channels (dm scopes where its wallet is a participant), most recently active first. */
+        get: operations["listAgentChatDms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/autolaunch/v1/profiles/{wallet}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public profile for a wallet: identity (the verified ENS primary name when one exists, otherwise the stored display name or label), whether the wallet is known as a person or an agent here, member-since, and Autolaunch activity stats. 404 when the wallet has no Autolaunch presence. */
+        get: operations["getPublicProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/autolaunch/v1/auth/privy/csrf": {
         parameters: {
             query?: never;
             header?: never;
@@ -136,7 +222,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/privy/session": {
+    "/api/autolaunch/v1/auth/privy/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -152,7 +238,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/privy/profile": {
+    "/api/autolaunch/v1/auth/privy/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -168,7 +254,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/agent/session": {
+    "/api/autolaunch/v1/auth/agent/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -184,7 +270,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking": {
+    "/api/autolaunch/v1/app/regent/staking": {
         parameters: {
             query?: never;
             header?: never;
@@ -200,7 +286,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/account/{address}": {
+    "/api/autolaunch/v1/app/regent/staking/account/{address}": {
         parameters: {
             query?: never;
             header?: never;
@@ -216,7 +302,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/stake": {
+    "/api/autolaunch/v1/app/regent/staking/stake": {
         parameters: {
             query?: never;
             header?: never;
@@ -232,7 +318,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/unstake": {
+    "/api/autolaunch/v1/app/regent/staking/unstake": {
         parameters: {
             query?: never;
             header?: never;
@@ -248,7 +334,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/claim-usdc": {
+    "/api/autolaunch/v1/app/regent/staking/claim-usdc": {
         parameters: {
             query?: never;
             header?: never;
@@ -264,7 +350,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/claim-regent": {
+    "/api/autolaunch/v1/app/regent/staking/claim-regent": {
         parameters: {
             query?: never;
             header?: never;
@@ -280,7 +366,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/claim-and-restake-regent": {
+    "/api/autolaunch/v1/app/regent/staking/claim-and-restake-regent": {
         parameters: {
             query?: never;
             header?: never;
@@ -296,7 +382,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/deposit-usdc/prepare": {
+    "/api/autolaunch/v1/app/regent/staking/deposit-usdc/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -312,7 +398,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/regent/staking/withdraw-treasury/prepare": {
+    "/api/autolaunch/v1/app/regent/staking/withdraw-treasury/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -328,7 +414,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agentbook/sessions": {
+    "/api/autolaunch/v1/app/agentbook/sessions": {
         parameters: {
             query?: never;
             header?: never;
@@ -344,7 +430,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agentbook/sessions/{id}": {
+    "/api/autolaunch/v1/app/agentbook/sessions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -360,7 +446,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agentbook/sessions/{id}/submit": {
+    "/api/autolaunch/v1/app/agentbook/sessions/{id}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -376,7 +462,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agentbook/lookup": {
+    "/api/autolaunch/v1/app/agentbook/lookup": {
         parameters: {
             query?: never;
             header?: never;
@@ -392,7 +478,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agentbook/verify": {
+    "/api/autolaunch/v1/app/agentbook/verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -408,7 +494,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agents": {
+    "/api/autolaunch/v1/app/agents": {
         parameters: {
             query?: never;
             header?: never;
@@ -424,7 +510,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agents/{id}": {
+    "/api/autolaunch/v1/app/agents/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -440,7 +526,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agents/{id}/readiness": {
+    "/api/autolaunch/v1/app/agents/{id}/readiness": {
         parameters: {
             query?: never;
             header?: never;
@@ -456,7 +542,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agent-pairings": {
+    "/api/autolaunch/v1/app/agent-pairings": {
         parameters: {
             query?: never;
             header?: never;
@@ -472,7 +558,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agent-pairings/complete": {
+    "/api/autolaunch/v1/app/agent-pairings/complete": {
         parameters: {
             query?: never;
             header?: never;
@@ -488,7 +574,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agent-pairings/{id}": {
+    "/api/autolaunch/v1/app/agent-pairings/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -504,7 +590,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agent-connections/{code}": {
+    "/api/autolaunch/v1/app/agent-connections/{code}": {
         parameters: {
             query?: never;
             header?: never;
@@ -520,7 +606,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/agent-connections/{code}/confirm": {
+    "/api/autolaunch/v1/app/agent-connections/{code}/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -536,7 +622,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/prelaunch/plans": {
+    "/api/autolaunch/v1/app/prelaunch/plans": {
         parameters: {
             query?: never;
             header?: never;
@@ -552,7 +638,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/prelaunch/plans/{id}": {
+    "/api/autolaunch/v1/app/prelaunch/plans/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -568,7 +654,7 @@ export interface paths {
         patch: operations["updatePrelaunchPlan"];
         trace?: never;
     };
-    "/v1/app/prelaunch/plans/{id}/validate": {
+    "/api/autolaunch/v1/app/prelaunch/plans/{id}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -584,7 +670,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/prelaunch/plans/{id}/publish": {
+    "/api/autolaunch/v1/app/prelaunch/plans/{id}/publish": {
         parameters: {
             query?: never;
             header?: never;
@@ -600,7 +686,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/prelaunch/plans/{id}/launch": {
+    "/api/autolaunch/v1/app/prelaunch/plans/{id}/launch": {
         parameters: {
             query?: never;
             header?: never;
@@ -616,7 +702,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/prelaunch/assets": {
+    "/api/autolaunch/v1/app/prelaunch/assets": {
         parameters: {
             query?: never;
             header?: never;
@@ -632,7 +718,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/prelaunch/plans/{id}/metadata": {
+    "/api/autolaunch/v1/app/prelaunch/plans/{id}/metadata": {
         parameters: {
             query?: never;
             header?: never;
@@ -648,7 +734,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/prelaunch/plans/{id}/metadata-preview": {
+    "/api/autolaunch/v1/app/prelaunch/plans/{id}/metadata-preview": {
         parameters: {
             query?: never;
             header?: never;
@@ -664,7 +750,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/launch/preview": {
+    "/api/autolaunch/v1/app/launch/preview": {
         parameters: {
             query?: never;
             header?: never;
@@ -680,7 +766,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/launch/jobs": {
+    "/api/autolaunch/v1/app/launch/jobs": {
         parameters: {
             query?: never;
             header?: never;
@@ -696,7 +782,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/launch/creation-state": {
+    "/api/autolaunch/v1/app/launch/creation-state": {
         parameters: {
             query?: never;
             header?: never;
@@ -712,7 +798,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/launch/jobs/{id}": {
+    "/api/autolaunch/v1/app/launch/jobs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -728,7 +814,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/lifecycle/jobs/{id}": {
+    "/api/autolaunch/v1/app/lifecycle/jobs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -744,7 +830,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/lifecycle/jobs/{id}/finalize/prepare": {
+    "/api/autolaunch/v1/app/lifecycle/jobs/{id}/finalize/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -760,7 +846,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/lifecycle/jobs/{id}/finalize/register": {
+    "/api/autolaunch/v1/app/lifecycle/jobs/{id}/finalize/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -776,7 +862,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/lifecycle/jobs/{id}/vesting": {
+    "/api/autolaunch/v1/app/lifecycle/jobs/{id}/vesting": {
         parameters: {
             query?: never;
             header?: never;
@@ -792,7 +878,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/trust/agents/{id}": {
+    "/api/autolaunch/v1/app/trust/agents/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -812,7 +898,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/trust/x/start": {
+    "/api/autolaunch/v1/app/trust/x/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -832,7 +918,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/trust/x/callback": {
+    "/api/autolaunch/v1/app/trust/x/callback": {
         parameters: {
             query?: never;
             header?: never;
@@ -852,7 +938,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/auctions": {
+    "/api/autolaunch/v1/app/auctions": {
         parameters: {
             query?: never;
             header?: never;
@@ -868,7 +954,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/auction-returns": {
+    "/api/autolaunch/v1/app/auction-returns": {
         parameters: {
             query?: never;
             header?: never;
@@ -884,7 +970,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/auctions/{id}": {
+    "/api/autolaunch/v1/app/auctions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -900,7 +986,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/auctions/{id}/bid_quote": {
+    "/api/autolaunch/v1/app/auctions/{id}/bid_quote": {
         parameters: {
             query?: never;
             header?: never;
@@ -916,7 +1002,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/auctions/{id}/bids": {
+    "/api/autolaunch/v1/app/auctions/{id}/bids": {
         parameters: {
             query?: never;
             header?: never;
@@ -932,7 +1018,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/me/bids": {
+    "/api/autolaunch/v1/app/me/bids": {
         parameters: {
             query?: never;
             header?: never;
@@ -948,7 +1034,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/me/holdings": {
+    "/api/autolaunch/v1/app/me/holdings": {
         parameters: {
             query?: never;
             header?: never;
@@ -964,7 +1050,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/me/profile": {
+    "/api/autolaunch/v1/app/me/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -980,7 +1066,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/me/profile/refresh": {
+    "/api/autolaunch/v1/app/me/profile/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -996,23 +1082,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/bids/{id}/exit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["exitBid"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/app/bids/{id}/return-quote-token": {
+    "/api/autolaunch/v1/app/bids/{id}/return-quote-token": {
         parameters: {
             query?: never;
             header?: never;
@@ -1028,7 +1098,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/bids/{id}/claim": {
+    "/api/autolaunch/v1/app/bids/{id}/exit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["exitBid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/autolaunch/v1/app/bids/{id}/claim": {
         parameters: {
             query?: never;
             header?: never;
@@ -1044,7 +1130,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}": {
+    "/api/autolaunch/v1/app/subjects/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1060,7 +1146,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/existing-token/prepare": {
+    "/api/autolaunch/v1/app/subjects/existing-token/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1076,7 +1162,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/existing-token/confirm": {
+    "/api/autolaunch/v1/app/subjects/existing-token/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -1092,7 +1178,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/deferred-autolaunch/prepare": {
+    "/api/autolaunch/v1/app/subjects/deferred-autolaunch/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1108,7 +1194,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/deferred-autolaunch/confirm": {
+    "/api/autolaunch/v1/app/subjects/deferred-autolaunch/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -1124,7 +1210,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/by-token/{token}": {
+    "/api/autolaunch/v1/app/subjects/by-token/{token}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1140,7 +1226,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/ingress": {
+    "/api/autolaunch/v1/app/subjects/{id}/ingress": {
         parameters: {
             query?: never;
             header?: never;
@@ -1156,7 +1242,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/staking": {
+    "/api/autolaunch/v1/app/subjects/{id}/staking": {
         parameters: {
             query?: never;
             header?: never;
@@ -1172,7 +1258,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/buybacks": {
+    "/api/autolaunch/v1/app/subjects/{id}/buybacks": {
         parameters: {
             query?: never;
             header?: never;
@@ -1188,7 +1274,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/buybacks/settle": {
+    "/api/autolaunch/v1/app/subjects/{id}/buybacks/settle": {
         parameters: {
             query?: never;
             header?: never;
@@ -1204,7 +1290,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/payment-links": {
+    "/api/autolaunch/v1/app/subjects/{id}/payment-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -1220,7 +1306,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/payment-links/{address}/canonical": {
+    "/api/autolaunch/v1/app/subjects/{id}/payment-links/{address}/canonical": {
         parameters: {
             query?: never;
             header?: never;
@@ -1236,7 +1322,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/payment-links/{address}/state": {
+    "/api/autolaunch/v1/app/subjects/{id}/payment-links/{address}/state": {
         parameters: {
             query?: never;
             header?: never;
@@ -1252,7 +1338,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/regent-emissions": {
+    "/api/autolaunch/v1/app/subjects/{id}/regent-emissions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1268,7 +1354,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/stake": {
+    "/api/autolaunch/v1/app/subjects/{id}/stake": {
         parameters: {
             query?: never;
             header?: never;
@@ -1284,7 +1370,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/unstake": {
+    "/api/autolaunch/v1/app/subjects/{id}/unstake": {
         parameters: {
             query?: never;
             header?: never;
@@ -1300,7 +1386,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/claim-usdc": {
+    "/api/autolaunch/v1/app/subjects/{id}/claim-usdc": {
         parameters: {
             query?: never;
             header?: never;
@@ -1316,7 +1402,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/subjects/{id}/ingress/{address}/sweep": {
+    "/api/autolaunch/v1/app/subjects/{id}/ingress/{address}/sweep": {
         parameters: {
             query?: never;
             header?: never;
@@ -1332,7 +1418,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/swaps/quote": {
+    "/api/autolaunch/v1/app/swaps/quote": {
         parameters: {
             query?: never;
             header?: never;
@@ -1349,7 +1435,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/swaps/prepare": {
+    "/api/autolaunch/v1/app/swaps/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1366,7 +1452,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/ens/link/plan": {
+    "/api/autolaunch/v1/app/ens/link/plan": {
         parameters: {
             query?: never;
             header?: never;
@@ -1382,7 +1468,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/ens/link/prepare-ensip25": {
+    "/api/autolaunch/v1/app/ens/link/prepare-ensip25": {
         parameters: {
             query?: never;
             header?: never;
@@ -1398,7 +1484,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/ens/link/prepare-erc8004": {
+    "/api/autolaunch/v1/app/ens/link/prepare-erc8004": {
         parameters: {
             query?: never;
             header?: never;
@@ -1414,7 +1500,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/ens/link/prepare-bidirectional": {
+    "/api/autolaunch/v1/app/ens/link/prepare-bidirectional": {
         parameters: {
             query?: never;
             header?: never;
@@ -1430,7 +1516,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/contracts/admin": {
+    "/api/autolaunch/v1/app/contracts/admin": {
         parameters: {
             query?: never;
             header?: never;
@@ -1446,7 +1532,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/contracts/jobs/{id}": {
+    "/api/autolaunch/v1/app/contracts/jobs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1462,7 +1548,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/contracts/subjects/{id}": {
+    "/api/autolaunch/v1/app/contracts/subjects/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1478,7 +1564,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/contracts/jobs/{id}/{resource}/{action}/prepare": {
+    "/api/autolaunch/v1/app/contracts/jobs/{id}/{resource}/{action}/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1494,7 +1580,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/contracts/subjects/{id}/{resource}/{action}/prepare": {
+    "/api/autolaunch/v1/app/contracts/subjects/{id}/{resource}/{action}/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1510,7 +1596,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/app/contracts/admin/{resource}/{action}/prepare": {
+    "/api/autolaunch/v1/app/contracts/admin/{resource}/{action}/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1526,7 +1612,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/agents": {
+    "/api/autolaunch/v1/agent/agents": {
         parameters: {
             query?: never;
             header?: never;
@@ -1542,7 +1628,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/agents/{id}": {
+    "/api/autolaunch/v1/agent/agents/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1558,7 +1644,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/agents/{id}/readiness": {
+    "/api/autolaunch/v1/agent/agents/{id}/readiness": {
         parameters: {
             query?: never;
             header?: never;
@@ -1574,7 +1660,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/trust/agents/{id}": {
+    "/api/autolaunch/v1/agent/trust/agents/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1594,7 +1680,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}": {
+    "/api/autolaunch/v1/agent/subjects/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1610,7 +1696,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/existing-token/prepare": {
+    "/api/autolaunch/v1/agent/subjects/existing-token/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1626,7 +1712,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/existing-token/confirm": {
+    "/api/autolaunch/v1/agent/subjects/existing-token/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -1642,7 +1728,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/deferred-autolaunch/prepare": {
+    "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -1658,7 +1744,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/deferred-autolaunch/confirm": {
+    "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -1674,7 +1760,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/by-token/{token}": {
+    "/api/autolaunch/v1/agent/subjects/by-token/{token}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1690,7 +1776,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/ingress": {
+    "/api/autolaunch/v1/agent/subjects/{id}/ingress": {
         parameters: {
             query?: never;
             header?: never;
@@ -1706,7 +1792,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/staking": {
+    "/api/autolaunch/v1/agent/subjects/{id}/staking": {
         parameters: {
             query?: never;
             header?: never;
@@ -1722,7 +1808,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/buybacks": {
+    "/api/autolaunch/v1/agent/subjects/{id}/buybacks": {
         parameters: {
             query?: never;
             header?: never;
@@ -1738,7 +1824,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/buybacks/settle": {
+    "/api/autolaunch/v1/agent/subjects/{id}/buybacks/settle": {
         parameters: {
             query?: never;
             header?: never;
@@ -1754,7 +1840,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/payment-links": {
+    "/api/autolaunch/v1/agent/subjects/{id}/payment-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -1770,7 +1856,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/payment-links/{address}/canonical": {
+    "/api/autolaunch/v1/agent/subjects/{id}/payment-links/{address}/canonical": {
         parameters: {
             query?: never;
             header?: never;
@@ -1786,7 +1872,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/payment-links/{address}/state": {
+    "/api/autolaunch/v1/agent/subjects/{id}/payment-links/{address}/state": {
         parameters: {
             query?: never;
             header?: never;
@@ -1802,7 +1888,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/regent-emissions": {
+    "/api/autolaunch/v1/agent/subjects/{id}/regent-emissions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1818,7 +1904,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/accounting-tags": {
+    "/api/autolaunch/v1/agent/subjects/{id}/accounting-tags": {
         parameters: {
             query?: never;
             header?: never;
@@ -1834,7 +1920,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/stake": {
+    "/api/autolaunch/v1/agent/subjects/{id}/stake": {
         parameters: {
             query?: never;
             header?: never;
@@ -1850,7 +1936,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/unstake": {
+    "/api/autolaunch/v1/agent/subjects/{id}/unstake": {
         parameters: {
             query?: never;
             header?: never;
@@ -1866,7 +1952,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/claim-usdc": {
+    "/api/autolaunch/v1/agent/subjects/{id}/claim-usdc": {
         parameters: {
             query?: never;
             header?: never;
@@ -1882,7 +1968,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/subjects/{id}/ingress/{address}/sweep": {
+    "/api/autolaunch/v1/agent/subjects/{id}/ingress/{address}/sweep": {
         parameters: {
             query?: never;
             header?: never;
@@ -1898,7 +1984,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/prelaunch/plans": {
+    "/api/autolaunch/v1/agent/prelaunch/plans": {
         parameters: {
             query?: never;
             header?: never;
@@ -1914,7 +2000,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/agent-connections": {
+    "/api/autolaunch/v1/agent/agent-connections": {
         parameters: {
             query?: never;
             header?: never;
@@ -1930,7 +2016,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/agent-connections/{id}": {
+    "/api/autolaunch/v1/agent/agent-connections/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1946,7 +2032,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/prelaunch/plans/{id}": {
+    "/api/autolaunch/v1/agent/prelaunch/plans/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1962,7 +2048,7 @@ export interface paths {
         patch: operations["agentUpdatePrelaunchPlan"];
         trace?: never;
     };
-    "/v1/agent/prelaunch/plans/{id}/validate": {
+    "/api/autolaunch/v1/agent/prelaunch/plans/{id}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -1978,7 +2064,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/prelaunch/plans/{id}/publish": {
+    "/api/autolaunch/v1/agent/prelaunch/plans/{id}/publish": {
         parameters: {
             query?: never;
             header?: never;
@@ -1994,7 +2080,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/prelaunch/plans/{id}/launch": {
+    "/api/autolaunch/v1/agent/prelaunch/plans/{id}/launch": {
         parameters: {
             query?: never;
             header?: never;
@@ -2010,7 +2096,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/prelaunch/assets": {
+    "/api/autolaunch/v1/agent/prelaunch/assets": {
         parameters: {
             query?: never;
             header?: never;
@@ -2026,7 +2112,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/prelaunch/plans/{id}/metadata": {
+    "/api/autolaunch/v1/agent/prelaunch/plans/{id}/metadata": {
         parameters: {
             query?: never;
             header?: never;
@@ -2042,7 +2128,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/prelaunch/plans/{id}/metadata-preview": {
+    "/api/autolaunch/v1/agent/prelaunch/plans/{id}/metadata-preview": {
         parameters: {
             query?: never;
             header?: never;
@@ -2058,7 +2144,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/lifecycle/jobs/{id}": {
+    "/api/autolaunch/v1/agent/lifecycle/jobs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2074,7 +2160,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/lifecycle/jobs/{id}/finalize/prepare": {
+    "/api/autolaunch/v1/agent/lifecycle/jobs/{id}/finalize/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2090,7 +2176,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/lifecycle/jobs/{id}/finalize/register": {
+    "/api/autolaunch/v1/agent/lifecycle/jobs/{id}/finalize/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -2106,7 +2192,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/lifecycle/jobs/{id}/vesting": {
+    "/api/autolaunch/v1/agent/lifecycle/jobs/{id}/vesting": {
         parameters: {
             query?: never;
             header?: never;
@@ -2122,23 +2208,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/contracts/admin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["agentGetContractsAdminOverview"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/contracts/jobs/{id}": {
+    "/api/autolaunch/v1/agent/contracts/jobs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2154,7 +2224,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/contracts/subjects/{id}": {
+    "/api/autolaunch/v1/agent/contracts/subjects/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2170,7 +2240,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/contracts/jobs/{id}/{resource}/{action}/prepare": {
+    "/api/autolaunch/v1/agent/contracts/jobs/{id}/{resource}/{action}/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2186,7 +2256,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/contracts/subjects/{id}/{resource}/{action}/prepare": {
+    "/api/autolaunch/v1/agent/contracts/subjects/{id}/{resource}/{action}/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2202,7 +2272,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/contracts/admin/{resource}/{action}/prepare": {
+    "/api/autolaunch/v1/agent/contracts/admin/{resource}/{action}/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2218,7 +2288,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/launch/preview": {
+    "/api/autolaunch/v1/agent/launch/preview": {
         parameters: {
             query?: never;
             header?: never;
@@ -2234,7 +2304,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/launch/jobs": {
+    "/api/autolaunch/v1/agent/launch/jobs": {
         parameters: {
             query?: never;
             header?: never;
@@ -2250,7 +2320,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/launch/creation-state": {
+    "/api/autolaunch/v1/agent/launch/creation-state": {
         parameters: {
             query?: never;
             header?: never;
@@ -2266,7 +2336,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/launch/jobs/{id}": {
+    "/api/autolaunch/v1/agent/launch/jobs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2282,7 +2352,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/auctions": {
+    "/api/autolaunch/v1/agent/auctions": {
         parameters: {
             query?: never;
             header?: never;
@@ -2298,7 +2368,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/auction-returns": {
+    "/api/autolaunch/v1/agent/auction-returns": {
         parameters: {
             query?: never;
             header?: never;
@@ -2314,7 +2384,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/auctions/{id}": {
+    "/api/autolaunch/v1/agent/auctions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2330,7 +2400,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/auctions/{id}/bid_quote": {
+    "/api/autolaunch/v1/agent/auctions/{id}/bid_quote": {
         parameters: {
             query?: never;
             header?: never;
@@ -2346,7 +2416,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/auctions/{id}/bids": {
+    "/api/autolaunch/v1/agent/auctions/{id}/bids": {
         parameters: {
             query?: never;
             header?: never;
@@ -2362,7 +2432,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bids/{id}/return-quote-token": {
+    "/api/autolaunch/v1/agent/bids/{id}/return-quote-token": {
         parameters: {
             query?: never;
             header?: never;
@@ -2378,7 +2448,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bids/{id}/exit": {
+    "/api/autolaunch/v1/agent/bids/{id}/exit": {
         parameters: {
             query?: never;
             header?: never;
@@ -2394,7 +2464,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bids/{id}/claim": {
+    "/api/autolaunch/v1/agent/bids/{id}/claim": {
         parameters: {
             query?: never;
             header?: never;
@@ -2410,7 +2480,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/ens/link/plan": {
+    "/api/autolaunch/v1/agent/ens/link/plan": {
         parameters: {
             query?: never;
             header?: never;
@@ -2426,7 +2496,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/ens/link/prepare-ensip25": {
+    "/api/autolaunch/v1/agent/ens/link/prepare-ensip25": {
         parameters: {
             query?: never;
             header?: never;
@@ -2442,7 +2512,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/ens/link/prepare-erc8004": {
+    "/api/autolaunch/v1/agent/ens/link/prepare-erc8004": {
         parameters: {
             query?: never;
             header?: never;
@@ -2458,7 +2528,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/ens/link/prepare-bidirectional": {
+    "/api/autolaunch/v1/agent/ens/link/prepare-bidirectional": {
         parameters: {
             query?: never;
             header?: never;
@@ -2483,7 +2553,7 @@ export interface components {
         /** @description Wallet address or ENS name that resolves to a wallet address. */
         AddressOrEnsName: string;
         /** @enum {integer} */
-        AutolaunchChainId: 84532 | 8453;
+        AutolaunchChainId: 8453;
         /** @enum {integer} */
         ActiveAutolaunchLaunchChainId: 8453;
         DecimalString: string;
@@ -2677,7 +2747,7 @@ export interface components {
         ChatChannel: {
             scope: components["schemas"]["ChatScopeValue"];
             /** @enum {string} */
-            kind: "system" | "topic" | "token";
+            kind: "system" | "topic" | "token" | "dm";
             name: string;
             status: string;
             last_message_at?: string | null;
@@ -2715,6 +2785,35 @@ export interface components {
             data: components["schemas"]["ChatMessage"];
         } & {
             [key: string]: unknown;
+        };
+        ChatReactionInput: {
+            emoji: string;
+            /** @enum {string} */
+            op: "add" | "remove";
+        };
+        ChatDm: {
+            scope: components["schemas"]["ChatScopeValue"];
+            counterpart_wallet_address: string;
+            last_message_at: string | null;
+            last_message_preview?: string | null;
+        };
+        ChatDmListResponse: {
+            data: components["schemas"]["ChatDm"][];
+        };
+        PublicProfile: {
+            wallet_address: components["schemas"]["Address"];
+            /** @enum {string} */
+            kind: "human" | "agent";
+            display_name: string;
+            ens_name: string | null;
+            member_since: string | null;
+            stats: {
+                messages_posted: number;
+                tokens_launched: number;
+            };
+        };
+        PublicProfileResponse: {
+            data: components["schemas"]["PublicProfile"];
         };
         PrivySessionCsrf: {
             /** @enum {boolean} */
@@ -2827,6 +2926,28 @@ export interface components {
             subject_id?: string;
             prepared: components["schemas"]["PreparedAction"];
         };
+        UintParam: number | string;
+        /** @description Input for the current subject contract preparation route. Required fields depend on the `{resource}/{action}` pair; unsupported fields are not part of the current contract. */
+        SubjectContractActionRequest: {
+            paused?: boolean;
+            label?: string;
+            share_bps?: components["schemas"]["UintParam"];
+            recipient?: components["schemas"]["Address"];
+            amount?: components["schemas"]["UintParam"];
+            ingress_address?: components["schemas"]["Address"];
+            token?: components["schemas"]["Address"];
+            canonical?: boolean;
+            salt?: components["schemas"]["HexData"];
+            payment_link?: components["schemas"]["Address"];
+            active?: boolean;
+            replacement?: components["schemas"]["Address"] | null;
+            make_default?: boolean;
+            account?: components["schemas"]["Address"];
+            enabled?: boolean;
+            identity_chain_id?: components["schemas"]["UintParam"];
+            identity_registry?: components["schemas"]["Address"];
+            identity_agent_id?: components["schemas"]["UintParam"];
+        };
         PreparedRevenueSubjectActionEnvelope: {
             /** @enum {boolean} */
             ok: true;
@@ -2870,7 +2991,7 @@ export interface components {
         AutolaunchSupportedChain: {
             id: components["schemas"]["AutolaunchChainId"];
             /** @enum {string} */
-            key: "base-sepolia" | "base-mainnet";
+            key: "base-mainnet";
             /** @enum {string} */
             family: "base";
             label: string;
@@ -3759,11 +3880,12 @@ export interface components {
         AgentPairingSessionId: string;
         AgentConnectionSessionId: string;
         AgentConnectionCode: components["schemas"]["PairingCode"];
-        /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
+        /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
         Resource: string;
-        /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
+        /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
         Action: string;
         ChatScope: components["schemas"]["ChatScopeValue"];
+        ChatMessageId: number;
     };
     requestBodies: never;
     headers: never;
@@ -3987,6 +4109,126 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
+    reactToWebappChatMessage: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatReactionInput"];
+            };
+        };
+        responses: {
+            /** @description Chat reaction applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            /** @description Missing signed-in browser session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unknown chat scope or message */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Reaction rejected */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listChatDms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direct-message channels for the caller */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatDmListResponse"];
+                };
+            };
+            /** @description Missing signed-in browser session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listAgentChatMessages: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+                before?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat messages for the scope */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            /** @description Unknown chat scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
     createAgentChatMessage: {
         parameters: {
             query: {
@@ -4022,6 +4264,106 @@ export interface operations {
             };
             /** @description Message rejected */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    reactToAgentChatMessage: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatReactionInput"];
+            };
+        };
+        responses: {
+            /** @description Agent chat reaction applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            /** @description Unknown chat scope or message */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Reaction rejected */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listAgentChatDms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direct-message channels for the agent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatDmListResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getPublicProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: components["schemas"]["Address"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProfileResponse"];
+                };
+            };
+            /** @description Wallet has no presence here */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5296,6 +5638,33 @@ export interface operations {
                     "application/json": components["schemas"]["LaunchJobEnvelope"];
                 };
             };
+            /** @description Browser session required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Launch job belongs to another Regent account */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Launch job not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
             429: components["responses"]["RateLimitError"];
         };
     };
@@ -5317,6 +5686,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LifecycleJobEnvelope"];
+                };
+            };
+            /** @description Browser session required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Lifecycle job belongs to another Regent account */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Lifecycle job not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -5581,13 +5977,49 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Bid created */
-            201: {
+            /** @description Bid submission prepared */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BidPositionEnvelope"];
+                    "application/json": components["schemas"]["PreparedActionEnvelope"];
+                };
+            };
+            /** @description Bid request is invalid */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Regent account is required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Auction not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Bid cannot be prepared from the stored auction facts */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -5680,33 +6112,6 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
-    exitBid: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: components["parameters"]["BidId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["BidMutationRequest"];
-            };
-        };
-        responses: {
-            /** @description Exit prepared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BidPositionEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
     returnBidQuoteToken: {
         parameters: {
             query?: never;
@@ -5728,7 +6133,52 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BidPositionEnvelope"];
+                    "application/json": components["schemas"]["PreparedActionEnvelope"];
+                };
+            };
+            /** @description Return cannot be prepared from the stored bid facts */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    exitBid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["BidId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BidMutationRequest"];
+            };
+        };
+        responses: {
+            /** @description Exit prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparedActionEnvelope"];
+                };
+            };
+            /** @description Exit cannot be prepared from the stored bid facts */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -5755,7 +6205,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BidPositionEnvelope"];
+                    "application/json": components["schemas"]["PreparedActionEnvelope"];
+                };
+            };
+            /** @description Claim cannot be prepared from the stored bid facts */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -6500,16 +6959,16 @@ export interface operations {
             header?: never;
             path: {
                 id: components["parameters"]["JobId"];
-                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
+                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["SubjectContractActionRequest"];
             };
         };
         responses: {
@@ -6531,16 +6990,16 @@ export interface operations {
             header?: never;
             path: {
                 id: components["parameters"]["SubjectId"];
-                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
+                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["SubjectContractActionRequest"];
             };
         };
         responses: {
@@ -6561,9 +7020,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
+                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
@@ -7607,27 +8066,6 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
-    agentGetContractsAdminOverview: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Admin contracts overview */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseObject"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
     agentGetContractsJobOverview: {
         parameters: {
             query?: never;
@@ -7680,9 +8118,9 @@ export interface operations {
             header?: never;
             path: {
                 id: components["parameters"]["JobId"];
-                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
+                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
@@ -7711,9 +8149,9 @@ export interface operations {
             header?: never;
             path: {
                 id: components["parameters"]["SubjectId"];
-                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
+                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
@@ -7741,9 +8179,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. */
+                /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;

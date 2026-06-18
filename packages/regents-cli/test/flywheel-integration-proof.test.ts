@@ -28,12 +28,12 @@ const workspaceRoot = path.resolve(import.meta.dirname, "../../..");
 const regentRoot = path.resolve(workspaceRoot, "..");
 
 const files = {
-  platformApi: path.join(regentRoot, "platform/api-contract.openapiv3.yaml"),
-  platformCli: path.join(regentRoot, "platform/cli-contract.yaml"),
-  techtreeApi: path.join(regentRoot, "techtree/docs/api-contract.openapiv3.yaml"),
-  techtreeCli: path.join(regentRoot, "techtree/docs/cli-contract.yaml"),
-  autolaunchApi: path.join(regentRoot, "autolaunch/docs/api-contract.openapiv3.yaml"),
-  autolaunchCli: path.join(regentRoot, "autolaunch/docs/cli-contract.yaml"),
+  platformApi: path.join(regentRoot, "platform/contracts/platform/api-contract.openapiv3.yaml"),
+  platformCli: path.join(regentRoot, "platform/contracts/platform/cli-contract.yaml"),
+  techtreeApi: path.join(regentRoot, "platform/contracts/techtree/api-contract.openapiv3.yaml"),
+  techtreeCli: path.join(regentRoot, "platform/contracts/techtree/cli-contract.yaml"),
+  autolaunchApi: path.join(regentRoot, "platform/contracts/autolaunch/api-contract.openapiv3.yaml"),
+  autolaunchCli: path.join(regentRoot, "platform/contracts/autolaunch/cli-contract.yaml"),
   iosApi: path.join(regentRoot, "ios/api-contract.openapiv3.yaml"),
   sharedApi: path.join(workspaceRoot, "docs/regent-services-contract.openapiv3.yaml"),
   sharedCli: path.join(workspaceRoot, "docs/shared-cli-contract.yaml"),
@@ -71,7 +71,7 @@ const expectedLoop = [
   {
     owner: "platform",
     contract: "platformApi",
-    pathTemplate: "/api/agent-platform/formation/doctor",
+    pathTemplate: "/api/platform/formation/doctor",
     method: "get",
     operationId: "agentPlatformFormationDoctor",
     command: "platform formation doctor",
@@ -79,7 +79,7 @@ const expectedLoop = [
   {
     owner: "platform",
     contract: "platformApi",
-    pathTemplate: "/api/agent-platform/projection",
+    pathTemplate: "/api/platform/projection",
     method: "get",
     operationId: "agentPlatformProjection",
     command: "platform projection",
@@ -87,7 +87,7 @@ const expectedLoop = [
   {
     owner: "techtree",
     contract: "techtreeApi",
-    pathTemplate: "/v1/runtime/nodes/{id}",
+    pathTemplate: "/api/techtree/v1/runtime/nodes/{id}",
     method: "get",
     operationId: "getRuntimeNode",
     command: "techtree main fetch",
@@ -96,7 +96,7 @@ const expectedLoop = [
   {
     owner: "autolaunch",
     contract: "autolaunchApi",
-    pathTemplate: "/v1/agent/prelaunch/plans",
+    pathTemplate: "/api/autolaunch/v1/agent/prelaunch/plans",
     method: "post",
     operationId: "agentCreatePrelaunchPlan",
     command: "autolaunch prelaunch wizard",
@@ -104,7 +104,7 @@ const expectedLoop = [
   {
     owner: "autolaunch",
     contract: "autolaunchApi",
-    pathTemplate: "/v1/agent/prelaunch/plans/{id}/launch",
+    pathTemplate: "/api/autolaunch/v1/agent/prelaunch/plans/{id}/launch",
     method: "post",
     operationId: "agentLaunchPrelaunchPlan",
     command: "autolaunch launch run",
@@ -112,7 +112,7 @@ const expectedLoop = [
   {
     owner: "autolaunch",
     contract: "autolaunchApi",
-    pathTemplate: "/v1/agent/launch/jobs/{id}",
+    pathTemplate: "/api/autolaunch/v1/agent/launch/jobs/{id}",
     method: "get",
     operationId: "agentGetLaunchJob",
     command: "autolaunch jobs watch",
@@ -120,7 +120,7 @@ const expectedLoop = [
   {
     owner: "autolaunch",
     contract: "autolaunchApi",
-    pathTemplate: "/v1/agent/subjects/{id}",
+    pathTemplate: "/api/autolaunch/v1/agent/subjects/{id}",
     method: "get",
     operationId: "agentGetSubject",
     command: "autolaunch subjects get",
@@ -128,7 +128,7 @@ const expectedLoop = [
   {
     owner: "platform",
     contract: "platformApi",
-    pathTemplate: "/v1/agent/regent/staking",
+    pathTemplate: "/api/shared/regent/staking",
     method: "get",
     operationId: "getAgentRegentStakingOverview",
     command: "regent-staking get",
@@ -227,10 +227,16 @@ describe("Regent flywheel integration proof", () => {
     }
     expect(repos["design-system"]?.required_for_public_beta).toBe(false);
 
-    expect(repos.platform?.api_contracts?.[0]).toEqual(expect.objectContaining({ path: "api-contract.openapiv3.yaml" }));
-    expect(repos.platform?.cli_contracts?.[0]).toEqual(expect.objectContaining({ path: "cli-contract.yaml" }));
-    expect(repos.techtree?.api_contracts?.[0]).toEqual(expect.objectContaining({ path: "docs/api-contract.openapiv3.yaml" }));
-    expect(repos.autolaunch?.api_contracts?.[0]).toEqual(expect.objectContaining({ path: "docs/api-contract.openapiv3.yaml" }));
+    expect(repos.platform?.api_contracts?.map((contract) => contract.path)).toEqual([
+      "contracts/platform/api-contract.openapiv3.yaml",
+      "contracts/techtree/api-contract.openapiv3.yaml",
+      "contracts/autolaunch/api-contract.openapiv3.yaml",
+    ]);
+    expect(repos.platform?.cli_contracts?.map((contract) => contract.path)).toEqual([
+      "contracts/platform/cli-contract.yaml",
+      "contracts/techtree/cli-contract.yaml",
+      "contracts/autolaunch/cli-contract.yaml",
+    ]);
     expect(repos["regents-cli"]?.api_contracts?.[0]).toEqual(
       expect.objectContaining({ path: "docs/regent-services-contract.openapiv3.yaml" }),
     );

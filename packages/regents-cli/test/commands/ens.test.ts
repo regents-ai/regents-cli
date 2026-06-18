@@ -215,14 +215,14 @@ describe("ENS CLI command group", () => {
     expect(output.result).toBe(0);
     expect(buildAgentAuthHeadersMock).toHaveBeenCalledWith({
       method: "POST",
-      path: "/api/agent-platform/ens/prepare-primary",
+      path: "/api/platform/ens/prepare-primary",
       body: JSON.stringify({ ens_name: "tempo.regent.eth" }),
       configPath,
       audience: "platform",
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://regent.example/api/agent-platform/ens/prepare-primary",
+      "https://regent.example/api/platform/ens/prepare-primary",
       expect.objectContaining({
         method: "POST",
       }),

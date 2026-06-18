@@ -284,6 +284,36 @@ export class TechtreeContractServer {
         sidelinks: [],
       },
     ],
+    [
+      3,
+      {
+        id: 3,
+        seed: "ml",
+        kind: "review",
+        title: "Independent review",
+        status: "anchored",
+        parent_id: 1,
+        notebook_source: "print('review')",
+        summary: "Reproduced the headline claim",
+        slug: "independent-review",
+        sidelinks: [],
+      },
+    ],
+    [
+      4,
+      {
+        id: 4,
+        seed: "ml",
+        kind: "review",
+        title: "Review of the review",
+        status: "anchored",
+        parent_id: 3,
+        notebook_source: "print('re-review')",
+        summary: "The reproduction skipped the holdout",
+        slug: "review-of-review",
+        sidelinks: [],
+      },
+    ],
   ]);
 
   private readonly liveComments: TreeComment[] = [
@@ -401,7 +431,7 @@ export class TechtreeContractServer {
   }
 
   protectedRequests(): ContractRequestRecord[] {
-    return this.requests.filter((request) => request.pathname.startsWith("/v1/tree/") || request.pathname.startsWith("/v1/agent/"));
+    return this.requests.filter((request) => request.pathname.startsWith("/api/techtree/v1/tree/") || request.pathname.startsWith("/api/techtree/v1/agent/"));
   }
 
   private materializeNode(record: BaseNodeRecord): TreeNode {
@@ -624,7 +654,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/agent/siwa/nonce") {
+    if (method === "POST" && requestUrl.pathname === "/api/shared/siwa/nonce") {
       if (this.options.nonceResponse) {
         json(res, this.options.nonceResponse.statusCode, this.options.nonceResponse.payload);
         return;
@@ -679,7 +709,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/identity/status") {
+    if (method === "POST" && requestUrl.pathname === "/api/shared/identity/status") {
       const payload = body as {
         network?: "base";
         address?: `0x${string}`;
@@ -710,7 +740,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/identity/registration-intents") {
+    if (method === "POST" && requestUrl.pathname === "/api/shared/identity/registration-intents") {
       const payload = body as {
         network?: "base";
         address?: `0x${string}`;
@@ -742,7 +772,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/identity/registration-completions") {
+    if (method === "POST" && requestUrl.pathname === "/api/shared/identity/registration-completions") {
       const payload = body as {
         intent_id?: string;
         address?: `0x${string}`;
@@ -801,7 +831,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/identity/siwa/nonce") {
+    if (method === "POST" && requestUrl.pathname === "/api/shared/identity/siwa/nonce") {
       const payload = body as {
         network?: "base";
         address?: `0x${string}`;
@@ -847,7 +877,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/identity/siwa/verify") {
+    if (method === "POST" && requestUrl.pathname === "/api/shared/identity/siwa/verify") {
       const payload = body as {
         network?: "base";
         address?: `0x${string}`;
@@ -927,7 +957,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/agent/siwa/verify") {
+    if (method === "POST" && requestUrl.pathname === "/api/shared/siwa/verify") {
       if (this.options.verifyResponse) {
         json(res, this.options.verifyResponse.statusCode, this.options.verifyResponse.payload);
         return;
@@ -1038,7 +1068,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && requestUrl.pathname === "/v1/tree/nodes") {
+    if (method === "GET" && requestUrl.pathname === "/api/techtree/v1/tree/nodes") {
       const seedFilter = requestUrl.searchParams.get("seed");
       const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
       const data = [...this.liveNodes.values()]
@@ -1050,7 +1080,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/tree\/nodes\/\d+$/.test(requestUrl.pathname)) {
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+$/.test(requestUrl.pathname)) {
       const nodeId = Number.parseInt(requestUrl.pathname.split("/").pop() ?? "0", 10);
       const node = this.liveNodes.get(nodeId);
       if (!node || (node.status !== "anchored" && node.status !== "pinned")) {
@@ -1062,7 +1092,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/agent\/tree\/nodes\/\d+$/.test(requestUrl.pathname)) {
+    if (method === "GET" && /^\/api\/techtree\/v1\/agent\/tree\/nodes\/\d+$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
@@ -1078,8 +1108,8 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/tree\/nodes\/\d+\/children$/.test(requestUrl.pathname)) {
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/children$/.test(requestUrl.pathname)) {
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
       const data = [...this.liveNodes.values()]
         .filter(
@@ -1091,12 +1121,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/agent\/tree\/nodes\/\d+\/children$/.test(requestUrl.pathname)) {
+    if (method === "GET" && /^\/api\/techtree\/v1\/agent\/tree\/nodes\/\d+\/children$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[5] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[7] ?? "0", 10);
       const parent = this.liveNodes.get(nodeId);
       if (!parent) {
         json(res, 404, { error: { code: "node_not_found", message: "node not found" } });
@@ -1112,8 +1142,105 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/tree\/nodes\/\d+\/comments$/.test(requestUrl.pathname)) {
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/reviews$/.test(requestUrl.pathname)) {
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
+      const node = this.liveNodes.get(nodeId);
+      if (!node || node.status !== "anchored") {
+        json(res, 404, { error: { code: "node_not_found", message: "node not found" } });
+        return;
+      }
+
+      const buildThreads = (parentId: number): Array<Record<string, unknown>> =>
+        [...this.liveNodes.values()]
+          .filter(
+            (candidate) =>
+              candidate.parent_id === parentId &&
+              candidate.kind === "review" &&
+              candidate.status === "anchored",
+          )
+          .map((review) => {
+            const replies = buildThreads(review.id);
+            return {
+              id: review.id,
+              parent_id: parentId,
+              kind: "review",
+              title: review.title,
+              summary: review.summary,
+              status: review.status,
+              depth: 1,
+              creator_agent_id: TEST_AGENT_SUMMARY.id,
+              creator_agent: TEST_AGENT_SUMMARY,
+              inserted_at: createdAt(),
+              reply_count: replies.length,
+              replies,
+            };
+          });
+
+      const threads = buildThreads(nodeId);
+      const countThreads = (items: Array<Record<string, unknown>>): number =>
+        items.reduce(
+          (total, item) => total + 1 + countThreads(item.replies as Array<Record<string, unknown>>),
+          0,
+        );
+      const maxDepth = (items: Array<Record<string, unknown>>): number =>
+        items.length === 0
+          ? 0
+          : 1 + Math.max(...items.map((item) => maxDepth(item.replies as Array<Record<string, unknown>>)));
+
+      json(res, 200, {
+        data: {
+          node_id: nodeId,
+          total_reviews: countThreads(threads),
+          direct_reviews: threads.length,
+          max_depth: maxDepth(threads),
+          truncated: false,
+          threads,
+        },
+      });
+      return;
+    }
+
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/agents\/\d+$/.test(requestUrl.pathname)) {
+      const agentId = Number.parseInt(requestUrl.pathname.split("/").pop() ?? "0", 10);
+      if (agentId !== TEST_AGENT_SUMMARY.id) {
+        json(res, 404, { error: { code: "agent_not_found", message: "agent not found" } });
+        return;
+      }
+
+      const anchored = [...this.liveNodes.values()].filter((node) => node.status === "anchored");
+      const byKind: Record<string, number> = {};
+      for (const node of anchored) {
+        byKind[node.kind] = (byKind[node.kind] ?? 0) + 1;
+      }
+
+      json(res, 200, {
+        data: {
+          agent: {
+            id: TEST_AGENT_SUMMARY.id,
+            label: TEST_AGENT_SUMMARY.label,
+            wallet_address: TEST_AGENT_SUMMARY.wallet_address,
+            chain_id: 8453,
+            status: "active",
+            first_seen_at: createdAt(),
+            last_verified_at: createdAt(),
+          },
+          publications: {
+            total: anchored.length,
+            by_kind: byKind,
+            recent: anchored.map((node) => this.materializeNode(node)),
+            last_published_at: createdAt(),
+          },
+          review_activity: {
+            reviews_authored: anchored.filter((node) => node.kind === "review").length,
+            reviews_received: 0,
+          },
+        },
+      });
+      return;
+    }
+
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/comments$/.test(requestUrl.pathname)) {
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const node = this.liveNodes.get(nodeId);
       if (!node || (node.status !== "anchored" && node.status !== "pinned")) {
         json(res, 404, { error: { code: "node_not_found", message: "node not found" } });
@@ -1126,12 +1253,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/agent\/tree\/nodes\/\d+\/comments$/.test(requestUrl.pathname)) {
+    if (method === "GET" && /^\/api\/techtree\/v1\/agent\/tree\/nodes\/\d+\/comments$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[5] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[7] ?? "0", 10);
       const node = this.liveNodes.get(nodeId);
       if (!node) {
         json(res, 404, { error: { code: "node_not_found", message: "node not found" } });
@@ -1144,15 +1271,15 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/tree\/nodes\/\d+\/sidelinks$/.test(requestUrl.pathname)) {
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/sidelinks$/.test(requestUrl.pathname)) {
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const node = this.liveNodes.get(nodeId);
       json(res, 200, { data: node ? this.materializeNode(node).sidelinks : [] });
       return;
     }
 
-    if (method === "GET" && /^\/v1\/tree\/seeds\/[^/]+\/hot$/.test(requestUrl.pathname)) {
-      const seed = decodeURIComponent(requestUrl.pathname.split("/")[4] ?? "");
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/seeds\/[^/]+\/hot$/.test(requestUrl.pathname)) {
+      const seed = decodeURIComponent(requestUrl.pathname.split("/")[6] ?? "");
       const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
       const data = [...this.liveNodes.values()]
         .filter((node) => node.status === "anchored")
@@ -1163,7 +1290,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && requestUrl.pathname === "/v1/tree/activity") {
+    if (method === "GET" && requestUrl.pathname === "/api/techtree/v1/tree/activity") {
       const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
       const normalizedLimit = Number.isFinite(limit) && limit > 0 ? limit : 50;
       json(res, 200, {
@@ -1175,7 +1302,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && requestUrl.pathname === "/v1/science-tasks") {
+    if (method === "GET" && requestUrl.pathname === "/api/techtree/v1/science-tasks") {
       const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
       const stage = requestUrl.searchParams.get("stage");
       const scienceDomain = requestUrl.searchParams.get("science_domain");
@@ -1193,7 +1320,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/science-tasks\/\d+$/.test(requestUrl.pathname)) {
+    if (method === "GET" && /^\/api\/techtree\/v1\/science-tasks\/\d+$/.test(requestUrl.pathname)) {
       const nodeId = Number.parseInt(requestUrl.pathname.split("/").pop() ?? "0", 10);
       const detail = this.liveScienceTasks.get(nodeId);
       if (!detail) {
@@ -1206,7 +1333,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && requestUrl.pathname === "/v1/tree/search") {
+    if (method === "GET" && requestUrl.pathname === "/api/techtree/v1/tree/search") {
       const query = (requestUrl.searchParams.get("q") ?? "").toLowerCase();
       const limit = Number.parseInt(requestUrl.searchParams.get("limit") ?? "50", 10);
       const normalizedLimit = Number.isFinite(limit) && limit > 0 ? limit : 50;
@@ -1225,12 +1352,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && /^\/v1\/tree\/nodes\/\d+\/work-packet$/.test(requestUrl.pathname)) {
+    if (method === "GET" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/work-packet$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const node = this.liveNodes.get(nodeId);
       if (!node) {
         json(res, 404, { error: { code: "node_not_found", message: "node not found" } });
@@ -1248,7 +1375,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/tree/nodes") {
+    if (method === "POST" && requestUrl.pathname === "/api/techtree/v1/tree/nodes") {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
@@ -1324,7 +1451,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/tree/comments") {
+    if (method === "POST" && requestUrl.pathname === "/api/techtree/v1/tree/comments") {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
@@ -1373,7 +1500,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && requestUrl.pathname === "/v1/agent/science-tasks") {
+    if (method === "POST" && requestUrl.pathname === "/api/techtree/v1/agent/science-tasks") {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
@@ -1436,12 +1563,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/checklist$/.test(requestUrl.pathname)) {
+    if (method === "POST" && /^\/api\/techtree\/v1\/agent\/science-tasks\/\d+\/checklist$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const current = this.liveScienceTasks.get(nodeId);
       if (!current) {
         json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
@@ -1476,12 +1603,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/evidence$/.test(requestUrl.pathname)) {
+    if (method === "POST" && /^\/api\/techtree\/v1\/agent\/science-tasks\/\d+\/evidence$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const current = this.liveScienceTasks.get(nodeId);
       if (!current) {
         json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
@@ -1519,12 +1646,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/submit$/.test(requestUrl.pathname)) {
+    if (method === "POST" && /^\/api\/techtree\/v1\/agent\/science-tasks\/\d+\/submit$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const current = this.liveScienceTasks.get(nodeId);
       if (!current) {
         json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
@@ -1563,12 +1690,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && /^\/v1\/agent\/science-tasks\/\d+\/review-update$/.test(requestUrl.pathname)) {
+    if (method === "POST" && /^\/api\/techtree\/v1\/agent\/science-tasks\/\d+\/review-update$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const current = this.liveScienceTasks.get(nodeId);
       if (!current) {
         json(res, 404, { error: { code: "science_task_not_found", message: "science task not found" } });
@@ -1623,7 +1750,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && requestUrl.pathname === "/v1/agent/watches") {
+    if (method === "GET" && requestUrl.pathname === "/api/techtree/v1/agent/watches") {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
@@ -1634,12 +1761,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && /^\/v1\/tree\/nodes\/\d+\/watch$/.test(requestUrl.pathname)) {
+    if (method === "POST" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/watch$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       if (!this.liveNodes.has(nodeId)) {
         json(res, 404, { error: { code: "node_not_found", message: "node not found" } });
         return;
@@ -1666,12 +1793,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "DELETE" && /^\/v1\/tree\/nodes\/\d+\/watch$/.test(requestUrl.pathname)) {
+    if (method === "DELETE" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/watch$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       if (!this.liveNodes.has(nodeId)) {
         json(res, 404, { error: { code: "node_not_found", message: "node not found" } });
         return;
@@ -1682,12 +1809,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "POST" && /^\/v1\/tree\/nodes\/\d+\/star$/.test(requestUrl.pathname)) {
+    if (method === "POST" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/star$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       const existing = (this.liveStars.get(nodeId) ?? [])[0];
 
       if (existing) {
@@ -1710,12 +1837,12 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "DELETE" && /^\/v1\/tree\/nodes\/\d+\/star$/.test(requestUrl.pathname)) {
+    if (method === "DELETE" && /^\/api\/techtree\/v1\/tree\/nodes\/\d+\/star$/.test(requestUrl.pathname)) {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
 
-      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[4] ?? "0", 10);
+      const nodeId = Number.parseInt(requestUrl.pathname.split("/")[6] ?? "0", 10);
       if ((this.liveStars.get(nodeId) ?? []).length > 0) {
         this.appendActivityEvent(nodeId, "node.unstarred", {});
       }
@@ -1724,7 +1851,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && requestUrl.pathname === "/v1/agent/inbox") {
+    if (method === "GET" && requestUrl.pathname === "/api/techtree/v1/agent/inbox") {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }
@@ -1738,7 +1865,7 @@ export class TechtreeContractServer {
       return;
     }
 
-    if (method === "GET" && requestUrl.pathname === "/v1/agent/opportunities") {
+    if (method === "GET" && requestUrl.pathname === "/api/techtree/v1/agent/opportunities") {
       if (!(await this.ensureProtectedHeaders(res, method, requestUrl.pathname, headers))) {
         return;
       }

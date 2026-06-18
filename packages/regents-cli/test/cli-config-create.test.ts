@@ -46,8 +46,6 @@ describe("CLI config flows", () => {
         socket: string;
         wallet: string;
         gossipsub: string;
-        xmtp: string;
-        xmtpPolicy: string;
       };
     };
 
@@ -55,7 +53,6 @@ describe("CLI config flows", () => {
       runtime: { socketPath: string; stateDir: string };
       wallet: { keystorePath: string };
       gossipsub: { peerIdPath: string };
-      xmtp: { dbPath: string; publicPolicyPath: string };
     };
 
     expect(fs.existsSync(payload.config_path)).toBe(true);
@@ -65,18 +62,12 @@ describe("CLI config flows", () => {
     expect(writtenConfig.runtime.socketPath).toBe(path.join(harness.tempDir, "nested", "run", "regent.sock"));
     expect(writtenConfig.wallet.keystorePath).toBe(path.join(harness.tempDir, "nested", "keys", "agent-wallet.json"));
     expect(writtenConfig.gossipsub.peerIdPath).toBe(path.join(harness.tempDir, "nested", "p2p", "peer-id.json"));
-    expect(writtenConfig.xmtp.dbPath).toBe(path.join(harness.tempDir, "nested", "xmtp", "production", "client.db"));
-    expect(writtenConfig.xmtp.publicPolicyPath).toBe(path.join(harness.tempDir, "nested", "policies", "xmtp-public.md"));
     expect(payload.directories.socket).toBe(path.dirname(writtenConfig.runtime.socketPath));
     expect(payload.directories.wallet).toBe(path.dirname(writtenConfig.wallet.keystorePath));
     expect(payload.directories.gossipsub).toBe(path.dirname(writtenConfig.gossipsub.peerIdPath));
-    expect(payload.directories.xmtp).toBe(path.dirname(writtenConfig.xmtp.dbPath));
-    expect(payload.directories.xmtpPolicy).toBe(path.dirname(writtenConfig.xmtp.publicPolicyPath));
     expect(fs.existsSync(payload.directories.socket)).toBe(true);
     expect(fs.existsSync(payload.directories.wallet)).toBe(true);
     expect(fs.existsSync(payload.directories.gossipsub)).toBe(true);
-    expect(fs.existsSync(payload.directories.xmtp)).toBe(true);
-    expect(fs.existsSync(payload.directories.xmtpPolicy)).toBe(true);
   });
 
   it("does not overwrite an existing config file during init", async () => {
@@ -122,21 +113,6 @@ describe("CLI config flows", () => {
           bootstrap: [],
           peerIdPath: path.join(harness.tempDir, "custom-p2p", "peer-id.json"),
         },
-        xmtp: {
-          enabled: true,
-          env: "production",
-          dbPath: path.join(harness.tempDir, "custom-xmtp", "client.db"),
-          dbEncryptionKeyPath: path.join(harness.tempDir, "custom-xmtp", "db.key"),
-          walletKeyPath: path.join(harness.tempDir, "custom-xmtp", "wallet.key"),
-          ownerInboxIds: ["owner-inbox"],
-          trustedInboxIds: [],
-          publicPolicyPath: path.join(harness.tempDir, "custom-policies", "xmtp-public.md"),
-          profiles: {
-            owner: "full",
-            public: "messaging",
-            group: "messaging",
-          },
-        },
       }),
       "utf8",
     );
@@ -158,8 +134,6 @@ describe("CLI config flows", () => {
         socket: path.join(harness.tempDir, "custom-runtime"),
         wallet: path.join(harness.tempDir, "custom-keys"),
         gossipsub: path.join(harness.tempDir, "custom-p2p"),
-        xmtp: path.join(harness.tempDir, "custom-xmtp"),
-        xmtpPolicy: path.join(harness.tempDir, "custom-policies"),
       },
       plugin: { selected_runtime: "auto", installed_now: [] },
       daemon: { running: true, started_now: false },
@@ -221,21 +195,6 @@ describe("CLI config flows", () => {
         listenAddrs: [],
         bootstrap: [],
         peerIdPath: path.join(harness.tempDir, "p2p", "peer-id.json"),
-      },
-      xmtp: {
-        enabled: false,
-        env: "production",
-        dbPath: path.join(harness.tempDir, "xmtp", "production", "client.db"),
-        dbEncryptionKeyPath: path.join(harness.tempDir, "xmtp", "production", "db.key"),
-        walletKeyPath: path.join(harness.tempDir, "xmtp", "production", "wallet.key"),
-        ownerInboxIds: [],
-        trustedInboxIds: [],
-        publicPolicyPath: path.join(harness.tempDir, "policies", "xmtp-public.md"),
-        profiles: {
-          owner: "full",
-          public: "messaging",
-          group: "messaging",
-        },
       },
       agents: {
         defaultHarness: "hermes",
@@ -332,21 +291,6 @@ describe("CLI config flows", () => {
           listenAddrs: ["/ip4/127.0.0.1/tcp/0"],
           bootstrap: [],
           peerIdPath: path.join(harness.tempDir, "alt-p2p", "peer-id.json"),
-        },
-        xmtp: {
-          enabled: true,
-          env: "dev",
-          dbPath: path.join(harness.tempDir, "alt-xmtp", "client.db"),
-          dbEncryptionKeyPath: path.join(harness.tempDir, "alt-xmtp", "db.key"),
-          walletKeyPath: path.join(harness.tempDir, "alt-xmtp", "wallet.key"),
-          ownerInboxIds: ["owner-inbox"],
-          trustedInboxIds: ["trusted-inbox"],
-          publicPolicyPath: path.join(harness.tempDir, "alt-policies", "xmtp-public.md"),
-          profiles: {
-            owner: "full",
-            public: "messaging",
-            group: "messaging",
-          },
         },
         agents: {
           defaultHarness: "hermes",
@@ -454,21 +398,6 @@ describe("CLI config flows", () => {
           listenAddrs: ["/ip4/127.0.0.1/tcp/0"],
           bootstrap: [],
           peerIdPath: path.join(harness.tempDir, "alt-p2p", "peer-id.json"),
-        },
-        xmtp: {
-          enabled: true,
-          env: "dev",
-          dbPath: path.join(harness.tempDir, "alt-xmtp", "client.db"),
-          dbEncryptionKeyPath: path.join(harness.tempDir, "alt-xmtp", "db.key"),
-          walletKeyPath: path.join(harness.tempDir, "alt-xmtp", "wallet.key"),
-          ownerInboxIds: ["owner-inbox"],
-          trustedInboxIds: ["trusted-inbox"],
-          publicPolicyPath: path.join(harness.tempDir, "alt-policies", "xmtp-public.md"),
-          profiles: {
-            owner: "full",
-            public: "messaging",
-            group: "messaging",
-          },
         },
         agents: {
           defaultHarness: "hermes",

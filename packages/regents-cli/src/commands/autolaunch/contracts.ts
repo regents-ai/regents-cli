@@ -1,5 +1,6 @@
 import { getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import { printJson } from "../../printer.js";
+import { loadResolvedPlatformSession, requestPlatformSessionJson } from "../platform.js";
 import { requestJson } from "./shared.js";
 
 const requireJobFlag = (args: ParsedCliArgs): string =>
@@ -19,7 +20,7 @@ const postPrepareJobAction = async (
   printJson(
     await requestJson(
       "POST",
-      `/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}/${resource}/${action}/prepare`,
+      `/api/autolaunch/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}/${resource}/${action}/prepare`,
       { body, requireAgentAuth: true, configPath },
     ),
   );
@@ -37,7 +38,7 @@ const postPrepareSubjectAction = async (
   printJson(
     await requestJson(
       "POST",
-      `/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}/${resource}/${action}/prepare`,
+      `/api/autolaunch/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}/${resource}/${action}/prepare`,
       { body, requireAgentAuth: true, configPath },
     ),
   );
@@ -52,7 +53,7 @@ const postPrepareAdminAction = async (
   printJson(
     await requestJson(
       "POST",
-      `/v1/agent/contracts/admin/${resource}/${action}/prepare`,
+      `/api/autolaunch/v1/agent/contracts/admin/${resource}/${action}/prepare`,
       {
         body,
         requireAgentAuth: true,
@@ -63,14 +64,20 @@ const postPrepareAdminAction = async (
 };
 
 export async function runAutolaunchContractsAdminShow(
+  args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
-  printJson(
-    await requestJson("GET", "/v1/agent/contracts/admin", {
-      requireAgentAuth: true,
-      configPath,
-    }),
-  );
+  const { origin, session } = await loadResolvedPlatformSession(args);
+  const { data } = await requestPlatformSessionJson({
+    origin,
+    path: "/api/autolaunch/v1/app/contracts/admin",
+    method: "GET",
+    session,
+    commandName: "regents autolaunch contracts admin",
+    configPath,
+  });
+
+  printJson(data);
 }
 
 export async function runAutolaunchContractsJobShow(
@@ -81,7 +88,7 @@ export async function runAutolaunchContractsJobShow(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}`,
+      `/api/autolaunch/v1/agent/contracts/jobs/${encodeURIComponent(jobId)}`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -95,7 +102,7 @@ export async function runAutolaunchContractsSubjectShow(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}`,
+      `/api/autolaunch/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}`,
       { requireAgentAuth: true, configPath },
     ),
   );

@@ -237,7 +237,7 @@ export async function handleTechtreeAutoskillBuy(
     throw new Error("node does not expose an active paid payload");
   }
 
-  const path = `/v1/agent/tree/nodes/${params.node_id}/payload`;
+  const path = `/api/techtree/v1/agent/tree/nodes/${params.node_id}/payload`;
   const url = `${ctx.techtree.baseUrl}${path}`;
   const init = await ctx.techtree.buildAuthedRequestInit("GET", path);
   const headers = headersRecord(init.headers);
@@ -285,7 +285,7 @@ export async function handleTechtreeAutoskillRefund(
     throw new Error("node does not expose an active paid payload");
   }
 
-  const path = `/v1/agent/tree/nodes/${params.node_id}/payload`;
+  const path = `/api/techtree/v1/agent/tree/nodes/${params.node_id}/payload`;
   const url = `${ctx.techtree.baseUrl}${path}`;
   const init = await ctx.techtree.buildAuthedRequestInit("GET", path);
   const x402 = new RegentX402Client({

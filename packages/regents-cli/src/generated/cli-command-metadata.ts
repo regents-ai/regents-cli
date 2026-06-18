@@ -188,6 +188,7 @@ export const CLI_COMMANDS = [
   "start",
   "status",
   "techtree activity",
+  "techtree agent profile <id>",
   "techtree autoskill buy",
   "techtree autoskill init eval",
   "techtree autoskill init skill",
@@ -262,6 +263,7 @@ export const CLI_COMMANDS = [
   "techtree node lineage claim",
   "techtree node lineage list",
   "techtree node lineage withdraw",
+  "techtree node reviews <id>",
   "techtree node work-packet <id>",
   "techtree nodes list",
   "techtree notebooks init",
@@ -278,7 +280,6 @@ export const CLI_COMMANDS = [
   "techtree runbook answer attach-paid-solution <answer_id>",
   "techtree runbook answer post <question_id>",
   "techtree runbook answer vote <answer_id>",
-  "techtree runbook invite-request <question_id>",
   "techtree runbook mark-solved <question_id>",
   "techtree runbook payment-address set",
   "techtree runbook question post",
@@ -324,6 +325,8 @@ export const CLI_COMMANDS = [
   "techtree work list",
   "techtree work next",
   "techtree work publish",
+  "update",
+  "version",
   "wallet agentic balance",
   "wallet agentic fund",
   "wallet agentic login",
@@ -347,43 +350,7 @@ export const CLI_COMMANDS = [
   "x402 quote",
   "x402 receipts get",
   "x402 refund",
-  "x402 search",
-  "xmtp dm list",
-  "xmtp dm send",
-  "xmtp doctor",
-  "xmtp group add-admin",
-  "xmtp group add-member",
-  "xmtp group add-super-admin",
-  "xmtp group admins",
-  "xmtp group create",
-  "xmtp group list",
-  "xmtp group members",
-  "xmtp group permissions",
-  "xmtp group remove-admin",
-  "xmtp group remove-member",
-  "xmtp group remove-super-admin",
-  "xmtp group super-admins",
-  "xmtp group update-permission",
-  "xmtp inbox",
-  "xmtp inbox sync",
-  "xmtp init",
-  "xmtp owner add",
-  "xmtp owner list",
-  "xmtp owner remove",
-  "xmtp policy edit",
-  "xmtp policy get",
-  "xmtp policy init",
-  "xmtp policy validate",
-  "xmtp resolve",
-  "xmtp revoke-other-installations",
-  "xmtp rotate-db-key",
-  "xmtp rotate-wallet",
-  "xmtp status",
-  "xmtp tail",
-  "xmtp test dm",
-  "xmtp trusted add",
-  "xmtp trusted list",
-  "xmtp trusted remove"
+  "x402 search"
 ] as const;
 
 export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
@@ -628,6 +595,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   ],
   "techtree": [
     "techtree activity",
+    "techtree agent profile <id>",
     "techtree autoskill buy",
     "techtree autoskill init eval",
     "techtree autoskill init skill",
@@ -702,6 +670,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree node lineage claim",
     "techtree node lineage list",
     "techtree node lineage withdraw",
+    "techtree node reviews <id>",
     "techtree node work-packet <id>",
     "techtree nodes list",
     "techtree notebooks init",
@@ -718,7 +687,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree runbook answer attach-paid-solution <answer_id>",
     "techtree runbook answer post <question_id>",
     "techtree runbook answer vote <answer_id>",
-    "techtree runbook invite-request <question_id>",
     "techtree runbook mark-solved <question_id>",
     "techtree runbook payment-address set",
     "techtree runbook question post",
@@ -765,6 +733,12 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree work next",
     "techtree work publish"
   ],
+  "update": [
+    "update"
+  ],
+  "version": [
+    "version"
+  ],
   "wallet": [
     "wallet agentic balance",
     "wallet agentic fund",
@@ -796,44 +770,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "x402 receipts get",
     "x402 refund",
     "x402 search"
-  ],
-  "xmtp": [
-    "xmtp dm list",
-    "xmtp dm send",
-    "xmtp doctor",
-    "xmtp group add-admin",
-    "xmtp group add-member",
-    "xmtp group add-super-admin",
-    "xmtp group admins",
-    "xmtp group create",
-    "xmtp group list",
-    "xmtp group members",
-    "xmtp group permissions",
-    "xmtp group remove-admin",
-    "xmtp group remove-member",
-    "xmtp group remove-super-admin",
-    "xmtp group super-admins",
-    "xmtp group update-permission",
-    "xmtp inbox",
-    "xmtp inbox sync",
-    "xmtp init",
-    "xmtp owner add",
-    "xmtp owner list",
-    "xmtp owner remove",
-    "xmtp policy edit",
-    "xmtp policy get",
-    "xmtp policy init",
-    "xmtp policy validate",
-    "xmtp resolve",
-    "xmtp revoke-other-installations",
-    "xmtp rotate-db-key",
-    "xmtp rotate-wallet",
-    "xmtp status",
-    "xmtp tail",
-    "xmtp test dm",
-    "xmtp trusted add",
-    "xmtp trusted list",
-    "xmtp trusted remove"
   ]
 } as const;
 
@@ -1269,7 +1205,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--area",
         "type": "string",
         "required": false,
-        "description": "Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, xmtp, chat, work, or mcp."
+        "description": "Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, chat, work, or mcp."
       },
       {
         "name": "--command",
@@ -1658,7 +1594,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--chain",
         "type": "string",
         "required": false,
-        "description": "Chain name, such as base or base-sepolia."
+        "description": "Chain name, such as base-mainnet."
       },
       {
         "name": "--mine-only",
@@ -2200,7 +2136,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "examples": [
@@ -2226,7 +2162,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2260,7 +2196,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2294,7 +2230,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2386,14 +2322,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "chat-list-or-messages",
-    "flags": [
-      {
-        "name": "--sync",
-        "type": "boolean",
-        "required": false,
-        "description": "Refresh conversations from the network before listing."
-      }
-    ],
     "examples": [
       "regents autolaunch chat list",
       "regents autolaunch chat read system --limit 50",
@@ -2420,7 +2348,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2458,7 +2386,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--chain",
         "type": "string",
         "required": false,
-        "description": "Chain name, such as base or base-sepolia."
+        "description": "Chain name, such as base-mainnet."
       },
       {
         "name": "--include-reverse",
@@ -2490,7 +2418,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2528,7 +2456,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--chain",
         "type": "string",
         "required": false,
-        "description": "Chain name, such as base or base-sepolia."
+        "description": "Chain name, such as base-mainnet."
       },
       {
         "name": "--include-reverse",
@@ -2560,7 +2488,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2598,7 +2526,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--chain",
         "type": "string",
         "required": false,
-        "description": "Chain name, such as base or base-sepolia."
+        "description": "Chain name, such as base-mainnet."
       },
       {
         "name": "--include-reverse",
@@ -2630,7 +2558,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2668,7 +2596,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--chain",
         "type": "string",
         "required": false,
-        "description": "Chain name, such as base or base-sepolia."
+        "description": "Chain name, such as base-mainnet."
       },
       {
         "name": "--include-reverse",
@@ -2700,7 +2628,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2740,7 +2668,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2780,7 +2708,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2814,7 +2742,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2848,7 +2776,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -2913,7 +2841,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--chain",
         "type": "string",
         "required": false,
-        "description": "Chain name, such as base or base-sepolia."
+        "description": "Chain name, such as base-mainnet."
       },
       {
         "name": "--owner",
@@ -2968,7 +2896,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--chain",
         "type": "string",
         "required": false,
-        "description": "Chain name, such as base or base-sepolia."
+        "description": "Chain name, such as base-mainnet."
       },
       {
         "name": "--private-key",
@@ -3004,7 +2932,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -3050,7 +2978,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -3108,7 +3036,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -3148,7 +3076,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -3895,7 +3823,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -3929,7 +3857,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -3981,7 +3909,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4021,7 +3949,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4169,7 +4097,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4203,7 +4131,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4237,7 +4165,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4271,7 +4199,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4305,7 +4233,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4339,7 +4267,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4373,7 +4301,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4413,7 +4341,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4453,7 +4381,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4493,7 +4421,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4533,7 +4461,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4573,7 +4501,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4613,7 +4541,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4653,7 +4581,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4687,7 +4615,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -4721,7 +4649,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "autolaunch",
     "group": "ens-contracts",
     "interface": "http",
-    "auth_mode": "agent-siwa",
+    "auth_mode": "mixed",
     "auth_audience": "autolaunch",
     "output_envelope": "prepared-action-or-status",
     "flags": [
@@ -5896,13 +5824,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--fix",
         "type": "boolean",
         "required": false,
-        "description": "Apply safe local repairs for blockers doctor can fix mechanically, such as creating the default config file, creating missing runtime folders, removing a validated stale runtime socket, and creating the default XMTP policy file. Everything else keeps its printed next step. No destructive repairs."
+        "description": "Apply safe local repairs for blockers doctor can fix mechanically, such as creating the default config file, creating missing runtime folders, and removing a validated stale runtime socket. Everything else keeps its printed next step. No destructive repairs."
       }
     ],
     "examples": [
       "regents doctor",
       "regents doctor --fix",
-      "regents xmtp doctor"
+      "regents doctor transports"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -5926,7 +5854,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents doctor",
       "regents doctor --fix",
-      "regents xmtp doctor"
+      "regents doctor transports"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -5950,7 +5878,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents doctor",
       "regents doctor --fix",
-      "regents xmtp doctor"
+      "regents doctor transports"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -5974,7 +5902,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents doctor",
       "regents doctor --fix",
-      "regents xmtp doctor"
+      "regents doctor transports"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -5998,7 +5926,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents doctor",
       "regents doctor --fix",
-      "regents xmtp doctor"
+      "regents doctor transports"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -6022,7 +5950,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents doctor",
       "regents doctor --fix",
-      "regents xmtp doctor"
+      "regents doctor transports"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -6046,7 +5974,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "examples": [
       "regents doctor",
       "regents doctor --fix",
-      "regents xmtp doctor"
+      "regents doctor transports"
     ],
     "agent_metadata": {
       "category": "diagnostics",
@@ -6148,7 +6076,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "identity ensure",
     "owner": "shared-services",
     "group": "identity",
-    "interface": "runtime",
+    "interface": "mixed",
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
@@ -6171,7 +6099,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "identity graph",
     "owner": "shared-services",
     "group": "identity",
-    "interface": "runtime",
+    "interface": "mixed",
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "flags": [
@@ -6202,7 +6130,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "identity status",
     "owner": "shared-services",
     "group": "identity",
-    "interface": "runtime",
+    "interface": "mixed",
     "auth_mode": "none",
     "output_envelope": "loose-object",
     "examples": [
@@ -8317,20 +8245,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents setup",
+      "regents setup --quick",
+      "regents setup --json",
       "regents setup --runtime hermes"
     ],
     "agent_metadata": {
       "category": "local-setup",
-      "prompt_behavior": "never_prompt",
+      "prompt_behavior": "may_prompt",
       "json_support": "supported",
-      "mutation_class": "local-read",
+      "mutation_class": "local-write",
       "retry_behavior": "safe",
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags",
+      "summary": "Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins, and registers the regents MCP server. With --json or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.\n",
       "next_step": "regents plugin status"
     },
-    "summary": "Show setup guidance.",
+    "summary": "Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins, and registers the regents MCP server. With --json or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.\n",
     "next_step": "regents plugin status"
   },
   "setup skills": {
@@ -8457,6 +8388,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show recent Techtree activity."
+  },
+  "techtree agent profile <id>": {
+    "command": "techtree agent profile <id>",
+    "owner": "techtree",
+    "group": "tree",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "tree-envelopes",
+    "examples": [
+      "regents techtree search \"alignment\"",
+      "regents techtree node get <id>",
+      "regents techtree inbox"
+    ],
+    "agent_metadata": {
+      "category": "tree",
+      "prompt_behavior": "never_prompt_for_reads",
+      "json_support": "supported",
+      "mutation_class": "read-or-tree-write",
+      "retry_behavior": "retry_reads_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show Techtree agent profile."
   },
   "techtree autoskill buy": {
     "command": "techtree autoskill buy",
@@ -11000,14 +10955,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "output_envelope": "chat-list-or-stream",
-    "flags": [
-      {
-        "name": "--sync",
-        "type": "boolean",
-        "required": false,
-        "description": "Refresh conversations from the network before listing."
-      }
-    ],
     "examples": [
       "regents techtree chat list",
       "regents techtree chat read system --limit 50",
@@ -11027,7 +10974,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
-    "summary": "List local XMTP direct message conversations."
+    "summary": "List server-stored direct message scopes."
   },
   "techtree fold policy init": {
     "command": "techtree fold policy init",
@@ -11822,6 +11769,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Withdraw node lineage."
   },
+  "techtree node reviews <id>": {
+    "command": "techtree node reviews <id>",
+    "owner": "techtree",
+    "group": "tree",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "tree-envelopes",
+    "examples": [
+      "regents techtree search \"alignment\"",
+      "regents techtree node get <id>",
+      "regents techtree inbox"
+    ],
+    "agent_metadata": {
+      "category": "tree",
+      "prompt_behavior": "never_prompt_for_reads",
+      "json_support": "supported",
+      "mutation_class": "read-or-tree-write",
+      "retry_behavior": "retry_reads_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Show Techtree node reviews."
+  },
   "techtree node work-packet <id>": {
     "command": "techtree node work-packet <id>",
     "owner": "techtree",
@@ -12451,43 +12422,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Vote on runbook answer."
-  },
-  "techtree runbook invite-request <question_id>": {
-    "command": "techtree runbook invite-request <question_id>",
-    "owner": "techtree",
-    "group": "runbook",
-    "interface": "mixed",
-    "auth_mode": "agent-siwa",
-    "output_envelope": "runbook-envelopes",
-    "flags": [
-      {
-        "name": "--answer-id",
-        "type": "string",
-        "required": false,
-        "description": "Runbook answer id."
-      },
-      {
-        "name": "--note",
-        "type": "string",
-        "required": false,
-        "description": "Short note to include."
-      }
-    ],
-    "examples": [
-      "regents techtree runbook questions list",
-      "regents techtree runbook question post --tool shopify-cli --command \"shopify app dev\" --log ./error.log --confirm-redaction"
-    ],
-    "agent_metadata": {
-      "category": "runbook",
-      "prompt_behavior": "confirm_before_upload_or_purchase",
-      "json_support": "supported",
-      "mutation_class": "local-and-http-write",
-      "retry_behavior": "retry_reads_only",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Invite help on a Runbook question."
   },
   "techtree runbook mark-solved <question_id>": {
     "command": "techtree runbook mark-solved <question_id>",
@@ -13514,10 +13448,35 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--budget-tokens",
         "type": "integer",
         "required": true
+      },
+      {
+        "name": "--publish",
+        "type": "boolean",
+        "required": false,
+        "description": "After an accepted run, publish the optimized skill as a new skill version through the autoskill publish flow."
+      },
+      {
+        "name": "--publish-null-results",
+        "type": "boolean",
+        "required": false,
+        "description": "Publish each candidate rejected by the held-out validation gate as a null_result node."
+      },
+      {
+        "name": "--seed",
+        "type": "string",
+        "required": false,
+        "description": "Seed tree for published null-result nodes, such as main. Needed with --publish-null-results."
+      },
+      {
+        "name": "--skill-version",
+        "type": "string",
+        "required": false,
+        "description": "Version recorded on the published skill when --publish is set."
       }
     ],
     "examples": [
-      "regents techtree skills optimize --capsule-set chem-synthesis --workspace ./skill --skill-slug chem-helper --val-fraction 0.25 --rounds 4 --frozen-harness-base harness_123 --budget-tokens 1200"
+      "regents techtree skills optimize --capsule-set chem-synthesis --workspace ./skill --skill-slug chem-helper --val-fraction 0.25 --rounds 4 --frozen-harness-base harness_123 --budget-tokens 1200",
+      "regents techtree skills optimize --capsule-set chem-synthesis --workspace ./skill --skill-slug chem-helper --val-fraction 0.25 --rounds 4 --frozen-harness-base harness_123 --budget-tokens 1200 --publish --publish-null-results --seed main"
     ],
     "agent_metadata": {
       "category": "skills",
@@ -14465,10 +14424,63 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded",
       "async_behavior": "synchronous",
       "input_mode": "args-and-flags",
+      "summary": "Publish a finished work workspace. Notebook workspaces publish as Techtree notebook nodes; Regent v1 artifact, run, and review workspaces are compiled locally and submitted to /api/techtree/v1/agent/runtime/publish/submit in the same single command.",
       "next_step": "regents receipt create --from-notebook <node-id> --json"
     },
-    "summary": "Publish work.",
+    "summary": "Publish a finished work workspace. Notebook workspaces publish as Techtree notebook nodes; Regent v1 artifact, run, and review workspaces are compiled locally and submitted to /api/techtree/v1/agent/runtime/publish/submit in the same single command.",
     "next_step": "regents receipt create --from-notebook <node-id> --json"
+  },
+  "update": {
+    "command": "update",
+    "owner": "shared-services",
+    "group": "operator",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "operator-status-envelopes",
+    "examples": [
+      "regents update",
+      "regents update --version 0.6.0"
+    ],
+    "agent_metadata": {
+      "category": "local-setup",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one.\n",
+      "next_step": "regents setup --quick"
+    },
+    "summary": "Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one.\n",
+    "next_step": "regents setup --quick"
+  },
+  "version": {
+    "command": "version",
+    "owner": "shared-services",
+    "group": "operator",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "operator-status-envelopes",
+    "examples": [
+      "regents version",
+      "regents version --json"
+    ],
+    "agent_metadata": {
+      "category": "local-setup",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Print the installed Regents CLI version. Also available as --version.",
+      "next_step": "regents update"
+    },
+    "summary": "Print the installed Regents CLI version. Also available as --version.",
+    "next_step": "regents update"
   },
   "wallet agentic balance": {
     "command": "wallet agentic balance",
@@ -15725,869 +15737,5 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Search for x402 services.",
     "next_step": "regents x402 details --url <paid-url> --json"
-  },
-  "xmtp dm list": {
-    "command": "xmtp dm list",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List XMTP direct message conversations."
-  },
-  "xmtp dm send": {
-    "command": "xmtp dm send",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Send an XMTP direct message."
-  },
-  "xmtp doctor": {
-    "command": "xmtp doctor",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Check XMTP readiness."
-  },
-  "xmtp group add-admin": {
-    "command": "xmtp group add-admin",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Add admin to group."
-  },
-  "xmtp group add-member": {
-    "command": "xmtp group add-member",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Add member to group."
-  },
-  "xmtp group add-super-admin": {
-    "command": "xmtp group add-super-admin",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Add super admin to group."
-  },
-  "xmtp group admins": {
-    "command": "xmtp group admins",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List group admins."
-  },
-  "xmtp group create": {
-    "command": "xmtp group create",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Create group."
-  },
-  "xmtp group list": {
-    "command": "xmtp group list",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List group."
-  },
-  "xmtp group members": {
-    "command": "xmtp group members",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List group members."
-  },
-  "xmtp group permissions": {
-    "command": "xmtp group permissions",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List group permissions."
-  },
-  "xmtp group remove-admin": {
-    "command": "xmtp group remove-admin",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Remove admin from group."
-  },
-  "xmtp group remove-member": {
-    "command": "xmtp group remove-member",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Remove member from group."
-  },
-  "xmtp group remove-super-admin": {
-    "command": "xmtp group remove-super-admin",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Remove super admin from group."
-  },
-  "xmtp group super-admins": {
-    "command": "xmtp group super-admins",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List group super admins."
-  },
-  "xmtp group update-permission": {
-    "command": "xmtp group update-permission",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Update permission for group."
-  },
-  "xmtp inbox": {
-    "command": "xmtp inbox",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Show XMTP conversations with new-message counts."
-  },
-  "xmtp inbox sync": {
-    "command": "xmtp inbox sync",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Sync local XMTP conversations."
-  },
-  "xmtp init": {
-    "command": "xmtp init",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Set up local XMTP identity."
-  },
-  "xmtp owner add": {
-    "command": "xmtp owner add",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Add owner."
-  },
-  "xmtp owner list": {
-    "command": "xmtp owner list",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List owner."
-  },
-  "xmtp owner remove": {
-    "command": "xmtp owner remove",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Remove owner."
-  },
-  "xmtp policy edit": {
-    "command": "xmtp policy edit",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Edit policy."
-  },
-  "xmtp policy get": {
-    "command": "xmtp policy get",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Show policy."
-  },
-  "xmtp policy init": {
-    "command": "xmtp policy init",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Set up policy."
-  },
-  "xmtp policy validate": {
-    "command": "xmtp policy validate",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Check policy."
-  },
-  "xmtp resolve": {
-    "command": "xmtp resolve",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Resolve an XMTP identity."
-  },
-  "xmtp revoke-other-installations": {
-    "command": "xmtp revoke-other-installations",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Revoke other XMTP installations."
-  },
-  "xmtp rotate-db-key": {
-    "command": "xmtp rotate-db-key",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Rotate the XMTP database key."
-  },
-  "xmtp rotate-wallet": {
-    "command": "xmtp rotate-wallet",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Rotate the XMTP wallet."
-  },
-  "xmtp status": {
-    "command": "xmtp status",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Show XMTP readiness."
-  },
-  "xmtp tail": {
-    "command": "xmtp tail",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Watch live incoming XMTP messages."
-  },
-  "xmtp test dm": {
-    "command": "xmtp test dm",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Send a test XMTP direct message."
-  },
-  "xmtp trusted add": {
-    "command": "xmtp trusted add",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Add trusted."
-  },
-  "xmtp trusted list": {
-    "command": "xmtp trusted list",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "List trusted."
-  },
-  "xmtp trusted remove": {
-    "command": "xmtp trusted remove",
-    "owner": "shared-services",
-    "group": "xmtp",
-    "interface": "runtime",
-    "auth_mode": "none",
-    "output_envelope": "loose-object",
-    "examples": [
-      "regents xmtp status",
-      "regents xmtp policy get",
-      "regents xmtp group list"
-    ],
-    "agent_metadata": {
-      "category": "messaging",
-      "prompt_behavior": "prompt_for_local_identity_changes",
-      "json_support": "supported",
-      "mutation_class": "local-and-network-write",
-      "retry_behavior": "retry_idempotent_reads",
-      "pagination": "bounded",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Remove trusted."
   }
 } as const;

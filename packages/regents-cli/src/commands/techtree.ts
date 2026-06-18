@@ -125,6 +125,14 @@ export async function runTechtreeNodeGet(id: number, configPath?: string): Promi
   printJson(await daemonCall("techtree.nodes.get", { id }, configPath));
 }
 
+export async function runTechtreeNodeReviews(id: number, configPath?: string): Promise<void> {
+  printJson(await daemonCall("techtree.nodes.reviews", { id }, configPath));
+}
+
+export async function runTechtreeAgentProfile(id: number, configPath?: string): Promise<void> {
+  printJson(await daemonCall("techtree.agents.profile", { id }, configPath));
+}
+
 export async function runTechtreeNodeChildren(args: string[], id: number, configPath?: string): Promise<void> {
   printJson(
     await daemonCall(

@@ -33,7 +33,7 @@ export async function runEnsSetPrimary(
   const ensName = requireArg(getFlag(args, "ens"), "ens");
   const payload = await requestPlatformJson(
     "POST",
-    "/api/agent-platform/ens/prepare-primary",
+    "/api/platform/ens/prepare-primary",
     { ens_name: ensName },
     configPath,
   );

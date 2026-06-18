@@ -59,7 +59,6 @@ import {
   handleTechtreeRunbookAnswerAttachPaidSolution,
   handleTechtreeRunbookAnswerPost,
   handleTechtreeRunbookAnswerVote,
-  handleTechtreeRunbookInviteRequest,
   handleTechtreeRunbookMarkSolved,
   handleTechtreeRunbookPaymentAddressSet,
   handleTechtreeRunbookQuestionPost,
@@ -79,8 +78,10 @@ import {
   handleTechtreeTechWithdraw,
   handleTechtreeCommentCreate,
   handleTechtreeInboxGet,
+  handleTechtreeAgentProfile,
   handleTechtreeNodeChildren,
   handleTechtreeNodeComments,
+  handleTechtreeNodeReviews,
   handleTechtreeNodeCrossChainLinksCreate,
   handleTechtreeNodeCrossChainLinksClear,
   handleTechtreeNodeCrossChainLinksList,
@@ -116,11 +117,11 @@ import {
   handleTechtreeStarDelete,
   handleTechtreeStatus,
   handleTechtreeChatChannels,
+  handleTechtreeChatDms,
   handleTechtreeChatHistory,
   handleTechtreeChatPost,
   handleTechtreeV1ArtifactCompile,
   handleTechtreeV1ArtifactInit,
-  handleTechtreeV1ArtifactPin,
   handleTechtreeV1ArtifactPublish,
   handleTechtreeV1BbhCapsulesGet,
   handleTechtreeV1BbhCapsulesList,
@@ -151,7 +152,6 @@ import {
   handleTechtreeV1ReviewExec,
   handleTechtreeV1ReviewInit,
   handleTechtreeV1ReviewList,
-  handleTechtreeV1ReviewPin,
   handleTechtreeV1ReviewPull,
   handleTechtreeV1ReviewPublish,
   handleTechtreeV1ReviewSubmit,
@@ -161,7 +161,6 @@ import {
   handleTechtreeV1RunCompile,
   handleTechtreeV1RunExec,
   handleTechtreeV1RunInit,
-  handleTechtreeV1RunPin,
   handleTechtreeV1RunPublish,
   handleTechtreeV1Verify,
   handleTechtreeWatchCreate,
@@ -176,18 +175,15 @@ import {
   handleX402ReceiptGet,
   handleX402Refund,
 } from "./handlers/x402.js";
-import { handleXmtpStatus } from "./handlers/xmtp.js";
 import { JsonRpcServer } from "./jsonrpc/server.js";
 import { StateStore } from "./store/state-store.js";
 import { SessionStore } from "./store/session-store.js";
 import { TechtreeRuntimeClient } from "./techtree/runtime-client.js";
 import { TechtreeClient } from "./techtree/client.js";
 import {
-  ManagedXmtpAdapter,
   PublicChatRelayAdapter,
   type TransportAdapter,
   type GossipsubAdapter,
-  type XmtpAdapter,
   ChatRelaySocketServer,
   WatchedNodeRelay,
   WatchedNodeRelaySocketServer,
@@ -201,7 +197,6 @@ export interface RuntimeContext {
   techtree: TechtreeClient;
   techtreePublisher: TechtreePublisher;
   walletSecretSource: WalletSecretSource;
-  xmtp: XmtpAdapter;
   gossipsub: GossipsubAdapter;
   agentRouter: AgentRouter;
   workload: WorkloadAdapter;
@@ -232,7 +227,6 @@ export class RegentKernel {
   readonly walletSecretSource: WalletSecretSource;
   readonly techtree: TechtreeClient;
   readonly techtreePublisher: TechtreePublisher;
-  readonly xmtp: XmtpAdapter;
   readonly gossipsub: GossipsubAdapter;
   readonly agentRouter: AgentRouter;
   readonly workload: WorkloadAdapter;
@@ -266,7 +260,6 @@ export class RegentKernel {
         config: this.config,
       }),
     );
-    this.xmtp = new ManagedXmtpAdapter(this.config.xmtp);
     this.watchedNodeRelay = new WatchedNodeRelay(this.techtree);
     this.gossipsub = new PublicChatRelayAdapter(
       this.config.gossipsub,
@@ -349,10 +342,7 @@ export class RegentKernel {
 
     const session = this.sessionStore.getSiwaSession();
     const agent = await this.agentRouter.status();
-    const [xmtp, gossipsub] = await Promise.all([
-      this.xmtp.status(),
-      this.gossipsub.status(),
-    ]);
+    const gossipsub = await this.gossipsub.status();
 
     return {
       running: this.started,
@@ -370,7 +360,6 @@ export class RegentKernel {
       agentIdentity: agent.identity,
       agent,
       techtree: health,
-      xmtp,
       gossipsub,
     };
   }
@@ -403,7 +392,6 @@ export class RegentKernel {
       techtree: this.techtree,
       techtreePublisher: this.techtreePublisher,
       walletSecretSource: this.walletSecretSource,
-      xmtp: this.xmtp,
       gossipsub: this.gossipsub,
       agentRouter: this.agentRouter,
       workload: this.workload,
@@ -423,7 +411,7 @@ export class RegentKernel {
   }
 
   private transportAdapters(): TransportAdapter[] {
-    return [this.xmtp, this.gossipsub];
+    return [this.gossipsub];
   }
 
   private async dispatch(method: RegentRpcMethod, params: unknown): Promise<unknown> {
@@ -477,6 +465,10 @@ export class RegentKernel {
         return handleTechtreeNodeChildren(ctx, params as Parameters<typeof handleTechtreeNodeChildren>[1]);
       case "techtree.nodes.comments":
         return handleTechtreeNodeComments(ctx, params as Parameters<typeof handleTechtreeNodeComments>[1]);
+      case "techtree.nodes.reviews":
+        return handleTechtreeNodeReviews(ctx, params as Parameters<typeof handleTechtreeNodeReviews>[1]);
+      case "techtree.agents.profile":
+        return handleTechtreeAgentProfile(ctx, params as Parameters<typeof handleTechtreeAgentProfile>[1]);
       case "techtree.nodes.lineage.list":
         return handleTechtreeNodeLineageList(ctx, params as Parameters<typeof handleTechtreeNodeLineageList>[1]);
       case "techtree.nodes.lineage.claim":
@@ -755,11 +747,6 @@ export class RegentKernel {
           ctx,
           params as Parameters<typeof handleTechtreeRunbookAnswerVote>[1],
         );
-      case "techtree.runbook.inviteRequest":
-        return handleTechtreeRunbookInviteRequest(
-          ctx,
-          params as Parameters<typeof handleTechtreeRunbookInviteRequest>[1],
-        );
       case "techtree.autoskill.initSkill":
         return handleTechtreeAutoskillInitSkill(
           ctx,
@@ -829,14 +816,14 @@ export class RegentKernel {
           ctx,
           params as Parameters<typeof handleTechtreeChatHistory>[1],
         );
+      case "techtree.chat.dms":
+        return handleTechtreeChatDms(ctx);
       case "techtree.chat.post":
         return handleTechtreeChatPost(ctx, params as Parameters<typeof handleTechtreeChatPost>[1]);
       case "techtree.v1.artifact.init":
         return handleTechtreeV1ArtifactInit(ctx, params as Parameters<typeof handleTechtreeV1ArtifactInit>[1]);
       case "techtree.v1.artifact.compile":
         return handleTechtreeV1ArtifactCompile(ctx, params as Parameters<typeof handleTechtreeV1ArtifactCompile>[1]);
-      case "techtree.v1.artifact.pin":
-        return handleTechtreeV1ArtifactPin(ctx, params as Parameters<typeof handleTechtreeV1ArtifactPin>[1]);
       case "techtree.v1.artifact.publish":
         return handleTechtreeV1ArtifactPublish(ctx, params as Parameters<typeof handleTechtreeV1ArtifactPublish>[1]);
       case "techtree.v1.run.init":
@@ -845,8 +832,6 @@ export class RegentKernel {
         return handleTechtreeV1RunExec(ctx, params as Parameters<typeof handleTechtreeV1RunExec>[1]);
       case "techtree.v1.run.compile":
         return handleTechtreeV1RunCompile(ctx, params as Parameters<typeof handleTechtreeV1RunCompile>[1]);
-      case "techtree.v1.run.pin":
-        return handleTechtreeV1RunPin(ctx, params as Parameters<typeof handleTechtreeV1RunPin>[1]);
       case "techtree.v1.run.publish":
         return handleTechtreeV1RunPublish(ctx, params as Parameters<typeof handleTechtreeV1RunPublish>[1]);
       case "techtree.v1.review.init":
@@ -855,8 +840,6 @@ export class RegentKernel {
         return handleTechtreeV1ReviewExec(ctx, params as Parameters<typeof handleTechtreeV1ReviewExec>[1]);
       case "techtree.v1.review.compile":
         return handleTechtreeV1ReviewCompile(ctx, params as Parameters<typeof handleTechtreeV1ReviewCompile>[1]);
-      case "techtree.v1.review.pin":
-        return handleTechtreeV1ReviewPin(ctx, params as Parameters<typeof handleTechtreeV1ReviewPin>[1]);
       case "techtree.v1.review.publish":
         return handleTechtreeV1ReviewPublish(ctx, params as Parameters<typeof handleTechtreeV1ReviewPublish>[1]);
       case "techtree.v1.fetch":
@@ -959,8 +942,6 @@ export class RegentKernel {
         return handleX402Refund(ctx, params as Parameters<typeof handleX402Refund>[1]);
       case "x402.receipts.get":
         return handleX402ReceiptGet(ctx, params as Parameters<typeof handleX402ReceiptGet>[1]);
-      case "xmtp.status":
-        return handleXmtpStatus(ctx);
       case "gossipsub.status":
         return handleGossipsubStatus(ctx);
       default:

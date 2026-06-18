@@ -4,7 +4,6 @@ import path from "node:path";
 import type {
   RegentRunMetadata,
   TechtreeCompilerOutput,
-  TechtreePinResponse,
   TechtreePublishResponse,
   TechtreeTreeName,
   TechtreeWorkspaceActionResult,
@@ -263,31 +262,6 @@ export const compileWorkspace = async (
   }, { cwd: workspacePath });
 };
 
-export const pinWorkspace = async (
-  ctx: RuntimeContext,
-  tree: TechtreeTreeName,
-  nodeType: NodeType,
-  entrypoint: Extract<TechtreeCoreEntrypoint, "artifact.compile" | "run.compile" | "review.compile">,
-  workspacePath: string,
-): Promise<TechtreePinResponse & {
-  tree: TechtreeTreeName;
-  compiled: TechtreeCompilerOutput<Record<string, unknown>>;
-}> => {
-  const compiled = await compileWorkspace(entrypoint, workspacePath);
-  const client = ctx.techtreePublisher;
-  const pinned = await client.pinNode({
-    node_type: nodeType,
-    workspace_path: workspacePath,
-    dist_path: compiled.dist_path,
-  });
-
-  return {
-    ...pinned,
-    tree,
-    compiled,
-  };
-};
-
 export const publishWorkspace = async (
   ctx: RuntimeContext,
   tree: TechtreeTreeName,
@@ -295,20 +269,14 @@ export const publishWorkspace = async (
   entrypoint: Extract<TechtreeCoreEntrypoint, "artifact.compile" | "run.compile" | "review.compile">,
   workspacePath: string,
 ): Promise<TechtreePublishResponse & { tree: TechtreeTreeName }> => {
-  const client = ctx.techtreePublisher;
   const compiled = await compileWorkspace(entrypoint, workspacePath);
-  const pinned = await client.pinNode({
-    node_type: nodeType,
-    workspace_path: workspacePath,
-    dist_path: compiled.dist_path,
-  });
-  const published = await client.publishNode({
+  const published = await ctx.techtreePublisher.publishNode({
     node_type: nodeType,
     workspace_path: workspacePath,
     dist_path: compiled.dist_path,
     header: compiled.node_header,
-    manifest_cid: pinned.manifest_cid,
-    payload_cid: pinned.payload_cid,
+    manifest: compiled.manifest,
+    payload_index: compiled.payload_index,
   });
 
   return {

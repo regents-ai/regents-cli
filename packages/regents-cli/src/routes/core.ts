@@ -27,6 +27,8 @@ import { runRuntime } from "../commands/run.js";
 import { runSetup } from "../commands/setup.js";
 import { runSetupSkills } from "../commands/setup-skills.js";
 import { runTechtreeStartCommand } from "../commands/techtree-start.js";
+import { runUpdate } from "../commands/update.js";
+import { runVersion } from "../commands/version.js";
 import {
   runX402Details,
   runX402Fetch,
@@ -48,6 +50,8 @@ export const coreHandlers: CliHandlerRegistry = {
   whoami: { run: ({ parsedArgs, configPath }) => runOperatorWhoami(parsedArgs, configPath) },
   "agent-context": { run: ({ parsedArgs, configPath }) => runAgentContext(parsedArgs, configPath) },
   setup: { run: ({ parsedArgs }) => runSetup(parsedArgs) },
+  version: { run: ({ parsedArgs }) => runVersion(parsedArgs) },
+  update: { run: ({ parsedArgs }) => runUpdate(parsedArgs) },
   "plugin status": { run: ({ parsedArgs }) => runPluginStatus(parsedArgs) },
   "plugin install": { run: ({ parsedArgs }) => runPluginInstall(parsedArgs) },
   "plugin doctor": { run: ({ parsedArgs }) => runPluginDoctor(parsedArgs) },

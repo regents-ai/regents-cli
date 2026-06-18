@@ -3,6 +3,7 @@ import { getFlag, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 import {
   installPlugin,
+  installableRuntimes,
   pluginStatus,
   selectedRuntimes,
   type RegentAgentRuntimeSelector,
@@ -37,14 +38,21 @@ export async function runPluginStatus(args: ParsedCliArgs): Promise<number> {
 
 export async function runPluginInstall(args: ParsedCliArgs): Promise<number> {
   const runtime = parseRuntimeSelector(getFlag(args, "runtime"));
-  const runtimes = selectedRuntimes(runtime);
+  // "auto" installs only for runtimes that actually exist on this machine; an
+  // explicit --runtime always installs for that runtime.
+  const runtimes = installableRuntimes(runtime);
+  const skipped = selectedRuntimes(runtime).filter((entry) => !runtimes.includes(entry));
   const includesHermes = runtimes.includes("hermes");
 
   printJson({
     ok: true,
     selectedRuntime: runtime,
     installed_plugins: runtimes.map((entry) => installPlugin(entry)),
+    skipped_runtimes: skipped,
     next_steps: [
+      ...(runtimes.length === 0
+        ? ["Install Hermes or OpenClaw, then re-run: regents plugin install"]
+        : []),
       ...(includesHermes ? ["hermes auth add xai-oauth"] : []),
       withRuntimeFlag("regents plugin doctor", runtime),
       "regents run",

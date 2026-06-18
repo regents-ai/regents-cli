@@ -7,17 +7,17 @@ import { appendQuery, requestTypedJson } from "./shared.js";
 
 type AutolaunchAgentsListResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
-  "/v1/agent/agents",
+  "/api/autolaunch/v1/agent/agents",
   "get"
 >;
 type AutolaunchAgentResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
-  "/v1/agent/agents/{id}",
+  "/api/autolaunch/v1/agent/agents/{id}",
   "get"
 >;
 type AutolaunchAgentReadinessResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
-  "/v1/agent/agents/{id}/readiness",
+  "/api/autolaunch/v1/agent/agents/{id}/readiness",
   "get"
 >;
 export async function runAutolaunchAgentsList(
@@ -27,7 +27,7 @@ export async function runAutolaunchAgentsList(
   printJson(
     await requestTypedJson<AutolaunchAgentsListResponse>(
       "GET",
-      appendQuery("/v1/agent/agents", {
+      appendQuery("/api/autolaunch/v1/agent/agents", {
         launchable: getBooleanFlag(args, "launchable"),
       }),
       { requireAgentAuth: true, configPath },
@@ -42,7 +42,7 @@ export async function runAutolaunchAgentShow(
   printJson(
     await requestTypedJson<AutolaunchAgentResponse>(
       "GET",
-      `/v1/agent/agents/${encodeURIComponent(agentId)}`,
+      `/api/autolaunch/v1/agent/agents/${encodeURIComponent(agentId)}`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -55,7 +55,7 @@ export async function runAutolaunchAgentReadiness(
   printJson(
     await requestTypedJson<AutolaunchAgentReadinessResponse>(
       "GET",
-      `/v1/agent/agents/${encodeURIComponent(agentId)}/readiness`,
+      `/api/autolaunch/v1/agent/agents/${encodeURIComponent(agentId)}/readiness`,
       { requireAgentAuth: true, configPath },
     ),
   );

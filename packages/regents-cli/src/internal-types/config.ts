@@ -31,23 +31,6 @@ export interface RegentWalletConfig {
   keystorePath: string;
 }
 
-export interface RegentXmtpConfig {
-  enabled: boolean;
-  env: "production" | "dev" | "local";
-  dbPath: string;
-  dbEncryptionKeyPath: string;
-  walletKeyPath: string;
-  ownerInboxIds: string[];
-  trustedInboxIds: string[];
-  publicPolicyPath: string;
-  profiles: {
-    owner: string;
-    public: string;
-    group: string;
-  };
-  dbEncryptionKeyEnv?: string;
-}
-
 export interface RegentGossipsubConfig {
   enabled: boolean;
   listenAddrs: string[];
@@ -93,7 +76,6 @@ export interface RegentConfig {
   auth: RegentAuthConfig;
   services: RegentServicesConfig;
   wallet: RegentWalletConfig;
-  xmtp: RegentXmtpConfig;
   gossipsub: RegentGossipsubConfig;
   agents: RegentAgentsConfig;
   workloads: RegentWorkloadsConfig;

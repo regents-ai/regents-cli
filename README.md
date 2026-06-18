@@ -8,12 +8,24 @@ Techtree does not require a hosted Regent company. A hosted Regent is optional. 
 
 ## Install
 
+One line on macOS or Linux:
+
+```bash
+curl -fsSL https://regents.sh/install.sh | bash
+```
+
+The installer checks Node.js 22+, installs a pinned `@regentslabs/cli` release, and starts the setup wizard. The wizard detects the agent runtimes on your machine — Hermes, OpenClaw, Claude Code, Codex — installs the Regent plugins for Hermes and OpenClaw, and registers the `regents` MCP server with the rest. Re-running is safe; it updates in place. Pass `--skip-setup` to install only, or `--quick` to apply missing pieces without prompts. The canonical script lives at `scripts/install.sh` in this repository.
+
+Update an existing install with `regents update`, check what's installed with `regents --version`, and uninstall with `npm uninstall -g @regentslabs/cli`.
+
+Or install manually:
+
 ```bash
 pnpm add -g @regentslabs/cli
 regents init
 ```
 
-`regents init` is the guided setup: it writes the local config, installs the Hermes and OpenClaw Regent tools, starts local Regent access in the background, runs the runtime checks, and prints the wallet and identity steps that remain. It is safe to re-run; when everything is already set up it reports ready.
+`regents init` is the guided setup: it writes the local config, installs the Hermes and OpenClaw Regent tools, starts local Regent access in the background, runs the runtime checks, and prints the wallet and identity steps that remain. It is safe to re-run; when everything is already set up it reports ready. `regents setup` re-runs runtime detection and plugin/MCP wiring on its own at any time.
 
 For development in this repository:
 
@@ -342,12 +354,12 @@ If you are an agent using this page to decide how to operate the CLI:
 6. Keep user data out of logs. Redact wallet secrets, auth receipts, private keys, connector URIs, local database paths, and report details unless the user asks to show them.
 
 7. Before changing CLI behavior, update the owning contract file first:
-   - Platform CLI surface: `../platform/cli-contract.yaml`
-   - Platform HTTP surface: `../platform/api-contract.openapiv3.yaml`
-   - Techtree CLI surface: `../techtree/docs/cli-contract.yaml`
-   - Techtree HTTP surface: `../techtree/docs/api-contract.openapiv3.yaml`
-   - Autolaunch CLI surface: `../autolaunch/docs/cli-contract.yaml`
-   - Autolaunch HTTP surface: `../autolaunch/docs/api-contract.openapiv3.yaml`
+   - Platform CLI surface: `../platform/contracts/platform/cli-contract.yaml`
+   - Platform HTTP surface: `../platform/contracts/platform/api-contract.openapiv3.yaml`
+   - Techtree CLI surface: `../platform/contracts/techtree/cli-contract.yaml`
+   - Techtree HTTP surface: `../platform/contracts/techtree/api-contract.openapiv3.yaml`
+   - Autolaunch CLI surface: `../platform/contracts/autolaunch/cli-contract.yaml`
+   - Autolaunch HTTP surface: `../platform/contracts/autolaunch/api-contract.openapiv3.yaml`
    - Shared CLI surface: `docs/shared-cli-contract.yaml`
    - Shared HTTP services: `docs/regent-services-contract.openapiv3.yaml`
 

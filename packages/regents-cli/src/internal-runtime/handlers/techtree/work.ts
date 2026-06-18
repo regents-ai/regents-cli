@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { publishNotebookWorkspace } from "../../workloads/notebooks.js";
 import { writeAcceptedWorkWorkspace, type AcceptedWorkWorkspaceResult } from "../../workloads/work.js";
+import { publishWorkspace } from "./workspace.js";
 import type { RuntimeContext } from "../../runtime.js";
 
 export async function handleTechtreeWorkList(
@@ -39,12 +40,22 @@ export async function handleTechtreeWorkAccept(
   });
 }
 
+const V1_NODE_TYPES = ["artifact", "run", "review"] as const;
+
+const detectV1NodeType = (workspacePath: string): (typeof V1_NODE_TYPES)[number] | null =>
+  V1_NODE_TYPES.find((nodeType) => fs.existsSync(path.join(workspacePath, `${nodeType}.source.yaml`))) ?? null;
+
 export async function handleTechtreeWorkPublish(
   ctx: RuntimeContext,
   params: { workspace_path: string },
 ): Promise<unknown> {
   if (fs.existsSync(path.join(params.workspace_path, "notebook.json"))) {
     return publishNotebookWorkspace(ctx, params);
+  }
+
+  const v1NodeType = detectV1NodeType(params.workspace_path);
+  if (v1NodeType) {
+    return publishWorkspace(ctx, "main", v1NodeType, `${v1NodeType}.compile`, params.workspace_path);
   }
 
   return {

@@ -135,8 +135,6 @@ const summarizeRecord = (value: unknown): KeyValueRow[] => {
   addRow("config created", typeof record.configCreated === "boolean" ? (record.configCreated ? "yes" : "no") : undefined);
   addRow("keystore dir", typeof record.keystoreDir === "string" ? record.keystoreDir : undefined);
   addRow("gossipsub dir", typeof record.gossipsubDir === "string" ? record.gossipsubDir : undefined);
-  addRow("xmtp dir", typeof record.xmtpDir === "string" ? record.xmtpDir : undefined);
-  addRow("xmtp policy", typeof record.xmtpPolicyDir === "string" ? record.xmtpPolicyDir : undefined);
   addRow("dev file", typeof record.devFile === "string" ? record.devFile : undefined);
   addRow("session", typeof record.session_id === "string" ? record.session_id : undefined);
   addRow("registry", typeof record.registry_address === "string" ? record.registry_address : undefined);

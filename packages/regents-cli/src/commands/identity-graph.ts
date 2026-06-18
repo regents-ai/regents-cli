@@ -158,7 +158,7 @@ const platformLinkResult = async (
       origin,
       session,
       method: "GET",
-      path: "/api/agent-platform/projection",
+      path: "/api/platform/projection",
       commandName: "regents identity graph",
       configPath,
     });
@@ -230,7 +230,7 @@ const resolveSubjectId = async (
   try {
     const payload = await requestProductJson<Record<string, unknown>>(
       "GET",
-      `/v1/agent/subjects/by-token/${encodeURIComponent(tokenAddress)}`,
+      `/api/autolaunch/v1/agent/subjects/by-token/${encodeURIComponent(tokenAddress)}`,
       {
         requireAgentAuth: true,
         authAudience: "autolaunch",
@@ -253,7 +253,7 @@ const autolaunchLinkResult = async (
   const item = "autolaunch link";
 
   try {
-    const payload = await requestProductJson<Record<string, unknown>>("GET", "/v1/agent/agents", {
+    const payload = await requestProductJson<Record<string, unknown>>("GET", "/api/autolaunch/v1/agent/agents", {
       requireAgentAuth: true,
       authAudience: "autolaunch",
       service: "autolaunch",
@@ -336,7 +336,7 @@ const techtreeLinkResult = async (
   try {
     const payload = await requestProductJson<Record<string, unknown>>(
       "GET",
-      "/v1/agent/reviewer/me",
+      "/api/techtree/v1/agent/reviewer/me",
       {
         requireAgentAuth: true,
         authAudience: "techtree",

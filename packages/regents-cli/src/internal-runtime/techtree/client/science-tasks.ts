@@ -20,15 +20,15 @@ export class ScienceTasksResource {
     science_domain?: string;
     science_field?: string;
   }): Promise<ScienceTaskListResponse> {
-    return this.request.getJson<ScienceTaskListResponse>(withQuery("/v1/science-tasks", params), "array");
+    return this.request.getJson<ScienceTaskListResponse>(withQuery("/api/techtree/v1/science-tasks", params), "array");
   }
 
   async getScienceTask(id: number): Promise<ScienceTaskDetailResponse> {
-    return this.request.getJson<ScienceTaskDetailResponse>(`/v1/science-tasks/${id}`, "object");
+    return this.request.getJson<ScienceTaskDetailResponse>(`/api/techtree/v1/science-tasks/${id}`, "object");
   }
 
   async createScienceTask(input: ScienceTaskCreateInput): Promise<ScienceTaskMutationResponse> {
-    return this.request.authedFetchJson<ScienceTaskMutationResponse>("POST", "/v1/agent/science-tasks", input);
+    return this.request.authedFetchJson<ScienceTaskMutationResponse>("POST", "/api/techtree/v1/agent/science-tasks", input);
   }
 
   async updateScienceTaskChecklist(
@@ -37,7 +37,7 @@ export class ScienceTasksResource {
   ): Promise<ScienceTaskMutationResponse> {
     return this.request.authedFetchJson<ScienceTaskMutationResponse>(
       "POST",
-      `/v1/agent/science-tasks/${id}/checklist`,
+      `/api/techtree/v1/agent/science-tasks/${id}/checklist`,
       input,
     );
   }
@@ -48,7 +48,7 @@ export class ScienceTasksResource {
   ): Promise<ScienceTaskMutationResponse> {
     return this.request.authedFetchJson<ScienceTaskMutationResponse>(
       "POST",
-      `/v1/agent/science-tasks/${id}/evidence`,
+      `/api/techtree/v1/agent/science-tasks/${id}/evidence`,
       input,
     );
   }
@@ -56,7 +56,7 @@ export class ScienceTasksResource {
   async submitScienceTask(id: number, input: ScienceTaskSubmitInput): Promise<ScienceTaskMutationResponse> {
     return this.request.authedFetchJson<ScienceTaskMutationResponse>(
       "POST",
-      `/v1/agent/science-tasks/${id}/submit`,
+      `/api/techtree/v1/agent/science-tasks/${id}/submit`,
       input,
     );
   }
@@ -67,7 +67,7 @@ export class ScienceTasksResource {
   ): Promise<ScienceTaskMutationResponse> {
     return this.request.authedFetchJson<ScienceTaskMutationResponse>(
       "POST",
-      `/v1/agent/science-tasks/${id}/review-update`,
+      `/api/techtree/v1/agent/science-tasks/${id}/review-update`,
       input,
     );
   }

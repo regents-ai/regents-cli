@@ -216,8 +216,8 @@ describe("techtree settlement verify", () => {
     process.env.BASE_MAINNET_RPC_URL = "https://base.example";
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url.includes("/v1/tech/status")) return jsonResponse(statusResponse());
-      if (url.includes("/v1/tech/rewards")) {
+      if (url.includes("/api/techtree/v1/tech/status")) return jsonResponse(statusResponse());
+      if (url.includes("/api/techtree/v1/tech/rewards")) {
         return jsonResponse(
           rewardsResponse([{ lane: "science", status: "posted", merkle_root: merkleRoot, tx_hash: postedTx }]),
         );
@@ -243,8 +243,8 @@ describe("techtree settlement verify", () => {
     process.env.BASE_MAINNET_RPC_URL = "https://base.example";
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url.includes("/v1/tech/status")) return jsonResponse(statusResponse());
-      if (url.includes("/v1/tech/rewards")) {
+      if (url.includes("/api/techtree/v1/tech/status")) return jsonResponse(statusResponse());
+      if (url.includes("/api/techtree/v1/tech/rewards")) {
         return jsonResponse(
           rewardsResponse([{ lane: "science", status: "posted", merkle_root: merkleRoot, tx_hash: postedTx }]),
         );
@@ -270,8 +270,8 @@ describe("techtree settlement verify", () => {
     process.env.BASE_MAINNET_RPC_URL = "https://base.example";
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url.includes("/v1/tech/status")) return jsonResponse(statusResponse());
-      if (url.includes("/v1/tech/rewards")) {
+      if (url.includes("/api/techtree/v1/tech/status")) return jsonResponse(statusResponse());
+      if (url.includes("/api/techtree/v1/tech/rewards")) {
         return jsonResponse(
           rewardsResponse([{ lane: "science", status: "posted", merkle_root: merkleRoot, tx_hash: postedTx }]),
         );
@@ -296,8 +296,8 @@ describe("techtree settlement verify", () => {
     process.env.BASE_MAINNET_RPC_URL = "https://base.example";
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url.includes("/v1/tech/status")) return jsonResponse(statusResponse());
-      if (url.includes("/v1/tech/rewards")) {
+      if (url.includes("/api/techtree/v1/tech/status")) return jsonResponse(statusResponse());
+      if (url.includes("/api/techtree/v1/tech/rewards")) {
         return jsonResponse(
           rewardsResponse([{ lane: "science", status: "prepared", merkle_root: merkleRoot, tx_hash: null }]),
         );
@@ -335,8 +335,8 @@ describe("techtree settlement verify", () => {
     writeSession("techtree");
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url.includes("/v1/tech/status")) return jsonResponse(statusResponse());
-      if (url.includes("/v1/tech/rewards")) {
+      if (url.includes("/api/techtree/v1/tech/status")) return jsonResponse(statusResponse());
+      if (url.includes("/api/techtree/v1/tech/rewards")) {
         return jsonResponse(
           rewardsResponse([{ lane: "science", status: "posted", merkle_root: merkleRoot, tx_hash: postedTx }]),
         );
@@ -362,8 +362,8 @@ describe("techtree settlement verify", () => {
     const expectedLeaf = `0x${"abcdef".padEnd(64, "0")}`.toLowerCase();
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url.includes("/v1/tech/status")) return jsonResponse(statusResponse());
-      if (url.includes("/v1/tech/rewards/proof")) {
+      if (url.includes("/api/techtree/v1/tech/status")) return jsonResponse(statusResponse());
+      if (url.includes("/api/techtree/v1/tech/rewards/proof")) {
         return jsonResponse({
           data: {
             epoch: 0,
@@ -376,7 +376,7 @@ describe("techtree settlement verify", () => {
           },
         });
       }
-      if (url.includes("/v1/tech/rewards")) {
+      if (url.includes("/api/techtree/v1/tech/rewards")) {
         return jsonResponse(
           rewardsResponse([{ lane: "science", status: "posted", merkle_root: merkleRoot, tx_hash: postedTx }]),
         );

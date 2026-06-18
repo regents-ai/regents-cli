@@ -135,7 +135,7 @@ describe("runtime commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runtimes",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes",
     );
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
@@ -175,7 +175,7 @@ describe("runtime commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runtimes/runtime_44/checkpoint",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/checkpoint",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
       JSON.stringify({
@@ -214,7 +214,7 @@ describe("runtime commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runtimes/runtime_44/restore",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/restore",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
       JSON.stringify({
@@ -313,10 +313,10 @@ describe("runtime commands", () => {
     expect(servicesOutput.result).toBe(0);
     expect(healthOutput.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runtimes/runtime_44/services",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/services",
     );
     expect(fetchMock.mock.calls[1]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runtimes/runtime_44/health",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/health",
     );
     expect(parsePrintedJson<{ result: { services: unknown[] } }>(servicesOutput.stdout).result.services).toHaveLength(1);
     expect(parsePrintedJson<{ result: { health: { available: boolean } } }>(healthOutput.stdout).result.health.available).toBe(
@@ -428,10 +428,10 @@ describe("runtime commands", () => {
     expect(pauseOutput.result).toBe(0);
     expect(resumeOutput.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runtimes/runtime_44/pause",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/pause",
     );
     expect(fetchMock.mock.calls[1]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runtimes/runtime_44/resume",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/resume",
     );
   });
 });

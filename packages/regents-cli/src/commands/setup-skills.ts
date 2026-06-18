@@ -53,7 +53,6 @@ const blockedEnvPrefixes = [
   "AUTOLAUNCH_",
   "TECHTREE_",
   "PLATFORM_",
-  "XMTP_",
 ] as const;
 
 const allowedEnvNames = new Set([

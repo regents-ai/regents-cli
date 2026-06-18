@@ -60,12 +60,12 @@ const loadOperationPathMap = (relativePath: string): Map<string, string> => {
 };
 
 const contractPathsByOwner = {
-  techtree: loadContractPathSet("../../../../techtree/docs/api-contract.openapiv3.yaml"),
-  autolaunch: loadContractPathSet("../../../../autolaunch/docs/api-contract.openapiv3.yaml"),
-  platform: loadContractPathSet("../../../../platform/api-contract.openapiv3.yaml"),
+  techtree: loadContractPathSet("../../../../platform/contracts/techtree/api-contract.openapiv3.yaml"),
+  autolaunch: loadContractPathSet("../../../../platform/contracts/autolaunch/api-contract.openapiv3.yaml"),
+  platform: loadContractPathSet("../../../../platform/contracts/platform/api-contract.openapiv3.yaml"),
   "shared-services": new Set([
     ...loadContractPathSet("../../../docs/regent-services-contract.openapiv3.yaml"),
-    ...loadContractPathSet("../../../../platform/api-contract.openapiv3.yaml"),
+    ...loadContractPathSet("../../../../platform/contracts/platform/api-contract.openapiv3.yaml"),
   ]),
 } as const;
 
@@ -96,12 +96,10 @@ describe("API command ownership registry", () => {
     expect(new Set(commands).size).toBe(commands.length);
   });
 
-  it("does not mark any wired API-backed command as stale by default", () => {
-    const staleGroups = apiCommandOwnership.filter(
-      (group) => group.status === "stale" || group.status === "remove-before-freeze",
-    );
+  it("uses only current status labels", () => {
+    const statusLabels = new Set(apiCommandOwnership.map((group) => group.status));
 
-    expect(staleGroups).toEqual([]);
+    expect(statusLabels).toEqual(new Set(["current", "current-local-and-api"]));
   });
 
   it("keeps every declared contract path aligned with the source contract files", () => {
@@ -118,18 +116,20 @@ describe("API command ownership registry", () => {
     expect(missingPaths).toEqual([]);
   });
 
-  it("only leaves path templates empty for explicitly hybrid command groups", () => {
+  it("only leaves path templates empty for current local-and-API command groups", () => {
     const invalidEmptyGroups = apiCommandOwnership.filter(
       (group) =>
         group.pathTemplates.length === 0 &&
-        (group.status !== "current-hybrid" || !group.note),
+        (group.status !== "current-local-and-api" || !group.note),
     );
 
     expect(invalidEmptyGroups).toEqual([]);
   });
 
   it("registers every current Platform API-backed CLI command", () => {
-    const platformCliContract = loadYamlDocument<CliContract>("../../../../platform/cli-contract.yaml");
+    const platformCliContract = loadYamlDocument<CliContract>(
+      "../../../../platform/contracts/platform/cli-contract.yaml",
+    );
     const platformOwnership = ownershipCommandsByOwner("platform");
     const missingCommands = (platformCliContract.commands ?? [])
       .filter((command) => {
@@ -151,8 +151,12 @@ describe("API command ownership registry", () => {
   });
 
   it("registers every Platform and Autolaunch CLI contract API path", () => {
-    const platformCliContract = loadYamlDocument<CliContract>("../../../../platform/cli-contract.yaml");
-    const platformOperationPaths = loadOperationPathMap("../../../../platform/api-contract.openapiv3.yaml");
+    const platformCliContract = loadYamlDocument<CliContract>(
+      "../../../../platform/contracts/platform/cli-contract.yaml",
+    );
+    const platformOperationPaths = loadOperationPathMap(
+      "../../../../platform/contracts/platform/api-contract.openapiv3.yaml",
+    );
     const platformContractPaths = new Set(
       (platformCliContract.commands ?? []).flatMap((command) =>
         (command.transport?.operationIds ?? []).flatMap((operationId) => {
@@ -162,7 +166,9 @@ describe("API command ownership registry", () => {
       ),
     );
 
-    const autolaunchCliContract = loadYamlDocument<CliContract>("../../../../autolaunch/docs/cli-contract.yaml");
+    const autolaunchCliContract = loadYamlDocument<CliContract>(
+      "../../../../platform/contracts/autolaunch/cli-contract.yaml",
+    );
     const autolaunchContractPaths = new Set(
       (autolaunchCliContract.command_groups ?? [])
         .filter((group) => group.interface !== "local" && group.interface !== "onchain")
@@ -201,13 +207,13 @@ describe("API command ownership registry", () => {
         "techtree science-tasks review-loop",
       ],
       pathTemplates: [
-        "/v1/science-tasks",
-        "/v1/science-tasks/{id}",
-        "/v1/agent/science-tasks",
-        "/v1/agent/science-tasks/{id}/checklist",
-        "/v1/agent/science-tasks/{id}/evidence",
-        "/v1/agent/science-tasks/{id}/submit",
-        "/v1/agent/science-tasks/{id}/review-update",
+        "/api/techtree/v1/science-tasks",
+        "/api/techtree/v1/science-tasks/{id}",
+        "/api/techtree/v1/agent/science-tasks",
+        "/api/techtree/v1/agent/science-tasks/{id}/checklist",
+        "/api/techtree/v1/agent/science-tasks/{id}/evidence",
+        "/api/techtree/v1/agent/science-tasks/{id}/submit",
+        "/api/techtree/v1/agent/science-tasks/{id}/review-update",
       ],
     });
   });
@@ -226,14 +232,14 @@ describe("API command ownership registry", () => {
         "techtree science run",
       ],
       pathTemplates: [
-        "/v1/science/goals",
-        "/v1/science/goals/{goal_id}",
-        "/v1/science/goals/active",
-        "/v1/science/runs",
-        "/v1/science/runs/{run_id}",
-        "/v1/science/runs/{run_id}/artifacts",
-        "/v1/science/runs/{run_id}/publish",
-        "/v1/science/tasks/resolve",
+        "/api/techtree/v1/science/goals",
+        "/api/techtree/v1/science/goals/{goal_id}",
+        "/api/techtree/v1/science/goals/active",
+        "/api/techtree/v1/science/runs",
+        "/api/techtree/v1/science/runs/{run_id}",
+        "/api/techtree/v1/science/runs/{run_id}/artifacts",
+        "/api/techtree/v1/science/runs/{run_id}/publish",
+        "/api/techtree/v1/science/tasks/resolve",
       ],
     });
   });

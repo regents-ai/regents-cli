@@ -6,20 +6,20 @@ import { daemonCall } from "../daemon-client.js";
 import {
   addChatSubscription,
   listChatSubscriptions,
-  listXmtpDms,
   loadConfig,
   readChatCursors,
   removeChatSubscription,
-  sendXmtpDm,
   writeChatCursors,
   type ChatProduct,
 } from "../internal-runtime/index.js";
 import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { CLI_PALETTE, isHumanTerminal, printJson, printJsonLine, renderPanel, tone } from "../printer.js";
+import { requireAgentAuthState } from "./agent-auth.js";
 import { resolveChatAuthorFilter, type ChatAuthorFilter, type ChatAuthorMessage } from "./chat-filter.js";
 import { collectUnreadMessages, CHAT_UNREAD_PAGE_LIMIT } from "./chat-unread.js";
 
 const DEFAULT_SCOPES = ["system"] as const;
+const WALLET_ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/u;
 
 const isChatLiveEvent = (payload: unknown): payload is ChatLiveEvent => {
   if (!payload || typeof payload !== "object") {
@@ -73,6 +73,23 @@ const renderChatEvent = (event: ChatLiveEvent): string => {
 };
 
 const requireScope = (args: ParsedCliArgs): string => requireArg(args.positionals[3], "scope");
+
+const normalizeWalletAddress = (value: string, label: string): `0x${string}` => {
+  if (!WALLET_ADDRESS_PATTERN.test(value)) {
+    throw new Error(`${label} must be a 0x wallet address`);
+  }
+
+  return value.toLowerCase() as `0x${string}`;
+};
+
+export const dmScopeForWallets = (walletA: string, walletB: string): string => {
+  const wallets = [
+    normalizeWalletAddress(walletA, "sender wallet"),
+    normalizeWalletAddress(walletB, "counterpart wallet"),
+  ].sort();
+
+  return `dm:${wallets[0]}:${wallets[1]}`;
+};
 
 /**
  * Resolve the scopes for a variadic chat command: explicit positional scopes
@@ -247,13 +264,22 @@ export async function runTechtreeDm(args: ParsedCliArgs, configPath?: string): P
     throw new Error(`invalid DM target: ${target}; expected a numeric node id or a 0x wallet address`);
   }
 
-  const config = loadConfig(configPath);
-  printJson(await sendXmtpDm(config.xmtp, wallet, message));
+  const { identity } = requireAgentAuthState(configPath, { audience: "techtree" });
+  printJson(
+    await daemonCall(
+      "techtree.chat.post",
+      {
+        scope: dmScopeForWallets(identity.walletAddress, wallet),
+        body: message,
+      },
+      configPath,
+    ),
+  );
 }
 
 export async function runTechtreeDmList(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const config = loadConfig(configPath);
-  printJson(await listXmtpDms(config.xmtp, { sync: getBooleanFlag(args, "sync") }));
+  void args;
+  printJson(await daemonCall("techtree.chat.dms", undefined, configPath));
 }
 
 export async function tailChatScopes(

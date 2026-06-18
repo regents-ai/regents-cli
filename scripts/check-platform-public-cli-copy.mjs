@@ -20,12 +20,20 @@ if (!platformRepo) {
 
 const platformCopyFiles = [
   "README.md",
-  "lib/platform_phx_web/components/platform_components.ex",
-  "lib/platform_phx_web/components/regent_cli_page.ex",
-  "lib/platform_phx_web/live/autolaunch_live.ex",
-  "lib/platform_phx_web/live/regents_cli_catalog.ex",
-  "lib/platform_phx_web/live/techtree_live.ex",
-  "lib/platform_phx_web/public_page_catalog.ex",
+  "lib/regents_web/components/platform_components.ex",
+  "lib/regents_web/components/regent_cli_page.ex",
+  "lib/regents_web/autolaunch/home_live.ex",
+  "lib/regents_web/autolaunch/auction_live.ex",
+  "lib/regents_web/autolaunch/section_live.ex",
+  "lib/regents_web/live/regents_cli_catalog.ex",
+  "lib/regents_web/techtree/bbh_live.ex",
+  "lib/regents_web/techtree/home_live.ex",
+  "lib/regents_web/techtree/node_live.ex",
+  "lib/regents_web/techtree/nodes_live.ex",
+  "lib/regents_web/techtree/publishing_live.ex",
+  "lib/regents_web/techtree/reviews_live.ex",
+  "lib/regents_web/techtree/skills_live.ex",
+  "lib/regents_web/public_page_catalog.ex",
 ];
 
 const ownerForPublicCommand = (commandKeyValue) => {

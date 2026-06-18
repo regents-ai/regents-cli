@@ -10,7 +10,7 @@ import type {
 
 import type { RuntimeContext } from "../../runtime.js";
 import { runTechtreeCoreJson } from "../../techtree/core.js";
-import { compileWorkspace, pinWorkspace, publishWorkspace, runWorkspaceInit, writeResolvedMetadata } from "./workspace.js";
+import { compileWorkspace, publishWorkspace, runWorkspaceInit, writeResolvedMetadata } from "./workspace.js";
 
 export async function handleTechtreeV1ArtifactInit(
   ctx: RuntimeContext,
@@ -24,13 +24,6 @@ export async function handleTechtreeV1ArtifactCompile(
   params: { tree: TechtreeTreeName; workspace_path: string },
 ): Promise<TechtreeCompilerOutput<Record<string, unknown>>> {
   return compileWorkspace("artifact.compile", params.workspace_path);
-}
-
-export async function handleTechtreeV1ArtifactPin(
-  ctx: RuntimeContext,
-  params: { tree: TechtreeTreeName; workspace_path: string },
-) {
-  return pinWorkspace(ctx, params.tree, "artifact", "artifact.compile", params.workspace_path);
 }
 
 export async function handleTechtreeV1ArtifactPublish(
@@ -72,13 +65,6 @@ export async function handleTechtreeV1RunCompile(
   return compileWorkspace("run.compile", params.workspace_path);
 }
 
-export async function handleTechtreeV1RunPin(
-  ctx: RuntimeContext,
-  params: { tree: TechtreeTreeName; workspace_path: string },
-) {
-  return pinWorkspace(ctx, params.tree, "run", "run.compile", params.workspace_path);
-}
-
 export async function handleTechtreeV1RunPublish(
   ctx: RuntimeContext,
   params: { tree: TechtreeTreeName; workspace_path: string },
@@ -111,13 +97,6 @@ export async function handleTechtreeV1ReviewCompile(
   params: { tree: TechtreeTreeName; workspace_path: string },
 ): Promise<TechtreeCompilerOutput<Record<string, unknown>>> {
   return compileWorkspace("review.compile", params.workspace_path);
-}
-
-export async function handleTechtreeV1ReviewPin(
-  ctx: RuntimeContext,
-  params: { tree: TechtreeTreeName; workspace_path: string },
-) {
-  return pinWorkspace(ctx, params.tree, "review", "review.compile", params.workspace_path);
 }
 
 export async function handleTechtreeV1ReviewPublish(

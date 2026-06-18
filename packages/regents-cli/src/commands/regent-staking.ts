@@ -12,47 +12,47 @@ import { stakeBody, stakeReceiverFlag } from "./stake-receiver.js";
 
 type RegentStakingOverviewResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/regent/staking",
+  "/api/shared/regent/staking",
   "get"
 >;
 type RegentStakingAccountResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/account/{address}",
+  "/api/shared/regent/staking/account/{address}",
   "get"
 >;
 type RegentStakingStakeBody = JsonRequestBodyFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/stake",
+  "/api/shared/regent/staking/stake",
   "post"
 >;
 type RegentStakingStakeResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/stake",
+  "/api/shared/regent/staking/stake",
   "post"
 >;
 type RegentStakingUnstakeBody = JsonRequestBodyFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/unstake",
+  "/api/shared/regent/staking/unstake",
   "post"
 >;
 type RegentStakingUnstakeResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/unstake",
+  "/api/shared/regent/staking/unstake",
   "post"
 >;
 type RegentStakingClaimResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/claim-usdc",
+  "/api/shared/regent/staking/claim-usdc",
   "post"
 >;
 type RegentStakingClaimRegentResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/claim-regent",
+  "/api/shared/regent/staking/claim-regent",
   "post"
 >;
 type RegentStakingClaimAndRestakeRegentResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/regent/staking/claim-and-restake-regent",
+  "/api/shared/regent/staking/claim-and-restake-regent",
   "post"
 >;
 
@@ -99,7 +99,7 @@ const printPreparedOrSubmitted = async (
 
 export async function runRegentStakingGet(configPath?: string): Promise<void> {
   printJson(
-    await requestStakingJson<RegentStakingOverviewResponse>("GET", "/v1/agent/regent/staking", {
+    await requestStakingJson<RegentStakingOverviewResponse>("GET", "/api/shared/regent/staking", {
       configPath,
     }),
   );
@@ -113,7 +113,7 @@ export async function runRegentStakingAccount(
   printJson(
     await requestStakingJson<RegentStakingAccountResponse>(
       "GET",
-      `/v1/agent/regent/staking/account/${encodeURIComponent(address)}`,
+      `/api/shared/regent/staking/account/${encodeURIComponent(address)}`,
       {
         configPath,
       },
@@ -130,7 +130,7 @@ export async function runRegentStakingStake(
 
   const body: RegentStakingStakeBody = stakeBody(amount, receiver);
   await printPreparedOrSubmitted(
-    await requestStakingJson<RegentStakingStakeResponse>("POST", "/v1/agent/regent/staking/stake", {
+    await requestStakingJson<RegentStakingStakeResponse>("POST", "/api/shared/regent/staking/stake", {
       body,
       configPath,
     }),
@@ -147,7 +147,7 @@ export async function runRegentStakingUnstake(
     amount: requireArg(getFlag(args, "amount"), "amount"),
   };
   await printPreparedOrSubmitted(
-    await requestStakingJson<RegentStakingUnstakeResponse>("POST", "/v1/agent/regent/staking/unstake", {
+    await requestStakingJson<RegentStakingUnstakeResponse>("POST", "/api/shared/regent/staking/unstake", {
       body,
       configPath,
     }),
@@ -162,7 +162,7 @@ export async function runRegentStakingClaimUsdc(
 ): Promise<void> {
   const payload = await requestStakingJson<RegentStakingClaimResponse>(
     "POST",
-    "/v1/agent/regent/staking/claim-usdc",
+    "/api/shared/regent/staking/claim-usdc",
     {
       configPath,
     },
@@ -177,7 +177,7 @@ export async function runRegentStakingClaimRegent(
 ): Promise<void> {
   const payload = await requestStakingJson<RegentStakingClaimRegentResponse>(
     "POST",
-    "/v1/agent/regent/staking/claim-regent",
+    "/api/shared/regent/staking/claim-regent",
     {
       configPath,
     },
@@ -192,7 +192,7 @@ export async function runRegentStakingClaimAndRestakeRegent(
 ): Promise<void> {
   const payload = await requestStakingJson<RegentStakingClaimAndRestakeRegentResponse>(
     "POST",
-    "/v1/agent/regent/staking/claim-and-restake-regent",
+    "/api/shared/regent/staking/claim-and-restake-regent",
     {
       configPath,
     },

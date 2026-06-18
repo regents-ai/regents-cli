@@ -89,7 +89,7 @@ export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: st
   const displayName = getFlag(args, "name") ?? "Hermes local worker";
   const { origin, data } = await requestAgentPlatformJson(configPath, {
     method: "POST",
-    path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
+    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
     body: {
       company_id: resolvedCompanyId,
       agent_kind: "hermes",
@@ -130,7 +130,7 @@ export async function runAgentConnectOpenClaw(args: ParsedCliArgs, configPath?: 
   const runnerKind = role === "manager" ? "openclaw_local_manager" : "openclaw_local_executor";
   const { origin, data } = await requestAgentPlatformJson(configPath, {
     method: "POST",
-    path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
+    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
     body: {
       company_id: resolvedCompanyId,
       agent_kind: "openclaw",
@@ -181,7 +181,7 @@ export async function runAgentLink(args: ParsedCliArgs): Promise<void> {
     origin,
     session,
     method: "POST",
-    path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/agents/${encodeURIComponent(manager.routeId)}/relationships`,
+    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/agents/${encodeURIComponent(manager.routeId)}/relationships`,
     body: {
       company_id: resolvedCompanyId,
       ...(manager.agentId ? { source_agent_profile_id: manager.agentId } : {}),
@@ -204,7 +204,7 @@ export async function runAgentExecutionPool(args: ParsedCliArgs): Promise<void> 
     origin,
     session,
     method: "GET",
-    path: `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/agents/${encodeURIComponent(manager)}/execution-pool`,
+    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/agents/${encodeURIComponent(manager)}/execution-pool`,
   });
 
   printAgentExecutionPoolResult(args, { ok: true, command: "regents agent execution-pool", origin, result: data });

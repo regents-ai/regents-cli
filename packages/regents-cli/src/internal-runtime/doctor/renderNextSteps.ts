@@ -15,14 +15,10 @@ const CHECK_PRIORITY = {
     "artifact.uv.available": 11,
     "bbh.leaderboard.read": 12,
     "bbh.workspace.root": 13,
-    "xmtp.config": 14,
-    "xmtp.policy": 15,
-    "xmtp.identity": 16,
-    "xmtp.owner": 17,
-    "full.preconditions": 18,
-    "full.node.create": 19,
-    "full.comment.add": 20,
-    "full.comment.readback": 21,
+    "full.preconditions": 14,
+    "full.node.create": 15,
+    "full.comment.add": 16,
+    "full.comment.readback": 17,
 } as const satisfies Record<string, number>;
 const STATUS_PRIORITY = {
     fail: 0,

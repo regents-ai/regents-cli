@@ -39,8 +39,6 @@ import type {
   FoldStatusResponse,
   RunbookAnswerCreateInput,
   RunbookAnswerResponse,
-  RunbookInviteRequestInput,
-  RunbookInviteRequestResponse,
   RunbookMarkSolvedInput,
   RunbookPaidSolutionInput,
   RunbookPaymentProfileInput,
@@ -103,6 +101,7 @@ import type {
   BbhValidationSubmitRequest,
   BbhValidationSubmitResponse,
   ChatChannelListResponse,
+  ChatDmListResponse,
   ChatListResponse,
   ChatPostInput,
   ChatPostResponse,
@@ -128,6 +127,8 @@ import type {
   SiwaVerifyRequest,
   SiwaVerifyResponse,
   SkillTextResponse,
+  NodeReviewThread,
+  TreeAgentProfile,
   TreeComment,
   TreeNode,
   WatchRecord,
@@ -234,6 +235,14 @@ export class TechtreeClient {
     return this.tree.getComments(id, params);
   }
 
+  getNodeReviews(id: number): Promise<{ data: NodeReviewThread }> {
+    return this.tree.getNodeReviews(id);
+  }
+
+  getAgentProfile(id: number): Promise<{ data: TreeAgentProfile }> {
+    return this.tree.getAgentProfile(id);
+  }
+
   listNodeLineageClaims(id: number): Promise<{ data: Record<string, unknown> | null }> {
     return this.tree.listNodeLineageClaims(id);
   }
@@ -322,21 +331,21 @@ export class TechtreeClient {
   }
 
   createScienceGoal(input: Record<string, unknown>): Promise<TerminalScienceGoalResponse> {
-    return this.request.authedFetchJson<TerminalScienceGoalResponse>("POST", "/v1/science/goals", input);
+    return this.request.authedFetchJson<TerminalScienceGoalResponse>("POST", "/api/techtree/v1/science/goals", input);
   }
 
   getActiveScienceGoal(): Promise<TerminalScienceGoalResponse> {
-    return this.request.authedFetchJson<TerminalScienceGoalResponse>("GET", "/v1/science/goals/active");
+    return this.request.authedFetchJson<TerminalScienceGoalResponse>("GET", "/api/techtree/v1/science/goals/active");
   }
 
   createScienceRun(input: Record<string, unknown>): Promise<TerminalScienceApiRunResponse> {
-    return this.request.authedFetchJson<TerminalScienceApiRunResponse>("POST", "/v1/science/runs", input);
+    return this.request.authedFetchJson<TerminalScienceApiRunResponse>("POST", "/api/techtree/v1/science/runs", input);
   }
 
   uploadScienceRunArtifacts(runId: string, input: Record<string, unknown>): Promise<TerminalScienceApiRunResponse> {
     return this.request.authedFetchJson<TerminalScienceApiRunResponse>(
       "POST",
-      `/v1/science/runs/${encodeURIComponent(runId)}/artifacts`,
+      `/api/techtree/v1/science/runs/${encodeURIComponent(runId)}/artifacts`,
       input,
     );
   }
@@ -344,7 +353,7 @@ export class TechtreeClient {
   publishScienceRun(runId: string, input: Record<string, unknown>): Promise<TerminalSciencePublishResponse> {
     return this.request.authedFetchJson<TerminalSciencePublishResponse>(
       "POST",
-      `/v1/science/runs/${encodeURIComponent(runId)}/publish`,
+      `/api/techtree/v1/science/runs/${encodeURIComponent(runId)}/publish`,
       input,
     );
   }
@@ -517,10 +526,6 @@ export class TechtreeClient {
 
   voteRunbookAnswer(answerId: string, input: RunbookVoteInput): Promise<RunbookVoteResponse> {
     return this.runbook.vote(answerId, input);
-  }
-
-  requestRunbookInvite(questionId: string, input: RunbookInviteRequestInput): Promise<RunbookInviteRequestResponse> {
-    return this.runbook.requestInvite(questionId, input);
   }
 
   getLatestSkill(slug: string): Promise<SkillTextResponse> {
@@ -751,6 +756,10 @@ export class TechtreeClient {
     params?: { before?: number; limit?: number },
   ): Promise<ChatListResponse> {
     return this.chat.listChatMessages(scope, params);
+  }
+
+  listAgentChatDms(): Promise<ChatDmListResponse> {
+    return this.chat.listAgentChatDms();
   }
 
   createAgentChatMessage(scope: string, input: ChatPostInput): Promise<ChatPostResponse> {

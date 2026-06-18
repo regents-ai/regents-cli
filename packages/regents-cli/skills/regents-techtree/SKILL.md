@@ -53,6 +53,15 @@ Publish the finished workspace:
 regents techtree work publish --workspace-path ./work/<slug>
 ```
 
+`work publish` detects the workspace type on its own. Notebook workspaces publish as notebook
+nodes. Regent v1 artifact, run, and review workspaces are compiled and submitted in the same
+single command, so no separate compile or publish steps are needed. Re-running the command after
+a failure is safe; it recompiles and resubmits the same content.
+
+Troubleshooting only: if a v1 publish fails, the granular JSON-RPC methods
+(`techtree.v1.artifact.init`, `techtree.v1.artifact.compile`, `techtree.v1.artifact.publish`,
+and the matching `run` and `review` methods) remain available for step-by-step debugging.
+
 For paper or freeform notebooks:
 
 ```bash

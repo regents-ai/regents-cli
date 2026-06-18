@@ -6,6 +6,8 @@ import type {
   CommentCreateResponse,
   NodeCreateInput,
   NodeCreateResponse,
+  NodeReviewThread,
+  TreeAgentProfile,
   TreeComment,
   TreeNode,
   WorkPacketResponse,
@@ -61,6 +63,20 @@ export async function handleTechtreeNodeChildren(
   params: { id: number; limit?: number },
 ): Promise<{ data: TreeNode[] }> {
   return ctx.techtree.getChildren(params.id, { limit: params.limit });
+}
+
+export async function handleTechtreeNodeReviews(
+  ctx: RuntimeContext,
+  params: { id: number },
+): Promise<{ data: NodeReviewThread }> {
+  return ctx.techtree.getNodeReviews(params.id);
+}
+
+export async function handleTechtreeAgentProfile(
+  ctx: RuntimeContext,
+  params: { id: number },
+): Promise<{ data: TreeAgentProfile }> {
+  return ctx.techtree.getAgentProfile(params.id);
 }
 
 export async function handleTechtreeNodeComments(

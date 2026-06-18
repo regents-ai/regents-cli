@@ -261,6 +261,7 @@ describe("techtree skills optimize", () => {
       null_results: [],
     });
     expect(printed.data.next_steps[0]).toContain("regents techtree autoskill publish skill");
+    expect(printed.data.published).toBeUndefined();
     expect(fs.readFileSync(path.join(workspace, "SKILL.optimized.md"), "utf8")).toBe(
       engineReport.best_skill_md,
     );
@@ -364,6 +365,207 @@ describe("techtree skills optimize", () => {
       "needs at least 2 capsules",
     );
   });
+
+  describe("publishing", () => {
+    const rejectedVerdict = {
+      step_id: "skillopt-run-1-step-1",
+      run_id: "skillopt-run-1",
+      round: 1,
+      accepted: false,
+      val_solve_rate_before: 0.5,
+      val_solve_rate_after: 0.25,
+      train_solve_rate: 0.5,
+    };
+
+    const mockDaemon = () => {
+      daemonCallMock.mockImplementation(async (method: string) => {
+        if (method === "techtree.benchmarks.capsules.list") {
+          return capsuleListResponse;
+        }
+        if (method === "techtree.autoskill.publishSkill") {
+          return {
+            data: { node_id: 41 },
+            workspace_path: "/published/workspace",
+            bundle_hash: "bundlehash41",
+            manifest: {},
+          };
+        }
+        if (method === "techtree.nodes.create") {
+          return {
+            data: { node_id: 77, manifest_cid: "cid77", status: "pinned", anchor_status: "pending" },
+          };
+        }
+        throw new Error(`unexpected daemon method ${method}`);
+      });
+    };
+
+    beforeEach(() => {
+      fs.writeFileSync(
+        path.join(workspace, "session.marimo.py"),
+        "import marimo as mo\napp = mo.App()\n",
+      );
+      fs.writeFileSync(
+        path.join(workspace, "manifest.yaml"),
+        "type: skill\naccess_mode: public_free\nmarimo_entrypoint: session.marimo.py\n",
+      );
+    });
+
+    it("stages the accepted skill and publishes it through the autoskill flow with --publish", async () => {
+      mockDaemon();
+      dispatchEngine(engineReport);
+
+      const { runTechtreeSkillsOptimize } = await import("../../src/commands/techtree-skills.js");
+      const { parseCliArgs } = await import("../../src/parse.js");
+
+      const output = await captureOutput(() =>
+        runTechtreeSkillsOptimize(
+          parseCliArgs([...optimizeArgs(workspace), "--publish", "--skill-version", "0.2.0"]),
+        ),
+      );
+
+      const stagingDir = path.join(workspace, ".skillopt", "publish", "skillopt-run-1");
+      expect(daemonCallMock).toHaveBeenCalledWith(
+        "techtree.autoskill.publishSkill",
+        {
+          workspace_path: stagingDir,
+          input: {
+            title: "chem-helper",
+            skill_slug: "chem-helper",
+            skill_version: "0.2.0",
+            access_mode: "public_free",
+            marimo_entrypoint: "session.marimo.py",
+            primary_file: "SKILL.md",
+            summary:
+              "Accepted by skill-opt run skillopt-run-1 (round 0) on capsule set chem-synthesis: " +
+              "held-out solve rate 0.250 -> 0.500.",
+          },
+        },
+        undefined,
+      );
+
+      expect(fs.readFileSync(path.join(stagingDir, "SKILL.md"), "utf8")).toBe(
+        engineReport.best_skill_md,
+      );
+      expect(fs.existsSync(path.join(stagingDir, "session.marimo.py"))).toBe(true);
+      expect(fs.existsSync(path.join(stagingDir, "manifest.yaml"))).toBe(true);
+      expect(fs.existsSync(path.join(stagingDir, "SKILL.optimized.md"))).toBe(false);
+      expect(fs.existsSync(path.join(stagingDir, ".skillopt"))).toBe(false);
+
+      const printed = parsePrintedJson(output.stdout) as {
+        data: { published: Record<string, unknown>; next_steps: string[] };
+      };
+      expect(printed.data.published).toEqual({
+        skill_version: {
+          node_id: 41,
+          skill_slug: "chem-helper",
+          skill_version: "0.2.0",
+          bundle_hash: "bundlehash41",
+          staged_workspace_path: stagingDir,
+          step_id: "skillopt-run-1-step-0",
+          round: 0,
+        },
+        null_results: [],
+      });
+      expect(printed.data.next_steps[0]).toContain("node 41");
+    });
+
+    it("does not publish a skill version when no candidate was accepted", async () => {
+      mockDaemon();
+      dispatchEngine({
+        ...engineReport,
+        improved: false,
+        steps: [],
+        publish_intents: { skill_versions: [], null_results: [] },
+      });
+
+      const { runTechtreeSkillsOptimize } = await import("../../src/commands/techtree-skills.js");
+      const { parseCliArgs } = await import("../../src/parse.js");
+
+      const output = await captureOutput(() =>
+        runTechtreeSkillsOptimize(parseCliArgs([...optimizeArgs(workspace), "--publish"])),
+      );
+
+      expect(daemonCallMock).not.toHaveBeenCalledWith(
+        "techtree.autoskill.publishSkill",
+        expect.anything(),
+        undefined,
+      );
+      const printed = parsePrintedJson(output.stdout) as { data: Record<string, unknown> };
+      expect(printed.data.published).toEqual({ skill_version: null, null_results: [] });
+    });
+
+    it("requires session.marimo.py before running with --publish", async () => {
+      fs.rmSync(path.join(workspace, "session.marimo.py"));
+
+      const { runTechtreeSkillsOptimize } = await import("../../src/commands/techtree-skills.js");
+      const { parseCliArgs } = await import("../../src/parse.js");
+
+      await expect(
+        runTechtreeSkillsOptimize(parseCliArgs([...optimizeArgs(workspace), "--publish"])),
+      ).rejects.toThrow("no session.marimo.py found");
+      expect(daemonCallMock).not.toHaveBeenCalled();
+      expect(spawnMock).not.toHaveBeenCalled();
+    });
+
+    it("publishes a null_result node per rejected candidate with --publish-null-results", async () => {
+      mockDaemon();
+      dispatchEngine({
+        ...engineReport,
+        improved: false,
+        steps: [],
+        publish_intents: { skill_versions: [], null_results: [{ verdict: rejectedVerdict }] },
+      });
+
+      const { runTechtreeSkillsOptimize } = await import("../../src/commands/techtree-skills.js");
+      const { parseCliArgs } = await import("../../src/parse.js");
+
+      const output = await captureOutput(() =>
+        runTechtreeSkillsOptimize(
+          parseCliArgs([...optimizeArgs(workspace), "--publish-null-results", "--seed", "main"]),
+        ),
+      );
+
+      const nodeCreateCall = daemonCallMock.mock.calls.find(
+        ([method]) => method === "techtree.nodes.create",
+      );
+      expect(nodeCreateCall).toBeDefined();
+      const [, nodeCreateParams] = nodeCreateCall as [string, Record<string, unknown>];
+      expect(nodeCreateParams).toMatchObject({
+        seed: "main",
+        kind: "null_result",
+        title: "Skill-opt null result: chem-helper round 1",
+        idempotency_key: "skillopt-run-1-step-1",
+      });
+      expect(nodeCreateParams.summary).toBe(
+        "Candidate rejected by the held-out validation gate in skill-opt run skillopt-run-1 on " +
+          "capsule set chem-synthesis: held-out solve rate 0.500 -> 0.250.",
+      );
+      const notebookSource = nodeCreateParams.notebook_source as string;
+      expect(notebookSource).toContain("import marimo as mo");
+      expect(notebookSource).toContain('"run_id": "skillopt-run-1"');
+      expect(notebookSource).toContain('"step_id": "skillopt-run-1-step-1"');
+      expect(notebookSource).toContain("rejected by the server's");
+
+      const printed = parsePrintedJson(output.stdout) as { data: Record<string, unknown> };
+      expect(printed.data.published).toEqual({
+        skill_version: null,
+        null_results: [{ node_id: 77, step_id: "skillopt-run-1-step-1", round: 1 }],
+      });
+    });
+
+    it("requires --seed with --publish-null-results", async () => {
+      const { runTechtreeSkillsOptimize } = await import("../../src/commands/techtree-skills.js");
+      const { parseCliArgs } = await import("../../src/parse.js");
+
+      await expect(
+        runTechtreeSkillsOptimize(
+          parseCliArgs([...optimizeArgs(workspace), "--publish-null-results"]),
+        ),
+      ).rejects.toThrow("--seed");
+      expect(daemonCallMock).not.toHaveBeenCalled();
+      expect(spawnMock).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe("skill-opt signing proxy", () => {
@@ -385,7 +587,7 @@ describe("skill-opt signing proxy", () => {
 
     try {
       const body = JSON.stringify({ run_id: "skillopt-run-1" });
-      const response = await fetch(`${proxy.baseUrl}/v1/agent/skill-opt/runs`, {
+      const response = await fetch(`${proxy.baseUrl}/api/techtree/v1/agent/skill-opt/runs`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body,
@@ -395,11 +597,11 @@ describe("skill-opt signing proxy", () => {
       expect(await response.json()).toEqual({ data: { run_id: "skillopt-run-1" } });
       expect(signHeaders).toHaveBeenCalledWith({
         method: "POST",
-        path: "/v1/agent/skill-opt/runs",
+        path: "/api/techtree/v1/agent/skill-opt/runs",
         body,
       });
       expect(fetchImpl).toHaveBeenCalledWith(
-        "https://techtree.example/v1/agent/skill-opt/runs",
+        "https://techtree.example/api/techtree/v1/agent/skill-opt/runs",
         expect.objectContaining({
           method: "POST",
           headers: expect.objectContaining({
@@ -426,7 +628,7 @@ describe("skill-opt signing proxy", () => {
     });
 
     try {
-      const response = await fetch(`${proxy.baseUrl}/v1/tree/nodes`, {
+      const response = await fetch(`${proxy.baseUrl}/api/techtree/v1/tree/nodes`, {
         method: "POST",
         body: "{}",
       });
@@ -450,7 +652,7 @@ describe("skill-opt signing proxy", () => {
     });
 
     try {
-      const response = await fetch(`${proxy.baseUrl}/v1/agent/skill-opt/runs`, {
+      const response = await fetch(`${proxy.baseUrl}/api/techtree/v1/agent/skill-opt/runs`, {
         method: "POST",
         body: "{}",
       });

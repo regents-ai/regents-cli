@@ -197,11 +197,11 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
   }
 
   const { payload: overview, error: overviewError } = await fetchStaking(
-    "/v1/agent/regent/staking",
+    "/api/shared/regent/staking",
     configPath,
   );
   const { payload: account } = await fetchStaking(
-    `/v1/agent/regent/staking/account/${encodeURIComponent(wallet)}`,
+    `/api/shared/regent/staking/account/${encodeURIComponent(wallet)}`,
     configPath,
   );
 

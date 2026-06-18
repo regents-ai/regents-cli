@@ -30,7 +30,7 @@ describeNetwork.sequential("CLI functional flows against the real runtime", () =
   const walletStatePath = (): string => path.join(tempDir, "state", "coinbase-wallet.json");
 
   const identityRequestCount = (): number =>
-    server.requests.filter((request) => request.pathname.startsWith("/v1/identity/")).length;
+    server.requests.filter((request) => request.pathname.startsWith("/api/shared/identity/")).length;
 
   const writeFakeCdp = (): void => {
     const binDir = path.join(tempDir, "bin");

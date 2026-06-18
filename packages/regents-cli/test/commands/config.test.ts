@@ -35,7 +35,6 @@ describe("config commands", () => {
         autolaunch: { baseUrl: string; requestTimeoutMs: number };
         techtree: { baseUrl: string; requestTimeoutMs: number };
       };
-      xmtp: { dbPath: string; publicPolicyPath: string; env: string };
       agents: { defaultHarness: string; harnesses: { hermes: { workspaceRoot: string }; codex: { workspaceRoot: string } } };
       workloads: {
         bbh: { workspaceRoot: string; defaultHarness: string; defaultProfile: string };
@@ -53,21 +52,6 @@ describe("config commands", () => {
     expect(printed.services.techtree).toEqual({
       baseUrl: "http://127.0.0.1:4100",
       requestTimeoutMs: 10_000,
-    });
-    expect(printed.xmtp).toEqual({
-      enabled: false,
-      dbPath: path.join(tempDir, "xmtp", "production", "client.db"),
-      dbEncryptionKeyPath: path.join(tempDir, "xmtp", "production", "db.key"),
-      walletKeyPath: path.join(tempDir, "xmtp", "production", "wallet.key"),
-      ownerInboxIds: [],
-      trustedInboxIds: [],
-      publicPolicyPath: path.join(tempDir, "policies", "xmtp-public.md"),
-      env: "production",
-      profiles: {
-        owner: "full",
-        public: "messaging",
-        group: "messaging",
-      },
     });
     expect(printed.agents.defaultHarness).toBe("hermes");
     expect(printed.agents.harnesses.hermes.workspaceRoot).toBe(path.join(tempDir, "workspaces", "hermes"));
@@ -129,21 +113,6 @@ describe("config commands", () => {
           listenAddrs: [],
           bootstrap: [],
           peerIdPath: path.join(tempDir, "p2p", "peer-id.json"),
-        },
-        xmtp: {
-          enabled: false,
-          env: "production",
-          dbPath: path.join(tempDir, "xmtp", "production", "client.db"),
-          dbEncryptionKeyPath: path.join(tempDir, "xmtp", "production", "db.key"),
-          walletKeyPath: path.join(tempDir, "xmtp", "production", "wallet.key"),
-          ownerInboxIds: [],
-          trustedInboxIds: [],
-          publicPolicyPath: path.join(tempDir, "policies", "xmtp-public.md"),
-          profiles: {
-            owner: "full",
-            public: "messaging",
-            group: "messaging",
-          },
         },
         agents: {
           defaultHarness: "hermes",

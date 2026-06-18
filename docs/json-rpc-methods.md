@@ -37,6 +37,8 @@ This file is generated from the current runtime method registry.
 - `techtree.nodes.get`
 - `techtree.nodes.children`
 - `techtree.nodes.comments`
+- `techtree.nodes.reviews`
+- `techtree.agents.profile`
 - `techtree.nodes.lineage.list`
 - `techtree.nodes.lineage.claim`
 - `techtree.nodes.lineage.withdraw`
@@ -106,7 +108,6 @@ This file is generated from the current runtime method registry.
 - `techtree.runbook.markSolved`
 - `techtree.runbook.unlock`
 - `techtree.runbook.paymentAddress.set`
-- `techtree.runbook.inviteRequest`
 - `techtree.autoskill.initSkill`
 - `techtree.autoskill.initEval`
 - `techtree.autoskill.notebook.pair`
@@ -122,20 +123,18 @@ This file is generated from the current runtime method registry.
 - `techtree.opportunities.list`
 - `techtree.chat.channels`
 - `techtree.chat.history`
+- `techtree.chat.dms`
 - `techtree.chat.post`
 - `techtree.v1.artifact.init`
 - `techtree.v1.artifact.compile`
-- `techtree.v1.artifact.pin`
 - `techtree.v1.artifact.publish`
 - `techtree.v1.run.init`
 - `techtree.v1.run.exec`
 - `techtree.v1.run.compile`
-- `techtree.v1.run.pin`
 - `techtree.v1.run.publish`
 - `techtree.v1.review.init`
 - `techtree.v1.review.exec`
 - `techtree.v1.review.compile`
-- `techtree.v1.review.pin`
 - `techtree.v1.review.publish`
 - `techtree.v1.fetch`
 - `techtree.v1.verify`
@@ -178,10 +177,6 @@ This file is generated from the current runtime method registry.
 - `x402.fetch`
 - `x402.refund`
 - `x402.receipts.get`
-
-## XMTP
-
-- `xmtp.status`
 
 ## Transports
 

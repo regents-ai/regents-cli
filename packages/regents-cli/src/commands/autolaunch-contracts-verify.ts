@@ -9,6 +9,7 @@ import {
   renderPanel,
   renderTablePanel,
 } from "../printer.js";
+import { loadResolvedPlatformSession, requestPlatformSessionJson } from "./platform.js";
 import { requestProductJson } from "./product-http.js";
 
 type CheckStatus = "MATCH" | "MISMATCH" | "UNVERIFIABLE";
@@ -87,13 +88,19 @@ const rpcUrl = (args: ParsedCliArgs): string | undefined =>
 
 const scopeForArgs = (
   args: ParsedCliArgs,
-): { readonly scope: string; readonly path: string; readonly label: string } => {
+): {
+  readonly scope: string;
+  readonly path: string;
+  readonly label: string;
+  readonly auth: "agent" | "app";
+} => {
   const job = getFlag(args, "job");
   if (job) {
     return {
       scope: "job",
-      path: `/v1/agent/contracts/jobs/${encodeURIComponent(job)}`,
+      path: `/api/autolaunch/v1/agent/contracts/jobs/${encodeURIComponent(job)}`,
       label: `job ${job}`,
+      auth: "agent",
     };
   }
 
@@ -101,28 +108,47 @@ const scopeForArgs = (
   if (subject) {
     return {
       scope: "subject",
-      path: `/v1/agent/contracts/subjects/${encodeURIComponent(subject)}`,
+      path: `/api/autolaunch/v1/agent/contracts/subjects/${encodeURIComponent(subject)}`,
       label: `subject ${subject}`,
+      auth: "agent",
     };
   }
 
-  return { scope: "admin", path: "/v1/agent/contracts/admin", label: "admin contracts" };
+  return {
+    scope: "admin",
+    path: "/api/autolaunch/v1/app/contracts/admin",
+    label: "admin contracts",
+    auth: "app",
+  };
 };
 
 const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
-  const { scope, path, label } = scopeForArgs(args);
+  const { scope, path, label, auth } = scopeForArgs(args);
   const checks: VerifyCheck[] = [];
   let apiView: unknown = null;
   let apiError: string | null = null;
 
   try {
-    apiView = await requestProductJson<Record<string, unknown>>("GET", path, {
-      requireAgentAuth: true,
-      authAudience: "autolaunch",
-      service: "autolaunch",
-      commandName: "regents autolaunch contracts verify",
-      configPath,
-    });
+    if (auth === "app") {
+      const { origin, session } = await loadResolvedPlatformSession(args);
+      const { data } = await requestPlatformSessionJson({
+        origin,
+        path,
+        method: "GET",
+        session,
+        commandName: "regents autolaunch contracts verify",
+        configPath,
+      });
+      apiView = data;
+    } else {
+      apiView = await requestProductJson<Record<string, unknown>>("GET", path, {
+        requireAgentAuth: true,
+        authAudience: "autolaunch",
+        service: "autolaunch",
+        commandName: "regents autolaunch contracts verify",
+        configPath,
+      });
+    }
   } catch (error) {
     apiError = errorText(error);
   }

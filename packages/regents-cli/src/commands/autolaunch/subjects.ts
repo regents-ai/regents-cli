@@ -175,8 +175,8 @@ export async function runAutolaunchSubjectCreateExistingToken(
   putOptionalStringFlag(body, "salt", args, "salt");
 
   await prepareOrSubmitSubjectCreation(
-    "/v1/agent/subjects/existing-token/prepare",
-    "/v1/agent/subjects/existing-token/confirm",
+    "/api/autolaunch/v1/agent/subjects/existing-token/prepare",
+    "/api/autolaunch/v1/agent/subjects/existing-token/confirm",
     body,
     args,
     configPath,
@@ -202,8 +202,8 @@ export async function runAutolaunchSubjectCreateDeferredAutolaunch(
   putOptionalIntegerFlag(body, "identity_agent_id", args, "identity-agent-id");
 
   await prepareOrSubmitSubjectCreation(
-    "/v1/agent/subjects/deferred-autolaunch/prepare",
-    "/v1/agent/subjects/deferred-autolaunch/confirm",
+    "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/prepare",
+    "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/confirm",
     body,
     args,
     configPath,
@@ -218,7 +218,7 @@ export async function runAutolaunchSubjectByToken(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/subjects/by-token/${encodeURIComponent(token)}`,
+      `/api/autolaunch/v1/agent/subjects/by-token/${encodeURIComponent(token)}`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -230,7 +230,7 @@ export async function runAutolaunchSubjectGet(
 ): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
   printJson(
-    await requestJson("GET", `/v1/agent/subjects/${encodeURIComponent(subjectId)}`, {
+    await requestJson("GET", `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}`, {
       requireAgentAuth: true,
       configPath,
     }),
@@ -245,7 +245,7 @@ export async function runAutolaunchSubjectIngress(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress`,
+      `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -259,7 +259,7 @@ export async function runAutolaunchSubjectStaking(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/staking`,
+      `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/staking`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -275,7 +275,7 @@ export async function runAutolaunchSubjectStake(
 
   await prepareOrSubmitWrite(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/stake`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/stake`,
     stakeBody(amount, receiver),
     args,
     configPath,
@@ -289,7 +289,7 @@ export async function runAutolaunchSubjectUnstake(
   const subjectId = requirePositional(args, 3, "subject-id");
   await prepareOrSubmitWrite(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/unstake`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/unstake`,
     { amount: requireArg(getFlag(args, "amount"), "amount") },
     args,
     configPath,
@@ -303,7 +303,7 @@ export async function runAutolaunchSubjectClaimUsdc(
   const subjectId = requirePositional(args, 3, "subject-id");
   await prepareOrSubmitWrite(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
     {},
     args,
     configPath,
@@ -318,7 +318,7 @@ export async function runAutolaunchSubjectBuybacks(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks`,
+      `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -332,7 +332,7 @@ export async function runAutolaunchSubjectSettleBuyback(
 
   await prepareOrSubmitWrite(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks/settle`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks/settle`,
     {
       amount_usdc: requireArg(getFlag(args, "amount-usdc"), "amount-usdc"),
       min_regent_out: requireArg(getFlag(args, "min-regent-out"), "min-regent-out"),
@@ -350,7 +350,7 @@ export async function runAutolaunchSubjectPaymentLinks(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
+      `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -369,7 +369,7 @@ export async function runAutolaunchPaymentLinkCreate(
 
   await prepareOrSubmitTransactionOnly(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
     body,
     args,
     configPath,
@@ -385,7 +385,7 @@ export async function runAutolaunchPaymentLinkSetCanonical(
 
   await prepareOrSubmitTransactionOnly(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/canonical`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/canonical`,
     { canonical: requireArg(getFlag(args, "canonical"), "canonical") },
     args,
     configPath,
@@ -405,7 +405,7 @@ export async function runAutolaunchPaymentLinkSetState(
 
   await prepareOrSubmitTransactionOnly(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/state`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/state`,
     body,
     args,
     configPath,
@@ -420,7 +420,7 @@ export async function runAutolaunchSubjectRegentEmissions(
   printJson(
     await requestJson(
       "GET",
-      `/v1/agent/subjects/${encodeURIComponent(subjectId)}/regent-emissions`,
+      `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/regent-emissions`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -435,7 +435,7 @@ export async function runAutolaunchSubjectSweepIngress(
 
   await prepareOrSubmitWrite(
     "POST",
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
     {},
     args,
     configPath,

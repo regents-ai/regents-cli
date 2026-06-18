@@ -100,7 +100,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return true;
     };
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/channels") {
+    if (req.method === "GET" && requestUrl.pathname === "/api/techtree/v1/chat/channels") {
       res.statusCode = 200;
       res.setHeader("content-type", "application/json");
       res.end(
@@ -126,7 +126,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/messages") {
+    if (req.method === "GET" && requestUrl.pathname === "/api/techtree/v1/chat/messages") {
       const scope = requestUrl.searchParams.get("scope");
       const messageByScope: Record<string, { id: number; scope: string; body: string }> = {
         system: { id: 10, scope: "system", body: "Existing public chat message" },
@@ -156,7 +156,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "POST" && requestUrl.pathname === "/v1/agent/chat/messages" && requestUrl.searchParams.get("scope") === "system") {
+    if (req.method === "POST" && requestUrl.pathname === "/api/techtree/v1/agent/chat/messages" && requestUrl.searchParams.get("scope") === "system") {
       if (!requireAgentHeaders()) {
         return;
       }
@@ -177,7 +177,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/chat/stream") {
+    if (req.method === "GET" && requestUrl.pathname === "/api/techtree/v1/chat/stream") {
       if (shouldFailPublicStream) {
         res.statusCode = 503;
         res.setHeader("content-type", "application/json");
@@ -209,7 +209,7 @@ const createHarness = async (): Promise<ClientHarness> => {
       return;
     }
 
-    if (req.method === "GET" && requestUrl.pathname === "/v1/runtime/transport") {
+    if (req.method === "GET" && requestUrl.pathname === "/api/techtree/v1/runtime/transport") {
       res.statusCode = 200;
       res.setHeader("content-type", "application/json");
       res.end(
@@ -386,9 +386,9 @@ describe("Techtree chat client routes", () => {
 
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
-      "GET /v1/chat/channels",
-      "GET /v1/chat/messages?scope=system&limit=1",
-      "GET /v1/chat/stream?scopes=system",
+      "GET /api/techtree/v1/chat/channels",
+      "GET /api/techtree/v1/chat/messages?scope=system&limit=1",
+      "GET /api/techtree/v1/chat/stream?scopes=system",
     ]);
 
     for (const request of harness.requests) {
@@ -404,7 +404,7 @@ describe("Techtree chat client routes", () => {
     });
 
     expect(harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`)).toEqual([
-      "GET /v1/chat/messages?scope=topic%3Aprotein-folding&limit=1",
+      "GET /api/techtree/v1/chat/messages?scope=topic%3Aprotein-folding&limit=1",
     ]);
   });
 
@@ -436,11 +436,11 @@ describe("Techtree chat client routes", () => {
 
     const requestPaths = harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`);
     expect(requestPaths).toEqual([
-      "POST /v1/agent/chat/messages?scope=system",
-      "GET /v1/runtime/transport",
+      "POST /api/techtree/v1/agent/chat/messages?scope=system",
+      "GET /api/techtree/v1/runtime/transport",
     ]);
 
-    const protectedRequests = harness.requests.filter((request) => request.pathname.startsWith("/v1/agent/"));
+    const protectedRequests = harness.requests.filter((request) => request.pathname.startsWith("/api/techtree/v1/agent/"));
     for (const request of protectedRequests) {
       expect(request.headers["x-siwa-receipt"]).toBeTruthy();
       expect(request.headers["signature-input"]).toBeTruthy();

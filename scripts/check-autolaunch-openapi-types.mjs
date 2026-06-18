@@ -15,7 +15,7 @@ try {
     [
       "exec",
       "openapi-typescript",
-      resolve(root, "../autolaunch/docs/api-contract.openapiv3.yaml"),
+      resolve(root, "../platform/contracts/autolaunch/api-contract.openapiv3.yaml"),
       "-o",
       tempFile,
     ],

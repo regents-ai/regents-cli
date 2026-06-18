@@ -102,6 +102,63 @@ const runtimePaths = (runtime: RegentAgentRuntime): { pluginPath: string; skills
 export const selectedRuntimes = (runtime: RegentAgentRuntimeSelector): RegentAgentRuntime[] =>
   runtime === "auto" ? ["hermes", "openclaw"] : [runtime];
 
+export type DetectableRuntime = RegentAgentRuntime | "claude" | "codex";
+
+export interface RuntimeDetection {
+  runtime: DetectableRuntime;
+  detected: boolean;
+  integration: "plugin" | "mcp";
+  evidence: string | null;
+}
+
+const binaryOnPath = (name: string): string | null => {
+  const pathEntries = (process.env.PATH ?? "").split(path.delimiter).filter(Boolean);
+  for (const entry of pathEntries) {
+    const candidate = path.join(entry, name);
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      return candidate;
+    } catch {
+      // keep scanning
+    }
+  }
+  return null;
+};
+
+const detectByHomeDirOrBinary = (dirName: string, binaryName: string): string | null => {
+  const home = path.resolve(expandHome(homePath(dirName)));
+  if (fs.existsSync(home)) {
+    return home;
+  }
+  return binaryOnPath(binaryName);
+};
+
+export const detectRuntimes = (): RuntimeDetection[] => {
+  const entries: Array<{ runtime: DetectableRuntime; integration: "plugin" | "mcp"; evidence: string | null }> = [
+    { runtime: "hermes", integration: "plugin", evidence: detectByHomeDirOrBinary(".hermes", "hermes") },
+    { runtime: "openclaw", integration: "plugin", evidence: detectByHomeDirOrBinary(".openclaw", "openclaw") },
+    { runtime: "claude", integration: "mcp", evidence: detectByHomeDirOrBinary(".claude", "claude") },
+    { runtime: "codex", integration: "mcp", evidence: detectByHomeDirOrBinary(".codex", "codex") },
+  ];
+
+  return entries.map((entry) => ({
+    runtime: entry.runtime,
+    detected: entry.evidence !== null,
+    integration: entry.integration,
+    evidence: entry.evidence,
+  }));
+};
+
+export const installableRuntimes = (runtime: RegentAgentRuntimeSelector): RegentAgentRuntime[] => {
+  if (runtime !== "auto") {
+    return [runtime];
+  }
+
+  return detectRuntimes()
+    .filter((entry) => entry.integration === "plugin" && entry.detected)
+    .map((entry) => entry.runtime as RegentAgentRuntime);
+};
+
 export const pluginStatus = (runtime: RegentAgentRuntimeSelector = "auto"): PluginStatusReport => ({
   ok: true,
   selectedRuntime: runtime,

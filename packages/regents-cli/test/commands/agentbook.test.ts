@@ -174,7 +174,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/sessions");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("agentbook-receipt");
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({ source: "regents-cli" });
     expect(parsePrintedJson<{ session: { approval_url: string } }>(output.stdout)).toMatchObject({
@@ -288,8 +288,8 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/sessions/sess_1");
-    expect(fetchMock.mock.calls[2]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/sessions/sess_1");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
+    expect(fetchMock.mock.calls[2]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
     expect(parsePrintedJson<{ session: { status: string; trust: { unique_agent_count: number } } }>(output.stdout))
       .toMatchObject({
         session: {
@@ -345,7 +345,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/lookup");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
     expect(parsePrintedJson<{ result: { world_human_id: string; unique_agent_count: number } }>(output.stdout))
       .toMatchObject({
         result: {
@@ -384,7 +384,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/agentbook/lookup");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
   });
 
   it("rejects non-positive interval values for sessions watch", async () => {

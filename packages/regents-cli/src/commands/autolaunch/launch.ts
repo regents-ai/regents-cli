@@ -35,17 +35,17 @@ import {
 
 type LaunchPreviewBody = JsonRequestBodyFor<
   AutolaunchPaths,
-  "/v1/agent/launch/preview",
+  "/api/autolaunch/v1/agent/launch/preview",
   "post"
 >;
 type LaunchPreviewResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
-  "/v1/agent/launch/preview",
+  "/api/autolaunch/v1/agent/launch/preview",
   "post"
 >;
 type LaunchCreationStateResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
-  "/v1/agent/launch/creation-state",
+  "/api/autolaunch/v1/agent/launch/creation-state",
   "get"
 >;
 
@@ -323,7 +323,7 @@ export async function runAutolaunchLaunchPreview(
   printJson(
     await requestTypedJson<LaunchPreviewResponse>(
       "POST",
-      "/v1/agent/launch/preview",
+      "/api/autolaunch/v1/agent/launch/preview",
       {
         body,
         requireAgentAuth: true,
@@ -341,7 +341,7 @@ export async function runAutolaunchLaunchState(
   const payload = await requestTypedJson<LaunchCreationStateResponse>(
     "GET",
     appendQuery(
-      "/v1/agent/launch/creation-state",
+      "/api/autolaunch/v1/agent/launch/creation-state",
       selectedTaskStateQuery(args, configPath),
     ),
     { requireAgentAuth: true, configPath },
@@ -361,7 +361,7 @@ export async function runAutolaunchJobsWatch(
   for (;;) {
     const payload = await requestJson(
       "GET",
-      `/v1/agent/launch/jobs/${encodeURIComponent(jobId)}`,
+      `/api/autolaunch/v1/agent/launch/jobs/${encodeURIComponent(jobId)}`,
       { requireAgentAuth: true, configPath },
     );
     printLaunchJobWatchPayload(args, payload, jobId);

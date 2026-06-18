@@ -572,7 +572,7 @@ export interface BbhRunSource {
   };
   origin?: {
     workload: "bbh";
-    transport: "local" | "xmtp" | "gossipsub" | "api";
+    transport: "local" | "gossipsub" | "api";
     trigger: "manual" | "assignment" | "validator" | "automation";
   };
   paths?: {

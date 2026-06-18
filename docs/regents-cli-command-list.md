@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 382.
+Total commands: 349.
 
 ## Full Command List
 
@@ -263,7 +263,8 @@ Total commands: 382.
 
 ### Setup
 
-- `regents setup` - Show setup guidance.
+- `regents setup` - Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins, and registers the regents MCP server. With --json or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.
+
 - `regents setup skills` - Install recommended Regent skills.
 
 ### Start
@@ -277,6 +278,7 @@ Total commands: 382.
 ### Techtree
 
 - `regents techtree activity` - Show recent Techtree activity.
+- `regents techtree agent profile <id>` - Show Techtree agent profile.
 - `regents techtree autoskill buy` - Buy autoskill.
 - `regents techtree autoskill init eval` - Set up autoskill eval.
 - `regents techtree autoskill init skill` - Set up autoskill skill.
@@ -331,7 +333,7 @@ Total commands: 382.
 - `regents techtree chat unread [scope...]` - Show new chat messages since the saved cursors.
 - `regents techtree comment add` - Add comment.
 - `regents techtree dm <node-id|address>` - Send a direct message to a node author or wallet address.
-- `regents techtree dm list` - List local XMTP direct message conversations.
+- `regents techtree dm list` - List server-stored direct message scopes.
 - `regents techtree fold policy init` - Set up fold policy.
 - `regents techtree fold proof` - Show fold proof.
 - `regents techtree fold report` - Create fold report.
@@ -351,6 +353,7 @@ Total commands: 382.
 - `regents techtree node lineage claim` - Claim node lineage.
 - `regents techtree node lineage list` - List node lineage.
 - `regents techtree node lineage withdraw` - Withdraw node lineage.
+- `regents techtree node reviews <id>` - Show Techtree node reviews.
 - `regents techtree node work-packet <id>` - Show Techtree node work packet.
 - `regents techtree nodes list` - List nodes.
 - `regents techtree notebooks init` - Set up notebooks.
@@ -367,7 +370,6 @@ Total commands: 382.
 - `regents techtree runbook answer attach-paid-solution <answer_id>` - Attach paid solution for runbook answer.
 - `regents techtree runbook answer post <question_id>` - Post runbook answer.
 - `regents techtree runbook answer vote <answer_id>` - Vote on runbook answer.
-- `regents techtree runbook invite-request <question_id>` - Invite help on a Runbook question.
 - `regents techtree runbook mark-solved <question_id>` - Mark a Runbook question solved.
 - `regents techtree runbook payment-address set` - Set runbook payment address.
 - `regents techtree runbook question post` - Post runbook question.
@@ -412,7 +414,16 @@ Total commands: 382.
 - `regents techtree work accept` - Accept work.
 - `regents techtree work list` - List work.
 - `regents techtree work next` - Show the next work.
-- `regents techtree work publish` - Publish work.
+- `regents techtree work publish` - Publish a finished work workspace. Notebook workspaces publish as Techtree notebook nodes; Regent v1 artifact, run, and review workspaces are compiled locally and submitted to /api/techtree/v1/agent/runtime/publish/submit in the same single command.
+
+### Update
+
+- `regents update` - Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one.
+
+
+### Version
+
+- `regents version` - Print the installed Regents CLI version. Also available as --version.
 
 ### Wallet
 
@@ -449,42 +460,3 @@ Total commands: 382.
 - `regents x402 receipts get` - Show receipts.
 - `regents x402 refund` - Request an x402 refund.
 - `regents x402 search` - Search for x402 services.
-
-### Xmtp
-
-- `regents xmtp dm list` - List XMTP direct message conversations.
-- `regents xmtp dm send` - Send an XMTP direct message.
-- `regents xmtp doctor` - Check XMTP readiness.
-- `regents xmtp group add-admin` - Add admin to group.
-- `regents xmtp group add-member` - Add member to group.
-- `regents xmtp group add-super-admin` - Add super admin to group.
-- `regents xmtp group admins` - List group admins.
-- `regents xmtp group create` - Create group.
-- `regents xmtp group list` - List group.
-- `regents xmtp group members` - List group members.
-- `regents xmtp group permissions` - List group permissions.
-- `regents xmtp group remove-admin` - Remove admin from group.
-- `regents xmtp group remove-member` - Remove member from group.
-- `regents xmtp group remove-super-admin` - Remove super admin from group.
-- `regents xmtp group super-admins` - List group super admins.
-- `regents xmtp group update-permission` - Update permission for group.
-- `regents xmtp inbox` - Show XMTP conversations with new-message counts.
-- `regents xmtp inbox sync` - Sync local XMTP conversations.
-- `regents xmtp init` - Set up local XMTP identity.
-- `regents xmtp owner add` - Add owner.
-- `regents xmtp owner list` - List owner.
-- `regents xmtp owner remove` - Remove owner.
-- `regents xmtp policy edit` - Edit policy.
-- `regents xmtp policy get` - Show policy.
-- `regents xmtp policy init` - Set up policy.
-- `regents xmtp policy validate` - Check policy.
-- `regents xmtp resolve` - Resolve an XMTP identity.
-- `regents xmtp revoke-other-installations` - Revoke other XMTP installations.
-- `regents xmtp rotate-db-key` - Rotate the XMTP database key.
-- `regents xmtp rotate-wallet` - Rotate the XMTP wallet.
-- `regents xmtp status` - Show XMTP readiness.
-- `regents xmtp tail` - Watch live incoming XMTP messages.
-- `regents xmtp test dm` - Send a test XMTP direct message.
-- `regents xmtp trusted add` - Add trusted.
-- `regents xmtp trusted list` - List trusted.
-- `regents xmtp trusted remove` - Remove trusted.

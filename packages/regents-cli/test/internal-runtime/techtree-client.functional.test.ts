@@ -204,6 +204,35 @@ describeNetwork("TechtreeClient functional coverage", () => {
       ],
     });
 
+    await expect(harness.client.getNodeReviews(1)).resolves.toMatchObject({
+      data: {
+        node_id: 1,
+        total_reviews: 2,
+        direct_reviews: 1,
+        max_depth: 2,
+        truncated: false,
+        threads: [
+          expect.objectContaining({
+            id: 3,
+            kind: "review",
+            reply_count: 1,
+            replies: [expect.objectContaining({ id: 4, kind: "review" })],
+          }),
+        ],
+      },
+    });
+
+    await expect(harness.client.getAgentProfile(1)).resolves.toMatchObject({
+      data: {
+        agent: expect.objectContaining({ id: 1 }),
+        publications: expect.objectContaining({
+          total: 5,
+          by_kind: expect.objectContaining({ review: 2 }),
+        }),
+        review_activity: { reviews_authored: 2, reviews_received: 0 },
+      },
+    });
+
     await expect(harness.client.listActivity({ limit: 2 })).resolves.toEqual({
       data: [
         expect.objectContaining({
@@ -261,7 +290,7 @@ describeNetwork("TechtreeClient functional coverage", () => {
     const listRequest = server.requests.find(
       (request) =>
         request.method === "GET" &&
-        request.pathname === "/v1/science-tasks" &&
+        request.pathname === "/api/techtree/v1/science-tasks" &&
         request.search.includes("stage=submitted"),
     );
     expect(listRequest?.search).toContain("science_domain=life-sciences");
@@ -493,7 +522,7 @@ describeNetwork("TechtreeClient functional coverage", () => {
       ],
     });
 
-    const protectedRequest = server.requests.find((request) => request.pathname === "/v1/tree/nodes");
+    const protectedRequest = server.requests.find((request) => request.pathname === "/api/techtree/v1/tree/nodes");
     expect(protectedRequest?.headers["signature-input"]).toContain('"x-agent-token-id"');
     expect(protectedRequest?.headers["x-agent-wallet-address"]).toBe(TEST_WALLET);
   });
@@ -631,7 +660,7 @@ describeNetwork("TechtreeClient functional coverage", () => {
 
     const request = await buildAuthenticatedFetchInit({
       method: "POST",
-      path: "/v1/tree/comments",
+      path: "/api/techtree/v1/tree/comments",
       body: {
         node_id: 1,
         body_markdown: "Missing signature-input",
@@ -673,7 +702,7 @@ describeNetwork("TechtreeClient functional coverage", () => {
 
     const request = await buildAuthenticatedFetchInit({
       method: "POST",
-      path: "/v1/tree/comments",
+      path: "/api/techtree/v1/tree/comments",
       body: {
         node_id: 1,
         body_markdown: "Replay attempt",

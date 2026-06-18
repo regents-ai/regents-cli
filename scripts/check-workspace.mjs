@@ -16,6 +16,8 @@ import {
 } from "../packages/regents-cli/src/workspace/manifest.js";
 
 const root = resolve(import.meta.dirname, "..");
+const workspaceRoot = resolve(root, "..");
+const syncContractArtifactsScriptPath = resolve(workspaceRoot, "scripts/sync-contract-artifacts.sh");
 const YAML = await loadYaml(root);
 const manifestPath = defaultWorkspaceManifestPath(root);
 const failures = [];
@@ -39,6 +41,21 @@ const dirExists = (path) => {
 const sameFile = (left, right) => readFileSync(left).equals(readFileSync(right));
 const parseYamlFile = (path) => YAML.parse(readFileSync(path, "utf8"));
 const fail = (message) => failures.push(message);
+const pairKey = (source, mirror) => `${source}|${mirror}`;
+
+const syncContractArtifactPairs = () => {
+  if (!fileExists(syncContractArtifactsScriptPath)) {
+    fail(`missing contract artifact sync script: ${syncContractArtifactsScriptPath}`);
+    return new Set();
+  }
+
+  const script = readFileSync(syncContractArtifactsScriptPath, "utf8");
+  return new Set(
+    Array.from(script.matchAll(/^\s*"([^"|]+)\|([^"]+)"\s*$/gmu)).map((match) =>
+      pairKey(resolve(workspaceRoot, match[1]), resolve(workspaceRoot, match[2])),
+    ),
+  );
+};
 
 let manifest;
 try {
@@ -107,6 +124,19 @@ for (const pair of sharedContractPairs(manifest, root)) {
   }
   if (!sameFile(pair.source, pair.mirror)) {
     fail(`shared contract pair ${pair.id} drifted: ${pair.source} != ${pair.mirror}`);
+  }
+}
+
+const manifestContractPairKeys = new Set(sharedContractPairs(manifest, root).map((pair) => pairKey(pair.source, pair.mirror)));
+const syncScriptContractPairKeys = syncContractArtifactPairs();
+for (const pair of syncScriptContractPairKeys) {
+  if (!manifestContractPairKeys.has(pair)) {
+    fail(`sync script contract artifact pair is missing from docs/regent-workspace.yaml: ${pair}`);
+  }
+}
+for (const pair of manifestContractPairKeys) {
+  if (!syncScriptContractPairKeys.has(pair)) {
+    fail(`docs/regent-workspace.yaml shared contract pair is missing from scripts/sync-contract-artifacts.sh: ${pair}`);
   }
 }
 

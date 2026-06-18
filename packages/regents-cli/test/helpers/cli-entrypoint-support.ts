@@ -42,7 +42,6 @@ const cliMocks = vi.hoisted(() => ({
   loadTechtreeRuntimeClientMock: vi.fn(),
   techtreeRuntimeClientMock: {
     fetchNode: vi.fn(),
-    pinNode: vi.fn(),
     publishNode: vi.fn(),
   },
 }));
@@ -1455,20 +1454,13 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
       payload_cid: "bafy-fetch-payload",
       verified: true,
     }));
-    techtreeRuntimeClientMock.pinNode.mockReset();
-    techtreeRuntimeClientMock.pinNode.mockImplementation(async (input: { node_type: string }) => ({
-      ok: true,
-      node_id: `0x${input.node_type.padEnd(64, "0")}` as `0x${string}`,
-      manifest_cid: `bafy-${input.node_type}-manifest`,
-      payload_cid: `bafy-${input.node_type}-payload`,
-    }));
     techtreeRuntimeClientMock.publishNode.mockReset();
     techtreeRuntimeClientMock.publishNode.mockImplementation(
-      async (input: { node_type: string; manifest_cid: string; payload_cid: string }) => ({
+      async (input: { node_type: string }) => ({
         ok: true,
         node_id: `0x${input.node_type.padEnd(64, "0")}` as `0x${string}`,
-        manifest_cid: input.manifest_cid,
-        payload_cid: input.payload_cid,
+        manifest_cid: null,
+        payload_cid: null,
         tx_hash: `0x${"ab".repeat(32)}` as `0x${string}`,
       }),
     );
@@ -1507,7 +1499,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
     runTechtreeCoreJsonMock.mockClear();
     loadTechtreeRuntimeClientMock.mockClear();
     techtreeRuntimeClientMock.fetchNode.mockClear();
-    techtreeRuntimeClientMock.pinNode.mockClear();
     techtreeRuntimeClientMock.publishNode.mockClear();
   });
 

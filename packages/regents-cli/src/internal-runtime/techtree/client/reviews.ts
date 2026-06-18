@@ -17,45 +17,45 @@ export class ReviewsResource {
   constructor(private readonly request: TechtreeRequestClient) {}
 
   async startReviewerOrcidLink(): Promise<BbhReviewerOrcidLinkResponse> {
-    return this.request.authedFetchJson<BbhReviewerOrcidLinkResponse>("POST", "/v1/agent/reviewer/orcid/link/start", {});
+    return this.request.authedFetchJson<BbhReviewerOrcidLinkResponse>("POST", "/api/techtree/v1/agent/reviewer/orcid/link/start", {});
   }
 
   async getReviewerOrcidLinkStatus(requestId: string): Promise<BbhReviewerOrcidLinkResponse> {
     return this.request.authedFetchJson<BbhReviewerOrcidLinkResponse>(
       "GET",
-      `/v1/agent/reviewer/orcid/link/status/${encodeURIComponent(requestId)}`,
+      `/api/techtree/v1/agent/reviewer/orcid/link/status/${encodeURIComponent(requestId)}`,
     );
   }
 
   async applyReviewerProfile(input: BbhReviewerApplyRequest): Promise<BbhReviewerApplyResponse> {
-    return this.request.authedFetchJson<BbhReviewerApplyResponse>("POST", "/v1/agent/reviewer/apply", input);
+    return this.request.authedFetchJson<BbhReviewerApplyResponse>("POST", "/api/techtree/v1/agent/reviewer/apply", input);
   }
 
   async getReviewerProfile(): Promise<BbhReviewerStatusResponse> {
-    return this.request.authedFetchJson<BbhReviewerStatusResponse>("GET", "/v1/agent/reviewer/me");
+    return this.request.authedFetchJson<BbhReviewerStatusResponse>("GET", "/api/techtree/v1/agent/reviewer/me");
   }
 
   async listBbhReviews(params?: BbhReviewListParams): Promise<BbhReviewListResponse> {
-    return this.request.authedFetchJson<BbhReviewListResponse>("GET", withQuery("/v1/agent/reviews/open", {
+    return this.request.authedFetchJson<BbhReviewListResponse>("GET", withQuery("/api/techtree/v1/agent/reviews/open", {
       ...(params?.kind ? { kind: params.kind } : {}),
     }));
   }
 
   async claimBbhReview(requestId: string): Promise<{ data: BbhReviewRequest }> {
-    return this.request.authedFetchJson("POST", `/v1/agent/reviews/${encodeURIComponent(requestId)}/claim`, {});
+    return this.request.authedFetchJson("POST", `/api/techtree/v1/agent/reviews/${encodeURIComponent(requestId)}/claim`, {});
   }
 
   async getBbhReviewPacket(requestId: string): Promise<BbhReviewPacketResponse> {
     return this.request.authedFetchJson<BbhReviewPacketResponse>(
       "GET",
-      `/v1/agent/reviews/${encodeURIComponent(requestId)}/packet`,
+      `/api/techtree/v1/agent/reviews/${encodeURIComponent(requestId)}/packet`,
     );
   }
 
   async submitBbhReview(requestId: string, input: BbhReviewSubmitRequest): Promise<BbhReviewSubmitResponse> {
     return this.request.authedFetchJson<BbhReviewSubmitResponse>(
       "POST",
-      `/v1/agent/reviews/${encodeURIComponent(requestId)}/submit`,
+      `/api/techtree/v1/agent/reviews/${encodeURIComponent(requestId)}/submit`,
       input,
     );
   }

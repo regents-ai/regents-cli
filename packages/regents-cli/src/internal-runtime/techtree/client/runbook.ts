@@ -1,8 +1,6 @@
 import type {
   RunbookAnswerCreateInput,
   RunbookAnswerResponse,
-  RunbookInviteRequestInput,
-  RunbookInviteRequestResponse,
   RunbookMarkSolvedInput,
   RunbookPaidSolutionInput,
   RunbookPaymentProfileInput,
@@ -23,19 +21,19 @@ export class RunbookResource {
 
   listQuestions(params?: { q?: string; status?: string; limit?: number }): Promise<RunbookQuestionListResponse> {
     return this.request.getJson<RunbookQuestionListResponse>(
-      withQuery("/v1/runbook/questions", params),
+      withQuery("/api/techtree/v1/runbook/questions", params),
       "array",
     );
   }
 
   getQuestion(id: string): Promise<RunbookQuestionResponse> {
-    return this.request.getJson<RunbookQuestionResponse>(`/v1/runbook/questions/${encodeURIComponent(id)}`, "object");
+    return this.request.getJson<RunbookQuestionResponse>(`/api/techtree/v1/runbook/questions/${encodeURIComponent(id)}`, "object");
   }
 
   setPaymentProfile(input: RunbookPaymentProfileInput): Promise<RunbookPaymentProfileResponse> {
     return this.request.authedFetchJson<RunbookPaymentProfileResponse>(
       "PUT",
-      "/v1/agent/runbook/payment-profile",
+      "/api/techtree/v1/agent/runbook/payment-profile",
       input,
     );
   }
@@ -43,7 +41,7 @@ export class RunbookResource {
   createQuestion(input: RunbookQuestionCreateInput): Promise<RunbookQuestionResponse> {
     return this.request.authedFetchJson<RunbookQuestionResponse>(
       "POST",
-      "/v1/agent/runbook/questions",
+      "/api/techtree/v1/agent/runbook/questions",
       input,
     );
   }
@@ -51,7 +49,7 @@ export class RunbookResource {
   createAnswer(questionId: string, input: RunbookAnswerCreateInput): Promise<RunbookAnswerResponse> {
     return this.request.authedFetchJson<RunbookAnswerResponse>(
       "POST",
-      `/v1/agent/runbook/questions/${encodeURIComponent(questionId)}/answers`,
+      `/api/techtree/v1/agent/runbook/questions/${encodeURIComponent(questionId)}/answers`,
       input,
     );
   }
@@ -59,7 +57,7 @@ export class RunbookResource {
   attachPaidSolution(answerId: string, input: RunbookPaidSolutionInput): Promise<RunbookAnswerResponse> {
     return this.request.authedFetchJson<RunbookAnswerResponse>(
       "POST",
-      `/v1/agent/runbook/answers/${encodeURIComponent(answerId)}/paid-solution`,
+      `/api/techtree/v1/agent/runbook/answers/${encodeURIComponent(answerId)}/paid-solution`,
       input,
     );
   }
@@ -67,7 +65,7 @@ export class RunbookResource {
   markSolved(questionId: string, input: RunbookMarkSolvedInput): Promise<Record<string, unknown>> {
     return this.request.authedFetchJson<Record<string, unknown>>(
       "POST",
-      `/v1/agent/runbook/questions/${encodeURIComponent(questionId)}/mark-solved`,
+      `/api/techtree/v1/agent/runbook/questions/${encodeURIComponent(questionId)}/mark-solved`,
       input,
     );
   }
@@ -75,7 +73,7 @@ export class RunbookResource {
   createUnlock(answerId: string, input: RunbookUnlockInput): Promise<RunbookUnlockResponse> {
     return this.request.authedFetchJson<RunbookUnlockResponse>(
       "POST",
-      `/v1/agent/runbook/answers/${encodeURIComponent(answerId)}/unlocks`,
+      `/api/techtree/v1/agent/runbook/answers/${encodeURIComponent(answerId)}/unlocks`,
       input,
     );
   }
@@ -83,16 +81,9 @@ export class RunbookResource {
   vote(answerId: string, input: RunbookVoteInput): Promise<RunbookVoteResponse> {
     return this.request.authedFetchJson<RunbookVoteResponse>(
       "POST",
-      `/v1/agent/runbook/answers/${encodeURIComponent(answerId)}/votes`,
+      `/api/techtree/v1/agent/runbook/answers/${encodeURIComponent(answerId)}/votes`,
       input,
     );
   }
 
-  requestInvite(questionId: string, input: RunbookInviteRequestInput): Promise<RunbookInviteRequestResponse> {
-    return this.request.authedFetchJson<RunbookInviteRequestResponse>(
-      "POST",
-      `/v1/agent/runbook/questions/${encodeURIComponent(questionId)}/invite-requests`,
-      input,
-    );
-  }
 }

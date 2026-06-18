@@ -149,6 +149,34 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
     safeTool(async ({ id }) => textResult(await kernel.call("techtree.nodes.get", { id }))),
   );
 
+  const techtreeNodeReviews = toolDefinition("regents.techtree.node.reviews");
+  server.registerTool(
+    techtreeNodeReviews.name,
+    {
+      title: techtreeNodeReviews.title,
+      description: techtreeNodeReviews.description,
+      inputSchema: {
+        id: z.number().int().positive(),
+      },
+      annotations: toolAnnotations(techtreeNodeReviews.riskClass),
+    },
+    safeTool(async ({ id }) => textResult(await kernel.call("techtree.nodes.reviews", { id }))),
+  );
+
+  const techtreeAgentProfile = toolDefinition("regents.techtree.agent.profile");
+  server.registerTool(
+    techtreeAgentProfile.name,
+    {
+      title: techtreeAgentProfile.title,
+      description: techtreeAgentProfile.description,
+      inputSchema: {
+        id: z.number().int().positive(),
+      },
+      annotations: toolAnnotations(techtreeAgentProfile.riskClass),
+    },
+    safeTool(async ({ id }) => textResult(await kernel.call("techtree.agents.profile", { id }))),
+  );
+
   const techtreeNodeCreate = toolDefinition("regents.techtree.node.create");
   server.registerTool(
     techtreeNodeCreate.name,

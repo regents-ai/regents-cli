@@ -1,5 +1,6 @@
 import type {
   ChatChannelListResponse,
+  ChatDmListResponse,
   ChatListResponse,
   ChatPostInput,
   ChatPostResponse,
@@ -51,6 +52,10 @@ export async function handleTechtreeChatHistory(
 ): Promise<ChatListResponse> {
   const { scope, ...rest } = params;
   return ctx.techtree.listChatMessages(scope, rest);
+}
+
+export async function handleTechtreeChatDms(ctx: RuntimeContext): Promise<ChatDmListResponse> {
+  return ctx.techtree.listAgentChatDms();
 }
 
 export async function handleTechtreeChatPost(

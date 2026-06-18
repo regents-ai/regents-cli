@@ -124,49 +124,49 @@ describe("techtree lineage and cross-chain link wiring", () => {
       const url = String(input);
       const method = String(init?.method ?? "GET");
 
-      if (url.endsWith("/v1/agent/tree/nodes/42/lineage") && method === "GET") {
+      if (url.endsWith("/api/techtree/v1/agent/tree/nodes/42/lineage") && method === "GET") {
         return new Response(JSON.stringify({ data: { status: "author_claimed", claims: [] } }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
       }
 
-      if (url.endsWith("/v1/tree/nodes/42/lineage/claims") && method === "POST") {
+      if (url.endsWith("/api/techtree/v1/tree/nodes/42/lineage/claims") && method === "POST") {
         return new Response(JSON.stringify({ data: { claim_id: "claim_1" } }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
       }
 
-      if (url.endsWith("/v1/tree/nodes/42/lineage/claims/claim_1") && method === "DELETE") {
+      if (url.endsWith("/api/techtree/v1/tree/nodes/42/lineage/claims/claim_1") && method === "DELETE") {
         return new Response(JSON.stringify({ ok: true }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
       }
 
-      if (url.endsWith("/v1/agent/tree/nodes/42/cross-chain-links") && method === "GET") {
+      if (url.endsWith("/api/techtree/v1/agent/tree/nodes/42/cross-chain-links") && method === "GET") {
         return new Response(JSON.stringify({ data: [{ link_id: "link_1" }] }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
       }
 
-      if (url.endsWith("/v1/tree/nodes/42/cross-chain-links") && method === "POST") {
+      if (url.endsWith("/api/techtree/v1/tree/nodes/42/cross-chain-links") && method === "POST") {
         return new Response(JSON.stringify({ data: { link_id: "link_1" } }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
       }
 
-      if (url.endsWith("/v1/tree/nodes/42/cross-chain-links/current") && method === "DELETE") {
+      if (url.endsWith("/api/techtree/v1/tree/nodes/42/cross-chain-links/current") && method === "DELETE") {
         return new Response(JSON.stringify({ ok: true }), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
       }
 
-      if (url.endsWith("/v1/tree/nodes") && method === "POST") {
+      if (url.endsWith("/api/techtree/v1/tree/nodes") && method === "POST") {
         return new Response(JSON.stringify({ data: { node_id: 7, manifest_cid: "bafy", status: "pinned", anchor_status: "pending" } }), {
           status: 200,
           headers: { "content-type": "application/json" },
@@ -226,12 +226,12 @@ describe("techtree lineage and cross-chain link wiring", () => {
       },
     });
 
-    expect(fetchMock.mock.calls.some(([input, init]) => String(input).endsWith("/v1/agent/tree/nodes/42/lineage") && String(init?.method ?? "GET") === "GET")).toBe(true);
-    expect(fetchMock.mock.calls.some(([input, init]) => String(input).endsWith("/v1/tree/nodes/42/lineage/claims/claim_1") && String(init?.method ?? "GET") === "DELETE")).toBe(true);
-    expect(fetchMock.mock.calls.some(([input, init]) => String(input).endsWith("/v1/tree/nodes/42/cross-chain-links/current") && String(init?.method ?? "GET") === "DELETE")).toBe(true);
+    expect(fetchMock.mock.calls.some(([input, init]) => String(input).endsWith("/api/techtree/v1/agent/tree/nodes/42/lineage") && String(init?.method ?? "GET") === "GET")).toBe(true);
+    expect(fetchMock.mock.calls.some(([input, init]) => String(input).endsWith("/api/techtree/v1/tree/nodes/42/lineage/claims/claim_1") && String(init?.method ?? "GET") === "DELETE")).toBe(true);
+    expect(fetchMock.mock.calls.some(([input, init]) => String(input).endsWith("/api/techtree/v1/tree/nodes/42/cross-chain-links/current") && String(init?.method ?? "GET") === "DELETE")).toBe(true);
 
     const createCall = fetchMock.mock.calls.find(([input, init]) =>
-      String(input).endsWith("/v1/tree/nodes") && String(init?.method ?? "GET") === "POST",
+      String(input).endsWith("/api/techtree/v1/tree/nodes") && String(init?.method ?? "GET") === "POST",
     );
     expect(createCall).toBeTruthy();
     const body = JSON.parse(String((createCall?.[1] as RequestInit | undefined)?.body ?? "{}")) as Record<string, unknown>;

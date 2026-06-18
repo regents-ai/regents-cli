@@ -82,13 +82,8 @@ describe("printer surface", () => {
     expect(output).toContain("regents techtree chat tail [scope...]");
     expect(output).toContain("regents techtree chat unread [scope...] [--peek]");
     expect(output).toContain("regents techtree chat subscribe add|remove|list");
-    expect(output).toContain("regents xmtp inbox sync");
-    expect(output).toContain("regents xmtp tail");
     expect(output).toContain("regents bug --summary");
     expect(output).toContain("regents security-report --summary");
-    expect(output).toContain("regents xmtp group permissions <conversation-id>");
-    expect(output).toContain("regents xmtp group update-permission <conversation-id> --type add-member --policy admin");
-    expect(output).toContain("regents xmtp group add-admin <conversation-id> --address <wallet>");
     expect(output).toContain("regents techtree bbh capsules list [--lane climb|benchmark|challenge]");
     expect(output).toContain("regents techtree bbh capsules get <capsule-id>");
     expect(output).toContain("regents techtree bbh run exec [path] --capsule <capsule-id> [--lane climb|benchmark|challenge]");

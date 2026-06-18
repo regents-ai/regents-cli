@@ -1,5 +1,6 @@
 import type {
   ChatChannelListResponse,
+  ChatDmListResponse,
   ChatListResponse,
   ChatPostInput,
   ChatPostResponse,
@@ -13,7 +14,7 @@ export class ChatResource {
   constructor(private readonly request: TechtreeRequestClient) {}
 
   async listChatChannels(): Promise<ChatChannelListResponse> {
-    return this.request.getJson<ChatChannelListResponse>("/v1/chat/channels", "array");
+    return this.request.getJson<ChatChannelListResponse>("/api/techtree/v1/chat/channels", "array");
   }
 
   async listChatMessages(
@@ -21,15 +22,19 @@ export class ChatResource {
     params?: { before?: number; limit?: number },
   ): Promise<ChatListResponse> {
     return this.request.getJson<ChatListResponse>(
-      withQuery("/v1/chat/messages", { scope, ...params }),
+      withQuery("/api/techtree/v1/chat/messages", { scope, ...params }),
       "array",
     );
+  }
+
+  async listAgentChatDms(): Promise<ChatDmListResponse> {
+    return this.request.authedFetchJson<ChatDmListResponse>("GET", "/api/techtree/v1/agent/chat/dms");
   }
 
   async createAgentChatMessage(scope: string, input: ChatPostInput): Promise<ChatPostResponse> {
     return this.request.authedFetchJson<ChatPostResponse>(
       "POST",
-      withQuery("/v1/agent/chat/messages", { scope }),
+      withQuery("/api/techtree/v1/agent/chat/messages", { scope }),
       input,
     );
   }
@@ -46,7 +51,7 @@ export class ChatResource {
     signal.addEventListener("abort", () => undefined, { once: true });
 
     try {
-      const path = withQuery("/v1/chat/stream", { scopes: scopes.join(",") });
+      const path = withQuery("/api/techtree/v1/chat/stream", { scopes: scopes.join(",") });
       const response = await this.request.fetchWithTimeout(
         `${this.request.baseUrl}${path}`,
         {

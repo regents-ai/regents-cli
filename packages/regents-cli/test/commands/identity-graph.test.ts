@@ -201,7 +201,7 @@ describe("identity graph command", () => {
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
 
-      if (url.includes("/api/agent-platform/projection")) {
+      if (url.includes("/api/platform/projection")) {
         return jsonResponse({
           ok: true,
           projection: {
@@ -220,7 +220,7 @@ describe("identity graph command", () => {
         });
       }
 
-      if (url.includes("/v1/agent/agents")) {
+      if (url.includes("/api/autolaunch/v1/agent/agents")) {
         return jsonResponse({
           ok: true,
           items: [
@@ -234,11 +234,11 @@ describe("identity graph command", () => {
         });
       }
 
-      if (url.includes("/v1/agent/subjects/by-token/")) {
+      if (url.includes("/api/autolaunch/v1/agent/subjects/by-token/")) {
         return jsonResponse({ ok: true, subjects: [{ subject_id: "subj_1" }] });
       }
 
-      if (url.includes("/v1/agent/reviewer/me")) {
+      if (url.includes("/api/techtree/v1/agent/reviewer/me")) {
         return jsonResponse({ ok: true, data: { wallet_address: testWallet } });
       }
 

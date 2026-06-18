@@ -102,7 +102,7 @@ const requestAgentbookJson = async <TResponse>(
 export async function lookupAgentbookTrust(configPath?: string): Promise<AgentbookLookupResponse> {
   requireAgentAuthState(configPath, { audience: "platform" });
 
-  return requestAgentbookJson<AgentbookLookupResponse>("GET", "/api/agentbook/lookup", {
+  return requestAgentbookJson<AgentbookLookupResponse>("GET", "/api/platform/agentbook/lookup", {
     configPath,
   });
 }
@@ -118,7 +118,7 @@ export async function prepareAgentbookRegistration(
     source,
   };
 
-  const created = await requestAgentbookJson<AgentbookSessionResponse>("POST", "/api/agentbook/sessions", {
+  const created = await requestAgentbookJson<AgentbookSessionResponse>("POST", "/api/platform/agentbook/sessions", {
     body: payload,
     configPath,
   });
@@ -248,7 +248,7 @@ const watchAgentbookSession = async (
   for (;;) {
     const payload = await requestAgentbookJson<AgentbookSessionResponse>(
       "GET",
-      `/api/agentbook/sessions/${encodeURIComponent(sessionId)}`,
+      `/api/platform/agentbook/sessions/${encodeURIComponent(sessionId)}`,
       { configPath },
     );
 

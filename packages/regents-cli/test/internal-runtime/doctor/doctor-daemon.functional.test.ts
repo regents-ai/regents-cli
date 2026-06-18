@@ -189,7 +189,7 @@ describeNetwork.sequential("doctor JSON-RPC methods", () => {
     expect(probe).toMatchObject({
       status: "fail",
       details: {
-        route: "/v1/agent/opportunities",
+        route: "/api/techtree/v1/agent/opportunities",
         status: 401,
         backend: {
           code: "http_envelope_invalid",

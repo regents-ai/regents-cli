@@ -223,7 +223,7 @@ export const createAutolaunchAgentConnection = async (
   body: JsonObject,
   configPath?: string,
 ): Promise<AgentConnectionSessionEnvelope> =>
-  requestTypedJson<AgentConnectionSessionEnvelope>("POST", "/v1/agent/agent-connections", {
+  requestTypedJson<AgentConnectionSessionEnvelope>("POST", "/api/autolaunch/v1/agent/agent-connections", {
     body,
     requireAgentAuth: true,
     configPath,
@@ -235,7 +235,7 @@ const readAutolaunchAgentConnection = async (
 ): Promise<AgentConnectionSessionEnvelope> =>
   requestTypedJson<AgentConnectionSessionEnvelope>(
     "GET",
-    `/v1/agent/agent-connections/${encodeURIComponent(connectionId)}`,
+    `/api/autolaunch/v1/agent/agent-connections/${encodeURIComponent(connectionId)}`,
     {
       requireAgentAuth: true,
       configPath,
@@ -315,7 +315,7 @@ export const runAutolaunchPair = async (
 
   const payload = await requestTypedJson<AgentPairingSessionEnvelope>(
     "POST",
-    "/v1/app/agent-pairings/complete",
+    "/api/autolaunch/v1/app/agent-pairings/complete",
     {
       body,
       configPath,

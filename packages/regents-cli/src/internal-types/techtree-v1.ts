@@ -13,14 +13,12 @@ export type TechtreeReviewKind = "validation" | "challenge";
 export type TechtreeRunHarnessKind = "openclaw" | "hermes" | "claude_code" | "custom";
 export type TechtreeRunOriginKind =
   | "local"
-  | "xmtp_dm"
-  | "xmtp_group"
   | "gossipsub"
   | "api"
   | "watched_node"
   | "scheduled"
   | "other";
-export type TechtreeRunOriginTransport = "xmtp" | "gossipsub" | "api" | "other";
+export type TechtreeRunOriginTransport = "gossipsub" | "api" | "other";
 export type TechtreeReviewMethod =
   | "replay"
   | "replication"
@@ -352,30 +350,20 @@ export interface TechtreeFetchResponse {
   verified?: boolean;
 }
 
-export interface TechtreePinRequest {
+export interface TechtreePublishRequest {
   node_type: TechtreeNodeType;
   workspace_path: string;
   dist_path?: string | null;
-}
-
-export interface TechtreePinResponse {
-  ok: true;
-  node_id: TechtreeNodeId;
-  manifest_cid: string;
-  payload_cid: string;
-}
-
-export interface TechtreePublishRequest extends TechtreePinRequest {
   header: TechtreeNodeHeaderV1;
-  manifest_cid: string;
-  payload_cid: string;
+  manifest: Record<string, unknown>;
+  payload_index: TechtreePayloadIndex;
 }
 
 export interface TechtreePublishResponse {
   ok: true;
   node_id: TechtreeNodeId;
-  manifest_cid: string;
-  payload_cid: string;
+  manifest_cid: string | null;
+  payload_cid: string | null;
   tx_hash?: `0x${string}` | null;
 }
 

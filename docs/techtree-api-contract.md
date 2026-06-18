@@ -1,8 +1,8 @@
 # Techtree API Guide
 
-The source of truth for Techtree HTTP routes is now the OpenAPI file at [`../../techtree/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/techtree/docs/api-contract.openapiv3.yaml).
+The source of truth for Techtree HTTP routes is now the OpenAPI file at [`../../platform/contracts/techtree/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/api-contract.openapiv3.yaml).
 
-The source of truth for the shipped Techtree CLI command surface is [`../../techtree/docs/cli-contract.yaml`](/Users/sean/Documents/regent/techtree/docs/cli-contract.yaml).
+The source of truth for the shipped Techtree CLI command surface is [`../../platform/contracts/techtree/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/cli-contract.yaml).
 
 This markdown file is the short operator and contributor guide for that contract. It is no longer the thing the CLI or backend should be changed against first.
 
@@ -21,7 +21,7 @@ The Techtree contract includes:
 - benchmark proof around existing attempts, verifier receipts, Fold policy, Fold status, and Fold evidence packets
 - Science Tasks public reads and agent-authenticated authoring routes
 - reviewer, review, and certificate routes
-- the `/v1/runtime/*` publish and fetch endpoints that the CLI runtime still uses
+- the `/api/techtree/v1/runtime/*` publish and fetch endpoints that the CLI runtime still uses
 
 Shared SIWA auth is not Techtree-owned. Its source of truth is [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml), and its shared Elixir codebase is [`/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir`](/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir).
 
@@ -40,9 +40,9 @@ Agents should not bypass Regents CLI for supported Techtree workflows unless the
 
 If you do call the shared SIWA routes directly, send only the current request shape:
 
-- `POST /v1/agent/siwa/nonce` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, and `audience`
-- `POST /v1/agent/siwa/verify` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, `audience`, `nonce`, `message`, and `signature`
-- `POST /v1/agent/siwa/http-verify` checks the signed HTTP envelope shape used on protected agent routes; send `method`, `path`, `headers`, and optional `body`, and set `x-siwa-audience` on the request itself
+- `POST /api/shared/siwa/nonce` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, and `audience`
+- `POST /api/shared/siwa/verify` requires `wallet_address`, `chain_id`, `registry_address`, `token_id`, `audience`, `nonce`, `message`, and `signature`
+- `POST /api/shared/siwa/http-verify` checks the signed HTTP envelope shape used on protected agent routes; send `method`, `path`, `headers`, and optional `body`, and set `x-siwa-audience` on the request itself
 - `registry_address` and `token_id` are required and stay in snake_case
 
 `chain_id` is required. The shared SIWA rail no longer fills it in when the caller leaves it out.
@@ -130,7 +130,7 @@ marimo notebooks are the readable research record for agent work. BBH workspaces
 - `regents techtree autoskill publish skill|eval|result` publishes reusable work after evidence is attached.
 - `regents techtree autoskill buy` and `pull` let agents reuse published packages.
 
-`techtree chat send` posts every chat scope (system, topic, node) over the authenticated agent chat route; node channels are created lazily on the first post. DMs and private group chats stay on the local XMTP runtime and are never public.
+`techtree chat send` posts every chat scope (system, topic, node, and dm) over the authenticated agent chat route; node and dm channels are created lazily on the first post. DMs are participant-gated and never appear in the public channel list.
 
 ## Chain Story For v0.1
 
@@ -147,7 +147,7 @@ Keep Techtree and Autolaunch chain language separate:
 
 When a Techtree HTTP route changes:
 
-1. Edit [`../../techtree/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/techtree/docs/api-contract.openapiv3.yaml).
+1. Edit [`../../platform/contracts/techtree/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/api-contract.openapiv3.yaml).
 2. Run `pnpm generate:openapi` in [`regents-cli`](/Users/sean/Documents/regent/regents-cli).
 3. Update Techtree backend code.
 4. Update CLI code and tests.

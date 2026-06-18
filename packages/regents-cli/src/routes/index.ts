@@ -18,7 +18,6 @@ import {
 import { techtreeHandlers } from "./techtree.js";
 import { walletIdentityAuthHandlers } from "./wallet-identity-auth.js";
 import { workHandlers } from "./work.js";
-import { xmtpHandlers } from "./xmtp.js";
 
 export { dispatchRoute, type CliRouteContext } from "./shared.js";
 
@@ -36,7 +35,6 @@ export const cliHandlerRegistry: CliHandlerRegistry = {
   ...platformHandlers,
   ...techtreeHandlers,
   ...regentStakingHandlers,
-  ...xmtpHandlers,
   ...agentbookHandlers,
   ...chatHandlers,
   ...autolaunchHandlers,

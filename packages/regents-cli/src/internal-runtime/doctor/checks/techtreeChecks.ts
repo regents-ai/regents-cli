@@ -109,13 +109,13 @@ export function techtreeChecks(): DoctorCheckDefinition[] {
                         status: "ok",
                         message: "Authenticated read-only Techtree probe succeeded via /v1/agent/opportunities",
                         details: {
-                            route: "/v1/agent/opportunities",
+                            route: "/api/techtree/v1/agent/opportunities",
                             opportunityCount: opportunities.opportunities.length,
                         },
                     };
                 }
                 catch (error) {
-                    const details = buildProbeFailureDetails("/v1/agent/opportunities", error);
+                    const details = buildProbeFailureDetails("/api/techtree/v1/agent/opportunities", error);
                     return {
                         status: "fail",
                         message: "Authenticated Techtree probe failed",

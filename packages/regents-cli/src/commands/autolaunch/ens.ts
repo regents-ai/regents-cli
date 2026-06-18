@@ -44,7 +44,7 @@ export async function runAutolaunchEnsPlan(
   configPath?: string,
 ): Promise<void> {
   printJson(
-    await requestJson("POST", "/v1/agent/ens/link/plan", {
+    await requestJson("POST", "/api/autolaunch/v1/agent/ens/link/plan", {
       body: buildEnsLinkBody(args),
       requireAgentAuth: true,
       configPath,
@@ -57,7 +57,7 @@ export async function runAutolaunchEnsPrepareEnsip25(
   configPath?: string,
 ): Promise<void> {
   printJson(
-    await requestJson("POST", "/v1/agent/ens/link/prepare-ensip25", {
+    await requestJson("POST", "/api/autolaunch/v1/agent/ens/link/prepare-ensip25", {
       body: buildEnsLinkBody(args),
       requireAgentAuth: true,
       configPath,
@@ -70,7 +70,7 @@ export async function runAutolaunchEnsPrepareErc8004(
   configPath?: string,
 ): Promise<void> {
   printJson(
-    await requestJson("POST", "/v1/agent/ens/link/prepare-erc8004", {
+    await requestJson("POST", "/api/autolaunch/v1/agent/ens/link/prepare-erc8004", {
       body: buildEnsLinkBody(args),
       requireAgentAuth: true,
       configPath,
@@ -83,7 +83,7 @@ export async function runAutolaunchEnsPrepareBidirectional(
   configPath?: string,
 ): Promise<void> {
   printJson(
-    await requestJson("POST", "/v1/agent/ens/link/prepare-bidirectional", {
+    await requestJson("POST", "/api/autolaunch/v1/agent/ens/link/prepare-bidirectional", {
       body: buildEnsLinkBody(args),
       requireAgentAuth: true,
       configPath,

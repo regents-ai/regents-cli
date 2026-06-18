@@ -75,6 +75,35 @@ const sourceContract = YAML.parse(readText(sourceContractPath));
 const servedContract = YAML.parse(readText(servedContractPath));
 const sourcePaths = sourceContract.paths ?? {};
 const servedPaths = servedContract.paths ?? {};
+const oldSharedIdentityPathFragments = ["", "/"].map((prefix) => `${prefix}v1/ident${"ity"}`);
+const canonicalSharedIdentityPaths = [
+  "/api/shared/identity/status",
+  "/api/shared/identity/registration-intents",
+  "/api/shared/identity/registration-completions",
+  "/api/shared/identity/siwa/nonce",
+  "/api/shared/identity/siwa/verify",
+];
+
+for (const [label, paths] of [
+  ["source shared services contract", sourcePaths],
+  ["served SIWA shared services contract", servedPaths],
+]) {
+  for (const routePath of canonicalSharedIdentityPaths) {
+    if (!paths[routePath]) {
+      failures.push(`${label} is missing canonical shared identity route ${routePath}`);
+    }
+  }
+}
+
+for (const [label, path] of requiredFiles) {
+  const text = readText(path);
+
+  for (const fragment of oldSharedIdentityPathFragments) {
+    if (text.includes(fragment)) {
+      failures.push(`${label} contains old shared identity route text ${fragment}: ${path}`);
+    }
+  }
+}
 
 for (const [servedPath, servedMethods] of Object.entries(servedPaths)) {
   const sourceMethods = sourcePaths[servedPath];

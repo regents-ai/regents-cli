@@ -1,8 +1,6 @@
 import type {
   RunbookAnswerCreateInput,
   RunbookAnswerResponse,
-  RunbookInviteRequestInput,
-  RunbookInviteRequestResponse,
   RunbookMarkSolvedInput,
   RunbookPaidSolutionInput,
   RunbookPaymentProfileInput,
@@ -78,11 +76,4 @@ export async function handleTechtreeRunbookAnswerVote(
   params: { answer_id: string; input: RunbookVoteInput },
 ): Promise<RunbookVoteResponse> {
   return ctx.techtree.voteRunbookAnswer(params.answer_id, params.input);
-}
-
-export async function handleTechtreeRunbookInviteRequest(
-  ctx: RuntimeContext,
-  params: { question_id: string; input: RunbookInviteRequestInput },
-): Promise<RunbookInviteRequestResponse> {
-  return ctx.techtree.requestRunbookInvite(params.question_id, params.input);
 }

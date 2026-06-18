@@ -249,10 +249,10 @@ describe("regent-staking verify", () => {
     process.env.BASE_MAINNET_RPC_URL = "https://base.example";
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
-      if (url.includes("/v1/agent/regent/staking/account/")) {
+      if (url.includes("/api/shared/regent/staking/account/")) {
         return jsonResponse(stakingState());
       }
-      if (url.includes("/v1/agent/regent/staking")) {
+      if (url.includes("/api/shared/regent/staking")) {
         return jsonResponse(stakingState());
       }
       throw new Error(`unexpected fetch ${url}`);

@@ -10,8 +10,8 @@ import {
 // The CLI-local MCP tool surface is contract-owned: the tool registry in
 // src/mcp/tool-registry.ts and the x-regent-mcp-tools section of
 // docs/shared-cli-contract.yaml must describe exactly the same tools, and no
-// local tool name may collide with a tool the Platform remote MCP endpoint
-// publishes (documented under POST /api/mcp in the Platform API contract).
+// local tool name may collide with a tool the shared remote MCP endpoint
+// publishes (documented under POST /api/shared/mcp in the Platform API contract).
 
 const root = resolve(import.meta.dirname, "..");
 const YAML = await loadYaml(root);
@@ -153,11 +153,11 @@ if (!platformContractPath) {
 
 const platformContract = YAML.parse(fs.readFileSync(platformContractPath, "utf8"));
 const platformMcpTools =
-  platformContract?.paths?.["/api/mcp"]?.post?.["x-regent-mcp-tools"];
+  platformContract?.paths?.["/api/shared/mcp"]?.post?.["x-regent-mcp-tools"];
 
 if (!Array.isArray(platformMcpTools) || platformMcpTools.length === 0) {
   fail(
-    `Platform API contract must document its remote MCP tool surface under POST /api/mcp x-regent-mcp-tools: ${platformContractPath}`,
+    `Platform API contract must document its remote MCP tool surface under POST /api/shared/mcp x-regent-mcp-tools: ${platformContractPath}`,
   );
 } else {
   for (const tool of platformMcpTools) {

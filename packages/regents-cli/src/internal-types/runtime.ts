@@ -34,6 +34,5 @@ export interface RuntimeStatus {
   agentIdentity: LocalAgentIdentity | null;
   agent: import("./agent.js").RegentAgentStatus | null;
   techtree: HealthCheck | null;
-  xmtp: import("./xmtp-status.js").XmtpStatus;
   gossipsub: import("./gossipsub.js").GossipsubStatus;
 }

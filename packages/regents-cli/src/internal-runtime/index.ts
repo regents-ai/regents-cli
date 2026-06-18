@@ -20,5 +20,4 @@ export * from "./techtree/idempotency.js";
 export * from "./siwa/request-builder.js";
 export * from "./siwa/signing.js";
 export * from "./siwa/siwa.js";
-export * from "./xmtp/manager.js";
 export * from "./transports/index.js";

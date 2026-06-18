@@ -127,7 +127,6 @@ export interface RunbookQuestion {
   status: "open" | "answered" | "solved" | "deprecated";
   solved_answer_id: string | null;
   public_visibility: "public" | "unlisted";
-  xmtp_room: Record<string, unknown> | null;
   answers: RunbookAnswer[];
   inserted_at: string | null;
   updated_at: string | null;
@@ -232,11 +231,6 @@ export interface RunbookVoteInput {
   vote: "up" | "down";
 }
 
-export interface RunbookInviteRequestInput {
-  answer_id?: string;
-  note?: string;
-}
-
 export interface RunbookQuestionListResponse {
   data: RunbookQuestion[];
 }
@@ -262,10 +256,6 @@ export interface RunbookUnlockResponse {
 }
 
 export interface RunbookVoteResponse {
-  data: Record<string, unknown>;
-}
-
-export interface RunbookInviteRequestResponse {
   data: Record<string, unknown>;
 }
 
@@ -1348,6 +1338,53 @@ export interface TreeNode {
   creator_agent?: TreeAgentSummary;
 }
 
+export interface TreeReview {
+  id: number;
+  parent_id: number;
+  kind: "review";
+  title: string;
+  summary: string | null;
+  status: string;
+  depth: number | null;
+  creator_agent_id: number | null;
+  creator_agent?: TreeAgentSummary;
+  inserted_at: string;
+  reply_count: number;
+  replies: TreeReview[];
+}
+
+export interface NodeReviewThread {
+  node_id: number;
+  total_reviews: number;
+  direct_reviews: number;
+  max_depth: number;
+  truncated: boolean;
+  threads: TreeReview[];
+}
+
+export interface TreeAgentProfile {
+  agent: {
+    id: number;
+    label: string | null;
+    wallet_address: string | null;
+    chain_id: number | null;
+    status: string | null;
+    first_seen_at: string | null;
+    last_verified_at: string | null;
+  };
+  publications: {
+    total: number;
+    by_kind: Record<string, number>;
+    recent: TreeNode[];
+    last_published_at: string | null;
+  };
+  review_activity: {
+    reviews_authored: number;
+    reviews_received: number;
+  };
+  tech?: Record<string, unknown>;
+}
+
 export interface TreeComment {
   id: number;
   node_id: number;
@@ -1520,6 +1557,17 @@ export interface ChatChannel {
 
 export interface ChatChannelListResponse {
   data: ChatChannel[];
+}
+
+export interface ChatDm {
+  scope: string;
+  counterpart_wallet_address: string;
+  last_message_at: string | null;
+  last_message_preview?: string | null;
+}
+
+export interface ChatDmListResponse {
+  data: ChatDm[];
 }
 
 export interface ChatMessage {

@@ -218,7 +218,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/work-items",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/work-items",
     );
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
@@ -259,7 +259,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/work-items/work_123/runs",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/work-items/work_123/runs",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
       JSON.stringify({
@@ -295,7 +295,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_456/cancel",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_456/cancel",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
@@ -325,7 +325,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_456/retry",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_456/retry",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
@@ -421,7 +421,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/workers",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
       JSON.stringify({
@@ -568,7 +568,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/agents/agent_manager/relationships",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/agent_manager/relationships",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
       JSON.stringify({
@@ -621,7 +621,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/agents/worker_manager/relationships",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/worker_manager/relationships",
     );
     expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
       JSON.stringify({
@@ -679,7 +679,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_123/events",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
     );
     expect(parsePrintedJson<{ result: { events: unknown[] } }>(output.stdout).result.events).toHaveLength(1);
   });
@@ -728,8 +728,8 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_123/events",
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/run_123/events",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
     ]);
     const lines = output.stdout.trim().split("\n").map((line) => JSON.parse(line));
     expect(lines).toHaveLength(2);
@@ -849,13 +849,13 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/workers/worker_123/heartbeat",
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/workers/worker_123/assignments",
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/assignments/11/claim",
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/456/events",
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/456/artifacts",
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/runs/456/delegations",
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/assignments/11/complete",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers/worker_123/heartbeat",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers/worker_123/assignments",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/assignments/11/claim",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/456/events",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/456/artifacts",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/456/delegations",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/assignments/11/complete",
     ]);
     expect(fetchMock.mock.calls[3]?.[1]?.body).toBe(
       JSON.stringify({
@@ -934,7 +934,7 @@ describe("work and agent platform commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/agent-platform/companies/company_123/rwr/agents/agent_manager/execution-pool",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/agent_manager/execution-pool",
     );
     expect(parsePrintedJson<{ result: { workers: unknown[] } }>(output.stdout).result.workers).toHaveLength(2);
   });

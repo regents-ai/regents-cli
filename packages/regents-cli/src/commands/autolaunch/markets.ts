@@ -16,12 +16,12 @@ import {
 
 type AutolaunchAuctionsListResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
-  "/v1/agent/auctions",
+  "/api/autolaunch/v1/agent/auctions",
   "get"
 >;
 type AutolaunchAuctionResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
-  "/v1/agent/auctions/{id}",
+  "/api/autolaunch/v1/agent/auctions/{id}",
   "get"
 >;
 
@@ -34,7 +34,7 @@ const postBidMutation = async (
   printJson(
     await requestJson(
       "POST",
-      `/v1/agent/bids/${encodeURIComponent(bidId)}/${action}`,
+      `/api/autolaunch/v1/agent/bids/${encodeURIComponent(bidId)}/${action}`,
       {
         body: { tx_hash: txHash },
         requireAgentAuth: true,
@@ -51,7 +51,7 @@ export async function runAutolaunchAuctionsList(
   printJson(
     await requestTypedJson<AutolaunchAuctionsListResponse>(
       "GET",
-      appendQuery("/v1/agent/auctions", {
+      appendQuery("/api/autolaunch/v1/agent/auctions", {
         sort: getFlag(args, "sort") ?? "hottest",
         status: getFlag(args, "status"),
         chain: getFlag(args, "chain"),
@@ -69,7 +69,7 @@ export async function runAutolaunchAuctionShow(
   printJson(
     await requestTypedJson<AutolaunchAuctionResponse>(
       "GET",
-      `/v1/agent/auctions/${encodeURIComponent(auctionId)}`,
+      `/api/autolaunch/v1/agent/auctions/${encodeURIComponent(auctionId)}`,
       { requireAgentAuth: true, configPath },
     ),
   );
@@ -88,7 +88,7 @@ export async function runAutolaunchBidsQuote(
   printJson(
     await requestJson(
       "POST",
-      `/v1/agent/auctions/${encodeURIComponent(auctionId)}/bid_quote`,
+      `/api/autolaunch/v1/agent/auctions/${encodeURIComponent(auctionId)}/bid_quote`,
       {
         body,
         requireAgentAuth: true,
@@ -121,7 +121,7 @@ export async function runAutolaunchBidsPlace(
   printJson(
     await requestJson(
       "POST",
-      `/v1/agent/auctions/${encodeURIComponent(auctionId)}/bids`,
+      `/api/autolaunch/v1/agent/auctions/${encodeURIComponent(auctionId)}/bids`,
       {
         body,
         requireAgentAuth: true,
@@ -164,7 +164,7 @@ export async function runAutolaunchAuctionReturnsList(
   printJson(
     await requestJson(
       "GET",
-      appendQuery("/v1/agent/auction-returns", {
+      appendQuery("/api/autolaunch/v1/agent/auction-returns", {
         limit: getFlag(args, "limit"),
         offset: getFlag(args, "offset"),
       }),

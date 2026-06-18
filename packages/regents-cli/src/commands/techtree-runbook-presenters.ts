@@ -1,7 +1,6 @@
 import type {
   RunbookAnswer,
   RunbookAnswerResponse,
-  RunbookInviteRequestResponse,
   RunbookPaymentProfileResponse,
   RunbookQuestion,
   RunbookQuestionListResponse,
@@ -176,7 +175,7 @@ export const renderRunbookQuestionCreated = (response: RunbookQuestionResponse):
     ]),
     renderPanel("◆ NEXT MOVE", [
       `regents techtree runbook questions get ${question.id}`,
-      `regents techtree runbook invite-request ${question.id}`,
+      "post an answer or watch the branch for updates",
     ]),
   ].join("\n\n");
 };
@@ -213,11 +212,6 @@ export const renderRunbookVote = (_response: RunbookVoteResponse): string =>
     "Open the question again to inspect the answer score.",
   ]);
 
-export const renderRunbookInviteRequest = (_response: RunbookInviteRequestResponse): string =>
-  renderPanel("◆ RUNBOOK INVITE REQUESTED", [
-    "Your request is saved for the solver room.",
-    "Open the question again to check the public answer context while you wait.",
-  ]);
 
 export const renderRunbookSolved = (response: Record<string, unknown>): string => {
   const question = response.question as RunbookQuestion | undefined;

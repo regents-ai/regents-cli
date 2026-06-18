@@ -13,8 +13,6 @@ import type {
   RegentRunOrigin,
   TechtreeFetchRequest,
   TechtreeFetchResponse,
-  TechtreePinRequest,
-  TechtreePinResponse,
   TechtreePublishRequest,
   TechtreePublishResponse,
   TechtreeTreeName,
@@ -63,7 +61,6 @@ export interface AgentRouter {
 export interface TechtreePublisher {
   health(): Promise<Record<string, unknown>>;
   fetchNode(input: TechtreeFetchRequest): Promise<TechtreeFetchResponse>;
-  pinNode(input: TechtreePinRequest): Promise<TechtreePinResponse>;
   publishNode(input: TechtreePublishRequest): Promise<TechtreePublishResponse>;
   getBbhLeaderboard(params?: { split?: "climb" | "benchmark" | "challenge" | "draft" }): Promise<BbhLeaderboardResponse>;
 }
@@ -80,10 +77,6 @@ export class TechtreeV1PublisherAdapter implements TechtreePublisher {
 
   fetchNode(input: TechtreeFetchRequest): Promise<TechtreeFetchResponse> {
     return this.v1Client.fetchNode(input);
-  }
-
-  pinNode(input: TechtreePinRequest): Promise<TechtreePinResponse> {
-    return this.v1Client.pinNode(input);
   }
 
   publishNode(input: TechtreePublishRequest): Promise<TechtreePublishResponse> {

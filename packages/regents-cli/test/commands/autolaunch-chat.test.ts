@@ -14,10 +14,8 @@ const { buildAgentAuthHeadersMock, loadAgentAuthStateMock, requireAgentAuthState
   requireAgentAuthStateMock: vi.fn(),
 }));
 
-const { sendXmtpConversationTextMock, sendXmtpDmMock, listXmtpDmsMock } = vi.hoisted(() => ({
+const { sendXmtpConversationTextMock } = vi.hoisted(() => ({
   sendXmtpConversationTextMock: vi.fn(),
-  sendXmtpDmMock: vi.fn(),
-  listXmtpDmsMock: vi.fn(),
 }));
 
 vi.mock("../../src/commands/agent-auth.js", () => ({
@@ -26,22 +24,11 @@ vi.mock("../../src/commands/agent-auth.js", () => ({
   requireAgentAuthState: requireAgentAuthStateMock,
 }));
 
-vi.mock("../../src/internal-runtime/xmtp/conversations.js", async () => {
-  const actual = await vi.importActual<typeof import("../../src/internal-runtime/xmtp/conversations.js")>(
-    "../../src/internal-runtime/xmtp/conversations.js",
-  );
-
-  return {
-    ...actual,
-    sendXmtpConversationText: sendXmtpConversationTextMock,
-    sendXmtpDm: sendXmtpDmMock,
-    listXmtpDms: listXmtpDmsMock,
-  };
-});
-
 const SUBJECT_ID = `0x${"1a".repeat(32)}`;
 const TOKEN_SCOPE = `token:${SUBJECT_ID}`;
+const SENDER_WALLET = "0x00000000000000000000000000000000000000aa";
 const CREATOR_WALLET = "0x00000000000000000000000000000000000000cc";
+const DM_SCOPE = `dm:${SENDER_WALLET}:${CREATOR_WALLET}`;
 
 describe("autolaunch chat CLI commands", () => {
   const expectedBaseUrl = "http://127.0.0.1:4010";
@@ -82,12 +69,18 @@ describe("autolaunch chat CLI commands", () => {
     loadAgentAuthStateMock.mockReset();
     requireAgentAuthStateMock.mockReset();
     sendXmtpConversationTextMock.mockReset();
-    sendXmtpDmMock.mockReset();
-    listXmtpDmsMock.mockReset();
 
     buildAgentAuthHeadersMock.mockResolvedValue({
       "x-siwa-receipt": "receipt_123",
       signature: "sig1=:ZmFrZQ==:",
+    });
+    requireAgentAuthStateMock.mockReturnValue({
+      identity: {
+        walletAddress: SENDER_WALLET,
+        chainId: 8453,
+        registryAddress: "0x0000000000000000000000000000000000000abc",
+        tokenId: "1",
+      },
     });
   });
 
@@ -108,7 +101,7 @@ describe("autolaunch chat CLI commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/chat/channels`);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/autolaunch/v1/chat/channels`);
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect((requestInit?.headers as Headers).get("x-siwa-receipt")).toBeNull();
     expect(buildAgentAuthHeadersMock).not.toHaveBeenCalled();
@@ -140,7 +133,7 @@ describe("autolaunch chat CLI commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/chat/messages?scope=system&before=10&limit=5`,
+      `${expectedBaseUrl}/api/autolaunch/v1/chat/messages?scope=system&before=10&limit=5`,
     );
     expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
@@ -166,7 +159,7 @@ describe("autolaunch chat CLI commands", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/chat/messages?scope=${encodeURIComponent("topic:cca")}`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/chat/messages?scope=${encodeURIComponent("topic:cca")}`,
     );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(requestInit?.method).toBe("POST");
@@ -197,7 +190,7 @@ describe("autolaunch chat CLI commands", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/chat/messages?scope=${encodeURIComponent(TOKEN_SCOPE)}`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/chat/messages?scope=${encodeURIComponent(TOKEN_SCOPE)}`,
     );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(requestInit?.method).toBe("POST");
@@ -209,16 +202,11 @@ describe("autolaunch chat CLI commands", () => {
 
   it("DMs a subject creator wallet resolved from the revenue subject", async () => {
     const configPath = createConfigPath();
+    const payload = { data: { id: 10, scope: DM_SCOPE, body: "Question about your token" } };
     fetchMock.mockResolvedValueOnce(
       jsonResponse({ ok: true, subject: { subject_id: SUBJECT_ID, creator_address: CREATOR_WALLET } }),
     );
-    sendXmtpDmMock.mockResolvedValueOnce({
-      ok: true,
-      to: CREATOR_WALLET,
-      conversationId: "dm_1",
-      messageId: "msg_1",
-      text: "Question about your token",
-    });
+    fetchMock.mockResolvedValueOnce(jsonResponse(payload, 201));
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -233,12 +221,16 @@ describe("autolaunch chat CLI commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/app/subjects/${SUBJECT_ID}`);
-    expect(sendXmtpDmMock).toHaveBeenCalledTimes(1);
-    expect(sendXmtpDmMock.mock.calls[0]?.[1]).toBe(CREATOR_WALLET);
-    expect(sendXmtpDmMock.mock.calls[0]?.[2]).toBe("Question about your token");
-    expect(parsePrintedJson(output.stdout)).toMatchObject({ ok: true, to: CREATOR_WALLET });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/autolaunch/v1/app/subjects/${SUBJECT_ID}`);
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/chat/messages?scope=${encodeURIComponent(DM_SCOPE)}`,
+    );
+    const [, requestInit] = fetchMock.mock.calls[1] ?? [];
+    expect(requestInit?.method).toBe("POST");
+    assertAgentAuthHeaders(requestInit?.headers as Headers);
+    expect(JSON.parse(String(requestInit?.body))).toEqual({ body: "Question about your token" });
+    expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
 
   it("fails the DM when the revenue subject has no creator wallet", async () => {
@@ -252,28 +244,29 @@ describe("autolaunch chat CLI commands", () => {
     );
 
     expect(output.result).toBe(1);
-    expect(sendXmtpDmMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(output.stderr).toContain("no creator wallet to DM");
   });
 
   it("DMs a wallet address directly without resolving a subject", async () => {
     const configPath = createConfigPath();
-    sendXmtpDmMock.mockResolvedValueOnce({
-      ok: true,
-      to: CREATOR_WALLET,
-      conversationId: "dm_1",
-      messageId: "msg_1",
-      text: "hello",
-    });
+    const payload = { data: { id: 11, scope: DM_SCOPE, body: "hello" } };
+    fetchMock.mockResolvedValueOnce(jsonResponse(payload, 201));
 
     const output = await captureOutput(() =>
       runCliEntrypoint(["autolaunch", "dm", CREATOR_WALLET, "--message", "hello", "--config", configPath]),
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(sendXmtpDmMock).toHaveBeenCalledTimes(1);
-    expect(sendXmtpDmMock.mock.calls[0]?.[1]).toBe(CREATOR_WALLET);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/chat/messages?scope=${encodeURIComponent(DM_SCOPE)}`,
+    );
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect(requestInit?.method).toBe("POST");
+    assertAgentAuthHeaders(requestInit?.headers as Headers);
+    expect(JSON.parse(String(requestInit?.body))).toEqual({ body: "hello" });
+    expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
 
   it("rejects DM targets that are neither subject ids nor wallet addresses", async () => {
@@ -285,22 +278,24 @@ describe("autolaunch chat CLI commands", () => {
 
     expect(output.result).toBe(1);
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(sendXmtpDmMock).not.toHaveBeenCalled();
     expect(output.stderr).toContain("invalid DM target");
   });
 
-  it("lists local XMTP DMs with the sync flag", async () => {
+  it("lists server-stored DM scopes", async () => {
     const configPath = createConfigPath();
-    listXmtpDmsMock.mockResolvedValueOnce({ ok: true, conversations: [] });
+    const payload = { data: [{ scope: DM_SCOPE, counterpart_wallet_address: CREATOR_WALLET, last_message_at: null }] };
+    fetchMock.mockResolvedValueOnce(jsonResponse(payload));
 
     const output = await captureOutput(() =>
-      runCliEntrypoint(["autolaunch", "dm", "list", "--sync", "--config", configPath]),
+      runCliEntrypoint(["autolaunch", "dm", "list", "--config", configPath]),
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(listXmtpDmsMock).toHaveBeenCalledTimes(1);
-    expect(listXmtpDmsMock.mock.calls[0]?.[1]).toEqual({ sync: true });
-    expect(parsePrintedJson(output.stdout)).toEqual({ ok: true, conversations: [] });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/autolaunch/v1/agent/chat/dms`);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect(requestInit?.method).toBe("GET");
+    assertAgentAuthHeaders(requestInit?.headers as Headers);
+    expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
 });

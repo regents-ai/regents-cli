@@ -4,17 +4,19 @@ import http from "node:http";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
 
+import type { AutoskillSkillPublishRequest, NodeCreateResponse } from "../internal-types/index.js";
+
 import { daemonCall } from "../daemon-client.js";
 import { productBaseUrl } from "../internal-runtime/product-http-client.js";
 import { buildSignerBackedAgentHeaders } from "../internal-runtime/siwa/signing.js";
 import { resolveAuthenticatedAgentSigningContext } from "../internal-runtime/techtree/auth.js";
 import { resolveTechtreeCoreDir } from "../internal-runtime/techtree/core.js";
-import { getFlag, parsePositiveInteger, requireArg, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, getFlag, parsePositiveInteger, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 import { loadAgentAuthState } from "./agent-auth.js";
 
 const CAPSULE_LIST_LIMIT = 200;
-const SKILL_OPT_PATH_PREFIX = "/v1/agent/skill-opt/";
+const SKILL_OPT_PATH_PREFIX = "/api/techtree/v1/agent/skill-opt/";
 
 export interface SkillOptCapsuleRef {
   capsule_id: string;
@@ -259,6 +261,109 @@ export const runSkillOptEngine = async (input: {
     child.stdin.end();
   });
 
+const PUBLISH_MARIMO_ENTRYPOINT = "session.marimo.py";
+const PUBLISH_STAGING_EXCLUDES = new Set([".skillopt", ".git", "node_modules", "dist", "SKILL.optimized.md"]);
+
+const formatSolveRate = (value: number | null): string =>
+  value === null ? "unknown" : value.toFixed(3);
+
+/**
+ * Copies the skill workspace into a staging folder under `.skillopt/publish/`
+ * and replaces SKILL.md with the gate-accepted markdown, so the existing
+ * autoskill publish flow can bundle it without mutating the user's workspace.
+ */
+export const stageSkillOptPublishWorkspace = (input: {
+  workspacePath: string;
+  runId: string;
+  skillMd: string;
+}): string => {
+  const stagingDir = path.join(input.workspacePath, ".skillopt", "publish", input.runId);
+  fs.rmSync(stagingDir, { recursive: true, force: true });
+  fs.mkdirSync(stagingDir, { recursive: true });
+
+  for (const entry of fs.readdirSync(input.workspacePath)) {
+    if (PUBLISH_STAGING_EXCLUDES.has(entry)) {
+      continue;
+    }
+
+    fs.cpSync(path.join(input.workspacePath, entry), path.join(stagingDir, entry), {
+      recursive: true,
+      filter: (source) => !PUBLISH_STAGING_EXCLUDES.has(path.basename(source)),
+    });
+  }
+
+  fs.writeFileSync(path.join(stagingDir, "SKILL.md"), input.skillMd);
+  return stagingDir;
+};
+
+/**
+ * Marimo notebook source for a published null_result node. The cells render
+ * only facts the engine actually produced: the run/step identity and the
+ * server-computed held-out verdict that rejected the candidate.
+ */
+export const buildNullResultNotebookSource = (input: {
+  skillSlug: string;
+  capsuleSet: string;
+  verdict: SkillOptStepVerdict;
+}): string => {
+  const verdictJson = JSON.stringify(
+    {
+      run_id: input.verdict.run_id,
+      step_id: input.verdict.step_id,
+      round: input.verdict.round,
+      accepted: input.verdict.accepted,
+      val_solve_rate_before: input.verdict.val_solve_rate_before,
+      val_solve_rate_after: input.verdict.val_solve_rate_after,
+      train_solve_rate: input.verdict.train_solve_rate,
+    },
+    null,
+    2,
+  );
+
+  return `import marimo as mo
+
+app = mo.App()
+
+
+@app.cell
+def _():
+    import json
+
+    verdict = json.loads(
+        r"""
+${verdictJson}
+"""
+    )
+    return (verdict,)
+
+
+@app.cell
+def _(verdict):
+    import marimo as mo
+
+    mo.md(
+        f"""
+# Null result: ${input.skillSlug} (round {verdict["round"]})
+
+A candidate edit of the **${input.skillSlug}** skill against the
+**${input.capsuleSet}** benchmark capsule set was rejected by the server's
+held-out validation gate.
+
+- Optimization run: {verdict["run_id"]}
+- Step: {verdict["step_id"]}
+- Held-out solve rate before: {verdict["val_solve_rate_before"]}
+- Held-out solve rate after: {verdict["val_solve_rate_after"]}
+- Train solve rate: {verdict["train_solve_rate"]}
+"""
+    )
+    return
+
+
+if __name__ == "__main__":
+    app.run()
+`;
+};
+
 export async function runTechtreeSkillsOptimize(
   args: ParsedCliArgs,
   configPath?: string,
@@ -273,11 +378,27 @@ export async function runTechtreeSkillsOptimize(
     requireArg(getFlag(args, "budget-tokens"), "--budget-tokens"),
     "invalid --budget-tokens",
   );
+  const publish = getBooleanFlag(args, "publish");
+  const publishNullResults = getBooleanFlag(args, "publish-null-results");
+  const seed = getFlag(args, "seed");
+  const skillVersion = getFlag(args, "skill-version") ?? "0.1.0";
+  if (publishNullResults && !seed) {
+    throw new Error(
+      "missing required argument: --seed (seed tree for published null-result nodes; needed with --publish-null-results)",
+    );
+  }
 
   const skillPath = path.join(workspacePath, "SKILL.md");
   if (!fs.existsSync(skillPath)) {
     throw new Error(
       `no SKILL.md found in ${workspacePath}; run \`regents techtree autoskill init skill\` first`,
+    );
+  }
+
+  if (publish && !fs.existsSync(path.join(workspacePath, PUBLISH_MARIMO_ENTRYPOINT))) {
+    throw new Error(
+      `no ${PUBLISH_MARIMO_ENTRYPOINT} found in ${workspacePath}; --publish bundles the full workspace ` +
+        "through the autoskill publish flow — run `regents techtree autoskill init skill` first",
     );
   }
 
@@ -314,6 +435,85 @@ export async function runTechtreeSkillsOptimize(
       fs.writeFileSync(optimizedSkillPath, report.best_skill_md);
     }
 
+    let publishedSkillVersion: {
+      node_id: number;
+      skill_slug: string;
+      skill_version: string;
+      bundle_hash: string;
+      staged_workspace_path: string;
+      step_id?: string;
+      round?: number;
+    } | null = null;
+    if (publish && report.improved) {
+      const acceptedIntent = report.publish_intents.skill_versions.at(-1);
+      const verdict = acceptedIntent?.verdict;
+      const stagingDir = stageSkillOptPublishWorkspace({
+        workspacePath,
+        runId: report.run_id,
+        skillMd: acceptedIntent?.skill_md ?? report.best_skill_md,
+      });
+      const publishInput: AutoskillSkillPublishRequest = {
+        title: skillSlug,
+        skill_slug: skillSlug,
+        skill_version: skillVersion,
+        access_mode: "public_free",
+        marimo_entrypoint: PUBLISH_MARIMO_ENTRYPOINT,
+        primary_file: "SKILL.md",
+        ...(verdict
+          ? {
+              summary:
+                `Accepted by skill-opt run ${verdict.run_id} (round ${verdict.round}) on capsule set ` +
+                `${familyRef}: held-out solve rate ${formatSolveRate(verdict.val_solve_rate_before)} -> ` +
+                `${formatSolveRate(verdict.val_solve_rate_after)}.`,
+            }
+          : {}),
+      };
+      const publishResponse = await daemonCall(
+        "techtree.autoskill.publishSkill",
+        { workspace_path: stagingDir, input: publishInput },
+        configPath,
+      );
+      publishedSkillVersion = {
+        node_id: publishResponse.data.node_id,
+        skill_slug: skillSlug,
+        skill_version: skillVersion,
+        bundle_hash: publishResponse.bundle_hash,
+        staged_workspace_path: stagingDir,
+        ...(verdict ? { step_id: verdict.step_id, round: verdict.round } : {}),
+      };
+    }
+
+    const publishedNullResults: Array<{ node_id: number; step_id: string; round: number }> = [];
+    if (publishNullResults) {
+      for (const intent of report.publish_intents.null_results) {
+        const verdict = intent.verdict;
+        const created: NodeCreateResponse = await daemonCall(
+          "techtree.nodes.create",
+          {
+            seed: seed as string,
+            kind: "null_result",
+            title: `Skill-opt null result: ${skillSlug} round ${verdict.round}`,
+            summary:
+              `Candidate rejected by the held-out validation gate in skill-opt run ${verdict.run_id} on ` +
+              `capsule set ${familyRef}: held-out solve rate ${formatSolveRate(verdict.val_solve_rate_before)} -> ` +
+              `${formatSolveRate(verdict.val_solve_rate_after)}.`,
+            notebook_source: buildNullResultNotebookSource({
+              skillSlug,
+              capsuleSet: familyRef,
+              verdict,
+            }),
+            idempotency_key: verdict.step_id,
+          },
+          configPath,
+        );
+        publishedNullResults.push({
+          node_id: created.data.node_id,
+          step_id: verdict.step_id,
+          round: verdict.round,
+        });
+      }
+    }
+
     printJson({
       data: {
         run_id: report.run_id,
@@ -331,10 +531,24 @@ export async function runTechtreeSkillsOptimize(
           null_results: report.publish_intents.null_results,
         },
         ...(report.improved ? { optimized_skill_path: optimizedSkillPath } : {}),
+        ...(publish || publishNullResults
+          ? {
+              published: {
+                skill_version: publishedSkillVersion,
+                null_results: publishedNullResults,
+              },
+            }
+          : {}),
         next_steps: report.improved
-          ? [
-              `Review ${optimizedSkillPath}, copy it over ${skillPath}, then run \`regents techtree autoskill publish skill --workspace ${workspacePath} --skill-slug ${skillSlug}\` to publish the accepted skill version.`,
-            ]
+          ? publishedSkillVersion
+            ? [
+                `Published the optimized skill as skill version ${publishedSkillVersion.skill_version} ` +
+                  `(node ${publishedSkillVersion.node_id}). Review it with \`regents techtree node get ` +
+                  `${publishedSkillVersion.node_id}\`; the accepted markdown is also at ${optimizedSkillPath}.`,
+              ]
+            : [
+                `Review ${optimizedSkillPath}, copy it over ${skillPath}, then run \`regents techtree autoskill publish skill --workspace ${workspacePath} --skill-slug ${skillSlug}\` to publish the accepted skill version.`,
+              ]
           : [
               "No candidate beat the held-out validation gate, so the skill document is unchanged.",
             ],

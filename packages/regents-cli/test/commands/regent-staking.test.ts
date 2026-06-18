@@ -219,7 +219,7 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://staking.regents.sh/v1/agent/regent/staking");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://staking.regents.sh/api/shared/regent/staking");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ chain_id: number }>(output.stdout)).toMatchObject({ chain_id: 8453 });
   });
@@ -238,7 +238,7 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/regent/staking/account/0xabc`);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/account/0xabc`);
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ wallet_address: string }>(output.stdout)).toMatchObject({
       wallet_address: "0xabc",
@@ -268,7 +268,7 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/regent/staking/stake`);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/stake`);
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ wallet_action: { data: string } }>(output.stdout)).toMatchObject({
       wallet_action: { data: "0x7acb7757" },
@@ -342,7 +342,7 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/v1/agent/regent/staking/claim-usdc`);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/claim-usdc`);
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ wallet_action: { data: string } }>(output.stdout)).toMatchObject({
       wallet_action: { data: "0x42852610" },

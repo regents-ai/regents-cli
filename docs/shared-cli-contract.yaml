@@ -39,15 +39,16 @@ help:
     - Keep command-level help scoped to the requested command group.
 x-regent-chat-room-contract:
   owner: regents-cli
-  local_xmtp_authority: CLI owns local XMTP identity, local policy files, and raw XMTP group operations.
   product_room_authority: Product room keys and membership rules stay in Platform, Autolaunch, and Techtree contracts.
   thread_identifier_boundary:
-    xmtp_group_commands: conversation_id
-    techtree_chat_commands: "Techtree chat scopes: system, topic:<slug>, node:<node-id>"
+    chat_commands: "Chat scopes: system, topic:<slug>, node:<node-id>, dm:<walletA>:<walletB>"
+    dm_scope_rule: >-
+      DM scopes are dm:<walletA>:<walletB> with both wallet addresses lowercased,
+      lexicographically sorted, and unequal.
   transport_boundary: >-
-    CLI xmtp commands manage local XMTP transport. CLI techtree chat commands use
-    Techtree chat routes or local runtime transport; node-room writes and DMs go
-    over the local XMTP runtime.
+    CLI chat commands use product HTTP chat routes or local runtime transport.
+    Direct messages are server-stored chat scopes on product HTTP chat routes,
+    participant-gated by the authenticated SIWA wallet.
 x-regent-mcp-tools:
   owner: regents-cli
   server: local
@@ -57,7 +58,7 @@ x-regent-mcp-tools:
   name_policy: >-
     This list is the source of truth for the CLI-local MCP tool surface served by
     `regents mcp serve`. No tool name here may collide with a tool name published
-    by the Platform remote MCP endpoint (POST /api/mcp in the Platform API
+    by the Platform remote MCP endpoint (POST /api/shared/mcp in the Platform API
     contract). Enforced by scripts/check-mcp-tools.mjs.
   dispatch_kinds:
     runtime-rpc: The tool handler calls the named local runtime JSON-RPC method.
@@ -74,7 +75,7 @@ x-regent-mcp-tools:
       rpc_method: auth.siwa.status
     - name: regents.runtime.status
       title: Regents runtime status
-      description: Read local Regent runtime, Techtree, XMTP, and relay readiness.
+      description: Read local Regent runtime, Techtree, and relay readiness.
       risk_class: read
       owner: regents-cli
       auth_mode: local
@@ -96,6 +97,22 @@ x-regent-mcp-tools:
       auth_mode: agent-siwa
       dispatch: runtime-rpc
       rpc_method: techtree.nodes.get
+    - name: regents.techtree.node.reviews
+      title: Read Techtree node reviews
+      description: Read the threaded reviews for one Techtree node, including reviews of reviews.
+      risk_class: read
+      owner: techtree
+      auth_mode: agent-siwa
+      dispatch: runtime-rpc
+      rpc_method: techtree.nodes.reviews
+    - name: regents.techtree.agent.profile
+      title: Read Techtree agent profile
+      description: "Read the public profile for one Techtree agent: published work, counts by kind, and review activity."
+      risk_class: read
+      owner: techtree
+      auth_mode: agent-siwa
+      dispatch: runtime-rpc
+      rpc_method: techtree.agents.profile
     - name: regents.techtree.node.create
       title: Create Techtree node
       description: Create one Techtree node as the authenticated Regent agent.
@@ -268,7 +285,7 @@ command_groups:
           next_step: regents config write --input @config.json
           examples:
             - regents settings
-        setup:
+        version:
           category: local-setup
           prompt_behavior: never_prompt
           json_support: supported
@@ -277,9 +294,47 @@ command_groups:
           pagination: none
           async_behavior: synchronous
           input_mode: flags
+          summary: Print the installed Regents CLI version. Also available as --version.
+          next_step: regents update
+          examples:
+            - regents version
+            - regents version --json
+        update:
+          category: local-setup
+          prompt_behavior: never_prompt
+          json_support: supported
+          mutation_class: local-write
+          retry_behavior: safe
+          pagination: none
+          async_behavior: synchronous
+          input_mode: flags
+          summary: >
+            Update the Regents CLI in place via npm. Defaults to the latest
+            published release; --version installs a specific one.
+          next_step: regents setup --quick
+          examples:
+            - regents update
+            - regents update --version 0.6.0
+        setup:
+          category: local-setup
+          prompt_behavior: may_prompt
+          json_support: supported
+          mutation_class: local-write
+          retry_behavior: safe
+          pagination: none
+          async_behavior: synchronous
+          input_mode: flags
+          summary: >
+            Interactive setup wizard on a terminal: detects agent runtimes
+            (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins,
+            and registers the regents MCP server. With --json or no terminal it
+            prints the read-only status report. --quick applies missing pieces
+            without prompting.
           next_step: regents plugin status
           examples:
             - regents setup
+            - regents setup --quick
+            - regents setup --json
             - regents setup --runtime hermes
         setup skills:
           category: local-setup
@@ -364,6 +419,8 @@ command_groups:
       - init
       - start
       - settings
+      - version
+      - update
       - status
       - whoami
       - agent-context
@@ -391,7 +448,7 @@ command_groups:
         - name: --area
           type: string
           required: false
-          description: Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, xmtp, chat, work, or mcp.
+          description: Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, chat, work, or mcp.
         - name: --command
           type: string
           required: false
@@ -551,7 +608,7 @@ command_groups:
       - runtime tools
       - runtime policy
   - name: identity
-    interface: runtime
+    interface: mixed
     auth_mode: none
     output_envelope: loose-object
     agent_metadata:
@@ -570,6 +627,12 @@ command_groups:
       - identity status
       - identity ensure
       - identity graph
+    path_templates:
+      - /api/shared/identity/status
+      - /api/shared/identity/registration-intents
+      - /api/shared/identity/registration-completions
+      - /api/shared/identity/siwa/nonce
+      - /api/shared/identity/siwa/verify
     flags:
       graph:
         - name: --json
@@ -597,8 +660,8 @@ command_groups:
       - auth status
       - auth logout
     path_templates:
-      - /v1/agent/siwa/nonce
-      - /v1/agent/siwa/verify
+      - /api/shared/siwa/nonce
+      - /api/shared/siwa/verify
   - name: mcp
     interface: runtime
     auth_mode: none
@@ -964,7 +1027,7 @@ command_groups:
       examples:
         - regents doctor
         - regents doctor --fix
-        - regents xmtp doctor
+        - regents doctor transports
     commands:
       - doctor
       - doctor runtime
@@ -978,7 +1041,7 @@ command_groups:
         - name: --fix
           type: boolean
           required: false
-          description: Apply safe local repairs for blockers doctor can fix mechanically, such as creating the default config file, creating missing runtime folders, removing a validated stale runtime socket, and creating the default XMTP policy file. Everything else keeps its printed next step. No destructive repairs.
+          description: Apply safe local repairs for blockers doctor can fix mechanically, such as creating the default config file, creating missing runtime folders, and removing a validated stale runtime socket. Everything else keeps its printed next step. No destructive repairs.
   - name: ens
     interface: http
     auth_mode: agent-siwa
@@ -1005,7 +1068,7 @@ command_groups:
           required: false
           description: Submit the prepared transaction with the local wallet.
     path_templates:
-      - /api/agent-platform/ens/prepare-primary
+      - /api/platform/ens/prepare-primary
   - name: chat-follows
     interface: runtime
     auth_mode: none
@@ -1026,59 +1089,3 @@ command_groups:
       - chat follows add <wallet|label>
       - chat follows remove <wallet|label>
       - chat follows list
-  - name: xmtp
-    interface: runtime
-    auth_mode: none
-    output_envelope: loose-object
-    agent_metadata:
-      category: messaging
-      prompt_behavior: prompt_for_local_identity_changes
-      json_support: supported
-      mutation_class: local-and-network-write
-      retry_behavior: retry_idempotent_reads
-      pagination: bounded
-      async_behavior: synchronous
-      input_mode: args-and-flags
-      examples:
-        - regents xmtp status
-        - regents xmtp policy get
-        - regents xmtp group list
-    commands:
-      - xmtp init
-      - xmtp status
-      - xmtp resolve
-      - xmtp owner add
-      - xmtp owner list
-      - xmtp owner remove
-      - xmtp trusted add
-      - xmtp trusted list
-      - xmtp trusted remove
-      - xmtp policy init
-      - xmtp policy get
-      - xmtp policy validate
-      - xmtp policy edit
-      - xmtp doctor
-      - xmtp test dm
-      - xmtp dm send
-      - xmtp dm list
-      - xmtp inbox
-      - xmtp inbox sync
-      - xmtp tail
-      - xmtp group create
-      - xmtp group add-member
-      - xmtp group remove-member
-      - xmtp group list
-      - xmtp group members
-      - xmtp group permissions
-      - xmtp group update-permission
-      - xmtp group admins
-      - xmtp group super-admins
-      - xmtp group add-admin
-      - xmtp group remove-admin
-      - xmtp group add-super-admin
-      - xmtp group remove-super-admin
-      - xmtp revoke-other-installations
-      - xmtp rotate-db-key
-      - xmtp rotate-wallet
-    rpc_methods:
-      - xmtp.status

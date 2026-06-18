@@ -2,7 +2,7 @@
 
 This workspace ships one operator-facing install target: `@regentslabs/cli`. The internal runtime and shared types packages stay inside the workspace and are not separate release products.
 
-This script assumes a local Techtree Phoenix server is running and the shared SIWA rail is reachable through the configured `/v1/agent/siwa/*` routes.
+This script assumes a reachable backend that serves the current Techtree product API contract and shared SIWA rail through the configured `/api/shared/siwa/*` routes. During the unified web app refactor, this is a contract-validation setup; shipped browser routes belong to the Regent web app.
 
 Keep the launch split explicit:
 
@@ -40,9 +40,9 @@ The rest of this document remains the explicit operator-by-operator version of t
 export REGENT_WALLET_PRIVATE_KEY=0xYOUR_PRIVATE_KEY
 ```
 
-## 2. Start local Techtree
+## 2. Start the contract-validation backend
 
-From the sibling `techtree` repo:
+Until the Techtree domain move is complete, run the backend that currently serves the Techtree API contract:
 
 ```bash
 mix phx.server

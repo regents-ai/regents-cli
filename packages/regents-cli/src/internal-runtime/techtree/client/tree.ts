@@ -7,9 +7,11 @@ import type {
   NodeCreateInput,
   NodeCreateResponse,
   NodePaidPayloadAccessResponse,
+  NodeReviewThread,
   NodeStarRecord,
   SearchResponse,
   SkillTextResponse,
+  TreeAgentProfile,
   TreeComment,
   TreeNode,
   WatchRecord,
@@ -31,27 +33,35 @@ export class TreeResource {
   }
 
   async listNodes(params?: { limit?: number; seed?: string }): Promise<{ data: TreeNode[] }> {
-    return this.request.getJson<{ data: TreeNode[] }>(withQuery("/v1/tree/nodes", params), "array");
+    return this.request.getJson<{ data: TreeNode[] }>(withQuery("/api/techtree/v1/tree/nodes", params), "array");
   }
 
   async getNode(id: number): Promise<{ data: TreeNode }> {
-    return this.request.getJson<{ data: TreeNode }>(`/v1/tree/nodes/${id}`, "object");
+    return this.request.getJson<{ data: TreeNode }>(`/api/techtree/v1/tree/nodes/${id}`, "object");
   }
 
   async getChildren(id: number, params?: { limit?: number }): Promise<{ data: TreeNode[] }> {
     if (this.request.hasAuthenticatedAgentContext()) {
       return this.request.authedFetchJson<{ data: TreeNode[] }>(
         "GET",
-        withQuery(`/v1/agent/tree/nodes/${id}/children`, params),
+        withQuery(`/api/techtree/v1/agent/tree/nodes/${id}/children`, params),
       );
     }
 
-    return this.request.getJson<{ data: TreeNode[] }>(withQuery(`/v1/tree/nodes/${id}/children`, params), "array");
+    return this.request.getJson<{ data: TreeNode[] }>(withQuery(`/api/techtree/v1/tree/nodes/${id}/children`, params), "array");
+  }
+
+  async getNodeReviews(id: number): Promise<{ data: NodeReviewThread }> {
+    return this.request.getJson<{ data: NodeReviewThread }>(`/api/techtree/v1/tree/nodes/${id}/reviews`, "object");
+  }
+
+  async getAgentProfile(id: number): Promise<{ data: TreeAgentProfile }> {
+    return this.request.getJson<{ data: TreeAgentProfile }>(`/api/techtree/v1/tree/agents/${id}`, "object");
   }
 
   async getComments(id: number, params?: { limit?: number }): Promise<{ data: TreeComment[] }> {
     return this.request.getJson<{ data: TreeComment[] }>(
-      withQuery(`/v1/tree/nodes/${id}/comments`, params),
+      withQuery(`/api/techtree/v1/tree/nodes/${id}/comments`, params),
       "array",
     );
   }
@@ -60,12 +70,12 @@ export class TreeResource {
     if (this.request.hasAuthenticatedAgentContext()) {
       return this.request.authedFetchJson<{ data: Record<string, unknown> | null }>(
         "GET",
-        `/v1/agent/tree/nodes/${id}/lineage`,
+        `/api/techtree/v1/agent/tree/nodes/${id}/lineage`,
       );
     }
 
     return this.request.getJson<{ data: Record<string, unknown> | null }>(
-      `/v1/tree/nodes/${id}/lineage`,
+      `/api/techtree/v1/tree/nodes/${id}/lineage`,
       "object-or-null",
     );
   }
@@ -73,7 +83,7 @@ export class TreeResource {
   async claimNodeLineage(id: number, input: Record<string, unknown>): Promise<{ data: Record<string, unknown> }> {
     return this.request.authedFetchJson<{ data: Record<string, unknown> }>(
       "POST",
-      `/v1/tree/nodes/${id}/lineage/claims`,
+      `/api/techtree/v1/tree/nodes/${id}/lineage/claims`,
       input,
     );
   }
@@ -81,21 +91,21 @@ export class TreeResource {
   async withdrawNodeLineageClaim(id: number, claimId: string): Promise<{ ok: true }> {
     return this.request.authedFetchJson<{ ok: true }>(
       "DELETE",
-      `/v1/tree/nodes/${id}/lineage/claims/${encodeURIComponent(claimId)}`,
+      `/api/techtree/v1/tree/nodes/${id}/lineage/claims/${encodeURIComponent(claimId)}`,
     );
   }
 
   async listNodeCrossChainLinks(id: number): Promise<{ data: Record<string, unknown>[] }> {
     return this.request.authedFetchJson<{ data: Record<string, unknown>[] }>(
       "GET",
-      `/v1/agent/tree/nodes/${id}/cross-chain-links`,
+      `/api/techtree/v1/agent/tree/nodes/${id}/cross-chain-links`,
     );
   }
 
   async createNodeCrossChainLink(id: number, input: Record<string, unknown>): Promise<{ data: Record<string, unknown> }> {
     return this.request.authedFetchJson<{ data: Record<string, unknown> }>(
       "POST",
-      `/v1/tree/nodes/${id}/cross-chain-links`,
+      `/api/techtree/v1/tree/nodes/${id}/cross-chain-links`,
       input,
     );
   }
@@ -103,30 +113,30 @@ export class TreeResource {
   async clearNodeCrossChainLinks(id: number): Promise<{ ok: true }> {
     return this.request.authedFetchJson<{ ok: true }>(
       "DELETE",
-      `/v1/tree/nodes/${id}/cross-chain-links/current`,
+      `/api/techtree/v1/tree/nodes/${id}/cross-chain-links/current`,
     );
   }
 
   async getSidelinks(id: number): Promise<{ data: unknown[] }> {
-    return this.request.getJson<{ data: unknown[] }>(`/v1/tree/nodes/${id}/sidelinks`, "array");
+    return this.request.getJson<{ data: unknown[] }>(`/api/techtree/v1/tree/nodes/${id}/sidelinks`, "array");
   }
 
   async getHotSeed(seed: string, params?: { limit?: number }): Promise<{ data: TreeNode[] }> {
     return this.request.getJson<{ data: TreeNode[] }>(
-      withQuery(`/v1/tree/seeds/${encodeURIComponent(seed)}/hot`, params),
+      withQuery(`/api/techtree/v1/tree/seeds/${encodeURIComponent(seed)}/hot`, params),
       "array",
     );
   }
 
   async listActivity(params?: { limit?: number }): Promise<ActivityListResponse> {
     return this.request.getJson<ActivityListResponse>(
-      withQuery("/v1/tree/activity", params),
+      withQuery("/api/techtree/v1/tree/activity", params),
       "array",
     );
   }
 
   async search(params: { q: string; limit?: number }): Promise<SearchResponse> {
-    return this.request.getJson<SearchResponse>(withQuery("/v1/tree/search", params), "object");
+    return this.request.getJson<SearchResponse>(withQuery("/api/techtree/v1/tree/search", params), "object");
   }
 
   async getLatestSkill(slug: string): Promise<SkillTextResponse> {
@@ -140,19 +150,19 @@ export class TreeResource {
   async getNodePaidPayload(nodeId: number): Promise<NodePaidPayloadAccessResponse> {
     return this.request.authedFetchJson<NodePaidPayloadAccessResponse>(
       "GET",
-      `/v1/agent/tree/nodes/${nodeId}/payload`,
+      `/api/techtree/v1/agent/tree/nodes/${nodeId}/payload`,
     );
   }
 
   async getWorkPacket(nodeId: number): Promise<{ data: WorkPacketResponse }> {
-    return this.request.authedFetchJson<{ data: WorkPacketResponse }>("GET", `/v1/tree/nodes/${nodeId}/work-packet`);
+    return this.request.authedFetchJson<{ data: WorkPacketResponse }>("GET", `/api/techtree/v1/tree/nodes/${nodeId}/work-packet`);
   }
 
   async createNodeDetailed(input: NodeCreateInput): Promise<{
     statusCode: number;
     response: NodeCreateResponse;
   }> {
-    return this.request.authedFetchJsonWithStatus<NodeCreateResponse>("POST", "/v1/tree/nodes", input);
+    return this.request.authedFetchJsonWithStatus<NodeCreateResponse>("POST", "/api/techtree/v1/tree/nodes", input);
   }
 
   async createNode(input: NodeCreateInput): Promise<NodeCreateResponse> {
@@ -172,33 +182,33 @@ export class TreeResource {
       idempotency_key: input.idempotency_key ?? makeCommentIdempotencyKey(input.node_id),
     };
 
-    const response = await this.request.authedFetchJson<CommentCreateResponse>("POST", "/v1/tree/comments", payload);
+    const response = await this.request.authedFetchJson<CommentCreateResponse>("POST", "/api/techtree/v1/tree/comments", payload);
     this.stateStore.patch({ lastUsedCommentIdempotencyKey: payload.idempotency_key });
     return response;
   }
 
   async watchNode(nodeId: number): Promise<{ data: WatchRecord }> {
-    return this.request.authedFetchJson<{ data: WatchRecord }>("POST", `/v1/tree/nodes/${nodeId}/watch`, {});
+    return this.request.authedFetchJson<{ data: WatchRecord }>("POST", `/api/techtree/v1/tree/nodes/${nodeId}/watch`, {});
   }
 
   async unwatchNode(nodeId: number): Promise<{ ok: true }> {
-    return this.request.authedFetchJson<{ ok: true }>("DELETE", `/v1/tree/nodes/${nodeId}/watch`);
+    return this.request.authedFetchJson<{ ok: true }>("DELETE", `/api/techtree/v1/tree/nodes/${nodeId}/watch`);
   }
 
   async listWatches(): Promise<{ data: WatchRecord[] }> {
-    return this.request.authedFetchJson<{ data: WatchRecord[] }>("GET", "/v1/agent/watches");
+    return this.request.authedFetchJson<{ data: WatchRecord[] }>("GET", "/api/techtree/v1/agent/watches");
   }
 
   async starNode(nodeId: number): Promise<{ data: NodeStarRecord }> {
-    return this.request.authedFetchJson<{ data: NodeStarRecord }>("POST", `/v1/tree/nodes/${nodeId}/star`, {});
+    return this.request.authedFetchJson<{ data: NodeStarRecord }>("POST", `/api/techtree/v1/tree/nodes/${nodeId}/star`, {});
   }
 
   async unstarNode(nodeId: number): Promise<{ ok: true }> {
-    return this.request.authedFetchJson<{ ok: true }>("DELETE", `/v1/tree/nodes/${nodeId}/star`);
+    return this.request.authedFetchJson<{ ok: true }>("DELETE", `/api/techtree/v1/tree/nodes/${nodeId}/star`);
   }
 
   async getInbox(params?: { cursor?: number; limit?: number; seed?: string; kind?: string | string[] }): Promise<AgentInboxResponse> {
-    return this.request.authedFetchJson<AgentInboxResponse>("GET", withQuery("/v1/agent/inbox", params));
+    return this.request.authedFetchJson<AgentInboxResponse>("GET", withQuery("/api/techtree/v1/agent/inbox", params));
   }
 
   async getOpportunities(
@@ -206,7 +216,7 @@ export class TreeResource {
   ): Promise<AgentOpportunitiesResponse> {
     return this.request.authedFetchJson<AgentOpportunitiesResponse>(
       "GET",
-      withQuery("/v1/agent/opportunities", params),
+      withQuery("/api/techtree/v1/agent/opportunities", params),
     );
   }
 }

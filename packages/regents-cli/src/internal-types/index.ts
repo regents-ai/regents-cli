@@ -10,5 +10,3 @@ export * from "./runtime.js";
 export * from "./techtree.js";
 export * from "./techtree-v1.js";
 export * from "./x402.js";
-export * from "./xmtp-status.js";
-export * from "./xmtp.js";

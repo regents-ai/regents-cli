@@ -25,7 +25,7 @@ repos:
     api_contracts:
       - id: platform_api
         owner: platform
-        path: api-contract.openapiv3.yaml
+        path: contracts/platform/api-contract.openapiv3.yaml
         include_in_cli_command_check: true
         x-regent-capability:
           status: beta
@@ -36,11 +36,49 @@ repos:
         generated_bindings:
           - path: packages/regents-cli/src/generated/platform-openapi.ts
             generator: openapi-typescript
+      - id: techtree_api
+        owner: techtree
+        path: contracts/techtree/api-contract.openapiv3.yaml
+        include_in_cli_command_check: true
+        x-regent-capability:
+          status: beta
+          owner: techtree
+          money_path: true
+          cli_surface: true
+          mobile_surface: false
+        generated_bindings:
+          - path: packages/regents-cli/src/generated/techtree-openapi.ts
+            generator: openapi-typescript
+      - id: autolaunch_api
+        owner: autolaunch
+        path: contracts/autolaunch/api-contract.openapiv3.yaml
+        include_in_cli_command_check: true
+        x-regent-capability:
+          status: beta
+          owner: autolaunch
+          money_path: true
+          cli_surface: true
+          mobile_surface: false
+        generated_bindings:
+          - path: packages/regents-cli/src/generated/autolaunch-openapi.ts
+            generator: openapi-typescript
     cli_contracts:
       - id: platform_cli
         owner: platform
-        path: cli-contract.yaml
+        path: contracts/platform/cli-contract.yaml
         include_in_cli_command_check: true
+      - id: techtree_cli
+        owner: techtree
+        path: contracts/techtree/cli-contract.yaml
+        include_in_cli_command_check: true
+      - id: autolaunch_cli
+        owner: autolaunch
+        path: contracts/autolaunch/cli-contract.yaml
+        include_in_cli_command_check: true
+    shared_contracts:
+      - id: shared_services_regent_web_copy
+        owner: shared-services
+        path: contracts/shared/regent-services-contract.openapiv3.yaml
     local_path_dependencies: []
     acceptance_commands:
       - cwd: ../platform
@@ -57,25 +95,6 @@ repos:
       - reviews
       - paid_payloads
       - rooms
-    api_contracts:
-      - id: techtree_api
-        owner: techtree
-        path: docs/api-contract.openapiv3.yaml
-        include_in_cli_command_check: true
-        x-regent-capability:
-          status: beta
-          owner: techtree
-          money_path: true
-          cli_surface: true
-          mobile_surface: false
-        generated_bindings:
-          - path: packages/regents-cli/src/generated/techtree-openapi.ts
-            generator: openapi-typescript
-    cli_contracts:
-      - id: techtree_cli
-        owner: techtree
-        path: docs/cli-contract.yaml
-        include_in_cli_command_check: true
     local_path_dependencies:
       - ../elixir-utils/cache
       - ../elixir-utils/siwa/siwa-elixir/apps/siwa
@@ -97,25 +116,6 @@ repos:
       - subjects
       - revenue_lanes
       - regent_staking_surface
-    api_contracts:
-      - id: autolaunch_api
-        owner: autolaunch
-        path: docs/api-contract.openapiv3.yaml
-        include_in_cli_command_check: true
-        x-regent-capability:
-          status: beta
-          owner: autolaunch
-          money_path: true
-          cli_surface: true
-          mobile_surface: false
-        generated_bindings:
-          - path: packages/regents-cli/src/generated/autolaunch-openapi.ts
-            generator: openapi-typescript
-    cli_contracts:
-      - id: autolaunch_cli
-        owner: autolaunch
-        path: docs/cli-contract.yaml
-        include_in_cli_command_check: true
     local_path_dependencies:
       - contracts
     acceptance_commands:
@@ -292,20 +292,62 @@ repos:
     acceptance_commands: []
 
 shared_contract_pairs:
+  - id: platform_api_workspace_mirror
+    source:
+      repo: platform
+      path: contracts/platform/api-contract.openapiv3.yaml
+    mirror:
+      repo: platform
+      path: api-contract.openapiv3.yaml
   - id: platform_api_release_artifact
     source:
       repo: platform
-      path: api-contract.openapiv3.yaml
+      path: contracts/platform/api-contract.openapiv3.yaml
     mirror:
       repo: platform
       path: priv/contracts/api-contract.openapiv3.yaml
+  - id: platform_cli_workspace_mirror
+    source:
+      repo: platform
+      path: contracts/platform/cli-contract.yaml
+    mirror:
+      repo: platform
+      path: cli-contract.yaml
   - id: platform_cli_release_artifact
     source:
       repo: platform
-      path: cli-contract.yaml
+      path: contracts/platform/cli-contract.yaml
     mirror:
       repo: platform
       path: priv/contracts/cli-contract.yaml
+  - id: techtree_api_workspace_mirror
+    source:
+      repo: platform
+      path: contracts/techtree/api-contract.openapiv3.yaml
+    mirror:
+      repo: techtree
+      path: docs/api-contract.openapiv3.yaml
+  - id: techtree_cli_workspace_mirror
+    source:
+      repo: platform
+      path: contracts/techtree/cli-contract.yaml
+    mirror:
+      repo: techtree
+      path: docs/cli-contract.yaml
+  - id: autolaunch_api_workspace_mirror
+    source:
+      repo: platform
+      path: contracts/autolaunch/api-contract.openapiv3.yaml
+    mirror:
+      repo: autolaunch
+      path: docs/api-contract.openapiv3.yaml
+  - id: autolaunch_cli_workspace_mirror
+    source:
+      repo: platform
+      path: contracts/autolaunch/cli-contract.yaml
+    mirror:
+      repo: autolaunch
+      path: docs/cli-contract.yaml
   - id: fly_sentinel_api_release_artifact
     source:
       repo: fly-sentinel
@@ -320,6 +362,20 @@ shared_contract_pairs:
     mirror:
       repo: siwa-server
       path: priv/static/regent-services-contract.openapiv3.yaml
+  - id: shared_services_regent_web_contract
+    source:
+      repo: regents-cli
+      path: docs/regent-services-contract.openapiv3.yaml
+    mirror:
+      repo: platform
+      path: contracts/shared/regent-services-contract.openapiv3.yaml
+  - id: install_script_regent_web_artifact
+    source:
+      repo: regents-cli
+      path: scripts/install.sh
+    mirror:
+      repo: platform
+      path: priv/static/install.sh
 
 schemas:
   wallet_action:

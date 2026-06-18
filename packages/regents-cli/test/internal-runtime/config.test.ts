@@ -24,10 +24,6 @@ describe("config loading", () => {
     expect(config.runtime.socketPath).toBe(path.join(tempDir, "run", "regent.sock"));
     expect(config.wallet.keystorePath).toBe(path.join(tempDir, "keys", "agent-wallet.json"));
     expect(config.gossipsub.peerIdPath).toBe(path.join(tempDir, "p2p", "peer-id.json"));
-    expect(config.xmtp.dbPath).toBe(path.join(tempDir, "xmtp", "production", "client.db"));
-    expect(config.xmtp.walletKeyPath).toBe(path.join(tempDir, "xmtp", "production", "wallet.key"));
-    expect(config.xmtp.dbEncryptionKeyPath).toBe(path.join(tempDir, "xmtp", "production", "db.key"));
-    expect(config.xmtp.publicPolicyPath).toBe(path.join(tempDir, "policies", "xmtp-public.md"));
   });
 
   it("merges partial config with defaults and normalizes paths", () => {
@@ -80,8 +76,6 @@ describe("config loading", () => {
     expect(fs.existsSync(path.dirname(written.runtime.socketPath))).toBe(true);
     expect(fs.existsSync(path.dirname(written.wallet.keystorePath))).toBe(true);
     expect(fs.existsSync(path.dirname(written.gossipsub.peerIdPath))).toBe(true);
-    expect(fs.existsSync(path.dirname(written.xmtp.dbPath))).toBe(true);
-    expect(fs.existsSync(path.dirname(written.xmtp.publicPolicyPath))).toBe(true);
   });
 
   it("writes a validated replacement config and normalizes relative paths", () => {
@@ -125,21 +119,6 @@ describe("config loading", () => {
         listenAddrs: ["/ip4/127.0.0.1/tcp/0"],
         bootstrap: [],
         peerIdPath: "./p2p/custom-peer-id.json",
-      },
-      xmtp: {
-        enabled: true,
-        env: "dev",
-        dbPath: "./xmtp/dev/client.db",
-        dbEncryptionKeyPath: "./xmtp/dev/db.key",
-        walletKeyPath: "./xmtp/dev/wallet.key",
-        ownerInboxIds: ["owner-inbox"],
-        trustedInboxIds: ["trusted-inbox"],
-        publicPolicyPath: "./policies/public-xmtp.md",
-        profiles: {
-          owner: "full",
-          public: "messaging",
-          group: "messaging",
-        },
       },
       agents: {
         defaultHarness: "hermes",
@@ -198,8 +177,6 @@ describe("config loading", () => {
     expect(written.runtime.stateDir).toBe(path.join(tempDir, "state-dir"));
     expect(written.wallet.keystorePath).toBe(path.join(tempDir, "keys", "custom-wallet.json"));
     expect(written.gossipsub.peerIdPath).toBe(path.join(tempDir, "p2p", "custom-peer-id.json"));
-    expect(written.xmtp.dbPath).toBe(path.join(tempDir, "xmtp", "dev", "client.db"));
-    expect(written.xmtp.publicPolicyPath).toBe(path.join(tempDir, "policies", "public-xmtp.md"));
     expect(written.agents.harnesses.hermes.workspaceRoot).toBe(path.join(tempDir, "workspaces", "hermes"));
     expect(written.agents.harnesses.codex.workspaceRoot).toBe(path.join(tempDir, "workspaces", "codex"));
     expect(written.workloads.bbh.workspaceRoot).toBe(path.join(tempDir, "workspaces", "bbh"));
@@ -209,8 +186,6 @@ describe("config loading", () => {
     expect(fs.existsSync(written.runtime.stateDir)).toBe(true);
     expect(fs.existsSync(path.dirname(written.wallet.keystorePath))).toBe(true);
     expect(fs.existsSync(path.dirname(written.gossipsub.peerIdPath))).toBe(true);
-    expect(fs.existsSync(path.dirname(written.xmtp.dbPath))).toBe(true);
-    expect(fs.existsSync(path.dirname(written.xmtp.publicPolicyPath))).toBe(true);
     expect(fs.existsSync(written.agents.harnesses.hermes.workspaceRoot)).toBe(true);
     expect(fs.existsSync(written.agents.harnesses.codex.workspaceRoot)).toBe(true);
     expect(fs.existsSync(written.workloads.bbh.workspaceRoot)).toBe(true);

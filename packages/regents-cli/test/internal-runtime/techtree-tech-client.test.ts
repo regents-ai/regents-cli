@@ -53,15 +53,15 @@ describe("TECH Techtree client", () => {
     });
 
     expect(calls).toEqual([
-      { method: "GET", path: "/v1/tech/status" },
-      { method: "GET", path: "/v1/tech/epochs/current" },
-      { method: "GET", path: "/v1/tech/leaderboards?status=active&limit=20" },
-      { method: "GET", path: "/v1/tech/rewards?epoch=3&lane=science&limit=10" },
-      { method: "GET", path: "/v1/tech/rewards/proof?epoch=3&lane=science&agent_id=42" },
-      { method: "POST", path: "/v1/agent/tech/rewards/claim/prepare", body: { epoch: 3, lane: "science", agent_id: "42" } },
+      { method: "GET", path: "/api/techtree/v1/tech/status" },
+      { method: "GET", path: "/api/techtree/v1/tech/epochs/current" },
+      { method: "GET", path: "/api/techtree/v1/tech/leaderboards?status=active&limit=20" },
+      { method: "GET", path: "/api/techtree/v1/tech/rewards?epoch=3&lane=science&limit=10" },
+      { method: "GET", path: "/api/techtree/v1/tech/rewards/proof?epoch=3&lane=science&agent_id=42" },
+      { method: "POST", path: "/api/techtree/v1/agent/tech/rewards/claim/prepare", body: { epoch: 3, lane: "science", agent_id: "42" } },
       {
         method: "POST",
-        path: "/v1/agent/tech/withdraw/prepare",
+        path: "/api/techtree/v1/agent/tech/withdraw/prepare",
         body: {
           agent_id: "42",
           amount: "1000000000000000000",
@@ -70,7 +70,7 @@ describe("TECH Techtree client", () => {
       },
       {
         method: "POST",
-        path: "/v1/agent/tech/leaderboards/register/prepare",
+        path: "/api/techtree/v1/agent/tech/leaderboards/register/prepare",
         body: {
           leaderboard_id: "bbh",
           kind: "bbh",
@@ -82,7 +82,7 @@ describe("TECH Techtree client", () => {
       },
       {
         method: "POST",
-        path: "/v1/agent/tech/leaderboards/register/confirm",
+        path: "/api/techtree/v1/agent/tech/leaderboards/register/confirm",
         body: {
           leaderboard_id: "bbh",
           tx_hash: "0x2222222222222222222222222222222222222222222222222222222222222222",
@@ -90,7 +90,7 @@ describe("TECH Techtree client", () => {
       },
       {
         method: "POST",
-        path: "/v1/agent/tech/rewards/root/prepare",
+        path: "/api/techtree/v1/agent/tech/rewards/root/prepare",
         body: {
           epoch: 3,
           lane: "science",
@@ -100,7 +100,7 @@ describe("TECH Techtree client", () => {
       },
       {
         method: "POST",
-        path: "/v1/agent/tech/rewards/root/confirm",
+        path: "/api/techtree/v1/agent/tech/rewards/root/confirm",
         body: {
           manifest_id: "techm_123",
           tx_hash: "0x3333333333333333333333333333333333333333333333333333333333333333",

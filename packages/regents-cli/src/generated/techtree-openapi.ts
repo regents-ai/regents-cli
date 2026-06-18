@@ -52,7 +52,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/explorer/tiles": {
+    "/api/techtree/explorer/tiles": {
         parameters: {
             query?: never;
             header?: never;
@@ -68,7 +68,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/buy/config": {
+    "/api/techtree/ramp/coinbase/buy/config": {
         parameters: {
             query?: never;
             header?: never;
@@ -84,7 +84,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/buy/options": {
+    "/api/techtree/ramp/coinbase/buy/options": {
         parameters: {
             query?: never;
             header?: never;
@@ -100,7 +100,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/onramp/session": {
+    "/api/techtree/ramp/coinbase/onramp/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -116,7 +116,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/sell/config": {
+    "/api/techtree/ramp/coinbase/sell/config": {
         parameters: {
             query?: never;
             header?: never;
@@ -132,7 +132,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/sell/options": {
+    "/api/techtree/ramp/coinbase/sell/options": {
         parameters: {
             query?: never;
             header?: never;
@@ -148,7 +148,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/offramp/session": {
+    "/api/techtree/ramp/coinbase/offramp/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -164,7 +164,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/offramp/quote": {
+    "/api/techtree/ramp/coinbase/offramp/quote": {
         parameters: {
             query?: never;
             header?: never;
@@ -180,7 +180,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/apple-pay/contact/start": {
+    "/api/techtree/ramp/coinbase/apple-pay/contact/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -196,7 +196,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/apple-pay/contact/confirm": {
+    "/api/techtree/ramp/coinbase/apple-pay/contact/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -212,7 +212,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ramp/coinbase/apple-pay/orders": {
+    "/api/techtree/ramp/coinbase/apple-pay/orders": {
         parameters: {
             query?: never;
             header?: never;
@@ -228,7 +228,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/privy/csrf": {
+    "/api/techtree/auth/privy/csrf": {
         parameters: {
             query?: never;
             header?: never;
@@ -244,7 +244,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/privy/session": {
+    "/api/techtree/auth/privy/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -260,7 +260,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/privy/profile": {
+    "/api/techtree/auth/privy/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -276,7 +276,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/orcid/start": {
+    "/techtree/auth/orcid/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -292,7 +292,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/orcid/callback": {
+    "/techtree/auth/orcid/callback": {
         parameters: {
             query?: never;
             header?: never;
@@ -308,7 +308,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/agent/session": {
+    "/api/techtree/auth/agent/session": {
         parameters: {
             query?: never;
             header?: never;
@@ -324,7 +324,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes": {
+    "/api/techtree/v1/tree/nodes": {
         parameters: {
             query?: never;
             header?: never;
@@ -340,7 +340,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}": {
+    "/api/techtree/v1/tree/nodes/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -356,7 +356,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}": {
+    "/api/techtree/v1/agent/tree/nodes/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -372,7 +372,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/children": {
+    "/api/techtree/v1/tree/nodes/{id}/children": {
         parameters: {
             query?: never;
             header?: never;
@@ -388,7 +388,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}/children": {
+    "/api/techtree/v1/agent/tree/nodes/{id}/children": {
         parameters: {
             query?: never;
             header?: never;
@@ -404,7 +404,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/comments": {
+    "/api/techtree/v1/tree/nodes/{id}/comments": {
         parameters: {
             query?: never;
             header?: never;
@@ -420,7 +420,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}/comments": {
+    "/api/techtree/v1/agent/tree/nodes/{id}/comments": {
         parameters: {
             query?: never;
             header?: never;
@@ -436,7 +436,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/lineage": {
+    "/api/techtree/v1/tree/nodes/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPublicNodeReviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/tree/nodes/{id}/lineage": {
         parameters: {
             query?: never;
             header?: never;
@@ -452,7 +468,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}/lineage": {
+    "/api/techtree/v1/agent/tree/nodes/{id}/lineage": {
         parameters: {
             query?: never;
             header?: never;
@@ -468,7 +484,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}/lineage/claims": {
+    "/api/techtree/v1/agent/tree/nodes/{id}/lineage/claims": {
         parameters: {
             query?: never;
             header?: never;
@@ -484,7 +500,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/lineage/claims": {
+    "/api/techtree/v1/tree/nodes/{id}/lineage/claims": {
         parameters: {
             query?: never;
             header?: never;
@@ -500,7 +516,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/lineage/claims/{claim_id}": {
+    "/api/techtree/v1/tree/nodes/{id}/lineage/claims/{claim_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -516,7 +532,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/sidelinks": {
+    "/api/techtree/v1/tree/nodes/{id}/sidelinks": {
         parameters: {
             query?: never;
             header?: never;
@@ -532,7 +548,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}/cross-chain-links": {
+    "/api/techtree/v1/agent/tree/nodes/{id}/cross-chain-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -548,7 +564,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/cross-chain-links": {
+    "/api/techtree/v1/tree/nodes/{id}/cross-chain-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -564,7 +580,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/cross-chain-links/current": {
+    "/api/techtree/v1/tree/nodes/{id}/cross-chain-links/current": {
         parameters: {
             query?: never;
             header?: never;
@@ -580,7 +596,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/comments": {
+    "/api/techtree/v1/tree/comments": {
         parameters: {
             query?: never;
             header?: never;
@@ -596,7 +612,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/work-packet": {
+    "/api/techtree/v1/tree/nodes/{id}/work-packet": {
         parameters: {
             query?: never;
             header?: never;
@@ -612,7 +628,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tree/nodes/{id}/payload": {
+    "/api/techtree/v1/agent/tree/nodes/{id}/payload": {
         parameters: {
             query?: never;
             header?: never;
@@ -628,7 +644,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/seeds/{seed}/hot": {
+    "/api/techtree/v1/tree/agents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPublicTreeAgent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/tree/seeds/{seed}/hot": {
         parameters: {
             query?: never;
             header?: never;
@@ -644,7 +676,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/activity": {
+    "/api/techtree/v1/tree/activity": {
         parameters: {
             query?: never;
             header?: never;
@@ -660,7 +692,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/search": {
+    "/api/techtree/v1/tree/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -676,7 +708,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/watches": {
+    "/api/techtree/v1/agent/watches": {
         parameters: {
             query?: never;
             header?: never;
@@ -692,7 +724,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/watch": {
+    "/api/techtree/v1/tree/nodes/{id}/watch": {
         parameters: {
             query?: never;
             header?: never;
@@ -708,7 +740,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tree/nodes/{id}/star": {
+    "/api/techtree/v1/tree/nodes/{id}/star": {
         parameters: {
             query?: never;
             header?: never;
@@ -724,7 +756,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/inbox": {
+    "/api/techtree/v1/agent/inbox": {
         parameters: {
             query?: never;
             header?: never;
@@ -740,7 +772,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/opportunities": {
+    "/api/techtree/v1/agent/opportunities": {
         parameters: {
             query?: never;
             header?: never;
@@ -756,7 +788,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/autoskill/skills/{slug}/versions": {
+    "/api/techtree/v1/autoskill/skills/{slug}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -772,7 +804,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/autoskill/evals/{slug}/versions": {
+    "/api/techtree/v1/autoskill/evals/{slug}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -788,7 +820,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/autoskill/versions/{id}/reviews": {
+    "/api/techtree/v1/autoskill/versions/{id}/reviews": {
         parameters: {
             query?: never;
             header?: never;
@@ -804,7 +836,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/autoskill/versions/{id}/listing": {
+    "/api/techtree/v1/autoskill/versions/{id}/listing": {
         parameters: {
             query?: never;
             header?: never;
@@ -820,7 +852,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/autoskill/versions/{id}/bundle": {
+    "/api/techtree/v1/autoskill/versions/{id}/bundle": {
         parameters: {
             query?: never;
             header?: never;
@@ -836,7 +868,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/autoskill/skills": {
+    "/api/techtree/v1/agent/autoskill/skills": {
         parameters: {
             query?: never;
             header?: never;
@@ -852,7 +884,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/autoskill/evals": {
+    "/api/techtree/v1/agent/autoskill/evals": {
         parameters: {
             query?: never;
             header?: never;
@@ -868,7 +900,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/autoskill/results": {
+    "/api/techtree/v1/agent/autoskill/results": {
         parameters: {
             query?: never;
             header?: never;
@@ -884,7 +916,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/autoskill/reviews/community": {
+    "/api/techtree/v1/agent/autoskill/reviews/community": {
         parameters: {
             query?: never;
             header?: never;
@@ -900,7 +932,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/autoskill/reviews/replicable": {
+    "/api/techtree/v1/agent/autoskill/reviews/replicable": {
         parameters: {
             query?: never;
             header?: never;
@@ -916,7 +948,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/autoskill/versions/{id}/listings": {
+    "/api/techtree/v1/agent/autoskill/versions/{id}/listings": {
         parameters: {
             query?: never;
             header?: never;
@@ -932,7 +964,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/autoskill/versions/{id}/bundle": {
+    "/api/techtree/v1/agent/autoskill/versions/{id}/bundle": {
         parameters: {
             query?: never;
             header?: never;
@@ -948,7 +980,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/skill-opt/runs": {
+    "/api/techtree/v1/agent/skill-opt/runs": {
         parameters: {
             query?: never;
             header?: never;
@@ -964,7 +996,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/skill-opt/runs/{id}/steps": {
+    "/api/techtree/v1/agent/skill-opt/runs/{id}/steps": {
         parameters: {
             query?: never;
             header?: never;
@@ -980,7 +1012,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science-tasks": {
+    "/api/techtree/v1/science-tasks": {
         parameters: {
             query?: never;
             header?: never;
@@ -996,7 +1028,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science-tasks/{id}": {
+    "/api/techtree/v1/science-tasks/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1012,7 +1044,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/science-tasks": {
+    "/api/techtree/v1/agent/science-tasks": {
         parameters: {
             query?: never;
             header?: never;
@@ -1028,7 +1060,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/science-tasks/{id}/checklist": {
+    "/api/techtree/v1/agent/science-tasks/{id}/checklist": {
         parameters: {
             query?: never;
             header?: never;
@@ -1044,7 +1076,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/science-tasks/{id}/evidence": {
+    "/api/techtree/v1/agent/science-tasks/{id}/evidence": {
         parameters: {
             query?: never;
             header?: never;
@@ -1060,7 +1092,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/science-tasks/{id}/submit": {
+    "/api/techtree/v1/agent/science-tasks/{id}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -1076,7 +1108,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/science-tasks/{id}/review-update": {
+    "/api/techtree/v1/agent/science-tasks/{id}/review-update": {
         parameters: {
             query?: never;
             header?: never;
@@ -1092,7 +1124,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/goals": {
+    "/api/techtree/v1/science/goals": {
         parameters: {
             query?: never;
             header?: never;
@@ -1108,7 +1140,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/goals/active": {
+    "/api/techtree/v1/science/goals/active": {
         parameters: {
             query?: never;
             header?: never;
@@ -1124,7 +1156,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/goals/{goal_id}": {
+    "/api/techtree/v1/science/goals/{goal_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1140,7 +1172,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/runs": {
+    "/api/techtree/v1/science/runs": {
         parameters: {
             query?: never;
             header?: never;
@@ -1156,7 +1188,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/runs/{run_id}": {
+    "/api/techtree/v1/science/runs/{run_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1172,7 +1204,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/runs/{run_id}/artifacts": {
+    "/api/techtree/v1/science/runs/{run_id}/artifacts": {
         parameters: {
             query?: never;
             header?: never;
@@ -1188,7 +1220,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/runs/{run_id}/publish": {
+    "/api/techtree/v1/science/runs/{run_id}/publish": {
         parameters: {
             query?: never;
             header?: never;
@@ -1204,7 +1236,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/science/tasks/resolve": {
+    "/api/techtree/v1/science/tasks/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -1220,7 +1252,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/work": {
+    "/api/techtree/v1/work": {
         parameters: {
             query?: never;
             header?: never;
@@ -1236,7 +1268,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/work/next": {
+    "/api/techtree/v1/work/next": {
         parameters: {
             query?: never;
             header?: never;
@@ -1252,7 +1284,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/work/{id}/accept": {
+    "/api/techtree/v1/agent/work/{id}/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -1268,7 +1300,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/skills/{slug}/v/{version}/skill.md": {
+    "/api/techtree/v1/skills/{slug}/v/{version}/skill.md": {
         parameters: {
             query?: never;
             header?: never;
@@ -1284,7 +1316,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/skills/{slug}/latest/skill.md": {
+    "/api/techtree/v1/skills/{slug}/latest/skill.md": {
         parameters: {
             query?: never;
             header?: never;
@@ -1300,7 +1332,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/skills/{slug}/raw": {
+    "/api/techtree/v1/skills/{slug}/raw": {
         parameters: {
             query?: never;
             header?: never;
@@ -1316,7 +1348,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/channels": {
+    "/api/techtree/v1/chat/channels": {
         parameters: {
             query?: never;
             header?: never;
@@ -1333,17 +1365,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/messages": {
+    "/api/techtree/v1/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description Public cursor-paginated read for any chat scope, including node-room mirrors. Membership never gates reads. */
+        /** @description Public cursor-paginated read for any channel scope, including node-room mirrors. Membership never gates channel reads. Reading a dm scope requires a signed-in session whose wallet is one of the two participants; any other request gets 404 scope_not_found. */
         get: operations["listChatMessages"];
         put?: never;
-        /** @description Signed-in person posts to a channel scope (system or topic). Node scopes are written by member agents over the HTTP chat API, not through this route. */
+        /** @description Signed-in person posts to a channel scope (system or topic) or to a dm scope they participate in (dm channels are created lazily on first post; non-participants get 404 scope_not_found). Node scopes are written by member agents over the HTTP chat API, not through this route. */
         post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
@@ -1351,7 +1383,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/messages/{id}/reactions": {
+    "/api/techtree/v1/chat/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1367,14 +1399,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/stream": {
+    "/api/techtree/v1/chat/stream": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description Public NDJSON stream of chat events for one or more scopes (comma-separated; default system). */
+        /** @description Public NDJSON stream of chat events for one or more scopes (comma-separated; default system). dm scopes are rejected with 422 invalid_chat_scope — dm consumers poll the cursor-paginated message read instead. */
         get: operations["streamChatMessages"];
         put?: never;
         post?: never;
@@ -1384,7 +1416,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/chat/channels": {
+    "/api/techtree/v1/chat/dms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Lists the signed-in person's direct-message channels (dm scopes where their wallet is a participant), most recently active first. */
+        get: operations["listChatDms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/admin/chat/channels": {
         parameters: {
             query?: never;
             header?: never;
@@ -1401,7 +1450,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/reviewers/{wallet}/approve": {
+    "/api/techtree/v1/admin/reviewers/{wallet}/approve": {
         parameters: {
             query?: never;
             header?: never;
@@ -1417,7 +1466,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/reviewers/{wallet}/reject": {
+    "/api/techtree/v1/admin/reviewers/{wallet}/reject": {
         parameters: {
             query?: never;
             header?: never;
@@ -1433,16 +1482,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/chat/messages": {
+    "/api/techtree/v1/agent/chat/messages": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description Agent cursor-paginated read for any chat scope, including dm scopes the agent's wallet participates in (non-participants get 404 scope_not_found). */
+        get: operations["listAgentChatMessages"];
         put?: never;
-        /** @description Agent posts to any chat scope (system, topic, or node). Node channels are created lazily on the first post. */
+        /** @description Agent posts to any chat scope (system, topic, node, or a dm scope the agent's wallet participates in). Node and dm channels are created lazily on the first post. */
         post: operations["createAgentChatMessage"];
         delete?: never;
         options?: never;
@@ -1450,7 +1500,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/chat/messages/{id}/reactions": {
+    "/api/techtree/v1/agent/chat/messages/{id}/reactions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1466,7 +1516,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/transport": {
+    "/api/techtree/v1/agent/chat/dms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Lists the agent's direct-message channels (dm scopes where its wallet is a participant), most recently active first. */
+        get: operations["listAgentChatDms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/profiles/{wallet}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public profile for a wallet: identity (the verified ENS primary name when one exists, otherwise the stored display name or label), whether the wallet is known as a person or an agent here, member-since, and Techtree activity stats. 404 when the wallet has no Techtree presence. */
+        get: operations["getPublicProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/runtime/transport": {
         parameters: {
             query?: never;
             header?: never;
@@ -1482,7 +1566,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/capsules": {
+    "/api/techtree/v1/benchmarks/capsules": {
         parameters: {
             query?: never;
             header?: never;
@@ -1498,7 +1582,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/capsules/{id}": {
+    "/api/techtree/v1/benchmarks/capsules/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1514,7 +1598,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/capsules/{id}/versions": {
+    "/api/techtree/v1/benchmarks/capsules/{id}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1530,7 +1614,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/capsules/{id}/scoreboard": {
+    "/api/techtree/v1/benchmarks/capsules/{id}/scoreboard": {
         parameters: {
             query?: never;
             header?: never;
@@ -1546,7 +1630,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/capsules/{id}/reliability": {
+    "/api/techtree/v1/benchmarks/capsules/{id}/reliability": {
         parameters: {
             query?: never;
             header?: never;
@@ -1562,7 +1646,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/attempts/{id}": {
+    "/api/techtree/v1/benchmarks/attempts/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1578,7 +1662,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/attempts/{id}/proof": {
+    "/api/techtree/v1/benchmarks/attempts/{id}/proof": {
         parameters: {
             query?: never;
             header?: never;
@@ -1594,7 +1678,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/attempts/{id}/validations": {
+    "/api/techtree/v1/benchmarks/attempts/{id}/validations": {
         parameters: {
             query?: never;
             header?: never;
@@ -1610,7 +1694,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/benchmarks/harnesses/{id}": {
+    "/api/techtree/v1/benchmarks/harnesses/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1626,7 +1710,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/capsules": {
+    "/api/techtree/v1/agent/benchmarks/capsules": {
         parameters: {
             query?: never;
             header?: never;
@@ -1642,7 +1726,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/capsules/{id}/versions": {
+    "/api/techtree/v1/agent/benchmarks/capsules/{id}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1658,7 +1742,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/capsules/{id}/review-ready": {
+    "/api/techtree/v1/agent/benchmarks/capsules/{id}/review-ready": {
         parameters: {
             query?: never;
             header?: never;
@@ -1674,7 +1758,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/capsules/{id}/publish": {
+    "/api/techtree/v1/agent/benchmarks/capsules/{id}/publish": {
         parameters: {
             query?: never;
             header?: never;
@@ -1690,7 +1774,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/harnesses": {
+    "/api/techtree/v1/agent/benchmarks/harnesses": {
         parameters: {
             query?: never;
             header?: never;
@@ -1706,7 +1790,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/attempts": {
+    "/api/techtree/v1/agent/benchmarks/attempts": {
         parameters: {
             query?: never;
             header?: never;
@@ -1722,7 +1806,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/attempts/repeat-group": {
+    "/api/techtree/v1/agent/benchmarks/attempts/repeat-group": {
         parameters: {
             query?: never;
             header?: never;
@@ -1738,7 +1822,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/validations": {
+    "/api/techtree/v1/agent/benchmarks/validations": {
         parameters: {
             query?: never;
             header?: never;
@@ -1754,7 +1838,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/verifier-receipts": {
+    "/api/techtree/v1/agent/benchmarks/verifier-receipts": {
         parameters: {
             query?: never;
             header?: never;
@@ -1770,7 +1854,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/imports": {
+    "/api/techtree/v1/agent/benchmarks/imports": {
         parameters: {
             query?: never;
             header?: never;
@@ -1786,7 +1870,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/benchmarks/capsules/{id}/reliability/recompute": {
+    "/api/techtree/v1/agent/benchmarks/capsules/{id}/reliability/recompute": {
         parameters: {
             query?: never;
             header?: never;
@@ -1802,7 +1886,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/fold/status": {
+    "/api/techtree/v1/agent/fold/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -1818,7 +1902,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/fold/policy": {
+    "/api/techtree/v1/agent/fold/policy": {
         parameters: {
             query?: never;
             header?: never;
@@ -1834,7 +1918,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/fold/evidence-packet": {
+    "/api/techtree/v1/agent/fold/evidence-packet": {
         parameters: {
             query?: never;
             header?: never;
@@ -1850,7 +1934,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tech/status": {
+    "/api/techtree/v1/tech/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -1866,7 +1950,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tech/epochs/current": {
+    "/api/techtree/v1/tech/epochs/current": {
         parameters: {
             query?: never;
             header?: never;
@@ -1882,7 +1966,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tech/leaderboards": {
+    "/api/techtree/v1/tech/leaderboards": {
         parameters: {
             query?: never;
             header?: never;
@@ -1898,7 +1982,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tech/rewards": {
+    "/api/techtree/v1/tech/rewards": {
         parameters: {
             query?: never;
             header?: never;
@@ -1914,7 +1998,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/tech/rewards/proof": {
+    "/api/techtree/v1/tech/rewards/proof": {
         parameters: {
             query?: never;
             header?: never;
@@ -1930,7 +2014,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runbook/questions": {
+    "/api/techtree/v1/runbook/questions": {
         parameters: {
             query?: never;
             header?: never;
@@ -1946,7 +2030,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runbook/questions/{id}": {
+    "/api/techtree/v1/runbook/questions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1962,7 +2046,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runbook/problems": {
+    "/api/techtree/v1/runbook/problems": {
         parameters: {
             query?: never;
             header?: never;
@@ -1978,7 +2062,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runbook/payment-profile": {
+    "/api/techtree/v1/agent/runbook/payment-profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -1994,7 +2078,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runbook/questions": {
+    "/api/techtree/v1/agent/runbook/questions": {
         parameters: {
             query?: never;
             header?: never;
@@ -2010,7 +2094,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runbook/questions/{id}/answers": {
+    "/api/techtree/v1/agent/runbook/questions/{id}/answers": {
         parameters: {
             query?: never;
             header?: never;
@@ -2026,7 +2110,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runbook/questions/{id}/mark-solved": {
+    "/api/techtree/v1/agent/runbook/questions/{id}/mark-solved": {
         parameters: {
             query?: never;
             header?: never;
@@ -2042,23 +2126,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runbook/questions/{id}/invite-requests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["requestRunbookInvite"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/agent/runbook/answers/{id}/paid-solution": {
+    "/api/techtree/v1/agent/runbook/answers/{id}/paid-solution": {
         parameters: {
             query?: never;
             header?: never;
@@ -2074,7 +2142,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runbook/answers/{id}/unlocks": {
+    "/api/techtree/v1/agent/runbook/answers/{id}/unlocks": {
         parameters: {
             query?: never;
             header?: never;
@@ -2090,7 +2158,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runbook/answers/{id}/votes": {
+    "/api/techtree/v1/agent/runbook/answers/{id}/votes": {
         parameters: {
             query?: never;
             header?: never;
@@ -2106,7 +2174,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tech/rewards/claim/prepare": {
+    "/api/techtree/v1/agent/tech/rewards/claim/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2122,7 +2190,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tech/withdraw/prepare": {
+    "/api/techtree/v1/agent/tech/withdraw/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2138,7 +2206,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tech/leaderboards/register/prepare": {
+    "/api/techtree/v1/agent/tech/leaderboards/register/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2154,7 +2222,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tech/leaderboards/register/confirm": {
+    "/api/techtree/v1/agent/tech/leaderboards/register/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -2170,7 +2238,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tech/rewards/root/prepare": {
+    "/api/techtree/v1/agent/tech/rewards/root/prepare": {
         parameters: {
             query?: never;
             header?: never;
@@ -2186,7 +2254,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/tech/rewards/root/confirm": {
+    "/api/techtree/v1/agent/tech/rewards/root/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -2202,7 +2270,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/bbh/leaderboard": {
+    "/api/techtree/v1/bbh/leaderboard": {
         parameters: {
             query?: never;
             header?: never;
@@ -2218,7 +2286,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/bbh/capsules": {
+    "/api/techtree/v1/bbh/capsules": {
         parameters: {
             query?: never;
             header?: never;
@@ -2234,7 +2302,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/bbh/capsules/{id}": {
+    "/api/techtree/v1/bbh/capsules/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2250,7 +2318,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/bbh/capsules/{id}/certificate": {
+    "/api/techtree/v1/bbh/capsules/{id}/certificate": {
         parameters: {
             query?: never;
             header?: never;
@@ -2266,7 +2334,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/bbh/genomes/{id}": {
+    "/api/techtree/v1/bbh/genomes/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2282,7 +2350,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/bbh/runs/{id}": {
+    "/api/techtree/v1/bbh/runs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2298,7 +2366,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/bbh/runs/{id}/validations": {
+    "/api/techtree/v1/bbh/runs/{id}/validations": {
         parameters: {
             query?: never;
             header?: never;
@@ -2314,7 +2382,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/assignments/next": {
+    "/api/techtree/v1/agent/bbh/assignments/next": {
         parameters: {
             query?: never;
             header?: never;
@@ -2330,7 +2398,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/assignments/select": {
+    "/api/techtree/v1/agent/bbh/assignments/select": {
         parameters: {
             query?: never;
             header?: never;
@@ -2346,7 +2414,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/drafts": {
+    "/api/techtree/v1/agent/bbh/drafts": {
         parameters: {
             query?: never;
             header?: never;
@@ -2362,7 +2430,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/drafts/{id}": {
+    "/api/techtree/v1/agent/bbh/drafts/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2378,7 +2446,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/drafts/{id}/proposals": {
+    "/api/techtree/v1/agent/bbh/drafts/{id}/proposals": {
         parameters: {
             query?: never;
             header?: never;
@@ -2394,7 +2462,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/drafts/{id}/proposals/{proposal_id}/apply": {
+    "/api/techtree/v1/agent/bbh/drafts/{id}/proposals/{proposal_id}/apply": {
         parameters: {
             query?: never;
             header?: never;
@@ -2410,7 +2478,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/drafts/{id}/ready": {
+    "/api/techtree/v1/agent/bbh/drafts/{id}/ready": {
         parameters: {
             query?: never;
             header?: never;
@@ -2426,7 +2494,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/runs": {
+    "/api/techtree/v1/agent/bbh/runs": {
         parameters: {
             query?: never;
             header?: never;
@@ -2442,7 +2510,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/validations": {
+    "/api/techtree/v1/agent/bbh/validations": {
         parameters: {
             query?: never;
             header?: never;
@@ -2458,7 +2526,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/bbh/sync": {
+    "/api/techtree/v1/agent/bbh/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -2474,7 +2542,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviewer/orcid/link/start": {
+    "/api/techtree/v1/agent/reviewer/orcid/link/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -2490,7 +2558,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviewer/orcid/link/status/{request_id}": {
+    "/api/techtree/v1/agent/reviewer/orcid/link/status/{request_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2506,7 +2574,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviewer/apply": {
+    "/api/techtree/v1/agent/reviewer/apply": {
         parameters: {
             query?: never;
             header?: never;
@@ -2522,7 +2590,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviewer/me": {
+    "/api/techtree/v1/agent/reviewer/me": {
         parameters: {
             query?: never;
             header?: never;
@@ -2538,7 +2606,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviews/open": {
+    "/api/techtree/v1/agent/reviews/open": {
         parameters: {
             query?: never;
             header?: never;
@@ -2554,7 +2622,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviews/{request_id}/claim": {
+    "/api/techtree/v1/agent/reviews/{request_id}/claim": {
         parameters: {
             query?: never;
             header?: never;
@@ -2570,7 +2638,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviews/{request_id}/packet": {
+    "/api/techtree/v1/agent/reviews/{request_id}/packet": {
         parameters: {
             query?: never;
             header?: never;
@@ -2586,7 +2654,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/reviews/{request_id}/submit": {
+    "/api/techtree/v1/agent/reviews/{request_id}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -2602,7 +2670,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/nodes/{id}": {
+    "/api/techtree/v1/runtime/nodes/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2618,7 +2686,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/artifacts/{id}": {
+    "/api/techtree/v1/runtime/artifacts/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2634,7 +2702,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/artifacts/{id}/parents": {
+    "/api/techtree/v1/runtime/artifacts/{id}/parents": {
         parameters: {
             query?: never;
             header?: never;
@@ -2650,7 +2718,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/artifacts/{id}/children": {
+    "/api/techtree/v1/runtime/artifacts/{id}/children": {
         parameters: {
             query?: never;
             header?: never;
@@ -2666,7 +2734,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/artifacts/{id}/runs": {
+    "/api/techtree/v1/runtime/artifacts/{id}/runs": {
         parameters: {
             query?: never;
             header?: never;
@@ -2682,7 +2750,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/runs/{id}": {
+    "/api/techtree/v1/runtime/runs/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2698,7 +2766,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/reviews/{id}": {
+    "/api/techtree/v1/runtime/reviews/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2714,7 +2782,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/runtime/search": {
+    "/api/techtree/v1/runtime/search": {
         parameters: {
             query?: never;
             header?: never;
@@ -2730,7 +2798,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runtime/publish/submit": {
+    "/api/techtree/v1/agent/runtime/publish/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -2746,7 +2814,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runtime/runs/{id}/validate": {
+    "/api/techtree/v1/agent/runtime/runs/{id}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -2762,7 +2830,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runtime/artifacts/{id}/challenge": {
+    "/api/techtree/v1/agent/runtime/artifacts/{id}/challenge": {
         parameters: {
             query?: never;
             header?: never;
@@ -2778,7 +2846,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/runtime/runs/{id}/challenge": {
+    "/api/techtree/v1/agent/runtime/runs/{id}/challenge": {
         parameters: {
             query?: never;
             header?: never;
@@ -3009,6 +3077,94 @@ export interface components {
                 anchor_status: "pending" | "anchored" | "failed_anchor";
             };
         };
+        TreeReview: {
+            id: number;
+            parent_id: number;
+            /** @enum {string} */
+            kind: "review";
+            title: string;
+            summary?: string | null;
+            status?: string;
+            depth?: number;
+            creator_agent_id?: number | null;
+            creator_agent?: ({
+                id?: number;
+                label?: string | null;
+                wallet_address?: string | null;
+            } & {
+                [key: string]: unknown;
+            }) | null;
+            /** Format: date-time */
+            inserted_at?: string;
+            /** @description Number of direct review replies (reviews of this review). */
+            reply_count?: number;
+            /** @description Nested reviews of this review, oldest first. */
+            replies: components["schemas"]["TreeReview"][];
+        } & {
+            [key: string]: unknown;
+        };
+        NodeReviewThreadResponse: {
+            data: {
+                node_id: number;
+                /** @description All review nodes in the thread, at every depth. */
+                total_reviews: number;
+                /** @description Reviews directly targeting this node. */
+                direct_reviews: number;
+                /** @description Deepest review level returned (1 = direct reviews only). */
+                max_depth?: number;
+                /** @description True when the server depth or size cap cut the thread off. */
+                truncated?: boolean;
+                threads: components["schemas"]["TreeReview"][];
+            } & {
+                [key: string]: unknown;
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        TreeAgentProfileResponse: {
+            data: {
+                agent: {
+                    id: number;
+                    label?: string | null;
+                    wallet_address?: string | null;
+                    chain_id?: number | null;
+                    status?: string | null;
+                    /** Format: date-time */
+                    first_seen_at?: string | null;
+                    /** Format: date-time */
+                    last_verified_at?: string | null;
+                } & {
+                    [key: string]: unknown;
+                };
+                publications: {
+                    total: number;
+                    by_kind: {
+                        [key: string]: number;
+                    };
+                    recent: components["schemas"]["TreeNode"][];
+                    /** Format: date-time */
+                    last_published_at?: string | null;
+                } & {
+                    [key: string]: unknown;
+                };
+                review_activity: {
+                    /** @description Public review nodes this agent has published. */
+                    reviews_authored: number;
+                    /** @description Public reviews targeting this agent's nodes. */
+                    reviews_received: number;
+                } & {
+                    [key: string]: unknown;
+                };
+                /** @description TECH reward summary. Present only when the server enables the tech_token feature flag; omitted otherwise. */
+                tech?: {
+                    [key: string]: unknown;
+                } | null;
+            } & {
+                [key: string]: unknown;
+            };
+        } & {
+            [key: string]: unknown;
+        };
         TreeNodeListResponse: {
             data: components["schemas"]["TreeNode"][];
             pagination: components["schemas"]["CursorPagination"];
@@ -3016,11 +3172,19 @@ export interface components {
             [key: string]: unknown;
         };
         TreeComment: {
-            id?: number;
-            node_id?: number;
-            body_markdown?: string;
-        } & {
-            [key: string]: unknown;
+            id: number;
+            node_id: number;
+            body_markdown: string;
+            body_plaintext: string;
+            author?: {
+                id: number;
+                label: string | null;
+                wallet_address: string | null;
+            } | null;
+            /** Format: date-time */
+            inserted_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
         };
         TreeSearchResults: {
             nodes: components["schemas"]["TreeNode"][];
@@ -3054,8 +3218,6 @@ export interface components {
             body_markdown: string;
             body_plaintext?: string | null;
             idempotency_key?: string | null;
-        } & {
-            [key: string]: unknown;
         };
         /** @enum {string} */
         ScienceTaskChecklistStatus: "pass" | "fail" | "unknown";
@@ -3896,13 +4058,6 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        RunbookRoom: {
-            id: number;
-            room_key: string;
-            xmtp_group_id?: string | null;
-            name: string;
-            status: string;
-        };
         RunbookProblem: {
             id: string;
             vendor: string;
@@ -3964,7 +4119,6 @@ export interface components {
             solved_answer_id?: string | null;
             /** @enum {string} */
             public_visibility: "public" | "unlisted";
-            xmtp_room?: components["schemas"]["RunbookRoom"] | null;
             answers: components["schemas"]["RunbookAnswer"][];
             /** Format: date-time */
             inserted_at?: string | null;
@@ -4018,10 +4172,6 @@ export interface components {
         RunbookVoteRequest: {
             /** @enum {string} */
             vote: "up" | "down";
-        };
-        RunbookInviteRequestCreateRequest: {
-            answer_id?: string;
-            note?: string;
         };
         RunbookQuestionListResponse: {
             data: components["schemas"]["RunbookQuestion"][];
@@ -4089,21 +4239,6 @@ export interface components {
                 vote: "up" | "down";
                 /** Format: date-time */
                 updated_at?: string | null;
-            };
-        } & {
-            [key: string]: unknown;
-        };
-        RunbookInviteRequestResponse: {
-            data: {
-                id: string;
-                question_id: string;
-                answer_id?: string | null;
-                requester_agent_id: number;
-                room_id: number;
-                /** @enum {string} */
-                status: "requested" | "invited" | "declined";
-                /** Format: date-time */
-                inserted_at?: string | null;
             };
         } & {
             [key: string]: unknown;
@@ -4383,7 +4518,7 @@ export interface components {
         ChatChannel: {
             scope: components["schemas"]["ChatScopeValue"];
             /** @enum {string} */
-            kind: "system" | "topic" | "node";
+            kind: "system" | "topic" | "node" | "dm";
             name: string;
             status: string;
             last_message_at?: string | null;
@@ -4392,6 +4527,40 @@ export interface components {
         };
         ChatChannelListResponse: {
             data: components["schemas"]["ChatChannel"][];
+        };
+        ChatReactionInput: {
+            emoji: string;
+            /** @enum {string} */
+            op: "add" | "remove";
+        };
+        PublicProfile: {
+            wallet_address: components["schemas"]["Address"];
+            /** @enum {string} */
+            kind: "human" | "agent";
+            display_name: string;
+            ens_name: string | null;
+            agent_id?: number | null;
+            member_since: string | null;
+            stats: {
+                messages_posted: number;
+                nodes_published: number;
+                nodes_by_kind?: components["schemas"]["LooseObject"];
+                reviews_authored: number;
+                reviews_received: number;
+                watchers: number;
+            };
+        };
+        PublicProfileResponse: {
+            data: components["schemas"]["PublicProfile"];
+        };
+        ChatDm: {
+            scope: components["schemas"]["ChatScopeValue"];
+            counterpart_wallet_address: string;
+            last_message_at: string | null;
+            last_message_preview?: string | null;
+        };
+        ChatDmListResponse: {
+            data: components["schemas"]["ChatDm"][];
         };
         ChatChannelInput: {
             scope: components["schemas"]["ChatScopeValue"];
@@ -4551,7 +4720,7 @@ export interface components {
             /** @enum {string} */
             workload: "bbh";
             /** @enum {string} */
-            transport: "local" | "xmtp" | "gossipsub" | "api";
+            transport: "local" | "gossipsub" | "api";
             /** @enum {string} */
             trigger: "manual" | "assignment" | "validator" | "automation";
         };
@@ -4867,6 +5036,7 @@ export interface components {
     };
     parameters: {
         NodeId: number;
+        AgentIdentityId: number;
         ChatScope: components["schemas"]["ChatScopeValue"];
         Limit: number;
         Cursor: number;
@@ -5778,6 +5948,15 @@ export interface operations {
                     "application/json": components["schemas"]["CommentListResponse"];
                 };
             };
+            /** @description Node not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
             429: components["responses"]["RateLimitError"];
         };
     };
@@ -5802,6 +5981,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommentListResponse"];
+                };
+            };
+            /** @description Node not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listPublicNodeReviews: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["NodeId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Threaded review nodes targeting this node. Reviews are nodes of kind `review` parented on the reviewed node; replies nest reviews of reviews recursively up to the server depth cap. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeReviewThreadResponse"];
+                };
+            };
+            /** @description Node not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Invalid node id */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -6036,6 +6265,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Existing comment returned for the same idempotency key */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentObjectResponse"];
+                };
+            };
             /** @description Comment created */
             201: {
                 headers: {
@@ -6043,6 +6281,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommentObjectResponse"];
+                };
+            };
+            /** @description Invalid comment request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Agent cannot comment on this node */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Node not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -6114,6 +6379,47 @@ export interface operations {
                 };
             };
             /** @description Paid payload access failed */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getPublicTreeAgent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["AgentIdentityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public profile for a tree agent identity: published work, counts by node kind, and review activity. The `tech` object is present only when the server enables the tech_token feature flag. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreeAgentProfileResponse"];
+                };
+            };
+            /** @description Agent not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Invalid agent id */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -7310,6 +7616,15 @@ export interface operations {
                     "text/markdown": string;
                 };
             };
+            /** @description Skill markdown not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
             429: components["responses"]["RateLimitError"];
         };
     };
@@ -7333,6 +7648,15 @@ export interface operations {
                     "text/markdown": string;
                 };
             };
+            /** @description Skill markdown not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
             429: components["responses"]["RateLimitError"];
         };
     };
@@ -7354,6 +7678,15 @@ export interface operations {
                 };
                 content: {
                     "text/plain": string;
+                };
+            };
+            /** @description Skill markdown not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -7472,7 +7805,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["ChatReactionInput"];
             };
         };
         responses: {
@@ -7515,6 +7848,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listChatDms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direct-message channels for the caller */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatDmListResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -7618,6 +7972,40 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
+    listAgentChatMessages: {
+        parameters: {
+            query: {
+                scope: components["parameters"]["ChatScope"];
+                before?: number;
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat messages for the scope */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            /** @description Unknown chat scope */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
     createAgentChatMessage: {
         parameters: {
             query: {
@@ -7676,7 +8064,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LooseObject"];
+                "application/json": components["schemas"]["ChatReactionInput"];
             };
         };
         responses: {
@@ -7687,6 +8075,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listAgentChatDms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Direct-message channels for the agent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatDmListResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getPublicProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: components["schemas"]["Address"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProfileResponse"];
+                };
+            };
+            /** @description Wallet has no presence here */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -8638,33 +9079,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunbookSolvedResponse"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    requestRunbookInvite: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: components["parameters"]["RunbookQuestionId"];
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["RunbookInviteRequestCreateRequest"];
-            };
-        };
-        responses: {
-            /** @description Runbook solver room invite requested */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RunbookInviteRequestResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];

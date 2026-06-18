@@ -19,10 +19,10 @@ agree, disagree, or cannot be compared.
 
 | Binding | Contract file | Reconciliation-relevant operations |
 | --- | --- | --- |
-| `autolaunch-openapi.ts` | `autolaunch/docs/api-contract.openapiv3.yaml` | `agentListAgents`, `agentGetAgent`, `agentGetContractsAdminOverview`, `agentGetContractsJobOverview`, `agentGetContractsSubjectOverview`, `agentGetSubject`, `agentListSubjectsByToken`, `agentGetSubjectIngress`, `agentGetSubjectStaking`, `agentListSubjectBuybacks`, `agentGetAuction`, `agentGetLaunchJob`, `agentGetLifecycleJob`, `agentGetVestingStatus` |
+| `autolaunch-openapi.ts` | `autolaunch/docs/api-contract.openapiv3.yaml` | `agentListAgents`, `agentGetAgent`, `getContractsAdminOverview`, `agentGetContractsJobOverview`, `agentGetContractsSubjectOverview`, `agentGetSubject`, `agentListSubjectsByToken`, `agentGetSubjectIngress`, `agentGetSubjectStaking`, `agentListSubjectBuybacks`, `agentGetAuction`, `agentGetLaunchJob`, `agentGetLifecycleJob`, `agentGetVestingStatus` |
 | `techtree-openapi.ts` | `techtree/docs/api-contract.openapiv3.yaml` | `getTechStatus` (contract addresses), `getCurrentTechEpoch`, `listTechRewards` (manifests with `merkle_root`, `tx_hash`, `status`), `getTechRewardProof`, `getReviewerProfile` |
-| `platform-openapi.ts` | `platform/api-contract.openapiv3.yaml` | `getAgentRegentStakingOverview`, `getAgentRegentStakingAccount` (both return `RegentStakingState` with `contract_address`, `chain_id`, totals, and per-wallet balances/claimables), `/api/agent-platform/projection` (`AgentPlatformProjection` with companies, runtime, public profiles) |
-| `regent-services-openapi.ts` | `docs/regent-services-contract.openapiv3.yaml` | SIWA nonce/verify only. No reconciliation data. |
+| `platform-openapi.ts` | `platform/api-contract.openapiv3.yaml` | `getAgentRegentStakingOverview`, `getAgentRegentStakingAccount` (both return `RegentStakingState` with `contract_address`, `chain_id`, totals, and per-wallet balances/claimables), `/api/platform/projection` (`AgentPlatformProjection` with companies, runtime, public profiles) |
+| `regent-services-openapi.ts` | `docs/regent-services-contract.openapiv3.yaml` | Shared identity and SIWA routes. No reconciliation data. |
 
 ### Chain-read capability
 
@@ -41,12 +41,12 @@ agree, disagree, or cannot be compared.
 
 ### Auth rails
 
-- Product `/v1/agent/*` routes use SIWA agent headers (`requestProductJson` with
+- Product `/api/<product>/v1/agent/*` routes use SIWA agent headers (`requestProductJson` with
   `requireAgentAuth`). The saved SIWA session carries one audience at a time, so one run
   can verify the products whose audience matches the saved sign-in; other products
   report `UNVERIFIABLE` with the exact `regents auth login --audience <product>`
   command as the reason.
-- Platform app routes (`/api/agent-platform/*`) use the saved Platform session
+- Platform app routes (`/api/platform/*`) use the saved Platform session
   (`loadResolvedPlatformSession`).
 
 ### Contract ownership (what `pnpm check:cli-contract` enforces)
@@ -101,10 +101,10 @@ a single JSON object:
 Verifies that the contract addresses Autolaunch publishes are real deployed contracts
 that still point at each other.
 
-- Data sources (API): `agentGetContractsAdminOverview`
-  (`GET /v1/agent/contracts/admin`), `agentGetContractsJobOverview`
-  (`GET /v1/agent/contracts/jobs/{id}`, `--job`), `agentGetContractsSubjectOverview`
-  (`GET /v1/agent/contracts/subjects/{id}`, `--subject`).
+- Data sources (API): `appGetContractsAdminOverview`
+  (`GET /api/autolaunch/v1/app/contracts/admin`), `agentGetContractsJobOverview`
+  (`GET /api/autolaunch/v1/agent/contracts/jobs/{id}`, `--job`), `agentGetContractsSubjectOverview`
+  (`GET /api/autolaunch/v1/agent/contracts/subjects/{id}`, `--subject`).
 - Data sources (chain, Base): for every published address — `getBytecode` (deployed
   code present); for splitter/fee-vault/registry — `readContract` sanity reads such as
   `owner()`/`paused()` where the overview publishes expected values.
@@ -129,7 +129,7 @@ that still point at each other.
 
 Verifies one subject's workflow state against onchain token/auction state.
 
-- Data sources (API): `agentGetSubject` (`GET /v1/agent/subjects/{id}` — `Subject`
+- Data sources (API): `agentGetSubject` (`GET /api/autolaunch/v1/agent/subjects/{id}` — `Subject`
   schema: `token_address`, `splitter_address`, `ingress_address`, `treasury_address`,
   `protocol_fee_usdc_total`, `pending_buyback_usdc`), `agentGetSubjectStaking`,
   `agentGetSubjectIngress`, `agentListSubjectBuybacks`, and when the subject came from a
@@ -147,20 +147,20 @@ Verifies one subject's workflow state against onchain token/auction state.
 - Output: table keyed by `subject_id` with token, splitter, ingress, staking, buyback
   rows; `--json` includes both views.
 - Missing from sibling APIs:
-  - `GET /v1/agent/subjects/{id}/ingress` must include the expected unswept USDC amount
+  - `GET /api/autolaunch/v1/agent/subjects/{id}/ingress` must include the expected unswept USDC amount
     per ingress account (today the CLI cannot tell which part of the chain balance the
     product has already recognized).
   - Auction settlement records per subject (clearing price, raise totals) are not on the
-    agent surface; `/v1/agent/auctions/{id}` covers live auctions only.
+    agent surface; `/api/autolaunch/v1/agent/auctions/{id}` covers live auctions only.
 
 ## 3. `regents regent-staking verify` (design-only)
 
 Verifies the staking position and claimables the Platform staking API reports for a
 wallet against the staking contract.
 
-- Data sources (API): `getAgentRegentStakingOverview` (`GET /v1/agent/regent/staking`)
+- Data sources (API): `getAgentRegentStakingOverview` (`GET /api/shared/regent/staking`)
   and `getAgentRegentStakingAccount`
-  (`GET /v1/agent/regent/staking/account/{address}`). `RegentStakingState` already
+  (`GET /api/shared/regent/staking/account/{address}`). `RegentStakingState` already
   publishes everything needed: `chain_id`, `contract_address`, `stake_token_address`,
   `usdc_address`, `total_staked_raw`, `wallet_stake_balance_raw`,
   `wallet_claimable_usdc_raw`, `wallet_claimable_regent_raw`, `paused`.
@@ -188,10 +188,10 @@ wallet against the staking contract.
 Verifies TECH reward settlement records (paid-node / reward manifests) against chain
 receipts.
 
-- Data sources (API): `getTechStatus` (`GET /v1/tech/status` — `TechContractStatus`
+- Data sources (API): `getTechStatus` (`GET /api/techtree/v1/tech/status` — `TechContractStatus`
   publishes `chain_id`, `token`, `reward_router`, `agent_reward_vault`,
   `emission_controller`, `leaderboard_registry`), `getCurrentTechEpoch`,
-  `listTechRewards` (`GET /v1/tech/rewards?epoch=&lane=` — manifests with
+  `listTechRewards` (`GET /api/techtree/v1/tech/rewards?epoch=&lane=` — manifests with
   `merkle_root`, `manifest_hash`, `total_allocated_amount`, `status`, `tx_hash`),
   `getTechRewardProof` for one agent's allocation.
 - Data sources (chain, Base): for each manifest with `status: posted` —
@@ -226,17 +226,17 @@ Renders the cross-product `agent_id` mapping anchored on
   `BASE_SEPOLIA_RPC_URL`). Owner != receipt wallet → `MISMATCH`
   (`Next: chain wins for ownership. Run regents identity ensure ...`). No RPC URL →
   `UNVERIFIABLE`.
-- Platform link: `GET /api/agent-platform/projection` via the saved Platform session.
+- Platform link: `GET /api/platform/projection` via the saved Platform session.
   Maps `public_profiles[]`/`companies[]` to `platform_agent_id`, `company_id`,
   `public_slug`, `claimed_name`, `hosted_runtime_id` (sprite service name). A profile
   wallet that differs from the receipt wallet is `MISMATCH` (chain wins for ownership).
   No Platform session → `UNVERIFIABLE` with the sign-in command as the reason.
-- Autolaunch link: `GET /v1/agent/agents` (SIWA, autolaunch audience). The agent card
+- Autolaunch link: `GET /api/autolaunch/v1/agent/agents` (SIWA, autolaunch audience). The agent card
   matching the receipt `agent_id` provides `auction_id` and the launched token address
   (`existing_token`); the token address resolves `subject_id` through
-  `GET /v1/agent/subjects/by-token/{token}`. Card owner/registry/token that contradict
+  `GET /api/autolaunch/v1/agent/subjects/by-token/{token}`. Card owner/registry/token that contradict
   the receipt are `MISMATCH`. No autolaunch-audience session → `UNVERIFIABLE`.
-- Techtree link: `GET /v1/agent/reviewer/me` (SIWA, techtree audience). The reviewer
+- Techtree link: `GET /api/techtree/v1/agent/reviewer/me` (SIWA, techtree audience). The reviewer
   profile is keyed by wallet; it becomes `profile_id`. `node_ids`, `bbh_run_ids`, and
   `review_ids` stay empty arrays (see missing APIs). No techtree-audience session →
   `UNVERIFIABLE`.
@@ -249,7 +249,7 @@ Renders the cross-product `agent_id` mapping anchored on
   - Autolaunch: the agent card does not expose a distinct `launch_id`
     (only `existing_token.auction_id`); `autolaunch/docs/api-contract.openapiv3.yaml`
     should add `launch_id` to the agent card.
-  - Autolaunch contract drift: `GET /v1/agent/agents` is typed as `LooseListEnvelope`
+  - Autolaunch contract drift: `GET /api/autolaunch/v1/agent/agents` is typed as `LooseListEnvelope`
     with a `data` array, but the server returns the list under `items`
     (`agent_controller.ex`). The CLI reads `items ?? data` until the contract matches
     the server.
@@ -264,7 +264,7 @@ Renders the cross-product `agent_id` mapping anchored on
 
 - `autolaunch/docs/cli-contract.yaml`: add `autolaunch contracts verify`
   (flags: `--job`, `--subject`, `--rpc-url`, `--json`) bound to
-  `agentGetContractsAdminOverview` / `agentGetContractsJobOverview` /
+  `getContractsAdminOverview` / `agentGetContractsJobOverview` /
   `agentGetContractsSubjectOverview`, and `autolaunch subjects verify`
   (args: `<subject_id>`; flags: `--rpc-url`, `--json`) bound to `agentGetSubject`,
   `agentGetSubjectStaking`, `agentGetSubjectIngress`, `agentListSubjectBuybacks`.
@@ -276,12 +276,12 @@ Renders the cross-product `agent_id` mapping anchored on
   and availability `current` (it is a `regent-staking ` platform public command).
 - `techtree/docs/cli-contract.yaml`: add `techtree settlement verify`
   (flags: `--epoch`, `--lane`, `--agent`, `--rpc-url`, `--json`) with path bindings
-  `/v1/tech/status`, `/v1/tech/epochs/current`, `/v1/tech/rewards`,
-  `/v1/tech/rewards/proof`, mirrored in `techtreeApiCommandGroups`.
+  `/api/techtree/v1/tech/status`, `/api/techtree/v1/tech/epochs/current`, `/api/techtree/v1/tech/rewards`,
+  `/api/techtree/v1/tech/rewards/proof`, mirrored in `techtreeApiCommandGroups`.
 - API gaps to file with owners: typed Autolaunch contracts overviews, subject ingress
   expected-unswept amounts, staking read ABI (platform), reward-router read ABI and
   agent activity summary (techtree), agent card `launch_id` (autolaunch), and the
-  `LooseListEnvelope` drift on `GET /v1/agent/agents` — contract declares `data`,
+  `LooseListEnvelope` drift on `GET /api/autolaunch/v1/agent/agents` — contract declares `data`,
   server returns `items` (autolaunch).
 
 Once an owning contract gains its entry, the implementation follows the standard flow:

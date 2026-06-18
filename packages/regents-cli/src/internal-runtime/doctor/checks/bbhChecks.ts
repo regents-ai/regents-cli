@@ -39,7 +39,7 @@ export function bbhChecks(): DoctorCheckDefinition[] {
             status: "fail",
             message: "BBH leaderboard could not be read from the v0.1 public view",
             details: buildBackendDetails(error),
-            remediation: "Start the Techtree backend and verify `/v1/bbh/leaderboard`",
+            remediation: "Start the Techtree backend and verify `/api/techtree/v1/bbh/leaderboard`",
           };
         }
       },

@@ -9,7 +9,6 @@ import { getBooleanFlag, getFlag, getFlags, parseIntegerFlag, requireArg, type P
 import { isHumanTerminal, printJson, printText } from "../printer.js";
 import {
   renderRunbookAnswer,
-  renderRunbookInviteRequest,
   renderRunbookPaymentProfile,
   renderRunbookQuestion,
   renderRunbookQuestionCreated,
@@ -438,23 +437,4 @@ export async function runTechtreeRunbookAnswerVote(
     );
 
   printRunbookResult(args, result, renderRunbookVote);
-}
-
-export async function runTechtreeRunbookInviteRequest(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const result = await daemonCall(
-      "techtree.runbook.inviteRequest",
-      {
-        question_id: requireArg(args.positionals[3], "question id"),
-        input: {
-          answer_id: getFlag(args, "answer-id"),
-          note: getFlag(args, "note"),
-        },
-      },
-      configPath,
-    );
-
-  printRunbookResult(args, result, renderRunbookInviteRequest);
 }

@@ -24,13 +24,13 @@ The Regent dependency skills are installed in `/Users/sean/Documents/regent/.age
   - `cli-contract.yaml` is the source of truth for a product's shipped CLI surface, including command names, flags/args, auth mode, whether a command is HTTP-backed or local/runtime-backed, and which backend contract operation it is allowed to use.
 - Start API work here, in this order:
   - `/Users/sean/Documents/regent/regents-cli/docs/api-contract-workflow.md`
-  - `/Users/sean/Documents/regent/platform/api-contract.openapiv3.yaml`
-  - `/Users/sean/Documents/regent/techtree/docs/api-contract.openapiv3.yaml`
-  - `/Users/sean/Documents/regent/autolaunch/docs/api-contract.openapiv3.yaml`
+  - `/Users/sean/Documents/regent/platform/contracts/platform/api-contract.openapiv3.yaml`
+  - `/Users/sean/Documents/regent/platform/contracts/techtree/api-contract.openapiv3.yaml`
+  - `/Users/sean/Documents/regent/platform/contracts/autolaunch/api-contract.openapiv3.yaml`
   - `/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml`
-  - `/Users/sean/Documents/regent/platform/cli-contract.yaml`
-  - `/Users/sean/Documents/regent/techtree/docs/cli-contract.yaml`
-  - `/Users/sean/Documents/regent/autolaunch/docs/cli-contract.yaml`
+  - `/Users/sean/Documents/regent/platform/contracts/platform/cli-contract.yaml`
+  - `/Users/sean/Documents/regent/platform/contracts/techtree/cli-contract.yaml`
+  - `/Users/sean/Documents/regent/platform/contracts/autolaunch/cli-contract.yaml`
   - `/Users/sean/Documents/regent/regents-cli/docs/shared-cli-contract.yaml`
   - `/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/contracts/api-ownership.ts`
   - `/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/`

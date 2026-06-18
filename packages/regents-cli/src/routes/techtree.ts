@@ -13,11 +13,13 @@ import {
 } from "../commands/autoskill.js";
 import {
   runTechtreeActivity,
+  runTechtreeAgentProfile,
   runTechtreeCommentAdd,
   runTechtreeInbox,
   runTechtreeNodeChildren,
   runTechtreeNodeComments,
   runTechtreeNodeGet,
+  runTechtreeNodeReviews,
   runTechtreeNodeCrossChainLinksCreate,
   runTechtreeNodeCrossChainLinksClear,
   runTechtreeNodeCrossChainLinksList,
@@ -70,7 +72,6 @@ import {
   runTechtreeRunbookAnswerAttachPaidSolution,
   runTechtreeRunbookAnswerPost,
   runTechtreeRunbookAnswerVote,
-  runTechtreeRunbookInviteRequest,
   runTechtreeRunbookMarkSolved,
   runTechtreeRunbookPaymentAddressSet,
   runTechtreeRunbookQuestionPost,
@@ -154,6 +155,14 @@ const requireNodeId = (value: string | undefined): number => {
   return parsePositiveInteger(value, "invalid node id");
 };
 
+const requireAgentId = (value: string | undefined): number => {
+  if (!value) {
+    throw new Error("missing required agent id");
+  }
+
+  return parsePositiveInteger(value, "invalid agent id");
+};
+
 export const techtreeHandlers: CliHandlerRegistry = {
   "techtree status": { run: ({ configPath }) => runTechtreeStatus(configPath) },
   "techtree science-tasks list": { run: ({ parsedArgs, configPath }) => runTechtreeScienceTasksList(parsedArgs, configPath) },
@@ -200,7 +209,6 @@ export const techtreeHandlers: CliHandlerRegistry = {
   "techtree runbook answer vote <answer_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookAnswerVote(parsedArgs, configPath) },
   "techtree runbook mark-solved <question_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookMarkSolved(parsedArgs, configPath) },
   "techtree runbook unlock <answer_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookUnlock(parsedArgs, configPath) },
-  "techtree runbook invite-request <question_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookInviteRequest(parsedArgs, configPath) },
   "techtree tech status": { run: ({ parsedArgs, configPath }) => runTechtreeTechStatus(parsedArgs, configPath) },
   "techtree tech epochs current": { run: ({ parsedArgs, configPath }) => runTechtreeTechEpochCurrent(parsedArgs, configPath) },
   "techtree tech leaderboards list": { run: ({ parsedArgs, configPath }) => runTechtreeTechLeaderboardsList(parsedArgs, configPath) },
@@ -242,6 +250,8 @@ export const techtreeHandlers: CliHandlerRegistry = {
   "techtree node get <id>": { run: ({ positionals, configPath }) => runTechtreeNodeGet(requireNodeId(positionals[3]), configPath) },
   "techtree node children <id>": { run: ({ rawArgs, positionals, configPath }) => runTechtreeNodeChildren(rawArgs, requireNodeId(positionals[3]), configPath) },
   "techtree node comments <id>": { run: ({ rawArgs, positionals, configPath }) => runTechtreeNodeComments(rawArgs, requireNodeId(positionals[3]), configPath) },
+  "techtree node reviews <id>": { run: ({ positionals, configPath }) => runTechtreeNodeReviews(requireNodeId(positionals[3]), configPath) },
+  "techtree agent profile <id>": { run: ({ positionals, configPath }) => runTechtreeAgentProfile(requireAgentId(positionals[3]), configPath) },
   "techtree node lineage list": { run: ({ parsedArgs, configPath }) => runTechtreeNodeLineageList(parsedArgs, configPath), variadicTail: true },
   "techtree node lineage claim": { run: ({ parsedArgs, configPath }) => runTechtreeNodeLineageClaim(parsedArgs, configPath), variadicTail: true },
   "techtree node lineage withdraw": { run: ({ parsedArgs, configPath }) => runTechtreeNodeLineageWithdraw(parsedArgs, configPath), variadicTail: true },

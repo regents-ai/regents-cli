@@ -84,7 +84,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/siwa/nonce": {
+    "/api/shared/identity/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["getSharedIdentityStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/identity/registration-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createSharedIdentityRegistrationIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/identity/registration-completions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["completeSharedIdentityRegistration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/identity/siwa/nonce": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createSharedIdentitySiwaNonce"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/identity/siwa/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["verifySharedIdentitySiwaSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/siwa/nonce": {
         parameters: {
             query?: never;
             header?: never;
@@ -100,7 +180,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/siwa/verify": {
+    "/api/shared/siwa/verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -116,7 +196,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/agent/siwa/http-verify": {
+    "/api/shared/siwa/http-verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -132,7 +212,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/health": {
+    "/api/shared/keyring/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -148,7 +228,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/create-wallet": {
+    "/api/shared/keyring/create-wallet": {
         parameters: {
             query?: never;
             header?: never;
@@ -164,7 +244,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/has-wallet": {
+    "/api/shared/keyring/has-wallet": {
         parameters: {
             query?: never;
             header?: never;
@@ -180,7 +260,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/get-address": {
+    "/api/shared/keyring/get-address": {
         parameters: {
             query?: never;
             header?: never;
@@ -196,7 +276,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/sign-message": {
+    "/api/shared/keyring/sign-message": {
         parameters: {
             query?: never;
             header?: never;
@@ -212,7 +292,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/sign-raw-message": {
+    "/api/shared/keyring/sign-raw-message": {
         parameters: {
             query?: never;
             header?: never;
@@ -228,7 +308,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/sign-transaction": {
+    "/api/shared/keyring/sign-transaction": {
         parameters: {
             query?: never;
             header?: never;
@@ -244,7 +324,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/internal/keyring/sign-authorization": {
+    "/api/shared/keyring/sign-authorization": {
         parameters: {
             query?: never;
             header?: never;
@@ -268,6 +348,129 @@ export interface components {
         /** @enum {integer} */
         BaseChainId: 8453;
         HexData: string;
+        /** @enum {string} */
+        IdentityNetwork: "base" | "base-sepolia";
+        /** @enum {string} */
+        IdentityProvider: "coinbase-cdp";
+        AgentRegistry: string;
+        IdentityStatusRequest: {
+            network: components["schemas"]["IdentityNetwork"];
+            address: components["schemas"]["Address"];
+            provider: components["schemas"]["IdentityProvider"];
+            wallet_hint?: string;
+        };
+        IdentityStatusResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            /** @enum {string} */
+            code: "identity_status_resolved";
+            data: {
+                network: components["schemas"]["IdentityNetwork"];
+                address: components["schemas"]["Address"];
+                provider: components["schemas"]["IdentityProvider"];
+                registered: boolean;
+                /** @enum {string} */
+                verified: "unregistered" | "onchain";
+                agent_id?: number;
+                agent_registry?: components["schemas"]["AgentRegistry"];
+                /** Format: date-time */
+                receipt_expires_at?: string;
+            };
+            meta?: components["schemas"]["LooseObject"];
+        };
+        IdentityRegistrationIntentRequest: {
+            network: components["schemas"]["IdentityNetwork"];
+            address: components["schemas"]["Address"];
+            provider: components["schemas"]["IdentityProvider"];
+            wallet_hint?: string;
+        };
+        IdentityRegistrationIntentResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            /** @enum {string} */
+            code: "identity_registration_intent_created";
+            data: {
+                intent_id: string;
+                intent_kind: string;
+                signing_payload: {
+                    message: string;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+            meta?: components["schemas"]["LooseObject"];
+        };
+        IdentityRegistrationCompletionRequest: {
+            intent_id: string;
+            address: components["schemas"]["Address"];
+            signature: components["schemas"]["HexData"];
+            message?: string;
+        };
+        IdentityRegistrationCompletionResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            /** @enum {string} */
+            code: "identity_registration_completed";
+            data: {
+                /** @enum {boolean} */
+                registered: true;
+                agent_id: number;
+                agent_registry: components["schemas"]["AgentRegistry"];
+            };
+            meta?: components["schemas"]["LooseObject"];
+        };
+        IdentitySiwaNonceRequest: {
+            network: components["schemas"]["IdentityNetwork"];
+            address: components["schemas"]["Address"];
+            agent_id: number;
+            agent_registry: components["schemas"]["AgentRegistry"];
+        };
+        IdentitySiwaNonceResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            /** @enum {string} */
+            code: "identity_siwa_nonce_issued";
+            data: {
+                nonce_token: string;
+                message: string;
+                address: components["schemas"]["Address"];
+                agent_id: number;
+                agent_registry: components["schemas"]["AgentRegistry"];
+                /** Format: date-time */
+                expires_at: string;
+            };
+            meta?: components["schemas"]["LooseObject"];
+        };
+        IdentitySiwaVerifyRequest: {
+            network: components["schemas"]["IdentityNetwork"];
+            message: string;
+            signature: components["schemas"]["HexData"];
+            nonce_token: string;
+            address?: components["schemas"]["Address"];
+            agent_id?: number;
+            agent_registry?: components["schemas"]["AgentRegistry"];
+        };
+        IdentitySiwaVerifyResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            /** @enum {string} */
+            code: "identity_siwa_verified";
+            data: {
+                /** @enum {string} */
+                verified: "onchain";
+                network: components["schemas"]["IdentityNetwork"];
+                address: components["schemas"]["Address"];
+                agent_id: number;
+                agent_registry: components["schemas"]["AgentRegistry"];
+                signer_type: string;
+                receipt: string;
+                /** Format: date-time */
+                receipt_issued_at: string;
+                /** Format: date-time */
+                receipt_expires_at: string;
+            };
+            meta?: components["schemas"]["LooseObject"];
+        };
         SiwaNonceRequest: {
             wallet_address: components["schemas"]["Address"];
             chain_id: components["schemas"]["BaseChainId"];
@@ -581,6 +784,293 @@ export interface operations {
                     "application/yaml": string;
                 };
             };
+        };
+    };
+    getSharedIdentityStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent account identity status resolved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityStatusResponse"];
+                };
+            };
+            /** @description Invalid identity status request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity status request body is too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity status request content type is unsupported */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createSharedIdentityRegistrationIntent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityRegistrationIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent account registration signing payload prepared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityRegistrationIntentResponse"];
+                };
+            };
+            /** @description Invalid identity registration intent request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity registration intent request body is too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity registration intent request content type is unsupported */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    completeSharedIdentityRegistration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityRegistrationCompletionRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent account registration completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityRegistrationCompletionResponse"];
+                };
+            };
+            /** @description Invalid identity registration completion request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity registration completion request body is too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity registration completion request content type is unsupported */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity registration completion failed validation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    createSharedIdentitySiwaNonce: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentitySiwaNonceRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent account SIWA nonce issued */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentitySiwaNonceResponse"];
+                };
+            };
+            /** @description Invalid identity SIWA nonce request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity SIWA nonce request body is too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity SIWA nonce request content type is unsupported */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    verifySharedIdentitySiwaSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentitySiwaVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent account SIWA session verified */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentitySiwaVerifyResponse"];
+                };
+            };
+            /** @description Invalid identity SIWA verification request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity SIWA verification failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity SIWA verification request body is too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity SIWA verification request content type is unsupported */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Identity SIWA verification failed validation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
         };
     };
     createSharedAgentSiwaNonce: {

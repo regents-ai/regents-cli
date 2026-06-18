@@ -117,7 +117,7 @@ const summaryOverrides = new Map([
   ["chat follows remove <wallet|label>", "Remove a wallet or label from the saved chat follow list."],
   ["chat follows list", "List the saved chat follow list."],
   ["techtree dm <node-id|address>", "Send a direct message to a node author or wallet address."],
-  ["techtree dm list", "List local XMTP direct message conversations."],
+  ["techtree dm list", "List server-stored direct message scopes."],
   ["xmtp inbox", "Show XMTP conversations with new-message counts."],
   ["xmtp tail", "Watch live incoming XMTP messages."],
   ["techtree autoskill review", "Review an autoskill package."],

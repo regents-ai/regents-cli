@@ -101,7 +101,7 @@ export async function handleAuthSiwaLogin(
 
   const message = buildSiwaMessage({
     domain: "regent.cx",
-    uri: "https://regent.cx/v1/agent/siwa/verify",
+    uri: "https://regent.cx/api/shared/siwa/verify",
     walletAddress,
     chainId: identity.chainId,
     registryAddress,

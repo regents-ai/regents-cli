@@ -36,7 +36,7 @@ export class TransportResource {
   constructor(private readonly request: TechtreeRequestClient) {}
 
   async transportStatus(): Promise<{ data: GossipsubStatus }> {
-    const response = await this.request.getJson<RuntimeTransportResponse>("/v1/runtime/transport", "object");
+    const response = await this.request.getJson<RuntimeTransportResponse>("/api/techtree/v1/runtime/transport", "object");
     return {
       data: normalizeTransportStatus(response.data),
     };

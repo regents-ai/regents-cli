@@ -16,7 +16,7 @@ const positional = (args: ParsedCliArgs, index: number, name: string): string =>
   requireArg(args.positionals[index], name);
 
 const runtimePath = (resolvedCompanyId: string, runtimeId?: string): string => {
-  const base = `/api/agent-platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runtimes`;
+  const base = `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runtimes`;
   return runtimeId ? `${base}/${encodeURIComponent(runtimeId)}` : base;
 };
 

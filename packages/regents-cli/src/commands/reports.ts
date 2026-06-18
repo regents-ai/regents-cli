@@ -13,22 +13,22 @@ import { requestProductJson } from "./product-http.js";
 
 type BugReportRequest = JsonRequestBodyFor<
   PlatformPaths,
-  "/v1/agent/bug-report",
+  "/api/platform/v1/agent/bug-report",
   "post"
 >;
 type BugReportResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/bug-report",
+  "/api/platform/v1/agent/bug-report",
   "post"
 >;
 type SecurityReportRequest = JsonRequestBodyFor<
   PlatformPaths,
-  "/v1/agent/security-report",
+  "/api/platform/v1/agent/security-report",
   "post"
 >;
 type SecurityReportResponse = JsonSuccessResponseFor<
   PlatformPaths,
-  "/v1/agent/security-report",
+  "/api/platform/v1/agent/security-report",
   "post"
 >;
 
@@ -95,7 +95,7 @@ export async function runBugReport(args: ParsedCliArgs, configPath?: string): Pr
   };
 
   printJson(
-    await requestProductJson<BugReportResponse>("POST", "/v1/agent/bug-report", {
+    await requestProductJson<BugReportResponse>("POST", "/api/platform/v1/agent/bug-report", {
       body: payload,
       configPath,
       requireAgentAuth: true,
@@ -131,7 +131,7 @@ export async function runSecurityReport(args: ParsedCliArgs, configPath?: string
   };
 
   printJson(
-    await requestProductJson<SecurityReportResponse>("POST", "/v1/agent/security-report", {
+    await requestProductJson<SecurityReportResponse>("POST", "/api/platform/v1/agent/security-report", {
       body: payload,
       configPath,
       requireAgentAuth: true,

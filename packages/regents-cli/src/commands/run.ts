@@ -383,13 +383,6 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
         detail: "Watch-style commands can stream changes while this terminal stays open.",
       },
       {
-        state: config.xmtp.enabled ? "ready" : "off",
-        label: "XMTP listener checked",
-        detail: config.xmtp.enabled
-          ? `XMTP listener is enabled for ${config.xmtp.env}.`
-          : "XMTP listener is off in config; run regents xmtp status to inspect local setup.",
-      },
-      {
         state: harnesses.length > 0 ? "ready" : "waiting",
         label: "Local agent runners checked",
         detail: harnesses.length > 0
@@ -425,7 +418,7 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
       {
         label: "Readiness",
         command: "regents status",
-        when: "see wallet, identity, Techtree, chat, and XMTP readiness.",
+        when: "see wallet, identity, Techtree, and chat readiness.",
       },
       {
         label: "Account",

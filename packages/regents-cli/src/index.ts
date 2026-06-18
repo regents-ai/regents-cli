@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { isCliUsageError, withCliUsageContext } from "./cli-usage-error.js";
 import { runOperatorOverview } from "./commands/operator.js";
+import { runVersion } from "./commands/version.js";
 import { exitCodeForError } from "./exit-codes.js";
 import {
   nextStepForPositionals,
@@ -44,6 +45,12 @@ export async function runCliEntrypoint(rawArgs: string[]): Promise<number> {
       if (routedResult !== undefined) {
         return routedResult;
       }
+    }
+
+    // Bare `regents --version` / `regents -v` only. Commands keep their own
+    // --version flags (e.g. `regents update --version 0.6.0`).
+    if (!namespace && (rawArgs.includes("--version") || rawArgs.includes("-v"))) {
+      return runVersion(parsedArgs);
     }
 
     if (rawArgs.includes("--help") || rawArgs.includes("-h")) {

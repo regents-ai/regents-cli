@@ -20,21 +20,21 @@ export class AutoskillResource {
 
   async listAutoskillSkillVersions(slug: string): Promise<{ data: AutoskillVersionSummary[] }> {
     return this.request.getJson<{ data: AutoskillVersionSummary[] }>(
-      `/v1/autoskill/skills/${encodeURIComponent(slug)}/versions`,
+      `/api/techtree/v1/autoskill/skills/${encodeURIComponent(slug)}/versions`,
       "array",
     );
   }
 
   async listAutoskillEvalVersions(slug: string): Promise<{ data: AutoskillVersionSummary[] }> {
     return this.request.getJson<{ data: AutoskillVersionSummary[] }>(
-      `/v1/autoskill/evals/${encodeURIComponent(slug)}/versions`,
+      `/api/techtree/v1/autoskill/evals/${encodeURIComponent(slug)}/versions`,
       "array",
     );
   }
 
   async listAutoskillReviews(nodeId: number): Promise<{ data: AutoskillReview[] }> {
     return this.request.getJson<{ data: AutoskillReview[] }>(
-      `/v1/autoskill/versions/${nodeId}/reviews`,
+      `/api/techtree/v1/autoskill/versions/${nodeId}/reviews`,
       "array",
     );
   }
@@ -44,27 +44,27 @@ export class AutoskillResource {
   ): Promise<AutoskillBundleAccessResponse> {
     return this.request.authedFetchJson<AutoskillBundleAccessResponse>(
       "GET",
-      `/v1/agent/autoskill/versions/${nodeId}/bundle`,
+      `/api/techtree/v1/agent/autoskill/versions/${nodeId}/bundle`,
     );
   }
 
   async createAutoskillSkill(input: AutoskillSkillPublishInput): Promise<AutoskillCreateSkillResponse> {
-    return this.request.authedFetchJson<AutoskillCreateSkillResponse>("POST", "/v1/agent/autoskill/skills", input);
+    return this.request.authedFetchJson<AutoskillCreateSkillResponse>("POST", "/api/techtree/v1/agent/autoskill/skills", input);
   }
 
   async createAutoskillEval(input: AutoskillEvalPublishInput): Promise<AutoskillCreateEvalResponse> {
-    return this.request.authedFetchJson<AutoskillCreateEvalResponse>("POST", "/v1/agent/autoskill/evals", input);
+    return this.request.authedFetchJson<AutoskillCreateEvalResponse>("POST", "/api/techtree/v1/agent/autoskill/evals", input);
   }
 
   async publishAutoskillResult(input: AutoskillResultPublishInput): Promise<AutoskillCreateResultResponse> {
-    return this.request.authedFetchJson<AutoskillCreateResultResponse>("POST", "/v1/agent/autoskill/results", input);
+    return this.request.authedFetchJson<AutoskillCreateResultResponse>("POST", "/api/techtree/v1/agent/autoskill/results", input);
   }
 
   async createAutoskillReview(input: AutoskillReviewCreateInput): Promise<AutoskillCreateReviewResponse> {
     const route =
       input.kind === "replicable"
-        ? "/v1/agent/autoskill/reviews/replicable"
-        : "/v1/agent/autoskill/reviews/community";
+        ? "/api/techtree/v1/agent/autoskill/reviews/replicable"
+        : "/api/techtree/v1/agent/autoskill/reviews/community";
 
     return this.request.authedFetchJson<AutoskillCreateReviewResponse>("POST", route, input);
   }
@@ -72,7 +72,7 @@ export class AutoskillResource {
   async createAutoskillListing(input: AutoskillListingCreateInput): Promise<AutoskillCreateListingResponse> {
     return this.request.authedFetchJson<AutoskillCreateListingResponse>(
       "POST",
-      `/v1/agent/autoskill/versions/${input.skill_node_id}/listings`,
+      `/api/techtree/v1/agent/autoskill/versions/${input.skill_node_id}/listings`,
       input,
     );
   }

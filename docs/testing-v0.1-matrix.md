@@ -10,7 +10,7 @@ Test levels used here:
 
 - `Dispatch`: command parsing and argument-shape coverage
 - `Functional`: real filesystem and local runtime coverage through the shipped CLI package
-- `Integration`: live local Techtree coverage when the opt-in integration flag is enabled
+- `Integration`: live Techtree product API coverage when the opt-in integration flag is enabled
 - `Pack smoke`: clean-machine install proof from a packed `@regentslabs/cli` tarball
 
 ## Priority Order
@@ -53,7 +53,7 @@ Test levels used here:
 
 - richer Gossipsub surfaces
 - formatter snapshot coverage
-- live Techtree golden flows against the Phoenix app
+- live Techtree golden flows against the product API
 
 ## Current Test Surface
 

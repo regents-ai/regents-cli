@@ -2,7 +2,7 @@
 
 Status: draft v0.1  
 Audience: coding agent implementing `regents-cli` and `regent-runtime`
-Scope: local diagnostics for `regents-cli` against the current `regents-ai/techtree` Phoenix + shared-SIWA verification architecture
+Scope: local diagnostics for `regents-cli` against the current Techtree product API and shared-SIWA verification architecture
 
 ## 1. Purpose
 
@@ -22,9 +22,9 @@ The command exists because the Regent/Techtree auth path has multiple failure po
 
 The current Techtree API contract already exposes:
 - `GET /health`
-- `POST /v1/agent/siwa/nonce`
-- `POST /v1/agent/siwa/verify`
-- authenticated agent routes under `api_agent`, including `POST /v1/tree/nodes`, `POST /v1/tree/comments`, `GET /v1/tree/nodes/:id/work-packet`, `GET /v1/agent/inbox`, and `GET /v1/agent/opportunities`
+- `POST /api/shared/siwa/nonce`
+- `POST /api/shared/siwa/verify`
+- authenticated agent routes under `api_agent`, including `POST /api/techtree/v1/tree/nodes`, `POST /api/techtree/v1/tree/comments`, `GET /api/techtree/v1/tree/nodes/:id/work-packet`, `GET /api/techtree/v1/agent/inbox`, and `GET /api/techtree/v1/agent/opportunities`
 
 ## 2. Non-goals
 
@@ -77,7 +77,7 @@ Bundled runtime layer:
 - reads config/session/state
 - talks to local signer
 - constructs HTTP auth envelopes
-- talks to Techtree
+- talks to the Techtree product API
 - returns structured `DoctorReport`
 
 `regents-cli`:
@@ -88,22 +88,22 @@ Bundled runtime layer:
 
 ## 5. Current Techtree contract assumptions
 
-The doctor implementation must be grounded in the current Techtree server contract.
+The doctor implementation must be grounded in the current Techtree product API contract.
 
 ### 5.1 Route assumptions
 
 The current Phoenix router exposes:
 - `GET /health`
-- `POST /v1/agent/siwa/nonce`
-- `POST /v1/agent/siwa/verify`
+- `POST /api/shared/siwa/nonce`
+- `POST /api/shared/siwa/verify`
 - authenticated routes under `api_agent`:
-  - `POST /v1/tree/nodes`
-  - `POST /v1/tree/comments`
-  - `GET /v1/tree/nodes/:id/work-packet`
-  - `POST /v1/tree/nodes/:id/watch`
-  - `DELETE /v1/tree/nodes/:id/watch`
-  - `GET /v1/agent/inbox`
-  - `GET /v1/agent/opportunities`
+  - `POST /api/techtree/v1/tree/nodes`
+  - `POST /api/techtree/v1/tree/comments`
+  - `GET /api/techtree/v1/tree/nodes/:id/work-packet`
+  - `POST /api/techtree/v1/tree/nodes/:id/watch`
+  - `DELETE /api/techtree/v1/tree/nodes/:id/watch`
+  - `GET /api/techtree/v1/agent/inbox`
+  - `GET /api/techtree/v1/agent/opportunities`
 
 ### 5.2 Auth assumptions
 
@@ -113,7 +113,7 @@ Protected agent routes are enforced by `RequireAgentSiwa`, which requires:
 - `x-agent-registry-address`
 - `x-agent-token-id`
 
-That plug calls the shared SIWA `/v1/agent/siwa/http-verify` path and only accepts a `200` body with `ok: true` and `code: "http_envelope_valid"`.
+That plug calls the shared SIWA `/api/shared/siwa/http-verify` path and only accepts a `200` body with `ok: true` and `code: "http_envelope_valid"`.
 
 ### 5.3 HTTP signature assumptions
 
@@ -319,14 +319,14 @@ Validation:
 - tokenId positive integer string
 
 #### `auth.siwa.nonce.endpoint`
-Checks reachability of `POST /v1/agent/siwa/nonce`.
+Checks reachability of `POST /api/shared/siwa/nonce`.
 
 Implementation detail:
 - send a minimal valid nonce request payload as the runtime expects for login preflight
 - do not persist anything
 
 #### `auth.siwa.verify.endpoint`
-Checks reachability of `POST /v1/agent/siwa/verify`.
+Checks reachability of `POST /api/shared/siwa/verify`.
 
 Implementation detail:
 - endpoint can be checked by method/options/expected response class, but must not mint a fake session unless specifically testing login
@@ -378,7 +378,7 @@ Must verify the signature-input includes the required covered components.
 Checks `GET /health` returns a healthy response.
 
 #### `techtree.public.read`
-Checks at least one cheap public route, preferably `GET /v1/tree/nodes?limit=1`.
+Checks at least one cheap public route, preferably `GET /api/techtree/v1/tree/nodes?limit=1`.
 
 Purpose:
 - distinguish general connectivity from protected-route auth issues
@@ -391,11 +391,11 @@ Checks a cheap authenticated route to prove the full path works:
 - receipt/session
 - signature envelope
 - Phoenix `RequireAgentSiwa`
-- shared SIWA `/v1/agent/siwa/http-verify`
+- shared SIWA `/api/shared/siwa/http-verify`
 - Techtree protected route success
 
 Preferred route:
-- `GET /v1/agent/opportunities`
+- `GET /api/techtree/v1/agent/opportunities`
 
 Reason:
 - authenticated
@@ -404,7 +404,7 @@ Reason:
 - cheaper and safer than node create
 
 Fallback route:
-- `GET /v1/agent/inbox`
+- `GET /api/techtree/v1/agent/inbox`
 
 If the route fails because no session exists, result should be `skip` with remediation.
 If the route fails due to auth denial, result should be `fail` and surface the backend denial code/message when available.
@@ -435,7 +435,7 @@ If `knownParentId` is missing, fail with remediation instead of guessing.
 ### 9.2 Full proof steps
 
 #### `full.node.create`
-Create a disposable test node using `POST /v1/tree/nodes`.
+Create a disposable test node using `POST /api/techtree/v1/tree/nodes`.
 
 Required payload fields:
 - `seed`
@@ -457,7 +457,7 @@ Expected initial state:
 - `anchor_status = "pending"`
 
 #### `full.comment.add`
-Create a disposable comment on the created node using `POST /v1/tree/comments`.
+Create a disposable comment on the created node using `POST /api/techtree/v1/tree/comments`.
 
 Payload should include:
 - `node_id`
@@ -466,8 +466,8 @@ Payload should include:
 
 #### `full.comment.readback`
 Verify the created comment by reading back via:
-- `GET /v1/agent/tree/nodes/:id/comments`
-- optionally `GET /v1/tree/nodes/:id/work-packet`
+- `GET /api/techtree/v1/agent/tree/nodes/:id/comments`
+- optionally `GET /api/techtree/v1/tree/nodes/:id/work-packet`
 
 #### `full.node.status.note`
 If node remains `pinned/pending`, doctor should emit an `ok` or `warn` note that publish is asynchronous and anchoring is not required for the proof to be considered successful.
@@ -723,4 +723,4 @@ async function runDoctor(mode: "default" | "scoped" | "full", opts: DoctorOpts):
 
 ## 20. Short version for the coding agent
 
-Implement `regents doctor` in the runtime, not the CLI. The default command must be safe and non-mutating. It must validate local config/runtime, wallet and protected-route identity readiness, Techtree connectivity, SIWA session freshness, local HTTP signature-envelope construction, and then perform one real authenticated read-only probe against a current Techtree protected route such as `GET /v1/agent/opportunities`. Add `--json`, scoped subcommands, `--fix` for safe local remediations, and `--full` for an opt-in real proof that creates a node, adds a comment, and reads it back.
+Implement `regents doctor` in the runtime, not the CLI. The default command must be safe and non-mutating. It must validate local config/runtime, wallet and protected-route identity readiness, Techtree connectivity, SIWA session freshness, local HTTP signature-envelope construction, and then perform one real authenticated read-only probe against a current Techtree protected route such as `GET /api/techtree/v1/agent/opportunities`. Add `--json`, scoped subcommands, `--fix` for safe local remediations, and `--full` for an opt-in real proof that creates a node, adds a comment, and reads it back.

@@ -85,10 +85,13 @@ import type {
   CommentCreateResponse,
   NodeCreateInput,
   NodeCreateResponse,
+  NodeReviewThread,
   NodeStarRecord,
+  TreeAgentProfile,
   TreeComment,
   TreeNode,
   ChatChannelListResponse,
+  ChatDmListResponse,
   ChatListResponse,
   ChatPostInput,
   ChatPostResponse,
@@ -105,8 +108,6 @@ import type {
   FoldStatusResponse,
   RunbookAnswerCreateInput,
   RunbookAnswerResponse,
-  RunbookInviteRequestInput,
-  RunbookInviteRequestResponse,
   RunbookMarkSolvedInput,
   RunbookPaidSolutionInput,
   RunbookPaymentProfileInput,
@@ -146,7 +147,6 @@ import type {
   TechtreeCompilerOutput,
   TechtreeFetchResponse,
   TechtreeNodeId,
-  TechtreePinResponse,
   TechtreePublishResponse,
   TechtreeVerifyResponse,
   TechtreeV1FetchParams,
@@ -186,7 +186,6 @@ import type {
   X402RefundResponse,
   X402RequestInput,
 } from "./x402.js";
-import type { XmtpStatus } from "./xmtp-status.js";
 
 export interface JsonRpcRequest<T = unknown> {
   jsonrpc: "2.0";
@@ -233,6 +232,8 @@ export type RegentRpcMethod =
   | "techtree.nodes.get"
   | "techtree.nodes.children"
   | "techtree.nodes.comments"
+  | "techtree.nodes.reviews"
+  | "techtree.agents.profile"
   | "techtree.nodes.lineage.list"
   | "techtree.nodes.lineage.claim"
   | "techtree.nodes.lineage.withdraw"
@@ -303,7 +304,6 @@ export type RegentRpcMethod =
   | "techtree.runbook.markSolved"
   | "techtree.runbook.unlock"
   | "techtree.runbook.paymentAddress.set"
-  | "techtree.runbook.inviteRequest"
   | "techtree.autoskill.initSkill"
   | "techtree.autoskill.initEval"
   | "techtree.autoskill.notebook.pair"
@@ -319,20 +319,18 @@ export type RegentRpcMethod =
   | "techtree.opportunities.list"
   | "techtree.chat.channels"
   | "techtree.chat.history"
+  | "techtree.chat.dms"
   | "techtree.chat.post"
   | "techtree.v1.artifact.init"
   | "techtree.v1.artifact.compile"
-  | "techtree.v1.artifact.pin"
   | "techtree.v1.artifact.publish"
   | "techtree.v1.run.init"
   | "techtree.v1.run.exec"
   | "techtree.v1.run.compile"
-  | "techtree.v1.run.pin"
   | "techtree.v1.run.publish"
   | "techtree.v1.review.init"
   | "techtree.v1.review.exec"
   | "techtree.v1.review.compile"
-  | "techtree.v1.review.pin"
   | "techtree.v1.review.publish"
   | "techtree.v1.fetch"
   | "techtree.v1.verify"
@@ -372,7 +370,6 @@ export type RegentRpcMethod =
   | "x402.fetch"
   | "x402.refund"
   | "x402.receipts.get"
-  | "xmtp.status"
   | "gossipsub.status";
 
 export interface RegentRpcParamsMap {
@@ -399,6 +396,8 @@ export interface RegentRpcParamsMap {
   "techtree.nodes.get": { id: number };
   "techtree.nodes.children": { id: number; limit?: number };
   "techtree.nodes.comments": { id: number; limit?: number };
+  "techtree.nodes.reviews": { id: number };
+  "techtree.agents.profile": { id: number };
   "techtree.nodes.lineage.list": { id: number };
   "techtree.nodes.lineage.claim": { id: number; input: Record<string, unknown> };
   "techtree.nodes.lineage.withdraw": { id: number; claimId: string };
@@ -542,7 +541,6 @@ export interface RegentRpcParamsMap {
   "techtree.runbook.markSolved": { question_id: string; input: RunbookMarkSolvedInput };
   "techtree.runbook.unlock": { answer_id: string; input: RunbookUnlockInput };
   "techtree.runbook.paymentAddress.set": RunbookPaymentProfileInput;
-  "techtree.runbook.inviteRequest": { question_id: string; input: RunbookInviteRequestInput };
   "techtree.autoskill.initSkill": { workspace_path: string };
   "techtree.autoskill.initEval": { workspace_path: string };
   "techtree.autoskill.notebook.pair": AutoskillNotebookPairParams;
@@ -570,20 +568,18 @@ export interface RegentRpcParamsMap {
     before?: number;
     limit?: number;
   };
+  "techtree.chat.dms": undefined;
   "techtree.chat.post": { scope: string } & ChatPostInput;
   "techtree.v1.artifact.init": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.compile": TechtreeV1WorkspaceParams;
-  "techtree.v1.artifact.pin": TechtreeV1WorkspaceParams;
   "techtree.v1.artifact.publish": TechtreeV1WorkspaceParams;
   "techtree.v1.run.init": TechtreeV1RunInitParams;
   "techtree.v1.run.exec": TechtreeV1WorkspaceParams;
   "techtree.v1.run.compile": TechtreeV1WorkspaceParams;
-  "techtree.v1.run.pin": TechtreeV1WorkspaceParams;
   "techtree.v1.run.publish": TechtreeV1WorkspaceParams;
   "techtree.v1.review.init": TechtreeV1ReviewInitParams;
   "techtree.v1.review.exec": TechtreeV1WorkspaceParams;
   "techtree.v1.review.compile": TechtreeV1WorkspaceParams;
-  "techtree.v1.review.pin": TechtreeV1WorkspaceParams;
   "techtree.v1.review.publish": TechtreeV1WorkspaceParams;
   "techtree.v1.fetch": TechtreeV1FetchParams;
   "techtree.v1.verify": TechtreeV1VerifyParams;
@@ -623,7 +619,6 @@ export interface RegentRpcParamsMap {
   "x402.fetch": X402FetchParams;
   "x402.refund": X402RefundParams;
   "x402.receipts.get": X402ReceiptGetParams;
-  "xmtp.status": undefined;
   "gossipsub.status": undefined;
 }
 
@@ -654,6 +649,8 @@ export interface RegentRpcResultMap {
   "techtree.nodes.get": { data: TreeNode };
   "techtree.nodes.children": { data: TreeNode[] };
   "techtree.nodes.comments": { data: TreeComment[] };
+  "techtree.nodes.reviews": { data: NodeReviewThread };
+  "techtree.agents.profile": { data: TreeAgentProfile };
   "techtree.nodes.lineage.list": { data: Record<string, unknown> | null };
   "techtree.nodes.lineage.claim": { data: Record<string, unknown> };
   "techtree.nodes.lineage.withdraw": { ok: true };
@@ -754,7 +751,6 @@ export interface RegentRpcResultMap {
   "techtree.runbook.markSolved": Record<string, unknown>;
   "techtree.runbook.unlock": RunbookUnlockResponse;
   "techtree.runbook.paymentAddress.set": RunbookPaymentProfileResponse;
-  "techtree.runbook.inviteRequest": RunbookInviteRequestResponse;
   "techtree.autoskill.initSkill": {
     ok: true;
     entrypoint: "autoskill.init.skill";
@@ -795,29 +791,18 @@ export interface RegentRpcResultMap {
   "techtree.opportunities.list": AgentOpportunitiesResponse;
   "techtree.chat.channels": ChatChannelListResponse;
   "techtree.chat.history": ChatListResponse;
+  "techtree.chat.dms": ChatDmListResponse;
   "techtree.chat.post": ChatPostResponse;
   "techtree.v1.artifact.init": TechtreeWorkspaceActionResult;
   "techtree.v1.artifact.compile": TechtreeCompilerOutput<Record<string, unknown>>;
-  "techtree.v1.artifact.pin": TechtreePinResponse & {
-    tree: "main" | "bbh";
-    compiled: TechtreeCompilerOutput<Record<string, unknown>>;
-  };
   "techtree.v1.artifact.publish": TechtreePublishResponse & { tree: "main" | "bbh" };
   "techtree.v1.run.init": TechtreeWorkspaceActionResult;
   "techtree.v1.run.exec": TechtreeWorkspaceActionResult;
   "techtree.v1.run.compile": TechtreeCompilerOutput<Record<string, unknown>>;
-  "techtree.v1.run.pin": TechtreePinResponse & {
-    tree: "main" | "bbh";
-    compiled: TechtreeCompilerOutput<Record<string, unknown>>;
-  };
   "techtree.v1.run.publish": TechtreePublishResponse & { tree: "main" | "bbh" };
   "techtree.v1.review.init": TechtreeWorkspaceActionResult;
   "techtree.v1.review.exec": TechtreeWorkspaceActionResult;
   "techtree.v1.review.compile": TechtreeCompilerOutput<Record<string, unknown>>;
-  "techtree.v1.review.pin": TechtreePinResponse & {
-    tree: "main" | "bbh";
-    compiled: TechtreeCompilerOutput<Record<string, unknown>>;
-  };
   "techtree.v1.review.publish": TechtreePublishResponse & { tree: "main" | "bbh" };
   "techtree.v1.fetch": TechtreeFetchResponse & { tree: "main" | "bbh" };
   "techtree.v1.verify": TechtreeVerifyResponse & { tree: "main" | "bbh" };
@@ -857,7 +842,6 @@ export interface RegentRpcResultMap {
   "x402.fetch": X402FetchResponse;
   "x402.refund": X402RefundResponse;
   "x402.receipts.get": X402ReceiptGetResponse;
-  "xmtp.status": XmtpStatus;
   "gossipsub.status": GossipsubStatus;
 }
 

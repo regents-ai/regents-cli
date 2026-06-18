@@ -3,14 +3,12 @@ import type { LocalAgentIdentity } from "./runtime.js";
 export type RegentExecutorHarnessKind = "openclaw" | "hermes" | "claude_code" | "codex" | "custom";
 export type RegentOriginKind =
   | "local"
-  | "xmtp_dm"
-  | "xmtp_group"
   | "gossipsub"
   | "api"
   | "watched_node"
   | "scheduled"
   | "other";
-export type RegentOriginTransport = "xmtp" | "gossipsub" | "api" | "other";
+export type RegentOriginTransport = "gossipsub" | "api" | "other";
 export type RegentAgentProfileKind = "owner" | "public" | "group" | "custom";
 
 export interface RegentRunExecutorHarness {

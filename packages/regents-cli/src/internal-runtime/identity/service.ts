@@ -87,25 +87,25 @@ export class IdentityServiceClient {
   }
 
   async status(input: IdentityStatusRequest): Promise<IdentityStatusResponse> {
-    return this.post("/v1/identity/status", input);
+    return this.post("/api/shared/identity/status", input);
   }
 
   async registrationIntent(input: IdentityRegistrationIntentRequest): Promise<IdentityRegistrationIntentResponse> {
-    return this.post("/v1/identity/registration-intents", input);
+    return this.post("/api/shared/identity/registration-intents", input);
   }
 
   async registrationCompletion(
     input: IdentityRegistrationCompletionRequest,
   ): Promise<IdentityRegistrationCompletionResponse> {
-    return this.post("/v1/identity/registration-completions", input);
+    return this.post("/api/shared/identity/registration-completions", input);
   }
 
   async siwaNonce(input: IdentitySiwaNonceRequest): Promise<IdentitySiwaNonceResponse> {
-    return this.post("/v1/identity/siwa/nonce", input);
+    return this.post("/api/shared/identity/siwa/nonce", input);
   }
 
   async siwaVerify(input: IdentitySiwaVerifyRequest): Promise<IdentitySiwaVerifyResponse> {
-    return this.post("/v1/identity/siwa/verify", input);
+    return this.post("/api/shared/identity/siwa/verify", input);
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {

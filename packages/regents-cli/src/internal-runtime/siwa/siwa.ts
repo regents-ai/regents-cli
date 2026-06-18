@@ -11,7 +11,7 @@ import { ProductHttpError, requestProductResponse } from "../product-http-client
 import { messageWithRetryAfter } from "../rate-limit-message.js";
 
 const DEFAULT_DOMAIN = "regent.cx";
-const DEFAULT_URI = "https://regent.cx/v1/agent/siwa/verify";
+const DEFAULT_URI = "https://regent.cx/api/shared/siwa/verify";
 const DEFAULT_STATEMENT = siwaAudienceStatement("Regents CLI");
 type SiwaRequestBody = NonNullable<Parameters<typeof fetch>[1]> extends { readonly body?: infer Body } ? Body : never;
 
@@ -105,7 +105,7 @@ export class SiwaClient {
   }
 
   async requestNonce(input: SiwaNonceRequest): Promise<SiwaNonceResponse> {
-    const res = await this.fetchWithTimeout(`${this.baseUrl}/v1/agent/siwa/nonce`, {
+    const res = await this.fetchWithTimeout(`${this.baseUrl}/api/shared/siwa/nonce`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -122,7 +122,7 @@ export class SiwaClient {
   }
 
   async verify(input: SiwaVerifyRequest): Promise<SiwaVerifyResponse> {
-    const res = await this.fetchWithTimeout(`${this.baseUrl}/v1/agent/siwa/verify`, {
+    const res = await this.fetchWithTimeout(`${this.baseUrl}/api/shared/siwa/verify`, {
       method: "POST",
       headers: {
         "content-type": "application/json",

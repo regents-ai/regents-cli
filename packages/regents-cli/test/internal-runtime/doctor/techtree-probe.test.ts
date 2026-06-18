@@ -84,7 +84,7 @@ describe("techtree authenticated probe", () => {
         id: "techtree.authenticated.probe",
         status: "fail",
         details: expect.objectContaining({
-          route: "/v1/agent/opportunities",
+          route: "/api/techtree/v1/agent/opportunities",
           code: "auth_denied",
           status: 401,
           backend: expect.objectContaining({

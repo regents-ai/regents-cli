@@ -29,13 +29,13 @@ describe("benchmark Techtree client", () => {
     await benchmarks.recomputeReliability(capsuleId);
 
     expect(calls).toEqual([
-      { method: "GET", path: "/v1/benchmarks/capsules/capsule%20%2F%20alpha" },
-      { method: "GET", path: "/v1/benchmarks/capsules/capsule%20%2F%20alpha/versions" },
-      { method: "GET", path: "/v1/benchmarks/capsules/capsule%20%2F%20alpha/scoreboard" },
-      { method: "GET", path: "/v1/benchmarks/capsules/capsule%20%2F%20alpha/reliability" },
-      { method: "GET", path: "/v1/benchmarks/harnesses/harness%20%2F%20alpha" },
-      { method: "POST", path: "/v1/agent/benchmarks/capsules/capsule%20%2F%20alpha/versions" },
-      { method: "POST", path: "/v1/agent/benchmarks/capsules/capsule%20%2F%20alpha/reliability/recompute" },
+      { method: "GET", path: "/api/techtree/v1/benchmarks/capsules/capsule%20%2F%20alpha" },
+      { method: "GET", path: "/api/techtree/v1/benchmarks/capsules/capsule%20%2F%20alpha/versions" },
+      { method: "GET", path: "/api/techtree/v1/benchmarks/capsules/capsule%20%2F%20alpha/scoreboard" },
+      { method: "GET", path: "/api/techtree/v1/benchmarks/capsules/capsule%20%2F%20alpha/reliability" },
+      { method: "GET", path: "/api/techtree/v1/benchmarks/harnesses/harness%20%2F%20alpha" },
+      { method: "POST", path: "/api/techtree/v1/agent/benchmarks/capsules/capsule%20%2F%20alpha/versions" },
+      { method: "POST", path: "/api/techtree/v1/agent/benchmarks/capsules/capsule%20%2F%20alpha/reliability/recompute" },
     ]);
   });
 });

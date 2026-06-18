@@ -91,7 +91,7 @@ const fetchSubject = async (
   try {
     const payload = await requestProductJson<Record<string, unknown>>(
       "GET",
-      `/v1/agent/subjects/${encodeURIComponent(subjectId)}`,
+      `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}`,
       {
         requireAgentAuth: true,
         authAudience: "autolaunch",
@@ -183,15 +183,15 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
   };
 
   const staking = await fetchOptional(
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/staking`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/staking`,
     configPath,
   );
   const ingress = await fetchOptional(
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress`,
     configPath,
   );
   const buybacks = await fetchOptional(
-    `/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks`,
+    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks`,
     configPath,
   );
 

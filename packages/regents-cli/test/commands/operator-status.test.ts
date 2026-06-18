@@ -210,7 +210,7 @@ describe("top-level operator status commands", () => {
     await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
 
     expect(output).toMatchObject({ result: 0 });
-    expect(seenPaths).toEqual(["/api/agent-platform/projection"]);
+    expect(seenPaths).toEqual(["/api/platform/projection"]);
     expect(JSON.parse(output.stdout)).toMatchObject({
       ok: true,
       command: "whoami",

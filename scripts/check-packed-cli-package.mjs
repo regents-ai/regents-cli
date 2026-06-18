@@ -1,10 +1,96 @@
 import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
 const packageDir = path.join(repoRoot, "packages", "regents-cli");
+const forbiddenIdentityPathFragments = [
+  ["/v1", "/identity"].join(""),
+  ["v1", "/identity"].join(""),
+];
+const sourceScanRoots = [
+  "package.json",
+  "pnpm-workspace.yaml",
+  "README.md",
+  "CHANGELOG.md",
+  "docs",
+  "scripts",
+  "test-support",
+  "packages/regents-cli/package.json",
+  "packages/regents-cli/README.md",
+  "packages/regents-cli/postinstall.cjs",
+  "packages/regents-cli/skills",
+  "packages/regents-cli/src",
+  "packages/regents-cli/test",
+];
+const historicalReleaseNotePatterns = [
+  /^CHANGELOG\.md$/,
+  /^docs\/release-audit-\d{4}-\d{2}-\d{2}\.md$/,
+];
+const textFileExtensions = new Set([
+  ".cjs",
+  ".js",
+  ".json",
+  ".mjs",
+  ".md",
+  ".ts",
+  ".txt",
+  ".yaml",
+  ".yml",
+  ".sh",
+]);
+
+const toRelative = (filePath) => path.relative(repoRoot, filePath).split(path.sep).join("/");
+const isHistoricalReleaseNote = (relativePath) =>
+  historicalReleaseNotePatterns.some((pattern) => pattern.test(relativePath));
+const isTextFile = (filePath) => {
+  const name = path.basename(filePath);
+  return name === "LICENSE" || textFileExtensions.has(path.extname(name));
+};
+const collectTextFiles = (entryPath) => {
+  if (!existsSync(entryPath)) {
+    return [];
+  }
+
+  const stats = statSync(entryPath);
+  if (stats.isFile()) {
+    return isTextFile(entryPath) ? [entryPath] : [];
+  }
+
+  if (!stats.isDirectory()) {
+    return [];
+  }
+
+  const files = [];
+  for (const entry of readdirSync(entryPath, { withFileTypes: true })) {
+    if ([".git", "node_modules"].includes(entry.name)) {
+      continue;
+    }
+    files.push(...collectTextFiles(path.join(entryPath, entry.name)));
+  }
+  return files;
+};
+const scanFilesForForbiddenIdentityPaths = (label, files) => {
+  const failures = [];
+
+  for (const file of files) {
+    const relativePath = toRelative(file);
+    if (isHistoricalReleaseNote(relativePath)) {
+      continue;
+    }
+
+    const text = readFileSync(file, "utf8");
+    for (const fragment of forbiddenIdentityPathFragments) {
+      if (text.includes(fragment)) {
+        failures.push(`${label} contains old shared identity route text ${fragment}: ${relativePath}`);
+      }
+    }
+  }
+
+  return failures;
+};
 
 const result = spawnSync("npm", ["pack", "--dry-run", "--json"], {
   cwd: packageDir,
@@ -66,6 +152,19 @@ if (unexpectedFiles.length > 0 || missingFiles.length > 0) {
   throw new Error(lines.join("\n"));
 }
 
+const sourceFiles = sourceScanRoots.flatMap((entry) => collectTextFiles(path.join(repoRoot, entry)));
+const packedFiles = tarballFiles
+  .map((file) => path.join(packageDir, file))
+  .filter((file) => existsSync(file) && statSync(file).isFile() && isTextFile(file));
+const identityPathFailures = [
+  ...scanFilesForForbiddenIdentityPaths("source release surface", sourceFiles),
+  ...scanFilesForForbiddenIdentityPaths("packed CLI package", packedFiles),
+];
+
+if (identityPathFailures.length > 0) {
+  throw new Error(identityPathFailures.join("\n"));
+}
+
 process.stdout.write(
-  `Packed CLI package contents verified (${tarballFiles.length} files): LICENSE, README.md, package.json, postinstall.cjs, dist/**, and skills/**.\n`,
+  `Packed CLI package contents verified (${tarballFiles.length} files): LICENSE, README.md, package.json, postinstall.cjs, dist/**, skills/**, and no old shared identity route text.\n`,
 );

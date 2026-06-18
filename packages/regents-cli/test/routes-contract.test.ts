@@ -96,18 +96,6 @@ describe("contract command route matching", () => {
       "work run",
       "work watch",
       "x402 search",
-      "xmtp group add-admin",
-      "xmtp group add-member",
-      "xmtp group add-super-admin",
-      "xmtp group admins",
-      "xmtp group create",
-      "xmtp group members",
-      "xmtp group permissions",
-      "xmtp group remove-admin",
-      "xmtp group remove-member",
-      "xmtp group remove-super-admin",
-      "xmtp group super-admins",
-      "xmtp group update-permission",
     ]);
 
     for (const route of variadicRoutes) {

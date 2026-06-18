@@ -121,13 +121,13 @@ const requireWorkspaceJson = <T extends Record<string, unknown>>(value: unknown,
 
 const normalizeOriginTransport = (
   origin: RegentResolvedRunMetadata["origin"],
-): "local" | "xmtp" | "gossipsub" | "api" => {
+): "local" | "gossipsub" | "api" => {
   if (origin.kind === "local") {
     return "local";
   }
 
   const transport = origin.transport;
-  if (transport === "xmtp" || transport === "gossipsub" || transport === "api") {
+  if (transport === "gossipsub" || transport === "api") {
     return transport;
   }
 

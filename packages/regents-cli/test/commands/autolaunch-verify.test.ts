@@ -80,6 +80,7 @@ describe("autolaunch verify commands", () => {
   const fetchMock = vi.fn<typeof fetch>();
   let homeDir = "";
   let configPath = "";
+  let platformSessionFile = "";
 
   const writeConfig = (): void => {
     writeInitialConfig(configPath);
@@ -129,6 +130,25 @@ describe("autolaunch verify commands", () => {
     );
   };
 
+  const writePlatformSession = (origin = "http://127.0.0.1:4010"): void => {
+    const sessionPath = platformSessionFile;
+    fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
+    fs.writeFileSync(
+      sessionPath,
+      JSON.stringify(
+        {
+          version: 1,
+          origin,
+          cookie: "_platform_phx_key=session-cookie",
+          csrfToken: "csrf-token",
+          savedAt: "2026-04-01T00:00:00.000Z",
+        },
+        null,
+        2,
+      ),
+    );
+  };
+
   const jsonResponse = (payload: unknown): Response =>
     new Response(JSON.stringify(payload), {
       status: 200,
@@ -145,6 +165,7 @@ describe("autolaunch verify commands", () => {
     vi.stubGlobal("fetch", fetchMock);
     homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-autolaunch-verify-home-"));
     configPath = path.join(homeDir, "regent.config.json");
+    platformSessionFile = path.join(homeDir, "platform-session.json");
     for (const key of touchedEnvKeys) {
       savedEnv[key] = process.env[key];
     }
@@ -189,6 +210,8 @@ describe("autolaunch verify commands", () => {
         "--json",
         "--config",
         configPath,
+        "--session-file",
+        platformSessionFile,
       ]),
     );
 
@@ -209,11 +232,11 @@ describe("autolaunch verify commands", () => {
   describe("contracts verify", () => {
     it("reports MATCH for deployed addresses and the untyped-overview gap row", async () => {
       writeConfig();
-      writeAutolaunchSession("autolaunch");
+      writePlatformSession();
       process.env.BASE_MAINNET_RPC_URL = "https://base.example";
       fetchMock.mockImplementation(async (input) => {
         const url = String(input);
-        if (url.includes("/v1/agent/contracts/admin")) {
+        if (url.includes("/api/autolaunch/v1/app/contracts/admin")) {
           return jsonResponse({ ok: true, fee_vault_address: splitterAddress, registry_address: testRegistry });
         }
         throw new Error(`unexpected fetch ${url}`);
@@ -226,6 +249,7 @@ describe("autolaunch verify commands", () => {
       const output = await runContractsVerify();
 
       expect(output.result, output.stderr).toBe(0);
+      expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
       const payload = parsePrintedJson(output.stdout) as VerifyPayload;
       expect(payload.command).toBe("autolaunch contracts verify");
       expect(payload.status).toBe("ready");
@@ -240,11 +264,11 @@ describe("autolaunch verify commands", () => {
 
     it("exits 1 with a chain-wins next line when a published address has no bytecode", async () => {
       writeConfig();
-      writeAutolaunchSession("autolaunch");
+      writePlatformSession();
       process.env.BASE_MAINNET_RPC_URL = "https://base.example";
       fetchMock.mockImplementation(async (input) => {
         const url = String(input);
-        if (url.includes("/v1/agent/contracts/admin")) {
+        if (url.includes("/api/autolaunch/v1/app/contracts/admin")) {
           return jsonResponse({ ok: true, fee_vault_address: splitterAddress });
         }
         throw new Error(`unexpected fetch ${url}`);
@@ -265,10 +289,10 @@ describe("autolaunch verify commands", () => {
 
     it("marks chain rows UNVERIFIABLE when no RPC URL is configured", async () => {
       writeConfig();
-      writeAutolaunchSession("autolaunch");
+      writePlatformSession();
       fetchMock.mockImplementation(async (input) => {
         const url = String(input);
-        if (url.includes("/v1/agent/contracts/admin")) {
+        if (url.includes("/api/autolaunch/v1/app/contracts/admin")) {
           return jsonResponse({ ok: true, fee_vault_address: splitterAddress });
         }
         throw new Error(`unexpected fetch ${url}`);
@@ -294,7 +318,7 @@ describe("autolaunch verify commands", () => {
       const payload = parsePrintedJson(output.stdout) as VerifyPayload;
       const overviewRow = checkByItem(payload, "admin contracts overview");
       expect(overviewRow.status).toBe("UNVERIFIABLE");
-      expect(overviewRow.reason).toContain("regents auth login --audience autolaunch");
+      expect(overviewRow.reason).toContain("regents platform auth login");
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });
@@ -305,16 +329,16 @@ describe("autolaunch verify commands", () => {
     const stubSubjectApis = (): void => {
       fetchMock.mockImplementation(async (input) => {
         const url = String(input);
-        if (url.includes(`/v1/agent/subjects/${subjectId}/staking`)) {
+        if (url.includes(`/api/autolaunch/v1/agent/subjects/${subjectId}/staking`)) {
           return jsonResponse({ ok: true, subject: {} });
         }
-        if (url.includes(`/v1/agent/subjects/${subjectId}/ingress`)) {
+        if (url.includes(`/api/autolaunch/v1/agent/subjects/${subjectId}/ingress`)) {
           return jsonResponse({ ok: true, subject: {} });
         }
-        if (url.includes(`/v1/agent/subjects/${subjectId}/buybacks`)) {
+        if (url.includes(`/api/autolaunch/v1/agent/subjects/${subjectId}/buybacks`)) {
           return jsonResponse({ ok: true, subject_id: subjectId, buybacks: { pending_buyback_usdc: "0" } });
         }
-        if (url.includes(`/v1/agent/subjects/${subjectId}`)) {
+        if (url.includes(`/api/autolaunch/v1/agent/subjects/${subjectId}`)) {
           return jsonResponse({
             ok: true,
             subject: {

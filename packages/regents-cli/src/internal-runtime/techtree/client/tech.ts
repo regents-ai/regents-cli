@@ -21,11 +21,11 @@ export class TechResource {
   constructor(private readonly request: TechtreeRequestClient) {}
 
   status(): Promise<TechStatusResponse> {
-    return this.request.getJson<TechStatusResponse>("/v1/tech/status", "object");
+    return this.request.getJson<TechStatusResponse>("/api/techtree/v1/tech/status", "object");
   }
 
   currentEpoch(): Promise<TechEpochResponse> {
-    return this.request.getJson<TechEpochResponse>("/v1/tech/epochs/current", "object");
+    return this.request.getJson<TechEpochResponse>("/api/techtree/v1/tech/epochs/current", "object");
   }
 
   listLeaderboards(params?: {
@@ -33,7 +33,7 @@ export class TechResource {
     limit?: number;
   }): Promise<TechLeaderboardListResponse> {
     return this.request.getJson<TechLeaderboardListResponse>(
-      withQuery("/v1/tech/leaderboards", params),
+      withQuery("/api/techtree/v1/tech/leaderboards", params),
       "array",
     );
   }
@@ -44,7 +44,7 @@ export class TechResource {
     limit?: number;
   }): Promise<TechRewardsResponse> {
     return this.request.getJson<TechRewardsResponse>(
-      withQuery("/v1/tech/rewards", params),
+      withQuery("/api/techtree/v1/tech/rewards", params),
       "array",
     );
   }
@@ -55,7 +55,7 @@ export class TechResource {
     agent_id: string;
   }): Promise<TechRewardProofResponse> {
     return this.request.getJson<TechRewardProofResponse>(
-      withQuery("/v1/tech/rewards/proof", params),
+      withQuery("/api/techtree/v1/tech/rewards/proof", params),
       "object",
     );
   }
@@ -63,7 +63,7 @@ export class TechResource {
   prepareClaim(input: TechRewardClaimPrepareInput): Promise<TechPreparedTransactionResponse> {
     return this.request.authedFetchJson<TechPreparedTransactionResponse>(
       "POST",
-      "/v1/agent/tech/rewards/claim/prepare",
+      "/api/techtree/v1/agent/tech/rewards/claim/prepare",
       input,
     );
   }
@@ -71,7 +71,7 @@ export class TechResource {
   prepareWithdrawal(input: TechWithdrawPrepareInput): Promise<TechPreparedTransactionResponse> {
     return this.request.authedFetchJson<TechPreparedTransactionResponse>(
       "POST",
-      "/v1/agent/tech/withdraw/prepare",
+      "/api/techtree/v1/agent/tech/withdraw/prepare",
       input,
     );
   }
@@ -81,7 +81,7 @@ export class TechResource {
   ): Promise<TechPreparedTransactionResponse> {
     return this.request.authedFetchJson<TechPreparedTransactionResponse>(
       "POST",
-      "/v1/agent/tech/leaderboards/register/prepare",
+      "/api/techtree/v1/agent/tech/leaderboards/register/prepare",
       input,
     );
   }
@@ -91,7 +91,7 @@ export class TechResource {
   ): Promise<TechLeaderboardConfirmResponse> {
     return this.request.authedFetchJson<TechLeaderboardConfirmResponse>(
       "POST",
-      "/v1/agent/tech/leaderboards/register/confirm",
+      "/api/techtree/v1/agent/tech/leaderboards/register/confirm",
       input,
     );
   }
@@ -99,7 +99,7 @@ export class TechResource {
   prepareRewardRoot(input: TechRewardRootPrepareInput): Promise<TechPreparedTransactionResponse> {
     return this.request.authedFetchJson<TechPreparedTransactionResponse>(
       "POST",
-      "/v1/agent/tech/rewards/root/prepare",
+      "/api/techtree/v1/agent/tech/rewards/root/prepare",
       input,
     );
   }
@@ -107,7 +107,7 @@ export class TechResource {
   confirmRewardRoot(input: TechRewardRootConfirmInput): Promise<TechRewardRootConfirmResponse> {
     return this.request.authedFetchJson<TechRewardRootConfirmResponse>(
       "POST",
-      "/v1/agent/tech/rewards/root/confirm",
+      "/api/techtree/v1/agent/tech/rewards/root/confirm",
       input,
     );
   }

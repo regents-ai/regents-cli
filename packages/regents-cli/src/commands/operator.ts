@@ -136,8 +136,6 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
     state: config.runtime.stateDir,
     socket: path.dirname(config.runtime.socketPath),
     wallet: path.dirname(config.wallet.keystorePath),
-    xmtp: path.dirname(config.xmtp.dbPath),
-    xmtpPolicy: path.dirname(config.xmtp.publicPolicyPath),
     gossipsub: path.dirname(config.gossipsub.peerIdPath),
   };
 
@@ -296,7 +294,6 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
     component("runtime", runtimeSocketReady ? "ready" : "waiting", config.runtime.socketPath),
     component("techtree", "ready", config.services.techtree.baseUrl),
     component("chat", runtimeSocketReady ? "ready" : "waiting"),
-    component("xmtp", config.xmtp.enabled ? "ready" : "waiting", config.xmtp.env),
   ];
   const blocked = components.filter((item) => item.status === "blocked").length;
   const waiting = components.filter((item) => item.status === "waiting").length;
@@ -447,7 +444,7 @@ export async function runOperatorWhoami(args: ParsedCliArgs, configPath?: string
           origin,
           session,
           method: "GET",
-          path: "/api/agent-platform/projection",
+          path: "/api/platform/projection",
           commandName: "regents whoami --full",
           configPath: configPathFor(args, configPath),
           chainId: config.auth.defaultChainId,

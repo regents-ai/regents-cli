@@ -286,6 +286,30 @@ describe("autolaunch CLI command group", () => {
     return configPath;
   };
 
+  const writePlatformSession = (origin = expectedBaseUrl): string => {
+    const homeDir = process.env.HOME;
+    if (!homeDir) {
+      throw new Error("HOME is not set for the test");
+    }
+    const sessionPath = path.join(homeDir, ".regent", "platform", "session.json");
+    fs.mkdirSync(path.dirname(sessionPath), { recursive: true });
+    fs.writeFileSync(
+      sessionPath,
+      JSON.stringify(
+        {
+          version: 1,
+          origin,
+          cookie: "_platform_phx_key=session-cookie",
+          csrfToken: "csrf-token",
+          savedAt: "2026-04-01T00:00:00.000Z",
+        },
+        null,
+        2,
+      ),
+    );
+    return sessionPath;
+  };
+
   const setStdoutTty = (value: boolean | undefined): void => {
     Object.defineProperty(process.stdout, "isTTY", {
       configurable: true,
@@ -516,7 +540,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/app/agent-pairings/complete`,
+      `${expectedBaseUrl}/api/autolaunch/v1/app/agent-pairings/complete`,
     );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     const headers = requestInit?.headers as Headers;
@@ -634,7 +658,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/agent-connections`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/agent-connections`,
     );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     assertAgentAuthHeaders(requestInit?.headers as Headers);
@@ -761,7 +785,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/auctions?sort=recently_launched&status=active`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/auctions?sort=recently_launched&status=active`,
     );
     assertAgentAuthHeaders(fetchMock.mock.calls[0]?.[1]?.headers as Headers);
     expect(
@@ -800,10 +824,10 @@ describe("autolaunch CLI command group", () => {
     expect(showOutput.result).toBe(0);
     expect(readinessOutput.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/agents/agent%3Aalpha`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/agents/agent%3Aalpha`,
     );
     expect(fetchMock.mock.calls[1]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/agents/agent%3Aalpha/readiness`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/agents/agent%3Aalpha/readiness`,
     );
     assertAgentAuthHeaders(fetchMock.mock.calls[0]?.[1]?.headers as Headers);
     assertAgentAuthHeaders(fetchMock.mock.calls[1]?.[1]?.headers as Headers);
@@ -844,7 +868,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/ens/link/plan`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/ens/link/plan`,
     );
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(JSON.parse(String(requestInit?.body))).toMatchObject({
@@ -904,7 +928,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/launch/preview`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/preview`,
     );
     const [, previewRequest] = fetchMock.mock.calls[0] ?? [];
     assertLaunchRequestBody(previewRequest?.body, {
@@ -960,7 +984,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/ens/link/prepare-bidirectional`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/ens/link/prepare-bidirectional`,
     );
     expect(
       parsePrintedJson<{
@@ -1015,7 +1039,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result, output.stderr).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/subjects/0xabc`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/0xabc`,
     );
     expect(
       parsePrintedJson<{
@@ -1128,10 +1152,10 @@ describe("autolaunch CLI command group", () => {
     expect(buybacks.result, buybacks.stderr).toBe(0);
     expect(emissions.result, emissions.stderr).toBe(0);
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
-      `${expectedBaseUrl}/v1/agent/subjects/by-token/0xabc`,
-      `${expectedBaseUrl}/v1/agent/subjects/subject_123/staking`,
-      `${expectedBaseUrl}/v1/agent/subjects/subject_123/buybacks`,
-      `${expectedBaseUrl}/v1/agent/subjects/subject_123/regent-emissions`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/by-token/0xabc`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/staking`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/buybacks`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/regent-emissions`,
     ]);
   });
 
@@ -1170,7 +1194,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result, output.stderr).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/subjects/existing-token/prepare`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/existing-token/prepare`,
     );
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       stake_token: "0x1111111111111111111111111111111111111111",
@@ -1228,7 +1252,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result, output.stderr).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/subjects/subject_123/claim-usdc`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/claim-usdc`,
     );
     expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
       tx_hash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -1281,7 +1305,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result, output.stderr).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/subjects/subject_123/stake`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/stake`,
     );
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       amount: "2",
@@ -1315,7 +1339,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/contracts/jobs/job_123/strategy/migrate/prepare`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/contracts/jobs/job_123/strategy/migrate/prepare`,
     );
     expect(
       parsePrintedJson<{ prepared: { action: string } }>(output.stdout),
@@ -1354,7 +1378,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/contracts/jobs/job_123/strategy/sweep_quote_token/prepare`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/contracts/jobs/job_123/strategy/sweep_quote_token/prepare`,
     );
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({});
     expect(
@@ -1364,6 +1388,44 @@ describe("autolaunch CLI command group", () => {
         resource: "strategy",
         action: "sweep_quote_token",
       },
+    });
+  });
+
+  it("reads the contracts admin overview through the Regent web session", async () => {
+    const configPath = createConfigPath();
+    const sessionFile = writePlatformSession();
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          fee_vault_address: "0x5555555555555555555555555555555555555555",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "contracts",
+        "admin",
+        "--config",
+        configPath,
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    expect(output.result, output.stderr).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/api/autolaunch/v1/app/contracts/admin`,
+    );
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
+    expect(parsePrintedJson<{ fee_vault_address: string }>(output.stdout)).toMatchObject({
+      fee_vault_address: "0x5555555555555555555555555555555555555555",
     });
   });
 
@@ -1400,7 +1462,7 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/contracts/admin/revenue_share_factory/set_authorized_creator/prepare`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/contracts/admin/revenue_share_factory/set_authorized_creator/prepare`,
     );
     expect(
       JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)),
@@ -1858,7 +1920,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock.mock.calls[1]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/agent-connections`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/agent-connections`,
     );
     expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toMatchObject({
       plan_id: "plan_connect",
@@ -2118,12 +2180,12 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/launch/jobs/job_123`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/jobs/job_123`,
     );
     expect(buildAgentAuthHeadersMock).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "GET",
-        path: "/v1/agent/launch/jobs/job_123",
+        path: "/api/autolaunch/v1/agent/launch/jobs/job_123",
         audience: "autolaunch",
       }),
     );
@@ -2160,7 +2222,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/launch/creation-state?auction_id=auc_alpha`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/creation-state?auction_id=auc_alpha`,
     );
     assertAgentAuthHeaders(fetchMock.mock.calls[0]?.[1]?.headers as Headers);
     expect(parsePrintedJson(output.stdout)).toEqual(launchCreationStatePayload());
@@ -2188,7 +2250,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.result).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/launch/creation-state?auction_id=auc_alpha`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/creation-state?auction_id=auc_alpha`,
     );
     const text = collapsePanelText(stripAnsi(output.stdout));
     expect(text).toContain("PRIVATE LAUNCH STATE");
@@ -2290,13 +2352,13 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/prelaunch/plans`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/prelaunch/plans`,
     );
     expect(fetchMock.mock.calls[1]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/prelaunch/assets`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/prelaunch/assets`,
     );
     expect(fetchMock.mock.calls[3]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/prelaunch/plans/plan_alpha/validate`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/prelaunch/plans/plan_alpha/validate`,
     );
     assertLaunchRequestBody(fetchMock.mock.calls[0]?.[1]?.body, {
       agent_id: "8453:42",
@@ -2710,10 +2772,10 @@ describe("autolaunch CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/prelaunch/plans/plan_alpha`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/prelaunch/plans/plan_alpha`,
     );
     expect(fetchMock.mock.calls[2]?.[0]).toBe(
-      `http://127.0.0.1:4000/v1/agent/siwa/nonce`,
+      `http://127.0.0.1:4000/api/shared/siwa/nonce`,
     );
     expect(requireAgentAuthStateMock).toHaveBeenCalledWith(configPath, {
       audience: "autolaunch",
@@ -2727,7 +2789,7 @@ describe("autolaunch CLI command group", () => {
       audience: "autolaunch",
     });
     expect(fetchMock.mock.calls[3]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/prelaunch/plans/plan_alpha/launch`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/prelaunch/plans/plan_alpha/launch`,
     );
     expect(JSON.parse(String(fetchMock.mock.calls[3]?.[1]?.body))).toMatchObject({
       wallet_address: "0x00000000000000000000000000000000000000aa",
@@ -2736,7 +2798,7 @@ describe("autolaunch CLI command group", () => {
       nonce: "nonce_alpha",
     });
     expect(fetchMock.mock.calls[4]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/launch/jobs/job_alpha`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/jobs/job_alpha`,
     );
     expect(
       parsePrintedJson<{ job: { job_id: string; status: string } }>(
@@ -2815,13 +2877,13 @@ describe("autolaunch CLI command group", () => {
     expect(finalizeOutput.result).toBe(0);
     expect(vestingOutput.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/lifecycle/jobs/job_alpha`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/lifecycle/jobs/job_alpha`,
     );
     expect(fetchMock.mock.calls[1]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/lifecycle/jobs/job_alpha/finalize/prepare`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/lifecycle/jobs/job_alpha/finalize/prepare`,
     );
     expect(fetchMock.mock.calls[2]?.[0]).toBe(
-      `${expectedBaseUrl}/v1/agent/lifecycle/jobs/job_alpha/vesting`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/lifecycle/jobs/job_alpha/vesting`,
     );
     expect(
       parsePrintedJson<{ recommended_action: string }>(monitorOutput.stdout),

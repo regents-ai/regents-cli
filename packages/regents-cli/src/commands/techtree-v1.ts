@@ -50,17 +50,14 @@ export const readRunMetadata = (args: ParsedCliArgs): RegentRunMetadata | undefi
 type WorkspaceTreeMethod =
   | "techtree.v1.artifact.init"
   | "techtree.v1.artifact.compile"
-  | "techtree.v1.artifact.pin"
   | "techtree.v1.artifact.publish"
   | "techtree.v1.run.init"
   | "techtree.v1.run.exec"
   | "techtree.v1.run.compile"
-  | "techtree.v1.run.pin"
   | "techtree.v1.run.publish"
   | "techtree.v1.review.init"
   | "techtree.v1.review.exec"
   | "techtree.v1.review.compile"
-  | "techtree.v1.review.pin"
   | "techtree.v1.review.publish";
 
 type TreeCommandExtraParams = (args: ParsedCliArgs) => Record<string, unknown> | undefined;
@@ -109,8 +106,6 @@ export const runTechtreeArtifactInit = createTreeWorkspaceRunner("techtree.v1.ar
 
 export const runTechtreeArtifactCompile = createTreeWorkspaceRunner("techtree.v1.artifact.compile");
 
-export const runTechtreeArtifactPin = createTreeWorkspaceRunner("techtree.v1.artifact.pin");
-
 export const runTechtreeArtifactPublish = createTreeWorkspaceRunner("techtree.v1.artifact.publish");
 
 export const runTechtreeRunInit = createTreeWorkspaceRunner("techtree.v1.run.init", (args) => {
@@ -132,8 +127,6 @@ export const runTechtreeRunExec = createTreeWorkspaceRunner("techtree.v1.run.exe
 
 export const runTechtreeRunCompile = createTreeWorkspaceRunner("techtree.v1.run.compile");
 
-export const runTechtreeRunPin = createTreeWorkspaceRunner("techtree.v1.run.pin");
-
 export const runTechtreeRunPublish = createTreeWorkspaceRunner("techtree.v1.run.publish");
 
 export const runTechtreeReviewInit = createTreeWorkspaceRunner("techtree.v1.review.init", (args) => {
@@ -148,8 +141,6 @@ export const runTechtreeReviewInit = createTreeWorkspaceRunner("techtree.v1.revi
 export const runTechtreeReviewExec = createTreeWorkspaceRunner("techtree.v1.review.exec");
 
 export const runTechtreeReviewCompile = createTreeWorkspaceRunner("techtree.v1.review.compile");
-
-export const runTechtreeReviewPin = createTreeWorkspaceRunner("techtree.v1.review.pin");
 
 export const runTechtreeReviewPublish = createTreeWorkspaceRunner("techtree.v1.review.publish");
 

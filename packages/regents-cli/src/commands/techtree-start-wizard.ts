@@ -27,8 +27,6 @@ const ensureRuntimeDirs = (config: RegentConfig, configPath: string): void => {
     config.runtime.stateDir,
     path.dirname(config.runtime.socketPath),
     path.dirname(config.wallet.keystorePath),
-    path.dirname(config.xmtp.dbPath),
-    path.dirname(config.xmtp.publicPolicyPath),
     path.dirname(config.gossipsub.peerIdPath),
     config.workloads.bbh.workspaceRoot,
     ...Object.values(config.agents.harnesses).map((harness) => harness.workspaceRoot),

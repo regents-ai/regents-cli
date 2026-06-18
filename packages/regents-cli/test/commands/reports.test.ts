@@ -167,7 +167,7 @@ describe("reporting CLI commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/v1/agent/bug-report");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/v1/agent/bug-report");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       summary: "can't do xyz",
@@ -227,7 +227,7 @@ describe("reporting CLI commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://reports.regents.sh/v1/agent/security-report");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://reports.regents.sh/api/platform/v1/agent/security-report");
     expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
       summary: "private vuln",
