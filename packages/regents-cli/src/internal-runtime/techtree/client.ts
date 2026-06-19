@@ -37,6 +37,11 @@ import type {
   FoldPolicyInput,
   FoldPolicyResponse,
   FoldStatusResponse,
+  HeartbeatScheduleResponse,
+  HeartbeatWakeupCompleteInput,
+  HeartbeatWakeupListResponse,
+  HeartbeatWakeupResponse,
+  HeartbeatWakeupStartInput,
   RunbookAnswerCreateInput,
   RunbookAnswerResponse,
   RunbookMarkSolvedInput,
@@ -142,6 +147,7 @@ import { AutoskillResource } from "./client/autoskill.js";
 import { BenchmarksResource } from "./client/benchmarks.js";
 import { BbhResource } from "./client/bbh.js";
 import { ChatResource } from "./client/chat.js";
+import { HeartbeatsResource } from "./client/heartbeats.js";
 import { TechtreeRequestClient, type TechtreeRequestMethod } from "./client/request.js";
 import { ReviewsResource } from "./client/reviews.js";
 import { RunbookResource } from "./client/runbook.js";
@@ -167,6 +173,7 @@ export class TechtreeClient {
   private readonly benchmarks: BenchmarksResource;
   private readonly bbh: BbhResource;
   private readonly chat: ChatResource;
+  private readonly heartbeats: HeartbeatsResource;
   private readonly reviews: ReviewsResource;
   private readonly runbook: RunbookResource;
   private readonly scienceTasks: ScienceTasksResource;
@@ -201,6 +208,7 @@ export class TechtreeClient {
     this.benchmarks = new BenchmarksResource(this.request);
     this.bbh = new BbhResource(this.request);
     this.chat = new ChatResource(this.request);
+    this.heartbeats = new HeartbeatsResource(this.request);
     this.reviews = new ReviewsResource(this.request);
     this.runbook = new RunbookResource(this.request);
     this.scienceTasks = new ScienceTasksResource(this.request);
@@ -289,6 +297,25 @@ export class TechtreeClient {
 
   acceptWork(workUnitId: string): Promise<TechtreeWorkResponse> {
     return this.work.accept(workUnitId);
+  }
+
+  heartbeatSchedule(): Promise<HeartbeatScheduleResponse> {
+    return this.heartbeats.schedule();
+  }
+
+  listHeartbeatWakeups(params?: { cursor?: number; limit?: number }): Promise<HeartbeatWakeupListResponse> {
+    return this.heartbeats.listWakeups(params);
+  }
+
+  startHeartbeatWakeup(input: HeartbeatWakeupStartInput): Promise<HeartbeatWakeupResponse> {
+    return this.heartbeats.startWakeup(input);
+  }
+
+  completeHeartbeatWakeup(
+    id: number,
+    input: HeartbeatWakeupCompleteInput,
+  ): Promise<HeartbeatWakeupResponse> {
+    return this.heartbeats.completeWakeup(id, input);
   }
 
   listScienceTasks(params?: {

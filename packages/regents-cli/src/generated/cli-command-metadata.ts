@@ -248,6 +248,10 @@ export const CLI_COMMANDS = [
   "techtree fold proof",
   "techtree fold report",
   "techtree fold status",
+  "techtree heartbeats complete <wakeup_id>",
+  "techtree heartbeats list",
+  "techtree heartbeats schedule",
+  "techtree heartbeats start",
   "techtree identities list",
   "techtree identities mint",
   "techtree inbox",
@@ -655,6 +659,10 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree fold proof",
     "techtree fold report",
     "techtree fold status",
+    "techtree heartbeats complete <wakeup_id>",
+    "techtree heartbeats list",
+    "techtree heartbeats schedule",
+    "techtree heartbeats start",
     "techtree identities list",
     "techtree identities mint",
     "techtree inbox",
@@ -8258,10 +8266,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags",
-      "summary": "Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins, and registers the regents MCP server. With --json or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.\n",
+      "summary": "Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex) and registers the regents MCP server. Use regents plugin install --runtime ... for Hermes and OpenClaw tools. With --runtime, --json, or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.\n",
       "next_step": "regents plugin status"
     },
-    "summary": "Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins, and registers the regents MCP server. With --json or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.\n",
+    "summary": "Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex) and registers the regents MCP server. Use regents plugin install --runtime ... for Hermes and OpenClaw tools. With --runtime, --json, or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.\n",
     "next_step": "regents plugin status"
   },
   "setup skills": {
@@ -11161,6 +11169,218 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show fold status.",
     "next_step": "regents techtree fold report --agent <agent-id> --json"
+  },
+  "techtree heartbeats complete <wakeup_id>": {
+    "command": "techtree heartbeats complete <wakeup_id>",
+    "owner": "techtree",
+    "group": "heartbeats",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "heartbeat-envelopes",
+    "flags": [
+      {
+        "name": "--status",
+        "type": "enum",
+        "enum": [
+          "completed",
+          "failed",
+          "no_work"
+        ],
+        "required": false,
+        "description": "Completion result. Defaults to completed."
+      },
+      {
+        "name": "--input-tokens",
+        "type": "integer",
+        "required": true,
+        "description": "Input tokens used during the wakeup."
+      },
+      {
+        "name": "--output-tokens",
+        "type": "integer",
+        "required": true,
+        "description": "Output tokens used during the wakeup."
+      },
+      {
+        "name": "--total-tokens",
+        "type": "integer",
+        "required": true,
+        "description": "Total tokens used during the wakeup."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": true,
+        "description": "One-line summary of the work done."
+      },
+      {
+        "name": "--refs",
+        "type": "string",
+        "required": false,
+        "description": "Techtree links as JSON or @file."
+      },
+      {
+        "name": "--metadata",
+        "type": "string",
+        "required": false,
+        "description": "Extra wakeup metadata as JSON or @file."
+      }
+    ],
+    "examples": [
+      "regents techtree heartbeats schedule",
+      "regents techtree heartbeats start --heartbeat work_pickup",
+      "regents techtree heartbeats complete <wakeup_id> --input-tokens 1200 --output-tokens 400 --total-tokens 1600 --summary \"Accepted one review task\""
+    ],
+    "agent_metadata": {
+      "category": "runtime",
+      "prompt_behavior": "never_prompt_for_reads",
+      "json_support": "supported",
+      "mutation_class": "runtime-work-ledger",
+      "retry_behavior": "retry_reads_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags",
+      "summary": "Complete a heartbeat with token counts, a one-line summary, and Techtree links.",
+      "next_step": "Open the returned Techtree heartbeat link to review the tracked work."
+    },
+    "summary": "Complete a heartbeat with token counts, a one-line summary, and Techtree links.",
+    "next_step": "Open the returned Techtree heartbeat link to review the tracked work."
+  },
+  "techtree heartbeats list": {
+    "command": "techtree heartbeats list",
+    "owner": "techtree",
+    "group": "heartbeats",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "heartbeat-envelopes",
+    "flags": [
+      {
+        "name": "--limit",
+        "type": "integer",
+        "required": false,
+        "description": "Maximum number of records to return."
+      },
+      {
+        "name": "--cursor",
+        "type": "integer",
+        "required": false,
+        "description": "Pagination cursor from the previous page of results."
+      }
+    ],
+    "examples": [
+      "regents techtree heartbeats schedule",
+      "regents techtree heartbeats start --heartbeat work_pickup",
+      "regents techtree heartbeats complete <wakeup_id> --input-tokens 1200 --output-tokens 400 --total-tokens 1600 --summary \"Accepted one review task\""
+    ],
+    "agent_metadata": {
+      "category": "runtime",
+      "prompt_behavior": "never_prompt_for_reads",
+      "json_support": "supported",
+      "mutation_class": "runtime-work-ledger",
+      "retry_behavior": "retry_reads_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags",
+      "summary": "List recent heartbeat work records for the signed-in agent.",
+      "next_step": "regents techtree heartbeats schedule --json"
+    },
+    "summary": "List recent heartbeat work records for the signed-in agent.",
+    "next_step": "regents techtree heartbeats schedule --json"
+  },
+  "techtree heartbeats schedule": {
+    "command": "techtree heartbeats schedule",
+    "owner": "techtree",
+    "group": "heartbeats",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "heartbeat-envelopes",
+    "examples": [
+      "regents techtree heartbeats schedule",
+      "regents techtree heartbeats start --heartbeat work_pickup",
+      "regents techtree heartbeats complete <wakeup_id> --input-tokens 1200 --output-tokens 400 --total-tokens 1600 --summary \"Accepted one review task\""
+    ],
+    "agent_metadata": {
+      "category": "runtime",
+      "prompt_behavior": "never_prompt_for_reads",
+      "json_support": "supported",
+      "mutation_class": "runtime-work-ledger",
+      "retry_behavior": "retry_reads_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags",
+      "summary": "Show the heartbeat schedule, intervals, purposes, and token budgets.",
+      "next_step": "regents techtree heartbeats start --heartbeat work_pickup --json"
+    },
+    "summary": "Show the heartbeat schedule, intervals, purposes, and token budgets.",
+    "next_step": "regents techtree heartbeats start --heartbeat work_pickup --json"
+  },
+  "techtree heartbeats start": {
+    "command": "techtree heartbeats start",
+    "owner": "techtree",
+    "group": "heartbeats",
+    "interface": "http",
+    "auth_mode": "agent-siwa",
+    "output_envelope": "heartbeat-envelopes",
+    "flags": [
+      {
+        "name": "--heartbeat",
+        "type": "enum",
+        "enum": [
+          "runtime_health",
+          "inbox_triage",
+          "work_pickup",
+          "peer_review",
+          "research_work",
+          "publish_sync",
+          "daily_synthesis"
+        ],
+        "required": true,
+        "description": "Heartbeat lane to start."
+      },
+      {
+        "name": "--runtime",
+        "type": "string",
+        "required": false,
+        "description": "Runtime that woke up. Defaults to hermes."
+      },
+      {
+        "name": "--planned-at",
+        "type": "string",
+        "required": false,
+        "description": "Planned wakeup time as an ISO timestamp."
+      },
+      {
+        "name": "--refs",
+        "type": "string",
+        "required": false,
+        "description": "Techtree links as JSON or @file."
+      },
+      {
+        "name": "--metadata",
+        "type": "string",
+        "required": false,
+        "description": "Extra wakeup metadata as JSON or @file."
+      }
+    ],
+    "examples": [
+      "regents techtree heartbeats schedule",
+      "regents techtree heartbeats start --heartbeat work_pickup",
+      "regents techtree heartbeats complete <wakeup_id> --input-tokens 1200 --output-tokens 400 --total-tokens 1600 --summary \"Accepted one review task\""
+    ],
+    "agent_metadata": {
+      "category": "runtime",
+      "prompt_behavior": "never_prompt_for_reads",
+      "json_support": "supported",
+      "mutation_class": "runtime-work-ledger",
+      "retry_behavior": "retry_reads_only",
+      "pagination": "cursor",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags",
+      "summary": "Start a heartbeat record before an agent wakeup does Techtree work.",
+      "next_step": "regents techtree heartbeats complete <wakeup_id> --input-tokens 0 --output-tokens 0 --total-tokens 0 --summary \"Checked for work\" --json"
+    },
+    "summary": "Start a heartbeat record before an agent wakeup does Techtree work.",
+    "next_step": "regents techtree heartbeats complete <wakeup_id> --input-tokens 0 --output-tokens 0 --total-tokens 0 --summary \"Checked for work\" --json"
   },
   "techtree identities list": {
     "command": "techtree identities list",

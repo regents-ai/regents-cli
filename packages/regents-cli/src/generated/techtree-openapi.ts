@@ -692,6 +692,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/techtree/v1/heartbeats/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listHeartbeatSchedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/heartbeats/wakeups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getHeartbeatWakeup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/techtree/v1/tree/search": {
         parameters: {
             query?: never;
@@ -786,6 +818,54 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/agent/heartbeats/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listAgentHeartbeatSchedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/agent/heartbeats/wakeups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listAgentHeartbeatWakeups"];
+        put?: never;
+        post: operations["startHeartbeatWakeup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/techtree/v1/agent/heartbeats/wakeups/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["completeHeartbeatWakeup"];
         trace?: never;
     };
     "/api/techtree/v1/autoskill/skills/{slug}/versions": {
@@ -3028,6 +3108,73 @@ export interface components {
             pagination?: components["schemas"]["CursorPagination"];
         } & {
             [key: string]: unknown;
+        };
+        /** @enum {string} */
+        HeartbeatStatus: "started" | "completed" | "failed" | "no_work";
+        HeartbeatScheduleEntry: {
+            name: string;
+            interval_seconds: number;
+            purpose: string;
+            token_budget: number | null;
+        };
+        HeartbeatScheduleResponse: {
+            data: components["schemas"]["HeartbeatScheduleEntry"][];
+        };
+        HeartbeatWakeup: {
+            id: number;
+            agent_id: number;
+            agent_label: string | null;
+            heartbeat_name: string;
+            heartbeat: components["schemas"]["HeartbeatScheduleEntry"] | null;
+            runtime: string;
+            status: components["schemas"]["HeartbeatStatus"];
+            /** Format: date-time */
+            planned_at: string | null;
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            completed_at: string | null;
+            input_tokens: number | null;
+            output_tokens: number | null;
+            total_tokens: number | null;
+            summary: string | null;
+            techtree_refs: components["schemas"]["LooseObject"];
+            metadata: components["schemas"]["LooseObject"];
+            /** Format: uri */
+            public_url: string;
+            /** Format: date-time */
+            inserted_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        HeartbeatWakeupResponse: {
+            data: components["schemas"]["HeartbeatWakeup"];
+        };
+        HeartbeatWakeupListResponse: {
+            data: components["schemas"]["HeartbeatWakeup"][];
+            pagination: components["schemas"]["CursorPagination"];
+        };
+        HeartbeatWakeupStartInput: {
+            heartbeat_name: string;
+            /** @default hermes */
+            runtime: string;
+            /** Format: date-time */
+            planned_at?: string | null;
+            techtree_refs?: components["schemas"]["LooseObject"];
+            metadata?: components["schemas"]["LooseObject"];
+        };
+        HeartbeatWakeupCompleteInput: {
+            /**
+             * @default completed
+             * @enum {string}
+             */
+            status: "completed" | "failed" | "no_work";
+            input_tokens: number;
+            output_tokens: number;
+            total_tokens: number;
+            summary: string;
+            techtree_refs?: components["schemas"]["LooseObject"];
+            metadata?: components["schemas"]["LooseObject"];
         };
         PrivySessionCsrf: {
             /** @enum {boolean} */
@@ -6481,6 +6628,59 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
+    listHeartbeatSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public heartbeat schedule table */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatScheduleResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    getHeartbeatWakeup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public completed heartbeat wakeup record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatWakeupResponse"];
+                };
+            };
+            /** @description Wakeup not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
     searchTree: {
         parameters: {
             query: {
@@ -6665,6 +6865,130 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LooseObject"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listAgentHeartbeatSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Heartbeat schedule table for an authenticated agent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatScheduleResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listAgentHeartbeatWakeups: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authenticated agent heartbeat wakeups */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatWakeupListResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    startHeartbeatWakeup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HeartbeatWakeupStartInput"];
+            };
+        };
+        responses: {
+            /** @description Heartbeat wakeup started */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatWakeupResponse"];
+                };
+            };
+            /** @description Invalid wakeup start request */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    completeHeartbeatWakeup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HeartbeatWakeupCompleteInput"];
+            };
+        };
+        responses: {
+            /** @description Heartbeat wakeup completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatWakeupResponse"];
+                };
+            };
+            /** @description Wakeup not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Invalid wakeup completion request */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];

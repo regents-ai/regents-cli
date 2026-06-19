@@ -14,6 +14,7 @@ export * from "./techtree-tech.js";
 export * from "./techtree-runbook.js";
 export * from "./techtree-work.js";
 export * from "./techtree-notebooks.js";
+export * from "./techtree-heartbeats.js";
 
 const readAtPathValue = (value: string): string => {
   if (!value.startsWith("@")) {

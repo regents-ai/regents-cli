@@ -1528,6 +1528,71 @@ export interface TechtreeWorkResponse {
   data: TechtreeWorkItem;
 }
 
+export type HeartbeatStatus = "started" | "completed" | "failed" | "no_work";
+
+export interface HeartbeatScheduleEntry {
+  name: string;
+  interval_seconds: number;
+  purpose: string;
+  token_budget: number | null;
+}
+
+export interface HeartbeatWakeup {
+  id: number;
+  agent_id: number;
+  agent_label: string | null;
+  heartbeat_name: string;
+  heartbeat: HeartbeatScheduleEntry | null;
+  runtime: string;
+  status: HeartbeatStatus;
+  planned_at: string | null;
+  started_at: string;
+  completed_at: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  total_tokens: number | null;
+  summary: string | null;
+  techtree_refs: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  public_url: string;
+  inserted_at: string;
+  updated_at: string;
+}
+
+export interface HeartbeatScheduleResponse {
+  data: HeartbeatScheduleEntry[];
+}
+
+export interface HeartbeatWakeupResponse {
+  data: HeartbeatWakeup;
+}
+
+export interface HeartbeatWakeupListResponse {
+  data: HeartbeatWakeup[];
+  pagination?: {
+    limit: number;
+    next_cursor: number | null;
+  };
+}
+
+export interface HeartbeatWakeupStartInput {
+  heartbeat_name: string;
+  runtime?: string;
+  planned_at?: string;
+  techtree_refs?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface HeartbeatWakeupCompleteInput {
+  status?: "completed" | "failed" | "no_work";
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  summary: string;
+  techtree_refs?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
 export interface AgentInboxResponse {
   events: ActivityEvent[];
   next_cursor: number | null;

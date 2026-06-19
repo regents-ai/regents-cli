@@ -106,6 +106,11 @@ import type {
   FoldPolicyInput,
   FoldPolicyResponse,
   FoldStatusResponse,
+  HeartbeatScheduleResponse,
+  HeartbeatWakeupCompleteInput,
+  HeartbeatWakeupListResponse,
+  HeartbeatWakeupResponse,
+  HeartbeatWakeupStartInput,
   RunbookAnswerCreateInput,
   RunbookAnswerResponse,
   RunbookMarkSolvedInput,
@@ -266,6 +271,10 @@ export type RegentRpcMethod =
   | "techtree.work.next"
   | "techtree.work.accept"
   | "techtree.work.publish"
+  | "techtree.heartbeats.schedule"
+  | "techtree.heartbeats.list"
+  | "techtree.heartbeats.start"
+  | "techtree.heartbeats.complete"
   | "techtree.notebooks.init"
   | "techtree.notebooks.pair"
   | "techtree.notebooks.publish"
@@ -477,6 +486,10 @@ export interface RegentRpcParamsMap {
   "techtree.work.next": { kind?: TechtreeWorkKind } | undefined;
   "techtree.work.accept": { work_unit: string; workspace_path?: string };
   "techtree.work.publish": { workspace_path: string };
+  "techtree.heartbeats.schedule": undefined;
+  "techtree.heartbeats.list": { cursor?: number; limit?: number } | undefined;
+  "techtree.heartbeats.start": HeartbeatWakeupStartInput;
+  "techtree.heartbeats.complete": { wakeup_id: number } & HeartbeatWakeupCompleteInput;
   "techtree.notebooks.init": {
     workspace_path: string;
     kind: "paper" | "freeform";
@@ -713,6 +726,10 @@ export interface RegentRpcResultMap {
   "techtree.work.next": TechtreeWorkResponse;
   "techtree.work.accept": TechtreeWorkResponse | Record<string, unknown>;
   "techtree.work.publish": Record<string, unknown>;
+  "techtree.heartbeats.schedule": HeartbeatScheduleResponse;
+  "techtree.heartbeats.list": HeartbeatWakeupListResponse;
+  "techtree.heartbeats.start": HeartbeatWakeupResponse;
+  "techtree.heartbeats.complete": HeartbeatWakeupResponse;
   "techtree.notebooks.init": Record<string, unknown>;
   "techtree.notebooks.pair": Record<string, unknown>;
   "techtree.notebooks.publish": Record<string, unknown>;

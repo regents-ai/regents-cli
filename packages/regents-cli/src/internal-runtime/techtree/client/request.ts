@@ -7,7 +7,7 @@ import { parseTechtreeErrorResponse } from "../api-errors.js";
 import { resolveAuthenticatedAgentSigningContext } from "../auth.js";
 import { buildAuthenticatedFetchInit } from "../../siwa/request-builder.js";
 
-export type TechtreeRequestMethod = "GET" | "POST" | "PUT" | "DELETE";
+export type TechtreeRequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export type ExpectedDataType = "array" | "object" | "object-or-null";
 
 export const withQuery = (
