@@ -199,7 +199,11 @@ check_path() {
         return 0
     fi
 
-    npm_bin="$(npm bin -g 2>/dev/null || npm prefix -g 2>/dev/null)/bin"
+    npm_bin="$(npm bin -g 2>/dev/null || true)"
+    if [ -z "$npm_bin" ]; then
+        npm_prefix="$(npm prefix -g 2>/dev/null || true)"
+        npm_bin="${npm_prefix}/bin"
+    fi
     log_warn "The regents command is not on your PATH."
     log_info "Add the npm global bin directory to PATH, for example:"
     log_info "  export PATH=\"${npm_bin}:\$PATH\""

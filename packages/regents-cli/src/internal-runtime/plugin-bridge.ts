@@ -70,6 +70,9 @@ export const REGENT_PLUGIN_TOOL_NAMES = [
   "regent_agent_graph",
   "regent_work_next",
   "regent_work_accept",
+  "regent_heartbeat_schedule",
+  "regent_heartbeat_start",
+  "regent_heartbeat_complete",
   "regent_workspace_pair",
   "regent_benchmark_run",
   "regent_science_task_review_loop",
@@ -295,6 +298,9 @@ provides_tools:
   - regent_agent_graph
   - regent_work_next
   - regent_work_accept
+  - regent_heartbeat_schedule
+  - regent_heartbeat_start
+  - regent_heartbeat_complete
   - regent_workspace_pair
   - regent_benchmark_run
   - regent_science_task_review_loop
@@ -335,6 +341,9 @@ ALLOWED: Dict[str, List[str]] = {
     "regent_agent_graph": ["identity", "graph", "--json"],
     "regent_work_next": ["techtree", "work", "next", "--json"],
     "regent_work_accept": ["techtree", "work", "accept", "--json"],
+    "regent_heartbeat_schedule": ["techtree", "heartbeats", "schedule", "--json"],
+    "regent_heartbeat_start": ["techtree", "heartbeats", "start", "--json"],
+    "regent_heartbeat_complete": ["techtree", "heartbeats", "complete"],
     "regent_workspace_pair": ["techtree", "notebooks", "pair", "--json"],
     "regent_benchmark_run": ["techtree", "benchmarks", "run", "materialize", "--json"],
     "regent_science_task_review_loop": ["techtree", "science-tasks", "review-loop", "--json"],
@@ -427,6 +436,43 @@ def regent_work_accept(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
     argv.extend(["--work-unit", str(params["work_unit"])])
     if params.get("workspace_path"):
         argv.extend(["--workspace-path", str(params["workspace_path"])])
+    return _run(argv)
+
+
+def regent_heartbeat_schedule(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    return _run(ALLOWED["regent_heartbeat_schedule"])
+
+
+def _extend_json_arg(argv: List[str], flag: str, value: Any) -> None:
+    if value is not None:
+        argv.extend([flag, json.dumps(value)])
+
+
+def regent_heartbeat_start(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    params = params or {}
+    argv = list(ALLOWED["regent_heartbeat_start"])
+    argv.extend(["--heartbeat", str(params["heartbeat_name"])])
+    if params.get("runtime"):
+        argv.extend(["--runtime", str(params["runtime"])])
+    if params.get("planned_at"):
+        argv.extend(["--planned-at", str(params["planned_at"])])
+    _extend_json_arg(argv, "--refs", params.get("techtree_refs"))
+    _extend_json_arg(argv, "--metadata", params.get("metadata"))
+    return _run(argv)
+
+
+def regent_heartbeat_complete(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    params = params or {}
+    argv = [*ALLOWED["regent_heartbeat_complete"], str(params["wakeup_id"])]
+    if params.get("status"):
+        argv.extend(["--status", str(params["status"])])
+    argv.extend(["--input-tokens", str(params["input_tokens"])])
+    argv.extend(["--output-tokens", str(params["output_tokens"])])
+    argv.extend(["--total-tokens", str(params["total_tokens"])])
+    argv.extend(["--summary", str(params["summary"])])
+    _extend_json_arg(argv, "--refs", params.get("techtree_refs"))
+    _extend_json_arg(argv, "--metadata", params.get("metadata"))
+    argv.append("--json")
     return _run(argv)
 
 
@@ -526,6 +572,9 @@ const openclawPluginJson = (): string => `${JSON.stringify({
     "regent_agent_graph",
     "regent_work_next",
     "regent_work_accept",
+    "regent_heartbeat_schedule",
+    "regent_heartbeat_start",
+    "regent_heartbeat_complete",
     "regent_workspace_pair",
     "regent_benchmark_run",
     "regent_science_task_review_loop",
@@ -549,6 +598,9 @@ const openclawIndexJs = (): string => `export const tools = {
   regent_agent_graph: ["identity", "graph", "--json"],
   regent_work_next: ["techtree", "work", "next", "--json"],
   regent_work_accept: ["techtree", "work", "accept", "--json"],
+  regent_heartbeat_schedule: ["techtree", "heartbeats", "schedule", "--json"],
+  regent_heartbeat_start: ["techtree", "heartbeats", "start", "--json"],
+  regent_heartbeat_complete: ["techtree", "heartbeats", "complete"],
   regent_workspace_pair: ["techtree", "notebooks", "pair", "--json"],
   regent_benchmark_run: ["techtree", "benchmarks", "run", "materialize", "--json"],
   regent_science_task_review_loop: ["techtree", "science-tasks", "review-loop", "--json"],
@@ -568,7 +620,8 @@ const regentSkills = (): Array<{ name: string; body: string }> => [
     body: `# Regent Runtime
 
 Use Regent plugin tools. Do not run raw shell, raw regents, raw awal, raw curl, or raw npx.
-Start with regent_setup_status, then regent_runtime_start, then regent_work_next.
+Start with regent_setup_status, then regent_runtime_start, then regent_heartbeat_schedule, then regent_heartbeat_start.
+Complete every wakeup with regent_heartbeat_complete including token counts, a one-line summary, and Techtree links.
 `,
   },
   {
@@ -583,7 +636,8 @@ Do not claim a new certificate unless Techtree returns that evidence.
     name: "regent-techtree-work",
     body: `# Regent Techtree Work
 
-Use regent_work_next, regent_work_accept, regent_workspace_pair, regent_benchmark_run, regent_science_task_review_loop, and regent_notebook_publish.
+Use regent_heartbeat_start before work, then regent_work_next, regent_work_accept, regent_workspace_pair, regent_benchmark_run, regent_science_task_review_loop, and regent_notebook_publish.
+Use regent_heartbeat_complete after work with input_tokens, output_tokens, total_tokens, summary, and techtree_refs.
 Do not create work claims without a Regent receipt or Techtree evidence reference.
 `,
   },

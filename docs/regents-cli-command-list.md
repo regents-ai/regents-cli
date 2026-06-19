@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 349.
+Total commands: 353.
 
 ## Full Command List
 
@@ -263,7 +263,7 @@ Total commands: 349.
 
 ### Setup
 
-- `regents setup` - Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins, and registers the regents MCP server. With --json or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.
+- `regents setup` - Interactive setup wizard on a terminal: detects agent runtimes (Hermes, OpenClaw, Claude Code, Codex) and registers the regents MCP server. Use regents plugin install --runtime ... for Hermes and OpenClaw tools. With --runtime, --json, or no terminal it prints the read-only status report. --quick applies missing pieces without prompting.
 
 - `regents setup skills` - Install recommended Regent skills.
 
@@ -338,6 +338,10 @@ Total commands: 349.
 - `regents techtree fold proof` - Show fold proof.
 - `regents techtree fold report` - Create fold report.
 - `regents techtree fold status` - Show fold status.
+- `regents techtree heartbeats complete <wakeup_id>` - Complete a heartbeat with token counts, a one-line summary, and Techtree links.
+- `regents techtree heartbeats list` - List recent heartbeat work records for the signed-in agent.
+- `regents techtree heartbeats schedule` - Show the heartbeat schedule, intervals, purposes, and token budgets.
+- `regents techtree heartbeats start` - Start a heartbeat record before an agent wakeup does Techtree work.
 - `regents techtree identities list` - List identities.
 - `regents techtree identities mint` - Create identities.
 - `regents techtree inbox` - Show your Techtree inbox.

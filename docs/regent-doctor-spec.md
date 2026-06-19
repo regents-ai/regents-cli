@@ -53,7 +53,6 @@ regents doctor runtime
 regents doctor auth
 regents doctor techtree
 regents doctor transports
-regents xmtp doctor
 ```
 
 ### 3.3 Semantics
@@ -64,7 +63,6 @@ regents xmtp doctor
 - `regents doctor --fix` may apply safe local remediations.
 - `regents doctor --full` may perform a real authenticated write proof.
 - `regents doctor runtime|auth|techtree|transports` runs only the named scope.
-- `regents xmtp doctor` runs the XMTP checks.
 
 ## 4. Architecture placement
 
@@ -155,7 +153,7 @@ interface DoctorRunParams {
 }
 
 interface DoctorRunScopedParams extends DoctorRunParams {
-  scope: "runtime" | "auth" | "techtree" | "transports" | "xmtp" | "artifact" | "bbh";
+  scope: "runtime" | "auth" | "techtree" | "transports" | "artifact" | "bbh";
 }
 
 interface DoctorRunFullParams extends DoctorRunParams {
@@ -181,7 +179,7 @@ export type DoctorStatus = "ok" | "warn" | "fail" | "skip";
 
 export interface DoctorCheckResult {
   id: string;
-  scope: "runtime" | "auth" | "techtree" | "transports" | "xmtp" | "artifact" | "bbh";
+  scope: "runtime" | "auth" | "techtree" | "transports" | "artifact" | "bbh";
   status: DoctorStatus;
   title: string;
   message: string;
@@ -203,7 +201,7 @@ export interface DoctorSummary {
 export interface DoctorReport {
   ok: boolean;
   mode: "default" | "scoped" | "full";
-  scope?: "runtime" | "auth" | "techtree" | "transports" | "xmtp" | "artifact" | "bbh";
+  scope?: "runtime" | "auth" | "techtree" | "transports" | "artifact" | "bbh";
   summary: DoctorSummary;
   checks: DoctorCheckResult[];
   nextSteps: string[];
@@ -557,7 +555,6 @@ Extend parser:
 - `regents doctor auth`
 - `regents doctor techtree`
 - `regents doctor transports`
-- `regents xmtp doctor`
 - flags `--json`, `--verbose`, `--fix`, `--full`
 
 ## 13. Detailed method behavior

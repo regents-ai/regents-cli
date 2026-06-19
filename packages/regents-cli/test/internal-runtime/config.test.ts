@@ -24,6 +24,9 @@ describe("config loading", () => {
     expect(config.runtime.socketPath).toBe(path.join(tempDir, "run", "regent.sock"));
     expect(config.wallet.keystorePath).toBe(path.join(tempDir, "keys", "agent-wallet.json"));
     expect(config.gossipsub.peerIdPath).toBe(path.join(tempDir, "p2p", "peer-id.json"));
+    expect(config.services.platform.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(config.services.techtree.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(config.services.autolaunch.baseUrl).toBe("http://127.0.0.1:4000");
   });
 
   it("merges partial config with defaults and normalizes paths", () => {
@@ -102,7 +105,7 @@ describe("config loading", () => {
           requestTimeoutMs: 2_500,
         },
         autolaunch: {
-          baseUrl: "http://127.0.0.1:4010",
+          baseUrl: "http://127.0.0.1:4000",
           requestTimeoutMs: 2_500,
         },
         techtree: {
@@ -259,6 +262,23 @@ describe("config loading", () => {
           techtree: {
             requestTimeoutMs: 0,
           },
+        },
+      }),
+      "utf8",
+    );
+
+    expect(() => loadConfig(configPath)).toThrow(/config file failed validation/);
+  });
+
+  it("fails validation on unknown top-level config keys", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-config-unknown-key-"));
+    const configPath = path.join(tempDir, "config.json");
+
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({
+        xmtp: {
+          enabled: false,
         },
       }),
       "utf8",

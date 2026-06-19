@@ -83,7 +83,8 @@ describe("agent runtime detection and MCP registration", () => {
     const second = registerCodexMcp();
     expect(second.status).toBe("already_registered");
     // No duplicate block appended.
-    expect(config.split("[mcp_servers.regents]")).toHaveLength(2);
+    const updatedConfig = fs.readFileSync(codexConfigPath(), "utf8");
+    expect(updatedConfig.split("[mcp_servers.regents]")).toHaveLength(2);
   });
 
   it("registers with Claude Code via the claude CLI and respects existing registration", () => {

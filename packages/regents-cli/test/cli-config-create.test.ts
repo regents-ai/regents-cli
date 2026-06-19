@@ -51,6 +51,11 @@ describe("CLI config flows", () => {
 
     const writtenConfig = JSON.parse(fs.readFileSync(initPath, "utf8")) as {
       runtime: { socketPath: string; stateDir: string };
+      services: {
+        platform: { baseUrl: string };
+        techtree: { baseUrl: string };
+        autolaunch: { baseUrl: string };
+      };
       wallet: { keystorePath: string };
       gossipsub: { peerIdPath: string };
     };
@@ -62,6 +67,9 @@ describe("CLI config flows", () => {
     expect(writtenConfig.runtime.socketPath).toBe(path.join(harness.tempDir, "nested", "run", "regent.sock"));
     expect(writtenConfig.wallet.keystorePath).toBe(path.join(harness.tempDir, "nested", "keys", "agent-wallet.json"));
     expect(writtenConfig.gossipsub.peerIdPath).toBe(path.join(harness.tempDir, "nested", "p2p", "peer-id.json"));
+    expect(writtenConfig.services.platform.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(writtenConfig.services.techtree.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(writtenConfig.services.autolaunch.baseUrl).toBe("http://127.0.0.1:4000");
     expect(payload.directories.socket).toBe(path.dirname(writtenConfig.runtime.socketPath));
     expect(payload.directories.wallet).toBe(path.dirname(writtenConfig.wallet.keystorePath));
     expect(payload.directories.gossipsub).toBe(path.dirname(writtenConfig.gossipsub.peerIdPath));
@@ -178,7 +186,7 @@ describe("CLI config flows", () => {
           requestTimeoutMs: 10_000,
         },
         autolaunch: {
-          baseUrl: "http://127.0.0.1:4010",
+          baseUrl: "http://127.0.0.1:4000",
           requestTimeoutMs: 10_000,
         },
         techtree: {

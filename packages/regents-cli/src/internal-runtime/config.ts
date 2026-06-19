@@ -108,7 +108,7 @@ const configOverrideSchema = z.object({
     })
     .partial()
     .optional(),
-});
+}).strict();
 
 const normalizePath = (input: string, rootDir?: string): string => {
   const expanded = expandHome(input);
@@ -295,11 +295,11 @@ export function defaultConfig(configPath?: string): RegentConfig {
         requestTimeoutMs: 10_000,
       },
       autolaunch: {
-        baseUrl: "http://127.0.0.1:4010",
+        baseUrl: "http://127.0.0.1:4000",
         requestTimeoutMs: 10_000,
       },
       techtree: {
-        baseUrl: "http://127.0.0.1:4001",
+        baseUrl: "http://127.0.0.1:4000",
         requestTimeoutMs: 10_000,
       },
     },

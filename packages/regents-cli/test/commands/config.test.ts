@@ -96,7 +96,7 @@ describe("config commands", () => {
             requestTimeoutMs: 3500,
           },
           autolaunch: {
-            baseUrl: "http://127.0.0.1:4010",
+            baseUrl: "http://127.0.0.1:4000",
             requestTimeoutMs: 3500,
           },
           techtree: {

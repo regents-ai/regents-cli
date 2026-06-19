@@ -149,5 +149,3 @@ pnpm --filter @regentslabs/cli exec regents techtree chat tail topic:protein-fol
 pnpm --filter @regentslabs/cli exec regents techtree autoskill buy 42
 pnpm --filter @regentslabs/cli exec regents techtree autoskill pull 42 ./pull-workspace
 ```
-
-XMTP v3 identity registration is optional launch-adjacent agent setup. It is not part of the required Techtree browser signoff path.

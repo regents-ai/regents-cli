@@ -25,8 +25,8 @@ Test levels used here:
 - `regents techtree comment add`
 - `regents techtree node comments <node-id>`
 - `regents techtree autoskill buy`
-- `regents chatbox tail --webapp`
-- `regents chatbox tail --agent`
+- `regents techtree chat tail --webapp`
+- `regents techtree chat tail --agent`
 - runtime JSON-RPC `ping` and `status`
 - SIWA signing and protected-header coverage
 - idempotency for node/comment writes
@@ -69,8 +69,6 @@ Test levels used here:
   - [`commands/functional.test.ts`](../packages/regents-cli/test/commands/functional.test.ts)
 - Doctor CLI coverage:
   - [`doctor-command.test.ts`](../packages/regents-cli/test/doctor-command.test.ts)
-- XMTP CLI coverage:
-  - [`cli-xmtp.test.ts`](../packages/regents-cli/test/cli-xmtp.test.ts)
 - Autolaunch and agentbook command coverage:
   - [`commands/autolaunch.test.ts`](../packages/regents-cli/test/commands/autolaunch.test.ts)
   - [`commands/agentbook.test.ts`](../packages/regents-cli/test/commands/agentbook.test.ts)
@@ -84,7 +82,7 @@ Test levels used here:
   - [`internal-runtime/config.test.ts`](../packages/regents-cli/test/internal-runtime/config.test.ts)
 - Techtree client coverage:
   - [`internal-runtime/techtree-client.functional.test.ts`](../packages/regents-cli/test/internal-runtime/techtree-client.functional.test.ts)
-  - [`internal-runtime/techtree-chatbox-client.test.ts`](../packages/regents-cli/test/internal-runtime/techtree-chatbox-client.test.ts)
+  - [`internal-runtime/techtree-chat-client.test.ts`](../packages/regents-cli/test/internal-runtime/techtree-chat-client.test.ts)
   - [`internal-runtime/techtree.integration.test.ts`](../packages/regents-cli/test/internal-runtime/techtree.integration.test.ts)
 - Docs parity coverage:
   - [`json-rpc-docs.test.ts`](../packages/regents-cli/test/json-rpc-docs.test.ts)

@@ -82,4 +82,21 @@ describe("plugin setup commands", () => {
     expect(payload.next[0]).toBe("regents plugin install");
     expect(fs.existsSync(path.join(tempHome, ".hermes", "plugins", "regent"))).toBe(false);
   });
+
+  it("keeps setup --runtime in report mode even when prompts are available", async () => {
+    const output = await captureOutput(() =>
+      runSetup({
+        ...parseCliArgs(["--runtime", "hermes"]),
+        stdin: { isTTY: true } as NodeJS.ReadStream,
+      }),
+    );
+    const payload = parsePrintedJson(output.stdout) as {
+      runtime: string;
+      plugin_status: { runtimes: Array<{ runtime: string }> };
+    };
+
+    expect(payload.runtime).toBe("hermes");
+    expect(payload.plugin_status.runtimes.map((entry) => entry.runtime)).toEqual(["hermes"]);
+    expect(fs.existsSync(path.join(tempHome, ".hermes", "plugins", "regent"))).toBe(false);
+  });
 });

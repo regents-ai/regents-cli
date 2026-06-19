@@ -56,6 +56,10 @@ import {
   handleTechtreeFoldPolicyInit,
   handleTechtreeFoldProof,
   handleTechtreeFoldStatus,
+  handleTechtreeHeartbeatComplete,
+  handleTechtreeHeartbeatList,
+  handleTechtreeHeartbeatSchedule,
+  handleTechtreeHeartbeatStart,
   handleTechtreeRunbookAnswerAttachPaidSolution,
   handleTechtreeRunbookAnswerPost,
   handleTechtreeRunbookAnswerVote,
@@ -581,6 +585,17 @@ export class RegentKernel {
         return handleTechtreeWorkAccept(ctx, params as Parameters<typeof handleTechtreeWorkAccept>[1]);
       case "techtree.work.publish":
         return handleTechtreeWorkPublish(ctx, params as Parameters<typeof handleTechtreeWorkPublish>[1]);
+      case "techtree.heartbeats.schedule":
+        return handleTechtreeHeartbeatSchedule(ctx);
+      case "techtree.heartbeats.list":
+        return handleTechtreeHeartbeatList(ctx, params as Parameters<typeof handleTechtreeHeartbeatList>[1]);
+      case "techtree.heartbeats.start":
+        return handleTechtreeHeartbeatStart(ctx, params as Parameters<typeof handleTechtreeHeartbeatStart>[1]);
+      case "techtree.heartbeats.complete":
+        return handleTechtreeHeartbeatComplete(
+          ctx,
+          params as Parameters<typeof handleTechtreeHeartbeatComplete>[1],
+        );
       case "techtree.notebooks.init":
         return handleTechtreeNotebooksInit(params as Parameters<typeof handleTechtreeNotebooksInit>[0]);
       case "techtree.notebooks.pair":

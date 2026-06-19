@@ -37,14 +37,15 @@ const pluginInstalled = (runtime: RegentAgentRuntime): boolean =>
   pluginStatus(runtime).runtimes.every((entry) => entry.installed);
 
 export async function runSetup(args: ParsedCliArgs): Promise<number> {
-  const runtime = parseRuntime(getFlag(args, "runtime"));
+  const runtimeFlag = getFlag(args, "runtime");
+  const runtime = parseRuntime(runtimeFlag);
   const quick = getBooleanFlag(args, "quick");
   const wantsJson = getBooleanFlag(args, "json");
 
   // Agents and scripts keep the stable JSON status report; the wizard is the
   // interactive human path. `--quick` runs the wizard without prompts, so it
   // also works from non-interactive callers such as the install script.
-  if (wantsJson || (!quick && !promptInputAllowed(args))) {
+  if (runtimeFlag !== undefined || wantsJson || (!quick && !promptInputAllowed(args))) {
     printJson({
       ok: true,
       runtime,

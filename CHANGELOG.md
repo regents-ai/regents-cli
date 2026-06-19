@@ -8,7 +8,7 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 
 - Bare `regents` now prints a short readiness summary (local runtime, wallet, identity, saved sign-ins, and Fold state when active) and points to `regents --help`.
 - `regents init` is now a guided, re-runnable setup: it writes the local config, installs the missing Hermes/OpenClaw Regent tools, starts local Regent access in the background, runs the runtime doctor checks, and prints the remaining wallet and identity steps. Re-running it when everything is set up reports ready.
-- `regents doctor --fix` is now part of the shared CLI contract. It applies only safe local repairs: create the default config, create missing runtime folders, remove a validated stale runtime socket, and create the default XMTP policy file.
+- `regents doctor --fix` is now part of the shared CLI contract. It applies only safe local repairs: create the default config, create missing runtime folders, and remove a validated stale runtime socket.
 - Failed commands now print `Next: <step>` from the command's contract next_step metadata through the shared error path.
 - `regents identity graph` now shows the saved agent identity, product-owned links when available, and chain-owner checks for the identity token.
 - Added bundled Regents agent skills for Regents, Platform, Autolaunch, and Techtree.
@@ -47,7 +47,7 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 
 ### Changed
 
-- Hard-cut read-style commands to conventional names, including `config get`, `agent profile get`, `runtime get`, `work get`, `regent-staking get`, `xmtp policy get`, and Autolaunch `get` commands.
+- Hard-cut read-style commands to conventional names, including `config get`, `agent profile get`, `runtime get`, `work get`, `regent-staking get`, and Autolaunch `get` commands.
 - Expanded generated CLI command metadata so contracts, help, route checks, command docs, and `agent-context` use the same command source.
 - Updated Techtree defaults and tests for Base mainnet-oriented publishing and identity flows.
 - Updated Autolaunch subject and holdings commands around canonical prepared wallet actions.
@@ -76,18 +76,16 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 - Added reporting commands for bug and security reports from the CLI.
 - Added structured product request logging, transport doctor checks, route contract coverage, and packed-install release checks.
 - Added generated CLI command metadata from the YAML contracts so shipped commands, help, and release checks use the same command list.
-- XMTP group management now covers the full operator path from the CLI. Agents and humans can view group members, view current group rules, change group rules, view admins and super admins, add or remove admins and super admins, and remove group members.
 
 ### Changed
 
-- Split large command and runtime areas into focused modules: command routing, Autolaunch commands, Techtree runtime handlers, Techtree clients, XMTP runtime helpers, doctor checks, and terminal presenters.
+- Split large command and runtime areas into focused modules: command routing, Autolaunch commands, Techtree runtime handlers, Techtree clients, doctor checks, and terminal presenters.
 - Moved CLI configuration to explicit service base URLs for SIWA, Platform, Autolaunch, and Techtree.
 - Replaced duplicated product request helpers with a shared product HTTP client and a shared Base contract client.
 - Refreshed generated OpenAPI bindings for Platform, Autolaunch, Techtree, and shared Regent services.
 - Aligned shared SIWA signing and audience handling across auth, doctor, Techtree, Autolaunch, Platform, Regent staking, Agentbook, and reports.
 - Improved human terminal output for status, doctor, Techtree, Autolaunch, Regent staking, Agentbook, and work-runtime flows while preserving JSON output for scripts.
 - Made command tests run serially with realistic timeouts because the CLI suite uses global mocks, local sockets, and local HTTP servers.
-- XMTP group commands now reject bad inputs before trying the action. Unsupported rule names, unsupported policy names, and metadata values passed to the wrong rule now fail immediately with clearer feedback.
 
 ### Fixed
 
@@ -95,7 +93,7 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 - Fixed route and command metadata checks so exact shipped command names must match the route table.
 - Fixed product service URL selection so Platform, Autolaunch, Techtree, and shared Regent service calls use their configured owners.
 - Fixed chatbox stream failures so failed streams surface as failures instead of being hidden.
-- Made runtime state, XMTP state, and local secure writes safer under repeated command runs.
+- Made runtime state and local secure writes safer under repeated command runs.
 - Removed stale JavaScript doctor files and other old-shape handling that no longer matches the current contracts.
 
 ### Removed

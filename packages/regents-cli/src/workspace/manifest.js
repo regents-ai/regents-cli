@@ -112,18 +112,26 @@ export const allContractEntries = (manifest, cliRoot) => [
 ].sort((left, right) => `${left.owner}:${left.kind}:${left.id}`.localeCompare(`${right.owner}:${right.kind}:${right.id}`));
 
 export const cliCommandOpenApiFiles = (manifest, cliRoot) =>
-  Object.fromEntries(
-    contractEntries(manifest, cliRoot, "api")
-      .filter((contract) => contract.includeInCliCommandCheck)
-      .map((contract) => [contract.owner, contract.resolvedPath]),
-  );
+  cliCommandCheckFiles(manifest, cliRoot, "api");
 
 export const cliCommandContractFiles = (manifest, cliRoot) =>
-  Object.fromEntries(
-    contractEntries(manifest, cliRoot, "cli")
-      .filter((contract) => contract.includeInCliCommandCheck)
-      .map((contract) => [contract.owner, contract.resolvedPath]),
-  );
+  cliCommandCheckFiles(manifest, cliRoot, "cli");
+
+const cliCommandCheckFiles = (manifest, cliRoot, kind) => {
+  const files = {};
+
+  for (const contract of contractEntries(manifest, cliRoot, kind).filter((entry) => entry.includeInCliCommandCheck)) {
+    if (Object.prototype.hasOwnProperty.call(files, contract.owner)) {
+      throw new Error(
+        `Regent workspace manifest has multiple ${kind} contracts marked for CLI command checks for owner ${contract.owner}.`,
+      );
+    }
+
+    files[contract.owner] = contract.resolvedPath;
+  }
+
+  return files;
+};
 
 export const openApiGenerationTargets = (manifest, cliRoot) =>
   contractEntries(manifest, cliRoot, "api").flatMap((contract) =>
