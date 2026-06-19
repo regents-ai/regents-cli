@@ -136,17 +136,6 @@ const summaryOverrides = new Map([
   ["techtree unwatch <id>", "Stop watching a Techtree node."],
   ["techtree watch <id>", "Watch a Techtree node."],
   ["techtree watch tail", "Watch updates from followed Techtree nodes."],
-  ["xmtp dm send", "Send an XMTP direct message."],
-  ["xmtp dm list", "List XMTP direct message conversations."],
-  ["xmtp inbox sync", "Sync local XMTP conversations."],
-  ["xmtp doctor", "Check XMTP readiness."],
-  ["xmtp init", "Set up local XMTP identity."],
-  ["xmtp resolve", "Resolve an XMTP identity."],
-  ["xmtp revoke-other-installations", "Revoke other XMTP installations."],
-  ["xmtp rotate-db-key", "Rotate the XMTP database key."],
-  ["xmtp rotate-wallet", "Rotate the XMTP wallet."],
-  ["xmtp status", "Show XMTP readiness."],
-  ["xmtp test dm", "Send a test XMTP direct message."],
 ]);
 
 const resourceLabel = (group, resourceParts) => {

@@ -99,7 +99,7 @@ vi.mock("@safe-global/protocol-kit", () => ({
 }));
 
 describe("autolaunch CLI command group", () => {
-  const expectedBaseUrl = "http://127.0.0.1:4010";
+  const expectedBaseUrl = "http://127.0.0.1:4000";
   // Only mutate individual keys on process.env: replacing the whole object
   // detaches it from the real environment, and os.homedir() would keep
   // returning the real home directory instead of the per-test temp HOME.

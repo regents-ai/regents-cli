@@ -326,10 +326,11 @@ command_groups:
           input_mode: flags
           summary: >
             Interactive setup wizard on a terminal: detects agent runtimes
-            (Hermes, OpenClaw, Claude Code, Codex), installs Regent plugins,
-            and registers the regents MCP server. With --json or no terminal it
-            prints the read-only status report. --quick applies missing pieces
-            without prompting.
+            (Hermes, OpenClaw, Claude Code, Codex) and registers the regents MCP
+            server. Use regents plugin install --runtime ... for Hermes and
+            OpenClaw tools. With --runtime, --json, or no terminal it prints the
+            read-only status report. --quick applies missing pieces without
+            prompting.
           next_step: regents plugin status
           examples:
             - regents setup

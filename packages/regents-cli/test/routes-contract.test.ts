@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { CLI_COMMANDS } from "../src/command-registry.js";
+import { parseCliArgs } from "../src/parse.js";
 import { cliRoutes } from "../src/routes/index.js";
-import { routeMatches, type CliRoute } from "../src/routes/shared.js";
+import { dispatchRoute, route, routeMatches, type CliRoute } from "../src/routes/shared.js";
 
 const withoutPlaceholders = (command: string): string =>
   command
@@ -111,5 +112,22 @@ describe("contract command route matching", () => {
     expect(techtreeWatchRoute).toBeDefined();
     expect(routeMatches(autolaunchAgentRoute!, ["autolaunch", "agent", "readiness"])).toBe(false);
     expect(routeMatches(techtreeWatchRoute!, ["techtree", "watch", "tail"])).toBe(false);
+  });
+
+  it("dispatches to the most specific matching command", async () => {
+    const parsedArgs = parseCliArgs(["doctor", "contracts"]);
+    const routes = [
+      route("doctor", async () => 1, { variadicTail: true }),
+      route("doctor contracts", async () => 2),
+    ];
+
+    await expect(
+      dispatchRoute(routes, {
+        rawArgs: ["doctor", "contracts"],
+        parsedArgs,
+        configPath: undefined,
+        positionals: parsedArgs.positionals,
+      }),
+    ).resolves.toBe(2);
   });
 });

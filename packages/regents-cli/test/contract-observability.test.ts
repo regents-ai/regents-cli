@@ -22,6 +22,10 @@ const writeManifest = (body: string): string => {
   return manifestPath;
 };
 
+const tempConfigPath = (): string => {
+  return path.join(fs.mkdtempSync(path.join(os.tmpdir(), "regent-config-")), "regent.config.json");
+};
+
 describe("contract observability", () => {
   it("reports loaded contracts, generated files, command coverage, and base URLs from the workspace manifest", () => {
     const manifestPath = writeManifest(`
@@ -66,7 +70,7 @@ incident_classes:
     recovery_command: regents regent-staking get
     requires_reconciliation_job: true
 `);
-    const report = buildContractDoctorReport(undefined, { manifestPath });
+    const report = buildContractDoctorReport(tempConfigPath(), { manifestPath });
 
     expect(report.command).toBe("regents doctor contracts");
     expect(report.manifestPath).toBe(manifestPath);
@@ -152,7 +156,7 @@ schemas:
   it("reports a clear failure when the workspace manifest is missing", () => {
     const manifestPath = path.join(os.tmpdir(), "regent-missing-workspace.yaml");
 
-    expect(() => buildContractDoctorReport(undefined, { manifestPath })).toThrow(
+    expect(() => buildContractDoctorReport(tempConfigPath(), { manifestPath })).toThrow(
       `Regent workspace manifest is missing: ${manifestPath}`,
     );
   });

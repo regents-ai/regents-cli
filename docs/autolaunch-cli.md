@@ -62,7 +62,7 @@ The CLI pairs with the current Autolaunch site:
 ## Environment
 
 - `AUTOLAUNCH_BASE_URL`
-  Default: `http://127.0.0.1:4010`
+  Default: `http://127.0.0.1:4000`
 - `AUTOLAUNCH_WALLET_ADDRESS`
   Optional website wallet address used by Safe setup commands.
 

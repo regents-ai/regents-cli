@@ -135,7 +135,9 @@ export const dispatchRoute = async (
   routes: readonly CliRoute[],
   context: CliRouteContext,
 ): Promise<number | undefined> => {
-  const matchedRoute = routes.find((candidate) => routeMatches(candidate, context.positionals));
+  const matchedRoute = routes
+    .filter((candidate) => routeMatches(candidate, context.positionals))
+    .sort((left, right) => right.pattern.length - left.pattern.length)[0];
   return matchedRoute ? matchedRoute.handler(context) : undefined;
 };
 
