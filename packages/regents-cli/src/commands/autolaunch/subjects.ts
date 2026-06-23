@@ -1,11 +1,19 @@
 import {
+  parseRequiredNonNegativeIntegerFlag,
+  putOptionalIntegerFlag,
+  putOptionalStringFlag,
+} from "../../command-input.js";
+import {
   getBooleanFlag,
   getFlag,
-  parseIntegerFlag,
   requireArg,
   type ParsedCliArgs,
 } from "../../parse.js";
 import { printJson } from "../../printer.js";
+import {
+  preparedWalletActionFromEnvelope,
+  printWalletActionEnvelope,
+} from "../../terminal/wallet-action.js";
 import { stakeBody, stakeReceiverFlag } from "../stake-receiver.js";
 import {
   type JsonObject,
@@ -15,121 +23,21 @@ import {
   txRequestFromWalletAction,
 } from "./shared.js";
 
-const preparedActionFromEnvelope = (envelope: JsonObject): JsonObject => {
-  const preparedAction = envelope.prepared;
-  if (!preparedAction || typeof preparedAction !== "object" || Array.isArray(preparedAction)) {
-    throw new Error("This Autolaunch action did not include a transaction to submit.");
-  }
+type SubmitFollowup =
+  | { kind: "confirm"; path: string }
+  | { kind: "same-path"; path: string; body: Record<string, unknown> }
+  | { kind: "local-receipt" };
 
-  return preparedAction;
-};
+const autolaunchPreparedAction = (envelope: JsonObject): JsonObject =>
+  preparedWalletActionFromEnvelope(
+    envelope,
+    "This Autolaunch action did not include a transaction to submit.",
+  ) as JsonObject;
 
-const prepareOrSubmitWrite = async (
-  method: "POST",
-  path: string,
-  body: Record<string, unknown>,
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> => {
-  const prepared = await requestJson(method, path, {
-    body,
-    requireAgentAuth: true,
-    configPath,
-  });
-
-  if (!getBooleanFlag(args, "submit")) {
-    printJson(prepared);
-    return;
-  }
-
-  const preparedAction = preparedActionFromEnvelope(prepared);
-  const txRequest = txRequestFromWalletAction(preparedAction.wallet_action);
-
-  if (!txRequest) {
-    throw new Error("This Autolaunch action did not include a transaction to submit.");
-  }
-
-  const txHash = await submitPreparedTxRequest(txRequest, configPath);
-  printJson(
-    await requestJson(method, path, {
-      body: { ...body, tx_hash: txHash },
-      requireAgentAuth: true,
-      configPath,
-    }),
-  );
-};
-
-const prepareOrSubmitTransactionOnly = async (
-  method: "POST",
-  path: string,
-  body: Record<string, unknown>,
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> => {
-  const prepared = await requestJson(method, path, {
-    body,
-    requireAgentAuth: true,
-    configPath,
-  });
-
-  if (!getBooleanFlag(args, "submit")) {
-    printJson(prepared);
-    return;
-  }
-
-  const preparedAction = preparedActionFromEnvelope(prepared);
-  const txRequest = txRequestFromWalletAction(preparedAction.wallet_action);
-
-  if (!txRequest) {
-    throw new Error("This Autolaunch action did not include a transaction to submit.");
-  }
-
-  const txHash = await submitPreparedTxRequest(txRequest, configPath);
-  printJson({ ok: true, tx_hash: txHash, prepared: preparedAction });
-};
-
-const parseNonNegativeIntegerFlag = (
-  args: ParsedCliArgs,
-  name: string,
-): number => {
-  const value = requireArg(getFlag(args, name), name);
-  const parsed = Number(value);
-
-  if (!Number.isInteger(parsed) || parsed < 0 || String(parsed) !== value) {
-    throw new Error(`invalid integer for --${name}`);
-  }
-
-  return parsed;
-};
-
-const putOptionalStringFlag = (
-  body: Record<string, unknown>,
-  key: string,
-  args: ParsedCliArgs,
-  flagName: string,
-): void => {
-  const value = getFlag(args, flagName);
-  if (value !== undefined) {
-    body[key] = value;
-  }
-};
-
-const putOptionalIntegerFlag = (
-  body: Record<string, unknown>,
-  key: string,
-  args: ParsedCliArgs,
-  flagName: string,
-): void => {
-  const value = parseIntegerFlag(args, flagName);
-  if (value !== undefined) {
-    body[key] = value;
-  }
-};
-
-const prepareOrSubmitSubjectCreation = async (
+const prepareOrSubmitWalletAction = async (
   preparePath: string,
-  confirmPath: string,
   body: Record<string, unknown>,
+  followup: SubmitFollowup,
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> => {
@@ -140,11 +48,15 @@ const prepareOrSubmitSubjectCreation = async (
   });
 
   if (!getBooleanFlag(args, "submit")) {
-    printJson(prepared);
+    printWalletActionEnvelope(args, prepared, {
+      title: "AUTOLAUNCH WALLET ACTION",
+      submitHint: "Run the same command with --submit when ready.",
+      missingMessage: "This Autolaunch action did not include a transaction to submit.",
+    });
     return;
   }
 
-  const preparedAction = preparedActionFromEnvelope(prepared);
+  const preparedAction = autolaunchPreparedAction(prepared);
   const txRequest = txRequestFromWalletAction(preparedAction.wallet_action);
 
   if (!txRequest) {
@@ -152,9 +64,17 @@ const prepareOrSubmitSubjectCreation = async (
   }
 
   const txHash = await submitPreparedTxRequest(txRequest, configPath);
+
+  if (followup.kind === "local-receipt") {
+    printJson({ ok: true, tx_hash: txHash, prepared: preparedAction });
+    return;
+  }
+
   printJson(
-    await requestJson("POST", confirmPath, {
-      body: { tx_hash: txHash },
+    await requestJson("POST", followup.path, {
+      body: followup.kind === "same-path"
+        ? { ...followup.body, tx_hash: txHash }
+        : { tx_hash: txHash },
       requireAgentAuth: true,
       configPath,
     }),
@@ -168,16 +88,16 @@ export async function runAutolaunchSubjectCreateExistingToken(
   const body: Record<string, unknown> = {
     stake_token: requireArg(getFlag(args, "stake-token"), "stake-token"),
     treasury: requireArg(getFlag(args, "treasury"), "treasury"),
-    staker_pool_bps: parseNonNegativeIntegerFlag(args, "staker-pool-bps"),
+    staker_pool_bps: parseRequiredNonNegativeIntegerFlag(args, "staker-pool-bps"),
     label: requireArg(getFlag(args, "label"), "label"),
   };
 
   putOptionalStringFlag(body, "salt", args, "salt");
 
-  await prepareOrSubmitSubjectCreation(
+  await prepareOrSubmitWalletAction(
     "/api/autolaunch/v1/agent/subjects/existing-token/prepare",
-    "/api/autolaunch/v1/agent/subjects/existing-token/confirm",
     body,
+    { kind: "confirm", path: "/api/autolaunch/v1/agent/subjects/existing-token/confirm" },
     args,
     configPath,
   );
@@ -201,10 +121,10 @@ export async function runAutolaunchSubjectCreateDeferredAutolaunch(
   putOptionalStringFlag(body, "identity_registry", args, "identity-registry");
   putOptionalIntegerFlag(body, "identity_agent_id", args, "identity-agent-id");
 
-  await prepareOrSubmitSubjectCreation(
+  await prepareOrSubmitWalletAction(
     "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/prepare",
-    "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/confirm",
     body,
+    { kind: "confirm", path: "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/confirm" },
     args,
     configPath,
   );
@@ -272,11 +192,16 @@ export async function runAutolaunchSubjectStake(
   const subjectId = requirePositional(args, 3, "subject-id");
   const amount = requireArg(getFlag(args, "amount"), "amount");
   const receiver = stakeReceiverFlag(args);
+  const body = stakeBody(amount, receiver);
 
-  await prepareOrSubmitWrite(
-    "POST",
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/stake`,
-    stakeBody(amount, receiver),
+    body,
+    {
+      kind: "same-path",
+      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/stake`,
+      body,
+    },
     args,
     configPath,
   );
@@ -287,10 +212,15 @@ export async function runAutolaunchSubjectUnstake(
   configPath?: string,
 ): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
-  await prepareOrSubmitWrite(
-    "POST",
+  const body = { amount: requireArg(getFlag(args, "amount"), "amount") };
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/unstake`,
-    { amount: requireArg(getFlag(args, "amount"), "amount") },
+    body,
+    {
+      kind: "same-path",
+      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/unstake`,
+      body,
+    },
     args,
     configPath,
   );
@@ -301,10 +231,14 @@ export async function runAutolaunchSubjectClaimUsdc(
   configPath?: string,
 ): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
-  await prepareOrSubmitWrite(
-    "POST",
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
     {},
+    {
+      kind: "same-path",
+      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
+      body: {},
+    },
     args,
     configPath,
   );
@@ -330,12 +264,18 @@ export async function runAutolaunchSubjectSettleBuyback(
 ): Promise<void> {
   const subjectId = requirePositional(args, 3, "subject-id");
 
-  await prepareOrSubmitWrite(
-    "POST",
+  const body = {
+    amount_usdc: requireArg(getFlag(args, "amount-usdc"), "amount-usdc"),
+    min_regent_out: requireArg(getFlag(args, "min-regent-out"), "min-regent-out"),
+  };
+
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks/settle`,
+    body,
     {
-      amount_usdc: requireArg(getFlag(args, "amount-usdc"), "amount-usdc"),
-      min_regent_out: requireArg(getFlag(args, "min-regent-out"), "min-regent-out"),
+      kind: "same-path",
+      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks/settle`,
+      body,
     },
     args,
     configPath,
@@ -367,10 +307,10 @@ export async function runAutolaunchPaymentLinkCreate(
   };
   putOptionalStringFlag(body, "salt", args, "salt");
 
-  await prepareOrSubmitTransactionOnly(
-    "POST",
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
     body,
+    { kind: "local-receipt" },
     args,
     configPath,
   );
@@ -383,10 +323,10 @@ export async function runAutolaunchPaymentLinkSetCanonical(
   const subjectId = requireArg(getFlag(args, "subject"), "subject");
   const address = requireArg(getFlag(args, "address"), "address");
 
-  await prepareOrSubmitTransactionOnly(
-    "POST",
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/canonical`,
     { canonical: requireArg(getFlag(args, "canonical"), "canonical") },
+    { kind: "local-receipt" },
     args,
     configPath,
   );
@@ -403,10 +343,10 @@ export async function runAutolaunchPaymentLinkSetState(
   };
   putOptionalStringFlag(body, "replacement", args, "replacement");
 
-  await prepareOrSubmitTransactionOnly(
-    "POST",
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/state`,
     body,
+    { kind: "local-receipt" },
     args,
     configPath,
   );
@@ -433,10 +373,14 @@ export async function runAutolaunchSubjectSweepIngress(
   const subjectId = requirePositional(args, 3, "subject-id");
   const address = requireArg(getFlag(args, "address"), "address");
 
-  await prepareOrSubmitWrite(
-    "POST",
+  await prepareOrSubmitWalletAction(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
     {},
+    {
+      kind: "same-path",
+      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
+      body: {},
+    },
     args,
     configPath,
   );

@@ -8,6 +8,9 @@ import { runCliEntrypoint } from "../../src/index.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
+const isPlatformContractUrl = (input: unknown): boolean =>
+  String(input).endsWith("/api-contract.openapiv3.yaml");
+
 const { buildAgentAuthHeadersMock } = vi.hoisted(() => ({
   buildAgentAuthHeadersMock: vi.fn(),
 }));
@@ -59,6 +62,36 @@ describe("ENS CLI command group", () => {
   const savedEnv: Partial<Record<(typeof touchedEnvKeys)[number], string | undefined>> = {};
   let tempDir = "";
   let configPath = "";
+
+  const platformContractResponse = (): Response =>
+    new Response("openapi: 3.1.0\ninfo:\n  version: 0.1.0\n", {
+      status: 200,
+      headers: {
+        "content-type": "application/yaml",
+        "x-regents-contract-major": "0",
+        "x-regents-contract-version": "0.1.0",
+        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+      },
+    });
+
+  const mockPlatformResponses = (...responses: Response[]): void => {
+    const pending = [...responses];
+
+    fetchMock.mockImplementation(async (input) => {
+      if (isPlatformContractUrl(input)) {
+        return platformContractResponse();
+      }
+
+      const response = pending.shift();
+      if (!response) {
+        throw new Error(`Unexpected fetch: ${String(input)}`);
+      }
+
+      return response;
+    });
+  };
+
+  const productFetchCalls = () => fetchMock.mock.calls.filter(([input]) => !isPlatformContractUrl(input));
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -174,7 +207,7 @@ describe("ENS CLI command group", () => {
     );
 
   it("prints the prepared mainnet reverse-name transaction by default", async () => {
-    fetchMock.mockResolvedValue(preparedEnsResponse());
+    mockPlatformResponses(preparedEnsResponse());
 
     const output = await captureOutput(async () =>
       runCliEntrypoint([
@@ -198,7 +231,7 @@ describe("ENS CLI command group", () => {
   });
 
   it("requests the prepared mainnet reverse-name transaction and submits only with --submit", async () => {
-    fetchMock.mockResolvedValue(preparedEnsResponse());
+    mockPlatformResponses(preparedEnsResponse());
 
     const output = await captureOutput(async () =>
       runCliEntrypoint([
@@ -228,7 +261,7 @@ describe("ENS CLI command group", () => {
       }),
     );
 
-    const [, requestInit] = fetchMock.mock.calls[0]!;
+    const [, requestInit] = productFetchCalls()[0]!;
     expect(JSON.parse(String(requestInit?.body))).toEqual({ ens_name: "tempo.regent.eth" });
 
     expect(callMock).toHaveBeenCalledWith(
@@ -264,7 +297,7 @@ describe("ENS CLI command group", () => {
   });
 
   it("does not submit expired prepared ENS wallet actions", async () => {
-    fetchMock.mockResolvedValue(preparedEnsResponse("2020-01-01T00:00:00.000Z"));
+    mockPlatformResponses(preparedEnsResponse("2020-01-01T00:00:00.000Z"));
 
     const output = await captureOutput(async () =>
       runCliEntrypoint([

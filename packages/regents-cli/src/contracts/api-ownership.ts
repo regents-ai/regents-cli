@@ -517,7 +517,6 @@ export const autolaunchApiCommandGroups = [
       "autolaunch prelaunch get",
       "autolaunch prelaunch validate",
       "autolaunch prelaunch publish",
-      "autolaunch launch preview",
     ],
     owner: "autolaunch",
     status: "current-local-and-api",
@@ -543,7 +542,6 @@ export const autolaunchApiCommandGroups = [
   defineAutolaunchGroup({
     commands: [
       "autolaunch launch run",
-      "autolaunch launch state",
       "autolaunch launch monitor",
       "autolaunch launch finalize",
       "autolaunch jobs watch",

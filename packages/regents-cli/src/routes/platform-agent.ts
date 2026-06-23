@@ -6,9 +6,13 @@ import {
 } from "../commands/platform/agent-link.js";
 import type { CliHandlerRegistry } from "./shared.js";
 
-export const agentPlatformHandlers: CliHandlerRegistry = {
-  "agent connect hermes": { run: ({ parsedArgs, configPath }) => runAgentConnectHermes(parsedArgs, configPath) },
-  "agent connect openclaw": { run: ({ parsedArgs, configPath }) => runAgentConnectOpenClaw(parsedArgs, configPath) },
+export const platformAgentHandlers: CliHandlerRegistry = {
+  "agent connect hermes": {
+    run: ({ parsedArgs, configPath }) => runAgentConnectHermes(parsedArgs, configPath),
+  },
+  "agent connect openclaw": {
+    run: ({ parsedArgs, configPath }) => runAgentConnectOpenClaw(parsedArgs, configPath),
+  },
   "agent link": { run: ({ parsedArgs }) => runAgentLink(parsedArgs) },
   "agent execution-pool": { run: ({ parsedArgs }) => runAgentExecutionPool(parsedArgs) },
 };

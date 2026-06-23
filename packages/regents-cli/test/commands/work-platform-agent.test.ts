@@ -34,6 +34,7 @@ const useHumanTerminal = (): void => {
 
 const stripAnsi = (value: string): string => value.replace(/\x1b\[[0-9;]*m/g, "");
 const collapsePanelText = (value: string): string => value.replace(/[│╭╮╰╯─]/gu, " ").replace(/\s+/g, " ").trim();
+const PLATFORM_CONTRACT_URL = "http://127.0.0.1:4010/api-contract.openapiv3.yaml";
 
 const workItem = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 123,
@@ -112,7 +113,7 @@ const relationship = (overrides: Record<string, unknown> = {}): Record<string, u
   ...overrides,
 });
 
-describe("work and agent platform commands", () => {
+describe("work and platform agent commands", () => {
   // Only mutate individual keys on process.env: replacing the whole object
   // detaches it from the real environment, and os.homedir() would keep
   // returning the real home directory instead of the per-test temp HOME.
@@ -122,6 +123,37 @@ describe("work and agent platform commands", () => {
   let homeDir = "";
   let sessionFile = "";
   let configPath = "";
+
+  const platformContractResponse = (): Response =>
+    new Response("openapi: 3.1.0\ninfo:\n  version: 0.1.0\n", {
+      status: 200,
+      headers: {
+        "content-type": "application/yaml",
+        "x-regents-contract-major": "0",
+        "x-regents-contract-version": "0.1.0",
+        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+      },
+    });
+
+  const mockPlatformResponses = (...responses: Response[]): void => {
+    const pending = [...responses];
+
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === PLATFORM_CONTRACT_URL) {
+        return platformContractResponse();
+      }
+
+      const response = pending.shift();
+      if (!response) {
+        throw new Error(`Unexpected fetch: ${url}`);
+      }
+
+      return response;
+    });
+  };
+
+  const productFetchCalls = () => fetchMock.mock.calls.filter(([input]) => String(input) !== PLATFORM_CONTRACT_URL);
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -194,7 +226,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("creates work through the current company route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, work_item: workItem() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -217,11 +249,11 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/work-items",
     );
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         title: "Review launch notes",
@@ -232,7 +264,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("starts a run with the current run request shape", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, run: runRecord() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -258,10 +290,10 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/work-items/work_123/runs",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         work_item_id: "work_123",
@@ -274,7 +306,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("cancels a run through the run cancel route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, run: runRecord() }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -294,17 +326,17 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_456/cancel",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(productFetchCalls()[0]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
       command: "regents work cancel",
     });
   });
 
   it("retries a run through the run retry route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, run: runRecord() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -324,10 +356,10 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_456/retry",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(productFetchCalls()[0]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
       command: "regents work retry",
     });
@@ -335,7 +367,7 @@ describe("work and agent platform commands", () => {
 
   it("renders a readable work run summary for human terminals", async () => {
     useHumanTerminal();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, run: runRecord() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -369,7 +401,7 @@ describe("work and agent platform commands", () => {
 
   it("keeps raw JSON output when script mode is requested on a human terminal", async () => {
     useHumanTerminal();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, work_item: workItem() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -396,7 +428,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("connects OpenClaw as a local worker and writes the skill", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, agent_profile: agentProfile(), worker: worker() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -420,10 +452,10 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         agent_kind: "openclaw",
@@ -446,7 +478,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("connects Hermes through the local bridge and writes connector files", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -482,7 +514,7 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         agent_kind: "hermes",
@@ -506,7 +538,7 @@ describe("work and agent platform commands", () => {
 
   it("renders OpenClaw connection details for human terminals", async () => {
     useHumanTerminal();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, agent_profile: agentProfile(), worker: worker() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -542,7 +574,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("links a manager to an executor through the relationship route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, relationship: relationship() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -567,10 +599,10 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/agent_manager/relationships",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         source_agent_profile_id: "agent_manager",
@@ -583,7 +615,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("links manager and executor workers through the relationship route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -620,10 +652,10 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/worker_manager/relationships",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         source_worker_id: "worker_manager",
@@ -636,7 +668,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("watches run events through the current run events route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -678,37 +710,34 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
     );
     expect(parsePrintedJson<{ result: { events: unknown[] } }>(output.stdout).result.events).toHaveLength(1);
   });
 
   it("keeps checking run events when asked to watch progress", async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            run_id: 456,
-            events: [{ id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP }],
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            run_id: 456,
-            events: [
-              { id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP },
-              { id: 2, run_id: 456, sequence: 2, kind: "running", payload: {}, occurred_at: TIMESTAMP },
-            ],
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      );
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          run_id: 456,
+          events: [{ id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP }],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          run_id: 456,
+          events: [
+            { id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP },
+            { id: 2, run_id: 456, sequence: 2, kind: "running", payload: {}, occurred_at: TIMESTAMP },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -727,7 +756,7 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+    expect(productFetchCalls().map((call) => call[0])).toEqual([
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
     ]);
@@ -739,30 +768,27 @@ describe("work and agent platform commands", () => {
 
   it("shows only new run updates in a terminal timeline", async () => {
     useHumanTerminal();
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            run_id: 456,
-            events: [{ id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP }],
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            run_id: 456,
-            events: [
-              { id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP },
-              { id: 2, run_id: 456, sequence: 2, kind: "running", payload: {}, occurred_at: TIMESTAMP },
-            ],
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      );
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          run_id: 456,
+          events: [{ id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP }],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          run_id: 456,
+          events: [
+            { id: 1, run_id: 456, sequence: 1, kind: "queued", payload: {}, occurred_at: TIMESTAMP },
+            { id: 2, run_id: 456, sequence: 2, kind: "running", payload: {}, occurred_at: TIMESTAMP },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -788,42 +814,35 @@ describe("work and agent platform commands", () => {
   });
 
   it("lets a local worker claim work, record updates, upload approved artifacts, delegate, and complete", async () => {
-    fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true, worker: worker() }), { status: 200 }))
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            assignments: [{ id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "available" }],
-          }),
-          { status: 200 },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "claimed" },
-          }),
-          { status: 200 },
-        ),
-      )
-      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true, event: { id: 1 } }), { status: 201 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true, artifact: { id: 2 } }), { status: 201 }))
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ ok: true, target_worker: worker({ id: 790 }), child_runs: [runRecord({ id: 457 })] }), {
-          status: 201,
+    mockPlatformResponses(
+      new Response(JSON.stringify({ ok: true, worker: worker() }), { status: 200 }),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          assignments: [{ id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "available" }],
         }),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "completed" },
-          }),
-          { status: 200 },
-        ),
-      );
+        { status: 200 },
+      ),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "claimed" },
+        }),
+        { status: 200 },
+      ),
+      new Response(JSON.stringify({ ok: true, event: { id: 1 } }), { status: 201 }),
+      new Response(JSON.stringify({ ok: true, artifact: { id: 2 } }), { status: 201 }),
+      new Response(JSON.stringify({ ok: true, target_worker: worker({ id: 790 }), child_runs: [runRecord({ id: 457 })] }), {
+        status: 201,
+      }),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "completed" },
+        }),
+        { status: 200 },
+      ),
+    );
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -848,7 +867,7 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+    expect(productFetchCalls().map((call) => call[0])).toEqual([
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers/worker_123/heartbeat",
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers/worker_123/assignments",
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/assignments/11/claim",
@@ -857,7 +876,7 @@ describe("work and agent platform commands", () => {
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/456/delegations",
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/assignments/11/complete",
     ]);
-    expect(fetchMock.mock.calls[3]?.[1]?.body).toBe(
+    expect(productFetchCalls()[3]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         run_id: 456,
@@ -867,7 +886,7 @@ describe("work and agent platform commands", () => {
         sensitivity: "normal",
       }),
     );
-    expect(fetchMock.mock.calls[4]?.[1]?.body).toBe(
+    expect(productFetchCalls()[4]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         run_id: 456,
@@ -877,7 +896,7 @@ describe("work and agent platform commands", () => {
         visibility: "operator",
       }),
     );
-    expect(fetchMock.mock.calls[5]?.[1]?.body).toBe(
+    expect(productFetchCalls()[5]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         run_id: 456,
@@ -892,7 +911,7 @@ describe("work and agent platform commands", () => {
   });
 
   it("lists a manager execution pool through the current route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -933,7 +952,7 @@ describe("work and agent platform commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/agent_manager/execution-pool",
     );
     expect(parsePrintedJson<{ result: { workers: unknown[] } }>(output.stdout).result.workers).toHaveLength(2);
@@ -941,7 +960,7 @@ describe("work and agent platform commands", () => {
 
   it("renders the execution pool as a worker list for human terminals", async () => {
     useHumanTerminal();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,

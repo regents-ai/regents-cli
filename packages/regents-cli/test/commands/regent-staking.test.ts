@@ -9,6 +9,9 @@ import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { writeFakeCdp } from "../support/fake-cdp.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
+const isPlatformContractUrl = (input: unknown): boolean =>
+  String(input).endsWith("/api-contract.openapiv3.yaml");
+
 const { sendTransactionMock, waitForReceiptMock, callMock, estimateGasMock } = vi.hoisted(() => ({
   sendTransactionMock: vi.fn(),
   waitForReceiptMock: vi.fn(),
@@ -78,6 +81,36 @@ describe("regent-staking CLI command group", () => {
   const fetchMock = vi.fn<typeof fetch>();
   let homeDir = "";
   let configPath = "";
+
+  const platformContractResponse = (): Response =>
+    new Response("openapi: 3.1.0\ninfo:\n  version: 0.1.0\n", {
+      status: 200,
+      headers: {
+        "content-type": "application/yaml",
+        "x-regents-contract-major": "0",
+        "x-regents-contract-version": "0.1.0",
+        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+      },
+    });
+
+  const mockPlatformResponses = (...responses: Response[]): void => {
+    const pending = [...responses];
+
+    fetchMock.mockImplementation(async (input) => {
+      if (isPlatformContractUrl(input)) {
+        return platformContractResponse();
+      }
+
+      const response = pending.shift();
+      if (!response) {
+        throw new Error(`Unexpected fetch: ${String(input)}`);
+      }
+
+      return response;
+    });
+  };
+
+  const productFetchCalls = () => fetchMock.mock.calls.filter(([input]) => !isPlatformContractUrl(input));
 
   const walletAction = (data: string) => ({
     action_id: `staking_${data.slice(2)}`,
@@ -207,7 +240,7 @@ describe("regent-staking CLI command group", () => {
 
   it("shows the regent staking overview", async () => {
     writeAgentAuthState("https://staking.regents.sh/");
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, chain_id: 8453, treasury_residual_usdc: "150" }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -219,14 +252,14 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://staking.regents.sh/api/shared/regent/staking");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
+    expect(productFetchCalls()[0]?.[0]).toBe("https://staking.regents.sh/api/shared/regent/staking");
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ chain_id: number }>(output.stdout)).toMatchObject({ chain_id: 8453 });
   });
 
   it("shows a specific account", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, wallet_address: "0xabc", wallet_claimable_usdc: "12" }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -238,8 +271,8 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/account/0xabc`);
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
+    expect(productFetchCalls()[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/account/0xabc`);
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ wallet_address: string }>(output.stdout)).toMatchObject({
       wallet_address: "0xabc",
     });
@@ -256,7 +289,7 @@ describe("regent-staking CLI command group", () => {
 
   it("builds the direct stake request when shared sign-in is present", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, staking: {}, wallet_action: walletAction("0x7acb7757") }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -268,8 +301,8 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/stake`);
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
+    expect(productFetchCalls()[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/stake`);
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ wallet_action: { data: string } }>(output.stdout)).toMatchObject({
       wallet_action: { data: "0x7acb7757" },
     });
@@ -278,7 +311,7 @@ describe("regent-staking CLI command group", () => {
   it("builds the direct stake request with a receiver without prompting", async () => {
     writeAgentAuthState();
     const receiver = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, staking: {}, wallet_action: walletAction("0x7acb7757") }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -299,7 +332,7 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result, output.stderr).toBe(0);
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+    expect(JSON.parse(String(productFetchCalls()[0]?.[1]?.body))).toEqual({
       amount: "1.5",
       receiver,
     });
@@ -330,7 +363,7 @@ describe("regent-staking CLI command group", () => {
 
   it("claims USDC through the shared sign-in flow", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, staking: {}, wallet_action: walletAction("0x42852610") }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -342,8 +375,8 @@ describe("regent-staking CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/claim-usdc`);
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
+    expect(productFetchCalls()[0]?.[0]).toBe(`${expectedBaseUrl}/api/shared/regent/staking/claim-usdc`);
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("staking-receipt");
     expect(parsePrintedJson<{ wallet_action: { data: string } }>(output.stdout)).toMatchObject({
       wallet_action: { data: "0x42852610" },
     });
@@ -351,7 +384,7 @@ describe("regent-staking CLI command group", () => {
 
   it("simulates and estimates staking transactions before submit", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, staking: {}, wallet_action: walletAction("0x42852610") }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -393,7 +426,7 @@ describe("regent-staking CLI command group", () => {
 
   it("does not submit expired staking wallet actions", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -424,7 +457,7 @@ describe("regent-staking CLI command group", () => {
   it("does not report staking submit success when the chain receipt failed", async () => {
     writeAgentAuthState();
     waitForReceiptMock.mockResolvedValue({ status: "reverted", logs: [] });
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, staking: {}, wallet_action: walletAction("0x42852610") }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -442,7 +475,7 @@ describe("regent-staking CLI command group", () => {
 
   it("does not submit staking transactions prepared for another wallet", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -472,7 +505,7 @@ describe("regent-staking CLI command group", () => {
 
   it("does not report staking submit success when the prepared transaction is missing", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, staking: {} }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -493,7 +526,7 @@ describe("regent-staking CLI command group", () => {
     writeAgentAuthState();
     const incompleteAction: Record<string, unknown> = { ...walletAction("0x42852610") };
     delete incompleteAction.owner_product;
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, staking: {}, wallet_action: incompleteAction }), {
         status: 200,
         headers: { "content-type": "application/json" },

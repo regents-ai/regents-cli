@@ -4,54 +4,6 @@
  */
 
 export interface paths {
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["techtreeHealth"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/healthz": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["techtreeHealthz"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/readyz": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["techtreeReadyz"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/techtree/explorer/tiles": {
         parameters: {
             query?: never;
@@ -62,166 +14,6 @@ export interface paths {
         get: operations["listPlatformExplorerTiles"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/buy/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCoinbaseRampBuyConfig"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/buy/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCoinbaseRampBuyOptions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/onramp/session": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["createCoinbaseRampOnrampSession"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/sell/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCoinbaseRampSellConfig"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/sell/options": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getCoinbaseRampSellOptions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/offramp/session": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["createCoinbaseRampOfframpSession"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/offramp/quote": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["createCoinbaseRampOfframpQuote"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/apple-pay/contact/start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["startCoinbaseRampApplePayContactVerification"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/apple-pay/contact/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["confirmCoinbaseRampApplePayContactVerification"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/ramp/coinbase/apple-pay/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["createCoinbaseRampApplePayOrder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1513,55 +1305,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/techtree/v1/admin/chat/channels": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Admin-only. Provision a chat channel (system or topic scope). */
-        post: operations["createChatChannelAsAdmin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/v1/admin/reviewers/{wallet}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["approveBbhReviewerAsAdmin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/v1/admin/reviewers/{wallet}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["rejectBbhReviewerAsAdmin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/techtree/v1/agent/chat/messages": {
         parameters: {
             query?: never;
@@ -2286,70 +2029,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/techtree/v1/agent/tech/leaderboards/register/prepare": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["prepareTechLeaderboardRegistration"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/v1/agent/tech/leaderboards/register/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["confirmTechLeaderboardRegistration"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/v1/agent/tech/rewards/root/prepare": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["prepareTechRewardRoot"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/techtree/v1/agent/tech/rewards/root/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["confirmTechRewardRoot"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/techtree/v1/bbh/leaderboard": {
         parameters: {
             query?: never;
@@ -2953,84 +2632,77 @@ export interface components {
         LooseObject: {
             [key: string]: unknown;
         };
-        CoinbaseRampLooseDataResponse: {
-            data: {
-                [key: string]: unknown;
-            };
-        };
-        CoinbaseRampSessionRequest: {
-            wallet_address: components["schemas"]["Address"];
-            country: string;
-            subdivision?: string | null;
-            asset: string;
+        X402PaymentBindingV1: {
+            /** @enum {string} */
+            version: "PaymentBindingV1";
+            resource_id: string;
+            buyer_agent_id: string | null;
+            seller_agent_id: string | null;
             network: string;
-            amount: string;
-            payment_currency: string;
-            payment_method: string;
+            asset: components["schemas"]["Address"];
+            amount_atomic: string;
+            pay_to: components["schemas"]["Address"];
+            /** Format: date-time */
+            expires_at: string | null;
+            nonce: string;
+            binding_hash: string;
         };
-        CoinbaseRampOfframpQuoteRequest: {
-            wallet_address: components["schemas"]["Address"];
-            country: string;
-            subdivision?: string | null;
-            asset: string;
+        X402PaymentResource: {
+            id: string;
+            url: string;
+            description: string;
+            mimeType: string;
+            /** @enum {string} */
+            serviceName: "techtree";
+            bindingHash: string;
+        };
+        X402PaymentRequirements: {
+            /** @enum {string} */
+            scheme: "batch-settlement";
             network: string;
+            asset: components["schemas"]["Address"];
             amount: string;
-            cashout_currency: string;
-            payment_method: string;
-        };
-        CoinbaseRampContactStartRequest: {
-            /** Format: email */
-            email: string;
-            phone_number: string;
-        };
-        CoinbaseRampContactConfirmRequest: {
-            /** Format: email */
-            email: string;
-            phone_number: string;
-            email_code: string;
-            phone_code: string;
-        };
-        CoinbaseRampApplePayOrderRequest: {
-            wallet_address: components["schemas"]["Address"];
-            /** Format: email */
-            email: string;
-            phone_number: string;
-            asset: string;
-            network: string;
-            amount: string;
-            payment_currency: string;
-            /** @enum {boolean} */
-            accepted_terms: true;
-        };
-        CoinbaseRampActionResponse: {
-            data: {
-                /** Format: uri */
-                url: string;
-                quote?: components["schemas"]["LooseObject"] | null;
+            payTo: components["schemas"]["Address"];
+            maxTimeoutSeconds: number;
+            extra: {
+                receiverAuthorizer: components["schemas"]["Address"];
+                withdrawDelay: number;
+                name: string;
+                version: string;
+                regentPaymentBindingV1: components["schemas"]["X402PaymentBindingV1"];
             };
         };
-        CoinbaseRampContactResponse: {
-            data: {
-                verified: boolean;
-                email_sent?: boolean | null;
-                phone_sent?: boolean | null;
-                /** Format: date-time */
-                email_verified_at?: string | null;
-                /** Format: date-time */
-                phone_verified_at?: string | null;
-            };
+        X402PaymentRequired: {
+            /** @enum {integer} */
+            x402Version: 2;
+            resource: components["schemas"]["X402PaymentResource"];
+            accepts: components["schemas"]["X402PaymentRequirements"][];
         };
-        CoinbaseRampApplePayOrderResponse: {
-            data: {
-                order_id?: string | null;
-                status?: string | null;
-                /** Format: uri */
-                payment_link_url: string;
-                payment_total?: string | null;
-                payment_currency?: string | null;
-                purchase_amount?: string | null;
-                purchase_currency?: string | null;
-            };
+        AutoskillBundleManifestFile: {
+            path: string;
+            sha256: string;
+            size: number;
+        };
+        AutoskillBundleManifest: {
+            /** @enum {string} */
+            schema_version: "techtree.autoskill.bundle.v1";
+            bundle_hash: string;
+            total_size: number;
+            files: components["schemas"]["AutoskillBundleManifestFile"][];
+        } & {
+            [key: string]: unknown;
+        };
+        AutoskillBundleAccessData: {
+            node_id: number;
+            bundle_uri: string | null;
+            download_url: string | null;
+            manifest: components["schemas"]["AutoskillBundleManifest"];
+            marimo_entrypoint: string;
+            primary_file: string | null;
+            encryption_meta?: components["schemas"]["LooseObject"];
+        };
+        AutoskillBundleAccessResponse: {
+            data: components["schemas"]["AutoskillBundleAccessData"];
         };
         ErrorEnvelope: {
             error: {
@@ -4614,53 +4286,6 @@ export interface components {
             amount: string;
             tech_recipient: components["schemas"]["Address"];
         };
-        TechLeaderboardRegisterPrepareRequest: {
-            leaderboard_id: string;
-            kind: string;
-            title: string;
-            weight_bps: number;
-            starts_epoch?: number | null;
-            ends_epoch?: number | null;
-            config_hash: components["schemas"]["Bytes32Hex"];
-            uri: string;
-            active?: boolean;
-        };
-        TechLeaderboardRegisterConfirmRequest: {
-            leaderboard_id: string;
-            tx_hash: components["schemas"]["TxHash"];
-        };
-        TechLeaderboardConfirmResponse: {
-            data: {
-                leaderboard: components["schemas"]["TechLeaderboard"];
-            };
-        } & {
-            [key: string]: unknown;
-        };
-        TechRewardRootAllocationInput: {
-            agent_id: string;
-            wallet_address?: components["schemas"]["Address"];
-            score: string;
-            leaderboard_id?: string;
-        };
-        TechRewardRootPrepareRequest: {
-            epoch: number;
-            lane: components["schemas"]["TechRewardLane"];
-            total_budget_amount: string;
-            challenge_ends_at?: number | null;
-            leaderboard_ids?: string[];
-            allocations: components["schemas"]["TechRewardRootAllocationInput"][];
-        };
-        TechRewardRootConfirmRequest: {
-            manifest_id: string;
-            tx_hash: components["schemas"]["TxHash"];
-        };
-        TechRewardRootConfirmResponse: {
-            data: {
-                manifest: components["schemas"]["TechRewardManifest"];
-            };
-        } & {
-            [key: string]: unknown;
-        };
         ChatScopeValue: string;
         ChatChannel: {
             scope: components["schemas"]["ChatScopeValue"];
@@ -5199,75 +4824,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    techtreeHealth: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Health response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseObject"];
-                };
-            };
-        };
-    };
-    techtreeHealthz: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Liveness response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-        };
-    };
-    techtreeReadyz: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Readiness response when all checks pass */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseObject"];
-                };
-            };
-            /** @description Readiness response when any check fails */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseObject"];
-                };
-            };
-        };
-    };
     listPlatformExplorerTiles: {
         parameters: {
             query?: never;
@@ -5284,428 +4840,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LooseObject"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    getCoinbaseRampBuyConfig: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coinbase buy countries and payment methods */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    getCoinbaseRampBuyOptions: {
-        parameters: {
-            query: {
-                country: string;
-                subdivision?: string;
-                networks?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coinbase buy assets and fiat currencies */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    createCoinbaseRampOnrampSession: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CoinbaseRampSessionRequest"];
-            };
-        };
-        responses: {
-            /** @description Coinbase hosted buy URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampActionResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    getCoinbaseRampSellConfig: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coinbase sell countries and cashout methods */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    getCoinbaseRampSellOptions: {
-        parameters: {
-            query: {
-                country: string;
-                subdivision?: string;
-                networks?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coinbase sell assets and fiat currencies */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampLooseDataResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    createCoinbaseRampOfframpSession: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CoinbaseRampSessionRequest"];
-            };
-        };
-        responses: {
-            /** @description Coinbase hosted sell URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampActionResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    createCoinbaseRampOfframpQuote: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CoinbaseRampOfframpQuoteRequest"];
-            };
-        };
-        responses: {
-            /** @description Coinbase sell quote and hosted sell URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampActionResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    startCoinbaseRampApplePayContactVerification: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CoinbaseRampContactStartRequest"];
-            };
-        };
-        responses: {
-            /** @description Contact verification started */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampContactResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Contact verification failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    confirmCoinbaseRampApplePayContactVerification: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CoinbaseRampContactConfirmRequest"];
-            };
-        };
-        responses: {
-            /** @description Contact verification confirmed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampContactResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Contact verification failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    createCoinbaseRampApplePayOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CoinbaseRampApplePayOrderRequest"];
-            };
-        };
-        responses: {
-            /** @description Coinbase Apple Pay order and payment link */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CoinbaseRampApplePayOrderResponse"];
-                };
-            };
-            /** @description Privy sign-in required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description Coinbase ramp request failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -7103,7 +6237,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["AutoskillBundleAccessResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -7287,7 +6421,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LooseObject"];
+                    "application/json": components["schemas"]["AutoskillBundleAccessResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -8193,104 +7327,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatDmListResponse"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    createChatChannelAsAdmin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatChannelInput"];
-            };
-        };
-        responses: {
-            /** @description Chat channel provisioned */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatChannelResponse"];
-                };
-            };
-            /** @description Channel rejected */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    approveBbhReviewerAsAdmin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                wallet: components["schemas"]["Address"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Reviewer approved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
-                };
-            };
-            /** @description Reviewer update failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    rejectBbhReviewerAsAdmin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                wallet: components["schemas"]["Address"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Reviewer rejected */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LooseDataEnvelope"];
-                };
-            };
-            /** @description Reviewer update failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             429: components["responses"]["RateLimitError"];
@@ -9546,178 +8582,6 @@ export interface operations {
                 };
             };
             /** @description TECH withdrawal could not be prepared */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    prepareTechLeaderboardRegistration: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TechLeaderboardRegisterPrepareRequest"];
-            };
-        };
-        responses: {
-            /** @description Prepared TECH leaderboard registration wallet action */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TechPreparedTransactionResponse"];
-                };
-            };
-            /** @description Signed agent is not the configured TECH leaderboard manager */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description TECH leaderboard registration could not be prepared */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    confirmTechLeaderboardRegistration: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TechLeaderboardRegisterConfirmRequest"];
-            };
-        };
-        responses: {
-            /** @description Confirmed TECH leaderboard registration */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TechLeaderboardConfirmResponse"];
-                };
-            };
-            /** @description Signed agent is not the configured TECH leaderboard manager */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description TECH leaderboard registration confirmation failed */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    prepareTechRewardRoot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TechRewardRootPrepareRequest"];
-            };
-        };
-        responses: {
-            /** @description Prepared TECH reward-root wallet action */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TechPreparedTransactionResponse"];
-                };
-            };
-            /** @description Signed agent is not the configured TECH root manager */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description TECH reward-root could not be prepared */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    confirmTechRewardRoot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TechRewardRootConfirmRequest"];
-            };
-        };
-        responses: {
-            /** @description Confirmed TECH reward root */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TechRewardRootConfirmResponse"];
-                };
-            };
-            /** @description Signed agent is not the configured TECH root manager */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description TECH reward-root confirmation failed */
             422: {
                 headers: {
                     [name: string]: unknown;

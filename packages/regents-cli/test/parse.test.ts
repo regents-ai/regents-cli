@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  optionalCsvFlag,
+  parseRequiredNonNegativeIntegerFlag,
+  readJsonObjectValue,
+  readOptionalJsonObjectFlag,
+} from "../src/command-input.js";
 import { getFlag, getFlags, parseCliArgs, parseIntegerFlag } from "../src/parse.js";
 
 describe("CLI parsing", () => {
@@ -20,5 +26,30 @@ describe("CLI parsing", () => {
 
     expect(getFlag(parsed, "tag")).toBe("three");
     expect(getFlags(parsed, "tag")).toEqual(["one", "two", "three"]);
+  });
+
+  it("parses shared JSON, CSV, and non-negative integer inputs", () => {
+    const parsed = parseCliArgs([
+      "work",
+      "--refs",
+      "{\"node\":\"node_123\"}",
+      "--kind",
+      "review,node",
+      "--kind",
+      "publish",
+      "--attempt",
+      "0",
+    ]);
+
+    expect(readOptionalJsonObjectFlag(parsed, "refs")).toEqual({ node: "node_123" });
+    expect(optionalCsvFlag(parsed, "kind")).toEqual(["review", "node", "publish"]);
+    expect(parseRequiredNonNegativeIntegerFlag(parsed, "attempt")).toBe(0);
+  });
+
+  it("rejects malformed shared JSON and negative integer inputs", () => {
+    expect(() => readJsonObjectValue("[]", "--refs")).toThrow("invalid --refs");
+    expect(() => parseRequiredNonNegativeIntegerFlag(["--attempt", "-1"], "attempt")).toThrow(
+      "invalid integer for --attempt",
+    );
   });
 });

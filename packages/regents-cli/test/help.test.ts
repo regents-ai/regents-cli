@@ -106,7 +106,7 @@ describe("scoped CLI help", () => {
 
     expect(output.result).toBe(0);
     expect(output.stdout).toContain("PLATFORM AUTH LOGIN HELP");
-    expect(output.stdout).toContain("--identity-token <token>");
+    expect(output.stdout).toContain("--access-token <token>");
     expect(output.stdout).toContain("--session-file <path>");
     expect(output.stdout).toContain("regents platform formation status");
   });

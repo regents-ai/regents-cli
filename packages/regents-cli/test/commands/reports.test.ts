@@ -13,6 +13,8 @@ const TEST_WALLET = "0x1111111111111111111111111111111111111111";
 const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
 const TEST_PRIVATE_KEY =
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
+const isPlatformContractUrl = (input: unknown): boolean =>
+  String(input).endsWith("/api-contract.openapiv3.yaml");
 
 describe("reporting CLI commands", () => {
   // Only mutate individual keys on process.env: replacing the whole object
@@ -30,6 +32,36 @@ describe("reporting CLI commands", () => {
   const fetchMock = vi.fn<typeof fetch>();
   let tempDir = "";
   let configPath = "";
+
+  const platformContractResponse = (): Response =>
+    new Response("openapi: 3.1.0\ninfo:\n  version: 0.1.0\n", {
+      status: 200,
+      headers: {
+        "content-type": "application/yaml",
+        "x-regents-contract-major": "0",
+        "x-regents-contract-version": "0.1.0",
+        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+      },
+    });
+
+  const mockPlatformResponses = (...responses: Response[]): void => {
+    const pending = [...responses];
+
+    fetchMock.mockImplementation(async (input) => {
+      if (isPlatformContractUrl(input)) {
+        return platformContractResponse();
+      }
+
+      const response = pending.shift();
+      if (!response) {
+        throw new Error(`Unexpected fetch: ${String(input)}`);
+      }
+
+      return response;
+    });
+  };
+
+  const productFetchCalls = () => fetchMock.mock.calls.filter(([input]) => !isPlatformContractUrl(input));
 
   const writeAgentAuthState = (baseUrl = "http://127.0.0.1:4000") => {
     writeInitialConfig(configPath);
@@ -129,7 +161,7 @@ describe("reporting CLI commands", () => {
 
   it("submits a bug report with the saved local agent identity", async () => {
     writeAgentAuthState();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -167,9 +199,9 @@ describe("reporting CLI commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/v1/agent/bug-report");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/v1/agent/bug-report");
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
+    expect(JSON.parse(String(productFetchCalls()[0]?.[1]?.body))).toEqual({
       summary: "can't do xyz",
       details: "any more details here",
       reporting_agent: {
@@ -188,7 +220,7 @@ describe("reporting CLI commands", () => {
 
   it("submits a security report to the configured product base URL", async () => {
     writeAgentAuthState("https://reports.regents.sh/");
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -227,9 +259,9 @@ describe("reporting CLI commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://reports.regents.sh/api/platform/v1/agent/security-report");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+    expect(productFetchCalls()[0]?.[0]).toBe("https://reports.regents.sh/api/platform/v1/agent/security-report");
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("report-receipt");
+    expect(JSON.parse(String(productFetchCalls()[0]?.[1]?.body))).toEqual({
       summary: "private vuln",
       details: "steps and impact",
       contact: "@xyz on telegram",

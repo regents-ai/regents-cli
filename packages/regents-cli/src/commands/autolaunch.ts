@@ -58,8 +58,6 @@ export {
 } from "./autolaunch/contracts.js";
 export {
   runAutolaunchJobsWatch,
-  runAutolaunchLaunchPreview,
-  runAutolaunchLaunchState,
 } from "./autolaunch/launch.js";
 export {
   runAutolaunchAuctionReturnsList,

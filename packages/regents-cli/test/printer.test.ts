@@ -4,7 +4,7 @@ import { captureOutput } from "../../../test-support/test-helpers.js";
 
 import { renderScopedHelp } from "../src/help.js";
 import { JsonRpcError } from "../src/internal-runtime/index.js";
-import { printError, printJson, renderUsageScreen, setRawJsonOutput } from "../src/printer.js";
+import { printError, printJson, renderTablePanel, renderUsageScreen, setRawJsonOutput } from "../src/printer.js";
 
 const originalNoColor = process.env.NO_COLOR;
 const originalTerm = process.env.TERM;
@@ -51,50 +51,34 @@ describe("printer surface", () => {
 
     expect(output).toContain("R E G E N T   C L I");
     expect(output).toContain("START HERE");
-    expect(output).toContain("IDENTITY + SETUP");
-    expect(output).toContain("TECHTREE");
-    expect(output).toContain("BBH LOOP");
-    expect(output).toContain("MESSAGING + ADJACENT WORK");
-    expect(output).toContain("start with the guided path");
-    expect(output).toContain("use regents.sh/services for guided setup, billing, claimed names, and company launch");
-    expect(output).toContain("use regents techtree start for most Techtree setups");
-    expect(output).toContain("it checks local config, the runtime, identity, Techtree readiness, and BBH readiness");
-    expect(output).toContain("if this is not the page you expected, check the command spelling or run `regents --help`");
+    expect(output).toContain("PRODUCT AREAS");
+    expect(output).toContain("TECHTREE LOOP");
+    expect(output).toContain("COMMON NEXT STEPS");
+    expect(output).toContain("direct control surface for Regent operators and agents");
+    expect(output).toContain("Use regents.sh for guided browser setup.");
+    expect(output).toContain("Use this CLI for local identity, runtime, Techtree work, and Autolaunch work.");
+    expect(output).toContain("Run `regents help <product>` or `regents <command> --help`.");
+    expect(output).toContain("regents init");
+    expect(output).toContain("regents status");
+    expect(output).toContain("regents whoami");
+    expect(output).toContain("regents run");
+    expect(output).toContain("regents doctor");
+    expect(output).toContain("regents platform auth login");
     expect(output).toContain("regents techtree start");
-    expect(output).toContain("regents techtree node lineage list <id>");
-    expect(output).toContain("regents techtree node cross-chain-links create <id> --input @file.json");
-    expect(output).toContain("regents techtree node lineage withdraw <id> --claim-id <claim-id>");
-    expect(output).toContain("regents techtree node cross-chain-links clear <id>");
-    expect(output).toContain("regents techtree node create ... [--cross-chain-link @file.json] [--paid-payload @file.json]");
-    expect(output).toContain("regents techtree comment add --node-id <id> --body-markdown ...");
-    expect(output).toContain("regents techtree science-tasks list [--limit 20] [--stage draft]");
-    expect(output).toContain("regents techtree science-tasks get <id>");
-    expect(output).toContain("regents techtree science-tasks init --workspace-path ... --title ...");
-    expect(output).toContain("regents techtree science-tasks checklist --workspace-path ...");
-    expect(output).toContain("regents techtree science-tasks evidence --workspace-path ...");
-    expect(output).toContain("regents techtree science-tasks export --workspace-path ... [--output-path ...]");
-    expect(output).toContain("regents techtree science-tasks submit --workspace-path ... --pr-url ...");
-    expect(output).toContain("regents techtree science-tasks review-update --workspace-path ... --pr-url ...");
-    expect(output).toContain("regents techtree science-tasks review-loop --workspace-path ... --pr-url ...");
-    expect(output).toContain("regents techtree autoskill notebook pair [path]");
-    expect(output).toContain("regents techtree autoskill buy <node-id>");
-    expect(output).toContain("regents techtree autoskill refund <node-id>");
-    expect(output).toContain("regents techtree chat tail [scope...]");
-    expect(output).toContain("regents techtree chat unread [scope...] [--peek]");
-    expect(output).toContain("regents techtree chat subscribe add|remove|list");
-    expect(output).toContain("regents bug --summary");
-    expect(output).toContain("regents security-report --summary");
+    expect(output).toContain("regents techtree work");
+    expect(output).toContain("regents autolaunch prelaunch wizard");
+    expect(output).toContain("regents autolaunch launch run");
     expect(output).toContain("regents techtree bbh capsules list [--lane climb|benchmark|challenge]");
-    expect(output).toContain("regents techtree bbh capsules get <capsule-id>");
     expect(output).toContain("regents techtree bbh run exec [path] --capsule <capsule-id> [--lane climb|benchmark|challenge]");
     expect(output).toContain("regents techtree bbh notebook pair [path]");
     expect(output).toContain("regents techtree bbh run solve [path] --solver hermes|openclaw|skydiscover");
-    expect(output).toContain("◆ BBH AFTER SETUP");
-    expect(output).toContain("run exec creates the BBH run folder");
-    expect(output).toContain("SkyDiscover adds the search pass inside the run folder");
-    expect(output).toContain("Hypotest scores the run and checks replay during validation");
-    expect(output).toContain("regents techtree bbh genome init [path] [--lane climb|benchmark|challenge] [--sample-size 3] [--budget 6]");
-    expect(output).toContain("regents techtree bbh genome improve [path]");
+    expect(output).toContain("regents techtree bbh submit [path]");
+    expect(output).toContain("regents techtree bbh validate [path]");
+    expect(output).toContain("regents techtree search --query <query>");
+    expect(output).toContain("regents techtree chat tail [scope...]");
+    expect(output).toContain("regents autolaunch safe wizard");
+    expect(output).toContain("regents bug --summary");
+    expect(output).toContain("regents security-report --summary");
   });
 
   it("wraps help panels inside narrow terminal widths", () => {
@@ -109,6 +93,66 @@ describe("printer surface", () => {
     expect(visibleLines.every((line) => line.length <= 40)).toBe(true);
     expect(output).toContain("REGENT CLI HELP");
     expect(output).toContain("Default config:");
+  });
+
+  it("keeps table panels readable in narrow terminals", () => {
+    setStdoutTty(true);
+    setStdoutColumns(48);
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
+
+    const output = renderTablePanel(
+      "◆ ROUTES",
+      [
+        { header: "route", minWidth: 8 },
+        { header: "description", minWidth: 12 },
+      ],
+      [
+        {
+          cells: [
+            "/api/techtree/v1/runtime/validations/very-long-node-reference",
+            "A very long description that should not stretch the table past the terminal.",
+          ],
+        },
+      ],
+    );
+    const visibleLines = stripAnsi(output).split("\n");
+
+    expect(visibleLines.every((line) => line.length <= 48)).toBe(true);
+    expect(output).toContain("...");
+  });
+
+  it("keeps multi-column table panels inside narrow terminals", () => {
+    setStdoutTty(true);
+    setStdoutColumns(44);
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
+
+    const output = renderTablePanel(
+      "◆ INBOX",
+      [
+        { header: "node", align: "right", minWidth: 4 },
+        { header: "event", minWidth: 8 },
+        { header: "actor", minWidth: 8 },
+        { header: "stream", minWidth: 10 },
+        { header: "time", minWidth: 10 },
+      ],
+      [
+        {
+          cells: [
+            "42",
+            "long-event-name",
+            "agent:1234567890",
+            "agent_inbox",
+            "2026-06-19T00:00:00.000Z",
+          ],
+        },
+      ],
+    );
+    const visibleLines = stripAnsi(output).split("\n");
+
+    expect(visibleLines.every((line) => line.length <= 44)).toBe(true);
+    expect(output).toContain("...");
   });
 
   it("renders a receipt-style summary for setup records", async () => {

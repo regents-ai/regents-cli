@@ -24,6 +24,7 @@ const useHumanTerminal = (): void => {
 };
 
 const stripAnsi = (value: string): string => value.replace(/\x1b\[[0-9;]*m/g, "");
+const PLATFORM_CONTRACT_URL = "http://127.0.0.1:4010/api-contract.openapiv3.yaml";
 
 const runtime = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 44,
@@ -65,6 +66,37 @@ describe("runtime commands", () => {
   let homeDir = "";
   let sessionFile = "";
 
+  const platformContractResponse = (): Response =>
+    new Response("openapi: 3.1.0\ninfo:\n  version: 0.1.0\n", {
+      status: 200,
+      headers: {
+        "content-type": "application/yaml",
+        "x-regents-contract-major": "0",
+        "x-regents-contract-version": "0.1.0",
+        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+      },
+    });
+
+  const mockPlatformResponses = (...responses: Response[]): void => {
+    const pending = [...responses];
+
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === PLATFORM_CONTRACT_URL) {
+        return platformContractResponse();
+      }
+
+      const response = pending.shift();
+      if (!response) {
+        throw new Error(`Unexpected fetch: ${url}`);
+      }
+
+      return response;
+    });
+  };
+
+  const productFetchCalls = () => fetchMock.mock.calls.filter(([input]) => String(input) !== PLATFORM_CONTRACT_URL);
+
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
     homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-runtime-home-"));
@@ -105,7 +137,7 @@ describe("runtime commands", () => {
   });
 
   it("creates a runtime through the contracted route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, runtime: runtime() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -134,11 +166,11 @@ describe("runtime commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes",
     );
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         platform_agent_id: "agent_77",
@@ -152,7 +184,7 @@ describe("runtime commands", () => {
   });
 
   it("saves a runtime checkpoint with the current request shape", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, checkpoint: checkpoint() }), {
         status: 201,
         headers: { "content-type": "application/json" },
@@ -174,10 +206,10 @@ describe("runtime commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/checkpoint",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         runtime_id: "runtime_44",
@@ -188,7 +220,7 @@ describe("runtime commands", () => {
   });
 
   it("restores a runtime checkpoint through the contracted route", async () => {
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({ ok: true, runtime: runtime(), checkpoint: checkpoint(), restore: { status: "accepted" } }),
         {
@@ -213,10 +245,10 @@ describe("runtime commands", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/restore",
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
         company_id: "company_123",
         runtime_id: "runtime_44",
@@ -229,61 +261,58 @@ describe("runtime commands", () => {
   });
 
   it("shows services and health without changing JSON output", async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            company_id: 123,
-            runtime_id: 44,
-            services: [
-              {
-                id: 7,
-                company_id: 123,
-                runtime_profile_id: 44,
-                name: "Workspace",
-                service_kind: "workspace",
-                status: "active",
-                endpoint_url: "https://workspace.example",
-                metadata: {},
-              },
-            ],
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            company_id: 123,
-            runtime_id: 44,
-            health: {
-              status: "healthy",
-              available: true,
-              metering_status: "active",
-              control_room: {
-                status: "expected",
-                one_sprite: true,
-                sprite_runtime_id: "sprite-44",
-                workspace_service_name: "hermes-workspace",
-                bridge_service_name: "regent-bridge",
-                path: "/regent/control-room",
-                registry_path: "/regent/control-room/agents.yaml",
-                gbrain: {
-                  status: "needs_setup",
-                  tool_repo_path: "~/gbrain",
-                  brain_repo_path: "/regent/company/BRAIN",
-                  warnings: [
-                    "Your Regent agent will be improved if you enable the recommended GBrain memory and search. This increases recall while reducing token spend.",
-                  ],
-                },
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          company_id: 123,
+          runtime_id: 44,
+          services: [
+            {
+              id: 7,
+              company_id: 123,
+              runtime_profile_id: 44,
+              name: "Workspace",
+              service_kind: "workspace",
+              status: "active",
+              endpoint_url: "https://workspace.example",
+              metadata: {},
+            },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          company_id: 123,
+          runtime_id: 44,
+          health: {
+            status: "healthy",
+            available: true,
+            metering_status: "active",
+            control_room: {
+              status: "expected",
+              one_sprite: true,
+              sprite_runtime_id: "sprite-44",
+              workspace_service_name: "hermes-workspace",
+              bridge_service_name: "regent-bridge",
+              path: "/regent/control-room",
+              registry_path: "/regent/control-room/agents.yaml",
+              gbrain: {
+                status: "needs_setup",
+                tool_repo_path: "~/gbrain",
+                brain_repo_path: "/regent/company/BRAIN",
+                warnings: [
+                  "Your Regent agent will be improved if you enable the recommended GBrain memory and search. This increases recall while reducing token spend.",
+                ],
               },
             },
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      );
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
 
     const servicesOutput = await captureOutput(() =>
       runCliEntrypoint([
@@ -312,10 +341,10 @@ describe("runtime commands", () => {
 
     expect(servicesOutput.result).toBe(0);
     expect(healthOutput.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/services",
     );
-    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+    expect(productFetchCalls()[1]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/health",
     );
     expect(parsePrintedJson<{ result: { services: unknown[] } }>(servicesOutput.stdout).result.services).toHaveLength(1);
@@ -326,7 +355,7 @@ describe("runtime commands", () => {
 
   it("renders readable runtime health for human terminals", async () => {
     useHumanTerminal();
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -388,19 +417,16 @@ describe("runtime commands", () => {
   });
 
   it("pauses and resumes a runtime through the contracted routes", async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ ok: true, runtime: runtime({ status: "paused" }) }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ ok: true, runtime: runtime({ status: "active" }) }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      );
+    mockPlatformResponses(
+      new Response(JSON.stringify({ ok: true, runtime: runtime({ status: "paused" }) }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+      new Response(JSON.stringify({ ok: true, runtime: runtime({ status: "active" }) }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
 
     const pauseOutput = await captureOutput(() =>
       runCliEntrypoint([
@@ -427,10 +453,10 @@ describe("runtime commands", () => {
 
     expect(pauseOutput.result).toBe(0);
     expect(resumeOutput.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+    expect(productFetchCalls()[0]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/pause",
     );
-    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+    expect(productFetchCalls()[1]?.[0]).toBe(
       "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/resume",
     );
   });

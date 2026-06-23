@@ -171,110 +171,6 @@ describe("autolaunch CLI command group", () => {
       },
     };
   };
-  const launchCreationStatePayload = () => ({
-    ok: true,
-    creation_state: {
-      selected: {
-        plan_id: "plan_alpha",
-        job_id: "job_alpha",
-        auction_id: "auc_alpha",
-        agent_id: "8453:42",
-        agent_name: "Atlas Agent",
-        token_name: "Atlas Coin",
-        token_symbol: "ATLAS",
-        state: "validated",
-        status: "active",
-        action_url: "/auctions/auc_alpha",
-      },
-      access_reason: "created_by_agent",
-      tiers: {
-        required: [
-          {
-            key: "identity",
-            label: "Identity",
-            tasks: [
-              {
-                label: "Agent identity",
-                status: "ready",
-                message: "Agent identity is selected.",
-                action_url: "/profile",
-                cli_command: null,
-                blocking: true,
-              },
-            ],
-          },
-          {
-            key: "launch_page",
-            label: "Launch page",
-            tasks: [
-              {
-                label: "Public details",
-                status: "needs_action",
-                message: "Add the title, description, and image people see before bidding.",
-                action_url: "/launch",
-                cli_command: "regents autolaunch prelaunch wizard",
-                blocking: true,
-              },
-            ],
-          },
-          { key: "treasury", label: "Treasury", tasks: [] },
-          {
-            key: "market",
-            label: "Market",
-            tasks: [
-              {
-                label: "Auction tracking",
-                status: "ready",
-                message: "Auction page is available for monitoring.",
-                action_url: "/auctions/auc_alpha",
-                cli_command: "regents autolaunch launch state --auction auc_alpha",
-                blocking: false,
-              },
-            ],
-          },
-        ],
-        recommended: [
-          {
-            key: "identity",
-            label: "Identity",
-            tasks: [
-              {
-                label: "ENS name",
-                status: "optional",
-                message: "Link an ENS name.",
-                action_url: "/ens-link",
-                cli_command: null,
-                blocking: false,
-              },
-            ],
-          },
-          { key: "launch_page", label: "Launch page", tasks: [] },
-          { key: "treasury", label: "Treasury", tasks: [] },
-          { key: "market", label: "Market", tasks: [] },
-        ],
-        extra: [
-          {
-            key: "identity",
-            label: "Identity",
-            tasks: [
-              {
-                label: "X profile",
-                status: "optional",
-                message: "Connect X as an optional signal.",
-                action_url: "/x-link",
-                cli_command: null,
-                blocking: false,
-              },
-            ],
-          },
-          { key: "launch_page", label: "Launch page", tasks: [] },
-          { key: "treasury", label: "Treasury", tasks: [] },
-          { key: "market", label: "Market", tasks: [] },
-        ],
-      },
-    },
-  });
-
   const createConfigPath = () => {
     const tempDir = fs.mkdtempSync(
       path.join(os.tmpdir(), "regents-cli-autolaunch-"),
@@ -886,70 +782,6 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
-  it("passes through the optional reputation prompt on launch preview", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          reputation_prompt: {
-            prompt:
-              "To improve agent token reputation, you can optionally link an ENS name and/or connect to a human's World ID.",
-            warning:
-              "You can skip this, though the token launch may be less trusted until these links are added.",
-            skip_label: "Skip for now",
-          },
-        }),
-        {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        },
-      ),
-    );
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "launch",
-        "preview",
-        "--agent",
-        "1:42",
-        "--chain-id",
-        "8453",
-        "--name",
-        "Atlas Coin",
-        "--symbol",
-        "ATLAS",
-        "--minimum-raise-quote",
-        "10000",
-        "--agent-safe-address",
-        "0x1111111111111111111111111111111111111111",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/preview`,
-    );
-    const [, previewRequest] = fetchMock.mock.calls[0] ?? [];
-    assertLaunchRequestBody(previewRequest?.body, {
-      agent_id: "1:42",
-      chain_id: 8453,
-      token_name: "Atlas Coin",
-      token_symbol: "ATLAS",
-      agent_safe_address: "0x1111111111111111111111111111111111111111",
-      minimum_raise_quote: "10000",
-    });
-    expect(
-      parsePrintedJson<{ reputation_prompt: { skip_label: string } }>(
-        output.stdout,
-      ),
-    ).toMatchObject({
-      reputation_prompt: {
-        skip_label: "Skip for now",
-      },
-    });
-  });
-
   it("prepares bidirectional ENS link transactions through autolaunch", async () => {
     fetchMock.mockResolvedValue(
       new Response(
@@ -1202,6 +1034,56 @@ describe("autolaunch CLI command group", () => {
       staker_pool_bps: 2500,
       label: "Sentinel Research Agent",
     });
+  });
+
+  it("renders prepared Autolaunch wallet actions as a concise human summary", async () => {
+    useHumanTerminal();
+    const configPath = createConfigPath();
+    const baseAction = preparedSubjectAction("0x7acb7757");
+    const prepared = {
+      ...baseAction,
+      action: "stake",
+      wallet_action: {
+        ...baseAction.wallet_action,
+        action: "stake",
+      },
+    };
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          subject_id: "subject_123",
+          prepared,
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "subjects",
+        "stake",
+        "subject_123",
+        "--amount",
+        "2",
+        "--receiver",
+        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "--config",
+        configPath,
+      ]),
+    );
+
+    const text = collapsePanelText(stripAnsi(output.stdout));
+    expect(output.result, output.stderr).toBe(0);
+    expect(text).toContain("AUTOLAUNCH WALLET ACTION");
+    expect(text).toContain("stake");
+    expect(text).toContain("Review this request before submitting.");
+    expect(text).toContain("Run the same command with --submit when ready.");
+    expect(text).toContain("Nothing changes until the transaction is submitted and confirmed.");
   });
 
   it("submits a subject claim from the nested prepared action", async () => {
@@ -1709,48 +1591,6 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
-  it("uses the launch chain id when signing launch preview requests", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({ ok: true, preview: { launch_ready: true } }),
-        {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        },
-      ),
-    );
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "launch",
-        "preview",
-        "--agent",
-        "ag_123",
-        "--chain-id",
-        "8453",
-        "--name",
-        "Agent Coin",
-        "--symbol",
-        "AGENT",
-        "--minimum-raise-quote",
-        "2500",
-        "--agent-safe-address",
-        "0x0000000000000000000000000000000000000001",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
-    assertAgentAuthHeaders(requestInit?.headers as Headers);
-    expect(JSON.parse(String(requestInit?.body))).toMatchObject({
-      agent_id: "ag_123",
-      chain_id: 8453,
-      token_name: "Agent Coin",
-      token_symbol: "AGENT",
-    });
-  });
-
   it("runs the prelaunch wizard on Base mainnet", async () => {
     fetchMock
       .mockResolvedValueOnce(
@@ -2198,69 +2038,6 @@ describe("autolaunch CLI command group", () => {
     ).toMatchObject({
       job: { job_id: "job_123", status: "ready" },
     });
-  });
-
-  it("prints exact JSON for private auction creation state", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(JSON.stringify(launchCreationStatePayload()), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "launch",
-        "state",
-        "--auction",
-        "auc_alpha",
-        "--json",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/creation-state?auction_id=auc_alpha`,
-    );
-    assertAgentAuthHeaders(fetchMock.mock.calls[0]?.[1]?.headers as Headers);
-    expect(parsePrintedJson(output.stdout)).toEqual(launchCreationStatePayload());
-  });
-
-  it("renders a terminal task board for private launch state", async () => {
-    useHumanTerminal();
-    fetchMock.mockResolvedValue(
-      new Response(JSON.stringify(launchCreationStatePayload()), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
-    );
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "launch",
-        "state",
-        "--auction",
-        "auc_alpha",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/api/autolaunch/v1/agent/launch/creation-state?auction_id=auc_alpha`,
-    );
-    const text = collapsePanelText(stripAnsi(output.stdout));
-    expect(text).toContain("PRIVATE LAUNCH STATE");
-    expect(text).toContain("REQUIRED BEFORE LAUNCH");
-    expect(text).toContain("RECOMMENDED TRUST SIGNALS");
-    expect(text).toContain("EXTRA PUBLIC SIGNALS");
-    expect(text).toContain("needs action Public details");
-    expect(text).toContain("regents autolaunch prelaunch wizard");
-    expect(text).toContain("Auction tracking");
-    expect(text).toContain("X profile");
   });
 
   it("guides a prelaunch wizard flow and saves the local plan", async () => {

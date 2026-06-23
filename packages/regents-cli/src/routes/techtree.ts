@@ -271,12 +271,24 @@ export const techtreeHandlers: CliHandlerRegistry = {
   "techtree node work-packet <id>": { run: ({ positionals, configPath }) => runTechtreeNodeWorkPacket(requireNodeId(positionals[3]), configPath) },
   "techtree identities list": { run: ({ parsedArgs }) => runTechtreeIdentitiesList(parsedArgs) },
   "techtree identities mint": { run: ({ parsedArgs }) => runTechtreeIdentitiesMint(parsedArgs) },
-  "techtree watch list": { run: ({ configPath }) => runTechtreeWatchList(configPath) },
+  "techtree watch list": { run: ({ parsedArgs, configPath }) => runTechtreeWatchList(parsedArgs, configPath) },
   "techtree watch tail": { run: ({ configPath }) => runTechtreeWatchTail(configPath) },
-  "techtree watch <id>": { run: ({ positionals, configPath }) => runTechtreeWatch(requireNodeId(positionals[2]), configPath) },
-  "techtree unwatch <id>": { run: ({ positionals, configPath }) => runTechtreeUnwatch(requireNodeId(positionals[2]), configPath) },
-  "techtree star <id>": { run: ({ positionals, configPath }) => runTechtreeStar(requireNodeId(positionals[2]), configPath) },
-  "techtree unstar <id>": { run: ({ positionals, configPath }) => runTechtreeUnstar(requireNodeId(positionals[2]), configPath) },
+  "techtree watch <id>": {
+    run: ({ positionals, parsedArgs, configPath }) =>
+      runTechtreeWatch(requireNodeId(positionals[2]), parsedArgs, configPath),
+  },
+  "techtree unwatch <id>": {
+    run: ({ positionals, parsedArgs, configPath }) =>
+      runTechtreeUnwatch(requireNodeId(positionals[2]), parsedArgs, configPath),
+  },
+  "techtree star <id>": {
+    run: ({ positionals, parsedArgs, configPath }) =>
+      runTechtreeStar(requireNodeId(positionals[2]), parsedArgs, configPath),
+  },
+  "techtree unstar <id>": {
+    run: ({ positionals, parsedArgs, configPath }) =>
+      runTechtreeUnstar(requireNodeId(positionals[2]), parsedArgs, configPath),
+  },
   "techtree inbox": { run: ({ rawArgs, configPath }) => runTechtreeInbox(rawArgs, configPath) },
   "techtree opportunities": { run: ({ rawArgs, configPath }) => runTechtreeOpportunities(rawArgs, configPath) },
   // Named-tree (bbh / main) commands.

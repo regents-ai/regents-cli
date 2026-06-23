@@ -269,16 +269,6 @@ For read surfaces, trust data now lives under the nested `trust` object:
 ### Low-level launches
 
 ```bash
-regents autolaunch launch preview \
-  --agent <agent-id> \
-  --chain-id <8453> \
-  --name "Agent Coin Name" \
-  --symbol "AGENT" \
-  --agent-safe-address <safe-address> \
-  --minimum-raise-quote <amount> \
-  [--launch-notes <text>] \
-  [--json]
-
 regents autolaunch launch run \
   [--plan <id>] \
   [--wallet-address <address>] \
@@ -435,7 +425,6 @@ The CLI is JSON-first. It forwards directly to the `autolaunch` Phoenix JSON API
 - `POST /api/autolaunch/v1/agent/prelaunch/assets`
 - `POST /api/autolaunch/v1/agent/prelaunch/plans/{id}/metadata`
 - `GET /api/autolaunch/v1/agent/prelaunch/plans/{id}/metadata-preview`
-- `POST /api/autolaunch/v1/agent/launch/preview`
 - `POST /api/autolaunch/v1/agent/launch/jobs`
 - `GET /api/autolaunch/v1/agent/launch/jobs/{id}`
 - `GET /api/autolaunch/v1/agent/lifecycle/jobs/{id}`

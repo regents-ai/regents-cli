@@ -14,6 +14,8 @@ const TEST_WALLET = "0x1111111111111111111111111111111111111111";
 const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
 const TEST_PRIVATE_KEY =
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
+const isPlatformContractUrl = (input: unknown): boolean =>
+  String(input).endsWith("/api-contract.openapiv3.yaml");
 
 describe("agentbook CLI command group", () => {
   // Only mutate individual keys on process.env: replacing the whole object
@@ -31,6 +33,36 @@ describe("agentbook CLI command group", () => {
   const fetchMock = vi.fn<typeof fetch>();
   let tempDir = "";
   let configPath = "";
+
+  const platformContractResponse = (): Response =>
+    new Response("openapi: 3.1.0\ninfo:\n  version: 0.1.0\n", {
+      status: 200,
+      headers: {
+        "content-type": "application/yaml",
+        "x-regents-contract-major": "0",
+        "x-regents-contract-version": "0.1.0",
+        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+      },
+    });
+
+  const mockPlatformResponses = (...responses: Response[]): void => {
+    const pending = [...responses];
+
+    fetchMock.mockImplementation(async (input) => {
+      if (isPlatformContractUrl(input)) {
+        return platformContractResponse();
+      }
+
+      const response = pending.shift();
+      if (!response) {
+        throw new Error(`Unexpected fetch: ${String(input)}`);
+      }
+
+      return response;
+    });
+  };
+
+  const productFetchCalls = () => fetchMock.mock.calls.filter(([input]) => !isPlatformContractUrl(input));
 
   const writeAgentAuthState = () => {
     writeInitialConfig(configPath);
@@ -125,7 +157,7 @@ describe("agentbook CLI command group", () => {
   it("starts a hosted trust approval in Platform", async () => {
     writeAgentAuthState();
 
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -174,9 +206,9 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("agentbook-receipt");
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({ source: "regents-cli" });
+    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions");
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("agentbook-receipt");
+    expect(JSON.parse(String(productFetchCalls()[0]?.[1]?.body))).toEqual({ source: "regents-cli" });
     expect(parsePrintedJson<{ session: { approval_url: string } }>(output.stdout)).toMatchObject({
       session: { approval_url: "https://platform.regents.sh/app/trust?session_id=sess_1&token=tok_1" },
     });
@@ -185,111 +217,106 @@ describe("agentbook CLI command group", () => {
   it("watches a hosted trust session and saves the human-backed trust on the local identity", async () => {
     writeAgentAuthState();
 
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            session: {
-              session_id: "sess_1",
-              status: "pending",
-              approval_url: "https://platform.regents.sh/app/trust?session_id=sess_1&token=tok_1",
-              wallet_address: TEST_WALLET,
-              chain_id: 84532,
-              registry_address: TEST_REGISTRY,
-              token_id: "99",
-              network: "world",
-              source: "regents-cli",
-              expires_at: "2026-04-21T20:00:00Z",
-              connector_uri: null,
-              deep_link_uri: null,
-              error_text: null,
-              frontend_request: null,
-              wallet_action: null,
-              trust: {
-                connected: false,
-                world_human_id: null,
-                unique_agent_count: 0,
-                connected_at: null,
-                source: null,
-              },
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          session: {
+            session_id: "sess_1",
+            status: "pending",
+            approval_url: "https://platform.regents.sh/app/trust?session_id=sess_1&token=tok_1",
+            wallet_address: TEST_WALLET,
+            chain_id: 84532,
+            registry_address: TEST_REGISTRY,
+            token_id: "99",
+            network: "world",
+            source: "regents-cli",
+            expires_at: "2026-04-21T20:00:00Z",
+            connector_uri: null,
+            deep_link_uri: null,
+            error_text: null,
+            frontend_request: null,
+            wallet_action: null,
+            trust: {
+              connected: false,
+              world_human_id: null,
+              unique_agent_count: 0,
+              connected_at: null,
+              source: null,
             },
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            session: {
-              session_id: "sess_1",
-              status: "proof_ready",
-              approval_url: null,
-              wallet_address: TEST_WALLET,
-              chain_id: 84532,
-              registry_address: TEST_REGISTRY,
-              token_id: "99",
-              network: "world",
-              source: "regents-cli",
-              expires_at: "2026-04-21T20:00:00Z",
-              connector_uri: null,
-              deep_link_uri: null,
-              error_text: "waiting on registration",
-              frontend_request: null,
-              wallet_action: null,
-              trust: {
-                connected: false,
-                world_human_id: null,
-                unique_agent_count: 0,
-                connected_at: null,
-                source: null,
-              },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          session: {
+            session_id: "sess_1",
+            status: "proof_ready",
+            approval_url: null,
+            wallet_address: TEST_WALLET,
+            chain_id: 84532,
+            registry_address: TEST_REGISTRY,
+            token_id: "99",
+            network: "world",
+            source: "regents-cli",
+            expires_at: "2026-04-21T20:00:00Z",
+            connector_uri: null,
+            deep_link_uri: null,
+            error_text: "waiting on registration",
+            frontend_request: null,
+            wallet_action: null,
+            trust: {
+              connected: false,
+              world_human_id: null,
+              unique_agent_count: 0,
+              connected_at: null,
+              source: null,
             },
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            session: {
-              session_id: "sess_1",
-              status: "registered",
-              approval_url: null,
-              wallet_address: TEST_WALLET,
-              chain_id: 84532,
-              registry_address: TEST_REGISTRY,
-              token_id: "99",
-              network: "world",
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          session: {
+            session_id: "sess_1",
+            status: "registered",
+            approval_url: null,
+            wallet_address: TEST_WALLET,
+            chain_id: 84532,
+            registry_address: TEST_REGISTRY,
+            token_id: "99",
+            network: "world",
+            source: "regents-cli",
+            expires_at: "2026-04-21T20:00:00Z",
+            connector_uri: null,
+            deep_link_uri: null,
+            error_text: null,
+            frontend_request: null,
+            wallet_action: null,
+            trust: {
+              connected: true,
+              world_human_id: "0x1234",
+              unique_agent_count: 2,
+              connected_at: "2026-04-21T19:40:00Z",
               source: "regents-cli",
-              expires_at: "2026-04-21T20:00:00Z",
-              connector_uri: null,
-              deep_link_uri: null,
-              error_text: null,
-              frontend_request: null,
-              wallet_action: null,
-              trust: {
-                connected: true,
-                world_human_id: "0x1234",
-                unique_agent_count: 2,
-                connected_at: "2026-04-21T19:40:00Z",
-                source: "regents-cli",
-              },
             },
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      );
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
 
     const output = await captureOutput(() =>
       runCliEntrypoint(["agentbook", "register", "--watch", "--config", configPath]),
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
-    expect(fetchMock.mock.calls[2]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
+    expect(productFetchCalls()[1]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
+    expect(productFetchCalls()[2]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
     expect(parsePrintedJson<{ session: { status: string; trust: { unique_agent_count: number } } }>(output.stdout))
       .toMatchObject({
         session: {
@@ -320,7 +347,7 @@ describe("agentbook CLI command group", () => {
   it("looks up the saved trust summary for the current Regent identity", async () => {
     writeAgentAuthState();
 
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -345,7 +372,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
+    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
     expect(parsePrintedJson<{ result: { world_human_id: string; unique_agent_count: number } }>(output.stdout))
       .toMatchObject({
         result: {
@@ -359,7 +386,7 @@ describe("agentbook CLI command group", () => {
     writeAgentAuthState();
     fs.rmSync(path.join(tempDir, ".regent", "identity", "receipt-v1.json"));
 
-    fetchMock.mockResolvedValue(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,
@@ -384,7 +411,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
+    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
   });
 
   it("rejects non-positive interval values for sessions watch", async () => {
@@ -404,7 +431,7 @@ describe("agentbook CLI command group", () => {
     writeAgentAuthState();
     const { runAgentbookSessionsWatch } = await import("../../src/commands/agentbook.js");
 
-    fetchMock.mockResolvedValueOnce(
+    mockPlatformResponses(
       new Response(
         JSON.stringify({
           ok: true,

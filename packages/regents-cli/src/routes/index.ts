@@ -1,10 +1,10 @@
 import { CLI_COMMANDS } from "../command-registry.js";
 import { agentbookHandlers } from "./agentbook.js";
-import { agentPlatformHandlers } from "./agent-platform.js";
 import { autolaunchHandlers } from "./autolaunch.js";
 import { chatHandlers } from "./chat.js";
 import { coreHandlers } from "./core.js";
 import { feynmanHandlers } from "./feynman.js";
+import { platformAgentHandlers } from "./platform-agent.js";
 import { platformHandlers } from "./platform.js";
 import { regentStakingHandlers } from "./regent-staking.js";
 import { reportingHandlers } from "./reporting.js";
@@ -29,7 +29,7 @@ export const cliHandlerRegistry: CliHandlerRegistry = {
   ...feynmanHandlers,
   ...workHandlers,
   ...runtimeHandlers,
-  ...agentPlatformHandlers,
+  ...platformAgentHandlers,
   ...reportingHandlers,
   ...walletIdentityAuthHandlers,
   ...platformHandlers,
