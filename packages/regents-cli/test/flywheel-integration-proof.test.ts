@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 
 import { parse } from "yaml";
@@ -6,9 +7,26 @@ import { describe, expect, it } from "vitest";
 
 import { CLI_COMMANDS } from "../src/command-registry.js";
 import { apiCommandOwnership } from "../src/contracts/api-ownership.js";
+import {
+  EXPECTED_PLATFORM_CONTRACT_DIGEST,
+  SUPPORTED_PLATFORM_CONTRACT_MAJOR,
+} from "../src/generated/platform-contract-digest.js";
 
 type OpenApiDocument = {
-  paths?: Record<string, Record<string, { operationId?: string; security?: unknown }>>;
+  info?: { version?: string };
+  paths?: Record<string, Record<string, { operationId?: string; security?: unknown; responses?: Record<string, unknown> }>>;
+  components?: {
+    securitySchemes?: Record<string, Record<string, unknown>>;
+    schemas?: Record<string, { required?: string[]; properties?: Record<string, unknown> }>;
+  };
+};
+
+type CliContractDocument = {
+  commands?: Array<{
+    name?: string;
+    auth?: { mode?: string };
+    flags?: Array<{ name?: string }>;
+  }>;
 };
 
 type WorkspaceManifest = {
@@ -41,6 +59,26 @@ const files = {
 };
 
 const loadYaml = <T>(file: string): T => parse(fs.readFileSync(file, "utf8")) as T;
+
+const platformContractDigest = (): string => {
+  const body = ["api-contract.openapiv3.yaml", "cli-contract.yaml"]
+    .map((file) => `${file}\n${fs.readFileSync(path.join(regentRoot, "platform", file), "utf8")}`)
+    .join("\n---\n");
+
+  return `sha256:${crypto.createHash("sha256").update(body).digest("hex")}`;
+};
+
+const schema = (document: OpenApiDocument, name: string) => {
+  const entry = document.components?.schemas?.[name];
+  expect(entry, name).toBeDefined();
+  return entry!;
+};
+
+const command = (document: CliContractDocument, name: string) => {
+  const entry = document.commands?.find((candidate) => candidate.name === name);
+  expect(entry, name).toBeDefined();
+  return entry!;
+};
 
 const operation = (document: OpenApiDocument, pathTemplate: string, method: string) => {
   const methods = document.paths?.[pathTemplate];
@@ -243,6 +281,64 @@ describe("Regent flywheel integration proof", () => {
     expect(repos["regents-cli"]?.cli_contracts?.[0]).toEqual(
       expect.objectContaining({ path: "docs/shared-cli-contract.yaml" }),
     );
+  });
+
+  it("keeps the shared security release shape aligned across Platform and CLI", () => {
+    const platformApi = loadYaml<OpenApiDocument>(files.platformApi);
+    const platformCli = loadYaml<CliContractDocument>(files.platformCli);
+    const techtreeApi = loadYaml<OpenApiDocument>(files.techtreeApi);
+
+    expect(EXPECTED_PLATFORM_CONTRACT_DIGEST).toBe(platformContractDigest());
+    expect(SUPPORTED_PLATFORM_CONTRACT_MAJOR).toBe(platformApi.info?.version?.split(".")[0]);
+
+    const login = command(platformCli, "regents platform auth login");
+    expect(login.auth?.mode).toBe("privy-access-token");
+    expect(login.flags?.map((flag) => flag.name)).toEqual(
+      expect.arrayContaining(["--access-token", "--access-token-env"]),
+    );
+    expect(JSON.stringify(platformCli)).not.toContain("identity-token");
+
+    expect(platformApi.components?.securitySchemes?.PrivyBearerToken).toEqual(
+      expect.objectContaining({ type: "http", scheme: "bearer" }),
+    );
+
+    const paidPayload = operation(techtreeApi, "/api/techtree/v1/agent/tree/nodes/{id}/payload", "get");
+    const paymentRequired = paidPayload.responses?.["402"] as {
+      headers?: Record<string, { "x-regent-decoded-schema"?: { $ref?: string } }>;
+    };
+    expect(paymentRequired.headers?.["payment-required"]?.["x-regent-decoded-schema"]?.$ref).toBe(
+      "#/components/schemas/X402PaymentRequired",
+    );
+
+    expect(schema(techtreeApi, "X402PaymentBindingV1").required).toEqual([
+      "version",
+      "resource_id",
+      "buyer_agent_id",
+      "seller_agent_id",
+      "network",
+      "asset",
+      "amount_atomic",
+      "pay_to",
+      "expires_at",
+      "nonce",
+      "binding_hash",
+    ]);
+    expect(schema(techtreeApi, "X402PaymentRequirements").properties?.extra).toMatchObject({
+      properties: {
+        regentPaymentBindingV1: { $ref: "#/components/schemas/X402PaymentBindingV1" },
+      },
+    });
+
+    expect(schema(techtreeApi, "AutoskillBundleManifest").required).toEqual([
+      "schema_version",
+      "bundle_hash",
+      "total_size",
+      "files",
+    ]);
+    expect(schema(techtreeApi, "AutoskillBundleManifestFile").required).toEqual(["path", "sha256", "size"]);
+    expect(schema(techtreeApi, "AutoskillBundleAccessData").properties?.manifest).toEqual({
+      $ref: "#/components/schemas/AutoskillBundleManifest",
+    });
   });
 
   it("keeps every product-loop route under its owning contract and CLI command", () => {

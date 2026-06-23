@@ -87,7 +87,7 @@ const techtreePrerequisites = [
 ];
 
 const platformPrerequisites = [
-  "Run `regents platform auth login` with a Regent website identity token.",
+  "Run `regents platform auth login` with a Regent website access token.",
   "Use the correct company id or slug from the Regent website.",
 ];
 
@@ -331,18 +331,18 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
   "platform auth login": {
     summary: "Save a Regent website sign-in for platform account commands.",
     usage:
-      "regents platform auth login [--identity-token <token> | --identity-token-env <name>]",
+      "regents platform auth login [--access-token <token> | --access-token-env <name>]",
     flags: [
-      "--identity-token <token>",
-      "--identity-token-env <name>",
+      "--access-token <token>",
+      "--access-token-env <name>",
       "--display-name <name>",
       "--origin <url>",
       "--session-file <path>",
       "--config <path>",
     ],
     examples: [
-      "regents platform auth login --identity-token <token>",
-      "regents platform auth login --identity-token-env REGENT_PLATFORM_IDENTITY_TOKEN",
+      "regents platform auth login --access-token <token>",
+      "regents platform auth login --access-token-env REGENT_PLATFORM_ACCESS_TOKEN",
     ],
     auth: "No saved platform sign-in is needed.",
     output: "Shows the saved website account profile and where the session was stored.",
@@ -517,7 +517,7 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
       "regents agent link --company-id company_123 --manager-agent-id agent_1 --executor-agent-id agent_2 --relationship can_delegate_to",
       "regents agent link --company-id company_123 --manager-worker-id worker_1 --executor-worker-id worker_2 --relationship can_delegate_to",
     ],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
+    auth: "Use `regents platform auth login` with a Platform access token.",
     output: "Shows the manager, worker, link type, and listing command.",
     nextStep: "Run `regents agent execution-pool --company-id <id> --manager <id>`.",
   },
@@ -526,7 +526,7 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
     usage: "regents agent execution-pool --company-id <id> --manager <id>",
     flags: ["--company-id <id>", "--manager <id>", "--origin <url>", "--session-file <path>"],
     examples: ["regents agent execution-pool --company-id company_123 --manager agent_1"],
-    auth: "Use `regents platform auth login` with a Platform identity token.",
+    auth: "Use `regents platform auth login` with a Platform access token.",
     output: "Shows assignable worker ids, roles, status, and last check-in.",
     nextStep: "Use `regents work run` or a connected manager to start company work.",
   },
@@ -1127,29 +1127,6 @@ Object.assign(commandHelpOverlay, {
       "If the local wallet cannot sign, run `regents wallet status` and correct the wallet source.",
     ],
   },
-  "autolaunch launch preview": {
-    summary: "Preview the launch payload before creating a launch job.",
-    usage:
-      "regents autolaunch launch preview --agent <id> --name <token-name> --symbol <symbol> --agent-safe-address <safe> --minimum-raise-quote <amount>",
-    flags: [
-      "--agent <id>",
-      "--name <text>",
-      "--symbol <text>",
-      "--agent-safe-address <address>",
-      "--minimum-raise-quote <amount> - Minimum $REGENT raise target, up to 18 decimals.",
-      "--launch-notes <text>",
-      "--json",
-      "--config <path>",
-    ],
-    examples: [
-      "regents autolaunch launch preview --agent agent_123 --name RegentBot --symbol RGBOT --agent-safe-address 0x0000000000000000000000000000000000000001 --minimum-raise-quote 1000",
-    ],
-    prerequisites: autolaunchPrerequisites,
-    auth: "Needs Autolaunch sign-in and a saved Agent account.",
-    output: "Shows the launch data that would be used without creating the launch job.",
-    nextStep: "Create or run the launch only after the preview matches the intended project.",
-    ifItFails: autolaunchFailureChecks,
-  },
   "autolaunch launch run": {
     summary: "Run the launch flow for a validated prelaunch plan.",
     usage: "regents autolaunch launch run [--plan <plan-id>] [--watch] [--interval <seconds>] [--json]",
@@ -1170,27 +1147,6 @@ Object.assign(commandHelpOverlay, {
     auth: "Needs Autolaunch sign-in, saved Agent account, and a launch-authorizing wallet.",
     output: "Shows the launch job id, current job status, and the command to keep watching it.",
     nextStep: "Run `regents autolaunch jobs watch <job-id> --watch` until the job is ready, failed, or blocked.",
-    ifItFails: autolaunchFailureChecks,
-  },
-  "autolaunch launch state": {
-    summary: "Show the private launch checklist for your latest or selected launch.",
-    usage: "regents autolaunch launch state [--plan <id> | --job <id> | --auction <id>] [--json]",
-    flags: [
-      "--plan <id> - Read the checklist for a saved plan.",
-      "--job <id> - Read the checklist for a launch job.",
-      "--auction <id> - Read the checklist for an auction.",
-      "--json",
-      "--config <path>",
-    ],
-    examples: [
-      "regents autolaunch launch state",
-      "regents autolaunch launch state --plan plan_123",
-      "regents autolaunch launch state --auction auc_123",
-    ],
-    prerequisites: autolaunchPrerequisites,
-    auth: "Needs Autolaunch sign-in and a saved Agent account connected to the launch work.",
-    output: "Shows required launch tasks, recommended trust signals, and extra public signals.",
-    nextStep: "Complete any required item marked needs action, then rerun the command before launch.",
     ifItFails: autolaunchFailureChecks,
   },
   "autolaunch jobs watch": {
@@ -1779,14 +1735,14 @@ const groupHelp: Record<string, HelpGroup> = {
   },
   platform: {
     summary: "Use the Regent website account from the terminal.",
-    auth: "Use `regents platform auth login` with a Platform identity token.",
+    auth: "Use `regents platform auth login` with a Platform access token.",
     output: "Shows account, readiness, billing, and runtime status. Some beta actions return an unavailable status.",
     commands: CLI_COMMANDS_BY_TOP_LEVEL_GROUP.platform,
     nextStep: "Start with `regents platform auth login`, then `regents platform formation status`.",
   },
   work: {
     summary: "Create and run Regent company work from the terminal.",
-    auth: "Use `regents platform auth login` with a Platform identity token.",
+    auth: "Use `regents platform auth login` with a Platform access token.",
     output: "Shows concise work summaries, run status, and update lists.",
     commands: CLI_COMMANDS_BY_TOP_LEVEL_GROUP.work,
     nextStep: "Start with `regents work create --company-id <id> --title <title>`.",
@@ -1800,7 +1756,7 @@ const groupHelp: Record<string, HelpGroup> = {
   },
   runtime: {
     summary: "Manage Regent company runtimes from the terminal.",
-    auth: "Use `regents platform auth login` with a Platform identity token.",
+    auth: "Use `regents platform auth login` with a Platform access token.",
     output: "Shows runtime status, services, health, checkpoints, and restore results. `--json` prints raw JSON.",
     commands: CLI_COMMANDS_BY_TOP_LEVEL_GROUP.runtime,
     nextStep: "Start with `regents runtime get <runtime-id> --company-id <id>` or create a runtime from the company setup.",

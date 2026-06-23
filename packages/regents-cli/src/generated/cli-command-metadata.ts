@@ -60,9 +60,7 @@ export const CLI_COMMANDS = [
   "autolaunch jobs watch",
   "autolaunch launch finalize",
   "autolaunch launch monitor",
-  "autolaunch launch preview",
   "autolaunch launch run",
-  "autolaunch launch state",
   "autolaunch pair",
   "autolaunch payment-links create",
   "autolaunch payment-links set-canonical",
@@ -425,9 +423,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch jobs watch",
     "autolaunch launch finalize",
     "autolaunch launch monitor",
-    "autolaunch launch preview",
     "autolaunch launch run",
-    "autolaunch launch state",
     "autolaunch pair",
     "autolaunch payment-links create",
     "autolaunch payment-links set-canonical",
@@ -3257,78 +3253,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "summary": "Watch launch.",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
-  "autolaunch launch preview": {
-    "command": "autolaunch launch preview",
-    "owner": "autolaunch",
-    "group": "prelaunch-launch",
-    "interface": "mixed",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "launch-envelopes",
-    "flags": [
-      {
-        "name": "--minimum-raise-quote",
-        "type": "string",
-        "required": true,
-        "description": "Minimum $REGENT raise target, up to 18 decimals."
-      },
-      {
-        "name": "--launch-notes",
-        "type": "string",
-        "required": false,
-        "description": "Public launch notes."
-      },
-      {
-        "name": "--agent-safe-address",
-        "type": "string",
-        "required": true,
-        "description": "Agent Safe address that will control launch ownership."
-      },
-      {
-        "name": "--agent",
-        "type": "string",
-        "required": true,
-        "description": "Agent being launched."
-      },
-      {
-        "name": "--name",
-        "type": "string",
-        "required": true,
-        "description": "Token name."
-      },
-      {
-        "name": "--symbol",
-        "type": "string",
-        "required": true,
-        "description": "Token symbol."
-      },
-      {
-        "name": "--chain-id",
-        "type": "string",
-        "required": true,
-        "description": "Chain id the launch runs on."
-      }
-    ],
-    "examples": [
-      "regents autolaunch prelaunch wizard",
-      "regents autolaunch prelaunch get --plan <id>",
-      "regents autolaunch prelaunch validate --plan <id>",
-      "regents autolaunch jobs watch <job_id>"
-    ],
-    "agent_metadata": {
-      "category": "launch",
-      "prompt_behavior": "confirm_before_publish_or_submit",
-      "json_support": "supported",
-      "mutation_class": "workflow-write",
-      "retry_behavior": "retry_status_and_prepare_only",
-      "pagination": "bounded",
-      "async_behavior": "job_or_polling",
-      "input_mode": "mixed",
-      "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
-    },
-    "summary": "Preview launch.",
-    "next_step": "Use `regents autolaunch jobs watch <job-id>`."
-  },
   "autolaunch launch run": {
     "command": "autolaunch launch run",
     "owner": "autolaunch",
@@ -3381,54 +3305,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Run launch.",
-    "next_step": "Use `regents autolaunch jobs watch <job-id>`."
-  },
-  "autolaunch launch state": {
-    "command": "autolaunch launch state",
-    "owner": "autolaunch",
-    "group": "prelaunch-launch",
-    "interface": "mixed",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "launch-envelopes",
-    "flags": [
-      {
-        "name": "--plan",
-        "type": "string",
-        "required": false,
-        "description": "Read private launch state for a saved plan."
-      },
-      {
-        "name": "--job",
-        "type": "string",
-        "required": false,
-        "description": "Read private launch state for a launch job."
-      },
-      {
-        "name": "--auction",
-        "type": "string",
-        "required": false,
-        "description": "Read private launch state for an auction."
-      }
-    ],
-    "examples": [
-      "regents autolaunch prelaunch wizard",
-      "regents autolaunch prelaunch get --plan <id>",
-      "regents autolaunch prelaunch validate --plan <id>",
-      "regents autolaunch jobs watch <job_id>"
-    ],
-    "agent_metadata": {
-      "category": "launch",
-      "prompt_behavior": "confirm_before_publish_or_submit",
-      "json_support": "supported",
-      "mutation_class": "workflow-write",
-      "retry_behavior": "retry_status_and_prepare_only",
-      "pagination": "bounded",
-      "async_behavior": "job_or_polling",
-      "input_mode": "mixed",
-      "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
-    },
-    "summary": "Show Autolaunch launch state.",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch pair": {
@@ -6304,7 +6180,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http-cookie-session",
-    "auth_mode": "privy-identity-token",
+    "auth_mode": "privy-access-token",
     "output_envelope": "json",
     "operation_ids": [
       "privySessionCsrf",
@@ -6313,16 +6189,16 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "args": [],
     "flags": [
       {
-        "name": "--identity-token",
+        "name": "--access-token",
         "type": "string",
         "required": false,
-        "description": "Privy identity token for the platform account."
+        "description": "Privy access token for the platform account."
       },
       {
-        "name": "--identity-token-env",
+        "name": "--access-token-env",
         "type": "string",
         "required": false,
-        "description": "Environment variable name that contains the Privy identity token."
+        "description": "Environment variable name that contains the Privy access token."
       },
       {
         "name": "--display-name",

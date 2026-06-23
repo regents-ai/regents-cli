@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 353.
+Total commands: 351.
 
 ## Full Command List
 
@@ -80,9 +80,7 @@ Total commands: 353.
 - `regents autolaunch jobs watch` - Watch jobs.
 - `regents autolaunch launch finalize` - Finalize launch.
 - `regents autolaunch launch monitor` - Watch launch.
-- `regents autolaunch launch preview` - Preview launch.
 - `regents autolaunch launch run` - Run launch.
-- `regents autolaunch launch state` - Show Autolaunch launch state.
 - `regents autolaunch pair` - Pair Autolaunch.
 - `regents autolaunch payment-links create` - Create payment links.
 - `regents autolaunch payment-links set-canonical` - Set canonical for payment links.

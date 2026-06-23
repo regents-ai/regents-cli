@@ -1,9 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 
+import { CliUsageError } from "../cli-usage-error.js";
 import { appendStructuredLog } from "./structured-log.js";
 import { loadConfig } from "./config.js";
 import type { RegentConfig } from "../internal-types/config.js";
+import {
+  EXPECTED_PLATFORM_CONTRACT_DIGEST,
+  SUPPORTED_PLATFORM_CONTRACT_MAJOR,
+} from "../generated/platform-contract-digest.js";
 
 export type ProductServiceName = "siwa" | "platform" | "autolaunch" | "techtree";
 export type ProductHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -89,6 +94,7 @@ export const requestProductResponse = async (
   options: ProductHttpRequestOptions,
 ): Promise<ProductHttpResponse> => {
   const config = options.config ?? loadConfig(options.configPath);
+  const baseUrl = productBaseUrl(config, options.service, options.baseUrlOverride);
   const requestId = randomUUID();
   const started = performance.now();
   const timeoutMs = options.timeoutMs ?? config.services[options.service].requestTimeoutMs;
@@ -110,8 +116,12 @@ export const requestProductResponse = async (
     }
   }
 
+  if (options.service === "platform" && options.method !== "GET") {
+    await ensureCompatiblePlatformContract(baseUrl);
+  }
+
   try {
-    const response = await fetch(`${productBaseUrl(config, options.service, options.baseUrlOverride)}${options.path}`, {
+    const response = await fetch(`${baseUrl}${options.path}`, {
       method: options.method,
       headers,
       body: options.body,
@@ -175,5 +185,29 @@ export const requestProductResponse = async (
     if (timeout) {
       clearTimeout(timeout);
     }
+  }
+};
+
+const ensureCompatiblePlatformContract = async (baseUrl: string): Promise<void> => {
+  const response = await fetch(`${baseUrl}/api-contract.openapiv3.yaml`, {
+    method: "GET",
+    headers: { accept: "application/yaml" },
+  });
+
+  if (!response.ok) {
+    throw new CliUsageError({
+      code: "platform_contract_check_failed",
+      message: "Platform contract version could not be checked.",
+    });
+  }
+
+  const major = response.headers.get("x-regents-contract-major");
+  const digest = response.headers.get("x-regents-contract-digest");
+
+  if (major !== SUPPORTED_PLATFORM_CONTRACT_MAJOR || digest !== EXPECTED_PLATFORM_CONTRACT_DIGEST) {
+    throw new CliUsageError({
+      code: "platform_contract_incompatible",
+      message: "This Regents CLI needs a matching Platform contract version before it can make changes.",
+    });
   }
 };

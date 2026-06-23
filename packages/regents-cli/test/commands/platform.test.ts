@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../../src/index.js";
+import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
 describe("platform CLI command group", () => {
@@ -15,6 +16,17 @@ describe("platform CLI command group", () => {
   const fetchMock = vi.fn<typeof fetch>();
   let homeDir = "";
   let sessionFile = "";
+
+  const platformContractResponse = (major = "0") =>
+    new Response("openapi: 3.1.0\ninfo:\n  version: 0.1.0\n", {
+      status: 200,
+      headers: {
+        "content-type": "application/yaml",
+        "x-regents-contract-major": major,
+        "x-regents-contract-version": `${major}.1.0`,
+        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+      },
+    });
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -52,7 +64,7 @@ describe("platform CLI command group", () => {
     );
   };
 
-  it("signs in with a Privy identity token and saves the platform session", async () => {
+  it("signs in with a Privy access token and saves the platform session", async () => {
     fetchMock
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ ok: true, csrf_token: "csrf-token" }), {
@@ -60,6 +72,7 @@ describe("platform CLI command group", () => {
           headers: { "content-type": "application/json", "set-cookie": "_platform_phx_key=bootstrap; path=/" },
         }),
       )
+      .mockResolvedValueOnce(platformContractResponse())
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ ok: true, authenticated: true }), {
           status: 200,
@@ -76,7 +89,7 @@ describe("platform CLI command group", () => {
         "http://127.0.0.1:4010",
         "--session-file",
         sessionFile,
-        "--identity-token",
+        "--access-token",
         "privy-token",
         "--display-name",
         "Regent Operator",
@@ -85,9 +98,10 @@ describe("platform CLI command group", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/auth/privy/csrf");
-    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/platform/auth/privy/session");
-    expect((fetchMock.mock.calls[1]?.[1]?.headers as Headers).get("authorization")).toBe("Bearer privy-token");
-    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ display_name: "Regent Operator" }));
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api-contract.openapiv3.yaml");
+    expect(fetchMock.mock.calls[2]?.[0]).toBe("http://127.0.0.1:4010/api/platform/auth/privy/session");
+    expect((fetchMock.mock.calls[2]?.[1]?.headers as Headers).get("authorization")).toBe("Bearer privy-token");
+    expect(fetchMock.mock.calls[2]?.[1]?.body).toBe(JSON.stringify({ display_name: "Regent Operator" }));
     expect(parsePrintedJson<{ ok: boolean; profile: { authenticated: boolean } }>(output.stdout)).toMatchObject({
       ok: true,
       profile: { authenticated: true },
@@ -96,6 +110,72 @@ describe("platform CLI command group", () => {
       origin: "http://127.0.0.1:4010",
       cookie: "_platform_phx_key=session-cookie",
       csrfToken: "csrf-token",
+    });
+  });
+
+  it("uses the selected config for the whole platform sign-in flow", async () => {
+    const defaultConfigPath = path.join(homeDir, ".regent", "config.json");
+    fs.mkdirSync(path.dirname(defaultConfigPath), { recursive: true });
+    fs.writeFileSync(defaultConfigPath, `${JSON.stringify({ xmtp: { stale: true } })}\n`, "utf8");
+
+    const configPath = path.join(homeDir, "current-regent.config.json");
+    writeInitialConfig(configPath, {
+      services: {
+        siwa: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1000,
+        },
+        platform: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1000,
+        },
+        autolaunch: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1000,
+        },
+        techtree: {
+          baseUrl: "http://127.0.0.1:4010",
+          requestTimeoutMs: 1000,
+        },
+      },
+    });
+
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true, csrf_token: "csrf-token" }), {
+          status: 200,
+          headers: { "content-type": "application/json", "set-cookie": "_platform_phx_key=bootstrap; path=/" },
+        }),
+      )
+      .mockResolvedValueOnce(platformContractResponse())
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true, authenticated: true }), {
+          status: 200,
+          headers: { "content-type": "application/json", "set-cookie": "_platform_phx_key=session-cookie; path=/" },
+        }),
+      );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "auth",
+        "login",
+        "--config",
+        configPath,
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+        "--access-token",
+        "privy-token",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(JSON.parse(fs.readFileSync(sessionFile, "utf8"))).toMatchObject({
+      origin: "http://127.0.0.1:4010",
+      cookie: "_platform_phx_key=session-cookie",
     });
   });
 
@@ -189,8 +269,9 @@ describe("platform CLI command group", () => {
 
   it("starts a billing top-up checkout in whole dollars", async () => {
     writeSession();
-    fetchMock.mockResolvedValue(
-      new Response(
+    fetchMock
+      .mockResolvedValueOnce(platformContractResponse())
+      .mockResolvedValueOnce(new Response(
         JSON.stringify({
           ok: true,
           checkout_url: "https://checkout.stripe.test/session-1",
@@ -200,8 +281,7 @@ describe("platform CLI command group", () => {
           status: 200,
           headers: { "content-type": "application/json" },
         },
-      ),
-    );
+      ));
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -218,9 +298,10 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/billing/topups/checkout");
-    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(JSON.stringify({ amountUsdCents: 2_500 }));
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api-contract.openapiv3.yaml");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/platform/billing/topups/checkout");
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("POST");
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ amountUsdCents: 2_500 }));
     expect(
       parsePrintedJson<{ command: string; checkout: { checkout_url: string } }>(output.stdout),
     ).toMatchObject({
@@ -231,8 +312,9 @@ describe("platform CLI command group", () => {
 
   it("pauses a company's hosted runtime", async () => {
     writeSession();
-    fetchMock.mockResolvedValue(
-      new Response(
+    fetchMock
+      .mockResolvedValueOnce(platformContractResponse())
+      .mockResolvedValueOnce(new Response(
         JSON.stringify({
           ok: true,
           sprite: {
@@ -246,8 +328,7 @@ describe("platform CLI command group", () => {
           status: 200,
           headers: { "content-type": "application/json" },
         },
-      ),
-    );
+      ));
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -264,8 +345,9 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/tempo/pause");
-    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api-contract.openapiv3.yaml");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/tempo/pause");
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; sprite: { runtime_status: string } }>(output.stdout)).toMatchObject({
       command: "regents platform company pause",
       sprite: { slug: "tempo", runtime_status: "paused" },
@@ -274,8 +356,9 @@ describe("platform CLI command group", () => {
 
   it("resumes a company's hosted runtime", async () => {
     writeSession();
-    fetchMock.mockResolvedValue(
-      new Response(
+    fetchMock
+      .mockResolvedValueOnce(platformContractResponse())
+      .mockResolvedValueOnce(new Response(
         JSON.stringify({
           ok: true,
           sprite: {
@@ -290,8 +373,7 @@ describe("platform CLI command group", () => {
           status: 200,
           headers: { "content-type": "application/json" },
         },
-      ),
-    );
+      ));
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -308,8 +390,9 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/tempo/resume");
-    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api-contract.openapiv3.yaml");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/tempo/resume");
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("POST");
     expect(
       parsePrintedJson<{
         command: string;
@@ -325,8 +408,9 @@ describe("platform CLI command group", () => {
 
   it("saves Platform billing spend controls in cents", async () => {
     writeSession();
-    fetchMock.mockResolvedValue(
-      new Response(
+    fetchMock
+      .mockResolvedValueOnce(platformContractResponse())
+      .mockResolvedValueOnce(new Response(
         JSON.stringify({
           ok: true,
           billing_account: { runtime_monthly_limit_usd_cents: 10_000 },
@@ -336,8 +420,7 @@ describe("platform CLI command group", () => {
           status: 200,
           headers: { "content-type": "application/json" },
         },
-      ),
-    );
+      ));
 
     const output = await captureOutput(() =>
       runCliEntrypoint([
@@ -362,10 +445,11 @@ describe("platform CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/billing/spend-controls");
-    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("PUT");
-    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
-    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api-contract.openapiv3.yaml");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/platform/billing/spend-controls");
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("PUT");
+    expect((fetchMock.mock.calls[1]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(
       JSON.stringify({
         runtimeMonthlyLimitUsdCents: 10_000,
         llmMonthlyLimitUsdCents: 5_000,
@@ -378,6 +462,30 @@ describe("platform CLI command group", () => {
       command: "regents platform billing spend-controls set",
       billing: { ok: true },
     });
+  });
+
+  it("rejects Platform write calls when the contract major version differs", async () => {
+    writeSession();
+    fetchMock.mockResolvedValueOnce(platformContractResponse("9"));
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "company",
+        "pause",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+        "--slug",
+        "tempo",
+      ]),
+    );
+
+    expect(output.result).toBe(2);
+    expect(fetchMock.mock.calls).toHaveLength(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://127.0.0.1:4010/api-contract.openapiv3.yaml");
+    expect(output.stderr).toContain("matching Platform contract version");
   });
 
 });

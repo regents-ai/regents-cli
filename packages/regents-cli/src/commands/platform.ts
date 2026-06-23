@@ -8,7 +8,7 @@ import { CliUsageError } from "../cli-usage-error.js";
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
-const DEFAULT_IDENTITY_TOKEN_ENV = "REGENT_PLATFORM_IDENTITY_TOKEN";
+const DEFAULT_ACCESS_TOKEN_ENV = "REGENT_PLATFORM_ACCESS_TOKEN";
 const DEFAULT_SESSION_FILE = path.join(os.homedir(), ".regent", "platform", "session.json");
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
@@ -37,18 +37,19 @@ export interface PlatformRequestOptions {
 export async function runPlatformAuthLogin(args: ParsedCliArgs): Promise<void> {
   const origin = resolveOrigin(args);
   const sessionFile = resolveSessionFile(args);
-  const identityToken = resolveIdentityToken(args);
+  const accessToken = resolveAccessToken(args);
   const displayName = getFlag(args, "display-name");
-  const bootstrap = await bootstrapCsrf(origin);
+  const configPath = getFlag(args, "config");
+  const bootstrap = await bootstrapCsrf(origin, configPath);
   const { data, session } = await requestPlatformSessionJson({
     origin,
     path: "/api/platform/auth/privy/session",
     method: "POST",
     session: bootstrap,
-    authorization: `Bearer ${identityToken}`,
+    authorization: `Bearer ${accessToken}`,
     body: displayName ? { display_name: displayName } : {},
     commandName: "regents platform auth login",
-    configPath: getFlag(args, "config"),
+    configPath,
   });
 
   await saveSession(sessionFile, session);
@@ -322,16 +323,16 @@ const resolveOptionalOrigin = (args: ParsedCliArgs): string | null => {
 const resolveSessionFile = (args: ParsedCliArgs): string =>
   path.resolve(expandHome(getFlag(args, "session-file") ?? DEFAULT_SESSION_FILE));
 
-const resolveIdentityToken = (args: ParsedCliArgs): string => {
-  const explicit = getFlag(args, "identity-token");
+const resolveAccessToken = (args: ParsedCliArgs): string => {
+  const explicit = getFlag(args, "access-token");
   if (explicit) {
     return explicit;
   }
 
-  const envName = getFlag(args, "identity-token-env") ?? DEFAULT_IDENTITY_TOKEN_ENV;
+  const envName = getFlag(args, "access-token-env") ?? DEFAULT_ACCESS_TOKEN_ENV;
   const fromEnv = process.env[envName];
   if (!fromEnv) {
-    throw new Error(`Provide --identity-token, --identity-token-env, or set ${DEFAULT_IDENTITY_TOKEN_ENV}.`);
+    throw new Error(`Provide --access-token, --access-token-env, or set ${DEFAULT_ACCESS_TOKEN_ENV}.`);
   }
 
   return fromEnv;
@@ -351,13 +352,14 @@ const dollarsToCents = (args: ParsedCliArgs, name: string): number => {
   return parsed * 100;
 };
 
-const bootstrapCsrf = async (origin: string): Promise<PlatformSessionState> => {
+const bootstrapCsrf = async (origin: string, configPath?: string): Promise<PlatformSessionState> => {
   const { response } = await requestProductResponse({
     service: "platform",
     method: "GET",
     path: "/api/platform/auth/privy/csrf",
     baseUrlOverride: origin,
     commandName: "regents platform auth login",
+    configPath,
     headers: { accept: "application/json" },
   });
   const data = await parseJsonResponse(response);

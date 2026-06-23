@@ -67,7 +67,7 @@ const registeredWorkerId = (data: JsonObject): string => {
   return String(id);
 };
 
-const requestAgentPlatformJson = async (
+const requestPlatformAgentJson = async (
   configPath: string | undefined,
   input: { method: "GET" | "POST"; path: string; body?: JsonObject },
 ): Promise<{ origin: string; data: JsonObject }> => {
@@ -77,7 +77,7 @@ const requestAgentPlatformJson = async (
     requireAgentAuth: true,
     authAudience: "platform",
     service: "platform",
-    commandName: "regents agent platform",
+    commandName: "regents agent",
   });
 
   return { origin: productBaseUrl(loadConfig(configPath), "platform"), data };
@@ -87,7 +87,7 @@ export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: st
   const resolvedCompanyId = companyId(args);
   const role = requireArg(getFlag(args, "role"), "role");
   const displayName = getFlag(args, "name") ?? "Hermes local worker";
-  const { origin, data } = await requestAgentPlatformJson(configPath, {
+  const { origin, data } = await requestPlatformAgentJson(configPath, {
     method: "POST",
     path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
     body: {
@@ -128,7 +128,7 @@ export async function runAgentConnectOpenClaw(args: ParsedCliArgs, configPath?: 
   const role = requireArg(getFlag(args, "role"), "role");
   const displayName = getFlag(args, "name") ?? "OpenClaw local worker";
   const runnerKind = role === "manager" ? "openclaw_local_manager" : "openclaw_local_executor";
-  const { origin, data } = await requestAgentPlatformJson(configPath, {
+  const { origin, data } = await requestPlatformAgentJson(configPath, {
     method: "POST",
     path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
     body: {

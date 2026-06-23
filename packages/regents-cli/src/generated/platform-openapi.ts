@@ -577,6 +577,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** @description Exchange a verified Privy access token for a Regent website session. */
         post: operations["privySessionCreate"];
         delete: operations["privySessionDelete"];
         options?: never;
