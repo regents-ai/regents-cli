@@ -200,13 +200,31 @@ describe("techtree skills optimize", () => {
   it("resolves the capsule set, spawns the engine, and reports the optimized skill", async () => {
     daemonCallMock.mockResolvedValue(capsuleListResponse);
     const child = dispatchEngine(engineReport);
+    const previousPrivateKey = process.env.REGENT_WALLET_PRIVATE_KEY;
+    const previousOpenAiKey = process.env.OPENAI_API_KEY;
+    process.env.REGENT_WALLET_PRIVATE_KEY = "secret";
+    process.env.OPENAI_API_KEY = "secret";
 
     const { runTechtreeSkillsOptimize } = await import("../../src/commands/techtree-skills.js");
     const { parseCliArgs } = await import("../../src/parse.js");
 
-    const output = await captureOutput(() =>
-      runTechtreeSkillsOptimize(parseCliArgs(optimizeArgs(workspace))),
-    );
+    const output = await (async () => {
+      try {
+        return await captureOutput(() => runTechtreeSkillsOptimize(parseCliArgs(optimizeArgs(workspace))));
+      } finally {
+        if (previousPrivateKey === undefined) {
+          delete process.env.REGENT_WALLET_PRIVATE_KEY;
+        } else {
+          process.env.REGENT_WALLET_PRIVATE_KEY = previousPrivateKey;
+        }
+
+        if (previousOpenAiKey === undefined) {
+          delete process.env.OPENAI_API_KEY;
+        } else {
+          process.env.OPENAI_API_KEY = previousOpenAiKey;
+        }
+      }
+    })();
 
     expect(daemonCallMock).toHaveBeenCalledWith(
       "techtree.benchmarks.capsules.list",
@@ -233,6 +251,8 @@ describe("techtree skills optimize", () => {
     ]);
     expect(options.env.REGENT_TECHTREE_BASE_URL).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
     expect(options.env.REGENT_TECHTREE_AGENT_HEADERS).toBe("{}");
+    expect(options.env.REGENT_WALLET_PRIVATE_KEY).toBeUndefined();
+    expect(options.env.OPENAI_API_KEY).toBeUndefined();
 
     const engineConfig = JSON.parse(child.stdinChunks.join("")) as Record<string, unknown>;
     expect(engineConfig).toMatchObject({

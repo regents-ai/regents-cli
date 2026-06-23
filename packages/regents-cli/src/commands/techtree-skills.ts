@@ -8,6 +8,7 @@ import type { AutoskillSkillPublishRequest, NodeCreateResponse } from "../intern
 
 import { daemonCall } from "../daemon-client.js";
 import { productBaseUrl } from "../internal-runtime/product-http-client.js";
+import { buildSafeSubprocessEnv } from "../internal-runtime/safe-subprocess-env.js";
 import { buildSignerBackedAgentHeaders } from "../internal-runtime/siwa/signing.js";
 import { resolveAuthenticatedAgentSigningContext } from "../internal-runtime/techtree/auth.js";
 import { resolveTechtreeCoreDir } from "../internal-runtime/techtree/core.js";
@@ -227,7 +228,9 @@ export const runSkillOptEngine = async (input: {
       "uv",
       ["run", "--directory", input.coreDir, "python", "-m", "techtree_core.skillopt", "--config", "-"],
       {
-        env: { ...process.env, ...input.env },
+        env: buildSafeSubprocessEnv(process.env, input.env, {
+          trustedOverrideNames: ["REGENT_TECHTREE_BASE_URL", "REGENT_TECHTREE_AGENT_HEADERS"],
+        }),
         stdio: ["pipe", "pipe", "pipe"],
       },
     );

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -104,6 +104,12 @@ const DEFAULT_RESULT = {
   grader_breakdown: {},
 };
 
+const AUTOSKILL_BUNDLE_SCHEMA_VERSION = "techtree.autoskill.bundle.v1";
+const MANIFEST_FILENAME = "bundle.manifest.json";
+const MAX_BUNDLE_FILE_COUNT = 512;
+const MAX_BUNDLE_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_BUNDLE_TOTAL_SIZE_BYTES = 25 * 1024 * 1024;
+
 const parseManifestText = (source: string): Record<string, unknown> => {
   const lines = source.split(/\r?\n/);
   const root: Record<string, unknown> = {};
@@ -178,6 +184,258 @@ const listWorkspaceFiles = async (workspacePath: string): Promise<string[]> => {
     .filter((entry) => entry !== ".")
     .map((entry) => entry.replace(/^\.\//, ""))
     .sort();
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const canonicalBundlePath = (value: unknown): string => {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error("autoskill bundle file path is invalid");
+  }
+
+  if (
+    value.includes("\0") ||
+    value.includes("\\") ||
+    path.isAbsolute(value) ||
+    path.win32.isAbsolute(value) ||
+    value.startsWith("//") ||
+    value === MANIFEST_FILENAME
+  ) {
+    throw new Error(`unsafe autoskill bundle path: ${value}`);
+  }
+
+  const normalized = path.posix.normalize(value);
+  const parts = normalized.split("/");
+
+  if (
+    normalized === "." ||
+    normalized === ".." ||
+    normalized.startsWith("../") ||
+    normalized.startsWith("/") ||
+    parts.some((part) => part === "" || part === "." || part === "..")
+  ) {
+    throw new Error(`unsafe autoskill bundle path: ${value}`);
+  }
+
+  return normalized;
+};
+
+const decodeBase64 = (value: unknown, relativePath: string): Buffer => {
+  if (typeof value !== "string" || value.trim() === "" || value.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(value)) {
+    throw new Error(`autoskill bundle file content is invalid: ${relativePath}`);
+  }
+
+  return Buffer.from(value, "base64");
+};
+
+const requireManifestFiles = (manifest: Record<string, unknown>): Map<string, { sha256: string; size: number }> => {
+  if (!Array.isArray(manifest.files)) {
+    throw new Error("autoskill bundle manifest is missing files");
+  }
+
+  if (manifest.files.length > MAX_BUNDLE_FILE_COUNT) {
+    throw new Error("autoskill bundle has too many files");
+  }
+
+  const files = new Map<string, { sha256: string; size: number }>();
+  const seen = new Set<string>();
+
+  for (const entry of manifest.files) {
+    if (!isRecord(entry)) {
+      throw new Error("autoskill bundle manifest file entry is invalid");
+    }
+
+    const relativePath = canonicalBundlePath(entry.path);
+    const duplicateKey = relativePath.toLowerCase();
+    if (seen.has(duplicateKey)) {
+      throw new Error(`duplicate autoskill bundle path: ${relativePath}`);
+    }
+
+    if (typeof entry.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(entry.sha256)) {
+      throw new Error(`autoskill bundle manifest hash is invalid: ${relativePath}`);
+    }
+
+    const size = entry.size;
+    if (typeof size !== "number" || !Number.isSafeInteger(size) || size < 0) {
+      throw new Error(`autoskill bundle manifest size is invalid: ${relativePath}`);
+    }
+    if (size > MAX_BUNDLE_FILE_SIZE_BYTES) {
+      throw new Error(`autoskill bundle file is too large: ${relativePath}`);
+    }
+
+    seen.add(duplicateKey);
+    files.set(relativePath, { sha256: entry.sha256.toLowerCase(), size });
+  }
+
+  return files;
+};
+
+const compareManifest = (actual: Record<string, unknown>, expected: Record<string, unknown> | undefined): void => {
+  if (expected && stableStringify(actual) !== stableStringify(expected)) {
+    throw new Error("autoskill bundle does not match the published manifest");
+  }
+};
+
+const verifyBundleHash = (
+  parsed: Record<string, unknown>,
+  manifest: Record<string, unknown>,
+): void => {
+  const expectedHash = manifest.bundle_hash;
+  if (expectedHash === undefined || expectedHash === null) {
+    throw new Error("autoskill bundle manifest is missing bundle_hash");
+  }
+
+  if (typeof expectedHash !== "string" || !/^[a-f0-9]{64}$/i.test(expectedHash)) {
+    throw new Error("autoskill bundle manifest bundle_hash is invalid");
+  }
+
+  const hashManifest = { ...manifest };
+  delete hashManifest.bundle_hash;
+  const computed = sha256Hex(stableStringify({ ...parsed, manifest: hashManifest }));
+
+  if (computed !== expectedHash.toLowerCase()) {
+    throw new Error("autoskill bundle hash does not match the manifest");
+  }
+};
+
+const readBundleFiles = (
+  bundleText: string,
+  expectedManifest?: Record<string, unknown>,
+): { manifest: Record<string, unknown>; files: Array<{ path: string; bytes: Buffer }> } => {
+  const parsed = JSON.parse(bundleText) as unknown;
+  if (!isRecord(parsed) || parsed.schema_version !== AUTOSKILL_BUNDLE_SCHEMA_VERSION || !isRecord(parsed.manifest)) {
+    throw new Error("invalid autoskill bundle payload");
+  }
+
+  const manifest = parsed.manifest;
+  compareManifest(manifest, expectedManifest);
+  const manifestFiles = requireManifestFiles(manifest);
+
+  if (!Array.isArray(parsed.files)) {
+    throw new Error("invalid autoskill bundle payload");
+  }
+
+  const totalSize = manifest.total_size;
+  if (typeof totalSize !== "number" || !Number.isSafeInteger(totalSize) || totalSize < 0) {
+    throw new Error("autoskill bundle manifest total_size is invalid");
+  }
+  if (totalSize > MAX_BUNDLE_TOTAL_SIZE_BYTES) {
+    throw new Error("autoskill bundle total_size is too large");
+  }
+
+  const seen = new Set<string>();
+  const files: Array<{ path: string; bytes: Buffer }> = [];
+  let observedTotalSize = 0;
+
+  for (const file of parsed.files) {
+    if (!isRecord(file)) {
+      throw new Error("autoskill bundle file entry is invalid");
+    }
+
+    const relativePath = canonicalBundlePath(file.path);
+    const duplicateKey = relativePath.toLowerCase();
+    if (seen.has(duplicateKey)) {
+      throw new Error(`duplicate autoskill bundle path: ${relativePath}`);
+    }
+
+    const manifestEntry = manifestFiles.get(relativePath);
+    if (!manifestEntry) {
+      throw new Error(`autoskill bundle file is missing from manifest: ${relativePath}`);
+    }
+
+    const bytes = decodeBase64(file.content_b64, relativePath);
+    const actualSize = bytes.byteLength;
+    const actualHash = sha256Hex(bytes);
+
+    if (actualSize !== manifestEntry.size || actualHash !== manifestEntry.sha256) {
+      throw new Error(`autoskill bundle file failed verification: ${relativePath}`);
+    }
+
+    seen.add(duplicateKey);
+    observedTotalSize += actualSize;
+    files.push({ path: relativePath, bytes });
+  }
+
+  if (files.length !== manifestFiles.size) {
+    throw new Error("autoskill bundle files do not match the manifest");
+  }
+
+  if (observedTotalSize !== totalSize) {
+    throw new Error("autoskill bundle total_size does not match the files");
+  }
+
+  verifyBundleHash(parsed, manifest);
+
+  return { manifest, files };
+};
+
+const ensureNotSymlink = async (targetPath: string, label: string): Promise<void> => {
+  try {
+    const stat = await fs.lstat(targetPath);
+    if (stat.isSymbolicLink()) {
+      throw new Error(`autoskill bundle ${label} must not be a symlink`);
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return;
+    }
+
+    throw error;
+  }
+};
+
+const materializeDirectory = async (
+  workspacePath: string,
+  files: Array<{ path: string; bytes: Buffer }>,
+  manifest: Record<string, unknown>,
+): Promise<string[]> => {
+  const resolved = path.resolve(workspacePath);
+  const parent = path.dirname(resolved);
+  const base = path.basename(resolved);
+  await ensureDir(parent);
+  await ensureNotSymlink(parent, "parent directory");
+  await ensureNotSymlink(resolved, "target directory");
+
+  const temporaryPath = path.join(parent, `.${base}.tmp-${randomUUID()}`);
+  const backupPath = path.join(parent, `.${base}.backup-${randomUUID()}`);
+  const written: string[] = [];
+  let movedExisting = false;
+
+  await ensureDir(temporaryPath);
+
+  try {
+    for (const file of files) {
+      const targetPath = path.join(temporaryPath, file.path);
+      await ensureDir(path.dirname(targetPath));
+      await fs.writeFile(targetPath, file.bytes);
+      written.push(file.path);
+    }
+
+    await fs.writeFile(path.join(temporaryPath, MANIFEST_FILENAME), jsonText(manifest), "utf8");
+    written.push(MANIFEST_FILENAME);
+
+    if (await fileExists(resolved)) {
+      await fs.rename(resolved, backupPath);
+      movedExisting = true;
+    }
+
+    await fs.rename(temporaryPath, resolved);
+
+    if (movedExisting) {
+      await fs.rm(backupPath, { recursive: true, force: true });
+    }
+
+    return written.sort();
+  } catch (error) {
+    await fs.rm(temporaryPath, { recursive: true, force: true });
+
+    if (movedExisting && !(await fileExists(resolved)) && (await fileExists(backupPath))) {
+      await fs.rename(backupPath, resolved);
+    }
+
+    throw error;
+  }
 };
 
 export interface AutoskillBundleBuildResult {
@@ -270,7 +528,12 @@ export const buildAutoskillBundlePayload = async (
     }),
   );
 
-  const manifest = {
+  const fileManifest = encodedFiles.map((entry) => ({
+    path: entry.path,
+    sha256: entry.sha256,
+    size: entry.size,
+  }));
+  const baseManifest = {
     type: kind,
     access_mode:
       overrides?.accessMode ??
@@ -286,15 +549,23 @@ export const buildAutoskillBundlePayload = async (
         ? { version: overrides?.version ?? String(metadataFromFile.version ?? "0.1.0") }
         : {}),
     },
-    files: encodedFiles.map((entry) => ({
-      path: entry.path,
-      sha256: entry.sha256,
-      size: entry.size,
-    })),
+    total_size: encodedFiles.reduce((total, entry) => total + entry.size, 0),
+    files: fileManifest,
   };
 
+  const bundleHash = sha256Hex(
+    stableStringify({
+      schema_version: AUTOSKILL_BUNDLE_SCHEMA_VERSION,
+      manifest: baseManifest,
+      files: encodedFiles,
+    }),
+  );
+  const manifest = {
+    ...baseManifest,
+    bundle_hash: bundleHash,
+  };
   const bundleDocument = {
-    schema_version: "techtree.autoskill.bundle.v1",
+    schema_version: AUTOSKILL_BUNDLE_SCHEMA_VERSION,
     manifest,
     files: encodedFiles,
   };
@@ -303,7 +574,7 @@ export const buildAutoskillBundlePayload = async (
 
   return {
     archiveBase64: Buffer.from(serialized, "utf8").toString("base64"),
-    archiveHash: sha256Hex(serialized),
+    archiveHash: bundleHash,
     manifest: manifest as Record<string, unknown>,
     marimoEntrypoint,
     primaryFile,
@@ -329,32 +600,10 @@ export const loadAutoskillResultPayload = async (
 export const materializeAutoskillBundle = async (
   workspacePath: string,
   bundleText: string,
+  expectedManifest?: Record<string, unknown>,
 ): Promise<string[]> => {
-  const resolved = path.resolve(workspacePath);
-  await ensureDir(resolved);
-
-  const parsed = JSON.parse(bundleText) as {
-    files?: Array<{ path: string; content_b64: string }>;
-  };
-
-  if (!Array.isArray(parsed.files)) {
-    throw new Error("invalid autoskill bundle payload");
-  }
-
-  const written: string[] = [];
-
-  for (const file of parsed.files) {
-    if (!file?.path || !file.content_b64) {
-      continue;
-    }
-
-    const targetPath = path.join(resolved, file.path);
-    await ensureDir(path.dirname(targetPath));
-    await fs.writeFile(targetPath, Buffer.from(file.content_b64, "base64"));
-    written.push(file.path);
-  }
-
-  return written.sort();
+  const bundle = readBundleFiles(bundleText, expectedManifest);
+  return materializeDirectory(workspacePath, bundle.files, bundle.manifest);
 };
 
 export const defaultSkillSlug = (workspacePath: string): string =>

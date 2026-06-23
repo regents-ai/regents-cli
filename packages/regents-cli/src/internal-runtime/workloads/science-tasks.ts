@@ -15,6 +15,7 @@ import type {
   ScienceTaskRunEvidence,
   ScienceTaskSubmitInput,
 } from "../../internal-types/index.js";
+import { buildSafeSubprocessEnv } from "../safe-subprocess-env.js";
 
 const SCIENCE_TASK_METADATA_FILE = "science-task.json";
 const DIST_FOLDER = "dist";
@@ -461,7 +462,7 @@ const defaultHermesRunner: ScienceTaskHermesRunner = async (invocation) => {
 
   const child = spawn(invocation.entrypoint, invocation.args, {
     cwd: invocation.cwd,
-    env: process.env,
+    env: buildSafeSubprocessEnv(),
   });
 
   child.stdout.pipe(logStream, { end: false });

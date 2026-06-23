@@ -92,7 +92,7 @@ describe("structured Regent logs", () => {
       command: "regents agentbook",
       service: "platform",
       method: "GET",
-      path: "/api/platform/agentbook/sessions/sess_1?token=secret&cursor=1",
+      path: "/api/platform/agentbook/sessions/sess_1?token=secret&access_token=platform-secret&cursor=1",
       status: 200,
       ok: true,
       requestId: "req_1",
@@ -105,7 +105,8 @@ describe("structured Regent logs", () => {
     const [line] = fs.readFileSync(logPath, "utf8").trim().split("\n");
     expect(JSON.parse(line)).toMatchObject({
       command: "regents agentbook",
-      path: "/api/platform/agentbook/sessions/sess_1?token=%5Bredacted%5D&cursor=1",
+      path:
+        "/api/platform/agentbook/sessions/sess_1?token=%5Bredacted%5D&access_token=%5Bredacted%5D&cursor=1",
       requestId: "req_1",
       durationMs: 12,
       chainId: 8453,

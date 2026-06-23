@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { buildSafeSubprocessEnv } from "../internal-runtime/safe-subprocess-env.js";
 import { getBooleanFlag, type ParsedCliArgs } from "../parse.js";
 import { isHumanTerminal } from "../printer.js";
 
@@ -25,7 +26,7 @@ export async function maybeLaunchNotebook(
     const child = spawn(command, commandArgs, {
       cwd: result.workspace_path,
       stdio: "inherit",
-      env: process.env,
+      env: buildSafeSubprocessEnv(),
     });
 
     child.on("error", (error) => {

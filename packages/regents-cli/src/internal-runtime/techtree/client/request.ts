@@ -10,6 +10,9 @@ import { buildAuthenticatedFetchInit } from "../../siwa/request-builder.js";
 export type TechtreeRequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export type ExpectedDataType = "array" | "object" | "object-or-null";
 
+const MAX_EXTERNAL_TEXT_BYTES = 25 * 1024 * 1024;
+const ALLOWED_EXTERNAL_TEXT_PROTOCOLS = new Set(["https:", "http:"]);
+
 export const withQuery = (
   path: string,
   params?: Record<string, string | number | boolean | string[] | undefined>,
@@ -41,6 +44,50 @@ const asRecord = (value: unknown, message: string): Record<string, unknown> => {
   }
 
   return value as Record<string, unknown>;
+};
+
+const readBoundedText = async (response: Response, maxBytes: number): Promise<string> => {
+  const contentLength = response.headers.get("content-length");
+  if (contentLength && Number.parseInt(contentLength, 10) > maxBytes) {
+    throw new TechtreeApiError("download is too large", {
+      code: "techtree_download_too_large",
+    });
+  }
+
+  if (!response.body) {
+    const text = await response.text();
+    if (Buffer.byteLength(text, "utf8") > maxBytes) {
+      throw new TechtreeApiError("download is too large", {
+        code: "techtree_download_too_large",
+      });
+    }
+    return text;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let totalBytes = 0;
+  let text = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    totalBytes += value.byteLength;
+    if (totalBytes > maxBytes) {
+      await reader.cancel();
+      throw new TechtreeApiError("download is too large", {
+        code: "techtree_download_too_large",
+      });
+    }
+
+    text += decoder.decode(value, { stream: true });
+  }
+
+  text += decoder.decode();
+  return text;
 };
 
 const hasDataArray = <T>(payload: Record<string, unknown>): { data: T[] } => {
@@ -171,6 +218,22 @@ export class TechtreeRequestClient {
   }
 
   async fetchExternalText(url: string): Promise<string> {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch (error) {
+      throw new TechtreeApiError(`invalid download URL: ${url}`, {
+        code: "techtree_download_url_invalid",
+        cause: error,
+      });
+    }
+
+    if (!ALLOWED_EXTERNAL_TEXT_PROTOCOLS.has(parsedUrl.protocol)) {
+      throw new TechtreeApiError(`unsupported download URL scheme: ${parsedUrl.protocol}`, {
+        code: "techtree_download_scheme_unsupported",
+      });
+    }
+
     const res = await this.fetchWithTimeout(url, { method: "GET" });
 
     if (!res.ok) {
@@ -180,7 +243,7 @@ export class TechtreeRequestClient {
       });
     }
 
-    return res.text();
+    return readBoundedText(res, MAX_EXTERNAL_TEXT_BYTES);
   }
 
   async fetchWithTimeout(

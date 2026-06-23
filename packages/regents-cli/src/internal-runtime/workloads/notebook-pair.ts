@@ -9,6 +9,7 @@ import type {
   NotebookPairInstructions,
   NotebookPairSkillStatus,
 } from "../../internal-types/index.js";
+import { buildSafeSubprocessEnv } from "../safe-subprocess-env.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -62,7 +63,7 @@ const listInstalledSkills = async (workspacePath: string): Promise<InstalledSkil
     try {
       const { stdout } = await execFileAsync(command.command, command.args, {
         cwd: resolvedWorkspacePath,
-        env: process.env,
+        env: buildSafeSubprocessEnv(),
         maxBuffer: 1024 * 1024,
       });
       succeeded = true;

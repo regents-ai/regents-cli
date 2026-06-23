@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 
 import type {
@@ -121,6 +120,7 @@ export async function handleTechtreeAutoskillPublishSkill(
     skill_version: input.skill_version || defaultVersion(workspacePath),
     preview_md: bundle.previewMd ?? "# Preview only",
     bundle_manifest: bundle.manifest,
+    bundle_hash: bundle.archiveHash,
     marimo_entrypoint: bundle.marimoEntrypoint,
     primary_file: bundle.primaryFile ?? undefined,
     ...(input.access_mode === "gated_paid"
@@ -176,6 +176,7 @@ export async function handleTechtreeAutoskillPublishEval(
     slug: input.slug || defaultSkillSlug(workspacePath),
     preview_md: bundle.previewMd ?? "Autoskill eval preview",
     bundle_manifest: bundle.manifest,
+    bundle_hash: bundle.archiveHash,
     marimo_entrypoint: bundle.marimoEntrypoint,
     primary_file: bundle.primaryFile ?? undefined,
     ...(input.access_mode === "gated_paid"
@@ -329,12 +330,10 @@ export async function handleTechtreeAutoskillPull(
 
   const bundleText = await ctx.techtree.fetchExternalText(downloadUrl);
   const workspacePath = path.resolve(params.workspace_path);
-  const files = await materializeAutoskillBundle(workspacePath, bundleText);
-
-  await fs.writeFile(
-    path.join(workspacePath, "bundle.manifest.json"),
-    `${JSON.stringify(bundle.data.manifest, null, 2)}\n`,
-    "utf8",
+  const files = await materializeAutoskillBundle(
+    workspacePath,
+    bundleText,
+    bundle.data.manifest,
   );
 
   return {

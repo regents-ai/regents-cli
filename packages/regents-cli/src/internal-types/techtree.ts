@@ -353,6 +353,7 @@ export interface AutoskillSkillPublishInput {
   access_mode: "public_free" | "gated_paid";
   preview_md?: string;
   bundle_manifest: Record<string, unknown>;
+  bundle_hash?: string;
   primary_file?: string;
   marimo_entrypoint: string;
   bundle_archive_b64?: string;
@@ -387,6 +388,7 @@ export interface AutoskillEvalPublishInput {
   access_mode: "public_free" | "gated_paid";
   preview_md?: string;
   bundle_manifest: Record<string, unknown>;
+  bundle_hash?: string;
   primary_file?: string;
   marimo_entrypoint: string;
   bundle_archive_b64?: string;

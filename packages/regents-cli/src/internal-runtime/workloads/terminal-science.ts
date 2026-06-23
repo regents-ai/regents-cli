@@ -11,6 +11,7 @@ import type {
   TerminalScienceGoal,
   TerminalScienceRunResponse,
 } from "../../internal-types/index.js";
+import { buildSafeSubprocessEnv } from "../safe-subprocess-env.js";
 
 const TSB_REPO = "harbor-framework/terminal-bench-science";
 const TSB_GIT_URL = `https://github.com/${TSB_REPO}.git`;
@@ -430,7 +431,7 @@ async function defaultTerminalScienceRunner(
   return await new Promise<TerminalScienceRunnerResult>((resolve, reject) => {
     const child = spawn(command[0] as string, command.slice(1), {
       cwd: invocation.repoPath,
-      env: process.env,
+      env: buildSafeSubprocessEnv(),
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
@@ -510,7 +511,11 @@ async function runGit(repoPath: string, args: string[]): Promise<string> {
 
 async function runProcess(command: string, args: string[], cwd: string): Promise<string> {
   return await new Promise<string>((resolve, reject) => {
-    const child = spawn(command, args, { cwd, env: process.env, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(command, args, {
+      cwd,
+      env: buildSafeSubprocessEnv(),
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     let stdout = "";
     let stderr = "";
     child.stdout?.setEncoding("utf8");

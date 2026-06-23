@@ -26,6 +26,7 @@ export const structuredLogPath = (config: RegentConfig): string =>
   path.join(path.dirname(config.runtime.stateDir), "logs", "regents.jsonl");
 
 const SENSITIVE_QUERY_KEYS = new Set([
+  "access_token",
   "authorization",
   "cookie",
   "csrf",

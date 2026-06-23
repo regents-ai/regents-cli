@@ -4,6 +4,8 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { buildSafeSubprocessEnv } from "../safe-subprocess-env.js";
+
 const runtimeDir = path.dirname(fileURLToPath(import.meta.url));
 const techtreeRoot = path.resolve(runtimeDir, "../../../../..");
 
@@ -51,7 +53,7 @@ const runProcess = async (
   return await new Promise<TechtreeCoreProcessResult>((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: options.cwd ?? process.cwd(),
-      env: process.env,
+      env: buildSafeSubprocessEnv(),
       stdio: "pipe",
     });
 

@@ -12,6 +12,7 @@ import type {
   RegentConfig,
   RegentResolvedRunMetadata,
 } from "../../internal-types/index.js";
+import { buildSafeSubprocessEnv } from "../safe-subprocess-env.js";
 
 type SupportedSolveSolver = BbhSolveSolverKind;
 
@@ -358,7 +359,7 @@ const defaultRunSolver = async (invocation: SolveSolverInvocation): Promise<Solv
   return new Promise<SolveSolverResult>((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: invocation.workspacePath,
-      env: process.env,
+      env: buildSafeSubprocessEnv(),
       stdio: ["ignore", "pipe", "pipe"],
     });
 
