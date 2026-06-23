@@ -20,6 +20,7 @@ import type {
   X402FetchResponse,
   X402HttpMethod,
   X402IntentRecord,
+  PaymentBindingV1,
   X402PrepareParams,
   X402PrepareResponse,
   X402QuoteParams,
@@ -157,6 +158,122 @@ const requirePaymentRequiredV2 = (paymentRequired: PaymentRequired): PaymentRequ
 };
 
 const paymentRequirementHash = (requirement: PaymentRequirements): string => hashValue(requirement);
+
+const paymentBindingHash = (binding: Omit<PaymentBindingV1, "binding_hash">): string => hashValue(binding);
+
+const isPaymentBindingV1 = (value: unknown): value is PaymentBindingV1 => {
+  if (!isRecord(value) || value.version !== "PaymentBindingV1") {
+    return false;
+  }
+
+  return (
+    typeof value.resource_id === "string" &&
+    (typeof value.buyer_agent_id === "string" || value.buyer_agent_id === null) &&
+    (typeof value.seller_agent_id === "string" || value.seller_agent_id === null) &&
+    typeof value.network === "string" &&
+    typeof value.asset === "string" &&
+    typeof value.amount_atomic === "string" &&
+    typeof value.pay_to === "string" &&
+    (typeof value.expires_at === "string" || value.expires_at === null) &&
+    typeof value.nonce === "string" &&
+    typeof value.binding_hash === "string"
+  );
+};
+
+const validatePaymentBindingHash = (binding: PaymentBindingV1): void => {
+  const { binding_hash: bindingHash, ...withoutHash } = binding;
+  if (paymentBindingHash(withoutHash) !== bindingHash) {
+    throw new RegentError("x402_payment_binding_changed", "The x402 payment binding hash does not match its fields.");
+  }
+};
+
+const serverPaymentBinding = (
+  resource: Record<string, unknown>,
+  selected: X402SelectedPaymentRequirement,
+): PaymentBindingV1 | null => {
+  const candidate = selected.extra.regentPaymentBindingV1;
+
+  if (candidate === undefined || candidate === null) {
+    if (resource.serviceName === "techtree" || typeof resource.bindingHash === "string") {
+      throw new RegentError("x402_payment_binding_required", "This Regent x402 resource did not include a payment binding.");
+    }
+
+    return null;
+  }
+
+  if (!isPaymentBindingV1(candidate)) {
+    throw new RegentError("x402_payment_binding_invalid", "The Regent x402 payment binding is invalid.");
+  }
+
+  validatePaymentBindingHash(candidate);
+
+  if (typeof resource.bindingHash === "string" && resource.bindingHash !== candidate.binding_hash) {
+    throw new RegentError("x402_payment_binding_changed", "The x402 resource binding does not match the payment terms.");
+  }
+
+  const expected: Array<[keyof PaymentBindingV1, string | null]> = [
+    ["network", selected.network],
+    ["asset", selected.asset],
+    ["amount_atomic", selected.amount],
+    ["pay_to", selected.pay_to],
+  ];
+
+  for (const [field, value] of expected) {
+    if (candidate[field] !== value) {
+      throw new RegentError("x402_payment_binding_changed", "The x402 payment binding does not match the payment terms.");
+    }
+  }
+
+  return candidate;
+};
+
+const paymentBindingForIntent = (input: {
+  intentId: string;
+  request: X402RequestFingerprint;
+  resource: Record<string, unknown>;
+  selected: X402SelectedPaymentRequirement;
+  expiresAt: string;
+}): PaymentBindingV1 => {
+  const serverBinding = serverPaymentBinding(input.resource, input.selected);
+  if (serverBinding) {
+    return serverBinding;
+  }
+
+  const withoutHash = {
+    version: "PaymentBindingV1" as const,
+    resource_id: hashValue({
+      request_hash: input.request.request_hash,
+      resource: input.resource,
+    }),
+    buyer_agent_id: null,
+    seller_agent_id: null,
+    network: input.selected.network,
+    asset: input.selected.asset,
+    amount_atomic: input.selected.amount,
+    pay_to: input.selected.pay_to,
+    expires_at: input.expiresAt,
+    nonce: input.intentId,
+  };
+
+  return {
+    ...withoutHash,
+    binding_hash: paymentBindingHash(withoutHash),
+  };
+};
+
+const compareApprovedBinding = (intent: X402IntentRecord): void => {
+  const expected = paymentBindingForIntent({
+    intentId: intent.intent_id,
+    request: intent.request,
+    resource: intent.resource,
+    selected: intent.selected,
+    expiresAt: intent.expires_at,
+  });
+
+  if (hashValue(intent.payment_binding) !== hashValue(expected)) {
+    throw new RegentError("x402_payment_binding_changed", "The approved x402 payment binding no longer matches this intent.");
+  }
+};
 
 const requireAtomicAmount = (value: string, errorCode: string, message: string): void => {
   if (!/^\d+$/.test(value)) {
@@ -431,13 +548,22 @@ export class RegentX402Client {
     const createdAt = nowIso();
     const expiresAt = new Date(Date.now() + quote.selected.max_timeout_seconds * 1_000).toISOString();
     const maxDepositAmount = validateMaxDepositAmount(quote.selected.scheme, input.max_deposit_amount);
+    const intentId = `x402_intent_${crypto.randomUUID()}`;
+    const paymentBinding = paymentBindingForIntent({
+      intentId,
+      request: quote.request,
+      resource: quote.resource,
+      selected: quote.selected,
+      expiresAt,
+    });
     const intent: X402IntentRecord = this.store.saveIntent({
-      intent_id: `x402_intent_${crypto.randomUUID()}`,
+      intent_id: intentId,
       approval_status: input.approve ? "approved" : "pending",
       request: quote.request,
       x402_version: quote.x402_version,
       resource: quote.resource,
       selected: quote.selected,
+      payment_binding: paymentBinding,
       payment_required_hash: quote.payment_required_hash,
       ...(input.max_amount ? { max_amount: input.max_amount } : {}),
       ...(maxDepositAmount ? { max_deposit_amount: maxDepositAmount } : {}),
@@ -475,6 +601,7 @@ export class RegentX402Client {
 
     const discovered = await this.discover(input);
     compareApprovedRequest(intent, discovered.request);
+    compareApprovedBinding(intent);
 
     if (!discovered.paymentRequired) {
       const bodyText = await discovered.response.text();

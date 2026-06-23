@@ -10,12 +10,18 @@ import { writeJsonFileAtomicSync } from "./paths.js";
 export interface BudgetLedgerEntry {
   readonly entry_id: string;
   readonly at: string;
-  readonly type: "grant" | "spend" | "revoke";
+  readonly type: "grant" | "reserve" | "settle" | "release" | "spend" | "revoke";
   readonly amount_usdc?: string;
   readonly reference?: string;
+  readonly reservation_id?: string;
   readonly rail?: PaymentRail;
   readonly note?: string;
 }
+
+type BudgetReservationLedgerEntry = BudgetLedgerEntry & {
+  readonly type: "reserve";
+  readonly amount_usdc: string;
+};
 
 export type BudgetMode = "techtree_research" | "paid_service";
 export type PaymentRail = "regent-wallet" | "agentic-wallet";
@@ -44,6 +50,7 @@ interface BudgetFile {
 }
 
 const budgetFilePath = (config: RegentConfig): string => path.join(config.runtime.stateDir, "budgets.json");
+const budgetLockPath = (config: RegentConfig): string => `${budgetFilePath(config)}.lock`;
 
 const emptyBudgetFile = (): BudgetFile => ({ schema: "regents.budgets.v1", budgets: [] });
 
@@ -68,6 +75,42 @@ export const readBudgetFile = (config: RegentConfig): BudgetFile => {
 
 const writeBudgetFile = (config: RegentConfig, file: BudgetFile): void => {
   writeJsonFileAtomicSync(budgetFilePath(config), file);
+};
+
+const waitForBudgetLock = (): void => {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);
+};
+
+const withBudgetLock = <T>(config: RegentConfig, run: () => T): T => {
+  const lockPath = budgetLockPath(config);
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true, mode: 0o700 });
+
+  let fd: number | null = null;
+  for (let attempt = 0; attempt < 250; attempt += 1) {
+    try {
+      fd = fs.openSync(lockPath, "wx", 0o600);
+      break;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        throw error;
+      }
+      waitForBudgetLock();
+    }
+  }
+
+  if (fd === null) {
+    throw new CliUsageError({
+      code: "budget_lock_timeout",
+      message: "Another Regent payment is updating this budget. Try again in a moment.",
+    });
+  }
+
+  try {
+    return run();
+  } finally {
+    fs.closeSync(fd);
+    fs.rmSync(lockPath, { force: true });
+  }
 };
 
 export const parseUsdcAtomic = (value: string, label = "USDC amount"): bigint => {
@@ -173,9 +216,11 @@ export const createBudget = (
     ledger: [{ entry_id: newLedgerEntryId(), at: now, type: "grant", amount_usdc: formatUsdcAtomic(amount) }],
   };
 
-  const current = readBudgetFile(config);
-  writeBudgetFile(config, { schema: "regents.budgets.v1", budgets: [...current.budgets, record] });
-  return record;
+  return withBudgetLock(config, () => {
+    const current = readBudgetFile(config);
+    writeBudgetFile(config, { schema: "regents.budgets.v1", budgets: [...current.budgets, record] });
+    return record;
+  });
 };
 
 export const findBudget = (config: RegentConfig, budgetId: string): BudgetRecord => {
@@ -254,62 +299,227 @@ export const recordBudgetSpend = (
     readonly reference?: string;
     readonly rail: PaymentRail;
   },
-): { readonly budget: BudgetRecord; readonly ledger_entry: BudgetLedgerEntry } => {
-  const current = readBudgetFile(config);
-  const amount = parseUsdcAtomic(input.amount_usdc, "--max-usdc");
-  let updated: BudgetRecord | undefined;
-  let ledgerEntry: BudgetLedgerEntry | undefined;
+): { readonly budget: BudgetRecord; readonly ledger_entry: BudgetLedgerEntry } =>
+  withBudgetLock(config, () => {
+    const current = readBudgetFile(config);
+    const amount = parseUsdcAtomic(input.amount_usdc, "--max-usdc");
+    let updated: BudgetRecord | undefined;
+    let ledgerEntry: BudgetLedgerEntry | undefined;
 
-  const budgets = current.budgets.map((budget) => {
-    if (budget.budget_id !== input.budget_id) {
-      return budget;
+    const budgets = current.budgets.map((budget) => {
+      if (budget.budget_id !== input.budget_id) {
+        return budget;
+      }
+
+      const remaining = parseUsdcAtomic(budget.remaining_usdc, "budget remaining amount") - amount;
+      ledgerEntry = {
+        entry_id: newLedgerEntryId(),
+        at: new Date().toISOString(),
+        type: "spend",
+        amount_usdc: formatUsdcAtomic(amount),
+        ...(input.reference ? { reference: input.reference } : {}),
+        rail: input.rail,
+      };
+      updated = {
+        ...budget,
+        remaining_usdc: formatUsdcAtomic(remaining),
+        ledger: [...budget.ledger, ledgerEntry],
+      };
+      return updated;
+    });
+
+    if (!updated || !ledgerEntry) {
+      throw new CliUsageError({ code: "budget_not_found", message: `Budget not found: ${input.budget_id}.` });
     }
 
-    const remaining = parseUsdcAtomic(budget.remaining_usdc, "budget remaining amount") - amount;
-    ledgerEntry = {
-      entry_id: newLedgerEntryId(),
-      at: new Date().toISOString(),
-      type: "spend",
-      amount_usdc: formatUsdcAtomic(amount),
-      ...(input.reference ? { reference: input.reference } : {}),
-      rail: input.rail,
-    };
-    updated = {
-      ...budget,
-      remaining_usdc: formatUsdcAtomic(remaining),
-      ledger: [...budget.ledger, ledgerEntry],
-    };
-    return updated;
+    writeBudgetFile(config, { schema: "regents.budgets.v1", budgets });
+    return { budget: updated, ledger_entry: ledgerEntry };
   });
 
-  if (!updated || !ledgerEntry) {
-    throw new CliUsageError({ code: "budget_not_found", message: `Budget not found: ${input.budget_id}.` });
-  }
+export const reserveBudgetPayment = (
+  config: RegentConfig,
+  input: {
+    readonly budget_id: string;
+    readonly amount_usdc: string;
+    readonly rail: PaymentRail;
+    readonly url?: string;
+    readonly approved: boolean;
+  },
+): { readonly budget: BudgetRecord; readonly ledger_entry: BudgetLedgerEntry } =>
+  withBudgetLock(config, () => {
+    assertBudgetPaymentAllowed(config, input);
+    const current = readBudgetFile(config);
+    const amount = parseUsdcAtomic(input.amount_usdc, "--max-usdc");
+    let updated: BudgetRecord | undefined;
+    let ledgerEntry: BudgetLedgerEntry | undefined;
 
-  writeBudgetFile(config, { schema: "regents.budgets.v1", budgets });
-  return { budget: updated, ledger_entry: ledgerEntry };
+    const budgets = current.budgets.map((budget) => {
+      if (budget.budget_id !== input.budget_id) {
+        return budget;
+      }
+
+      const remaining = parseUsdcAtomic(budget.remaining_usdc, "budget remaining amount") - amount;
+      ledgerEntry = {
+        entry_id: newLedgerEntryId(),
+        at: new Date().toISOString(),
+        type: "reserve",
+        amount_usdc: formatUsdcAtomic(amount),
+        reference: input.url,
+        rail: input.rail,
+      };
+      updated = {
+        ...budget,
+        remaining_usdc: formatUsdcAtomic(remaining),
+        ledger: [...budget.ledger, ledgerEntry],
+      };
+      return updated;
+    });
+
+    if (!updated || !ledgerEntry) {
+      throw new CliUsageError({ code: "budget_not_found", message: `Budget not found: ${input.budget_id}.` });
+    }
+
+    writeBudgetFile(config, { schema: "regents.budgets.v1", budgets });
+    return { budget: updated, ledger_entry: ledgerEntry };
+  });
+
+const findReservation = (budget: BudgetRecord, reservationId: string): BudgetReservationLedgerEntry => {
+  const entry = budget.ledger.find((candidate) => candidate.entry_id === reservationId && candidate.type === "reserve");
+  if (!entry?.amount_usdc) {
+    throw new CliUsageError({ code: "budget_reservation_not_found", message: "Budget reservation not found." });
+  }
+  if (budget.ledger.some((candidate) => candidate.reservation_id === reservationId && candidate.type !== "reserve")) {
+    throw new CliUsageError({ code: "budget_reservation_closed", message: "Budget reservation is already closed." });
+  }
+  return entry as BudgetReservationLedgerEntry;
 };
 
-export const revokeBudget = (config: RegentConfig, budgetId: string): BudgetRecord => {
-  const current = readBudgetFile(config);
-  let revoked: BudgetRecord | undefined;
-  const budgets = current.budgets.map((budget) => {
-    if (budget.budget_id !== budgetId) {
-      return budget;
+export const settleBudgetReservation = (
+  config: RegentConfig,
+  input: {
+    readonly budget_id: string;
+    readonly reservation_id: string;
+    readonly amount_usdc: string;
+    readonly reference?: string;
+    readonly rail: PaymentRail;
+  },
+): { readonly budget: BudgetRecord; readonly ledger_entry: BudgetLedgerEntry } =>
+  withBudgetLock(config, () => {
+    const current = readBudgetFile(config);
+    const amount = parseUsdcAtomic(input.amount_usdc, "--max-usdc");
+    let updated: BudgetRecord | undefined;
+    let ledgerEntry: BudgetLedgerEntry | undefined;
+
+    const budgets = current.budgets.map((budget) => {
+      if (budget.budget_id !== input.budget_id) {
+        return budget;
+      }
+
+      const reservation = findReservation(budget, input.reservation_id);
+      const reserved = parseUsdcAtomic(reservation.amount_usdc, "reserved amount");
+      if (amount > reserved) {
+        throw new CliUsageError({
+          code: "budget_reservation_exceeded",
+          message: "The settled payment is larger than the reserved amount.",
+        });
+      }
+
+      const releaseDelta = reserved - amount;
+      const remaining = parseUsdcAtomic(budget.remaining_usdc, "budget remaining amount") + releaseDelta;
+      ledgerEntry = {
+        entry_id: newLedgerEntryId(),
+        at: new Date().toISOString(),
+        type: "settle",
+        amount_usdc: formatUsdcAtomic(amount),
+        reservation_id: input.reservation_id,
+        ...(input.reference ? { reference: input.reference } : {}),
+        rail: input.rail,
+      };
+      updated = {
+        ...budget,
+        remaining_usdc: formatUsdcAtomic(remaining),
+        ledger: [...budget.ledger, ledgerEntry],
+      };
+      return updated;
+    });
+
+    if (!updated || !ledgerEntry) {
+      throw new CliUsageError({ code: "budget_not_found", message: `Budget not found: ${input.budget_id}.` });
     }
 
-    revoked = {
-      ...budget,
-      status: "revoked",
-      ledger: [...budget.ledger, { entry_id: newLedgerEntryId(), at: new Date().toISOString(), type: "revoke" }],
-    };
-    return revoked;
+    writeBudgetFile(config, { schema: "regents.budgets.v1", budgets });
+    return { budget: updated, ledger_entry: ledgerEntry };
   });
 
-  if (!revoked) {
-    throw new CliUsageError({ code: "budget_not_found", message: `Budget not found: ${budgetId}.` });
-  }
+export const releaseBudgetReservation = (
+  config: RegentConfig,
+  input: {
+    readonly budget_id: string;
+    readonly reservation_id: string;
+    readonly rail: PaymentRail;
+    readonly note?: string;
+  },
+): { readonly budget: BudgetRecord; readonly ledger_entry: BudgetLedgerEntry } =>
+  withBudgetLock(config, () => {
+    const current = readBudgetFile(config);
+    let updated: BudgetRecord | undefined;
+    let ledgerEntry: BudgetLedgerEntry | undefined;
 
-  writeBudgetFile(config, { schema: "regents.budgets.v1", budgets });
-  return revoked;
+    const budgets = current.budgets.map((budget) => {
+      if (budget.budget_id !== input.budget_id) {
+        return budget;
+      }
+
+      const reservation = findReservation(budget, input.reservation_id);
+      const reserved = parseUsdcAtomic(reservation.amount_usdc, "reserved amount");
+      const remaining = parseUsdcAtomic(budget.remaining_usdc, "budget remaining amount") + reserved;
+      ledgerEntry = {
+        entry_id: newLedgerEntryId(),
+        at: new Date().toISOString(),
+        type: "release",
+        amount_usdc: formatUsdcAtomic(reserved),
+        reservation_id: input.reservation_id,
+        rail: input.rail,
+        ...(input.note ? { note: input.note } : {}),
+      };
+      updated = {
+        ...budget,
+        remaining_usdc: formatUsdcAtomic(remaining),
+        ledger: [...budget.ledger, ledgerEntry],
+      };
+      return updated;
+    });
+
+    if (!updated || !ledgerEntry) {
+      throw new CliUsageError({ code: "budget_not_found", message: `Budget not found: ${input.budget_id}.` });
+    }
+
+    writeBudgetFile(config, { schema: "regents.budgets.v1", budgets });
+    return { budget: updated, ledger_entry: ledgerEntry };
+  });
+
+export const revokeBudget = (config: RegentConfig, budgetId: string): BudgetRecord => {
+  return withBudgetLock(config, () => {
+    const current = readBudgetFile(config);
+    let revoked: BudgetRecord | undefined;
+    const budgets = current.budgets.map((budget) => {
+      if (budget.budget_id !== budgetId) {
+        return budget;
+      }
+
+      revoked = {
+        ...budget,
+        status: "revoked",
+        ledger: [...budget.ledger, { entry_id: newLedgerEntryId(), at: new Date().toISOString(), type: "revoke" }],
+      };
+      return revoked;
+    });
+
+    if (!revoked) {
+      throw new CliUsageError({ code: "budget_not_found", message: `Budget not found: ${budgetId}.` });
+    }
+
+    writeBudgetFile(config, { schema: "regents.budgets.v1", budgets });
+    return revoked;
+  });
 };

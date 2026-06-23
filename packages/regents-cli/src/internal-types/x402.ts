@@ -41,6 +41,20 @@ export interface X402SelectedPaymentRequirement {
   requirement_hash: string;
 }
 
+export interface PaymentBindingV1 {
+  version: "PaymentBindingV1";
+  resource_id: string;
+  buyer_agent_id: string | null;
+  seller_agent_id: string | null;
+  network: string;
+  asset: string;
+  amount_atomic: string;
+  pay_to: string;
+  expires_at: string | null;
+  nonce: string;
+  binding_hash: string;
+}
+
 export interface X402RequestFingerprint {
   url: string;
   method: X402HttpMethod;
@@ -79,6 +93,7 @@ export interface X402IntentRecord {
   x402_version: number;
   resource: Record<string, unknown>;
   selected: X402SelectedPaymentRequirement;
+  payment_binding: PaymentBindingV1;
   payment_required_hash: string;
   max_amount?: string;
   max_deposit_amount?: string;

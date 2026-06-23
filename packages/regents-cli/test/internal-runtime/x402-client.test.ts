@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { RegentX402Client } from "../../src/internal-runtime/x402/client.js";
 import type { WalletSecretSource } from "../../src/internal-runtime/agent/key-store.js";
+import { hashValue } from "../../src/internal-runtime/x402/hash.js";
+import type { PaymentBindingV1 } from "../../src/internal-types/index.js";
 
 const PRIVATE_KEY = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bdA02913";
@@ -60,6 +62,59 @@ const createPaymentRequired = (
   },
   accepts,
 });
+
+const createPaymentBinding = (
+  amount: string,
+  overrides: Partial<Omit<PaymentBindingV1, "version" | "binding_hash">> = {},
+): PaymentBindingV1 => {
+  const withoutHash = {
+    version: "PaymentBindingV1" as const,
+    resource_id: "techtree_node_payload:node-1:bundle-1",
+    buyer_agent_id: null,
+    seller_agent_id: "123",
+    network: "eip155:8453",
+    asset: USDC_BASE,
+    amount_atomic: amount,
+    pay_to: PAY_TO,
+    expires_at: null,
+    nonce: "listing-1",
+    ...overrides,
+  };
+
+  return {
+    ...withoutHash,
+    binding_hash: hashValue(withoutHash),
+  };
+};
+
+const createRegentPaymentRequired = (
+  url: string,
+  amount: string,
+  bindingOverrides: Partial<Omit<PaymentBindingV1, "version" | "binding_hash">> = {},
+) => {
+  const binding = createPaymentBinding(amount, bindingOverrides);
+  return {
+    x402Version: 2,
+    resource: {
+      id: binding.resource_id,
+      url,
+      description: "Techtree paid payload",
+      mimeType: "application/json",
+      serviceName: "techtree",
+      bindingHash: binding.binding_hash,
+    },
+    accepts: [
+      {
+        ...createExactRequirement(amount),
+        extra: {
+          name: "USDC",
+          version: "2",
+          regentPaymentBindingV1: binding,
+        },
+      },
+    ],
+  };
+};
 
 describe("Regent x402 wrapper", () => {
   let tempDir = "";
@@ -137,6 +192,16 @@ describe("Regent x402 wrapper", () => {
 
       const prepared = await client.prepare({ url: paidServer.url, approve: true });
       expect(prepared.intent.approval_status).toBe("approved");
+      expect(prepared.intent.payment_binding).toEqual(
+        expect.objectContaining({
+          version: "PaymentBindingV1",
+          network: "eip155:8453",
+          asset: USDC_BASE,
+          amount_atomic: "1000",
+          pay_to: PAY_TO,
+          nonce: prepared.intent.intent_id,
+        }),
+      );
 
       const fetched = await client.fetchApproved({
         intent_id: prepared.intent.intent_id,
@@ -197,6 +262,111 @@ describe("Regent x402 wrapper", () => {
     });
     expect(prepared.intent.selected.scheme).toBe("batch-settlement");
     expect(prepared.intent.max_deposit_amount).toBe("5000");
+  });
+
+  it("stores the server-provided Regent payment binding", async () => {
+    const url = "https://example.test/paid";
+    const client = new RegentX402Client({
+      stateDir: tempDir,
+      walletSecretSource: createWalletSource(),
+      fetch: async () =>
+        new Response("{}", {
+          status: 402,
+          headers: {
+            "payment-required": encodeHeader(createRegentPaymentRequired(url, "1000")),
+          },
+        }),
+    });
+
+    const prepared = await client.prepare({ url, approve: true });
+
+    expect(prepared.intent.payment_binding).toMatchObject({
+      resource_id: "techtree_node_payload:node-1:bundle-1",
+      seller_agent_id: "123",
+      network: "eip155:8453",
+      asset: USDC_BASE,
+      amount_atomic: "1000",
+      pay_to: PAY_TO,
+      expires_at: null,
+      nonce: "listing-1",
+    });
+  });
+
+  it("rejects Regent x402 requirements without a server payment binding", async () => {
+    const url = "https://example.test/paid";
+    const client = new RegentX402Client({
+      stateDir: tempDir,
+      walletSecretSource: createWalletSource(),
+      fetch: async () =>
+        new Response("{}", {
+          status: 402,
+          headers: {
+            "payment-required": encodeHeader({
+              ...createPaymentRequired(url, "1000"),
+              resource: {
+                url,
+                description: "Techtree paid payload",
+                mimeType: "application/json",
+                serviceName: "techtree",
+              },
+            }),
+          },
+        }),
+    });
+
+    await expect(client.prepare({ url, approve: true })).rejects.toMatchObject({
+      code: "x402_payment_binding_required",
+    });
+  });
+
+  it.each([
+    ["network", { network: "eip155:1" }],
+    ["asset", { asset: "0x0000000000000000000000000000000000000000" }],
+    ["amount", { amount_atomic: "2000" }],
+    ["payee", { pay_to: "0x0000000000000000000000000000000000000001" }],
+  ] as const)("rejects Regent x402 requirements with a mismatched %s binding", async (_field, overrides) => {
+    const url = "https://example.test/paid";
+    const client = new RegentX402Client({
+      stateDir: tempDir,
+      walletSecretSource: createWalletSource(),
+      fetch: async () =>
+        new Response("{}", {
+          status: 402,
+          headers: {
+            "payment-required": encodeHeader(createRegentPaymentRequired(url, "1000", overrides)),
+          },
+        }),
+    });
+
+    await expect(client.prepare({ url, approve: true })).rejects.toMatchObject({
+      code: "x402_payment_binding_changed",
+    });
+  });
+
+  it("rejects Regent x402 requirements with a bad binding hash", async () => {
+    const url = "https://example.test/paid";
+    const paymentRequired = createRegentPaymentRequired(url, "1000");
+    const binding = paymentRequired.accepts[0].extra.regentPaymentBindingV1;
+    paymentRequired.accepts[0].extra.regentPaymentBindingV1 = {
+      ...binding,
+      binding_hash: "0".repeat(64),
+    };
+
+    const client = new RegentX402Client({
+      stateDir: tempDir,
+      walletSecretSource: createWalletSource(),
+      fetch: async () =>
+        new Response("{}", {
+          status: 402,
+          headers: {
+            "payment-required": encodeHeader(paymentRequired),
+          },
+        }),
+    });
+
+    await expect(client.prepare({ url, approve: true })).rejects.toMatchObject({
+      code: "x402_payment_binding_changed",
+    });
   });
 
   it("requires an explicit RPC URL before a batch-settlement payment", async () => {
@@ -290,6 +460,37 @@ describe("Regent x402 wrapper", () => {
         }),
       ).rejects.toMatchObject({
         code: "x402_payment_requirements_changed",
+      });
+      expect(paidServer.paymentAttempts()).toBe(0);
+    } finally {
+      await paidServer.close();
+    }
+  });
+
+  it("refuses to pay if the local payment binding changed after approval", async () => {
+    const paidServer = await startPaidServer();
+    const client = new RegentX402Client({
+      stateDir: tempDir,
+      walletSecretSource: createWalletSource(),
+    });
+
+    try {
+      const prepared = await client.prepare({ url: paidServer.url, approve: true });
+      client.store.saveIntent({
+        ...prepared.intent,
+        payment_binding: {
+          ...prepared.intent.payment_binding,
+          asset: "0x0000000000000000000000000000000000000000",
+        },
+      });
+
+      await expect(
+        client.fetchApproved({
+          intent_id: prepared.intent.intent_id,
+          url: paidServer.url,
+        }),
+      ).rejects.toMatchObject({
+        code: "x402_payment_binding_changed",
       });
       expect(paidServer.paymentAttempts()).toBe(0);
     } finally {

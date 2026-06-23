@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { runBudgetGrant } from "../../src/commands/budget.js";
 import { runReceiptShareDraft } from "../../src/commands/receipt.js";
 import { runX402Pay, runX402Refund } from "../../src/commands/x402.js";
+import { readBudgetFile } from "../../src/internal-runtime/budget-store.js";
+import { loadConfig } from "../../src/internal-runtime/config.js";
 import { writeInitialConfig } from "../../src/internal-runtime/index.js";
 import { parseCliArgs } from "../../src/parse.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
@@ -101,10 +103,21 @@ describe("budget, guarded x402, and local receipts", () => {
       "--json",
     ]);
     const paid = parsePrintedJson<{
-      budget: { remaining_usdc: string };
+      budget: { remaining_usdc: string; ledger: Array<{ entry_id: string; type: string; rail?: string; reference?: string; reservation_id?: string }> };
       receipt: { receipt_id: string; recognized_revenue: boolean; x402: { payments: string[] } };
     }>(payOutput.stdout);
     expect(paid.budget.remaining_usdc).toBe("9.75");
+    expect(paid.budget.ledger.at(-2)).toEqual(expect.objectContaining({
+      type: "reserve",
+      rail: "agentic-wallet",
+      reference: "https://api.example.com/paid",
+    }));
+    expect(paid.budget.ledger.at(-1)).toEqual(expect.objectContaining({
+      type: "settle",
+      rail: "agentic-wallet",
+      reference: "awal_payment_1",
+      reservation_id: paid.budget.ledger.at(-2)!.entry_id,
+    }));
     expect(paid.receipt.recognized_revenue).toBe(false);
     expect(paid.receipt.x402.payments).toEqual(["awal_payment_1"]);
 
@@ -166,10 +179,11 @@ describe("budget, guarded x402, and local receipts", () => {
     );
 
     const paid = parsePrintedJson<{
-      budget: { ledger: Array<{ entry_id: string; rail?: string; reference?: string }> };
+      budget: { ledger: Array<{ entry_id: string; type: string; rail?: string; reference?: string }> };
       receipt: { kind: string; budget: { ledger_entry: string } };
     }>(payOutput.stdout);
     const spendEntry = paid.budget.ledger.at(-1)!;
+    expect(spendEntry.type).toBe("settle");
     expect(spendEntry.rail).toBe("agentic-wallet");
     expect(spendEntry.reference).toBeUndefined();
     expect(paid.receipt.kind).toBe("budget_entry");
@@ -220,6 +234,65 @@ describe("budget, guarded x402, and local receipts", () => {
       ),
     ).rejects.toThrow("--max-usdc is larger than this budget allows.");
     expect(runAwalJsonMock).not.toHaveBeenCalled();
+  });
+
+  it("releases a reserved budget when payment fails before completion", async () => {
+    runAwalJsonMock.mockRejectedValueOnce(new Error("wallet denied"));
+
+    const configPath = makeConfigPath();
+    const grantOutput = await captureOutput(() =>
+      runBudgetGrant(
+        parseCliArgs([
+          "budget",
+          "grant",
+          "--agent",
+          "agent_123",
+          "--amount-usdc",
+          "1",
+          "--max-payment-usdc",
+          "0.10",
+          "--mode",
+          "techtree_research",
+          "--rail",
+          "agentic-wallet",
+          "--expires",
+          "7d",
+          "--json",
+        ]),
+        configPath,
+      ),
+    );
+    const grant = parsePrintedJson<{ budget: { budget_id: string } }>(grantOutput.stdout);
+
+    await expect(
+      runX402Pay(
+        parseCliArgs([
+          "x402",
+          "pay",
+          "https://api.example.com/paid",
+          "--budget",
+          grant.budget.budget_id,
+          "--max-usdc",
+          "0.10",
+          "--rail",
+          "agentic-wallet",
+          "--json",
+        ]),
+        configPath,
+      ),
+    ).rejects.toThrow("wallet denied");
+
+    const budget = readBudgetFile(loadConfig(configPath)).budgets[0]!;
+    expect(budget.remaining_usdc).toBe("1");
+    expect(budget.ledger.at(-2)).toEqual(expect.objectContaining({
+      type: "reserve",
+      amount_usdc: "0.1",
+    }));
+    expect(budget.ledger.at(-1)).toEqual(expect.objectContaining({
+      type: "release",
+      amount_usdc: "0.1",
+      reservation_id: budget.ledger.at(-2)!.entry_id,
+    }));
   });
 
   it("uses the Regent wallet rail and records the actual x402 receipt amount", async () => {
@@ -300,13 +373,20 @@ describe("budget, guarded x402, and local receipts", () => {
     expect(runAwalJsonMock).not.toHaveBeenCalled();
 
     const paid = parsePrintedJson<{
-      budget: { remaining_usdc: string; ledger: Array<{ rail?: string; reference?: string }> };
+      budget: { remaining_usdc: string; ledger: Array<{ entry_id?: string; type: string; rail?: string; reference?: string; reservation_id?: string }> };
       receipt: { receipt_id: string };
     }>(payOutput.stdout);
     expect(paid.budget.remaining_usdc).toBe("9.9");
+    expect(paid.budget.ledger.at(-2)).toEqual(expect.objectContaining({
+      type: "reserve",
+      rail: "regent-wallet",
+      reference: "https://api.example.com/paid",
+    }));
     expect(paid.budget.ledger.at(-1)).toEqual(expect.objectContaining({
+      type: "settle",
       rail: "regent-wallet",
       reference: "x402_receipt_1",
+      reservation_id: paid.budget.ledger.at(-2)!.entry_id,
     }));
     expect(paid.receipt.receipt_id).toMatch(/^rcpt_/u);
   });

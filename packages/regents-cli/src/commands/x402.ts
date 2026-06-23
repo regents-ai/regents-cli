@@ -13,8 +13,9 @@ import { RegentKernel } from "../internal-runtime/runtime.js";
 import { runAwalJson } from "../internal-runtime/agentic-wallet/awal.js";
 import {
   atomicStringToUsdc,
-  assertBudgetPaymentAllowed,
-  recordBudgetSpend,
+  releaseBudgetReservation,
+  reserveBudgetPayment,
+  settleBudgetReservation,
   usdcToAtomicString,
   type PaymentRail,
 } from "../internal-runtime/budget-store.js";
@@ -243,7 +244,7 @@ export async function runX402Pay(args: ParsedCliArgs, configPath?: string): Prom
   const maxUsdc = requireArg(getFlag(args, "max-usdc"), "--max-usdc");
   const rail = parseRail(getFlag(args, "rail"));
   const request = payRequestInput(args);
-  assertBudgetPaymentAllowed(config, {
+  const reservation = reserveBudgetPayment(config, {
     budget_id: budgetId,
     amount_usdc: maxUsdc,
     rail,
@@ -255,48 +256,76 @@ export async function runX402Pay(args: ParsedCliArgs, configPath?: string): Prom
   let payment: unknown;
   let paymentReference: string | undefined;
   let spentUsdc: string;
+  let paymentCompleted = false;
+  let spend:
+    | ReturnType<typeof settleBudgetReservation>
+    | undefined;
 
-  if (rail === "agentic-wallet") {
-    payment = await runAwalJson([
-      "x402",
-      "pay",
-      request.url,
-      "--max-amount",
-      maxAtomic,
-      "--json",
-    ]);
-    paymentReference = extractPaymentReference(payment);
-    spentUsdc = maxUsdc;
-  } else {
-    const regentWalletPayment = await withKernel(configPath, async (kernel) => {
-      const prepared = await kernel.call("x402.prepare", {
-        ...request,
-        max_amount: maxAtomic,
-        max_deposit_amount: getFlag(args, "max-deposit-amount"),
-        approve: true,
-      });
-      const fetched = await kernel.call("x402.fetch", {
-        ...request,
-        intent_id: prepared.intent.intent_id,
-      });
-      if (!fetched.ok || !fetched.receipt) {
-        throw new CliUsageError({
-          code: "x402_payment_failed",
-          message: "The x402 payment did not complete.",
+  try {
+    if (rail === "agentic-wallet") {
+      payment = await runAwalJson([
+        "x402",
+        "pay",
+        request.url,
+        "--max-amount",
+        maxAtomic,
+        "--json",
+      ]);
+      paymentReference = extractPaymentReference(payment);
+      spentUsdc = maxUsdc;
+      paymentCompleted = true;
+    } else {
+      const regentWalletPayment = await withKernel(configPath, async (kernel) => {
+        const prepared = await kernel.call("x402.prepare", {
+          ...request,
+          max_amount: maxAtomic,
+          max_deposit_amount: getFlag(args, "max-deposit-amount"),
+          approve: true,
         });
-      }
-      return { prepared, fetched, receipt: fetched.receipt };
+        const fetched = await kernel.call("x402.fetch", {
+          ...request,
+          intent_id: prepared.intent.intent_id,
+        });
+        if (!fetched.ok || !fetched.receipt) {
+          throw new CliUsageError({
+            code: "x402_payment_failed",
+            message: "The x402 payment did not complete.",
+          });
+        }
+        return { prepared, fetched, receipt: fetched.receipt };
+      });
+      payment = regentWalletPayment;
+      paymentReference = regentWalletPayment.receipt.receipt_id;
+      spentUsdc = atomicStringToUsdc(regentWalletPayment.prepared.intent.selected.amount);
+      paymentCompleted = true;
+    }
+
+    spend = settleBudgetReservation(config, {
+      budget_id: budgetId,
+      reservation_id: reservation.ledger_entry.entry_id,
+      amount_usdc: spentUsdc,
+      reference: paymentReference,
+      rail,
     });
-    payment = regentWalletPayment;
-    paymentReference = regentWalletPayment.receipt.receipt_id;
-    spentUsdc = atomicStringToUsdc(regentWalletPayment.prepared.intent.selected.amount);
+  } catch (error) {
+    if (!paymentCompleted) {
+      releaseBudgetReservation(config, {
+        budget_id: budgetId,
+        reservation_id: reservation.ledger_entry.entry_id,
+        rail,
+        note: "payment failed before completion",
+      });
+    }
+    throw error;
   }
-  const spend = recordBudgetSpend(config, {
-    budget_id: budgetId,
-    amount_usdc: spentUsdc,
-    reference: paymentReference,
-    rail,
-  });
+
+  if (!spend) {
+    throw new CliUsageError({
+      code: "budget_reservation_not_settled",
+      message: "The budget reservation could not be settled.",
+    });
+  }
+
   const receipt = getBooleanFlag(args, "receipt")
     ? createReceipt(config, paymentReference ? { x402_payment_id: paymentReference } : { budget_entry: spend.ledger_entry.entry_id })
     : undefined;
