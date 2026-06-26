@@ -180,7 +180,7 @@ regents autolaunch prelaunch wizard \
   [--subtitle <text>] \
   [--description <text>] \
   [--website-url <url>] \
-  [--image-url <url> | --image-file <path>] \
+  [--image-url <url>] \
   [--connect-profile]
 
 regents autolaunch connect start [--plan <id>] [--label <text>] [--watch]

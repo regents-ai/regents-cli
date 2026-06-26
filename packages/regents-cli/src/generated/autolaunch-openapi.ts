@@ -2307,10 +2307,7 @@ export interface components {
             launch: components["schemas"]["LaunchRef"];
         };
         PrelaunchAssetUploadRequest: {
-            source_url?: string | null;
-            file_name?: string | null;
-            media_type?: string | null;
-            content_base64?: string | null;
+            source_url: string;
         };
         PrelaunchAsset: {
             asset_id?: string;

@@ -1004,7 +1004,7 @@ Object.assign(commandHelpOverlay, {
       "--agent-safe-address <address> - Agent Safe that will control launch ownership.",
       "--plan <id> - Update an existing plan.",
       "--connect-profile - Start a profile connection link during the wizard.",
-      "--image-url <url> or --image-file <path>",
+      "--image-url <url>",
       "--json",
       "--config <path>",
     ],

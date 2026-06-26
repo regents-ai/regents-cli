@@ -3674,12 +3674,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "string",
         "required": false,
         "description": "Public image URL for the launch page."
-      },
-      {
-        "name": "--image-file",
-        "type": "path",
-        "required": false,
-        "description": "Local image file to upload for the launch page."
       }
     ],
     "examples": [

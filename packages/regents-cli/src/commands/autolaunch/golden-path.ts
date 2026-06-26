@@ -287,36 +287,13 @@ const readImageInput = async (
   args: ParsedCliArgs,
 ): Promise<{
   image_url?: string;
-  image_file_name?: string;
-  image_file_base64?: string;
-  image_media_type?: string;
 }> => {
   const imageUrl = normalizeText(getFlag(args, "image-url"));
   if (imageUrl) {
     return { image_url: imageUrl };
   }
 
-  const imageFile = normalizeText(getFlag(args, "image-file"));
-  if (!imageFile) {
-    return {};
-  }
-
-  const filePath = path.resolve(imageFile);
-  const bytes = fs.readFileSync(filePath);
-  const fileName = path.basename(filePath);
-  const mediaType = filePath.endsWith(".png")
-    ? "image/png"
-    : filePath.endsWith(".webp")
-      ? "image/webp"
-      : filePath.endsWith(".gif")
-        ? "image/gif"
-        : "image/jpeg";
-
-  return {
-    image_file_name: fileName,
-    image_file_base64: bytes.toString("base64"),
-    image_media_type: mediaType,
-  };
+  return {};
 };
 
 const uploadImageIfNeeded = async (
@@ -333,29 +310,6 @@ const uploadImageIfNeeded = async (
     const asset = payload.asset as Record<string, unknown> | undefined;
     return {
       image_url: String(asset?.public_url ?? image.image_url),
-      image_asset_id:
-        typeof asset?.asset_id === "string" ? asset.asset_id : undefined,
-    };
-  }
-
-  if (
-    image.image_file_base64 &&
-    image.image_file_name &&
-    image.image_media_type
-  ) {
-    const payload = await requestJson("POST", "/api/autolaunch/v1/agent/prelaunch/assets", {
-      body: {
-        file_name: image.image_file_name,
-        media_type: image.image_media_type,
-        content_base64: image.image_file_base64,
-      },
-      requireAgentAuth: true,
-    });
-
-    const asset = payload.asset as Record<string, unknown> | undefined;
-    return {
-      image_url:
-        typeof asset?.public_url === "string" ? asset.public_url : undefined,
       image_asset_id:
         typeof asset?.asset_id === "string" ? asset.asset_id : undefined,
     };
