@@ -12,6 +12,8 @@ import { writeFakeCdp } from "../support/fake-cdp.js";
 import { captureOutput } from "../../../../test-support/test-helpers.js";
 
 const TEST_WALLET = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8" as const;
+const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
+const TEST_AGENT_ID = `eip155:8453:${TEST_REGISTRY}:99`;
 
 const writeReceipt = (homeDir: string, receipt: RegentIdentityReceipt): void => {
   const receiptPath = path.join(homeDir, ".regent", "identity", "receipt-v1.json");
@@ -93,8 +95,9 @@ describe("top-level operator status commands", () => {
       network: "base",
       provider: "coinbase-cdp",
       address: "0x1111111111111111111111111111111111111111",
-      agent_id: 99,
-      agent_registry: "0x2222222222222222222222222222222222222222",
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
+      agent_registry: TEST_REGISTRY,
       signer_type: "evm_personal_sign",
       verified: "onchain",
       receipt: "receipt-valid",
@@ -125,6 +128,61 @@ describe("top-level operator status commands", () => {
     });
   });
 
+  it("does not mark a stale runtime socket as ready", async () => {
+    const socketPath = path.join(tempDir, "runtime", "regent.sock");
+    fs.mkdirSync(path.dirname(socketPath), { recursive: true });
+    fs.writeFileSync(socketPath, "", "utf8");
+
+    const output = await captureOutput(async () =>
+      runCliEntrypoint(["status", "--config", configPath]),
+    );
+
+    expect(output).toMatchObject({ result: 0 });
+    expect(output.stderr).toBe("");
+    expect(JSON.parse(output.stdout)).toMatchObject({
+      ok: true,
+      command: "status",
+      status: "waiting",
+      components: expect.arrayContaining([
+        expect.objectContaining({
+          name: "runtime",
+          status: "waiting",
+          detail: "Run regents doctor --fix",
+        }),
+        expect.objectContaining({
+          name: "chat",
+          status: "waiting",
+          detail: "Run regents doctor --fix",
+        }),
+      ]),
+    });
+  });
+
+  it("does not mark a stale runtime socket as ready in the bare readiness view", async () => {
+    const socketPath = path.join(tempDir, "runtime", "regent.sock");
+    fs.mkdirSync(path.dirname(socketPath), { recursive: true });
+    fs.writeFileSync(socketPath, "", "utf8");
+
+    const output = await captureOutput(async () =>
+      runCliEntrypoint(["--config", configPath]),
+    );
+
+    expect(output).toMatchObject({ result: 0 });
+    expect(output.stderr).toBe("");
+    expect(JSON.parse(output.stdout)).toMatchObject({
+      ok: true,
+      command: "overview",
+      status: "waiting",
+      components: expect.arrayContaining([
+        expect.objectContaining({
+          name: "runtime",
+          status: "waiting",
+          detail: "Run regents doctor --fix",
+        }),
+      ]),
+    });
+  });
+
   it("does not show a stale identity in whoami when the saved receipt belongs to a different wallet", async () => {
     writeReceipt(tempDir, {
       version: 1,
@@ -132,8 +190,9 @@ describe("top-level operator status commands", () => {
       network: "base",
       provider: "coinbase-cdp",
       address: "0x1111111111111111111111111111111111111111",
-      agent_id: 99,
-      agent_registry: "0x2222222222222222222222222222222222222222",
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
+      agent_registry: TEST_REGISTRY,
       signer_type: "evm_personal_sign",
       verified: "onchain",
       receipt: "receipt-valid",
@@ -168,8 +227,9 @@ describe("top-level operator status commands", () => {
       network: "base",
       provider: "coinbase-cdp",
       address: TEST_WALLET,
-      agent_id: 99,
-      agent_registry: "0x2222222222222222222222222222222222222222",
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
+      agent_registry: TEST_REGISTRY,
       signer_type: "evm_personal_sign",
       verified: "onchain",
       receipt: "receipt-valid",
@@ -184,7 +244,7 @@ describe("top-level operator status commands", () => {
     const server = http.createServer((request, response) => {
       seenPaths.push(request.url ?? "");
       response.writeHead(200, { "content-type": "application/json" });
-      response.end(JSON.stringify({ ok: true, agent_id: 99, companies: [] }));
+      response.end(JSON.stringify({ ok: true, agent_id: TEST_AGENT_ID, companies: [] }));
     });
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
     const address = server.address();
@@ -215,9 +275,9 @@ describe("top-level operator status commands", () => {
       ok: true,
       command: "whoami",
       identity_graph: {
-        agent_id: 99,
+        agent_id: TEST_AGENT_ID,
         platform_projection: {
-          agent_id: 99,
+          agent_id: TEST_AGENT_ID,
         },
       },
     });

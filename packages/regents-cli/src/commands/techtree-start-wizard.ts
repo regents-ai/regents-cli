@@ -177,7 +177,7 @@ const tokenIdFromAgentId = (agentId: string | null): string | null => {
   }
 
   const parts = agentId.split(":");
-  return parts.length === 2 ? parts[1] ?? null : null;
+  return parts.length === 4 && parts[0] === "eip155" ? parts[3] ?? null : null;
 };
 
 const ensureIdentity = async (

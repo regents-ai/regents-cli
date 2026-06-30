@@ -62,7 +62,6 @@ interface GraphPayload {
   readonly product_links: {
     readonly platform: Record<string, unknown> | null;
     readonly autolaunch: Record<string, unknown> | null;
-    readonly techtree: Record<string, unknown> | null;
     readonly mobile: null;
     readonly erc8004_agentbook: Record<string, unknown> | null;
   };
@@ -126,7 +125,8 @@ describe("identity graph command", () => {
           network: "base",
           provider: "coinbase-cdp",
           address: testWallet,
-          agent_id: 99,
+          agent_id: `eip155:8453:${testRegistry}:99`,
+          token_id: "99",
           agent_registry: testRegistry,
           signer_type: "evm_personal_sign",
           verified: "onchain",
@@ -142,7 +142,7 @@ describe("identity graph command", () => {
     );
   };
 
-  const writeSiwaSession = (audience: "autolaunch" | "techtree" | "regent-services"): void => {
+  const writeSiwaSession = (audience: "autolaunch" | "regent-services"): void => {
     const statePath = path.join(homeDir, "state", "runtime-state.json");
     fs.mkdirSync(path.dirname(statePath), { recursive: true });
     fs.writeFileSync(
@@ -213,9 +213,15 @@ describe("identity graph command", () => {
                 wallet_address: testWallet,
               },
             ],
-            companies: [
-              { company: { id: "co_1", sprite_service_name: "sprite-agent-x" } },
-            ],
+            companies: [{ company: { id: "co_1", sprite_service_name: "sprite-agent-x" } }],
+            identity_links: {
+              techtree: {
+                profile_id: "tt_profile_1",
+                node_ids: ["node_1"],
+                bbh_run_ids: [],
+                review_ids: ["review_1"],
+              },
+            },
           },
         });
       }
@@ -225,7 +231,7 @@ describe("identity graph command", () => {
           ok: true,
           items: [
             {
-              agent_id: 99,
+              agent_id: `eip155:8453:${testRegistry}:99`,
               owner_address: testWallet,
               registry_address: testRegistry,
               existing_token: { token_address: testToken, auction_id: "auc_1" },
@@ -236,10 +242,6 @@ describe("identity graph command", () => {
 
       if (url.includes("/api/autolaunch/v1/agent/subjects/by-token/")) {
         return jsonResponse({ ok: true, subjects: [{ subject_id: "subj_1" }] });
-      }
-
-      if (url.includes("/api/techtree/v1/agent/reviewer/me")) {
-        return jsonResponse({ ok: true, data: { wallet_address: testWallet } });
       }
 
       throw new Error(`unexpected fetch ${url}`);
@@ -320,7 +322,6 @@ describe("identity graph command", () => {
       product_links: {
         platform: null,
         autolaunch: null,
-        techtree: null,
         mobile: null,
         erc8004_agentbook: null,
       },
@@ -341,14 +342,14 @@ describe("identity graph command", () => {
     const graph = parsePrintedJson(output.stdout) as GraphPayload;
     expect(graph.ok).toBe(true);
     expect(graph.status).toBe("ready");
-    expect(graph.agent_id).toBe("99");
+    expect(graph.agent_id).toBe(`eip155:8453:${testRegistry}:99`);
     expect(graph.wallet_tuple).toEqual({
       wallet_address: testWallet,
       chain_id: 8453,
       registry_address: testRegistry,
       token_id: "99",
     });
-    expect(graph.checks).toHaveLength(5);
+    expect(graph.checks).toHaveLength(4);
     for (const check of graph.checks) {
       expect(check.status).toBe("UNVERIFIABLE");
       expect(check.reason).toBeTruthy();
@@ -360,15 +361,11 @@ describe("identity graph command", () => {
     expect(checkByItem(graph, "autolaunch link").reason).toContain(
       "regents auth login --audience autolaunch",
     );
-    expect(checkByItem(graph, "techtree link").reason).toContain(
-      "regents auth login --audience techtree",
-    );
     expect(graph.product_links.platform).toBeNull();
     expect(graph.product_links.autolaunch).toBeNull();
-    expect(graph.product_links.techtree).toBeNull();
     expect(graph.product_links.mobile).toBeNull();
     expect(graph.product_links.erc8004_agentbook).toEqual({
-      agent_id: "99",
+      agent_id: `eip155:8453:${testRegistry}:99`,
       registry_address: testRegistry,
       token_id: "99",
     });
@@ -406,34 +403,19 @@ describe("identity graph command", () => {
       public_slug: "agent-x",
       claimed_name: "Agent X",
       hosted_runtime_id: "sprite-agent-x",
+      techtree: {
+        profile_id: "tt_profile_1",
+        node_ids: ["node_1"],
+        bbh_run_ids: [],
+        review_ids: ["review_1"],
+      },
     });
     expect(graph.product_links.autolaunch).toEqual({
       subject_id: "subj_1",
       launch_id: null,
       auction_id: "auc_1",
     });
-    // One SIWA session carries one audience, so the techtree row stays
-    // UNVERIFIABLE while the saved sign-in targets autolaunch.
-    expect(checkByItem(graph, "techtree link").status).toBe("UNVERIFIABLE");
-    expect(checkByItem(graph, "techtree link").reason).toContain(
-      "regents auth login --audience techtree",
-    );
     expect(checkByItem(graph, "mobile link").status).toBe("UNVERIFIABLE");
-
-    // A techtree-audience sign-in verifies the techtree link in its own run.
-    writeSiwaSession("techtree");
-    const techtreeOutput = await runGraph();
-
-    expect(techtreeOutput.result, techtreeOutput.stderr).toBe(0);
-    const techtreeGraph = parsePrintedJson(techtreeOutput.stdout) as GraphPayload;
-    expect(checkByItem(techtreeGraph, "techtree link").status).toBe("MATCH");
-    expect(techtreeGraph.product_links.techtree).toEqual({
-      profile_id: testWallet,
-      node_ids: [],
-      bbh_run_ids: [],
-      review_ids: [],
-    });
-    expect(checkByItem(techtreeGraph, "autolaunch link").status).toBe("UNVERIFIABLE");
   });
 
   it("exits 1 with a chain-wins next step when the registry owner differs from the saved wallet", async () => {

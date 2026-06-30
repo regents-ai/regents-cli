@@ -137,7 +137,7 @@ const requireSavedIdentityReceipt = () => {
     throw new Error("This machine does not have a saved Regent identity yet. Run `regents identity ensure` first.");
   }
 
-  if (!receipt.agent_registry || !Number.isFinite(receipt.agent_id)) {
+  if (!receipt.agent_registry || !receipt.agent_id || !receipt.token_id) {
     throw new Error("This command needs a saved Regent identity. Run `regents identity ensure` again.");
   }
 

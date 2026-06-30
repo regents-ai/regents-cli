@@ -12,6 +12,7 @@ import {
   renderPanel,
   renderTablePanel,
 } from "../printer.js";
+import { receiptAgentKey, receiptAgentTokenId } from "../internal-runtime/identity/shared.js";
 import { loadResolvedPlatformSession, requestPlatformSessionJson } from "./platform.js";
 import { requestProductJson } from "./product-http.js";
 
@@ -31,24 +32,23 @@ interface PlatformLink {
   readonly public_slug: string | null;
   readonly claimed_name: string | null;
   readonly hosted_runtime_id: string | null;
+  readonly techtree: {
+    readonly profile_id: string | null;
+    readonly node_ids: readonly string[];
+    readonly bbh_run_ids: readonly string[];
+    readonly review_ids: readonly string[];
+  };
+}
+
+interface ProductLinkResult<TLink> {
+  readonly link: TLink | null;
+  readonly check: GraphCheck;
 }
 
 interface AutolaunchLink {
   readonly subject_id: string | null;
   readonly launch_id: string | null;
   readonly auction_id: string | null;
-}
-
-interface TechtreeLink {
-  readonly profile_id: string | null;
-  readonly node_ids: readonly string[];
-  readonly bbh_run_ids: readonly string[];
-  readonly review_ids: readonly string[];
-}
-
-interface ProductLinkResult<TLink> {
-  readonly link: TLink | null;
-  readonly check: GraphCheck;
 }
 
 const ERC721_OWNER_OF_ABI = [
@@ -85,6 +85,9 @@ const asId = (value: unknown): string | null => {
   return asText(value);
 };
 
+const asIdArray = (value: unknown): readonly string[] =>
+  Array.isArray(value) ? value.flatMap((item) => asId(item) ?? []) : [];
+
 const sameAddress = (left: string, right: string): boolean =>
   left.toLowerCase() === right.toLowerCase();
 
@@ -104,7 +107,7 @@ const registryOwnershipCheck = async (receipt: RegentIdentityReceipt): Promise<G
     return {
       item,
       status: "UNVERIFIABLE",
-      detail: `agent ${receipt.agent_id} on ${receipt.agent_registry}`,
+      detail: `agent ${receiptAgentKey(receipt)} on ${receipt.agent_registry}`,
       reason:
         receipt.network === "base"
           ? "Set BASE_MAINNET_RPC_URL or BASE_RPC_URL to verify registry ownership onchain."
@@ -118,28 +121,28 @@ const registryOwnershipCheck = async (receipt: RegentIdentityReceipt): Promise<G
       address: receipt.agent_registry as `0x${string}`,
       abi: ERC721_OWNER_OF_ABI,
       functionName: "ownerOf",
-      args: [BigInt(receipt.agent_id)],
+      args: [BigInt(receiptAgentTokenId(receipt))],
     })) as string;
 
     if (sameAddress(owner, receipt.address)) {
       return {
         item,
         status: "MATCH",
-        detail: `the registry owner of agent ${receipt.agent_id} is the saved wallet`,
+        detail: `the registry owner of agent ${receiptAgentKey(receipt)} is the saved wallet`,
       };
     }
 
     return {
       item,
       status: "MISMATCH",
-      detail: `the registry says agent ${receipt.agent_id} is owned by ${owner}, not ${receipt.address}`,
+      detail: `the registry says agent ${receiptAgentKey(receipt)} is owned by ${owner}, not ${receipt.address}`,
       next: "Chain wins for ownership. Run regents identity ensure --force-refresh to rebuild the local identity from the owning wallet.",
     };
   } catch (error) {
     return {
       item,
       status: "UNVERIFIABLE",
-      detail: `agent ${receipt.agent_id} on ${receipt.agent_registry}`,
+      detail: `agent ${receiptAgentKey(receipt)} on ${receipt.agent_registry}`,
       reason: errorText(error),
     };
   }
@@ -165,6 +168,8 @@ const platformLinkResult = async (
 
     const projection = asRecord(data.projection) ?? {};
     const profiles = asRecordArray(projection.public_profiles);
+    const identityLinks = asRecord(projection.identity_links) ?? {};
+    const techtreeLinks = asRecord(identityLinks.techtree) ?? {};
     const profile =
       profiles.find((candidate) => {
         const wallet = asText(candidate.wallet_address);
@@ -190,6 +195,12 @@ const platformLinkResult = async (
       public_slug: asText(profile?.slug ?? companyRecord?.slug),
       claimed_name: asText(profile?.claimed_label ?? companyRecord?.claimed_label),
       hosted_runtime_id: asText(companyRecord?.sprite_service_name ?? companyRecord?.sprite_name),
+      techtree: {
+        profile_id: asId(techtreeLinks.profile_id),
+        node_ids: asIdArray(techtreeLinks.node_ids),
+        bbh_run_ids: asIdArray(techtreeLinks.bbh_run_ids),
+        review_ids: asIdArray(techtreeLinks.review_ids),
+      },
     };
 
     const profileWallet = asText(profile?.wallet_address);
@@ -261,9 +272,9 @@ const autolaunchLinkResult = async (
       configPath,
     });
 
-    const agentId = String(receipt.agent_id);
+    const agentId = receiptAgentKey(receipt);
     const card = asRecordArray(payload.items ?? payload.data).find(
-      (candidate) => asId(candidate.agent_id) === agentId || asId(candidate.token_id) === agentId,
+      (candidate) => asId(candidate.agent_id) === agentId,
     );
 
     if (!card) {
@@ -327,66 +338,6 @@ const autolaunchLinkResult = async (
   }
 };
 
-const techtreeLinkResult = async (
-  receipt: RegentIdentityReceipt,
-  configPath?: string,
-): Promise<ProductLinkResult<TechtreeLink>> => {
-  const item = "techtree link";
-
-  try {
-    const payload = await requestProductJson<Record<string, unknown>>(
-      "GET",
-      "/api/techtree/v1/agent/reviewer/me",
-      {
-        requireAgentAuth: true,
-        authAudience: "techtree",
-        service: "techtree",
-        commandName: "regents identity graph",
-        configPath,
-      },
-    );
-
-    const profile = asRecord(payload.data);
-    const profileWallet = asText(profile?.wallet_address);
-
-    if (!profile || !profileWallet) {
-      return {
-        link: null,
-        check: { item, status: "MATCH", detail: "Techtree has no profile for this agent yet" },
-      };
-    }
-
-    const link: TechtreeLink = {
-      profile_id: profileWallet,
-      node_ids: [],
-      bbh_run_ids: [],
-      review_ids: [],
-    };
-
-    if (!sameAddress(profileWallet, receipt.address)) {
-      return {
-        link,
-        check: {
-          item,
-          status: "MISMATCH",
-          detail: `Techtree records wallet ${profileWallet}, not ${receipt.address}`,
-          next: "Chain wins for ownership. Sign in to Techtree from the registry-owning wallet (regents auth login --audience techtree).",
-        },
-      };
-    }
-
-    return {
-      link,
-      check: { item, status: "MATCH", detail: "Techtree profile matches the saved wallet" },
-    };
-  } catch (error) {
-    return {
-      link: null,
-      check: { item, status: "UNVERIFIABLE", detail: "Techtree profile", reason: errorText(error) },
-    };
-  }
-};
-
 const mobileCheck: GraphCheck = {
   item: "mobile link",
   status: "UNVERIFIABLE",
@@ -404,7 +355,6 @@ const waitingGraph = () => ({
   product_links: {
     platform: null,
     autolaunch: null,
-    techtree: null,
     mobile: null,
     erc8004_agentbook: null,
   },
@@ -422,20 +372,20 @@ const buildGraph = async (args: ParsedCliArgs, configPath?: string) => {
   const registryCheck = await registryOwnershipCheck(receipt);
   const platform = await platformLinkResult(args, receipt, configPath);
   const autolaunch = await autolaunchLinkResult(receipt, configPath);
-  const techtree = await techtreeLinkResult(receipt, configPath);
-  const checks = [registryCheck, platform.check, autolaunch.check, techtree.check, mobileCheck];
+  const checks = [registryCheck, platform.check, autolaunch.check, mobileCheck];
   const mismatched = checks.some((check) => check.status === "MISMATCH");
+  const agentId = receiptAgentKey(receipt);
 
   return {
     ok: !mismatched,
     command: "identity graph",
     status: mismatched ? "mismatch" : "ready",
-    agent_id: String(receipt.agent_id),
+    agent_id: agentId,
     wallet_tuple: {
       wallet_address: receipt.address,
       chain_id: receipt.network === "base" ? 8453 : 84532,
       registry_address: receipt.agent_registry,
-      token_id: String(receipt.agent_id),
+      token_id: receiptAgentTokenId(receipt),
     },
     local_receipt: {
       provider: receipt.provider,
@@ -446,18 +396,17 @@ const buildGraph = async (args: ParsedCliArgs, configPath?: string) => {
     product_links: {
       platform: platform.link,
       autolaunch: autolaunch.link,
-      techtree: techtree.link,
       mobile: null,
       erc8004_agentbook: {
-        agent_id: String(receipt.agent_id),
+        agent_id: agentId,
         registry_address: receipt.agent_registry,
-        token_id: String(receipt.agent_id),
+        token_id: receiptAgentTokenId(receipt),
       },
     },
     checks,
     gaps: [
       "Autolaunch does not expose launch_id on the agent record yet, so launch_id stays null.",
-      "Techtree does not expose agent-scoped node, BBH run, or review listings yet, so those stay empty.",
+      "Platform does not expose mobile identity links through the CLI contract yet, so mobile stays null.",
     ],
   };
 };

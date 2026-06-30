@@ -10,6 +10,8 @@ import type { RegentIdentityReceipt } from "../../src/internal-types/index.js";
 import { TEST_COINBASE_WALLET, writeFakeCdp } from "../support/fake-cdp.js";
 
 const OTHER_WALLET = "0x1111111111111111111111111111111111111111" as const;
+const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
+const TEST_AGENT_ID = `eip155:8453:${TEST_REGISTRY}:99`;
 
 const writeReceipt = (homeDir: string, receipt: RegentIdentityReceipt): void => {
   const receiptPath = path.join(homeDir, ".regent", "identity", "receipt-v1.json");
@@ -62,8 +64,9 @@ describe("coinbaseStatus", () => {
       network: "base",
       provider: "coinbase-cdp",
       address: TEST_COINBASE_WALLET,
-      agent_id: 99,
-      agent_registry: "0x2222222222222222222222222222222222222222",
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
+      agent_registry: TEST_REGISTRY,
       signer_type: "evm_personal_sign",
       verified: "onchain",
       receipt: "receipt-valid",
@@ -91,8 +94,9 @@ describe("coinbaseStatus", () => {
       network: "base",
       provider: "coinbase-cdp",
       address: OTHER_WALLET,
-      agent_id: 99,
-      agent_registry: "0x2222222222222222222222222222222222222222",
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
+      agent_registry: TEST_REGISTRY,
       signer_type: "evm_personal_sign",
       verified: "onchain",
       receipt: "receipt-valid",
@@ -120,8 +124,9 @@ describe("coinbaseStatus", () => {
       network: "base",
       provider: "coinbase-cdp",
       address: TEST_COINBASE_WALLET,
-      agent_id: 99,
-      agent_registry: "0x2222222222222222222222222222222222222222",
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
+      agent_registry: TEST_REGISTRY,
       signer_type: "evm_personal_sign",
       verified: "onchain",
       receipt: "receipt-valid",

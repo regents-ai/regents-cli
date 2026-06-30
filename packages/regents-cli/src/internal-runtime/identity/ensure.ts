@@ -53,9 +53,10 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
   });
 
   let agentId = status.data.agent_id;
+  let tokenId = status.data.token_id;
   let agentRegistry = status.data.agent_registry;
 
-  if (!status.data.registered || status.data.verified === "unregistered" || !agentId || !agentRegistry) {
+  if (!status.data.registered || status.data.verified === "unregistered" || !agentId || !tokenId || !agentRegistry) {
     const registrationIntent = await client.registrationIntent({
       network: options.network,
       address: signer.address,
@@ -80,10 +81,11 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
       signature: registrationSignature,
     });
     agentId = completion.data.agent_id;
+    tokenId = completion.data.token_id;
     agentRegistry = completion.data.agent_registry;
   }
 
-  if (!agentId || !agentRegistry) {
+  if (!agentId || !tokenId || !agentRegistry) {
     throw new CommandExitError(
       "REGISTRATION_FAILED",
       "Regent could not complete ERC-8004 registration on Base for this signer. No SIWA session was created.",
@@ -93,7 +95,7 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
   const nonce = await client.siwaNonce({
     network: options.network,
     address: signer.address,
-    agent_id: agentId,
+    token_id: tokenId,
     agent_registry: agentRegistry,
   });
 
@@ -110,7 +112,7 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
   const verified = await client.siwaVerify({
     network: options.network,
     address: signer.address,
-    agent_id: agentId,
+    token_id: tokenId,
     agent_registry: agentRegistry,
     message: nonce.data.message,
     signature: siwaSignature,
@@ -125,6 +127,7 @@ export const ensureIdentity = async (options: EnsureIdentityOptions): Promise<Id
     provider: signer.provider,
     address: signer.address,
     agent_id: verified.data.agent_id,
+    token_id: verified.data.token_id,
     agent_registry: verified.data.agent_registry,
     signer_type: verified.data.signer_type,
     verified: verified.data.verified,
@@ -148,6 +151,7 @@ const successFromReceipt = (
   network: receipt.network,
   address: receipt.address,
   agent_id: receipt.agent_id,
+  token_id: receipt.token_id,
   agent_registry: receipt.agent_registry,
   verified: receipt.verified,
   receipt_expires_at: receipt.receipt_expires_at,

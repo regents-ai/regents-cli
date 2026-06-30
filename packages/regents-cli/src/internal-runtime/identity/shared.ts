@@ -53,13 +53,21 @@ export const parseAgentRegistryAddress = (agentRegistry: string): `0x${string}` 
   return match[0].toLowerCase() as `0x${string}`;
 };
 
+export const receiptAgentTokenId = (receipt: Pick<RegentIdentityReceipt, "token_id">): string =>
+  receipt.token_id;
+
+export const receiptAgentKey = (
+  receipt: Pick<RegentIdentityReceipt, "agent_id">,
+): string =>
+  receipt.agent_id;
+
 export const receiptToSession = (receipt: RegentIdentityReceipt): SiwaSession => ({
   walletAddress: receipt.address,
   chainId: identityNetworkChainId(receipt.network),
   registryAddress: parseAgentRegistryAddress(receipt.agent_registry),
-  tokenId: receipt.agent_id.toString(10),
+  tokenId: receiptAgentTokenId(receipt),
   audience: "regent-services",
-  nonce: receipt.agent_id.toString(10),
+  nonce: receiptAgentTokenId(receipt),
   keyId: receipt.address.toLowerCase(),
   receipt: receipt.receipt,
   receiptIssuedAt: receipt.receipt_issued_at,
@@ -70,7 +78,7 @@ export const receiptToIdentity = (receipt: RegentIdentityReceipt): LocalAgentIde
   walletAddress: receipt.address,
   chainId: identityNetworkChainId(receipt.network),
   registryAddress: parseAgentRegistryAddress(receipt.agent_registry),
-  tokenId: receipt.agent_id.toString(10),
+  tokenId: receiptAgentTokenId(receipt),
   label: providerLabel(receipt.provider),
 });
 

@@ -97,7 +97,7 @@ describe("techtree start wizard", () => {
       registry_address: TEST_REGISTRY,
       tx_hash: "0xfeed",
       block_number: "12",
-      agent_id: "8453:2236",
+      agent_id: `eip155:8453:${TEST_REGISTRY}:2236`,
       agent_uri: null,
     });
     startWizardDeps.authStatus = vi.fn().mockResolvedValue({
@@ -232,7 +232,7 @@ describe("techtree start wizard", () => {
       registry_address: TEST_REGISTRY,
       launchable: [
         {
-          agent_id: "8453:2236",
+          agent_id: `eip155:8453:${TEST_REGISTRY}:2236`,
           chain_id: 8453,
           token_id: "2236",
           owner_address: "0xabc",

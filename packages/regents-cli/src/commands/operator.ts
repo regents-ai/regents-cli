@@ -128,6 +128,16 @@ const waitForRuntimeSocket = async (socketPath: string): Promise<boolean> => {
   return false;
 };
 
+const runtimeReadiness = async (
+  socketPath: string,
+): Promise<{ ready: boolean; socketExists: boolean }> => {
+  const socketExists = fs.existsSync(socketPath);
+  return {
+    ready: await runtimePingReady(socketPath),
+    socketExists,
+  };
+};
+
 export async function runOperatorInit(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const resolvedConfigPath = configPathFor(args, configPath);
   const configCreated = writeInitialConfigIfMissing(resolvedConfigPath);
@@ -209,7 +219,7 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
     component(
       "identity",
       receipt ? "ready" : "waiting",
-      receipt ? `${receipt.network}:${receipt.agent_id}` : "Run regents identity ensure",
+      receipt ? receipt.agent_id : "Run regents identity ensure",
     ),
   ];
 
@@ -281,7 +291,8 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
   const receipt = readCurrentIdentityReceipt(config, {
     walletAddress: wallet.account?.address,
   });
-  const runtimeSocketReady = fs.existsSync(config.runtime.socketPath);
+  const runtime = await runtimeReadiness(config.runtime.socketPath);
+  const runtimeNextAction = runtime.socketExists ? "Run regents doctor --fix" : "Run regents run";
 
   const components = [
     component("config", configExists ? "ready" : "waiting", resolvedConfigPath),
@@ -290,10 +301,10 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
       wallet.ok ? "ready" : "waiting",
       wallet.account?.address ?? ("error" in wallet ? wallet.error : undefined),
     ),
-    component("identity", receipt ? "ready" : "waiting", receipt ? `${receipt.network}:${receipt.agent_id}` : "Run regents identity ensure"),
-    component("runtime", runtimeSocketReady ? "ready" : "waiting", config.runtime.socketPath),
+    component("identity", receipt ? "ready" : "waiting", receipt ? receipt.agent_id : "Run regents identity ensure"),
+    component("runtime", runtime.ready ? "ready" : "waiting", runtime.ready ? config.runtime.socketPath : runtimeNextAction),
     component("techtree", "ready", config.services.techtree.baseUrl),
-    component("chat", runtimeSocketReady ? "ready" : "waiting"),
+    component("chat", runtime.ready ? "ready" : "waiting", runtime.ready ? undefined : runtimeNextAction),
   ];
   const blocked = components.filter((item) => item.status === "blocked").length;
   const waiting = components.filter((item) => item.status === "waiting").length;
@@ -345,7 +356,7 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
   const receipt = readCurrentIdentityReceipt(config, {
     walletAddress: wallet.account?.address,
   });
-  const daemonRunning = fs.existsSync(config.runtime.socketPath);
+  const runtime = await runtimeReadiness(config.runtime.socketPath);
 
   const sessionStore = new SessionStore(
     new StateStore(path.join(config.runtime.stateDir, "runtime-state.json")),
@@ -360,7 +371,7 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
   ];
 
   let fold: { verified_attempt_count: number; highest_proof_level: string } | null = null;
-  if (daemonRunning && siwaSession) {
+  if (runtime.ready && siwaSession) {
     try {
       const foldStatus = await daemonCall("techtree.fold.status", undefined, resolvedConfigPath);
       if (foldStatus?.data?.policy?.enabled) {
@@ -375,7 +386,11 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
   }
 
   const components = [
-    component("runtime", daemonRunning ? "ready" : "waiting", daemonRunning ? "running" : "Run regents run"),
+    component(
+      "runtime",
+      runtime.ready ? "ready" : "waiting",
+      runtime.ready ? "running" : runtime.socketExists ? "Run regents doctor --fix" : "Run regents run",
+    ),
     component(
       "wallet",
       wallet.account ? "ready" : "waiting",
@@ -384,7 +399,7 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
     component(
       "identity",
       receipt ? "ready" : "waiting",
-      receipt ? `${receipt.network}:${receipt.agent_id}` : "Run regents identity ensure",
+      receipt ? receipt.agent_id : "Run regents identity ensure",
     ),
     component(
       "sign-ins",
@@ -496,7 +511,7 @@ export async function runOperatorWhoami(args: ParsedCliArgs, configPath?: string
         { label: "status", value: payload.status, valueColor: statusColor(payload.status) },
         { label: "wallet", value: wallet.account?.name ?? "not ready" },
         { label: "address", value: wallet.account?.address ?? "not ready" },
-        { label: "identity", value: receipt ? `${receipt.network}:${receipt.agent_id}` : "not ready" },
+        { label: "identity", value: receipt ? receipt.agent_id : "not ready" },
         { label: "chain", value: String(config.auth.defaultChainId) },
         ...(full ? [{ label: "platform", value: platformProjection ? "loaded" : "not loaded" }] : []),
       ]),

@@ -18,7 +18,8 @@ export interface IdentityStatusResponse {
     provider: RegentResolvedIdentityProvider;
     registered: boolean;
     verified: "unregistered" | "onchain";
-    agent_id?: number;
+    agent_id?: string;
+    token_id?: string;
     agent_registry?: string;
     receipt_expires_at?: string;
   };
@@ -58,7 +59,8 @@ export interface IdentityRegistrationCompletionResponse {
   code: "identity_registration_completed";
   data: {
     registered: true;
-    agent_id: number;
+    agent_id: string;
+    token_id: string;
     agent_registry: string;
   };
   meta?: Record<string, unknown>;
@@ -67,7 +69,7 @@ export interface IdentityRegistrationCompletionResponse {
 export interface IdentitySiwaNonceRequest {
   network: RegentIdentityNetwork;
   address: `0x${string}`;
-  agent_id: number;
+  token_id: string;
   agent_registry: string;
 }
 
@@ -78,7 +80,8 @@ export interface IdentitySiwaNonceResponse {
     nonce_token: string;
     message: string;
     address: `0x${string}`;
-    agent_id: number;
+    agent_id: string;
+    token_id: string;
     agent_registry: string;
     expires_at: string;
   };
@@ -91,7 +94,7 @@ export interface IdentitySiwaVerifyRequest {
   signature: `0x${string}`;
   nonce_token: string;
   address?: `0x${string}`;
-  agent_id?: number;
+  token_id?: string;
   agent_registry?: string;
 }
 
@@ -102,7 +105,8 @@ export interface IdentitySiwaVerifyResponse {
     verified: "onchain";
     network: RegentIdentityNetwork;
     address: `0x${string}`;
-    agent_id: number;
+    agent_id: string;
+    token_id: string;
     agent_registry: string;
     signer_type: string;
     receipt: string;
@@ -118,7 +122,8 @@ export interface RegentIdentityReceipt {
   network: RegentIdentityNetwork;
   provider: RegentResolvedIdentityProvider;
   address: `0x${string}`;
-  agent_id: number;
+  agent_id: string;
+  token_id: string;
   agent_registry: string;
   signer_type: string;
   verified: "onchain";
@@ -140,7 +145,8 @@ export interface IdentityEnsureSuccess {
   provider: RegentResolvedIdentityProvider;
   network: RegentIdentityNetwork;
   address: `0x${string}`;
-  agent_id: number;
+  agent_id: string;
+  token_id: string;
   agent_registry: string;
   verified: "onchain";
   receipt_expires_at: string;

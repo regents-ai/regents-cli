@@ -45,7 +45,8 @@ const isReceipt = (value: unknown): value is RegentIdentityReceipt => {
     isNetwork(value.network) &&
     value.provider === "coinbase-cdp" &&
     typeof value.address === "string" &&
-    typeof value.agent_id === "number" &&
+    typeof value.agent_id === "string" &&
+    typeof value.token_id === "string" &&
     typeof value.agent_registry === "string" &&
     typeof value.signer_type === "string" &&
     value.verified === "onchain" &&

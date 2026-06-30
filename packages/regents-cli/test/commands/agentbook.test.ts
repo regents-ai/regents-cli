@@ -41,7 +41,7 @@ describe("agentbook CLI command group", () => {
         "content-type": "application/yaml",
         "x-regents-contract-major": "0",
         "x-regents-contract-version": "0.1.0",
-        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+        "x-regents-contract-digest": "sha256:c1e5f2a5d6066a89867b7d97235e7459495c761db3707a848fe2c50104617d19",
       },
     });
 
@@ -79,7 +79,8 @@ describe("agentbook CLI command group", () => {
           network: "base-sepolia",
           provider: "coinbase-cdp",
           address: TEST_WALLET,
-          agent_id: 99,
+          agent_id: `eip155:8453:${TEST_REGISTRY}:99`,
+          token_id: "99",
           agent_registry: TEST_REGISTRY,
           signer_type: "evm_personal_sign",
           verified: "onchain",

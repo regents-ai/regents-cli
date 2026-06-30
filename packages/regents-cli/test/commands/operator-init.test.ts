@@ -12,6 +12,8 @@ import { writeFakeCdp } from "../support/fake-cdp.js";
 import { captureOutput } from "../../../../test-support/test-helpers.js";
 
 const TEST_WALLET = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8" as const;
+const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
+const TEST_AGENT_ID = `eip155:8453:${TEST_REGISTRY}:99`;
 
 const readyDoctorReport = {
   ok: true,
@@ -30,8 +32,9 @@ const writeReceipt = (homeDir: string): void => {
     network: "base",
     provider: "coinbase-cdp",
     address: TEST_WALLET,
-    agent_id: 99,
-    agent_registry: "0x2222222222222222222222222222222222222222",
+    agent_id: TEST_AGENT_ID,
+    token_id: "99",
+    agent_registry: TEST_REGISTRY,
     signer_type: "evm_personal_sign",
     verified: "onchain",
     receipt: "receipt-valid",
@@ -156,7 +159,7 @@ describe("guided regents init", () => {
       daemon: { running: true, started_now: false },
       doctor: { ok: true, fail: 0 },
       wallet: { name: "main", address: TEST_WALLET },
-      identity: { network: "base", agent_id: 99 },
+      identity: { network: "base", agent_id: TEST_AGENT_ID },
       next_actions: ["regents status"],
     });
     expect(operatorInitDeps.installPlugin).not.toHaveBeenCalled();

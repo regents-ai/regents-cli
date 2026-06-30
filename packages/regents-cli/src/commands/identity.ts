@@ -137,6 +137,7 @@ export async function runIdentityStatus(
                 registered: true,
                 verified: cachedReceipt.verified,
                 agent_id: cachedReceipt.agent_id,
+                token_id: cachedReceipt.token_id,
                 agent_registry: cachedReceipt.agent_registry,
                 receipt_expires_at: cachedReceipt.receipt_expires_at,
               },

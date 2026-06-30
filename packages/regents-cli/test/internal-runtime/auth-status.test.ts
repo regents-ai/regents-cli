@@ -11,6 +11,7 @@ import { SessionStore } from "../../src/internal-runtime/store/session-store.js"
 import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 
 const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
+const TEST_AGENT_ID = `eip155:8453:${TEST_REGISTRY}:99`;
 const TEST_WALLET = "0x1111111111111111111111111111111111111111";
 const OTHER_WALLET = "0x3333333333333333333333333333333333333333";
 
@@ -87,7 +88,8 @@ describe("handleAuthSiwaStatus", () => {
         network: "base",
         provider: "coinbase-cdp",
         address: OTHER_WALLET,
-        agent_id: 99,
+        agent_id: TEST_AGENT_ID,
+        token_id: "99",
         agent_registry: TEST_REGISTRY,
         signer_type: "evm_personal_sign",
         verified: "onchain",
