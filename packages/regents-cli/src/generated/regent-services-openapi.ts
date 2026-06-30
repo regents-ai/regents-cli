@@ -353,6 +353,7 @@ export interface components {
         /** @enum {string} */
         IdentityProvider: "coinbase-cdp";
         AgentRegistry: string;
+        IdentityTokenId: string;
         IdentityStatusRequest: {
             network: components["schemas"]["IdentityNetwork"];
             address: components["schemas"]["Address"];
@@ -371,7 +372,8 @@ export interface components {
                 registered: boolean;
                 /** @enum {string} */
                 verified: "unregistered" | "onchain";
-                agent_id?: number;
+                agent_id?: string;
+                token_id?: string;
                 agent_registry?: components["schemas"]["AgentRegistry"];
                 /** Format: date-time */
                 receipt_expires_at?: string;
@@ -414,7 +416,8 @@ export interface components {
             data: {
                 /** @enum {boolean} */
                 registered: true;
-                agent_id: number;
+                agent_id: string;
+                token_id: string;
                 agent_registry: components["schemas"]["AgentRegistry"];
             };
             meta?: components["schemas"]["LooseObject"];
@@ -422,7 +425,7 @@ export interface components {
         IdentitySiwaNonceRequest: {
             network: components["schemas"]["IdentityNetwork"];
             address: components["schemas"]["Address"];
-            agent_id: number;
+            token_id: components["schemas"]["IdentityTokenId"];
             agent_registry: components["schemas"]["AgentRegistry"];
         };
         IdentitySiwaNonceResponse: {
@@ -434,7 +437,8 @@ export interface components {
                 nonce_token: string;
                 message: string;
                 address: components["schemas"]["Address"];
-                agent_id: number;
+                agent_id: string;
+                token_id: string;
                 agent_registry: components["schemas"]["AgentRegistry"];
                 /** Format: date-time */
                 expires_at: string;
@@ -447,7 +451,7 @@ export interface components {
             signature: components["schemas"]["HexData"];
             nonce_token: string;
             address?: components["schemas"]["Address"];
-            agent_id?: number;
+            token_id?: components["schemas"]["IdentityTokenId"];
             agent_registry?: components["schemas"]["AgentRegistry"];
         };
         IdentitySiwaVerifyResponse: {
@@ -460,7 +464,8 @@ export interface components {
                 verified: "onchain";
                 network: components["schemas"]["IdentityNetwork"];
                 address: components["schemas"]["Address"];
-                agent_id: number;
+                agent_id: string;
+                token_id: string;
                 agent_registry: components["schemas"]["AgentRegistry"];
                 signer_type: string;
                 receipt: string;
@@ -513,6 +518,7 @@ export interface components {
                 chainId: components["schemas"]["BaseChainId"];
                 registryAddress: components["schemas"]["Address"];
                 tokenId: string;
+                agentId: string;
                 audience: string;
                 nonce: string;
                 keyId: string;
@@ -552,6 +558,7 @@ export interface components {
             meta?: components["schemas"]["LooseObject"];
         };
         AgentClaims: {
+            agent_id: string;
             wallet_address: components["schemas"]["Address"];
             chain_id: components["schemas"]["BaseChainId"];
             registry_address: components["schemas"]["Address"];

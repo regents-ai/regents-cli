@@ -86,7 +86,6 @@ const extractOwnershipGroups = (source, exportName) => {
 };
 
 const normalizeCommandName = (command) => command.replace(/^regents?\s+/u, "");
-const currentAvailabilityValues = new Set(["current"]);
 const platformPublicCommand = (command) =>
   command.startsWith("platform ") ||
   command.startsWith("runtime ") ||
@@ -196,24 +195,15 @@ const agentMetadataForCommand = (contract, group, command) => {
 };
 
 const iterContractCommandRecords = (owner, contract) => {
-  if (Array.isArray(contract.commands)) {
-    return contract.commands
-      .filter((command) => command && typeof command === "object" && typeof command.name === "string")
-      .map((command) => ({
-        owner,
-        command: normalizeCommandName(command.name),
-        availability: typeof command.availability === "string" ? command.availability : "current",
-        group: undefined,
-        metadata: command.agent_metadata ?? contract["x-regent-agent-defaults"],
-        examples: command.examples,
-      }));
+  if (contract?.openapi || Array.isArray(contract?.commands) || contract?.version !== 1) {
+    fail(`CLI contract ${owner} must use the v1 command_groups schema`);
+    return [];
   }
 
   return (contract.command_groups ?? []).flatMap((group) =>
     (group.commands ?? []).map((command) => ({
       owner,
       command: normalizeCommandName(command),
-      availability: "current",
       group,
       metadata: agentMetadataForCommand(contract, group, normalizeCommandName(command)),
       examples: group.examples,
@@ -222,53 +212,38 @@ const iterContractCommandRecords = (owner, contract) => {
 };
 
 const flattenContract = (contract, operationPaths) => {
-  if (Array.isArray(contract.commands)) {
-    const commands = new Set();
-    const paths = new Set();
-    const rpcMethods = new Set();
-    const availabilityByCommand = new Map();
-
-    for (const command of contract.commands) {
-      if (!command || typeof command !== "object") {
-        continue;
-      }
-
-      if (typeof command.name === "string") {
-        const normalizedCommand = normalizeCommandName(command.name);
-        commands.add(normalizedCommand);
-        availabilityByCommand.set(
-          normalizedCommand,
-          typeof command.availability === "string" ? command.availability : "current",
-        );
-      }
-
-      const transport = command.transport;
-      if (!transport || typeof transport !== "object") {
-        continue;
-      }
-
-      for (const operationId of transport.operationIds ?? []) {
-        const path = operationPaths.get(operationId);
-        if (!path) {
-          fail(`CLI contract references unknown OpenAPI operationId: ${operationId}`);
-          continue;
-        }
-
-        paths.add(path);
-      }
-    }
-
-    return { commands, paths, rpcMethods, availabilityByCommand };
+  if (contract?.openapi || Array.isArray(contract?.commands) || contract?.version !== 1) {
+    fail("CLI contracts must use the v1 command_groups schema");
+    return { commands: new Set(), paths: new Set(), rpcMethods: new Set(), operationIds: new Set() };
   }
 
   const groups = contract.command_groups ?? [];
   const commands = new Set();
   const paths = new Set();
   const rpcMethods = new Set();
+  const operationIds = new Set();
+
+  const addOperationId = (operationId) => {
+    operationIds.add(operationId);
+    const path = operationPaths.get(operationId);
+    if (!path) {
+      fail(`CLI contract references unknown OpenAPI operationId: ${operationId}`);
+      return;
+    }
+    paths.add(path);
+  };
 
   for (const group of groups) {
     for (const command of group.commands ?? []) {
       commands.add(command);
+    }
+    for (const operationId of group.operation_ids ?? []) {
+      addOperationId(operationId);
+    }
+    for (const metadata of Object.values(group.agent_metadata?.commands ?? {})) {
+      for (const operationId of metadata?.operation_ids ?? []) {
+        addOperationId(operationId);
+      }
     }
     for (const path of group.path_templates ?? []) {
       paths.add(path);
@@ -278,7 +253,7 @@ const flattenContract = (contract, operationPaths) => {
     }
   }
 
-  return { commands, paths, rpcMethods, availabilityByCommand: new Map() };
+  return { commands, paths, rpcMethods, operationIds };
 };
 
 const fail = (message) => {
@@ -344,13 +319,9 @@ const flattenedContracts = Object.fromEntries(
 );
 
 const contractCommandRecords = Object.entries(contracts).flatMap(([owner, contract]) =>
-  iterContractCommandRecords(owner, contract).filter((record) => {
-    if (owner !== "platform") {
-      return true;
-    }
-
-    return platformPublicCommand(record.command) && currentAvailabilityValues.has(record.availability);
-  }),
+  iterContractCommandRecords(owner, contract).filter((record) =>
+    owner === "platform" ? platformPublicCommand(record.command) : true,
+  ),
 );
 
 for (const record of contractCommandRecords) {
@@ -393,18 +364,8 @@ for (const record of contractCommandRecords) {
   }
 }
 
-for (const [command, availability] of flattenedContracts.platform.availabilityByCommand) {
-  if (platformPublicCommand(command) && !currentAvailabilityValues.has(availability)) {
-    fail(
-      `Platform CLI command ${command} has unsupported availability ${availability}; use current`,
-    );
-  }
-}
-
 const shippedPlatformCommands = Array.from(flattenedContracts.platform.commands).filter(
-  (command) =>
-    platformPublicCommand(command) &&
-    currentAvailabilityValues.has(flattenedContracts.platform.availabilityByCommand.get(command) ?? "current"),
+  (command) => platformPublicCommand(command),
 );
 
 const shippedContractCommands = new Set([
@@ -466,31 +427,6 @@ for (const command of flattenedContracts.techtree.commands) {
 for (const path of flattenedContracts.techtree.paths) {
   if (!ownershipByOwner.techtree.paths.has(path)) {
     fail(`Techtree API ownership registry is missing CLI contract path binding: ${path}`);
-  }
-}
-
-const platformApiBackedCommands = (contracts.platform.commands ?? [])
-  .filter((command) => {
-    if (!command || typeof command !== "object" || typeof command.name !== "string") {
-      return false;
-    }
-    if (!platformPublicCommand(normalizeCommandName(command.name))) {
-      return false;
-    }
-    if (!currentAvailabilityValues.has(typeof command.availability === "string" ? command.availability : "current")) {
-      return false;
-    }
-    if (command.transport?.kind === "beta-disabled") {
-      return false;
-    }
-
-    return Array.isArray(command.transport?.operationIds) && command.transport.operationIds.length > 0;
-  })
-  .map((command) => normalizeCommandName(command.name));
-
-for (const command of platformApiBackedCommands) {
-  if (!ownershipByOwner.platform.commands.has(command)) {
-    fail(`Platform API ownership registry is missing API-backed CLI contract command: ${command}`);
   }
 }
 

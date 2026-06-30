@@ -14,20 +14,6 @@ const commandListPath = resolve(root, "docs/regents-cli-command-list.md");
 const manifest = readWorkspaceManifest(root, YAML);
 const cliContractFiles = cliCommandContractFiles(manifest, root);
 
-const currentAvailabilityValues = new Set(["current"]);
-const platformPublicCommand = (command) =>
-  command.startsWith("platform ") ||
-  command.startsWith("runtime ") ||
-  command.startsWith("agentbook ") ||
-  command.startsWith("work ") ||
-  command === "agent connect hermes" ||
-  command === "agent connect openclaw" ||
-  command === "agent link" ||
-  command === "agent execution-pool" ||
-  command === "bug" ||
-  command === "security-report" ||
-  command.startsWith("regent-staking ");
-
 const parseYaml = (file) => YAML.parse(fs.readFileSync(file, "utf8"));
 const normalizeCommandName = (command) => command.replace(/^regents?\s+/u, "");
 const topLevelGroup = (command) => command.split(" ")[0];
@@ -552,47 +538,8 @@ const readAgentMetadata = (agentMetadata, normalizedCommand) => {
 };
 
 const readContractGroups = (owner, contract) => {
-  if (Array.isArray(contract.commands)) {
-    const byGroup = new Map();
-    const ownerAgentDefaults = contract["x-regent-agent-defaults"];
-
-    for (const command of contract.commands) {
-      if (!command || typeof command !== "object" || typeof command.name !== "string") {
-        continue;
-      }
-
-      const normalizedCommand = normalizeCommandName(command.name);
-      const availability = typeof command.availability === "string" ? command.availability : "current";
-      if (owner === "platform" && (!platformPublicCommand(normalizedCommand) || !currentAvailabilityValues.has(availability))) {
-        continue;
-      }
-
-      const groupName = topLevelGroup(normalizedCommand);
-      const group = byGroup.get(groupName) ?? { owner, name: groupName, commands: [], commandDetails: [] };
-      group.commands.push(normalizedCommand);
-      group.commandDetails.push(
-        compactObject({
-          command: normalizedCommand,
-          owner,
-          group: groupName,
-          interface: command.transport?.kind,
-          auth_mode: command.auth?.mode,
-          auth_audience: command.auth?.audience,
-          output_envelope: command.output?.format,
-          operation_ids: command.transport?.operationIds,
-          args: command.args,
-          flags: command.flags,
-          examples: command.examples ?? command.agent_metadata?.examples ?? ownerAgentDefaults?.examples,
-          agent_metadata: metadataWithoutExamples(command.agent_metadata ?? ownerAgentDefaults),
-          summary: commandSummary(normalizedCommand, command.summary),
-          usage: command.usage,
-          next_step: command.next_step,
-        }),
-      );
-      byGroup.set(groupName, group);
-    }
-
-    return Array.from(byGroup.values());
+  if (contract?.openapi || Array.isArray(contract?.commands) || contract?.version !== 1) {
+    throw new Error("CLI contracts must use the v1 command_groups schema.");
   }
 
   return (contract.command_groups ?? []).map((group) => ({

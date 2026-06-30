@@ -52,13 +52,16 @@ const REQUIRED_SIGNATURE_COMPONENTS = coveredComponentsForAgentHeaders({
 
 const TEST_AGENT_WALLET = "0x1111111111111111111111111111111111111111" as const;
 const TEST_AGENT_REGISTRY = "0x2222222222222222222222222222222222222222" as const;
+const TEST_AGENT_TOKEN_ID = "99";
 const TEST_AGENT_SUMMARY = {
   id: 1,
   label: "Contract test agent",
   wallet_address: TEST_AGENT_WALLET,
 } as const;
 const agentRegistryBinding = (): string =>
-  `eip155:8453/erc8004:${TEST_AGENT_REGISTRY}`;
+  `eip155:8453:${TEST_AGENT_REGISTRY}`;
+const agentIdentityKey = (agentRegistry: string, tokenId: string): string =>
+  `${agentRegistry}:${tokenId}`;
 
 export interface ForcedRouteResponse {
   statusCode: number;
@@ -99,7 +102,8 @@ interface RegistrationIntentRecord {
 interface RegisteredIdentityRecord {
   address: `0x${string}`;
   network: "base";
-  agentId: number;
+  agentId: string;
+  tokenId: string;
   agentRegistry: string;
 }
 
@@ -107,7 +111,8 @@ interface IssuedIdentityNonceRecord {
   nonceToken: string;
   address: `0x${string}`;
   network: "base";
-  agentId: number;
+  agentId: string;
+  tokenId: string;
   agentRegistry: string;
   expiresAtUnixSeconds: number;
 }
@@ -730,6 +735,7 @@ export class TechtreeContractServer {
           ...(registered
             ? {
                 agent_id: registered.agentId,
+                token_id: registered.tokenId,
                 agent_registry: registered.agentRegistry,
                 receipt_expires_at: "2999-01-01T00:00:00.000Z",
               }
@@ -810,11 +816,13 @@ export class TechtreeContractServer {
       }
 
       this.issuedRegistrationIntents.delete(payload.intent_id as string);
+      const agentRegistry = agentRegistryBinding(intent!.network);
       const registered: RegisteredIdentityRecord = {
         address: intent!.address,
         network: intent!.network,
-        agentId: 99,
-        agentRegistry: agentRegistryBinding(intent!.network),
+        agentRegistry,
+        tokenId: TEST_AGENT_TOKEN_ID,
+        agentId: agentIdentityKey(agentRegistry, TEST_AGENT_TOKEN_ID),
       };
       this.registeredIdentities.set(`${registered.network}:${registered.address}`, registered);
 
@@ -824,6 +832,7 @@ export class TechtreeContractServer {
         data: {
           registered: true,
           agent_id: registered.agentId,
+          token_id: registered.tokenId,
           agent_registry: registered.agentRegistry,
         },
       };
@@ -835,19 +844,20 @@ export class TechtreeContractServer {
       const payload = body as {
         network?: "base";
         address?: `0x${string}`;
-        agent_id?: number;
+        token_id?: string;
         agent_registry?: string;
       };
       const network = "base";
       const address = (payload.address ?? TEST_AGENT_WALLET).toLowerCase() as `0x${string}`;
       const nonceToken = `identity-nonce-${Date.now()}`;
-      const agentId = payload.agent_id ?? 99;
+      const tokenId = payload.token_id ?? TEST_AGENT_TOKEN_ID;
       const agentRegistry = payload.agent_registry ?? agentRegistryBinding();
+      const agentId = agentIdentityKey(agentRegistry, tokenId);
       const message = [
         "Sign in with Regent",
         `Address: ${address}`,
         `Network: ${network}`,
-        `Agent ID: ${agentId}`,
+        `Token ID: ${tokenId}`,
         `Agent Registry: ${agentRegistry}`,
         `Nonce: ${nonceToken}`,
       ].join("\n");
@@ -857,6 +867,7 @@ export class TechtreeContractServer {
         address,
         network,
         agentId,
+        tokenId,
         agentRegistry,
         expiresAtUnixSeconds: currentUnixSeconds() + 300,
       });
@@ -869,6 +880,7 @@ export class TechtreeContractServer {
           message,
           address,
           agent_id: agentId,
+          token_id: tokenId,
           agent_registry: agentRegistry,
           expires_at: "2999-01-01T00:00:00.000Z",
         },
@@ -881,7 +893,7 @@ export class TechtreeContractServer {
       const payload = body as {
         network?: "base";
         address?: `0x${string}`;
-        agent_id?: number;
+        token_id?: string;
         agent_registry?: string;
         message?: string;
         signature?: `0x${string}`;
@@ -902,8 +914,8 @@ export class TechtreeContractServer {
       if (issued && payload.address?.toLowerCase() !== issued.address.toLowerCase()) {
         issues.push("address binding mismatch");
       }
-      if (issued && payload.agent_id !== issued.agentId) {
-        issues.push("agent_id binding mismatch");
+      if (issued && payload.token_id !== issued.tokenId) {
+        issues.push("token_id binding mismatch");
       }
       if (issued && payload.agent_registry !== issued.agentRegistry) {
         issues.push("agent_registry binding mismatch");
@@ -934,7 +946,7 @@ export class TechtreeContractServer {
         walletAddress: issued!.address,
         chainId: 8453,
         registryAddress: TEST_AGENT_REGISTRY,
-        tokenId: String(issued!.agentId),
+        tokenId: issued!.tokenId,
         keyId: issued!.address.toLowerCase(),
         expiresAt: "2999-01-01T00:00:00.000Z",
       };
@@ -946,6 +958,7 @@ export class TechtreeContractServer {
           network: issued!.network,
           address: issued!.address,
           agent_id: issued!.agentId,
+          token_id: issued!.tokenId,
           agent_registry: issued!.agentRegistry,
           signer_type: "evm_personal_sign",
           receipt: makeReceipt(receiptClaims),

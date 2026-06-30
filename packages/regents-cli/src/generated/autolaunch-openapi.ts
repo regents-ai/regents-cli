@@ -2360,8 +2360,23 @@ export interface components {
             status?: string | null;
             auction_currency?: components["schemas"]["TokenRole"] | null;
             revenue_currency?: components["schemas"]["TokenRole"] | null;
+            cca?: components["schemas"]["CcaV2LaunchState"] | null;
         } & {
             [key: string]: unknown;
+        };
+        CcaV2LaunchState: {
+            version?: string;
+            factory_address?: components["schemas"]["Address"] | null;
+            lens_address?: components["schemas"]["Address"] | null;
+            tokens_recipient?: components["schemas"]["Address"] | null;
+            funds_recipient?: components["schemas"]["Address"] | null;
+            gross_raised_raw?: components["schemas"]["UintLike"];
+            net_raised_raw?: components["schemas"]["UintLike"];
+            protocol_fee_raw?: components["schemas"]["UintLike"];
+            remaining_supply_raw?: components["schemas"]["UintLike"];
+            remaining_supply_q96x7?: components["schemas"]["UintLike"];
+            required_demand_q96?: components["schemas"]["UintLike"];
+            required_demand_next_tick_q96?: components["schemas"]["UintLike"];
         };
         LaunchJobEnvelope: {
             /** @enum {boolean} */
@@ -2417,7 +2432,7 @@ export interface components {
         /** @enum {string} */
         LifecycleSettlementState: "awaiting_migration" | "awaiting_auction_asset_return" | "failed_auction_recoverable" | "post_recovery_cleanup" | "awaiting_sweeps" | "ownership_acceptance_required" | "settled" | "wait";
         /** @enum {string} */
-        LifecycleAction: "migrate" | "auction_sweep_quote_token" | "auction_sweep_unsold_tokens" | "recover_failed_auction" | "sweep_quote_token" | "sweep_token" | "accept_revenue_splitter_ownership" | "accept_fee_registry_ownership" | "accept_fee_vault_ownership" | "accept_hook_ownership" | "release_vesting" | "wait";
+        LifecycleAction: "migrate" | "claim_unused_tokens" | "recover_failed_auction" | "sweep_quote_token" | "sweep_token" | "accept_revenue_splitter_ownership" | "accept_fee_registry_ownership" | "accept_fee_vault_ownership" | "accept_hook_ownership" | "release_vesting" | "wait";
         LifecycleBalanceBucket: {
             token_balance?: components["schemas"]["UintLike"];
             quote_token_balance?: components["schemas"]["UintLike"];
@@ -2705,6 +2720,18 @@ export interface components {
         RevenueSplitterKind: "denominator_v2" | "live_stake_fee_pool";
         /** @enum {string} */
         TeamSharedStatus: "unverified" | "team_shared" | "dao_shared" | "official_site_linked";
+        AutolaunchMoneyReadSource: {
+            contract_address: components["schemas"]["Address"] | null;
+            read_source: string;
+            token_address?: components["schemas"]["Address"] | null;
+            account_address?: components["schemas"]["Address"] | null;
+        };
+        AutolaunchMoneyReadSources: {
+            ingress_usdc_token_address: components["schemas"]["AutolaunchMoneyReadSource"];
+            current_unswept_usdc_raw: components["schemas"]["AutolaunchMoneyReadSource"];
+            pending_buyback_usdc_raw: components["schemas"]["AutolaunchMoneyReadSource"];
+            splitter_accounted_usdc_raw: components["schemas"]["AutolaunchMoneyReadSource"];
+        };
         RevenueSubject: {
             subject_id: string;
             subject_kind: components["schemas"]["RevenueSubjectKind"];
@@ -2724,7 +2751,11 @@ export interface components {
             regent_emission_total: components["schemas"]["DecimalString"];
             regent_emission_total_raw?: number | null;
             pending_buyback_usdc: components["schemas"]["DecimalString"];
-            pending_buyback_usdc_raw?: number | null;
+            pending_buyback_usdc_raw: number | null;
+            ingress_usdc_token_address: components["schemas"]["Address"] | null;
+            current_unswept_usdc_raw: number | null;
+            splitter_accounted_usdc_raw: number | null;
+            money_read_sources: components["schemas"]["AutolaunchMoneyReadSources"];
             oracle_kind: "v4_spot_chainlink_eth_usd" | null;
             regent_weth_pool_id: components["schemas"]["HexData"] | null;
             team_shared_status: components["schemas"]["TeamSharedStatus"];
@@ -2762,7 +2793,8 @@ export interface components {
             treasury_address: components["schemas"]["Address"];
             router_address: components["schemas"]["Address"] | null;
             pending_buyback_usdc: components["schemas"]["DecimalString"];
-            pending_buyback_usdc_raw?: number | null;
+            pending_buyback_usdc_raw: number | null;
+            money_read_sources: components["schemas"]["AutolaunchMoneyReadSources"];
             paused: boolean;
             max_settlement_usdc: components["schemas"]["DecimalString"] | null;
             max_settlement_usdc_raw?: number | null;
@@ -2858,6 +2890,11 @@ export interface components {
             protocol_fee_usdc_total?: components["schemas"]["DecimalString"] | null;
             regent_emission_total?: components["schemas"]["DecimalString"] | null;
             pending_buyback_usdc?: components["schemas"]["DecimalString"] | null;
+            pending_buyback_usdc_raw: number | null;
+            ingress_usdc_token_address: components["schemas"]["Address"] | null;
+            current_unswept_usdc_raw: number | null;
+            splitter_accounted_usdc_raw: number | null;
+            money_read_sources: components["schemas"]["AutolaunchMoneyReadSources"];
             oracle_kind?: "v4_spot_chainlink_eth_usd" | null;
             regent_weth_pool_id?: components["schemas"]["HexData"] | null;
             team_shared_status?: components["schemas"]["TeamSharedStatus"] | null;
@@ -3090,7 +3127,7 @@ export interface components {
         AgentConnectionCode: components["schemas"]["PairingCode"];
         /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
         Resource: string;
-        /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
+        /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `claim_unused_tokens`, `sweep_quote_token`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
         Action: string;
         ChatScope: components["schemas"]["ChatScopeValue"];
         ChatMessageId: number;
@@ -5368,7 +5405,7 @@ export interface operations {
                 id: components["parameters"]["JobId"];
                 /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `claim_unused_tokens`, `sweep_quote_token`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
@@ -5399,7 +5436,7 @@ export interface operations {
                 id: components["parameters"]["SubjectId"];
                 /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `claim_unused_tokens`, `sweep_quote_token`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
@@ -5429,7 +5466,7 @@ export interface operations {
             path: {
                 /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `claim_unused_tokens`, `sweep_quote_token`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
@@ -6158,7 +6195,7 @@ export interface operations {
                 id: components["parameters"]["JobId"];
                 /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `claim_unused_tokens`, `sweep_quote_token`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;
@@ -6189,7 +6226,7 @@ export interface operations {
                 id: components["parameters"]["SubjectId"];
                 /** @description Canonical contract scope. Job-scoped settlement actions use `strategy`, `auction`, `revenue_splitter`, `fee_registry`, `fee_vault`, `hook`, and `vesting`. Subject-scoped revenue actions use `splitter`, `ingress_account`, `ingress_factory`, `payment_link_factory`, and `registry`. */
                 resource: components["parameters"]["Resource"];
-                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `sweep_quote_token`, `sweep_unsold_tokens`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
+                /** @description Canonical contract action. Settlement actions include `migrate`, `recover_failed_auction`, `claim_unused_tokens`, `sweep_quote_token`, `accept_ownership`, `sweep_token`, and `release`. Subject revenue actions include splitter management, ingress creation or default selection, payment-link management, subject-manager changes, and identity linking. */
                 action: components["parameters"]["Action"];
             };
             cookie?: never;

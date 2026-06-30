@@ -3412,12 +3412,22 @@ export interface components {
             formation: components["schemas"]["AgentFormation"] | null;
             public_profile: components["schemas"]["PublicAgentRecord"];
         };
+        AgentPlatformTechtreeIdentityLinks: {
+            profile_id: string | null;
+            node_ids: string[];
+            bbh_run_ids: string[];
+            review_ids: string[];
+        };
+        AgentPlatformIdentityLinks: {
+            techtree: components["schemas"]["AgentPlatformTechtreeIdentityLinks"];
+        };
         AgentPlatformProjection: {
             formation: components["schemas"]["AgentFormationResponse"];
             billing_account: components["schemas"]["BillingAccount"];
             billing_usage: components["schemas"]["BillingUsageSummary"];
             companies: components["schemas"]["PlatformCompanyProjection"][];
             public_profiles: components["schemas"]["PublicAgentRecord"][];
+            identity_links: components["schemas"]["AgentPlatformIdentityLinks"];
         };
         AgentPlatformProjectionResponse: {
             ok: boolean;

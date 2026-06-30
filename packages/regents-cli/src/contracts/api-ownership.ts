@@ -667,6 +667,7 @@ export const autolaunchApiCommandGroups = [
       "autolaunch contracts subject",
       "autolaunch contracts verify",
       "autolaunch strategy migrate",
+      "autolaunch auction claim-unused-tokens",
       "autolaunch strategy sweep-token",
       "autolaunch strategy sweep-quote-token",
       "autolaunch fee-registry get",
