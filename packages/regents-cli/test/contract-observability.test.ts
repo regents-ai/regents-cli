@@ -10,6 +10,7 @@ import { route, routeMatches } from "../src/routes/shared.js";
 import { readWorkspaceManifest, requiredWorkspaceFiles } from "../src/workspace/manifest.js";
 
 const workspaceRoot = path.resolve(import.meta.dirname, "../../..");
+const regentRoot = path.resolve(workspaceRoot, "..");
 const sharedApi = path.join(workspaceRoot, "docs/regent-services-contract.openapiv3.yaml");
 const sharedCli = path.join(workspaceRoot, "docs/shared-cli-contract.yaml");
 const sharedGenerated = path.join(workspaceRoot, "packages/regents-cli/src/generated/regent-services-openapi.ts");
@@ -43,7 +44,7 @@ repos:
         path: docs/regent-services-contract.openapiv3.yaml
         include_in_cli_command_check: true
         generated_bindings:
-          - path: packages/regents-cli/src/generated/regent-services-openapi.ts
+          - path: regents-cli/packages/regents-cli/src/generated/regent-services-openapi.ts
             generator: openapi-typescript
     cli_contracts:
       - id: shared_cli
@@ -94,7 +95,7 @@ incident_classes:
   });
 
   it("reports workspace readiness from the workspace manifest", () => {
-    const manifestPath = path.join(workspaceRoot, "docs/regent-workspace.yaml");
+    const manifestPath = path.join(regentRoot, "meta/stack.yaml");
     const report = buildWorkspaceDoctorReport(undefined, { manifestPath });
 
     expect(report.command).toBe("regents doctor workspace");
@@ -147,7 +148,7 @@ schemas:
       const report = buildWorkspaceDoctorReport();
 
       expect(report.root).toBe(workspaceRoot);
-      expect(report.manifestPath).toBe(path.join(workspaceRoot, "docs/regent-workspace.yaml"));
+      expect(report.manifestPath).toBe(path.join(regentRoot, "meta/stack.yaml"));
     } finally {
       process.chdir(previousCwd);
     }
@@ -157,7 +158,7 @@ schemas:
     const manifestPath = path.join(os.tmpdir(), "regent-missing-workspace.yaml");
 
     expect(() => buildContractDoctorReport(tempConfigPath(), { manifestPath })).toThrow(
-      `Regent workspace manifest is missing: ${manifestPath}`,
+      `Regent stack contract is missing: ${manifestPath}`,
     );
   });
 

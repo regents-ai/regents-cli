@@ -1,6 +1,6 @@
 # Chain / API Reconciliation Commands
 
-Status: SHIPPED (2026-06-10). All five commands are live — `identity graph`, `autolaunch contracts verify`, `autolaunch subjects verify`, `regent-staking verify`, `techtree settlement verify`. The four verify commands gained their owning-contract entries (autolaunch/docs/cli-contract.yaml, platform/cli-contract.yaml, techtree/docs/cli-contract.yaml) and full implementations + tests. Several checks render `UNVERIFIABLE` until the sibling-API gaps below are closed (untyped autolaunch contract overviews; subject ingress expected-unswept amount + subject→launch link; no published splitter pending-balance read ABI). The vendored read ABIs are pinned to RegentRevenueStaking.sol and TechRewardRouter.sol; if those contracts change, update the ABIs in the command files. The "Required sibling-repo entries" and API-gap lists below are retained as the record of what was added and what remains to file with owners.
+Status: SHIPPED (2026-06-10). All five commands are live — `identity graph`, `autolaunch contracts verify`, `autolaunch subjects verify`, `regent-staking verify`, `techtree settlement verify`. The four verify commands gained their owning-contract entries (autolaunch/docs/cli-contract.yaml, platform/cli-contract.yaml, techtree/docs/cli-contract.yaml) and full implementations + tests. Several checks render `UNVERIFIABLE` until the sibling-API gaps below are closed (untyped autolaunch contract overviews and subject→launch link). Autolaunch subject money rows now publish explicit current-state fields and read sources. The vendored read ABIs are pinned to RegentRevenueStaking.sol and TechRewardRouter.sol; if those contracts change, update the ABIs in the command files. The "Required sibling-repo entries" and API-gap lists below are retained as the record of what was added and what remains to file with owners.
 
 The Regents CLI is the bridge that checks product workflow state against onchain truth.
 These commands read public product APIs and chain RPC, then report where the two views
@@ -131,7 +131,9 @@ Verifies one subject's workflow state against onchain token/auction state.
 
 - Data sources (API): `agentGetSubject` (`GET /api/autolaunch/v1/agent/subjects/{id}` — `Subject`
   schema: `token_address`, `splitter_address`, `ingress_address`, `treasury_address`,
-  `protocol_fee_usdc_total`, `pending_buyback_usdc`), `agentGetSubjectStaking`,
+  `protocol_fee_usdc_total`, `pending_buyback_usdc`, `ingress_usdc_token_address`,
+  `current_unswept_usdc_raw`, `pending_buyback_usdc_raw`, `splitter_accounted_usdc_raw`,
+  and `money_read_sources`), `agentGetSubjectStaking`,
   `agentGetSubjectIngress`, `agentListSubjectBuybacks`, and when the subject came from a
   launch: `agentGetLaunchJob` + `agentGetAuction` for auction status.
 - Data sources (chain, Base): `getBytecode` for token/splitter/ingress; ERC-20 reads on
@@ -147,9 +149,6 @@ Verifies one subject's workflow state against onchain token/auction state.
 - Output: table keyed by `subject_id` with token, splitter, ingress, staking, buyback
   rows; `--json` includes both views.
 - Missing from sibling APIs:
-  - `GET /api/autolaunch/v1/agent/subjects/{id}/ingress` must include the expected unswept USDC amount
-    per ingress account (today the CLI cannot tell which part of the chain balance the
-    product has already recognized).
   - Auction settlement records per subject (clearing price, raise totals) are not on the
     agent surface; `/api/autolaunch/v1/agent/auctions/{id}` covers live auctions only.
 
@@ -216,7 +215,7 @@ receipts.
 Renders the cross-product `agent_id` mapping anchored on
 `/Users/sean/Documents/regent/docs/schemas/agent-identity-graph.schema.yaml`:
 `agent_id` + `wallet_tuple` (wallet, chain, registry, token) with nested
-`product_links` for platform, autolaunch, techtree, mobile, and the ERC-8004 record.
+`product_links` for platform, autolaunch, mobile, and the ERC-8004 record.
 
 - Anchor (local): the saved identity receipt (`~/.regent/identity/receipt-v1.json`)
   provides `agent_id`, wallet, chain, registry, token id. Product links never come from
@@ -228,7 +227,8 @@ Renders the cross-product `agent_id` mapping anchored on
   `UNVERIFIABLE`.
 - Platform link: `GET /api/platform/projection` via the saved Platform session.
   Maps `public_profiles[]`/`companies[]` to `platform_agent_id`, `company_id`,
-  `public_slug`, `claimed_name`, `hosted_runtime_id` (sprite service name). A profile
+  `public_slug`, `claimed_name`, `hosted_runtime_id` (sprite service name), and
+  `identity_links.techtree` to the Platform-owned Techtree identity-link bucket. A profile
   wallet that differs from the receipt wallet is `MISMATCH` (chain wins for ownership).
   No Platform session → `UNVERIFIABLE` with the sign-in command as the reason.
 - Autolaunch link: `GET /api/autolaunch/v1/agent/agents` (SIWA, autolaunch audience). The agent card
@@ -236,13 +236,8 @@ Renders the cross-product `agent_id` mapping anchored on
   (`existing_token`); the token address resolves `subject_id` through
   `GET /api/autolaunch/v1/agent/subjects/by-token/{token}`. Card owner/registry/token that contradict
   the receipt are `MISMATCH`. No autolaunch-audience session → `UNVERIFIABLE`.
-- Techtree link: `GET /api/techtree/v1/agent/reviewer/me` (SIWA, techtree audience). The reviewer
-  profile is keyed by wallet; it becomes `profile_id`. `node_ids`, `bbh_run_ids`, and
-  `review_ids` stay empty arrays (see missing APIs). No techtree-audience session →
-  `UNVERIFIABLE`.
-- Mobile link: always `null` with an `UNVERIFIABLE` check row — the iOS mobile-services
-  contract is not part of the CLI surface (`cli_surface: false` in
-  `docs/regent-workspace.yaml`).
+- Mobile link: always `null` with an `UNVERIFIABLE` check row until Platform publishes
+  the mobile identity-link contract.
 - Exit code: `1` while no receipt exists (status `waiting`, as before) or when any
   check is `MISMATCH`; otherwise `0`.
 - Missing from sibling APIs (links stay null/empty until added):
@@ -253,12 +248,12 @@ Renders the cross-product `agent_id` mapping anchored on
     with a `data` array, but the server returns the list under `items`
     (`agent_controller.ex`). The CLI reads `items ?? data` until the contract matches
     the server.
-  - Techtree: no agent-scoped listing for authored `node_ids`, `bbh_run_ids`, or
-    `review_ids`; techtree should add an agent identity summary operation.
+  - Platform Techtree links: no agent-scoped listing for authored `node_ids`, `bbh_run_ids`, or
+    `review_ids`; Platform should add those to `identity_links.techtree`.
   - Platform: served through the Platform session only; an agent-SIWA equivalent of the
     projection would let one SIWA sign-in cover it.
-  - One SIWA session carries one audience, so a single run cannot verify autolaunch and
-    techtree links at once. A multi-audience session store would remove that limit.
+  - One SIWA session carries one audience, so a single run cannot verify every product link
+    at once. A multi-audience session store would remove that limit.
 
 ## Required sibling-repo entries (do not implement from this repo)
 

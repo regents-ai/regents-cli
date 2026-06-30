@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 351.
+Total commands: 354.
 
 ## Full Command List
 
@@ -42,6 +42,7 @@ Total commands: 351.
 - `regents autolaunch agent readiness <id>` - Show agent readiness.
 - `regents autolaunch agents list` - List agents.
 - `regents autolaunch auction <id>` - Show Autolaunch auction.
+- `regents autolaunch auction claim-unused-tokens` - Claim unused tokens for auction.
 - `regents autolaunch auction-returns list` - List auction returns.
 - `regents autolaunch auctions list` - List auctions.
 - `regents autolaunch bids claim` - Claim bids.
@@ -192,6 +193,11 @@ Total commands: 351.
 - `regents mcp export codex` - Print MCP setup for Codex.
 - `regents mcp serve` - Start the Regents MCP server.
 - `regents mcp tools list` - List tools.
+
+### Meta
+
+- `regents meta check` - Check the Regent meta control plane for drift.
+- `regents meta render` - Refresh the generated Regent meta views.
 
 ### Platform
 

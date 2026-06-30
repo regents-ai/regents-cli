@@ -63,7 +63,8 @@ const commandCases: CommandCase[] = [
       provider: "coinbase-cdp",
       network: "base",
       address: TEST_WALLET,
-      agent_id: 99,
+      agent_id: `eip155:8453:${TEST_REGISTRY}:99`,
+      token_id: "99",
       agent_registry: TEST_REGISTRY,
       verified: "onchain",
       receipt_expires_at: "2999-01-01T00:00:00.000Z",
@@ -1439,7 +1440,7 @@ describe("CLI command dispatch", () => {
       command: "overview",
       status: "waiting",
       components: expect.arrayContaining([
-        expect.objectContaining({ name: "runtime", status: "waiting" }),
+        expect.objectContaining({ name: "runtime", status: "ready" }),
         expect.objectContaining({ name: "wallet", status: "ready" }),
         expect.objectContaining({ name: "identity", status: "waiting" }),
         expect.objectContaining({ name: "sign-ins", status: "waiting" }),

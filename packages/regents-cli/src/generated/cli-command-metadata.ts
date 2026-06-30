@@ -22,6 +22,7 @@ export const CLI_COMMANDS = [
   "autolaunch agent readiness <id>",
   "autolaunch agents list",
   "autolaunch auction <id>",
+  "autolaunch auction claim-unused-tokens",
   "autolaunch auction-returns list",
   "autolaunch auctions list",
   "autolaunch bids claim",
@@ -139,6 +140,8 @@ export const CLI_COMMANDS = [
   "mcp export codex",
   "mcp serve",
   "mcp tools list",
+  "meta check",
+  "meta render",
   "platform auth login",
   "platform auth logout",
   "platform auth status",
@@ -385,6 +388,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch agent readiness <id>",
     "autolaunch agents list",
     "autolaunch auction <id>",
+    "autolaunch auction claim-unused-tokens",
     "autolaunch auction-returns list",
     "autolaunch auctions list",
     "autolaunch bids claim",
@@ -524,6 +528,10 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "mcp export codex",
     "mcp serve",
     "mcp tools list"
+  ],
+  "meta": [
+    "meta check",
+    "meta render"
   ],
   "platform": [
     "platform auth login",
@@ -781,14 +789,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "agent connect hermes": {
     "command": "agent connect hermes",
     "owner": "platform",
-    "group": "agent",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "output_envelope": "json",
-    "operation_ids": [
-      "registerRwrWorker"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -835,21 +839,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Connect a Hermes worker to one Regent company.",
+      "operation_ids": [
+        "registerRwrWorker"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Connect a Hermes worker to one Regent company."
   },
   "agent connect openclaw": {
     "command": "agent connect openclaw",
     "owner": "platform",
-    "group": "agent",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "output_envelope": "json",
-    "operation_ids": [
-      "registerRwrWorker"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -896,21 +902,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Connect a local OpenClaw worker to one Regent company.",
+      "operation_ids": [
+        "registerRwrWorker"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Connect a local OpenClaw worker to one Regent company."
   },
   "agent execution-pool": {
     "command": "agent execution-pool",
     "owner": "platform",
-    "group": "agent",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "listRwrExecutionPool"
-    ],
-    "args": [],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -952,7 +960,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "List the workers available to one manager.",
+      "operation_ids": [
+        "listRwrExecutionPool"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "List the workers available to one manager."
   },
@@ -1021,14 +1035,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "agent link": {
     "command": "agent link",
     "owner": "platform",
-    "group": "agent",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "createRwrAgentRelationship"
-    ],
-    "args": [],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -1100,7 +1110,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Link one manager to one worker for a Regent company.",
+      "operation_ids": [
+        "createRwrAgentRelationship"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Link one manager to one worker for a Regent company."
   },
@@ -1247,15 +1263,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "agentbook lookup": {
     "command": "agentbook lookup",
     "owner": "platform",
-    "group": "agentbook",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "output_envelope": "json",
-    "operation_ids": [
-      "lookupAgentbookTrust"
-    ],
-    "args": [],
-    "flags": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "examples": [
       "regents platform auth status",
       "regents runtime get <runtime_id> --company-id <company_id>",
@@ -1270,21 +1281,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show the saved human-backed trust summary for the current Regent agent identity.",
+      "operation_ids": [
+        "lookupAgentbookTrust"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Show the saved human-backed trust summary for the current Regent agent identity."
   },
   "agentbook register": {
     "command": "agentbook register",
     "owner": "platform",
-    "group": "agentbook",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "output_envelope": "json",
-    "operation_ids": [
-      "createAgentbookTrustSession"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--watch",
@@ -1308,20 +1321,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Start a hosted human-backed trust flow for the saved Regent agent identity.",
+      "operation_ids": [
+        "createAgentbookTrustSession"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Start a hosted human-backed trust flow for the saved Regent agent identity."
   },
   "agentbook sessions watch": {
     "command": "agentbook sessions watch",
     "owner": "platform",
-    "group": "agentbook",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "output_envelope": "json",
-    "operation_ids": [
-      "getAgentbookTrustSession"
-    ],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "session_id",
@@ -1353,7 +1369,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Poll one hosted human-backed trust session for the saved Regent agent identity.",
+      "operation_ids": [
+        "getAgentbookTrustSession"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Poll one hosted human-backed trust session for the saved Regent agent identity."
   },
@@ -1533,6 +1555,40 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch auction."
+  },
+  "autolaunch auction claim-unused-tokens": {
+    "command": "autolaunch auction claim-unused-tokens",
+    "owner": "autolaunch",
+    "group": "ens-contracts",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "auth_audience": "autolaunch",
+    "output_envelope": "prepared-action-or-status",
+    "flags": [
+      {
+        "name": "--job",
+        "type": "string",
+        "required": true,
+        "description": "Launch job id."
+      }
+    ],
+    "examples": [
+      "regents autolaunch fee-registry get --job <job_id>",
+      "regents autolaunch fee-vault get --job <job_id>",
+      "regents autolaunch splitter get --subject <subject_id>",
+      "regents autolaunch registry get --subject <subject_id>"
+    ],
+    "agent_metadata": {
+      "category": "contracts",
+      "prompt_behavior": "confirm_before_submit",
+      "json_support": "supported",
+      "mutation_class": "read-or-transaction-prepare",
+      "retry_behavior": "retry_reads_and_prepares",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Claim unused tokens for auction."
   },
   "autolaunch auction-returns list": {
     "command": "autolaunch auction-returns list",
@@ -5518,15 +5574,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "bug": {
     "command": "bug",
     "owner": "platform",
-    "group": "bug",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "createAgentBugReport"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--summary",
@@ -5555,7 +5606,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Send a signed bug report to Platform.",
+      "operation_ids": [
+        "createAgentBugReport"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Send a signed bug report to Platform."
   },
@@ -6169,18 +6226,86 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "List tools."
   },
+  "meta check": {
+    "command": "meta check",
+    "owner": "shared-services",
+    "group": "operator",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "operator-status-envelopes",
+    "flags": [
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the check result as JSON."
+      }
+    ],
+    "examples": [
+      "regents meta check"
+    ],
+    "agent_metadata": {
+      "category": "diagnostics",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Check the Regent meta control plane for drift.",
+      "next_step": "regents meta render --check"
+    },
+    "summary": "Check the Regent meta control plane for drift.",
+    "next_step": "regents meta render --check"
+  },
+  "meta render": {
+    "command": "meta render",
+    "owner": "shared-services",
+    "group": "operator",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "operator-status-envelopes",
+    "flags": [
+      {
+        "name": "--check",
+        "type": "boolean",
+        "required": false,
+        "description": "Check whether generated meta views are current without changing files."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the render result as JSON."
+      }
+    ],
+    "examples": [
+      "regents meta render",
+      "regents meta render --check"
+    ],
+    "agent_metadata": {
+      "category": "diagnostics",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Refresh the generated Regent meta views.",
+      "next_step": "regents meta check"
+    },
+    "summary": "Refresh the generated Regent meta views.",
+    "next_step": "regents meta check"
+  },
   "platform auth login": {
     "command": "platform auth login",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "privy-access-token",
-    "output_envelope": "json",
-    "operation_ids": [
-      "privySessionCsrf",
-      "privySessionCreate"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--access-token",
@@ -6228,7 +6353,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Sign in to the Regent website from the terminal and save the session for later platform commands.",
+      "operation_ids": [
+        "privySessionCsrf",
+        "privySessionCreate"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "privy-access-token"
     },
     "summary": "Sign in to the Regent website from the terminal and save the session for later platform commands."
   },
@@ -6236,13 +6368,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform auth logout",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "privySessionDelete"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--origin",
@@ -6272,7 +6400,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Delete the saved platform session and sign out from platform commands.",
+      "operation_ids": [
+        "privySessionDelete"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Delete the saved platform session and sign out from platform commands."
   },
@@ -6280,13 +6414,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform auth status",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "privySessionProfile"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--origin",
@@ -6316,7 +6446,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show who is signed in through the saved platform session.",
+      "operation_ids": [
+        "privySessionProfile"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show who is signed in through the saved platform session."
   },
@@ -6324,13 +6460,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform billing account",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformBillingAccount"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--origin",
@@ -6360,7 +6492,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show the billing account tied to the saved platform session.",
+      "operation_ids": [
+        "agentPlatformBillingAccount"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show the billing account tied to the saved platform session."
   },
@@ -6368,13 +6506,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform billing spend-controls set",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformBillingSpendControlsUpdate"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--runtime-monthly-limit-usd",
@@ -6435,7 +6569,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Save monthly hosting, model usage, and automatic credit top-up settings.",
+      "operation_ids": [
+        "agentPlatformBillingSpendControlsUpdate"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Save monthly hosting, model usage, and automatic credit top-up settings."
   },
@@ -6443,13 +6583,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform billing topup",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformBillingTopupCheckout"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--amount-usd",
@@ -6485,7 +6621,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Start a Stripe checkout that adds shared runtime credit.",
+      "operation_ids": [
+        "agentPlatformBillingTopupCheckout"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Start a Stripe checkout that adds shared runtime credit."
   },
@@ -6493,13 +6635,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform billing usage",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformBillingUsage"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--origin",
@@ -6529,7 +6667,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show shared runtime credit and company usage from the saved platform session.",
+      "operation_ids": [
+        "agentPlatformBillingUsage"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show shared runtime credit and company usage from the saved platform session."
   },
@@ -6537,13 +6681,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform company pause",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformPauseSprite"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--slug",
@@ -6579,7 +6719,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Pause the hosted runtime for one owned company.",
+      "operation_ids": [
+        "agentPlatformPauseSprite"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Pause the hosted runtime for one owned company."
   },
@@ -6587,13 +6733,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform company resume",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformResumeSprite"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--slug",
@@ -6629,7 +6771,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Resume the hosted runtime for one owned company.",
+      "operation_ids": [
+        "agentPlatformResumeSprite"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Resume the hosted runtime for one owned company."
   },
@@ -6637,13 +6785,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform company runtime",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformFormationRuntime"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--slug",
@@ -6679,7 +6823,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show runtime state for one owned company from the saved platform session.",
+      "operation_ids": [
+        "agentPlatformFormationRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show runtime state for one owned company from the saved platform session."
   },
@@ -6687,13 +6837,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform formation doctor",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformFormationDoctor"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--origin",
@@ -6723,7 +6869,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Explain why company opening is blocked or what is ready next.",
+      "operation_ids": [
+        "agentPlatformFormationDoctor"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Explain why company opening is blocked or what is ready next."
   },
@@ -6731,13 +6883,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform formation status",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformFormation"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--origin",
@@ -6767,7 +6915,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show launch readiness from the saved session, including claimed names, billing, and owned companies.",
+      "operation_ids": [
+        "agentPlatformFormation"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show launch readiness from the saved session, including claimed names, billing, and owned companies."
   },
@@ -6775,13 +6929,9 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "command": "platform projection",
     "owner": "platform",
     "group": "platform",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "agentPlatformProjection"
-    ],
-    "args": [],
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--origin",
@@ -6811,7 +6961,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show the canonical Platform projection for product and mobile clients.",
+      "operation_ids": [
+        "agentPlatformProjection"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show the canonical Platform projection for product and mobile clients."
   },
@@ -7077,14 +7233,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "regent-staking account": {
     "command": "regent-staking account",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "getAgentRegentStakingAccount"
-    ],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "address",
@@ -7093,7 +7245,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "description": "Wallet address to inspect."
       }
     ],
-    "flags": [],
     "examples": [
       "regents platform auth status",
       "regents runtime get <runtime_id> --company-id <company_id>",
@@ -7108,22 +7259,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show Regent staking state for one wallet.",
+      "operation_ids": [
+        "getAgentRegentStakingAccount"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Show Regent staking state for one wallet."
   },
   "regent-staking claim-and-restake-regent": {
     "command": "regent-staking claim-and-restake-regent",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "claimAndRestakeAgentRegentStakingRegent"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--submit",
@@ -7146,22 +7298,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Prepare a wallet action to claim and restake REGENT rewards.",
+      "operation_ids": [
+        "claimAndRestakeAgentRegentStakingRegent"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Prepare a wallet action to claim and restake REGENT rewards."
   },
   "regent-staking claim-regent": {
     "command": "regent-staking claim-regent",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "claimAgentRegentStakingRegent"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--submit",
@@ -7184,22 +7337,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Prepare a wallet action to claim REGENT rewards.",
+      "operation_ids": [
+        "claimAgentRegentStakingRegent"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Prepare a wallet action to claim REGENT rewards."
   },
   "regent-staking claim-usdc": {
     "command": "regent-staking claim-usdc",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "claimAgentRegentStakingUsdc"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--submit",
@@ -7222,23 +7376,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Prepare a wallet action to claim staking USDC.",
+      "operation_ids": [
+        "claimAgentRegentStakingUsdc"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Prepare a wallet action to claim staking USDC."
   },
   "regent-staking get": {
     "command": "regent-staking get",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "getAgentRegentStakingOverview"
-    ],
-    "args": [],
-    "flags": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "examples": [
       "regents platform auth status",
       "regents runtime get <runtime_id> --company-id <company_id>",
@@ -7253,22 +7407,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show Regent staking state for the saved Agent account.",
+      "operation_ids": [
+        "getAgentRegentStakingOverview"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Show Regent staking state for the saved Agent account."
   },
   "regent-staking stake": {
     "command": "regent-staking stake",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "stakeAgentRegent"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--amount",
@@ -7297,22 +7452,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Prepare a wallet action to stake REGENT.",
+      "operation_ids": [
+        "stakeAgentRegent"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Prepare a wallet action to stake REGENT."
   },
   "regent-staking unstake": {
     "command": "regent-staking unstake",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "unstakeAgentRegent"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--amount",
@@ -7335,22 +7491,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Prepare a wallet action to unstake REGENT.",
+      "operation_ids": [
+        "unstakeAgentRegent"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Prepare a wallet action to unstake REGENT."
   },
   "regent-staking verify": {
     "command": "regent-staking verify",
     "owner": "platform",
-    "group": "regent-staking",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "getAgentRegentStakingOverview",
-      "getAgentRegentStakingAccount"
-    ],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "address",
@@ -7387,7 +7544,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Check Regent staking state against the staking contract for a wallet.",
+      "operation_ids": [
+        "getAgentRegentStakingOverview",
+        "getAgentRegentStakingAccount"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Check Regent staking state against the staking contract for a wallet."
   },
@@ -7439,13 +7603,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "runtime checkpoint": {
     "command": "runtime checkpoint",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "checkpointRwrRuntime"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "runtime_id",
@@ -7495,21 +7656,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Save a checkpoint for one runtime.",
+      "operation_ids": [
+        "checkpointRwrRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Save a checkpoint for one runtime."
   },
   "runtime create": {
     "command": "runtime create",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "createRwrRuntime"
-    ],
-    "args": [],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -7596,20 +7759,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Create a runtime for one Regent company.",
+      "operation_ids": [
+        "createRwrRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Create a runtime for one Regent company."
   },
   "runtime get": {
     "command": "runtime get",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "getRwrRuntime"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "runtime_id",
@@ -7653,20 +7819,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show one runtime for a Regent company.",
+      "operation_ids": [
+        "getRwrRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show one runtime for a Regent company."
   },
   "runtime health": {
     "command": "runtime health",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "getRwrRuntimeHealth"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "runtime_id",
@@ -7710,20 +7879,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show health for one runtime.",
+      "operation_ids": [
+        "getRwrRuntimeHealth"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show health for one runtime."
   },
   "runtime pause": {
     "command": "runtime pause",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "pauseRwrRuntime"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "runtime_id",
@@ -7767,7 +7939,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Pause one runtime for a Regent company.",
+      "operation_ids": [
+        "pauseRwrRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Pause one runtime for a Regent company."
   },
@@ -7800,13 +7978,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "runtime restore": {
     "command": "runtime restore",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "restoreRwrRuntime"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "runtime_id",
@@ -7856,20 +8031,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Restore one runtime from a checkpoint.",
+      "operation_ids": [
+        "restoreRwrRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Restore one runtime from a checkpoint."
   },
   "runtime resume": {
     "command": "runtime resume",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "resumeRwrRuntime"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "runtime_id",
@@ -7913,20 +8091,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Resume one runtime for a Regent company.",
+      "operation_ids": [
+        "resumeRwrRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Resume one runtime for a Regent company."
   },
   "runtime services": {
     "command": "runtime services",
     "owner": "platform",
-    "group": "runtime",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "listRwrRuntimeServices"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "runtime_id",
@@ -7970,7 +8151,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "List services for one runtime.",
+      "operation_ids": [
+        "listRwrRuntimeServices"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "List services for one runtime."
   },
@@ -8029,15 +8216,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "security-report": {
     "command": "security-report",
     "owner": "platform",
-    "group": "security-report",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "regent-services",
-    "output_envelope": "json",
-    "operation_ids": [
-      "createAgentSecurityReport"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--summary",
@@ -8072,7 +8254,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Send a signed security report to Platform.",
+      "operation_ids": [
+        "createAgentSecurityReport"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Send a signed security report to Platform."
   },
@@ -14858,13 +15046,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
   "work cancel": {
     "command": "work cancel",
     "owner": "platform",
-    "group": "work",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "cancelRwrRun"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "run_id",
@@ -14908,21 +15093,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Cancel one work run.",
+      "operation_ids": [
+        "cancelRwrRun"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Cancel one work run."
   },
   "work create": {
     "command": "work create",
     "owner": "platform",
-    "group": "work",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "createRwrWorkItem"
-    ],
-    "args": [],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -14970,20 +15157,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Create work for one Regent company.",
+      "operation_ids": [
+        "createRwrWorkItem"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Create work for one Regent company."
   },
   "work get": {
     "command": "work get",
     "owner": "platform",
-    "group": "work",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "getRwrWorkItem"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "work_item_id",
@@ -15027,21 +15217,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Show one work item for a Regent company.",
+      "operation_ids": [
+        "getRwrWorkItem"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Show one work item for a Regent company."
   },
   "work list": {
     "command": "work list",
     "owner": "platform",
-    "group": "work",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "listRwrWorkItems"
-    ],
-    "args": [],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -15077,28 +15269,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "List work for one Regent company.",
+      "operation_ids": [
+        "listRwrWorkItems"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "List work for one Regent company."
   },
   "work local-loop": {
     "command": "work local-loop",
     "owner": "platform",
-    "group": "work",
+    "group": "platform",
     "interface": "http",
-    "auth_mode": "agent-siwa",
-    "output_envelope": "json",
-    "operation_ids": [
-      "heartbeatRwrWorker",
-      "listRwrWorkerAssignments",
-      "claimRwrWorkerAssignment",
-      "appendRwrRunEvent",
-      "createRwrRunArtifact",
-      "requestRwrDelegation",
-      "releaseRwrWorkerAssignment",
-      "completeRwrWorkerAssignment"
-    ],
-    "args": [],
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "flags": [
       {
         "name": "--company-id",
@@ -15176,20 +15363,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Let one local worker check for assigned Regent work.",
+      "operation_ids": [
+        "heartbeatRwrWorker",
+        "listRwrWorkerAssignments",
+        "claimRwrWorkerAssignment",
+        "appendRwrRunEvent",
+        "createRwrRunArtifact",
+        "requestRwrDelegation",
+        "releaseRwrWorkerAssignment",
+        "completeRwrWorkerAssignment"
+      ],
+      "transport_kind": "http",
+      "auth_mode": "agent-siwa"
     },
     "summary": "Let one local worker check for assigned Regent work."
   },
   "work retry": {
     "command": "work retry",
     "owner": "platform",
-    "group": "work",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "retryRwrRun"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "run_id",
@@ -15233,20 +15430,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Start a new attempt for one work run.",
+      "operation_ids": [
+        "retryRwrRun"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Start a new attempt for one work run."
   },
   "work run": {
     "command": "work run",
     "owner": "platform",
-    "group": "work",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "startRwrWorkRun"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "work_item_id",
@@ -15319,20 +15519,23 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Start a run for one work item.",
+      "operation_ids": [
+        "startRwrWorkRun"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Start a run for one work item."
   },
   "work watch": {
     "command": "work watch",
     "owner": "platform",
-    "group": "work",
-    "interface": "http-cookie-session",
-    "auth_mode": "session-file",
-    "output_envelope": "json",
-    "operation_ids": [
-      "listRwrRunEvents"
-    ],
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "mixed",
+    "output_envelope": "platform-json",
     "args": [
       {
         "name": "run_id",
@@ -15396,7 +15599,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "retry_behavior": "safe_for_reads_prepare_only_for_actions",
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags"
+      "input_mode": "args-and-flags",
+      "summary": "Watch events for one work run.",
+      "operation_ids": [
+        "listRwrRunEvents"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
     },
     "summary": "Watch events for one work run."
   },

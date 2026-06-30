@@ -11,6 +11,7 @@ import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
 const TEST_WALLET = "0x1111111111111111111111111111111111111111";
 const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
+const TEST_AGENT_ID = `eip155:8453:${TEST_REGISTRY}:99`;
 const TEST_PRIVATE_KEY =
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 const isPlatformContractUrl = (input: unknown): boolean =>
@@ -40,7 +41,7 @@ describe("reporting CLI commands", () => {
         "content-type": "application/yaml",
         "x-regents-contract-major": "0",
         "x-regents-contract-version": "0.1.0",
-        "x-regents-contract-digest": "sha256:2d2bd0dece15ac82a01554657c9fa4052964ec5d8decd4fc29c7da04f53b0c4f",
+        "x-regents-contract-digest": "sha256:c1e5f2a5d6066a89867b7d97235e7459495c761db3707a848fe2c50104617d19",
       },
     });
 
@@ -85,7 +86,8 @@ describe("reporting CLI commands", () => {
           network: "base",
           provider: "coinbase-cdp",
           address: TEST_WALLET,
-          agent_id: 99,
+          agent_id: TEST_AGENT_ID,
+          token_id: "99",
           agent_registry: TEST_REGISTRY,
           signer_type: "evm_personal_sign",
           verified: "onchain",

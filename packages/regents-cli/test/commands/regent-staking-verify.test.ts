@@ -50,7 +50,8 @@ vi.mock("../../src/internal-runtime/identity/cache.js", () => ({
     version: 1,
     network: "base",
     address: "0x1111111111111111111111111111111111111111",
-    agent_id: 99,
+    agent_id: "eip155:8453:0x2222222222222222222222222222222222222222:99",
+    token_id: "99",
     agent_registry: "0x2222222222222222222222222222222222222222",
   }),
 }));

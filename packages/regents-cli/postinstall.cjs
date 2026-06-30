@@ -36,9 +36,12 @@ const alphaWarning =
   "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form";
 
 const startRows = [
+  ["regents init", "guided setup and readiness"],
   ["regents setup skills", "install the Regents agent skills"],
-  ["regents init", "guided setup for this machine"],
-  ["regents run", "start local Regent and keep it ready"],
+  ["regents status", "see what is ready"],
+  ["regents identity ensure", "connect the Agent account"],
+  ["regents identity graph", "check the saved Agent account"],
+  ["regents run", "start local work"],
 ];
 const commandWidth = Math.max(...startRows.map(([command]) => command.length));
 

@@ -226,7 +226,8 @@ const server = http.createServer(async (req, res) => {
       code: "identity_registration_completed",
       data: {
         registered: true,
-        agent_id: 99,
+        agent_id: "99",
+        token_id: "99",
         agent_registry: "eip155:8453/erc8004:0x2222222222222222222222222222222222222222"
       }
     });
@@ -241,7 +242,7 @@ const server = http.createServer(async (req, res) => {
         nonce_token: "packed-install-nonce",
         message: `Sign in with Regent\nAddress: ${String(body?.address ?? "0x0").toLowerCase()}\nNetwork: base\nAgent ID: 99\nAgent Registry: eip155:8453/erc8004:0x2222222222222222222222222222222222222222\nNonce: packed-install-nonce`,
         address: String(body?.address ?? "0x0").toLowerCase(),
-        agent_id: body?.agent_id ?? 99,
+        agent_id: body?.agent_id ?? "99",
         agent_registry: body?.agent_registry ?? "eip155:8453/erc8004:0x2222222222222222222222222222222222222222",
         expires_at: "2999-01-01T00:00:00.000Z"
       }
@@ -257,7 +258,8 @@ const server = http.createServer(async (req, res) => {
         verified: "onchain",
         network: body?.network ?? "base",
         address: String(body?.address ?? "0x0").toLowerCase(),
-        agent_id: body?.agent_id ?? 99,
+        agent_id: body?.agent_id ?? "99",
+        token_id: body?.token_id ?? "99",
         agent_registry: body?.agent_registry ?? "eip155:8453/erc8004:0x2222222222222222222222222222222222222222",
         signer_type: "evm_personal_sign",
         receipt: "receipt-valid.eyJ3YWxsZXRBZGRyZXNzIjoiMHgwIiwgImNoYWluSWQiOjg0NTMsICJyZWdpc3RyeUFkZHJlc3MiOiIweDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIiLCAidG9rZW5JZCI6Ijk5IiwgImtleUlkIjoiMHgwIiwgImV4cGlyZXNBdCI6IjI5OTktMDEtMDFUMDA6MDA6MDAuMDAwWiJ9",
