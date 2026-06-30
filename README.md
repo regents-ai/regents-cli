@@ -38,9 +38,14 @@ pnpm --filter @regentslabs/cli build
 
 ```bash
 regents init
+regents status
+regents identity ensure
+regents identity graph
+regents doctor --fix
 regents run --fold autoresearch
-regents techtree work next --json
 ```
+
+`regents status` shows what is ready and what still needs action. `regents identity graph` checks the saved Agent account against product and chain records when those records are available. Use `regents doctor --fix` for safe local repairs, then start the Techtree work loop when readiness is clear.
 
 ## Choose The Agent Runtime
 
@@ -64,10 +69,12 @@ regents plugin status --runtime openclaw
 Recommended readiness loop:
 
 ```bash
-regents plugin status
+regents init
 regents status
 regents whoami
-regents doctor techtree
+regents identity ensure
+regents identity graph
+regents doctor --fix
 ```
 
 `regents run` is the local front door for Hermes and OpenClaw. It checks Hermes and OpenClaw tools separately, then checks identity, Techtree access, optional Agentic Wallet readiness, saved budgets, and the next work commands. `regents search <query>` searches Techtree from the top level.

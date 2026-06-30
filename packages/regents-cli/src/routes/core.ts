@@ -16,6 +16,7 @@ import {
   runMcpServe,
   runMcpToolsList,
 } from "../commands/mcp.js";
+import { runMetaCheck, runMetaRender } from "../commands/meta.js";
 import {
   runOperatorInit,
   runOperatorStatus,
@@ -59,6 +60,8 @@ export const coreHandlers: CliHandlerRegistry = {
   run: { run: ({ parsedArgs, configPath }) => runRuntime(parsedArgs, configPath) },
   "config get": { run: ({ parsedArgs }) => runConfigGet(parsedArgs) },
   "config write": { run: ({ parsedArgs }) => runConfigWrite(parsedArgs) },
+  "meta check": { run: ({ parsedArgs }) => runMetaCheck(parsedArgs) },
+  "meta render": { run: ({ parsedArgs }) => runMetaRender(parsedArgs) },
   "doctor runtime": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
   "doctor auth": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
   "doctor techtree": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },

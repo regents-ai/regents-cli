@@ -2,7 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const defaultWorkspaceManifestPath = (cliRoot) =>
-  path.resolve(cliRoot, "docs/regent-workspace.yaml");
+  path.resolve(cliRoot, "../meta/stack.yaml");
+
+export const workspaceRootFromCliRoot = (cliRoot) => path.resolve(cliRoot, "..");
 
 const isRecord = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 
@@ -21,7 +23,7 @@ const asArray = (value) => Array.isArray(value) ? value : [];
 export const readWorkspaceManifest = (cliRoot, YAML, manifestPath = defaultWorkspaceManifestPath(cliRoot)) => {
   if (!fs.existsSync(manifestPath)) {
     throw new Error(
-      `Regent workspace manifest is missing: ${manifestPath}. Add regents-cli/docs/regent-workspace.yaml, then run this again.`,
+      `Regent stack contract is missing: ${manifestPath}. Add meta/stack.yaml, then run this again.`,
     );
   }
 
@@ -48,7 +50,8 @@ export const repoEntries = (manifest, cliRoot) =>
         name,
         owner: typeof repo.owner === "string" ? repo.owner : name,
         path: repoPath,
-        resolvedPath: path.resolve(cliRoot, repoPath),
+        resolvedPath: path.resolve(workspaceRootFromCliRoot(cliRoot), repoPath),
+        active: optionalBoolean(repo.active, true),
         requiredForPublicBeta: optionalBoolean(repo.required_for_public_beta, false),
         releaseGroup: typeof repo.release_group === "string" ? repo.release_group : "public_beta",
         owns: asArray(repo.owns).filter((item) => typeof item === "string"),
@@ -96,7 +99,7 @@ const contractEntries = (manifest, cliRoot, kind) => {
         includeInCliCommandCheck: optionalBoolean(contract.include_in_cli_command_check, false),
         generatedBindings: bindingEntries(contract).map((binding) => ({
           ...binding,
-          resolvedPath: path.resolve(cliRoot, binding.path),
+          resolvedPath: path.resolve(workspaceRootFromCliRoot(cliRoot), binding.path),
         })),
         releaseGroup: repo.releaseGroup,
         requiredForPublicBeta: repo.requiredForPublicBeta,
@@ -168,8 +171,70 @@ export const walletActionSchemaPath = (manifest, cliRoot) => {
   if (!isRecord(schemas) || !isRecord(schemas.wallet_action)) {
     throw new Error("Regent workspace manifest must define schemas.wallet_action.");
   }
-  return path.resolve(cliRoot, requireString(schemas.wallet_action.path, "schemas.wallet_action.path"));
+  return path.resolve(workspaceRootFromCliRoot(cliRoot), requireString(schemas.wallet_action.path, "schemas.wallet_action.path"));
 };
+
+export const schemaEntries = (manifest, cliRoot) => {
+  const schemas = manifest.schemas;
+  if (!isRecord(schemas)) {
+    throw new Error("Regent stack contract must define schemas.");
+  }
+
+  return Object.entries(schemas)
+    .filter(([, schema]) => isRecord(schema) && typeof schema.path === "string")
+    .map(([id, schema]) => ({
+      id,
+      path: schema.path,
+      resolvedPath: path.resolve(workspaceRootFromCliRoot(cliRoot), schema.path),
+      version: typeof schema.version === "number" ? schema.version : undefined,
+    }));
+};
+
+export const repoManifestEntries = (manifest, cliRoot) =>
+  repoEntries(manifest, cliRoot)
+    .filter((repo) => repo.active)
+    .map((repo) => ({
+      repo: repo.name,
+      path: "repo.yaml",
+      resolvedPath: path.resolve(repo.resolvedPath, "repo.yaml"),
+    }));
+
+export const runtimeContractEntries = (manifest, cliRoot) =>
+  asArray(manifest.runtime_contracts).filter(isRecord).map((entry, index) => ({
+    id: typeof entry.id === "string" ? entry.id : `runtime_contract_${index}`,
+    owner: requireString(entry.owner, `runtime_contracts[${index}].owner`),
+    path: requireString(entry.path, `runtime_contracts[${index}].path`),
+    resolvedPath: path.resolve(workspaceRootFromCliRoot(cliRoot), entry.path),
+    registry: requireString(entry.registry, `runtime_contracts[${index}].registry`),
+    resolvedRegistry: path.resolve(workspaceRootFromCliRoot(cliRoot), entry.registry),
+    generatedMarkdown: requireString(entry.generated_markdown, `runtime_contracts[${index}].generated_markdown`),
+    resolvedGeneratedMarkdown: path.resolve(workspaceRootFromCliRoot(cliRoot), entry.generated_markdown),
+  }));
+
+export const chainContractManifestEntries = (manifest, cliRoot) =>
+  asArray(manifest.chain_contract_manifests).filter(isRecord).map((entry, index) => ({
+    id: typeof entry.id === "string" ? entry.id : `chain_contract_manifest_${index}`,
+    owner: requireString(entry.owner, `chain_contract_manifests[${index}].owner`),
+    path: requireString(entry.path, `chain_contract_manifests[${index}].path`),
+    resolvedPath: path.resolve(workspaceRootFromCliRoot(cliRoot), entry.path),
+  }));
+
+export const generatedViewEntries = (manifest, cliRoot) =>
+  asArray(manifest.generated_views).filter(isRecord).map((entry, index) => ({
+    id: typeof entry.id === "string" ? entry.id : `generated_view_${index}`,
+    path: requireString(entry.path, `generated_views[${index}].path`),
+    resolvedPath: entry.path.includes("<repo>")
+      ? undefined
+      : path.resolve(workspaceRootFromCliRoot(cliRoot), entry.path),
+    renderer: typeof entry.renderer === "string" ? entry.renderer : "regents meta render",
+  }));
+
+export const ticketTemplateEntries = (manifest, cliRoot) =>
+  asArray(manifest.ticket_templates).filter(isRecord).map((entry, index) => ({
+    id: typeof entry.id === "string" ? entry.id : `ticket_template_${index}`,
+    path: requireString(entry.path, `ticket_templates[${index}].path`),
+    resolvedPath: path.resolve(workspaceRootFromCliRoot(cliRoot), entry.path),
+  }));
 
 export const moneyMovementRows = (manifest) =>
   asArray(manifest.money_movement).filter(isRecord).map((row, index) => ({
@@ -235,5 +300,25 @@ export const requiredWorkspaceFiles = (manifest, cliRoot) => {
     label: "WalletAction schema",
     path: walletActionSchemaPath(manifest, cliRoot),
     kind: "file",
-  }];
+  }, ...schemaEntries(manifest, cliRoot).map((schema) => ({
+    label: `${schema.id} schema`,
+    path: schema.resolvedPath,
+    kind: "file",
+  })), ...repoManifestEntries(manifest, cliRoot).map((repoManifest) => ({
+    label: `${repoManifest.repo} repo.yaml`,
+    path: repoManifest.resolvedPath,
+    kind: "file",
+  })), ...runtimeContractEntries(manifest, cliRoot).flatMap((runtime) => [
+    { label: `${runtime.id} runtime contract`, path: runtime.resolvedPath, kind: "file" },
+    { label: `${runtime.id} runtime registry`, path: runtime.resolvedRegistry, kind: "file" },
+    { label: `${runtime.id} generated markdown`, path: runtime.resolvedGeneratedMarkdown, kind: "file" },
+  ]), ...chainContractManifestEntries(manifest, cliRoot).map((chain) => ({
+    label: `${chain.id} chain contract manifest`,
+    path: chain.resolvedPath,
+    kind: "file",
+  })), ...ticketTemplateEntries(manifest, cliRoot).map((template) => ({
+    label: `${template.id} ticket template`,
+    path: template.resolvedPath,
+    kind: "file",
+  }))];
 };

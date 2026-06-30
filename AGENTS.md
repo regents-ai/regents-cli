@@ -1,3 +1,15 @@
+<!-- BEGIN REGENT META GENERATED -->
+## Repo Contract
+
+Generated from `meta/stack.yaml` and repo `repo.yaml` files. Local notes may live outside this block.
+
+- Repo contract: `regents-cli/repo.yaml`
+- Owner: `regents-cli`
+- Release group: `public_beta`
+- Owned areas: `operator_control_surface`, `generated_bindings`, `local_runtime`, `portfolio_release_checks`.
+- Change API or CLI behavior in the owning YAML contract before changing code.
+- Use `bd` only for execution state: tickets, claims, blockers, dependencies, and closure evidence.
+<!-- END REGENT META GENERATED -->
 This repository owns the standalone Regents CLI workspace.
 
 ## Regent Dependency Skills

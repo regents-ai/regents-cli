@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import { cliCommandContractFiles, cliCommandOpenApiFiles } from "../src/workspace/manifest.js";
 
-const cliRoot = path.resolve(path.sep, "tmp", "regent-workspace-manifest-test");
+const workspaceRoot = path.resolve(path.sep, "tmp", "regent-workspace-manifest-test");
+const cliRoot = path.join(workspaceRoot, "regents-cli");
 
 describe("workspace manifest", () => {
   it("returns the CLI command check OpenAPI files by owner", () => {
@@ -12,7 +13,7 @@ describe("workspace manifest", () => {
       {
         repos: {
           "regents-cli": {
-            path: ".",
+            path: "regents-cli",
             api_contracts: [
               {
                 id: "shared_services_api",
@@ -38,7 +39,7 @@ describe("workspace manifest", () => {
         {
           repos: {
             "regents-cli": {
-              path: ".",
+            path: "regents-cli",
               api_contracts: [
                 {
                   id: "shared_services_api",
@@ -67,7 +68,7 @@ describe("workspace manifest", () => {
         {
           repos: {
             "regents-cli": {
-              path: ".",
+            path: "regents-cli",
               cli_contracts: [
                 {
                   id: "shared_cli",

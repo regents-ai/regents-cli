@@ -1,8 +1,10 @@
 import fs from "node:fs";
+import YAML from "yaml";
 
 import { describe, expect, it } from "vitest";
 
 import { renderJsonRpcMethodsDoc } from "../src/internal-runtime/jsonrpc/docs.js";
+import { REGENT_RPC_METHODS } from "../src/internal-runtime/jsonrpc/methods.js";
 
 describe("JSON-RPC methods doc", () => {
   it("matches the live runtime method registry", () => {
@@ -10,5 +12,13 @@ describe("JSON-RPC methods doc", () => {
     const currentDoc = fs.readFileSync(docsPath, "utf8");
 
     expect(currentDoc).toBe(renderJsonRpcMethodsDoc());
+  });
+
+  it("keeps the YAML runtime contract aligned with the registry", () => {
+    const contractPath = new URL("../../../docs/json-rpc-methods.yaml", import.meta.url);
+    const contract = YAML.parse(fs.readFileSync(contractPath, "utf8"));
+    const contractMethods = contract.methods.map((method: { name: string }) => method.name);
+
+    expect(contractMethods).toEqual(Object.values(REGENT_RPC_METHODS));
   });
 });
