@@ -368,6 +368,7 @@ These commands expose the same read model that powers the `/contracts` page in t
 
 ```bash
 regents autolaunch strategy migrate --job <job-id> [--json]
+regents autolaunch auction claim-unused-tokens --job <job-id> [--json]
 regents autolaunch strategy sweep-token --job <job-id> [--json]
 regents autolaunch strategy sweep-quote-token --job <job-id> [--json]
 regents autolaunch vesting release --job <job-id> [--json]

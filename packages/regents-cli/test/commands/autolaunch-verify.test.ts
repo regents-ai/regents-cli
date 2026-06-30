@@ -62,6 +62,7 @@ describe("autolaunch verify commands", () => {
   const tokenAddress = "0x3333333333333333333333333333333333333333";
   const splitterAddress = "0x4444444444444444444444444444444444444444";
   const ingressAddress = "0x5555555555555555555555555555555555555555";
+  const usdcAddress = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
   const ownerAddress = "0x6666666666666666666666666666666666666666";
 
   const touchedEnvKeys = [
@@ -333,10 +334,25 @@ describe("autolaunch verify commands", () => {
           return jsonResponse({ ok: true, subject: {} });
         }
         if (url.includes(`/api/autolaunch/v1/agent/subjects/${subjectId}/ingress`)) {
-          return jsonResponse({ ok: true, subject: {} });
+          return jsonResponse({
+            ok: true,
+            subject: {
+              current_unswept_usdc_raw: 1234567,
+              ingress_usdc_token_address: usdcAddress,
+              money_read_sources: moneyReadSources(),
+            },
+          });
         }
         if (url.includes(`/api/autolaunch/v1/agent/subjects/${subjectId}/buybacks`)) {
-          return jsonResponse({ ok: true, subject_id: subjectId, buybacks: { pending_buyback_usdc: "0" } });
+          return jsonResponse({
+            ok: true,
+            subject_id: subjectId,
+            buybacks: {
+              pending_buyback_usdc_raw: 2500000,
+              pending_buyback_usdc: "2.5",
+              money_read_sources: moneyReadSources(),
+            },
+          });
         }
         if (url.includes(`/api/autolaunch/v1/agent/subjects/${subjectId}`)) {
           return jsonResponse({
@@ -346,6 +362,11 @@ describe("autolaunch verify commands", () => {
               token_address: tokenAddress,
               splitter_address: splitterAddress,
               default_ingress_address: ingressAddress,
+              ingress_usdc_token_address: usdcAddress,
+              current_unswept_usdc_raw: 1234567,
+              pending_buyback_usdc_raw: 2500000,
+              splitter_accounted_usdc_raw: 9900000,
+              money_read_sources: moneyReadSources(),
               subject_kind: "existing_token",
               team_shared_status: "private",
             },
@@ -355,15 +376,51 @@ describe("autolaunch verify commands", () => {
       });
     };
 
-    it("reports MATCH token/splitter/ingress and the documented API-gap rows", async () => {
+    const moneyReadSources = () => ({
+      ingress_usdc_token_address: {
+        contract_address: usdcAddress,
+        read_source: "configured_base_usdc_token",
+        token_address: null,
+        account_address: null,
+      },
+      current_unswept_usdc_raw: {
+        contract_address: usdcAddress,
+        read_source: "erc20_balance_of",
+        token_address: usdcAddress,
+        account_address: ingressAddress,
+      },
+      pending_buyback_usdc_raw: {
+        contract_address: splitterAddress,
+        read_source: "revenue_splitter_treasury_buyback_usdc",
+        token_address: null,
+        account_address: null,
+      },
+      splitter_accounted_usdc_raw: {
+        contract_address: splitterAddress,
+        read_source: "revenue_splitter_total_usdc_received",
+        token_address: null,
+        account_address: null,
+      },
+    });
+
+    it("reports MATCH token, splitter, ingress, and current money rows", async () => {
       writeConfig();
       writeAutolaunchSession("autolaunch");
       process.env.BASE_MAINNET_RPC_URL = "https://base.example";
       stubSubjectApis();
       getBytecodeMock.mockResolvedValue("0x6080604052");
-      readContractMock.mockImplementation(({ functionName }: { functionName: string }) =>
-        functionName === "symbol" ? "TKN" : 1000n,
-      );
+      readContractMock.mockImplementation(({ functionName }: { functionName: string }) => {
+        if (functionName === "symbol") {
+          return "TKN";
+        }
+        if (functionName === "totalSupply") {
+          return 1000n;
+        }
+        if (functionName === "balanceOf") {
+          return 1234567n;
+        }
+        throw new Error(`unexpected read ${functionName}`);
+      });
 
       const output = await runSubjectsVerify(subjectId);
 
@@ -378,11 +435,11 @@ describe("autolaunch verify commands", () => {
       expect(checkByItem(payload, "team shared status").status).toBe("MATCH");
 
       const ingressRow = checkByItem(payload, "ingress balance vs unswept");
-      expect(ingressRow.status).toBe("UNVERIFIABLE");
-      expect(ingressRow.reason).toContain("does not publish the expected unswept USDC amount");
+      expect(ingressRow.status).toBe("MATCH");
+      expect(ingressRow.detail).toContain("current_unswept_usdc_raw");
 
-      const buybackRow = checkByItem(payload, "pending buyback vs chain");
-      expect(buybackRow.status).toBe("UNVERIFIABLE");
+      expect(checkByItem(payload, "pending buyback current state").status).toBe("MATCH");
+      expect(checkByItem(payload, "splitter accounted current state").status).toBe("MATCH");
 
       const auctionRow = checkByItem(payload, "live auction state");
       expect(auctionRow.status).toBe("UNVERIFIABLE");

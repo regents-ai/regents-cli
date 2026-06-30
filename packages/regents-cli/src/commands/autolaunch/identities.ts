@@ -231,6 +231,7 @@ const buildIdentityRecord = (
 ): IdentityRecord => {
   const registration = agent.registrationFile ?? undefined;
   const tokenId = String(agent.agentId ?? "");
+  const registryAddress = registryAddressForChain(chainId);
   const owner = typeof agent.owner === "string" ? agent.owner.toLowerCase() : null;
   const operators = Array.isArray(agent.operators)
     ? agent.operators
@@ -247,7 +248,7 @@ const buildIdentityRecord = (
         : mode;
 
   return {
-    agent_id: `${chainId}:${tokenId}`,
+    agent_id: `eip155:${chainId}:${registryAddress}:${tokenId}`,
     chain_id: Number.parseInt(chainId, 10),
     token_id: tokenId,
     owner_address: owner,
@@ -260,7 +261,7 @@ const buildIdentityRecord = (
     ens: registration?.ens?.trim() || null,
     web_endpoint: registration?.webEndpoint?.trim() || null,
     active: Boolean(registration?.active),
-    registry_address: registryAddressForChain(chainId),
+    registry_address: registryAddress,
   };
 };
 
@@ -355,7 +356,7 @@ export async function mintAutolaunchIdentity(args: ParsedCliArgs): Promise<Ident
   const rawAgentId = registered?.args.agentId;
   const agentId =
     rawAgentId !== undefined
-      ? `${chainId}:${typeof rawAgentId === "bigint" ? rawAgentId.toString() : String(rawAgentId)}`
+      ? `eip155:${chainId}:${registryAddress}:${typeof rawAgentId === "bigint" ? rawAgentId.toString() : String(rawAgentId)}`
       : null;
 
   return {

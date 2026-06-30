@@ -12,7 +12,8 @@ import { captureOutput } from "../../../../test-support/test-helpers.js";
 
 const TEST_WALLET = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
-const TEST_AGENT_REGISTRY = `eip155:8453/erc8004:${TEST_REGISTRY}`;
+const TEST_AGENT_REGISTRY = `eip155:8453:${TEST_REGISTRY}`;
+const TEST_AGENT_ID = `${TEST_AGENT_REGISTRY}:99`;
 const TEST_SIGNATURE = `0x${"1".repeat(130)}`;
 
 describeNetwork.sequential("CLI functional flows against the real runtime", () => {
@@ -172,7 +173,8 @@ exit 1
       provider: "coinbase-cdp",
       network: "base",
       address: TEST_WALLET,
-      agent_id: 99,
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
       agent_registry: TEST_AGENT_REGISTRY,
       verified: "onchain",
       receipt_expires_at: "2999-01-01T00:00:00.000Z",
@@ -190,7 +192,8 @@ exit 1
       network: "base",
       provider: "coinbase-cdp",
       address: TEST_WALLET,
-      agent_id: 99,
+      agent_id: TEST_AGENT_ID,
+      token_id: "99",
       agent_registry: TEST_AGENT_REGISTRY,
       signer_type: "evm_personal_sign",
       verified: "onchain",

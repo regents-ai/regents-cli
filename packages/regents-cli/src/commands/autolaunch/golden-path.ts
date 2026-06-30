@@ -54,6 +54,25 @@ const AUTOLAUNCH_CHAIN_ID = 8_453;
 const REGENT_DECIMALS = 18;
 const REGENT_SCALE = 10n ** BigInt(REGENT_DECIMALS);
 const HIGH_MINIMUM_RAISE_QUOTE_WEI = 50_000n * REGENT_SCALE;
+const PRELAUNCH_WIZARD_FLAGS = new Set([
+  "agent",
+  "agent-safe-address",
+  "config",
+  "connect-profile",
+  "description",
+  "fallback-operator-wallet",
+  "image-url",
+  "json",
+  "launch-notes",
+  "minimum-raise-quote",
+  "name",
+  "no-input",
+  "plan",
+  "subtitle",
+  "symbol",
+  "title",
+  "website-url",
+]);
 
 const normalizeText = (value: string | undefined): string | undefined => {
   if (!value) {
@@ -112,6 +131,19 @@ const quoteToWei = (value: string): bigint => {
   const fractional = fractionalPart.padEnd(REGENT_DECIMALS, "0");
 
   return BigInt(wholePart) * REGENT_SCALE + BigInt(fractional);
+};
+
+const assertPrelaunchWizardFlags = (args: ParsedCliArgs): void => {
+  const unsupported = Array.from(args.flags.keys())
+    .filter((flag) => !PRELAUNCH_WIZARD_FLAGS.has(flag))
+    .sort();
+
+  if (unsupported.length > 0) {
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `Unsupported flag for autolaunch prelaunch wizard: --${unsupported[0]}.`,
+    });
+  }
 };
 
 const confirmHighMinimumRaise = async (
@@ -604,6 +636,7 @@ export async function runAutolaunchPrelaunchWizard(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
+  assertPrelaunchWizardFlags(args);
   printAlphaFundsWarning();
   const plan = await createOrUpdateRemotePlan(args, configPath);
   const connection = getBooleanFlag(args, "connect-profile")

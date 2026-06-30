@@ -38,13 +38,14 @@ const ERC20_READ_ABI = [
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
-
-const INGRESS_GAP_REASON =
-  "The subject ingress endpoint does not publish the expected unswept USDC amount, so the chain balance cannot be split from already-recognized revenue.";
-
-const PENDING_BUYBACK_GAP_REASON =
-  "Pending buyback and splitter accounting are internal balances; no published read ABI exposes them onchain to diff against the API.";
 
 const LAUNCH_GAP_REASON =
   "The subject payload does not expose a launch job or auction id, so live-auction state cannot be located onchain.";
@@ -60,6 +61,18 @@ const asRecord = (value: unknown): Record<string, unknown> | null =>
 const asText = (value: unknown): string | null =>
   typeof value === "string" && value.trim() !== "" ? value : null;
 
+const asRawAmount = (value: unknown): string | null => {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return String(value);
+  }
+
+  if (typeof value === "string" && /^[0-9]+$/u.test(value.trim())) {
+    return value.trim();
+  }
+
+  return null;
+};
+
 const addressPattern = /^0x[0-9a-fA-F]{40}$/u;
 
 const isAddress = (value: unknown): value is `0x${string}` =>
@@ -72,6 +85,11 @@ interface SubjectFacts {
   readonly tokenAddress: string | null;
   readonly splitterAddress: string | null;
   readonly ingressAddress: string | null;
+  readonly ingressUsdcTokenAddress: string | null;
+  readonly currentUnsweptUsdcRaw: string | null;
+  readonly pendingBuybackUsdcRaw: string | null;
+  readonly splitterAccountedUsdcRaw: string | null;
+  readonly moneyReadSources: Record<string, unknown> | null;
   readonly subjectKind: string | null;
   readonly teamSharedStatus: string | null;
 }
@@ -145,6 +163,49 @@ const deployedCodeCheck = async (
   }
 };
 
+const moneySourceDetail = (sources: Record<string, unknown> | null, field: string): string => {
+  const source = asRecord(sources?.[field]);
+  const contractAddress = asText(source?.contract_address) ?? "no contract";
+  const readSource = asText(source?.read_source) ?? "no read source";
+  return `${contractAddress} via ${readSource}`;
+};
+
+const hasMoneyReadSource = (sources: Record<string, unknown> | null, field: string): boolean => {
+  const source = asRecord(sources?.[field]);
+  return Boolean(asText(source?.contract_address) && asText(source?.read_source));
+};
+
+const publishedMoneyFieldCheck = (
+  item: string,
+  field: string,
+  value: string | null,
+  sources: Record<string, unknown> | null,
+): VerifyCheck => {
+  if (value === null) {
+    return {
+      item,
+      status: "UNVERIFIABLE",
+      detail: field,
+      reason: `Autolaunch published ${field} as null. Source: ${moneySourceDetail(sources, field)}.`,
+    };
+  }
+
+  if (!hasMoneyReadSource(sources, field)) {
+    return {
+      item,
+      status: "UNVERIFIABLE",
+      detail: `${field} ${value}`,
+      reason: `Autolaunch did not publish the contract/read source for ${field}.`,
+    };
+  }
+
+  return {
+    item,
+    status: "MATCH",
+    detail: `${field} ${value}; source ${moneySourceDetail(sources, field)}`,
+  };
+};
+
 const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
   const subjectId = requireSubjectId(args);
   const checks: VerifyCheck[] = [];
@@ -173,15 +234,6 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
     };
   }
 
-  const subject = asRecord(subjectEnvelope.subject) ?? subjectEnvelope;
-  const facts: SubjectFacts = {
-    tokenAddress: asText(subject.token_address),
-    splitterAddress: asText(subject.splitter_address),
-    ingressAddress: asText(subject.default_ingress_address),
-    subjectKind: asText(subject.subject_kind),
-    teamSharedStatus: asText(subject.team_shared_status),
-  };
-
   const staking = await fetchOptional(
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/staking`,
     configPath,
@@ -194,6 +246,30 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
     `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks`,
     configPath,
   );
+  const subject = asRecord(subjectEnvelope.subject) ?? subjectEnvelope;
+  const ingressSubject = asRecord(ingress?.subject) ?? {};
+  const buybackStatus = asRecord(buybacks?.buybacks) ?? {};
+  const moneyReadSources = asRecord(
+    subject.money_read_sources ?? ingressSubject.money_read_sources ?? buybackStatus.money_read_sources,
+  );
+  const facts: SubjectFacts = {
+    tokenAddress: asText(subject.token_address),
+    splitterAddress: asText(subject.splitter_address),
+    ingressAddress: asText(subject.default_ingress_address),
+    ingressUsdcTokenAddress: asText(subject.ingress_usdc_token_address ?? ingressSubject.ingress_usdc_token_address),
+    currentUnsweptUsdcRaw: asRawAmount(
+      subject.current_unswept_usdc_raw ?? ingressSubject.current_unswept_usdc_raw,
+    ),
+    pendingBuybackUsdcRaw: asRawAmount(
+      subject.pending_buyback_usdc_raw ?? buybackStatus.pending_buyback_usdc_raw,
+    ),
+    splitterAccountedUsdcRaw: asRawAmount(
+      subject.splitter_accounted_usdc_raw ?? ingressSubject.splitter_accounted_usdc_raw,
+    ),
+    moneyReadSources,
+    subjectKind: asText(subject.subject_kind),
+    teamSharedStatus: asText(subject.team_shared_status),
+  };
 
   const rpc = rpcUrl(args);
 
@@ -210,6 +286,14 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
       checks.push({ item: "ingress deployed", status: "UNVERIFIABLE", detail: facts.ingressAddress, reason });
     }
     checks.push({ item: "token symbol / supply", status: "UNVERIFIABLE", detail: "ERC-20 reads", reason });
+    if (facts.ingressAddress) {
+      checks.push({
+        item: "ingress balance vs unswept",
+        status: "UNVERIFIABLE",
+        detail: moneySourceDetail(facts.moneyReadSources, "current_unswept_usdc_raw"),
+        reason,
+      });
+    }
   } else {
     const publicClient = createPublicClient({ transport: http(rpc) });
 
@@ -250,28 +334,78 @@ const buildVerification = async (args: ParsedCliArgs, configPath?: string) => {
         });
       }
     }
+
+    if (
+      facts.ingressAddress &&
+      facts.ingressUsdcTokenAddress &&
+      facts.currentUnsweptUsdcRaw !== null &&
+      isAddress(facts.ingressAddress) &&
+      isAddress(facts.ingressUsdcTokenAddress)
+    ) {
+      try {
+        const ingressBalance = (await publicClient.readContract({
+          address: facts.ingressUsdcTokenAddress,
+          abi: ERC20_READ_ABI,
+          functionName: "balanceOf",
+          args: [facts.ingressAddress],
+        })) as bigint;
+        const ingressBalanceRaw = ingressBalance.toString();
+        chainView.ingress_usdc = {
+          token_address: facts.ingressUsdcTokenAddress,
+          ingress_address: facts.ingressAddress,
+          balance_raw: ingressBalanceRaw,
+        };
+
+        if (ingressBalanceRaw === facts.currentUnsweptUsdcRaw) {
+          checks.push({
+            item: "ingress balance vs unswept",
+            status: "MATCH",
+            detail: `USDC balance ${ingressBalanceRaw} matches current_unswept_usdc_raw`,
+          });
+        } else {
+          checks.push({
+            item: "ingress balance vs unswept",
+            status: "MISMATCH",
+            detail: `USDC balance ${ingressBalanceRaw} does not match current_unswept_usdc_raw ${facts.currentUnsweptUsdcRaw}`,
+            next: "Chain wins for money. Sweep or reconcile the subject ingress account, then refresh the Autolaunch subject record.",
+          });
+        }
+      } catch (error) {
+        checks.push({
+          item: "ingress balance vs unswept",
+          status: "UNVERIFIABLE",
+          detail: moneySourceDetail(facts.moneyReadSources, "current_unswept_usdc_raw"),
+          reason: errorText(error),
+        });
+      }
+    } else if (facts.ingressAddress) {
+      checks.push(
+        publishedMoneyFieldCheck(
+          "ingress balance vs unswept",
+          "current_unswept_usdc_raw",
+          facts.currentUnsweptUsdcRaw,
+          facts.moneyReadSources,
+        ),
+      );
+    }
   }
 
-  // Money rows: chain wins. The ingress balance cannot be reconciled because the
-  // ingress endpoint does not publish the expected unswept USDC amount.
-  if (facts.ingressAddress) {
-    checks.push({
-      item: "ingress balance vs unswept",
-      status: "UNVERIFIABLE",
-      detail: `ingress ${facts.ingressAddress}`,
-      reason: INGRESS_GAP_REASON,
-    });
-  }
-
-  // Pending buyback / splitter accounting has no published read ABI to diff.
-  if (buybacks) {
-    checks.push({
-      item: "pending buyback vs chain",
-      status: "UNVERIFIABLE",
-      detail: "subject buybacks",
-      reason: PENDING_BUYBACK_GAP_REASON,
-    });
-  }
+  checks.push(
+    publishedMoneyFieldCheck(
+      "pending buyback current state",
+      "pending_buyback_usdc_raw",
+      facts.pendingBuybackUsdcRaw,
+      facts.moneyReadSources,
+    ),
+  );
+  checks.push(
+    publishedMoneyFieldCheck(
+      "splitter accounted current state",
+      "splitter_accounted_usdc_raw",
+      facts.splitterAccountedUsdcRaw,
+      facts.moneyReadSources,
+    ),
+  );
 
   // Workflow rows: product wins. These come straight from the subject record.
   if (facts.subjectKind) {

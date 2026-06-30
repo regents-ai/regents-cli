@@ -115,6 +115,13 @@ export async function runAutolaunchStrategyMigrate(
   await postPrepareJobAction(args, "strategy", "migrate", {}, configPath);
 }
 
+export async function runAutolaunchAuctionClaimUnusedTokens(
+  args: ParsedCliArgs,
+  configPath?: string,
+): Promise<void> {
+  await postPrepareJobAction(args, "auction", "claim_unused_tokens", {}, configPath);
+}
+
 export async function runAutolaunchStrategySweepToken(
   args: ParsedCliArgs,
   configPath?: string,

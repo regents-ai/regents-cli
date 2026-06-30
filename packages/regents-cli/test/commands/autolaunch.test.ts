@@ -124,6 +124,12 @@ describe("autolaunch CLI command group", () => {
   const fetchMock = vi.fn<typeof fetch>();
   const tempDirs: string[] = [];
   const expectedAgentWallet = "0x00000000000000000000000000000000000000aa";
+  const pairingRegistryAddress = "0x3333333333333333333333333333333333333333";
+  const configuredIdentityRegistryAddress = "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432";
+  const pairingBaseSepoliaAgentId = `eip155:84532:${pairingRegistryAddress}:42`;
+  const mainnetAgentId = `eip155:8453:${configuredIdentityRegistryAddress}:42`;
+  const baseSepoliaLaunchableAgentId = `eip155:84532:${configuredIdentityRegistryAddress}:77`;
+  const mainnetLaunchableAgentId = `eip155:8453:${configuredIdentityRegistryAddress}:88`;
   const preparedSubjectAction = (data: `0x${string}`, subjectId = "subject_123") => {
     const base = {
       action_id: `subject_${data.slice(2)}`,
@@ -309,8 +315,7 @@ describe("autolaunch CLI command group", () => {
     );
     process.env.AUTOLAUNCH_ERC8004_SUBGRAPH_URL =
       "https://erc8004.example/graphql";
-    process.env.AUTOLAUNCH_IDENTITY_REGISTRY_ADDRESS =
-      "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432";
+    process.env.AUTOLAUNCH_IDENTITY_REGISTRY_ADDRESS = configuredIdentityRegistryAddress;
     buildAgentAuthHeadersMock.mockResolvedValue({
       "x-siwa-receipt": "receipt_123",
       "x-key-id": expectedAgentWallet,
@@ -405,10 +410,10 @@ describe("autolaunch CLI command group", () => {
             status: "completed",
             pairing_code: null,
             agent: {
-              agent_id: "84532:42",
+              agent_id: pairingBaseSepoliaAgentId,
               agent_wallet_address: expectedAgentWallet,
               agent_chain_id: 84532,
-              agent_registry_address: "0x3333333333333333333333333333333333333333",
+              agent_registry_address: pairingRegistryAddress,
               agent_token_id: "42",
               agent_label: "Atlas Agent",
               connected_at: "2026-05-06T14:30:00Z",
@@ -455,7 +460,7 @@ describe("autolaunch CLI command group", () => {
     expect(output.stdout).toContain("AUTOLAUNCH PAIRING COMPLETE");
     expect(output.stdout).toContain("completed");
     expect(output.stdout).toContain("pair_123");
-    expect(output.stdout).toContain("Atlas Agent (84532:42)");
+    expect(output.stdout).toContain(`Atlas Agent (${pairingBaseSepoliaAgentId})`);
     expect(output.stdout).toContain("0x0000...00aa");
     expect(output.stdout).toContain("No private keys were shared and no funds moved.");
   });
@@ -473,10 +478,10 @@ describe("autolaunch CLI command group", () => {
             status: "completed",
             pairing_code: null,
             agent: {
-              agent_id: "84532:42",
+              agent_id: pairingBaseSepoliaAgentId,
               agent_wallet_address: expectedAgentWallet,
               agent_chain_id: 84532,
-              agent_registry_address: "0x3333333333333333333333333333333333333333",
+              agent_registry_address: pairingRegistryAddress,
               agent_token_id: "42",
               agent_label: "Atlas Agent",
               connected_at: "2026-05-06T14:30:00Z",
@@ -522,10 +527,10 @@ describe("autolaunch CLI command group", () => {
             expires_at: "2026-05-18T16:00:00Z",
             completed_at: null,
             plan_id: "plan_alpha",
-            agent_id: "84532:42",
+            agent_id: pairingBaseSepoliaAgentId,
             agent_wallet_address: expectedAgentWallet,
             agent_chain_id: 84532,
-            agent_registry_address: "0x3333333333333333333333333333333333333333",
+            agent_registry_address: pairingRegistryAddress,
             agent_token_id: "42",
             agent_label: "Atlas Agent",
             human: null,
@@ -588,10 +593,10 @@ describe("autolaunch CLI command group", () => {
             expires_at: "2026-05-18T16:00:00Z",
             completed_at: null,
             plan_id: null,
-            agent_id: "84532:42",
+            agent_id: pairingBaseSepoliaAgentId,
             agent_wallet_address: expectedAgentWallet,
             agent_chain_id: 84532,
-            agent_registry_address: "0x3333333333333333333333333333333333333333",
+            agent_registry_address: pairingRegistryAddress,
             agent_token_id: "42",
             agent_label: "Atlas Agent",
             human: null,
@@ -624,7 +629,7 @@ describe("autolaunch CLI command group", () => {
           items: [
             {
               id: "auc_1",
-              agent_id: "84532:42",
+              agent_id: pairingBaseSepoliaAgentId,
               agent_name: "Atlas",
               symbol: "ATLAS",
               chain: "base-sepolia",
@@ -1273,6 +1278,49 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
+  it("prepares unused-token claims through the auction", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          prepared: preparedContractAction(
+            "0x5dd13ca7",
+            "auction",
+            "claim_unused_tokens",
+          ),
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "auction",
+        "claim-unused-tokens",
+        "--job",
+        "job_123",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/contracts/jobs/job_123/auction/claim_unused_tokens/prepare`,
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({});
+    expect(
+      parsePrintedJson<{ prepared: { resource: string; action: string } }>(output.stdout),
+    ).toMatchObject({
+      prepared: {
+        resource: "auction",
+        action: "claim_unused_tokens",
+      },
+    });
+  });
+
   it("reads the contracts admin overview through the Regent web session", async () => {
     const configPath = createConfigPath();
     const sessionFile = writePlatformSession();
@@ -1417,7 +1465,7 @@ describe("autolaunch CLI command group", () => {
       ok: true,
       chain_id: 84532,
       owner_address: "0x00000000000000000000000000000000000000aa",
-      launchable: [{ agent_id: "84532:77" }],
+      launchable: [{ agent_id: baseSepoliaLaunchableAgentId }],
     });
   });
 
@@ -1479,7 +1527,7 @@ describe("autolaunch CLI command group", () => {
       ok: true,
       chain_id: 8453,
       owner_address: "0x00000000000000000000000000000000000000aa",
-      launchable: [{ agent_id: "8453:88" }],
+      launchable: [{ agent_id: mainnetLaunchableAgentId }],
     });
   });
 
@@ -1514,7 +1562,7 @@ describe("autolaunch CLI command group", () => {
     ).toMatchObject({
       ok: true,
       chain_id: 8453,
-      agent_id: "8453:42",
+      agent_id: mainnetAgentId,
       owner_address: "0x00000000000000000000000000000000000000aa",
       agent_uri: "https://agents.example/alpha.json",
     });
@@ -1585,7 +1633,7 @@ describe("autolaunch CLI command group", () => {
     ).toMatchObject({
       ok: true,
       chain_id: 8453,
-      agent_id: "8453:42",
+      agent_id: mainnetAgentId,
       owner_address: "0x00000000000000000000000000000000000000aa",
       agent_uri: null,
     });
@@ -1600,7 +1648,7 @@ describe("autolaunch CLI command group", () => {
             plan: {
               plan_id: "plan_mainnet",
               state: "draft",
-              agent_id: "8453:42",
+              agent_id: mainnetAgentId,
               metadata_draft: { title: "Atlas Coin" },
             },
           }),
@@ -1628,7 +1676,7 @@ describe("autolaunch CLI command group", () => {
         "prelaunch",
         "wizard",
         "--agent",
-        "8453:42",
+        mainnetAgentId,
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -1644,7 +1692,7 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     const [, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(JSON.parse(String(requestInit?.body))).toMatchObject({
-      agent_id: "8453:42",
+      agent_id: mainnetAgentId,
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
       minimum_raise_quote: "10000",
@@ -1662,7 +1710,7 @@ describe("autolaunch CLI command group", () => {
             plan: {
               plan_id: "plan_connect",
               state: "draft",
-              agent_id: "8453:42",
+              agent_id: mainnetAgentId,
               token_name: "Atlas Coin",
               metadata_draft: { title: "Atlas Coin" },
             },
@@ -1682,10 +1730,10 @@ describe("autolaunch CLI command group", () => {
               expires_at: "2026-05-18T16:00:00Z",
               completed_at: null,
               plan_id: "plan_connect",
-              agent_id: "84532:42",
+              agent_id: pairingBaseSepoliaAgentId,
               agent_wallet_address: expectedAgentWallet,
               agent_chain_id: 84532,
-              agent_registry_address: "0x3333333333333333333333333333333333333333",
+              agent_registry_address: pairingRegistryAddress,
               agent_token_id: "42",
               agent_label: "Atlas Coin",
               human: null,
@@ -1744,7 +1792,7 @@ describe("autolaunch CLI command group", () => {
         "prelaunch",
         "wizard",
         "--agent",
-        "8453:42",
+        mainnetAgentId,
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -1781,7 +1829,7 @@ describe("autolaunch CLI command group", () => {
             plan: {
               plan_id: "plan_zero",
               state: "draft",
-              agent_id: "8453:42",
+              agent_id: mainnetAgentId,
               metadata_draft: { title: "Atlas Coin" },
             },
           }),
@@ -1809,7 +1857,7 @@ describe("autolaunch CLI command group", () => {
         "prelaunch",
         "wizard",
         "--agent",
-        "8453:42",
+        mainnetAgentId,
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -1839,7 +1887,7 @@ describe("autolaunch CLI command group", () => {
       "prelaunch",
       "wizard",
       "--agent",
-      "8453:42",
+      mainnetAgentId,
       "--name",
       "Atlas Coin",
       "--symbol",
@@ -1859,6 +1907,34 @@ describe("autolaunch CLI command group", () => {
     expect(output.stderr).toContain(error);
   });
 
+  it("rejects unsupported prelaunch wizard flags before network calls", async () => {
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "prelaunch",
+        "wizard",
+        "--agent",
+        mainnetAgentId,
+        "--name",
+        "Atlas Coin",
+        "--symbol",
+        "ATLAS",
+        "--minimum-raise-quote",
+        "0",
+        "--agent-safe-address",
+        "0x1111111111111111111111111111111111111111",
+        "--unsupported-flag",
+        "value",
+      ]),
+    );
+
+    expect(output.result).toBe(2);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(output.stderr).toContain(
+      "Unsupported flag for autolaunch prelaunch wizard: --unsupported-flag.",
+    );
+  });
+
   it("accepts decimal prelaunch minimum raises with REGENT precision", async () => {
     fetchMock
       .mockResolvedValueOnce(
@@ -1868,7 +1944,7 @@ describe("autolaunch CLI command group", () => {
             plan: {
               plan_id: "plan_mainnet",
               state: "draft",
-              agent_id: "8453:42",
+              agent_id: mainnetAgentId,
               metadata_draft: { title: "Atlas Coin" },
             },
           }),
@@ -1896,7 +1972,7 @@ describe("autolaunch CLI command group", () => {
         "prelaunch",
         "wizard",
         "--agent",
-        "8453:42",
+        mainnetAgentId,
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -1922,7 +1998,7 @@ describe("autolaunch CLI command group", () => {
         "prelaunch",
         "wizard",
         "--agent",
-        "8453:42",
+        mainnetAgentId,
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -2051,7 +2127,7 @@ describe("autolaunch CLI command group", () => {
             plan: {
               plan_id: "plan_alpha",
               state: "draft",
-              agent_id: "8453:42",
+              agent_id: mainnetAgentId,
               metadata_draft: { title: "Atlas Launch" },
             },
           }),
@@ -2109,7 +2185,7 @@ describe("autolaunch CLI command group", () => {
         "--config",
         configPath,
         "--agent",
-        "8453:42",
+        mainnetAgentId,
         "--name",
         "Atlas Coin",
         "--symbol",
@@ -2138,7 +2214,7 @@ describe("autolaunch CLI command group", () => {
       `${expectedBaseUrl}/api/autolaunch/v1/agent/prelaunch/plans/plan_alpha/validate`,
     );
     assertLaunchRequestBody(fetchMock.mock.calls[0]?.[1]?.body, {
-      agent_id: "8453:42",
+      agent_id: mainnetAgentId,
       token_name: "Atlas Coin",
       token_symbol: "ATLAS",
       minimum_raise_quote: "10000",
@@ -2418,7 +2494,7 @@ describe("autolaunch CLI command group", () => {
         "--config",
         configPath,
         "--agent",
-        "8453:42",
+        mainnetAgentId,
         "--name",
         "Atlas Coin",
         "--symbol",

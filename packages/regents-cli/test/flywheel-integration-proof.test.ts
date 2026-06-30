@@ -22,10 +22,12 @@ type OpenApiDocument = {
 };
 
 type CliContractDocument = {
-  commands?: Array<{
-    name?: string;
-    auth?: { mode?: string };
-    flags?: Array<{ name?: string }>;
+  command_groups?: Array<{
+    commands?: string[];
+    command_flags?: Record<string, Array<{ name?: string }>>;
+    agent_metadata?: {
+      commands?: Record<string, { auth_mode?: string }>;
+    };
   }>;
 };
 
@@ -55,7 +57,7 @@ const files = {
   iosApi: path.join(regentRoot, "ios/api-contract.openapiv3.yaml"),
   sharedApi: path.join(workspaceRoot, "docs/regent-services-contract.openapiv3.yaml"),
   sharedCli: path.join(workspaceRoot, "docs/shared-cli-contract.yaml"),
-  workspaceManifest: path.join(workspaceRoot, "docs/regent-workspace.yaml"),
+  workspaceManifest: path.join(regentRoot, "meta/stack.yaml"),
 };
 
 const loadYaml = <T>(file: string): T => parse(fs.readFileSync(file, "utf8")) as T;
@@ -75,9 +77,13 @@ const schema = (document: OpenApiDocument, name: string) => {
 };
 
 const command = (document: CliContractDocument, name: string) => {
-  const entry = document.commands?.find((candidate) => candidate.name === name);
-  expect(entry, name).toBeDefined();
-  return entry!;
+  const normalized = name.replace(/^regents?\s+/u, "");
+  const group = document.command_groups?.find((candidate) => candidate.commands?.includes(normalized));
+  expect(group, name).toBeDefined();
+  return {
+    auth: { mode: group?.agent_metadata?.commands?.[normalized]?.auth_mode ?? group?.agent_metadata?.commands?.[name]?.auth_mode },
+    flags: group?.command_flags?.[normalized] ?? group?.command_flags?.[name] ?? [],
+  };
 };
 
 const operation = (document: OpenApiDocument, pathTemplate: string, method: string) => {
@@ -258,11 +264,12 @@ describe("Regent flywheel integration proof", () => {
     const manifest = loadYaml<WorkspaceManifest>(files.workspaceManifest);
     const repos = manifest.repos ?? {};
 
-    for (const owner of ["platform", "techtree", "autolaunch", "ios", "regents-cli"] as const) {
+    for (const owner of ["platform", "techtree", "ios", "regents-cli"] as const) {
       expect(repos[owner], owner).toBeDefined();
       expect(repos[owner]?.required_for_public_beta, owner).toBe(true);
       expect(repos[owner]?.acceptance_commands?.length ?? 0, owner).toBeGreaterThan(0);
     }
+    expect(repos.autolaunch?.required_for_public_beta).toBe(false);
     expect(repos["design-system"]?.required_for_public_beta).toBe(false);
 
     expect(repos.platform?.api_contracts?.map((contract) => contract.path)).toEqual([

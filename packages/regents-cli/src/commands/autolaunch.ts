@@ -49,6 +49,7 @@ export {
   runAutolaunchSplitterSweepTreasuryReserved,
   runAutolaunchSplitterSweepTreasuryResidual,
   runAutolaunchSplitterGet,
+  runAutolaunchAuctionClaimUnusedTokens,
   runAutolaunchStrategyMigrate,
   runAutolaunchStrategySweepQuoteToken,
   runAutolaunchStrategySweepToken,
