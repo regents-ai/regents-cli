@@ -82,6 +82,7 @@ const platformPublicCommand = (command: string): boolean =>
   command.startsWith("runtime ") ||
   command.startsWith("agentbook ") ||
   command.startsWith("work ") ||
+  command === "agent connect hosted-hermes" ||
   command === "agent connect hermes" ||
   command === "agent connect openclaw" ||
   command === "agent link" ||

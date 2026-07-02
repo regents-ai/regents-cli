@@ -4,13 +4,15 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 354.
+Total commands: 355.
 
 ## Full Command List
 
 ### Agent
 
-- `regents agent connect hermes` - Connect a Hermes worker to one Regent company.
+- `regents agent chat` - Send one message to a hosted Hermes agent and print the reply.
+- `regents agent connect hermes` - Connect local Hermes as a worker for one Regent company.
+- `regents agent connect hosted-hermes` - Inspect one hosted Hermes runtime for a Regent company.
 - `regents agent connect openclaw` - Connect a local OpenClaw worker to one Regent company.
 - `regents agent execution-pool` - List the workers available to one manager.
 - `regents agent harness list` - List harness.
@@ -45,9 +47,6 @@ Total commands: 354.
 - `regents autolaunch auction claim-unused-tokens` - Claim unused tokens for auction.
 - `regents autolaunch auction-returns list` - List auction returns.
 - `regents autolaunch auctions list` - List auctions.
-- `regents autolaunch bids claim` - Claim bids.
-- `regents autolaunch bids exit` - Exit bids.
-- `regents autolaunch bids place` - Place bids.
 - `regents autolaunch bids quote` - Quote bids.
 - `regents autolaunch chat list` - List chat.
 - `regents autolaunch chat read <scope>` - Show Autolaunch chat read.
@@ -114,18 +113,11 @@ Total commands: 354.
 - `regents autolaunch strategy sweep-token` - Sweep token for strategy.
 - `regents autolaunch subjects buybacks` - Show Autolaunch subjects buybacks.
 - `regents autolaunch subjects by-token` - Show Autolaunch subjects by token.
-- `regents autolaunch subjects claim-usdc` - Claim USDC for subjects.
-- `regents autolaunch subjects create-deferred-autolaunch` - Create deferred Autolaunch for subjects.
-- `regents autolaunch subjects create-existing-token` - Create existing token for subjects.
 - `regents autolaunch subjects get` - Show subjects.
 - `regents autolaunch subjects ingress` - Show Autolaunch subjects ingress.
 - `regents autolaunch subjects payment-links` - Show Autolaunch subjects payment links.
-- `regents autolaunch subjects regent-emissions` - Show Autolaunch subjects REGENT emissions.
-- `regents autolaunch subjects settle-buyback` - Show Autolaunch subjects settle buyback.
-- `regents autolaunch subjects stake` - Stake subjects.
 - `regents autolaunch subjects staking` - Show Autolaunch subjects staking.
 - `regents autolaunch subjects sweep-ingress` - Sweep ingress for subjects.
-- `regents autolaunch subjects unstake` - Unstake subjects.
 - `regents autolaunch subjects verify` - Check subjects.
 - `regents autolaunch vesting cancel-beneficiary-rotation` - Cancel beneficiary rotation for vesting.
 - `regents autolaunch vesting execute-beneficiary-rotation` - Execute beneficiary rotation for vesting.
@@ -260,6 +252,18 @@ Total commands: 354.
 ### Security Report
 
 - `regents security-report` - Send a signed security report to Platform.
+
+### Service
+
+- `regents service catalog check` - Show the catalog readiness checklist for one paid agent service.
+- `regents service init` - Create or update the owner setup for one paid agent service.
+- `regents service logs` - Show redacted operation logs for one owned paid agent service.
+- `regents service pause` - Pause one listed paid agent service.
+- `regents service price set` - Save x402 pricing terms for one paid agent service.
+- `regents service publish` - Publish one ready paid agent service to the public catalog.
+- `regents service resume` - Resume one paused paid agent service after readiness checks pass.
+- `regents service runs` - Show run history for one owned paid agent service.
+- `regents service test` - Run a sandbox test before launching a scientific operator.
 
 ### Settings
 

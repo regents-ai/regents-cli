@@ -94,13 +94,13 @@ const requestAgentbookJson = async <TResponse>(
     body: method === "POST" ? input?.body ?? {} : undefined,
     configPath: input?.configPath,
     requireAgentAuth: true,
-    authAudience: "platform",
+    authAudience: "regent-services",
     service: "platform",
     commandName: "regents agentbook",
   });
 
 export async function lookupAgentbookTrust(configPath?: string): Promise<AgentbookLookupResponse> {
-  requireAgentAuthState(configPath, { audience: "platform" });
+  requireAgentAuthState(configPath, { audience: "regent-services" });
 
   return requestAgentbookJson<AgentbookLookupResponse>("GET", "/api/platform/agentbook/lookup", {
     configPath,
@@ -112,7 +112,7 @@ export async function prepareAgentbookRegistration(
   source = "regents-cli",
 ): Promise<AgentbookSessionResponse> {
   requireSavedIdentityReceipt();
-  requireAgentAuthState(configPath, { audience: "platform" });
+  requireAgentAuthState(configPath, { audience: "regent-services" });
 
   const payload: CreateAgentbookTrustSessionRequest = {
     source,
@@ -269,7 +269,7 @@ const watchAgentbookSession = async (
 
 export async function runAgentbookSessionsWatch(args: ParsedCliArgs, configPath?: string): Promise<void> {
   requireSavedIdentityReceipt();
-  requireAgentAuthState(configPath, { audience: "platform" });
+  requireAgentAuthState(configPath, { audience: "regent-services" });
 
   const sessionId = requirePositional(args, 3, "session-id");
   await watchAgentbookSession(sessionId, args, configPath, (payload) => printSessionWatchUpdate(args, payload));

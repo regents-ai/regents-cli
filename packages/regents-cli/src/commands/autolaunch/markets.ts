@@ -7,12 +7,7 @@ import {
 } from "../../parse.js";
 import { printJson } from "../../printer.js";
 import type { JsonSuccessResponseFor } from "../../contracts/openapi-helpers.js";
-import {
-  appendQuery,
-  requestJson,
-  requestTypedJson,
-  requirePositional,
-} from "./shared.js";
+import { appendQuery, requestJson, requestTypedJson } from "./shared.js";
 
 type AutolaunchAuctionsListResponse = JsonSuccessResponseFor<
   AutolaunchPaths,
@@ -24,25 +19,6 @@ type AutolaunchAuctionResponse = JsonSuccessResponseFor<
   "/api/autolaunch/v1/agent/auctions/{id}",
   "get"
 >;
-
-const postBidMutation = async (
-  action: "exit" | "claim",
-  bidId: string,
-  txHash: string,
-  configPath?: string,
-): Promise<void> => {
-  printJson(
-    await requestJson(
-      "POST",
-      `/api/autolaunch/v1/agent/bids/${encodeURIComponent(bidId)}/${action}`,
-      {
-        body: { tx_hash: txHash },
-        requireAgentAuth: true,
-        configPath,
-      },
-    ),
-  );
-};
 
 export async function runAutolaunchAuctionsList(
   args: ParsedCliArgs,
@@ -95,65 +71,6 @@ export async function runAutolaunchBidsQuote(
         configPath,
       },
     ),
-  );
-}
-
-export async function runAutolaunchBidsPlace(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const auctionId = requireArg(getFlag(args, "auction"), "auction");
-  const body = {
-    amount: requireArg(getFlag(args, "amount"), "amount"),
-    max_price: requireArg(getFlag(args, "max-price"), "max-price"),
-    tx_hash: requireArg(getFlag(args, "tx-hash"), "tx-hash"),
-    current_clearing_price: getFlag(args, "current-clearing-price"),
-    projected_clearing_price: getFlag(args, "projected-clearing-price"),
-    estimated_tokens_if_end_now: getFlag(args, "estimated-tokens-if-end-now"),
-    estimated_tokens_if_no_other_bids_change: getFlag(
-      args,
-      "estimated-tokens-if-no-other-bids-change",
-    ),
-    inactive_above_price: getFlag(args, "inactive-above-price"),
-    status_band: getFlag(args, "status-band"),
-  };
-
-  printJson(
-    await requestJson(
-      "POST",
-      `/api/autolaunch/v1/agent/auctions/${encodeURIComponent(auctionId)}/bids`,
-      {
-        body,
-        requireAgentAuth: true,
-        configPath,
-      },
-    ),
-  );
-}
-
-export async function runAutolaunchBidsExit(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const bidId = requirePositional(args, 3, "bid-id");
-  await postBidMutation(
-    "exit",
-    bidId,
-    requireArg(getFlag(args, "tx-hash"), "tx-hash"),
-    configPath,
-  );
-}
-
-export async function runAutolaunchBidsClaim(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const bidId = requirePositional(args, 3, "bid-id");
-  await postBidMutation(
-    "claim",
-    bidId,
-    requireArg(getFlag(args, "tx-hash"), "tx-hash"),
-    configPath,
   );
 }
 

@@ -4,7 +4,9 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { CLI_COMMANDS } from "../../src/command-registry.js";
 import { runCliEntrypoint } from "../../src/index.js";
+import { EXPECTED_PLATFORM_CONTRACT_DIGEST } from "../../src/generated/platform-contract-digest.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
@@ -24,7 +26,7 @@ describe("platform CLI command group", () => {
         "content-type": "application/yaml",
         "x-regents-contract-major": major,
         "x-regents-contract-version": `${major}.1.0`,
-        "x-regents-contract-digest": "sha256:c1e5f2a5d6066a89867b7d97235e7459495c761db3707a848fe2c50104617d19",
+        "x-regents-contract-digest": EXPECTED_PLATFORM_CONTRACT_DIGEST,
       },
     });
 
@@ -62,6 +64,42 @@ describe("platform CLI command group", () => {
         2,
       ),
     );
+  };
+
+  const requestUrl = (request: Parameters<typeof fetch>[0]): string => {
+    if (typeof request === "string") {
+      return request;
+    }
+
+    if (request instanceof URL) {
+      return request.toString();
+    }
+
+    return request.url;
+  };
+
+  const mockPlatformJsonResponses = () => {
+    fetchMock.mockImplementation(async (request) => {
+      const url = requestUrl(request);
+
+      if (url.endsWith("/api-contract.openapiv3.yaml")) {
+        return platformContractResponse();
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          service: { service_slug: "dataset-qc" },
+          invocation: { invocation_id: "svc_run_123" },
+          invocations: [],
+          checks: [],
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      );
+    });
   };
 
   it("signs in with a Privy access token and saves the platform session", async () => {
@@ -206,6 +244,32 @@ describe("platform CLI command group", () => {
     expect(parsePrintedJson<{ profile: { authenticated: boolean } }>(output.stdout)).toMatchObject({
       profile: { authenticated: true },
     });
+  });
+
+  it("shows Phoenix error details from platform session responses", async () => {
+    writeSession();
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ errors: { detail: "Not Found" } }), {
+        status: 404,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "platform",
+        "auth",
+        "status",
+        "--origin",
+        "http://127.0.0.1:4010",
+        "--session-file",
+        sessionFile,
+      ]),
+    );
+
+    expect(output.result).not.toBe(0);
+    expect(output.stderr).toContain("Not Found");
+    expect(output.stderr).not.toContain("Platform request failed with status 404");
   });
 
   it("reads the Platform formation doctor", async () => {
@@ -404,6 +468,263 @@ describe("platform CLI command group", () => {
       sprite: { slug: "tempo", runtime_status: "ready" },
       billing_account: { runtime_credit_balance_usd_cents: 5_000 },
     });
+  });
+
+  it("routes owner Regent Service commands through the saved platform session", async () => {
+    writeSession();
+    mockPlatformJsonResponses();
+
+    const schemaFile = path.join(homeDir, "service-schema.json");
+    fs.writeFileSync(
+      schemaFile,
+      `${JSON.stringify({
+        service_slug: "dataset-qc",
+        request_schema: { type: "object" },
+        result_schema: { type: "object" },
+      })}\n`,
+    );
+
+    const commands = [
+      {
+        args: [
+          "service",
+          "init",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+          "--name",
+          "Dataset QC",
+          "--summary",
+          "Checks a dataset before handoff.",
+          "--price-label",
+          "5 USDC",
+          "--kind",
+          "question-forge",
+          "--skill-package",
+          "techtree-question-forge",
+          "--skill-package-version",
+          "2026.06.30",
+          "--schema-file",
+          schemaFile,
+          "--rwr-template",
+          "science-task",
+        ],
+        method: "POST",
+        path: "/api/platform/agents/acme/service-definitions",
+        command: "regents service init",
+      },
+      {
+        args: [
+          "service",
+          "test",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+        ],
+        method: "POST",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/sandbox-test",
+        command: "regents service test",
+      },
+      {
+        args: [
+          "service",
+          "price",
+          "set",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+          "--amount-usdc",
+          "5",
+          "--network",
+          "eip155:8453",
+          "--settlement-asset",
+          "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "--pay-to",
+          "0x1111111111111111111111111111111111111111",
+        ],
+        method: "PUT",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/pricing",
+        command: "regents service price set",
+      },
+      {
+        args: [
+          "service",
+          "publish",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+        ],
+        method: "POST",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/publish",
+        command: "regents service publish",
+      },
+      {
+        args: [
+          "service",
+          "pause",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+        ],
+        method: "POST",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/pause",
+        command: "regents service pause",
+      },
+      {
+        args: [
+          "service",
+          "resume",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+        ],
+        method: "POST",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/resume",
+        command: "regents service resume",
+      },
+      {
+        args: [
+          "service",
+          "runs",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+        ],
+        method: "GET",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/invocations",
+        command: "regents service runs",
+      },
+      {
+        args: [
+          "service",
+          "logs",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+        ],
+        method: "GET",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/invocations",
+        command: "regents service logs",
+      },
+      {
+        args: [
+          "service",
+          "catalog",
+          "check",
+          "--origin",
+          "http://127.0.0.1:4010",
+          "--session-file",
+          sessionFile,
+          "--slug",
+          "acme",
+          "--service-slug",
+          "dataset-qc",
+        ],
+        method: "GET",
+        path: "/api/platform/agents/acme/service-definitions/dataset-qc/catalog-readiness",
+        command: "regents service catalog check",
+      },
+    ] as const;
+
+    let initBody: Record<string, unknown> | null = null;
+
+    for (const command of commands) {
+      fetchMock.mockClear();
+
+      const output = await captureOutput(() => runCliEntrypoint([...command.args]));
+      const serviceCall = fetchMock.mock.calls.find(([request]) =>
+        requestUrl(request).endsWith(command.path),
+      );
+
+      expect(output.result).toBe(0);
+      expect(serviceCall).toBeDefined();
+      expect(serviceCall?.[1]?.method).toBe(command.method);
+      expect((serviceCall?.[1]?.headers as Headers).get("cookie")).toBe("_platform_phx_key=session-cookie");
+      expect(parsePrintedJson<{ command: string }>(output.stdout)).toMatchObject({
+        command: command.command,
+      });
+
+      if (command.command === "regents service init") {
+        initBody = JSON.parse(String(serviceCall?.[1]?.body)) as Record<string, unknown>;
+      }
+    }
+
+    expect(initBody).toMatchObject({
+      service_slug: "dataset-qc",
+      kind: "question_forge",
+      skill_package: {
+        id: "techtree-question-forge",
+        version: "2026.06.30",
+      },
+      card: {
+        slug: "dataset-qc",
+        name: "Dataset QC",
+        summary: "Checks a dataset before handoff.",
+        payment_rail: "x402",
+        delivery_mode: "async_result",
+      },
+      schema: {
+        service_slug: "dataset-qc",
+      },
+      rwr_template: "science-task",
+    });
+  });
+
+  it("keeps buyer service calls on the existing x402 command path", () => {
+    expect(CLI_COMMANDS).toEqual(
+      expect.arrayContaining([
+        "x402 details",
+        "x402 quote",
+        "x402 prepare",
+        "x402 fetch",
+        "x402 pay",
+      ]),
+    );
+    expect(CLI_COMMANDS).toEqual(
+      expect.arrayContaining(["service init", "service publish", "service resume", "service logs"]),
+    );
+    expect(CLI_COMMANDS).not.toContain("service call");
+    expect(CLI_COMMANDS).not.toContain("service pay");
   });
 
   it("saves Platform billing spend controls in cents", async () => {

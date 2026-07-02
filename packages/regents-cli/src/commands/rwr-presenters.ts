@@ -30,7 +30,7 @@ type RwrOpenClawPayload = RwrPayload & {
 
 type RwrHermesPayload = RwrPayload & {
   readonly hermes: {
-    readonly configFile: string | null;
+    readonly pluginFile: string | null;
     readonly skillFile: string | null;
   };
 };
@@ -357,10 +357,10 @@ export const printAgentConnectHermesResult = (args: ParsedCliArgs, payload: RwrH
     const companyId = displayValue(worker.company_id) ?? "<id>";
 
     return [
-      renderKeyValuePanel("◆ HERMES CONNECTED", [
+      renderKeyValuePanel("◆ LOCAL HERMES CONNECTED", [
         ...workerRows(worker),
-        ...(payload.hermes.configFile
-          ? [{ label: "connector file", value: payload.hermes.configFile, valueColor: CLI_PALETTE.emphasis }]
+        ...(payload.hermes.pluginFile
+          ? [{ label: "plugin file", value: payload.hermes.pluginFile, valueColor: CLI_PALETTE.emphasis }]
           : []),
         ...(payload.hermes.skillFile
           ? [{ label: "skill file", value: payload.hermes.skillFile, valueColor: CLI_PALETTE.emphasis }]
@@ -370,13 +370,69 @@ export const printAgentConnectHermesResult = (args: ParsedCliArgs, payload: RwrH
         titleColor: CLI_PALETTE.title,
       }),
       nextPanel([
-        payload.hermes.configFile
-          ? `Hermes can now use ${tone("regents-work", CLI_PALETTE.emphasis, true)} from ${payload.hermes.configFile}.`
-          : "Hermes was connected. No local connector files were written.",
+        payload.hermes.pluginFile
+          ? `Hermes can now discover ${tone("regents-work", CLI_PALETTE.emphasis, true)} from ${payload.hermes.pluginFile}.`
+          : "Hermes was connected. No local plugin files were written.",
         `Check available work with ${commandValue(`regents work local-loop --company-id ${companyId} --worker-id ${workerId} --once`)}.`,
       ]),
     ].join("\n\n");
   });
+
+export const printAgentConnectHostedHermesResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
+  printRwrPayload(args, payload, () => {
+    const runtime = runtimeFromPayload(payload);
+    const health = asRecord(payload.result.health, "runtime health");
+    const services = Array.isArray(payload.result.services) ? (payload.result.services as JsonObject[]) : [];
+    const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const runtimeId = idValue(runtime);
+
+    return [
+      renderKeyValuePanel("◆ HOSTED HERMES", [
+        ...runtimeRows(runtime),
+        { label: "available", value: health.available === true ? "yes" : "no" },
+        { label: "health", value: displayLabel(health.status) ?? "unknown", valueColor: CLI_PALETTE.emphasis },
+        { label: "metering", value: displayLabel(health.metering_status) ?? "unknown" },
+      ], {
+        borderColor: CLI_PALETTE.chrome,
+        titleColor: CLI_PALETTE.title,
+      }),
+      renderTablePanel("◆ HOSTED SERVICES", [
+        { header: "id", color: CLI_PALETTE.secondary },
+        { header: "name", color: CLI_PALETTE.secondary },
+        { header: "kind", color: CLI_PALETTE.secondary },
+        { header: "status", color: CLI_PALETTE.secondary },
+        { header: "endpoint", color: CLI_PALETTE.secondary },
+      ], services.map((service) => ({
+        cells: [
+          idValue(service),
+          displayValue(service.name) ?? "unnamed service",
+          displayLabel(service.service_kind) ?? "service",
+          displayLabel(service.status) ?? "unknown",
+          displayValue(service.endpoint_url) ?? "not published",
+        ],
+        colors: [
+          CLI_PALETTE.emphasis,
+          CLI_PALETTE.primary,
+          CLI_PALETTE.primary,
+          CLI_PALETTE.emphasis,
+          CLI_PALETTE.secondary,
+        ],
+      }))),
+      nextPanel([
+        `Refresh health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`,
+        "Interactive hosted Hermes chat is not available from this command.",
+      ]),
+    ].join("\n\n");
+  });
+
+export const printAgentChatResult = (args: ParsedCliArgs, payload: RwrPayload): void => {
+  if (isHumanTerminal() && !getBooleanFlag(args, "json")) {
+    printText(displayValue(payload.result.reply) ?? "");
+    return;
+  }
+
+  printJson(payload);
+};
 
 export const printRuntimeResult = (
   args: ParsedCliArgs,

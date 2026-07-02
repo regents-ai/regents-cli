@@ -99,7 +99,7 @@ vi.mock("@safe-global/protocol-kit", () => ({
 }));
 
 describe("autolaunch CLI command group", () => {
-  const expectedBaseUrl = "http://127.0.0.1:4000";
+  const expectedBaseUrl = "https://regents.sh";
   // Only mutate individual keys on process.env: replacing the whole object
   // detaches it from the real environment, and os.homedir() would keep
   // returning the real home directory instead of the per-test temp HOME.
@@ -934,12 +934,6 @@ describe("autolaunch CLI command group", () => {
             headers: { "content-type": "application/json" },
           },
         ),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ ok: true, subject_id: "subject_123", emissions: [] }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
       );
 
     const byToken = await captureOutput(() =>
@@ -973,86 +967,21 @@ describe("autolaunch CLI command group", () => {
         configPath,
       ]),
     );
-    const emissions = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "subjects",
-        "regent-emissions",
-        "subject_123",
-        "--config",
-        configPath,
-      ]),
-    );
-
     expect(byToken.result, byToken.stderr).toBe(0);
     expect(staking.result, staking.stderr).toBe(0);
     expect(buybacks.result, buybacks.stderr).toBe(0);
-    expect(emissions.result, emissions.stderr).toBe(0);
     expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
       `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/by-token/0xabc`,
       `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/staking`,
       `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/buybacks`,
-      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/regent-emissions`,
     ]);
   });
 
-  it("prepares an existing-token subject with the current subject contract route", async () => {
-    const configPath = createConfigPath();
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          prepared: preparedSubjectAction("0x12345678"),
-        }),
-        {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        },
-      ),
-    );
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "subjects",
-        "create-existing-token",
-        "--stake-token",
-        "0x1111111111111111111111111111111111111111",
-        "--treasury",
-        "0x2222222222222222222222222222222222222222",
-        "--staker-pool-bps",
-        "2500",
-        "--label",
-        "Sentinel Research Agent",
-        "--config",
-        configPath,
-      ]),
-    );
-
-    expect(output.result, output.stderr).toBe(0);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/existing-token/prepare`,
-    );
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
-      stake_token: "0x1111111111111111111111111111111111111111",
-      treasury: "0x2222222222222222222222222222222222222222",
-      staker_pool_bps: 2500,
-      label: "Sentinel Research Agent",
-    });
-  });
-
-  it("renders prepared Autolaunch wallet actions as a concise human summary", async () => {
+  it("renders prepared Autolaunch ingress sweeps as a concise human summary", async () => {
     useHumanTerminal();
     const configPath = createConfigPath();
-    const baseAction = preparedSubjectAction("0x7acb7757");
-    const prepared = {
-      ...baseAction,
-      action: "stake",
-      wallet_action: {
-        ...baseAction.wallet_action,
-        action: "stake",
-      },
-    };
+    const ingressAddress = "0x7777777777777777777777777777777777777777";
+    const prepared = preparedContractAction("0x7acb7757", "ingress_account", "sweep", "subject_123");
     fetchMock.mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -1071,12 +1000,10 @@ describe("autolaunch CLI command group", () => {
       runCliEntrypoint([
         "autolaunch",
         "subjects",
-        "stake",
+        "sweep-ingress",
         "subject_123",
-        "--amount",
-        "2",
-        "--receiver",
-        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "--address",
+        ingressAddress,
         "--config",
         configPath,
       ]),
@@ -1084,88 +1011,31 @@ describe("autolaunch CLI command group", () => {
 
     const text = collapsePanelText(stripAnsi(output.stdout));
     expect(output.result, output.stderr).toBe(0);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/contracts/subjects/subject_123/ingress_account/sweep/prepare`,
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      ingress_address: ingressAddress,
+    });
     expect(text).toContain("AUTOLAUNCH WALLET ACTION");
-    expect(text).toContain("stake");
+    expect(text).toContain("sweep");
     expect(text).toContain("Review this request before submitting.");
     expect(text).toContain("Run the same command with --submit when ready.");
     expect(text).toContain("Nothing changes until the transaction is submitted and confirmed.");
   });
 
-  it("submits a subject claim from the nested prepared action", async () => {
+  it("submits a payment link create action from the nested prepared action", async () => {
     const configPath = createConfigPath();
+    const salt = "0x1111111111111111111111111111111111111111111111111111111111111111";
     process.env.REGENT_WALLET_PRIVATE_KEY =
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     process.env.BASE_SEPOLIA_RPC_URL = "https://base-sepolia.example";
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            subject_id: "subject_123",
-            prepared: preparedSubjectAction("0x42852610"),
-          }),
-          {
-            status: 200,
-            headers: { "content-type": "application/json" },
-          },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            ok: true,
-            subject_id: "subject_123",
-            submitted: true,
-          }),
-          {
-            status: 200,
-            headers: { "content-type": "application/json" },
-          },
-        ),
-      );
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "subjects",
-        "claim-usdc",
-        "subject_123",
-        "--submit",
-        "--config",
-        configPath,
-      ]),
-    );
-
-    expect(output.result, output.stderr).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/claim-usdc`,
-    );
-    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({
-      tx_hash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    });
-    expect(sendTransactionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: "0x5555555555555555555555555555555555555555",
-        data: "0x42852610",
-        value: 0n,
-      }),
-    );
-    expect(parsePrintedJson(output.stdout)).toMatchObject({
-      ok: true,
-      submitted: true,
-    });
-  });
-
-  it("prepares a subject stake with a receiver without prompting", async () => {
-    const configPath = createConfigPath();
-    const receiver = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
     fetchMock.mockResolvedValue(
       new Response(
         JSON.stringify({
           ok: true,
           subject_id: "subject_123",
-          prepared: preparedSubjectAction("0x7acb7757"),
+          prepared: preparedContractAction("0x42852610", "payment_link_factory", "create", "subject_123"),
         }),
         {
           status: 200,
@@ -1177,13 +1047,15 @@ describe("autolaunch CLI command group", () => {
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "autolaunch",
-        "subjects",
-        "stake",
+        "payment-links",
+        "create",
+        "--subject",
         "subject_123",
-        "--amount",
-        "2",
-        "--receiver",
-        receiver,
+        "--label",
+        "Invoice receiver",
+        "--salt",
+        salt,
+        "--submit",
         "--config",
         configPath,
       ]),
@@ -1192,11 +1064,72 @@ describe("autolaunch CLI command group", () => {
     expect(output.result, output.stderr).toBe(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/api/autolaunch/v1/agent/subjects/subject_123/stake`,
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/contracts/subjects/subject_123/payment_link_factory/create/prepare`,
     );
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
-      amount: "2",
-      receiver,
+      canonical: false,
+      label: "Invoice receiver",
+      salt,
+    });
+    expect(sendTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "0x5555555555555555555555555555555555555555",
+        data: "0x42852610",
+        value: 0n,
+      }),
+    );
+    expect(parsePrintedJson(output.stdout)).toMatchObject({
+      ok: true,
+      tx_hash: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    });
+  });
+
+  it("prepares payment link canonical changes without prompting", async () => {
+    const configPath = createConfigPath();
+    const receiver = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          subject_id: "subject_123",
+          prepared: preparedContractAction(
+            "0x7acb7757",
+            "payment_link_factory",
+            "set_canonical",
+            "subject_123",
+          ),
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "payment-links",
+        "set-canonical",
+        "--subject",
+        "subject_123",
+        "--address",
+        receiver,
+        "--canonical",
+        "true",
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(output.result, output.stderr).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      `${expectedBaseUrl}/api/autolaunch/v1/agent/contracts/subjects/subject_123/payment_link_factory/set_canonical/prepare`,
+    );
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      canonical: "true",
+      payment_link: receiver,
     });
     expect(questionMock).not.toHaveBeenCalled();
   });
@@ -2628,7 +2561,7 @@ describe("autolaunch CLI command group", () => {
       `${expectedBaseUrl}/api/autolaunch/v1/agent/prelaunch/plans/plan_alpha`,
     );
     expect(fetchMock.mock.calls[2]?.[0]).toBe(
-      `http://127.0.0.1:4000/api/shared/siwa/nonce`,
+      `https://siwa-server.fly.dev/api/shared/siwa/nonce`,
     );
     expect(requireAgentAuthStateMock).toHaveBeenCalledWith(configPath, {
       audience: "autolaunch",

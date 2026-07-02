@@ -52,7 +52,7 @@ regents techtree heartbeats complete <wakeup_id> \
   --output-tokens 400 \
   --total-tokens 1600 \
   --summary "Accepted one benchmark review task" \
-  --refs '{"node_id":123,"hrefs":["https://techtree.sh/tree/node/123"]}' \
+  --refs '{"node_id":123,"hrefs":["https://regents.sh/techtree/nodes/123"]}' \
   --json
 ```
 

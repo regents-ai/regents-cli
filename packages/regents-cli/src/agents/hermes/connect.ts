@@ -8,47 +8,48 @@ export interface WriteHermesConnectorInput {
   readonly companyId: string;
   readonly workerId: string;
   readonly workerName: string;
-  readonly configPath?: string;
+  readonly pluginPath?: string;
   readonly skillPath?: string;
 }
 
 export interface WriteHermesConnectorResult {
-  readonly configPath: string;
+  readonly pluginPath: string;
   readonly skillPath: string;
 }
 
-export const defaultHermesConfigPath = (): string =>
-  path.join(process.env.HOME ?? process.env.USERPROFILE ?? "~", ".hermes", "connectors", "regents-work.json");
+export const defaultHermesPluginPath = (): string =>
+  path.join(process.env.HOME ?? process.env.USERPROFILE ?? "~", ".hermes", "plugins", "regents-work", "plugin.yaml");
 
 export const defaultHermesSkillPath = (): string =>
   path.join(process.env.HOME ?? process.env.USERPROFILE ?? "~", ".hermes", "skills", "regents-work", "SKILL.md");
 
+const renderHermesRegentsWorkPlugin = (input: WriteHermesConnectorInput): string => `name: regents-work
+version: 1.0.0
+description: Local Regent company work bridge for Hermes
+metadata:
+  company_id: ${JSON.stringify(input.companyId)}
+  worker_id: ${JSON.stringify(input.workerId)}
+  worker_name: ${JSON.stringify(input.workerName)}
+  local_bridge:
+    command: regents
+    args:
+      - work
+      - local-loop
+      - --company-id
+      - ${JSON.stringify(input.companyId)}
+      - --worker-id
+      - ${JSON.stringify(input.workerId)}
+`;
+
 export const writeHermesRegentsWorkConnector = async (
   input: WriteHermesConnectorInput,
 ): Promise<WriteHermesConnectorResult> => {
-  const configPath = path.resolve(expandHome(input.configPath ?? defaultHermesConfigPath()));
+  const pluginPath = path.resolve(expandHome(input.pluginPath ?? defaultHermesPluginPath()));
   const skillPath = path.resolve(expandHome(input.skillPath ?? defaultHermesSkillPath()));
 
-  await mkdir(path.dirname(configPath), { recursive: true });
+  await mkdir(path.dirname(pluginPath), { recursive: true });
   await mkdir(path.dirname(skillPath), { recursive: true });
-  await writeFile(
-    configPath,
-    `${JSON.stringify(
-      {
-        name: "regents-work",
-        company_id: input.companyId,
-        worker_id: input.workerId,
-        worker_name: input.workerName,
-        local_bridge: {
-          command: "regents",
-          args: ["work", "local-loop", "--company-id", input.companyId, "--worker-id", input.workerId],
-        },
-      },
-      null,
-      2,
-    )}\n`,
-    "utf8",
-  );
+  await writeFile(pluginPath, renderHermesRegentsWorkPlugin(input), "utf8");
   await writeFile(
     skillPath,
     renderHermesRegentsWorkSkill({
@@ -59,5 +60,5 @@ export const writeHermesRegentsWorkConnector = async (
     "utf8",
   );
 
-  return { configPath, skillPath };
+  return { pluginPath, skillPath };
 };

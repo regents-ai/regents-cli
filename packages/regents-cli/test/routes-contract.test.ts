@@ -38,6 +38,7 @@ describe("contract command route matching", () => {
     const variadicRoutes = cliRoutes.filter((route) => route.variadicTail);
 
     expect(variadicRoutes.map((route) => route.command).sort()).toEqual([
+      "agent chat",
       "agentbook sessions watch",
       "autolaunch chat unread [scope...]",
       "autolaunch jobs watch",

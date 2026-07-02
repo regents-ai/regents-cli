@@ -59,7 +59,7 @@ regents autolaunch jobs watch <job-id> --watch
 
 - Subject details: `regents autolaunch subjects get <subject-id>`
 - Auctions: `regents autolaunch auctions list`
-- Claim subject USDC: `regents autolaunch subjects claim-usdc <subject-id>`
+- Subject payment links: `regents autolaunch subjects payment-links <subject-id>`
 - Contracts: `regents autolaunch registry get --subject <subject-id>`
 
 ## Chat And DMs

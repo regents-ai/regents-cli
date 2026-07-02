@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../../src/index.js";
+import { EXPECTED_PLATFORM_CONTRACT_DIGEST } from "../../src/generated/platform-contract-digest.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
 const TIMESTAMP = "2026-04-01T00:00:00.000Z";
@@ -73,7 +74,7 @@ describe("runtime commands", () => {
         "content-type": "application/yaml",
         "x-regents-contract-major": "0",
         "x-regents-contract-version": "0.1.0",
-        "x-regents-contract-digest": "sha256:c1e5f2a5d6066a89867b7d97235e7459495c761db3707a848fe2c50104617d19",
+        "x-regents-contract-digest": EXPECTED_PLATFORM_CONTRACT_DIGEST,
       },
     });
 

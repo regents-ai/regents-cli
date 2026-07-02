@@ -4712,6 +4712,15 @@ export interface operations {
                     "application/json": components["schemas"]["AuctionBidQuoteEnvelope"];
                 };
             };
+            /** @description Missing signed-in browser session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
             429: components["responses"]["RateLimitError"];
         };
     };

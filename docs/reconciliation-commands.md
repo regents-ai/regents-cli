@@ -142,7 +142,7 @@ Verifies one subject's workflow state against onchain token/auction state.
   (`auction_address` from the launch record).
 - Verdict logic: money rows (ingress balance, pending buybacks, splitter accounting) —
   chain wins; a difference is `MISMATCH` with
-  `Next: chain wins for revenue. Sweep or settle (regents autolaunch subjects sweep-ingress / settle-buyback), then refresh.`
+  `Next: chain wins for revenue. Sweep pending ingress with regents autolaunch subjects sweep-ingress, use the Autolaunch web app for buyback settlement, then refresh.`
   Workflow rows (subject kind, label, team_shared_status) — product wins; a chain-side
   surprise that does not touch money is reported as `MISMATCH` with
   `Next: the product record wins for workflow state; update it in Autolaunch.`

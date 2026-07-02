@@ -42,6 +42,14 @@ type WorkspaceManifest = {
       acceptance_commands?: Array<{ cwd?: string; command?: string }>;
     }
   >;
+  product_areas?: Record<
+    string,
+    {
+      owner_repo?: string;
+      archived_repo?: string;
+      contracts?: string[];
+    }
+  >;
 };
 
 const workspaceRoot = path.resolve(import.meta.dirname, "../../..");
@@ -264,13 +272,34 @@ describe("Regent flywheel integration proof", () => {
     const manifest = loadYaml<WorkspaceManifest>(files.workspaceManifest);
     const repos = manifest.repos ?? {};
 
-    for (const owner of ["platform", "techtree", "ios", "regents-cli"] as const) {
+    for (const owner of ["platform", "ios", "regents-cli"] as const) {
       expect(repos[owner], owner).toBeDefined();
       expect(repos[owner]?.required_for_public_beta, owner).toBe(true);
       expect(repos[owner]?.acceptance_commands?.length ?? 0, owner).toBeGreaterThan(0);
     }
-    expect(repos.autolaunch?.required_for_public_beta).toBe(false);
     expect(repos["design-system"]?.required_for_public_beta).toBe(false);
+    expect(repos.autolaunch).toBeUndefined();
+    expect(repos.techtree).toBeUndefined();
+    expect(manifest.product_areas?.autolaunch).toEqual(
+      expect.objectContaining({
+        owner_repo: "platform",
+        archived_repo: "../archive-regents/autolaunch",
+        contracts: [
+          "platform/contracts/autolaunch/api-contract.openapiv3.yaml",
+          "platform/contracts/autolaunch/cli-contract.yaml",
+        ],
+      }),
+    );
+    expect(manifest.product_areas?.techtree).toEqual(
+      expect.objectContaining({
+        owner_repo: "platform",
+        archived_repo: "../archive-regents/techtree",
+        contracts: [
+          "platform/contracts/techtree/api-contract.openapiv3.yaml",
+          "platform/contracts/techtree/cli-contract.yaml",
+        ],
+      }),
+    );
 
     expect(repos.platform?.api_contracts?.map((contract) => contract.path)).toEqual([
       "contracts/platform/api-contract.openapiv3.yaml",

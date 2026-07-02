@@ -32,6 +32,7 @@ export interface PlatformRequestOptions {
   readonly commandName?: string;
   readonly configPath?: string;
   readonly chainId?: number;
+  readonly timeoutMs?: number;
 }
 
 export async function runPlatformAuthLogin(args: ParsedCliArgs): Promise<void> {
@@ -406,6 +407,7 @@ export const requestPlatformSessionJson = async (
     configPath: options.configPath,
     commandName: options.commandName,
     chainId: options.chainId,
+    timeoutMs: options.timeoutMs,
     headers,
     body: options.method === "GET" ? undefined : JSON.stringify(options.body ?? {}),
     baseUrlOverride: options.origin,
@@ -491,12 +493,32 @@ const parseJsonResponse = async (response: Response): Promise<JsonObject> => {
   return parsed as JsonObject;
 };
 
+const nestedString = (value: unknown, key: string): string | null =>
+  value && typeof value === "object" && !Array.isArray(value) && typeof (value as Record<string, unknown>)[key] === "string"
+    ? String((value as Record<string, unknown>)[key])
+    : null;
+
 const extractErrorMessage = (data: JsonObject, status: number): string => {
-  for (const key of ["statusMessage", "message", "error"]) {
+  for (const key of ["statusMessage", "message"]) {
     const value = data[key];
     if (typeof value === "string" && value !== "") {
       return value;
     }
+  }
+
+  const error = data.error;
+  if (typeof error === "string" && error !== "") {
+    return error;
+  }
+
+  const nestedError = nestedString(error, "message") ?? nestedString(error, "detail");
+  if (nestedError) {
+    return nestedError;
+  }
+
+  const phoenixDetail = nestedString(data.errors, "detail");
+  if (phoenixDetail) {
+    return phoenixDetail;
   }
 
   return `Platform request failed with status ${status}.`;

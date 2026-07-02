@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../../src/index.js";
+import { EXPECTED_PLATFORM_CONTRACT_DIGEST } from "../../src/generated/platform-contract-digest.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
@@ -113,6 +114,31 @@ const relationship = (overrides: Record<string, unknown> = {}): Record<string, u
   ...overrides,
 });
 
+const runtime = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+  id: 44,
+  company_id: 123,
+  platform_agent_id: 321,
+  name: "Hosted Hermes",
+  runner_kind: "hermes_hosted_manager",
+  execution_surface: "hosted_sprite",
+  billing_mode: "platform_hosted",
+  status: "running",
+  metadata: {},
+  ...overrides,
+});
+
+const runtimeService = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+  id: 55,
+  company_id: 123,
+  runtime_profile_id: 44,
+  name: "Hermes agent",
+  service_kind: "hermes_agent",
+  status: "running",
+  endpoint_url: null,
+  metadata: {},
+  ...overrides,
+});
+
 describe("work and platform agent commands", () => {
   // Only mutate individual keys on process.env: replacing the whole object
   // detaches it from the real environment, and os.homedir() would keep
@@ -131,7 +157,7 @@ describe("work and platform agent commands", () => {
         "content-type": "application/yaml",
         "x-regents-contract-major": "0",
         "x-regents-contract-version": "0.1.0",
-        "x-regents-contract-digest": "sha256:c1e5f2a5d6066a89867b7d97235e7459495c761db3707a848fe2c50104617d19",
+        "x-regents-contract-digest": EXPECTED_PLATFORM_CONTRACT_DIGEST,
       },
     });
 
@@ -529,11 +555,257 @@ describe("work and platform agent commands", () => {
       }),
     );
 
-    const printed = parsePrintedJson<{ hermes: { configFile: string; skillFile: string } }>(output.stdout);
-    expect(printed.hermes.configFile).toBe(path.join(homeDir, ".hermes", "connectors", "regents-work.json"));
+    const printed = parsePrintedJson<{ hermes: { pluginFile: string; skillFile: string } }>(output.stdout);
+    expect(printed.hermes.pluginFile).toBe(
+      path.join(homeDir, ".hermes", "plugins", "regents-work", "plugin.yaml"),
+    );
     expect(printed.hermes.skillFile).toBe(path.join(homeDir, ".hermes", "skills", "regents-work", "SKILL.md"));
-    expect(fs.readFileSync(printed.hermes.configFile, "utf8")).toContain('"worker_id": "789"');
+    expect(fs.existsSync(path.join(homeDir, ".hermes", "connectors", "regents-work.json"))).toBe(false);
+    expect(fs.readFileSync(printed.hermes.pluginFile, "utf8")).toContain("worker_id: \"789\"");
     expect(fs.readFileSync(printed.hermes.skillFile, "utf8")).toContain("Do not upload secrets, private memory");
+  });
+
+  it("inspects hosted Hermes through runtime status, service, and health routes", async () => {
+    mockPlatformResponses(
+      new Response(JSON.stringify({ ok: true, runtime: runtime() }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+      new Response(JSON.stringify({ ok: true, company_id: 123, runtime_id: 44, services: [runtimeService()] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          company_id: 123,
+          runtime_id: 44,
+          health: {
+            status: "healthy",
+            available: true,
+            metering_status: "active",
+            control_room: {},
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "agent",
+        "connect",
+        "hosted-hermes",
+        "--company-id",
+        "company_123",
+        "--runtime-id",
+        "runtime_44",
+        "--session-file",
+        sessionFile,
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(productFetchCalls().map((call) => call[0])).toEqual([
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/services",
+      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/health",
+    ]);
+    const printed = parsePrintedJson<{
+      command: string;
+      result: { runtime: { runner_kind: string }; services: unknown[]; health: { available: boolean } };
+    }>(output.stdout);
+    expect(printed.command).toBe("regents agent connect hosted-hermes");
+    expect(printed.result.runtime.runner_kind).toBe("hermes_hosted_manager");
+    expect(printed.result.services).toHaveLength(1);
+    expect(printed.result.health.available).toBe(true);
+  });
+
+  it("sends a hosted agent chat message to the selected company slug", async () => {
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          slug: "startline",
+          reply: "Launch checklist is ready.",
+          run: {
+            runtime_id: "sprite-runtime-1",
+            exit_code: 0,
+            elapsed_ms: 731,
+            timeout_seconds: 12,
+            output_truncated: false,
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "agent",
+        "chat",
+        "Check",
+        "the",
+        "launch",
+        "checklist",
+        "--slug",
+        "startline",
+        "--timeout-seconds",
+        "12",
+        "--session-file",
+        sessionFile,
+        "--config",
+        configPath,
+        "--json",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/startline/message");
+    expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
+    expect(productFetchCalls()[0]?.[1]?.body).toBe(
+      JSON.stringify({
+        message: "Check the launch checklist",
+        timeout_seconds: 12,
+      }),
+    );
+
+    const printed = parsePrintedJson<{
+      command: string;
+      result: { slug: string; reply: string; run: { runtime_id: string } };
+    }>(output.stdout);
+    expect(printed.command).toBe("regents agent chat");
+    expect(printed.result.slug).toBe("startline");
+    expect(printed.result.reply).toBe("Launch checklist is ready.");
+    expect(printed.result.run.runtime_id).toBe("sprite-runtime-1");
+  });
+
+  it("infers the hosted agent chat slug when the session owns one company", async () => {
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          authenticated: true,
+          agents: [{ slug: "solo" }],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+      new Response(
+        JSON.stringify({
+          ok: true,
+          slug: "solo",
+          reply: "Solo company is ready.",
+          run: {
+            runtime_id: "sprite-runtime-solo",
+            exit_code: 0,
+            elapsed_ms: 220,
+            timeout_seconds: 30,
+            output_truncated: false,
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "agent",
+        "chat",
+        "Status?",
+        "--session-file",
+        sessionFile,
+        "--config",
+        configPath,
+        "--json",
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(productFetchCalls().map((call) => call[0])).toEqual([
+      "http://127.0.0.1:4010/api/platform/auth/privy/profile",
+      "http://127.0.0.1:4010/api/platform/sprites/solo/message",
+    ]);
+    expect(productFetchCalls()[1]?.[1]?.body).toBe(
+      JSON.stringify({
+        message: "Status?",
+        timeout_seconds: 30,
+      }),
+    );
+  });
+
+  it("requires a hosted agent chat slug when the session owns multiple companies", async () => {
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          authenticated: true,
+          agents: [{ slug: "alpha" }, { slug: "beta" }],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "agent",
+        "chat",
+        "Status?",
+        "--session-file",
+        sessionFile,
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(output.result).not.toBe(0);
+    expect(output.stderr).toContain("--slug is required when your saved session owns more than one company.");
+    expect(productFetchCalls().map((call) => call[0])).toEqual([
+      "http://127.0.0.1:4010/api/platform/auth/privy/profile",
+    ]);
+  });
+
+  it("prints only the hosted agent reply on a human terminal", async () => {
+    useHumanTerminal();
+    mockPlatformResponses(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          slug: "startline",
+          reply: "The next step is to review bids.",
+          run: {
+            runtime_id: "sprite-runtime-1",
+            exit_code: 0,
+            elapsed_ms: 431,
+            timeout_seconds: 30,
+            output_truncated: false,
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "agent",
+        "chat",
+        "What",
+        "next?",
+        "--slug",
+        "startline",
+        "--session-file",
+        sessionFile,
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(output.result).toBe(0);
+    expect(stripAnsi(output.stdout)).toBe("The next step is to review bids.\n");
   });
 
   it("renders OpenClaw connection details for human terminals", async () => {

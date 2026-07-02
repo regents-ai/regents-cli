@@ -1,8 +1,4 @@
-import {
-  parseRequiredNonNegativeIntegerFlag,
-  putOptionalIntegerFlag,
-  putOptionalStringFlag,
-} from "../../command-input.js";
+import { putOptionalStringFlag } from "../../command-input.js";
 import {
   getBooleanFlag,
   getFlag,
@@ -14,7 +10,6 @@ import {
   preparedWalletActionFromEnvelope,
   printWalletActionEnvelope,
 } from "../../terminal/wallet-action.js";
-import { stakeBody, stakeReceiverFlag } from "../stake-receiver.js";
 import {
   type JsonObject,
   requestJson,
@@ -22,11 +17,6 @@ import {
   submitPreparedTxRequest,
   txRequestFromWalletAction,
 } from "./shared.js";
-
-type SubmitFollowup =
-  | { kind: "confirm"; path: string }
-  | { kind: "same-path"; path: string; body: Record<string, unknown> }
-  | { kind: "local-receipt" };
 
 const autolaunchPreparedAction = (envelope: JsonObject): JsonObject =>
   preparedWalletActionFromEnvelope(
@@ -37,7 +27,6 @@ const autolaunchPreparedAction = (envelope: JsonObject): JsonObject =>
 const prepareOrSubmitWalletAction = async (
   preparePath: string,
   body: Record<string, unknown>,
-  followup: SubmitFollowup,
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> => {
@@ -65,70 +54,8 @@ const prepareOrSubmitWalletAction = async (
 
   const txHash = await submitPreparedTxRequest(txRequest, configPath);
 
-  if (followup.kind === "local-receipt") {
-    printJson({ ok: true, tx_hash: txHash, prepared: preparedAction });
-    return;
-  }
-
-  printJson(
-    await requestJson("POST", followup.path, {
-      body: followup.kind === "same-path"
-        ? { ...followup.body, tx_hash: txHash }
-        : { tx_hash: txHash },
-      requireAgentAuth: true,
-      configPath,
-    }),
-  );
+  printJson({ ok: true, tx_hash: txHash, prepared: preparedAction });
 };
-
-export async function runAutolaunchSubjectCreateExistingToken(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const body: Record<string, unknown> = {
-    stake_token: requireArg(getFlag(args, "stake-token"), "stake-token"),
-    treasury: requireArg(getFlag(args, "treasury"), "treasury"),
-    staker_pool_bps: parseRequiredNonNegativeIntegerFlag(args, "staker-pool-bps"),
-    label: requireArg(getFlag(args, "label"), "label"),
-  };
-
-  putOptionalStringFlag(body, "salt", args, "salt");
-
-  await prepareOrSubmitWalletAction(
-    "/api/autolaunch/v1/agent/subjects/existing-token/prepare",
-    body,
-    { kind: "confirm", path: "/api/autolaunch/v1/agent/subjects/existing-token/confirm" },
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchSubjectCreateDeferredAutolaunch(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const body: Record<string, unknown> = {
-    token_name: requireArg(getFlag(args, "token-name"), "token-name"),
-    token_symbol: requireArg(getFlag(args, "token-symbol"), "token-symbol"),
-    total_supply: requireArg(getFlag(args, "total-supply"), "total-supply"),
-    treasury: requireArg(getFlag(args, "treasury"), "treasury"),
-    subject_label: requireArg(getFlag(args, "subject-label"), "subject-label"),
-  };
-
-  putOptionalStringFlag(body, "token_factory_data", args, "token-factory-data");
-  putOptionalStringFlag(body, "token_factory_salt", args, "token-factory-salt");
-  putOptionalIntegerFlag(body, "identity_chain_id", args, "identity-chain-id");
-  putOptionalStringFlag(body, "identity_registry", args, "identity-registry");
-  putOptionalIntegerFlag(body, "identity_agent_id", args, "identity-agent-id");
-
-  await prepareOrSubmitWalletAction(
-    "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/prepare",
-    body,
-    { kind: "confirm", path: "/api/autolaunch/v1/agent/subjects/deferred-autolaunch/confirm" },
-    args,
-    configPath,
-  );
-}
 
 export async function runAutolaunchSubjectByToken(
   args: ParsedCliArgs,
@@ -185,65 +112,6 @@ export async function runAutolaunchSubjectStaking(
   );
 }
 
-export async function runAutolaunchSubjectStake(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requirePositional(args, 3, "subject-id");
-  const amount = requireArg(getFlag(args, "amount"), "amount");
-  const receiver = stakeReceiverFlag(args);
-  const body = stakeBody(amount, receiver);
-
-  await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/stake`,
-    body,
-    {
-      kind: "same-path",
-      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/stake`,
-      body,
-    },
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchSubjectUnstake(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requirePositional(args, 3, "subject-id");
-  const body = { amount: requireArg(getFlag(args, "amount"), "amount") };
-  await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/unstake`,
-    body,
-    {
-      kind: "same-path",
-      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/unstake`,
-      body,
-    },
-    args,
-    configPath,
-  );
-}
-
-export async function runAutolaunchSubjectClaimUsdc(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requirePositional(args, 3, "subject-id");
-  await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
-    {},
-    {
-      kind: "same-path",
-      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/claim-usdc`,
-      body: {},
-    },
-    args,
-    configPath,
-  );
-}
-
 export async function runAutolaunchSubjectBuybacks(
   args: ParsedCliArgs,
   configPath?: string,
@@ -255,30 +123,6 @@ export async function runAutolaunchSubjectBuybacks(
       `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks`,
       { requireAgentAuth: true, configPath },
     ),
-  );
-}
-
-export async function runAutolaunchSubjectSettleBuyback(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requirePositional(args, 3, "subject-id");
-
-  const body = {
-    amount_usdc: requireArg(getFlag(args, "amount-usdc"), "amount-usdc"),
-    min_regent_out: requireArg(getFlag(args, "min-regent-out"), "min-regent-out"),
-  };
-
-  await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks/settle`,
-    body,
-    {
-      kind: "same-path",
-      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/buybacks/settle`,
-      body,
-    },
-    args,
-    configPath,
   );
 }
 
@@ -304,13 +148,12 @@ export async function runAutolaunchPaymentLinkCreate(
   const body: Record<string, unknown> = {
     label: requireArg(getFlag(args, "label"), "label"),
     canonical: getBooleanFlag(args, "canonical"),
+    salt: requireArg(getFlag(args, "salt"), "salt"),
   };
-  putOptionalStringFlag(body, "salt", args, "salt");
 
   await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links`,
+    `/api/autolaunch/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}/payment_link_factory/create/prepare`,
     body,
-    { kind: "local-receipt" },
     args,
     configPath,
   );
@@ -324,9 +167,11 @@ export async function runAutolaunchPaymentLinkSetCanonical(
   const address = requireArg(getFlag(args, "address"), "address");
 
   await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/canonical`,
-    { canonical: requireArg(getFlag(args, "canonical"), "canonical") },
-    { kind: "local-receipt" },
+    `/api/autolaunch/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}/payment_link_factory/set_canonical/prepare`,
+    {
+      canonical: requireArg(getFlag(args, "canonical"), "canonical"),
+      payment_link: address,
+    },
     args,
     configPath,
   );
@@ -340,29 +185,15 @@ export async function runAutolaunchPaymentLinkSetState(
   const address = requireArg(getFlag(args, "address"), "address");
   const body: Record<string, unknown> = {
     active: requireArg(getFlag(args, "active"), "active"),
+    payment_link: address,
   };
   putOptionalStringFlag(body, "replacement", args, "replacement");
 
   await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/payment-links/${encodeURIComponent(address)}/state`,
+    `/api/autolaunch/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}/payment_link_factory/set_state/prepare`,
     body,
-    { kind: "local-receipt" },
     args,
     configPath,
-  );
-}
-
-export async function runAutolaunchSubjectRegentEmissions(
-  args: ParsedCliArgs,
-  configPath?: string,
-): Promise<void> {
-  const subjectId = requirePositional(args, 3, "subject-id");
-  printJson(
-    await requestJson(
-      "GET",
-      `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/regent-emissions`,
-      { requireAgentAuth: true, configPath },
-    ),
   );
 }
 
@@ -374,13 +205,8 @@ export async function runAutolaunchSubjectSweepIngress(
   const address = requireArg(getFlag(args, "address"), "address");
 
   await prepareOrSubmitWalletAction(
-    `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
-    {},
-    {
-      kind: "same-path",
-      path: `/api/autolaunch/v1/agent/subjects/${encodeURIComponent(subjectId)}/ingress/${encodeURIComponent(address)}/sweep`,
-      body: {},
-    },
+    `/api/autolaunch/v1/agent/contracts/subjects/${encodeURIComponent(subjectId)}/ingress_account/sweep/prepare`,
+    { ingress_address: address },
     args,
     configPath,
   );

@@ -120,11 +120,7 @@ regents autolaunch vesting status --job <job-id>
 
 Skip the Safe commands only when the agent Safe already exists and the launch plan already points to it.
 
-For a first-time launch or bid walkthrough, use the Autolaunch tutorial:
-[`../../autolaunch/docs/first-time-autolaunch-tutorial.md`](/Users/sean/Documents/regent/autolaunch/docs/first-time-autolaunch-tutorial.md).
-
-For the shortest common-command guide, use:
-[`../../autolaunch/docs/start-here.md`](/Users/sean/Documents/regent/autolaunch/docs/start-here.md).
+For first-time walkthroughs and common-command guides, use the public Autolaunch guides at `/learn/autolaunch/` on regents.sh (sources live in [`../../platform/learn-site/src/content/docs/learn/autolaunch/`](/Users/sean/Documents/regent/platform/learn-site/src/content/docs/learn/autolaunch)).
 
 ## Fixed economic rules
 
@@ -323,36 +319,19 @@ regents autolaunch bids quote \
   --amount <regent-amount> \
   --max-price <regent-price> \
   [--json]
-
-regents autolaunch bids place \
-  --auction <auction-id> \
-  --amount <regent-amount> \
-  --max-price <regent-price> \
-  --tx-hash <hash> \
-  [--current-clearing-price <value>] \
-  [--projected-clearing-price <value>] \
-  [--estimated-tokens-if-end-now <value>] \
-  [--estimated-tokens-if-no-other-bids-change <value>] \
-  [--inactive-above-price <value>] \
-  [--status-band <value>] \
-  [--json]
-
-regents autolaunch bids exit <bid-id> --tx-hash <hash> [--json]
-regents autolaunch bids claim <bid-id> --tx-hash <hash> [--json]
 ```
+
+Placing, exiting, and claiming bids happens in the Autolaunch web app.
 
 ### Subjects
 
 ```bash
 regents autolaunch subjects get <subject-id> [--json]
 regents autolaunch subjects ingress <subject-id> [--json]
-regents autolaunch subjects stake <subject-id> --amount <token-amount> [--receiver <0xaddress>] [--json]
-regents autolaunch subjects unstake <subject-id> --amount <token-amount> [--json]
-regents autolaunch subjects claim-usdc <subject-id> [--json]
 regents autolaunch subjects sweep-ingress <subject-id> --address <ingress-address> [--json]
 ```
 
-These commands use the same session-backed subject endpoints as the web app. They are useful after launch, but they are not the primary launch lifecycle.
+Subject reads use the signed Autolaunch agent API. Subject staking and claims happen in the Autolaunch web app.
 
 ### Contract reads
 
@@ -392,9 +371,8 @@ regents autolaunch ingress set-default --subject <subject-id> --address <ingress
 regents autolaunch ingress set-label --subject <subject-id> --address <ingress-address> --label <text> [--json]
 regents autolaunch ingress rescue --subject <subject-id> --address <ingress-address> --token <address> --amount <raw-units> --recipient <address> [--json]
 regents autolaunch subjects buybacks <subject-id> [--json]
-regents autolaunch subjects settle-buyback <subject-id> --amount-usdc <amount> --min-regent-out <amount> [--submit] [--json]
 regents autolaunch subjects payment-links <subject-id> [--json]
-regents autolaunch payment-links create --subject <subject-id> --label <text> [--canonical] [--submit] [--json]
+regents autolaunch payment-links create --subject <subject-id> --label <text> --salt <bytes32> [--canonical] [--submit] [--json]
 regents autolaunch payment-links set-canonical --subject <subject-id> --address <receiver> --canonical true|false [--submit] [--json]
 regents autolaunch payment-links set-state --subject <subject-id> --address <receiver> --active true|false [--replacement <receiver>] [--submit] [--json]
 
@@ -436,17 +414,8 @@ The CLI is JSON-first. It forwards directly to the `autolaunch` Phoenix JSON API
 - `GET /api/autolaunch/v1/agent/auction-returns`
 - `GET /api/autolaunch/v1/agent/auctions/{id}`
 - `POST /api/autolaunch/v1/agent/auctions/{id}/bid_quote`
-- `POST /api/autolaunch/v1/agent/auctions/{id}/bids`
-- `POST /api/autolaunch/v1/agent/bids/{id}/return-quote-token`
-- `POST /api/autolaunch/v1/agent/bids/{id}/exit`
-- `POST /api/autolaunch/v1/agent/bids/{id}/claim`
 - `GET /api/autolaunch/v1/agent/subjects/{id}`
 - `GET /api/autolaunch/v1/agent/subjects/{id}/ingress`
-- `POST /api/autolaunch/v1/agent/subjects/{id}/stake`
-- `POST /api/autolaunch/v1/agent/subjects/{id}/unstake`
-- `POST /api/autolaunch/v1/agent/subjects/{id}/claim-usdc`
-- `GET /api/autolaunch/v1/agent/subjects/{id}/regent-emissions`
-- `POST /api/autolaunch/v1/agent/subjects/{id}/ingress/{address}/sweep`
 - `GET /api/autolaunch/v1/app/contracts/admin`
 - `GET /api/autolaunch/v1/agent/contracts/jobs/{id}`
 - `GET /api/autolaunch/v1/agent/contracts/subjects/{id}`
@@ -454,9 +423,7 @@ The CLI is JSON-first. It forwards directly to the `autolaunch` Phoenix JSON API
 - `POST /api/autolaunch/v1/agent/contracts/subjects/{id}/{resource}/{action}/prepare`
 - `POST /api/autolaunch/v1/agent/contracts/admin/{resource}/{action}/prepare`
 
-State-changing bid commands do not submit wallet transactions themselves. They register confirmed onchain actions with the Phoenix app, so callers must provide the real transaction hash via `--tx-hash`.
-
-Subject stake, unstake, claim, and ingress sweep commands use the same wallet-friendly JSON API as the web app. Contract admin reads use the signed-in app route. Contract admin prepare commands return a prepared transaction payload and leave signing or submission to the caller.
+Contract prepare commands return a prepared transaction payload and leave signing or submission to the caller. Contract admin reads use the signed-in app route.
 
 Polling commands validate `--interval` and require a positive number.
 

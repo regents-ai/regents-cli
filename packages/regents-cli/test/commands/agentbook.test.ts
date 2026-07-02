@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../../src/index.js";
+import { EXPECTED_PLATFORM_CONTRACT_DIGEST } from "../../src/generated/platform-contract-digest.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { parseCliArgs } from "../../src/parse.js";
 import { writeFakeCdp } from "../support/fake-cdp.js";
@@ -41,7 +42,7 @@ describe("agentbook CLI command group", () => {
         "content-type": "application/yaml",
         "x-regents-contract-major": "0",
         "x-regents-contract-version": "0.1.0",
-        "x-regents-contract-digest": "sha256:c1e5f2a5d6066a89867b7d97235e7459495c761db3707a848fe2c50104617d19",
+        "x-regents-contract-digest": EXPECTED_PLATFORM_CONTRACT_DIGEST,
       },
     });
 
@@ -112,7 +113,7 @@ describe("agentbook CLI command group", () => {
             keyId: TEST_WALLET.toLowerCase(),
             receipt: "agentbook-receipt",
             receiptExpiresAt: "2999-01-01T00:00:00.000Z",
-            audience: "platform",
+            audience: "regent-services",
             registryAddress: TEST_REGISTRY,
             tokenId: "99",
           },
@@ -207,7 +208,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions");
+    expect(productFetchCalls()[0]?.[0]).toBe("https://regents.sh/api/platform/agentbook/sessions");
     expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-siwa-receipt")).toBe("agentbook-receipt");
     expect(JSON.parse(String(productFetchCalls()[0]?.[1]?.body))).toEqual({ source: "regents-cli" });
     expect(parsePrintedJson<{ session: { approval_url: string } }>(output.stdout)).toMatchObject({
@@ -316,8 +317,8 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(productFetchCalls()[1]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
-    expect(productFetchCalls()[2]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/sessions/sess_1");
+    expect(productFetchCalls()[1]?.[0]).toBe("https://regents.sh/api/platform/agentbook/sessions/sess_1");
+    expect(productFetchCalls()[2]?.[0]).toBe("https://regents.sh/api/platform/agentbook/sessions/sess_1");
     expect(parsePrintedJson<{ session: { status: string; trust: { unique_agent_count: number } } }>(output.stdout))
       .toMatchObject({
         session: {
@@ -373,7 +374,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
+    expect(productFetchCalls()[0]?.[0]).toBe("https://regents.sh/api/platform/agentbook/lookup");
     expect(parsePrintedJson<{ result: { world_human_id: string; unique_agent_count: number } }>(output.stdout))
       .toMatchObject({
         result: {
@@ -412,7 +413,7 @@ describe("agentbook CLI command group", () => {
     );
 
     expect(output.result).toBe(0);
-    expect(productFetchCalls()[0]?.[0]).toBe("http://127.0.0.1:4000/api/platform/agentbook/lookup");
+    expect(productFetchCalls()[0]?.[0]).toBe("https://regents.sh/api/platform/agentbook/lookup");
   });
 
   it("rejects non-positive interval values for sessions watch", async () => {

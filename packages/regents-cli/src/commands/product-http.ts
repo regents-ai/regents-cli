@@ -28,6 +28,11 @@ interface JsonObject {
   readonly [key: string]: unknown;
 }
 
+const objectString = (value: unknown, key: string): string | undefined =>
+  value && typeof value === "object" && !Array.isArray(value) && typeof (value as Record<string, unknown>)[key] === "string"
+    ? String((value as Record<string, unknown>)[key])
+    : undefined;
+
 const parseJsonObject = (text: string): JsonObject => {
   if (!text.trim()) {
     return {};
@@ -47,8 +52,15 @@ const errorMessageFromPayload = (payload: JsonObject, status: number, headers: H
     error && typeof error === "object" && typeof (error as { message?: unknown }).message === "string"
       ? String((error as { message: string }).message)
       : undefined;
+  const errorDetail = objectString(error, "detail");
+  const phoenixDetail = objectString(payload.errors, "detail");
+  const topLevelMessage = objectString(payload, "message") ?? objectString(payload, "statusMessage");
 
-  return messageWithRetryAfter(status, headers, errorMessage ?? `Regent request failed (${status}).`);
+  return messageWithRetryAfter(
+    status,
+    headers,
+    errorMessage ?? errorDetail ?? phoenixDetail ?? topLevelMessage ?? `Regent request failed (${status}).`,
+  );
 };
 
 export const requestProductJson = async <T>(

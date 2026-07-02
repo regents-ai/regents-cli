@@ -39,6 +39,7 @@ interface CommandAgentMetadata {
   readonly json_support?: string;
   readonly mutation_class?: string;
   readonly async_behavior?: string;
+  readonly auth_mode?: string;
 }
 
 interface CommandDetailMetadata {
@@ -89,6 +90,12 @@ const techtreePrerequisites = [
 const platformPrerequisites = [
   "Run `regents platform auth login` with a Regent website access token.",
   "Use the correct company id or slug from the Regent website.",
+];
+
+const serviceOwnerPrerequisites = [
+  "Run `regents platform auth login` with a Regent website access token.",
+  "Use these commands only for a service you own or administer.",
+  "Buyers use `regents x402 details`, `quote`, `prepare`, `fetch`, or `pay` for paid service calls.",
 ];
 
 const walletPrerequisites = [
@@ -242,13 +249,6 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
     usage: "regents feynman [feynman command or prompt]",
     flags: ["Feynman flags are passed through after `regents feynman`."],
     examples: [
-      "regents feynman setup",
-      "regents feynman doctor",
-      'regents feynman chat "explain this paper"',
-    ],
-    auth: "Feynman manages its own setup.",
-    output: "Shows Feynman's terminal output directly.",
-  },
   "auth login": {
     summary: "Save an Agent account sign-in for the selected app.",
     usage: "regents auth login --audience <platform|autolaunch|techtree|regent-services>",
@@ -294,6 +294,13 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
     auth: "Needs `regents auth login --audience autolaunch` and `regents identity ensure`.",
     output: "Shows the created launch job and next action.",
     nextStep: "Use `regents autolaunch jobs watch <job-id>`.",
+  },
+      "regents feynman setup",
+      "regents feynman doctor",
+      'regents feynman chat "explain this paper"',
+    ],
+    auth: "Feynman manages its own setup.",
+    output: "Shows Feynman's terminal output directly.",
   },
   "regent-staking get": {
     summary: "Show Regent staking totals for the saved Agent account.",
@@ -485,13 +492,32 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
     nextStep: "Run `regents runtime services <runtime-id> --company-id <id>` to inspect published services.",
   },
   "agent connect hermes": {
-    summary: "Connect Hermes as a company worker.",
+    summary: "Connect local Hermes as a company worker.",
     usage: "regents agent connect hermes --company-id <id> --role <manager|executor|hybrid>",
-    flags: ["--company-id <id>", "--role <manager|executor|hybrid>", "--name <name>", "--write-connector <true|false>", "--config <path>"],
+    flags: ["--company-id <id>", "--role <manager|executor|hybrid>", "--name <name>", "--write-plugin <true|false>", "--config <path>"],
     examples: ["regents agent connect hermes --company-id company_123 --role manager"],
     auth: "Needs `regents auth login --audience platform` and `regents identity ensure`.",
-    output: "Shows the worker id, role, status, and local connector files.",
-    nextStep: "Use the generated Hermes connector, or run `regents work local-loop`.",
+    output: "Shows the worker id, role, status, and local Hermes plugin files.",
+    nextStep: "Use the generated Hermes skill, or run `regents work local-loop`.",
+  },
+  "agent connect hosted-hermes": {
+    usage: "regents agent connect hosted-hermes --company-id <id> --runtime-id <id>",
+    flags: ["--company-id <id>", "--runtime-id <id>", "--origin <url>", "--session-file <path>", "--config <path>"],
+    examples: ["regents agent connect hosted-hermes --company-id company_123 --runtime-id runtime_123"],
+    output: "Shows hosted runtime status, health, and service records.",
+    nextStep: "Use `regents runtime health <runtime-id> --company-id <id>` when you need a fresh health check.",
+  },
+  "agent chat": {
+    summary: "Send one message to a hosted agent and print the reply.",
+    usage: "regents agent chat <message> [--slug <company-slug>] [--timeout-seconds <5-60>]",
+    flags: ["--slug <company-slug>", "--timeout-seconds <5-60>", "--origin <url>", "--session-file <path>", "--json"],
+    examples: [
+      "regents agent chat \"Summarize today's priorities\"",
+      "regents agent chat \"Check the launch checklist\" --slug startline --timeout-seconds 45",
+    ],
+    auth: "Needs a saved Regent website session from `regents platform auth login`.",
+    output: "Prints the reply. `--json` includes the reply and run metadata.",
+    nextStep: "Run another `regents agent chat` message when you need a new reply.",
   },
   "agent connect openclaw": {
     usage: "regents agent connect openclaw --company-id <id> --role <manager|executor|hybrid>",
@@ -504,32 +530,6 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
   "agent link": {
     usage: "regents agent link --company-id <id> --manager-agent-id <id> --executor-agent-id <id> --relationship <kind>",
     flags: [
-      "--company-id <id>",
-      "--manager-agent-id <id>",
-      "--manager-worker-id <id>",
-      "--executor-agent-id <id>",
-      "--executor-worker-id <id>",
-      "--relationship <kind>",
-      "--origin <url>",
-      "--session-file <path>",
-    ],
-    examples: [
-      "regents agent link --company-id company_123 --manager-agent-id agent_1 --executor-agent-id agent_2 --relationship can_delegate_to",
-      "regents agent link --company-id company_123 --manager-worker-id worker_1 --executor-worker-id worker_2 --relationship can_delegate_to",
-    ],
-    auth: "Use `regents platform auth login` with a Platform access token.",
-    output: "Shows the manager, worker, link type, and listing command.",
-    nextStep: "Run `regents agent execution-pool --company-id <id> --manager <id>`.",
-  },
-  "agent execution-pool": {
-    summary: "List workers one manager can assign.",
-    usage: "regents agent execution-pool --company-id <id> --manager <id>",
-    flags: ["--company-id <id>", "--manager <id>", "--origin <url>", "--session-file <path>"],
-    examples: ["regents agent execution-pool --company-id company_123 --manager agent_1"],
-    auth: "Use `regents platform auth login` with a Platform access token.",
-    output: "Shows assignable worker ids, roles, status, and last check-in.",
-    nextStep: "Use `regents work run` or a connected manager to start company work.",
-  },
   "techtree runbook questions list": {
     summary: "Browse public Runbook reports by tool, error, or solved state.",
     usage: "regents techtree runbook questions list [--q <text>] [--status open|answered|solved|deprecated] [--limit <n>]",
@@ -599,6 +599,32 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
     auth: "Needs a signed Techtree agent session and a payment address.",
     output: "Shows answer id, price, public unlock price, payment address, and the next branch command.",
     nextStep: "Open the branch again with `regents techtree runbook questions get <question_id>`.",
+  },
+      "--company-id <id>",
+      "--manager-agent-id <id>",
+      "--manager-worker-id <id>",
+      "--executor-agent-id <id>",
+      "--executor-worker-id <id>",
+      "--relationship <kind>",
+      "--origin <url>",
+      "--session-file <path>",
+    ],
+    examples: [
+      "regents agent link --company-id company_123 --manager-agent-id agent_1 --executor-agent-id agent_2 --relationship can_delegate_to",
+      "regents agent link --company-id company_123 --manager-worker-id worker_1 --executor-worker-id worker_2 --relationship can_delegate_to",
+    ],
+    auth: "Use `regents platform auth login` with a Platform access token.",
+    output: "Shows the manager, worker, link type, and listing command.",
+    nextStep: "Run `regents agent execution-pool --company-id <id> --manager <id>`.",
+  },
+  "agent execution-pool": {
+    summary: "List workers one manager can assign.",
+    usage: "regents agent execution-pool --company-id <id> --manager <id>",
+    flags: ["--company-id <id>", "--manager <id>", "--origin <url>", "--session-file <path>"],
+    examples: ["regents agent execution-pool --company-id company_123 --manager agent_1"],
+    auth: "Use `regents platform auth login` with a Platform access token.",
+    output: "Shows assignable worker ids, roles, status, and last check-in.",
+    nextStep: "Use `regents work run` or a connected manager to start company work.",
   },
   "techtree runbook answer attach-paid-solution <answer_id>": {
     summary: "Update your own answer price or paid solution payload.",
@@ -774,6 +800,7 @@ Object.assign(commandHelpOverlay, {
       "regents auth login --audience regent-services",
     ],
     prerequisites: ["Start `regents run` in another terminal when the command says local Regent is unavailable."],
+    auth: "No saved sign-in is needed.",
     output: "Shows the saved product audience, wallet, chain, and expiry.",
     nextStep: "Run `regents identity ensure` after sign-in so signed agent commands can work.",
     ifItFails: [
@@ -1225,33 +1252,8 @@ Object.assign(commandHelpOverlay, {
       "Use this before every bid because auction conditions can change.",
     ],
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
-    output: "Shows the estimated bid result and the fields to carry into a place-bid command after payment is signed.",
+    output: "Shows the estimated bid result for the auction at current conditions.",
     nextStep: "Only place the bid after reviewing the quote and signing the matching wallet transaction.",
-    ifItFails: autolaunchFailureChecks,
-  },
-  "autolaunch bids place": {
-    summary: "Record a signed bid transaction for an auction.",
-    usage:
-      "regents autolaunch bids place --auction <auction-id> --amount <regent> --max-price <price> --tx-hash <hash> [--json]",
-    flags: [
-      "--auction <id>",
-      "--amount <regent> - $REGENT bid budget.",
-      "--max-price <price> - Maximum $REGENT price per agent token.",
-      "--tx-hash <hash> - Transaction hash for the signed bid.",
-      "--current-clearing-price <amount>",
-      "--projected-clearing-price <amount>",
-      "--json",
-      "--config <path>",
-    ],
-    examples: ["regents autolaunch bids place --auction auction_123 --amount 100 --max-price 0.50 --tx-hash 0xabc --json"],
-    prerequisites: [
-      ...autolaunchWalletActionPrerequisites,
-      "Run `regents autolaunch bids quote --auction <id> --amount <regent> --max-price <price>` immediately before placing.",
-      "Submit the wallet transaction first, then pass the resulting `--tx-hash`.",
-    ],
-    auth: "Needs Autolaunch sign-in and a saved Agent account.",
-    output: "Shows the recorded bid and the next command to inspect the auction or claim results.",
-    nextStep: "Run `regents autolaunch auction <id>` to confirm the bid appears.",
     ifItFails: autolaunchFailureChecks,
   },
   "autolaunch subjects get": {
@@ -1273,21 +1275,7 @@ Object.assign(commandHelpOverlay, {
     prerequisites: autolaunchPrerequisites,
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
     output: "Shows staking balances, reward state, and whether stake or unstake actions are available.",
-    nextStep: "Use subject stake, unstake, or claim commands only after reviewing this state.",
-    ifItFails: autolaunchFailureChecks,
-  },
-  "autolaunch subjects claim-usdc": {
-    summary: "Prepare a USDC claim for one Autolaunch subject.",
-    usage: "regents autolaunch subjects claim-usdc <subject-id> [--submit] [--json]",
-    flags: ["<subject-id> - Subject id.", "--submit - Sign and submit the prepared claim action.", "--json", "--config <path>"],
-    examples: ["regents autolaunch subjects claim-usdc subject_123", "regents autolaunch subjects claim-usdc subject_123 --submit --json"],
-    prerequisites: [
-      ...autolaunchWalletActionPrerequisites,
-      "Run `regents autolaunch subjects get <subject-id>` and confirm there is claimable USDC.",
-    ],
-    auth: "Needs Autolaunch sign-in and a saved Agent account.",
-    output: "Without `--submit`, shows the prepared claim action. With `--submit`, shows the submitted claim result.",
-    nextStep: "Run `regents autolaunch subjects get <subject-id>` again to confirm the updated balances.",
+    nextStep: "Review the subject page or available contract actions before changing subject state.",
     ifItFails: autolaunchFailureChecks,
   },
   "techtree start": {
@@ -1378,7 +1366,7 @@ Object.assign(commandHelpOverlay, {
       "--config <path>",
     ],
     examples: [
-      'regents techtree heartbeats complete 42 --input-tokens 1200 --output-tokens 400 --total-tokens 1600 --summary "Accepted one review task" --refs \'{"hrefs":["/tree/node/123"]}\' --json',
+      'regents techtree heartbeats complete 42 --input-tokens 1200 --output-tokens 400 --total-tokens 1600 --summary "Accepted one review task" --refs \'{"hrefs":["/techtree/nodes/123"]}\' --json',
     ],
     prerequisites: techtreePrerequisites,
     auth: "Signed Techtree heartbeat writes need Techtree sign-in and a saved Agent account.",
@@ -1515,7 +1503,7 @@ Object.assign(commandHelpOverlay, {
   "techtree runbook answer post <question_id>": {
     summary: "Post a public Runbook answer and optionally attach a paid solution.",
     usage:
-      "regents techtree runbook answer post <question_id> --summary <text|@file> --price-usdc <amount> [--private-solution <text|@file>]",
+      "regents techtree runbook answer post <question_id> --summary <text|@file> --price-usdc <amount> [--private-solution <text|@file>] [--public-unlock-price-usdc <amount>]",
     flags: [
       "<question_id> - Runbook question id.",
       "--summary <text|@file> - Public answer summary.",
@@ -1742,7 +1730,7 @@ const groupHelp: Record<string, HelpGroup> = {
   },
   work: {
     summary: "Create and run Regent company work from the terminal.",
-    auth: "Use `regents platform auth login` with a Platform access token.",
+    auth: "Work setup uses `regents platform auth login`; local worker loops use `regents auth login --audience platform` and `regents identity ensure`.",
     output: "Shows concise work summaries, run status, and update lists.",
     commands: CLI_COMMANDS_BY_TOP_LEVEL_GROUP.work,
     nextStep: "Start with `regents work create --company-id <id> --title <title>`.",
@@ -1756,17 +1744,17 @@ const groupHelp: Record<string, HelpGroup> = {
   },
   runtime: {
     summary: "Manage Regent company runtimes from the terminal.",
-    auth: "Use `regents platform auth login` with a Platform access token.",
+    auth: "Hosted runtime commands use `regents platform auth login`; local runtime status needs no saved sign-in.",
     output: "Shows runtime status, services, health, checkpoints, and restore results. `--json` prints raw JSON.",
     commands: CLI_COMMANDS_BY_TOP_LEVEL_GROUP.runtime,
     nextStep: "Start with `regents runtime get <runtime-id> --company-id <id>` or create a runtime from the company setup.",
   },
   agent: {
-    summary: "Manage local Agent setup and Regent company workers.",
-    auth: "Worker connection needs `regents auth login --audience platform` and `regents identity ensure`.",
-    output: "Shows connected worker ids, work links, and workers a manager can assign.",
+    summary: "Manage local Agent setup, hosted agent replies, and Regent company workers.",
+    auth: "Hosted agent commands use `regents platform auth login`; local worker connection uses `regents auth login --audience platform` and `regents identity ensure`.",
+    output: "Shows hosted replies, connected worker ids, work links, and workers a manager can assign.",
     commands: CLI_COMMANDS_BY_TOP_LEVEL_GROUP.agent,
-    nextStep: "Use `regents agent connect openclaw --company-id <id> --role executor` for local OpenClaw work.",
+    nextStep: "Use `regents agent chat \"message\" --slug <slug>` for a hosted reply, or `regents agent connect openclaw --company-id <id> --role executor` for local work.",
   },
   feynman: {
     summary: "Open the Feynman research shell from Regents CLI.",
@@ -1977,13 +1965,30 @@ const generatedFields = (value: unknown): string[] => {
     .filter((line) => line.length > 0);
 };
 
+const detailAuthMode = (detail: CommandDetailMetadata | undefined): string | undefined =>
+  detail?.auth_mode ?? detail?.agent_metadata?.auth_mode;
+
+const detailAuthAudience = (detail: CommandDetailMetadata | undefined): string | undefined =>
+  detail?.auth_audience;
+
 const generatedAuthText = (detail: CommandDetailMetadata, group: HelpGroup | null): string => {
-  if (detail.auth_mode === "none") {
+  const authMode = detailAuthMode(detail);
+  const authAudience = detailAuthAudience(detail);
+
+  if (authMode === "none" || authMode === "local") {
     return "No saved sign-in is needed.";
   }
 
-  if (detail.auth_audience) {
-    return `Needs \`regents auth login --audience ${detail.auth_audience}\` and \`regents identity ensure\`.`;
+  if (authMode === "session-file") {
+    return "Needs a saved Regent website session from `regents platform auth login`.";
+  }
+
+  if (authAudience) {
+    return `Needs \`regents auth login --audience ${authAudience}\` and \`regents identity ensure\`.`;
+  }
+
+  if (authMode === "agent-siwa") {
+    return "Needs a saved Agent sign-in and `regents identity ensure`.";
   }
 
   return group?.auth ?? "Check the command group help for sign-in needs.";
@@ -2006,6 +2011,30 @@ const generatedOutputText = (detail: CommandDetailMetadata): string => {
 };
 
 const generatedPrerequisites = (command: string, detail: CommandDetailMetadata | undefined): readonly string[] => {
+  const authMode = detailAuthMode(detail);
+  const authAudience = detailAuthAudience(detail);
+
+  if (authMode === "none" || authMode === "local") {
+    return [];
+  }
+
+  if (authMode === "agent-siwa") {
+    return [
+      authAudience
+        ? `Run \`regents auth login --audience ${authAudience}\`.`
+        : "Run `regents auth login --audience <product>` for this command.",
+      "Run `regents identity ensure` before signed agent actions.",
+    ];
+  }
+
+  if (command.startsWith("service ")) {
+    return serviceOwnerPrerequisites;
+  }
+
+  if (authMode === "session-file") {
+    return platformPrerequisites;
+  }
+
   if (command.startsWith("autolaunch ")) {
     return autolaunchPrerequisites;
   }
@@ -2014,7 +2043,7 @@ const generatedPrerequisites = (command: string, detail: CommandDetailMetadata |
     return techtreePrerequisites;
   }
 
-  if (command.startsWith("platform ") || command.startsWith("runtime ") || command.startsWith("work ") || command.startsWith("agent connect ") || command.startsWith("agent link") || command.startsWith("agent execution-pool")) {
+  if (command.startsWith("platform ") || command.startsWith("runtime ") || command.startsWith("work ") || command === "agent chat" || command.startsWith("agent connect ") || command.startsWith("agent link") || command.startsWith("agent execution-pool")) {
     return platformPrerequisites;
   }
 
@@ -2030,14 +2059,48 @@ const generatedPrerequisites = (command: string, detail: CommandDetailMetadata |
     return walletPrerequisites;
   }
 
-  if (detail?.auth_audience) {
-    return [`Run \`regents auth login --audience ${detail.auth_audience}\`.`, "Run `regents identity ensure` before signed agent actions."];
+  if (authAudience) {
+    return [`Run \`regents auth login --audience ${authAudience}\`.`, "Run `regents identity ensure` before signed agent actions."];
   }
 
   return ["Run the command with `--help` before using it in an unattended agent loop."];
 };
 
-const generatedFailureChecks = (command: string): readonly string[] => {
+const generatedFailureChecks = (
+  command: string,
+  detail: CommandDetailMetadata | undefined,
+): readonly string[] => {
+  const authMode = detailAuthMode(detail);
+  const authAudience = detailAuthAudience(detail);
+
+  if (authMode === "none" || authMode === "local") {
+    return ["Check the local config path and rerun with `--json` if you need machine-readable output."];
+  }
+
+  if (authMode === "agent-siwa") {
+    return [
+      authAudience
+        ? `If the command says auth is missing, run \`regents auth login --audience ${authAudience}\` and \`regents identity ensure\`.`
+        : "If the command says auth is missing, run the product-specific `regents auth login --audience ...` command and `regents identity ensure`.",
+      "If a company, worker, or work id is not found, copy it again from the Regent website or the previous command output.",
+    ];
+  }
+
+  if (command.startsWith("service ")) {
+    return [
+      "If the command says no saved platform session exists, run `regents platform auth login`.",
+      "If access is denied, confirm the company slug and service slug belong to the signed-in owner.",
+      "If a buyer needs to call the service, use the existing `regents x402` commands instead.",
+    ];
+  }
+
+  if (authMode === "session-file") {
+    return [
+      "If the command says no saved platform session exists, run `regents platform auth login`.",
+      "If a company, runtime, worker, or work id is not found, copy it again from the Regent website or the previous command output.",
+    ];
+  }
+
   if (command.startsWith("autolaunch ")) {
     return autolaunchFailureChecks;
   }
@@ -2046,7 +2109,7 @@ const generatedFailureChecks = (command: string): readonly string[] => {
     return techtreeFailureChecks;
   }
 
-  if (command.startsWith("platform ") || command.startsWith("runtime ") || command.startsWith("work ") || command.startsWith("agent connect ") || command.startsWith("agent link") || command.startsWith("agent execution-pool")) {
+  if (command.startsWith("platform ") || command.startsWith("runtime ") || command.startsWith("work ") || command === "agent chat" || command.startsWith("agent connect ") || command.startsWith("agent link") || command.startsWith("agent execution-pool")) {
     return [
       "If the command says sign-in is missing, run `regents platform auth login`.",
       "If a company, runtime, worker, or work id is not found, copy it again from the Regent website or the previous command output.",
@@ -2124,7 +2187,7 @@ const summarizeCommand = (command: string): HelpEntry => {
     auth: detail ? generatedAuthText(detail, group) : group?.auth ?? "Check the command group help for sign-in needs.",
     output: detail ? generatedOutputText(detail) : "Prints command results. `--json` keeps output script-safe where supported.",
     nextStep: detail?.next_step ?? group?.nextStep ?? globalNextStep,
-    ifItFails: generatedFailureChecks(command),
+    ifItFails: generatedFailureChecks(command, detail),
   };
 };
 

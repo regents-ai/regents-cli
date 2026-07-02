@@ -1,5 +1,7 @@
 import {
+  runAgentChat,
   runAgentConnectHermes,
+  runAgentConnectHostedHermes,
   runAgentConnectOpenClaw,
   runAgentExecutionPool,
   runAgentLink,
@@ -7,6 +9,13 @@ import {
 import type { CliHandlerRegistry } from "./shared.js";
 
 export const platformAgentHandlers: CliHandlerRegistry = {
+  "agent chat": {
+    run: ({ parsedArgs }) => runAgentChat(parsedArgs),
+    variadicTail: true,
+  },
+  "agent connect hosted-hermes": {
+    run: ({ parsedArgs }) => runAgentConnectHostedHermes(parsedArgs),
+  },
   "agent connect hermes": {
     run: ({ parsedArgs, configPath }) => runAgentConnectHermes(parsedArgs, configPath),
   },

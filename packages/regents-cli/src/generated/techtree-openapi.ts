@@ -1885,6 +1885,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/techtree/v1/question-forge/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listQuestionForgeCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/techtree/v1/agent/runbook/payment-profile": {
         parameters: {
             query?: never;
@@ -2631,6 +2647,37 @@ export interface components {
         TransactionHash: string;
         LooseObject: {
             [key: string]: unknown;
+        };
+        QuestionForgeCandidateListResponse: {
+            /** @enum {boolean} */
+            ok: true;
+            candidates: components["schemas"]["QuestionForgeCandidate"][];
+        };
+        QuestionForgeCandidate: {
+            id: string;
+            proof_node_id: string;
+            proof_node_url: string;
+            service_slug: string | null;
+            service_name: string | null;
+            public_regent_identity: components["schemas"]["QuestionForgeCandidateRegentIdentity"];
+            skill_package: components["schemas"]["QuestionForgeCandidateSkillPackage"];
+            summary: string | null;
+            digest: string | null;
+            /** Format: date-time */
+            timestamp: string | null;
+            invocation_id: string | null;
+            public_result_policy: string | null;
+        };
+        QuestionForgeCandidateRegentIdentity: {
+            agent_slug: string | null;
+            display_name: string | null;
+            wallet_address: string | null;
+        };
+        QuestionForgeCandidateSkillPackage: {
+            id: string | null;
+            version: string | null;
+            title: string | null;
+            source_url: string | null;
         };
         X402PaymentBindingV1: {
             /** @enum {string} */
@@ -6116,6 +6163,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+            /** @description Wakeup already closed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
             /** @description Invalid wakeup completion request */
             422: {
                 headers: {
@@ -8335,6 +8391,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunbookProblemListResponse"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
+    listQuestionForgeCandidates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public Question Forge candidate proofs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionForgeCandidateListResponse"];
                 };
             };
             429: components["responses"]["RateLimitError"];

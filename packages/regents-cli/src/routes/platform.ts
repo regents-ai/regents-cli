@@ -13,6 +13,17 @@ import {
   runPlatformFormationStatus,
   runPlatformProjection,
 } from "../commands/platform.js";
+import {
+  runServiceCatalogCheck,
+  runServiceInit,
+  runServiceLogs,
+  runServicePause,
+  runServicePriceSet,
+  runServicePublish,
+  runServiceResume,
+  runServiceRuns,
+  runServiceTest,
+} from "../commands/platform-services.js";
 import type { CliHandlerRegistry } from "./shared.js";
 
 export const platformHandlers: CliHandlerRegistry = {
@@ -29,4 +40,13 @@ export const platformHandlers: CliHandlerRegistry = {
   "platform company runtime": { run: ({ parsedArgs }) => runPlatformCompanyRuntime(parsedArgs) },
   "platform company pause": { run: ({ parsedArgs }) => runPlatformCompanyPause(parsedArgs) },
   "platform company resume": { run: ({ parsedArgs }) => runPlatformCompanyResume(parsedArgs) },
+  "service init": { run: ({ parsedArgs }) => runServiceInit(parsedArgs) },
+  "service test": { run: ({ parsedArgs }) => runServiceTest(parsedArgs) },
+  "service price set": { run: ({ parsedArgs }) => runServicePriceSet(parsedArgs) },
+  "service publish": { run: ({ parsedArgs }) => runServicePublish(parsedArgs) },
+  "service pause": { run: ({ parsedArgs }) => runServicePause(parsedArgs) },
+  "service resume": { run: ({ parsedArgs }) => runServiceResume(parsedArgs) },
+  "service runs": { run: ({ parsedArgs }) => runServiceRuns(parsedArgs) },
+  "service logs": { run: ({ parsedArgs }) => runServiceLogs(parsedArgs) },
+  "service catalog check": { run: ({ parsedArgs }) => runServiceCatalogCheck(parsedArgs) },
 };

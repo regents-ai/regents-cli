@@ -6,9 +6,9 @@ This is the hard-cutover contract-first workflow for the shipped Regents CLI sur
 
 The portfolio release contract lives in:
 
-- [`regent-workspace.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-workspace.yaml)
+- [`meta/stack.yaml`](/Users/sean/Documents/regent/meta/stack.yaml)
 
-That file declares the required repos, owned domains, contract files, generated bindings, release checks, shared contract mirrors, money-movement rows, and incident classes. Cross-repo release checks read from that file instead of keeping separate path lists.
+That file declares the required repos, owned domains, contract files, generated bindings, release checks, shared contract mirrors, money-movement rows, and incident classes. Cross-repo release checks read from that file instead of keeping separate path lists. `pnpm check:meta` (aliased by `pnpm check:workspace`) validates it.
 
 Backend HTTP contracts now live in exactly four OpenAPI files:
 
@@ -36,13 +36,10 @@ Served contract copies are generated artifacts:
 - [`../../platform/priv/contracts/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/priv/contracts/api-contract.openapiv3.yaml) comes from [`../../platform/contracts/platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/api-contract.openapiv3.yaml)
 - [`../../platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/cli-contract.yaml) comes from [`../../platform/contracts/platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/cli-contract.yaml)
 - [`../../platform/priv/contracts/cli-contract.yaml`](/Users/sean/Documents/regent/platform/priv/contracts/cli-contract.yaml) comes from [`../../platform/contracts/platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/cli-contract.yaml)
-- [`../../techtree/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/techtree/docs/api-contract.openapiv3.yaml) comes from [`../../platform/contracts/techtree/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/api-contract.openapiv3.yaml)
-- [`../../techtree/docs/cli-contract.yaml`](/Users/sean/Documents/regent/techtree/docs/cli-contract.yaml) comes from [`../../platform/contracts/techtree/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/cli-contract.yaml)
-- [`../../autolaunch/docs/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/autolaunch/docs/api-contract.openapiv3.yaml) comes from [`../../platform/contracts/autolaunch/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/autolaunch/api-contract.openapiv3.yaml)
-- [`../../autolaunch/docs/cli-contract.yaml`](/Users/sean/Documents/regent/autolaunch/docs/cli-contract.yaml) comes from [`../../platform/contracts/autolaunch/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/autolaunch/cli-contract.yaml)
 - [`../../fly-sentinel/priv/static/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/fly-sentinel/priv/static/api-contract.openapiv3.yaml) comes from [`../../fly-sentinel/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/fly-sentinel/api-contract.openapiv3.yaml)
 - [`../../platform/contracts/shared/regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/shared/regent-services-contract.openapiv3.yaml) comes from [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml)
 - [`../../siwa-server/priv/static/regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/siwa-server/priv/static/regent-services-contract.openapiv3.yaml) comes from [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml)
+- [`../../platform/priv/static/install.sh`](/Users/sean/Documents/regent/platform/priv/static/install.sh) comes from [`../scripts/install.sh`](/Users/sean/Documents/regent/regents-cli/scripts/install.sh)
 
 Refresh these artifacts with:
 

@@ -132,6 +132,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/.well-known/regent-services.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["regentServicesDiscovery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/.well-known/x402.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["x402Discovery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api-contract.openapiv3.yaml": {
         parameters: {
             query?: never;
@@ -464,7 +496,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Create a hosted human-backed trust session for the current signed Regent agent. */
+        /** @description Create a hosted human-backed trust session for the current signed Regent agent. Requires a regent-services SIWA receipt. */
         post: operations["createAgentbookTrustSession"];
         delete?: never;
         options?: never;
@@ -479,6 +511,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** @description Read one hosted trust session for the current signed Regent agent. Requires a regent-services SIWA receipt. */
         get: operations["getAgentbookTrustSession"];
         put?: never;
         post?: never;
@@ -511,6 +544,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** @description Read the human-backed trust summary for the current signed Regent agent. Requires a regent-services SIWA receipt. */
         get: operations["lookupAgentbookTrust"];
         put?: never;
         post?: never;
@@ -560,6 +594,134 @@ export interface paths {
             cookie?: never;
         };
         get: operations["agentPlatformFeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceSchema"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}/sample": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceSample"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}/catalog-readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServicePublicCatalogReadiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}/call": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentPlatformServiceCall"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}/runs/{invocation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceInvocation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/services/{service_slug}/runs/{invocation_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceResult"];
         put?: never;
         post?: never;
         delete?: never;
@@ -985,6 +1147,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/agents/{slug}/service-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceDefinitions"];
+        put?: never;
+        post: operations["agentPlatformServiceDefinitionCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceDefinition"];
+        put: operations["agentPlatformServiceDefinitionUpdate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}/pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["agentPlatformServicePricingUpdate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}/sandbox-test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentPlatformServiceSandboxTest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentPlatformServicePublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentPlatformServicePause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["agentPlatformServiceResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}/catalog-readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceCatalogReadiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/agents/{slug}/service-definitions/{service_slug}/invocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agentPlatformServiceInvocationLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/platform/ens/claims/{claim_id}/prepare-upgrade": {
         parameters: {
             query?: never;
@@ -1171,6 +1477,26 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["agentPlatformResumeSprite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/sprites/{slug}/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send one message to a hosted Hermes agent
+         * @description Sends a single bounded message to the signed-in operator's hosted Hermes agent and returns the final reply. The request is not streaming and does not open an interactive session. Messages are capped at 6,000 characters, timeout is capped between 5 and 60 seconds, and replies are capped at 20,000 characters.
+         */
+        post: operations["agentPlatformMessageSprite"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2035,6 +2361,380 @@ export interface components {
                 message: string;
                 next_steps?: string | null;
             };
+        };
+        /** @enum {string} */
+        RegentServiceLifecycleStatus: "draft" | "sandbox" | "listed" | "paused" | "retired";
+        /**
+         * @description Callable Regent Service product kind.
+         * @default research
+         * @enum {string}
+         */
+        RegentServiceKind: "research" | "question_forge";
+        /** @enum {string} */
+        RegentServiceInvocationStatus: "quoted" | "payment_required" | "paid" | "queued" | "running" | "awaiting_review" | "completed" | "failed_refundable" | "failed_final";
+        /** @description Skill package selected for a paid Regent Service run. */
+        RegentServiceSkillPackage: {
+            id: string;
+            version: string;
+            title?: string | null;
+            source_url?: string | null;
+        };
+        /** @description Public menu/card record backed by platform_agent_services. */
+        RegentServiceCard: {
+            id: string;
+            agent_slug: string;
+            slug: string;
+            name: string;
+            summary: string;
+            price_label: string;
+            /** @enum {string} */
+            payment_rail: "x402" | "invoice" | "manual" | "free";
+            /** @enum {string} */
+            delivery_mode: "async_result" | "public_artifact" | "private_delivery" | "manual";
+            public_result_default: boolean;
+            /** @enum {string} */
+            status: "draft" | "listed" | "paused" | "retired";
+        };
+        /** @description Owner input for creating or updating the public Regent Service Card. */
+        RegentServiceCardInput: {
+            slug: string;
+            name: string;
+            summary: string;
+            price_label: string;
+            /** @enum {string} */
+            payment_rail: "x402" | "invoice" | "manual" | "free";
+            /** @enum {string} */
+            delivery_mode: "async_result" | "public_artifact" | "private_delivery" | "manual";
+            public_result_default: boolean;
+        };
+        RegentServicePrice: {
+            /** @enum {string} */
+            currency: "USDC";
+            amount: string;
+            network: string;
+            settlement_asset: string;
+            pay_to: string;
+            /** @enum {string} */
+            payment_protocol: "x402";
+            quote_ttl_seconds: number;
+            terms_hash?: string | null;
+        };
+        RegentServiceProofPolicy: {
+            publish_techtree_proof: boolean;
+            /** @enum {string} */
+            proof_route_owner: "techtree";
+            /** @enum {string} */
+            sanitized_artifact_kind: "regent.platform.service_result.v1";
+        };
+        RegentServiceProofArtifactReference: {
+            kind: string;
+            url: string;
+            digest: string | null;
+        };
+        /** @description Sanitized Techtree proof artifact for a completed Regent Service result. */
+        RegentServiceResultProofEnvelope: {
+            /** @enum {string} */
+            schema: "regent.platform.service_result.v1";
+            service_kind: components["schemas"]["RegentServiceKind"];
+            agent_slug: string;
+            service_slug: string;
+            service_name: string | null;
+            template_kind: string | null;
+            skill_package: components["schemas"]["RegentServiceSkillPackage"] | null;
+            invocation_id: string;
+            result_id: string | null;
+            digest: string;
+            summary: string | null;
+            /** Format: date-time */
+            created_at: string;
+            public_result_policy: string;
+            question_forge_candidate: boolean;
+            public_metrics: {
+                [key: string]: string | number | boolean | null;
+            };
+            artifact: components["schemas"]["RegentServiceProofArtifactReference"] | null;
+        };
+        /** @description Callable Regent Service setup linked to one public Regent Service Card. */
+        RegentServiceDefinition: {
+            id: string;
+            agent_slug: string;
+            service_slug: string;
+            kind: components["schemas"]["RegentServiceKind"];
+            skill_package: components["schemas"]["RegentServiceSkillPackage"] | null;
+            card: components["schemas"]["RegentServiceCard"];
+            status: components["schemas"]["RegentServiceLifecycleStatus"];
+            /** @enum {string} */
+            invocation_mode: "async_202";
+            /** @description Existing Regent Work Runtime work template used by paid calls. */
+            rwr_template: string;
+            runner_kind?: components["schemas"]["RunnerKind"] | null;
+            payment: components["schemas"]["RegentServicePrice"] | null;
+            proof: components["schemas"]["RegentServiceProofPolicy"];
+            links: {
+                details: string;
+                schema: string;
+                health: string;
+                sample: string;
+                readiness: string;
+                call: string;
+                invocation_template: string;
+                result_template: string;
+            };
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        RegentServiceSchema: {
+            service_slug: string;
+            request_schema: {
+                [key: string]: unknown;
+            };
+            result_schema: {
+                [key: string]: unknown;
+            };
+        };
+        RegentServiceHealth: {
+            /** @enum {string} */
+            status: "ready" | "degraded" | "paused" | "not_ready";
+            /** Format: date-time */
+            checked_at: string;
+            card_status: string;
+            definition_status: components["schemas"]["RegentServiceLifecycleStatus"];
+            runtime_status: string;
+        };
+        RegentServiceSample: {
+            service_slug: string;
+            request: {
+                [key: string]: unknown;
+            };
+            expected_result_summary: string;
+        };
+        RegentServiceCallRequest: {
+            input: {
+                [key: string]: unknown;
+            };
+            client_reference?: string | null;
+            /** @default false */
+            proof_requested: boolean;
+        };
+        RegentServicePaymentReference: {
+            /** @enum {string} */
+            protocol: "x402";
+            payment_hash: string | null;
+            receipt_id: string | null;
+        };
+        RegentServiceRwrReference: {
+            work_item_id: number | null;
+            work_run_id: number | null;
+        };
+        RegentServiceInvocation: {
+            invocation_id: string;
+            agent_slug: string;
+            service_slug: string;
+            service_kind: components["schemas"]["RegentServiceKind"];
+            skill_package_snapshot: components["schemas"]["RegentServiceSkillPackage"] | null;
+            status: components["schemas"]["RegentServiceInvocationStatus"];
+            payment: components["schemas"]["RegentServicePaymentReference"];
+            rwr: components["schemas"]["RegentServiceRwrReference"];
+            result_url: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        RegentServiceResult: {
+            invocation_id: string;
+            service_kind: components["schemas"]["RegentServiceKind"];
+            skill_package_snapshot: components["schemas"]["RegentServiceSkillPackage"] | null;
+            status: components["schemas"]["RegentServiceInvocationStatus"];
+            summary: string | null;
+            output: {
+                [key: string]: unknown;
+            };
+            digest: string | null;
+            signature: string | null;
+            artifacts: {
+                kind: string;
+                url: string;
+                digest: string | null;
+            }[];
+            proof: {
+                published: boolean;
+                techtree_url: string | null;
+                techtree_node_id: string | null;
+            };
+        };
+        RegentServiceDetailsResponse: {
+            /** @constant */
+            ok: true;
+            service: components["schemas"]["RegentServiceDefinition"];
+        };
+        RegentServiceSchemaResponse: {
+            /** @constant */
+            ok: true;
+            schema: components["schemas"]["RegentServiceSchema"];
+        };
+        RegentServiceHealthResponse: {
+            /** @constant */
+            ok: true;
+            health: components["schemas"]["RegentServiceHealth"];
+        };
+        RegentServiceSampleResponse: {
+            /** @constant */
+            ok: true;
+            sample: components["schemas"]["RegentServiceSample"];
+        };
+        RegentServiceCallAcceptedResponse: {
+            /** @constant */
+            ok: true;
+            invocation: components["schemas"]["RegentServiceInvocation"];
+            result_url: string;
+        };
+        RegentServiceInvocationResponse: {
+            /** @constant */
+            ok: true;
+            invocation: components["schemas"]["RegentServiceInvocation"];
+        };
+        RegentServiceResultResponse: {
+            /** @constant */
+            ok: true;
+            result: components["schemas"]["RegentServiceResult"];
+        };
+        RegentServiceDefinitionListResponse: {
+            /** @constant */
+            ok: true;
+            agent_slug: string;
+            services: components["schemas"]["RegentServiceDefinition"][];
+        };
+        RegentServiceDefinitionResponse: {
+            /** @constant */
+            ok: true;
+            service: components["schemas"]["RegentServiceDefinition"];
+        };
+        RegentServiceDefinitionUpsertRequest: {
+            service_slug: string;
+            kind?: components["schemas"]["RegentServiceKind"];
+            /** @description Required when kind is question_forge. */
+            skill_package?: components["schemas"]["RegentServiceSkillPackage"] | null;
+            card: components["schemas"]["RegentServiceCardInput"];
+            schema: components["schemas"]["RegentServiceSchema"];
+            payment?: components["schemas"]["RegentServicePrice"];
+            rwr_template: string;
+            proof?: components["schemas"]["RegentServiceProofPolicy"];
+        };
+        RegentServicePricingUpdateRequest: {
+            payment: components["schemas"]["RegentServicePrice"];
+        };
+        RegentServiceSandboxTestRequest: {
+            input?: {
+                [key: string]: unknown;
+            };
+        };
+        RegentServiceSandboxTestResponse: {
+            /** @constant */
+            ok: true;
+            invocation: components["schemas"]["RegentServiceInvocation"];
+        };
+        RegentServiceCatalogReadinessResponse: {
+            /** @constant */
+            ok: true;
+            service_slug: string;
+            ready: boolean;
+            checks: {
+                key: string;
+                /** @enum {string} */
+                status: "pass" | "warn" | "fail";
+                message: string;
+            }[];
+            metrics: components["schemas"]["RegentServiceCatalogReadinessMetrics"];
+        };
+        RegentServiceCatalogReadinessMetrics: {
+            x402_challenge_valid: boolean;
+            schema_valid: boolean;
+            /** @enum {string} */
+            payment_resource: "configured" | "missing";
+            /** Format: date-time */
+            first_settlement: string | null;
+            /** Format: date-time */
+            last_paid_call: string | null;
+            /** @enum {string} */
+            health_probe_status: "ready" | "degraded" | "paused" | "not_ready" | "not_checked";
+            p95_latency_ms: number | null;
+            failure_rate: number | null;
+            refund_rate: number | null;
+        };
+        RegentServiceInvocationLogResponse: {
+            /** @constant */
+            ok: true;
+            invocations: components["schemas"]["RegentServiceInvocation"][];
+        };
+        RegentServicesDiscovery: {
+            /** @constant */
+            ok: true;
+            /** Format: date-time */
+            generated_at: string;
+            services: components["schemas"]["RegentServiceDefinition"][];
+            links: {
+                x402: string;
+            };
+        };
+        RegentServiceX402Discovery: {
+            /** @constant */
+            ok: true;
+            /** @enum {integer} */
+            x402_version: 2;
+            /** @enum {string} */
+            payment_required_header: "payment-required";
+            /** @enum {string} */
+            payment_response_header: "payment-response";
+            buyer_commands: string[];
+        };
+        RegentServiceX402PaymentBindingV1: {
+            /** @enum {string} */
+            version: "PaymentBindingV1";
+            resource_id: string;
+            buyer_agent_id: string | null;
+            seller_agent_id: string | null;
+            network: string;
+            asset: string;
+            amount_atomic: string;
+            pay_to: string;
+            /** Format: date-time */
+            expires_at: string | null;
+            nonce: string;
+            binding_hash: string;
+        };
+        RegentServiceX402PaymentResource: {
+            id: string;
+            url: string;
+            description: string;
+            mimeType: string;
+            /** @enum {string} */
+            serviceName: "platform";
+            bindingHash: string;
+        };
+        RegentServiceX402PaymentRequirements: {
+            /** @enum {string} */
+            scheme: "batch-settlement";
+            network: string;
+            asset: string;
+            amount: string;
+            payTo: string;
+            maxTimeoutSeconds: number;
+            extra: {
+                receiverAuthorizer: string;
+                withdrawDelay: number;
+                name: string;
+                version: string;
+                regentPaymentBindingV1: components["schemas"]["RegentServiceX402PaymentBindingV1"];
+            };
+        };
+        RegentServiceX402PaymentRequired: {
+            /** @enum {integer} */
+            x402Version: 2;
+            resource: components["schemas"]["RegentServiceX402PaymentResource"];
+            accepts: components["schemas"]["RegentServiceX402PaymentRequirements"][];
         };
         McpJsonRpcRequest: {
             /** @enum {string} */
@@ -3263,6 +3963,28 @@ export interface components {
             observed_runtime_state: string;
             runtime_status: string;
         };
+        SpriteMessageRequest: {
+            /** @description Single message to send to the hosted Hermes agent. */
+            message: string;
+            /**
+             * @description Maximum time to wait for the reply.
+             * @default 30
+             */
+            timeout_seconds: number;
+        };
+        SpriteMessageResponse: {
+            /** @constant */
+            ok: true;
+            slug: string;
+            reply: string;
+            run: {
+                runtime_id: string;
+                exit_code: number;
+                elapsed_ms: number;
+                timeout_seconds: number;
+                output_truncated: boolean;
+            };
+        };
         CurrentHuman: {
             id: number;
             privy_user_id: string;
@@ -3457,19 +4179,28 @@ export interface components {
             sprite_owner: string;
             sprite_service_name: string;
             workspace_http_port: number;
+            /** @description Hermes provider key declared under `providers.<id>` in the hosted runtime config. */
             hermes_provider_id: string;
             hermes_provider_display_name: string;
             /** Format: uri */
             hermes_auth_server: string;
-            /** Format: uri */
+            /**
+             * Format: uri
+             * @description Absolute hosted-runtime LLM endpoint derived from the public Platform origin.
+             */
             hermes_base_url: string;
+            /** @description Hermes provider transport, currently `codex_responses` for the Regent billing gateway. */
             hermes_transport: string;
+            /** @description True when the provider is keyed by the runtime billing token through the provider key env var. */
             hermes_requires_env_var: boolean;
             hermes_adapter_type: string;
             hermes_model: string;
             hermes_persist_session: boolean;
+            /** @description Hermes toolsets delivered into the hosted runtime profile. */
             hermes_toolsets: string[];
+            /** @description Hermes user plugins materialized under `~/.hermes/plugins/` during runtime bootstrap. */
             hermes_runtime_plugins: string[];
+            /** @description Hermes shared skills materialized under `~/.hermes/skills/` during runtime bootstrap. */
             hermes_shared_skills: string[];
             company_purpose: string;
             hermes_worker_role: string;
@@ -3541,8 +4272,11 @@ export interface components {
             hermes_adapter_type?: string | null;
             hermes_model?: string | null;
             hermes_persist_session?: boolean;
+            /** @description Hermes toolsets delivered into the hosted runtime profile. */
             hermes_toolsets?: string[];
+            /** @description Hermes user plugins materialized under `~/.hermes/plugins/` during runtime bootstrap. */
             hermes_runtime_plugins?: string[];
+            /** @description Hermes shared skills materialized under `~/.hermes/skills/` during runtime bootstrap. */
             hermes_shared_skills?: string[];
             runtime_status: string;
             checkpoint_status: string;
@@ -3584,22 +4318,31 @@ export interface components {
             };
             hermes: {
                 status: string;
+                /** @description Hermes provider key declared under `providers.<id>` in the hosted runtime config. */
                 provider_id: string;
                 provider_display_name: string;
                 auth_type: string;
                 /** Format: uri */
                 auth_server: string;
-                /** Format: uri */
+                /**
+                 * Format: uri
+                 * @description Absolute hosted-runtime LLM endpoint derived from the public Platform origin.
+                 */
                 base_url: string;
+                /** @description Hermes provider transport, currently `codex_responses` for the Regent billing gateway. */
                 transport: string;
+                /** @description True when the provider is keyed by the runtime billing token through the provider key env var. */
                 requires_env_var: boolean;
                 login_command: string;
                 remote_login_command: string;
                 adapter_type: string;
                 model: string;
                 persist_session: boolean;
+                /** @description Hermes toolsets delivered into the hosted runtime profile. */
                 toolsets: string[];
+                /** @description Hermes user plugins materialized under `~/.hermes/plugins/` during runtime bootstrap. */
                 runtime_plugins: string[];
+                /** @description Hermes shared skills materialized under `~/.hermes/skills/` during runtime bootstrap. */
                 shared_skills: string[];
             };
             voice: {
@@ -3771,6 +4514,15 @@ export interface components {
                 "application/json": components["schemas"]["StatusMessage"];
             };
         };
+        /** @description Request timeout */
+        StatusMessage408: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["StatusMessage"];
+            };
+        };
         /** @description Conflict */
         StatusMessage409: {
             headers: {
@@ -3820,6 +4572,12 @@ export interface components {
         };
     };
     parameters: {
+        /** @description Published Regent company slug. */
+        AgentSlug: string;
+        /** @description Regent Service slug within the company. */
+        ServiceSlug: string;
+        /** @description Regent Service invocation id. */
+        InvocationId: string;
         SessionId: string;
         CompanyId: string;
         ChatScope: components["schemas"]["ChatScopeValue"];
@@ -3996,6 +4754,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    regentServicesDiscovery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public Regent Services catalog for published callable services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServicesDiscovery"];
+                };
+            };
+        };
+    };
+    x402Discovery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public x402 payment discovery for Regent Service buyers. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceX402Discovery"];
                 };
             };
         };
@@ -4764,6 +5562,253 @@ export interface operations {
             404: components["responses"]["StatusMessage404"];
         };
     };
+    agentPlatformServiceDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public Regent Service card and callable definition details. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDetailsResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceSchema: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public request and result schemas for one Regent Service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceSchemaResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public readiness and availability snapshot for one Regent Service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceHealthResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceSample: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Safe sample request and result summary for one Regent Service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceSampleResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServicePublicCatalogReadiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public-safe catalog readiness checklist and metrics for one Regent Service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceCatalogReadinessResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceCall: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegentServiceCallRequest"];
+            };
+        };
+        responses: {
+            /** @description Paid invocation accepted and queued for asynchronous Regent Work Runtime execution. */
+            202: {
+                headers: {
+                    /** @description Base64 encoded x402 payment receipt accepted by Platform. */
+                    "payment-response"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceCallAcceptedResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            /** @description x402 payment required for this Regent Service call. */
+            402: {
+                headers: {
+                    /** @description Base64 encoded x402 payment terms. */
+                    "payment-required"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusMessage"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceInvocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+                /** @description Regent Service invocation id. */
+                invocation_id: components["parameters"]["InvocationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invocation status for one Regent Service call. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceInvocationResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceResult: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+                /** @description Regent Service invocation id. */
+                invocation_id: components["parameters"]["InvocationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Signed or digested result for a completed Regent Service invocation. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceResultResponse"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
     privySessionCreate: {
         parameters: {
             query?: never;
@@ -5469,6 +6514,348 @@ export interface operations {
             429: components["responses"]["StatusMessage429"];
         };
     };
+    agentPlatformServiceDefinitions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owner list of callable Regent Service definitions for one company. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionListResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceDefinitionCreate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegentServiceDefinitionUpsertRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent Service definition saved for owner review. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceDefinition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owner details for one callable Regent Service definition. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceDefinitionUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegentServiceDefinitionUpsertRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent Service definition updated for owner review. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServicePricingUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegentServicePricingUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Regent Service price saved. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceSandboxTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RegentServiceSandboxTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Sandbox test queued for asynchronous Regent Work Runtime execution. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceSandboxTestResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServicePublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regent Service is listed in the public catalog when readiness checks pass. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServicePause: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regent Service is paused and hidden from paid calls. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceResume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regent Service is returned to the public catalog when readiness checks pass. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceDefinitionResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            409: components["responses"]["StatusMessage409"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceCatalogReadiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owner readiness checklist for publishing one Regent Service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceCatalogReadinessResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformServiceInvocationLogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Published Regent company slug. */
+                slug: components["parameters"]["AgentSlug"];
+                /** @description Regent Service slug within the company. */
+                service_slug: components["parameters"]["ServiceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owner log of invocations for one Regent Service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegentServiceInvocationLogResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
     agentPlatformEnsPrepareUpgrade: {
         parameters: {
             query?: never;
@@ -5861,6 +7248,39 @@ export interface operations {
             402: components["responses"]["StatusMessage402"];
             403: components["responses"]["StatusMessage403"];
             404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+            503: components["responses"]["StatusMessage503"];
+        };
+    };
+    agentPlatformMessageSprite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpriteMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Hosted Hermes reply */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpriteMessageResponse"];
+                };
+            };
+            400: components["responses"]["StatusMessage400"];
+            401: components["responses"]["StatusMessage401"];
+            403: components["responses"]["StatusMessage403"];
+            404: components["responses"]["StatusMessage404"];
+            408: components["responses"]["StatusMessage408"];
             429: components["responses"]["StatusMessage429"];
             503: components["responses"]["StatusMessage503"];
         };

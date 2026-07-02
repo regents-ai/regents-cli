@@ -42,6 +42,24 @@ describe("product HTTP client", () => {
     ).rejects.toThrow("Choose a supported value.");
   });
 
+  it("uses Phoenix error detail bodies when no Regent error envelope is present", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-product-http-"));
+    const config = defaultConfig(path.join(tempDir, "config.json"));
+
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ errors: { detail: "Not Found" } }), {
+        status: 404,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      requestProductJson("GET", "/api/test", { service: "platform", config }),
+    ).rejects.toThrow("Not Found");
+  });
+
   it("adds stable Regent CLI identity headers to product requests", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-product-http-"));
     const config = defaultConfig(path.join(tempDir, "config.json"));

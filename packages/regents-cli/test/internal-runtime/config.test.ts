@@ -24,9 +24,9 @@ describe("config loading", () => {
     expect(config.runtime.socketPath).toBe(path.join(tempDir, "run", "regent.sock"));
     expect(config.wallet.keystorePath).toBe(path.join(tempDir, "keys", "agent-wallet.json"));
     expect(config.gossipsub.peerIdPath).toBe(path.join(tempDir, "p2p", "peer-id.json"));
-    expect(config.services.platform.baseUrl).toBe("http://127.0.0.1:4000");
-    expect(config.services.techtree.baseUrl).toBe("http://127.0.0.1:4000");
-    expect(config.services.autolaunch.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(config.services.platform.baseUrl).toBe("https://regents.sh");
+    expect(config.services.techtree.baseUrl).toBe("https://regents.sh");
+    expect(config.services.autolaunch.baseUrl).toBe("https://regents.sh");
   });
 
   it("merges partial config with defaults and normalizes paths", () => {
@@ -51,7 +51,7 @@ describe("config loading", () => {
     const config = loadConfig(configPath);
 
     expect(config.services.techtree.baseUrl).toBe("http://127.0.0.1:4100");
-    expect(config.services.siwa.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(config.services.siwa.baseUrl).toBe("https://siwa-server.fly.dev");
     expect(config.runtime.logLevel).toBe("debug");
     expect(path.isAbsolute(config.runtime.socketPath)).toBe(true);
     expect(config.wallet.privateKeyEnv).toBe(defaultConfig().wallet.privateKeyEnv);

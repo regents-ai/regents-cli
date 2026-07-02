@@ -8,6 +8,10 @@ import { describe, expect, it } from "vitest";
 const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const readYaml = (path: string) => YAML.parse(fs.readFileSync(path, "utf8"));
 
+type StackContract = {
+  chain_contract_manifests?: Array<{ id?: string; path?: string }>;
+};
+
 describe("Regent meta control plane", () => {
   it("requires active repos to have repo.yaml", () => {
     const stack = readYaml(resolve(workspaceRoot, "meta/stack.yaml"));
@@ -29,10 +33,15 @@ describe("Regent meta control plane", () => {
   });
 
   it("keeps chain manifest prepared actions attached to ABI functions", () => {
-    for (const manifestPath of [
-      resolve(workspaceRoot, "platform/contracts/chain-contracts.yaml"),
-      resolve(workspaceRoot, "techtree/contracts/chain-contracts.yaml"),
-    ]) {
+    const stack = readYaml(resolve(workspaceRoot, "meta/stack.yaml")) as StackContract;
+    const manifestPaths = (stack.chain_contract_manifests ?? []).map((entry) => {
+      expect(entry.path, entry.id ?? "chain manifest").toBeDefined();
+      return resolve(workspaceRoot, entry.path!);
+    });
+
+    expect(manifestPaths.length).toBeGreaterThan(0);
+
+    for (const manifestPath of manifestPaths) {
       const manifest = readYaml(manifestPath);
       for (const contract of manifest.contracts) {
         const artifactPath = resolve(dirname(manifestPath), contract.artifact);

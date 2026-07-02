@@ -2,7 +2,9 @@
 // Source: CLI contract YAML files.
 
 export const CLI_COMMANDS = [
+  "agent chat",
   "agent connect hermes",
+  "agent connect hosted-hermes",
   "agent connect openclaw",
   "agent execution-pool",
   "agent harness list",
@@ -25,9 +27,6 @@ export const CLI_COMMANDS = [
   "autolaunch auction claim-unused-tokens",
   "autolaunch auction-returns list",
   "autolaunch auctions list",
-  "autolaunch bids claim",
-  "autolaunch bids exit",
-  "autolaunch bids place",
   "autolaunch bids quote",
   "autolaunch chat list",
   "autolaunch chat read <scope>",
@@ -94,18 +93,11 @@ export const CLI_COMMANDS = [
   "autolaunch strategy sweep-token",
   "autolaunch subjects buybacks",
   "autolaunch subjects by-token",
-  "autolaunch subjects claim-usdc",
-  "autolaunch subjects create-deferred-autolaunch",
-  "autolaunch subjects create-existing-token",
   "autolaunch subjects get",
   "autolaunch subjects ingress",
   "autolaunch subjects payment-links",
-  "autolaunch subjects regent-emissions",
-  "autolaunch subjects settle-buyback",
-  "autolaunch subjects stake",
   "autolaunch subjects staking",
   "autolaunch subjects sweep-ingress",
-  "autolaunch subjects unstake",
   "autolaunch subjects verify",
   "autolaunch vesting cancel-beneficiary-rotation",
   "autolaunch vesting execute-beneficiary-rotation",
@@ -183,6 +175,15 @@ export const CLI_COMMANDS = [
   "runtime status",
   "runtime tools",
   "security-report",
+  "service catalog check",
+  "service init",
+  "service logs",
+  "service pause",
+  "service price set",
+  "service publish",
+  "service resume",
+  "service runs",
+  "service test",
   "settings",
   "setup",
   "setup skills",
@@ -360,7 +361,9 @@ export const CLI_COMMANDS = [
 
 export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   "agent": [
+    "agent chat",
     "agent connect hermes",
+    "agent connect hosted-hermes",
     "agent connect openclaw",
     "agent execution-pool",
     "agent harness list",
@@ -391,9 +394,6 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch auction claim-unused-tokens",
     "autolaunch auction-returns list",
     "autolaunch auctions list",
-    "autolaunch bids claim",
-    "autolaunch bids exit",
-    "autolaunch bids place",
     "autolaunch bids quote",
     "autolaunch chat list",
     "autolaunch chat read <scope>",
@@ -460,18 +460,11 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch strategy sweep-token",
     "autolaunch subjects buybacks",
     "autolaunch subjects by-token",
-    "autolaunch subjects claim-usdc",
-    "autolaunch subjects create-deferred-autolaunch",
-    "autolaunch subjects create-existing-token",
     "autolaunch subjects get",
     "autolaunch subjects ingress",
     "autolaunch subjects payment-links",
-    "autolaunch subjects regent-emissions",
-    "autolaunch subjects settle-buyback",
-    "autolaunch subjects stake",
     "autolaunch subjects staking",
     "autolaunch subjects sweep-ingress",
-    "autolaunch subjects unstake",
     "autolaunch subjects verify",
     "autolaunch vesting cancel-beneficiary-rotation",
     "autolaunch vesting execute-beneficiary-rotation",
@@ -587,6 +580,17 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   ],
   "security-report": [
     "security-report"
+  ],
+  "service": [
+    "service catalog check",
+    "service init",
+    "service logs",
+    "service pause",
+    "service price set",
+    "service publish",
+    "service resume",
+    "service runs",
+    "service test"
   ],
   "settings": [
     "settings"
@@ -786,12 +790,78 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
 } as const;
 
 export const CLI_COMMAND_DETAILS_BY_COMMAND = {
+  "agent chat": {
+    "command": "agent chat",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "message",
+        "type": "string",
+        "required": true,
+        "description": "Message to send."
+      },
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": false,
+        "description": "Company slug. Required only when the saved session owns more than one company."
+      },
+      {
+        "name": "--timeout-seconds",
+        "type": "integer",
+        "required": false,
+        "default": 30,
+        "description": "Maximum time to wait for the reply."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Send one message to a hosted Hermes agent and print the reply.",
+      "operation_ids": [
+        "agentPlatformMessageSprite"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Send one message to a hosted Hermes agent and print the reply."
+  },
   "agent connect hermes": {
     "command": "agent connect hermes",
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "platform",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -818,11 +888,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "description": "Worker role."
       },
       {
-        "name": "--write-connector",
+        "name": "--write-plugin",
         "type": "boolean",
         "required": false,
         "default": true,
-        "description": "Write the local Hermes connector files."
+        "description": "Write the local Hermes plugin and skill files."
       }
     ],
     "examples": [
@@ -840,21 +910,83 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Connect a Hermes worker to one Regent company.",
+      "summary": "Connect local Hermes as a worker for one Regent company.",
       "operation_ids": [
         "registerRwrWorker"
       ],
       "transport_kind": "http",
-      "auth_mode": "agent-siwa"
+      "auth_mode": "agent-siwa",
+      "auth_audience": "platform"
     },
-    "summary": "Connect a Hermes worker to one Regent company."
+    "summary": "Connect local Hermes as a worker for one Regent company."
+  },
+  "agent connect hosted-hermes": {
+    "command": "agent connect hosted-hermes",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--company-id",
+        "type": "string",
+        "required": true,
+        "description": "Regent company id."
+      },
+      {
+        "name": "--runtime-id",
+        "type": "string",
+        "required": true,
+        "description": "Hosted Hermes runtime id."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Inspect one hosted Hermes runtime for a Regent company.",
+      "operation_ids": [
+        "getRwrRuntime",
+        "listRwrRuntimeServices",
+        "getRwrRuntimeHealth"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Inspect one hosted Hermes runtime for a Regent company."
   },
   "agent connect openclaw": {
     "command": "agent connect openclaw",
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "platform",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -908,7 +1040,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "registerRwrWorker"
       ],
       "transport_kind": "http",
-      "auth_mode": "agent-siwa"
+      "auth_mode": "agent-siwa",
+      "auth_audience": "platform"
     },
     "summary": "Connect a local OpenClaw worker to one Regent company."
   },
@@ -917,7 +1050,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -1037,7 +1170,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -1265,7 +1398,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "examples": [
       "regents platform auth status",
@@ -1296,7 +1429,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -1336,7 +1469,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -1679,159 +1812,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "List auctions."
-  },
-  "autolaunch bids claim": {
-    "command": "autolaunch bids claim",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--tx-hash",
-        "type": "string",
-        "required": true,
-        "description": "Transaction hash of the onchain action."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Claim bids."
-  },
-  "autolaunch bids exit": {
-    "command": "autolaunch bids exit",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--tx-hash",
-        "type": "string",
-        "required": true,
-        "description": "Transaction hash of the onchain action."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Exit bids."
-  },
-  "autolaunch bids place": {
-    "command": "autolaunch bids place",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--auction",
-        "type": "string",
-        "required": true,
-        "description": "Auction id."
-      },
-      {
-        "name": "--amount",
-        "type": "string",
-        "required": true,
-        "description": "Bid amount in quote token base units."
-      },
-      {
-        "name": "--max-price",
-        "type": "string",
-        "required": true,
-        "description": "Highest price you accept, in quote token base units."
-      },
-      {
-        "name": "--tx-hash",
-        "type": "string",
-        "required": true,
-        "description": "Transaction hash of the onchain action."
-      },
-      {
-        "name": "--current-clearing-price",
-        "type": "string",
-        "required": false,
-        "description": "Clearing price shown when the bid was placed."
-      },
-      {
-        "name": "--projected-clearing-price",
-        "type": "string",
-        "required": false,
-        "description": "Projected clearing price shown when the bid was placed."
-      },
-      {
-        "name": "--estimated-tokens-if-end-now",
-        "type": "string",
-        "required": false,
-        "description": "Token estimate shown if the auction ended now."
-      },
-      {
-        "name": "--estimated-tokens-if-no-other-bids-change",
-        "type": "string",
-        "required": false,
-        "description": "Token estimate shown if no other bids change."
-      },
-      {
-        "name": "--inactive-above-price",
-        "type": "string",
-        "required": false,
-        "description": "Price above which the bid goes inactive."
-      },
-      {
-        "name": "--status-band",
-        "type": "string",
-        "required": false,
-        "description": "Status band shown when the bid was placed."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Place bids."
   },
   "autolaunch bids quote": {
     "command": "autolaunch bids quote",
@@ -3431,8 +3411,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       {
         "name": "--salt",
         "type": "bytes32",
-        "required": false,
-        "description": "Optional deterministic creation salt."
+        "required": true,
+        "description": "Deterministic creation salt."
       },
       {
         "name": "--submit",
@@ -4670,195 +4650,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show Autolaunch subjects by token."
   },
-  "autolaunch subjects claim-usdc": {
-    "command": "autolaunch subjects claim-usdc",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--submit",
-        "type": "boolean",
-        "required": false,
-        "description": "Sign and submit the prepared transaction with the local wallet instead of only preparing it."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Claim USDC for subjects."
-  },
-  "autolaunch subjects create-deferred-autolaunch": {
-    "command": "autolaunch subjects create-deferred-autolaunch",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--token-name",
-        "type": "string",
-        "required": true,
-        "description": "New token name."
-      },
-      {
-        "name": "--token-symbol",
-        "type": "string",
-        "required": true,
-        "description": "New token symbol."
-      },
-      {
-        "name": "--total-supply",
-        "type": "string",
-        "required": true,
-        "description": "Total token supply."
-      },
-      {
-        "name": "--treasury",
-        "type": "address",
-        "required": true,
-        "description": "Treasury that receives vested tokens and revenue."
-      },
-      {
-        "name": "--token-factory-data",
-        "type": "bytes",
-        "required": false,
-        "description": "Optional token factory call data."
-      },
-      {
-        "name": "--token-factory-salt",
-        "type": "bytes32",
-        "required": false,
-        "description": "Optional deterministic token factory salt."
-      },
-      {
-        "name": "--subject-label",
-        "type": "string",
-        "required": true,
-        "description": "Subject label."
-      },
-      {
-        "name": "--identity-chain-id",
-        "type": "integer",
-        "required": false,
-        "description": "Optional ERC-8004 identity chain ID."
-      },
-      {
-        "name": "--identity-registry",
-        "type": "address",
-        "required": false,
-        "description": "Optional ERC-8004 registry address."
-      },
-      {
-        "name": "--identity-agent-id",
-        "type": "integer",
-        "required": false,
-        "description": "Optional ERC-8004 agent token ID."
-      },
-      {
-        "name": "--submit",
-        "type": "boolean",
-        "required": false,
-        "description": "Submit the prepared transaction with the configured wallet."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Create deferred Autolaunch for subjects."
-  },
-  "autolaunch subjects create-existing-token": {
-    "command": "autolaunch subjects create-existing-token",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--stake-token",
-        "type": "address",
-        "required": true,
-        "description": "Existing token address."
-      },
-      {
-        "name": "--treasury",
-        "type": "address",
-        "required": true,
-        "description": "Treasury that receives the subject revenue lane."
-      },
-      {
-        "name": "--staker-pool-bps",
-        "type": "integer",
-        "required": true,
-        "description": "Share of the post-fee lane reserved for token stakers."
-      },
-      {
-        "name": "--label",
-        "type": "string",
-        "required": true,
-        "description": "Subject label."
-      },
-      {
-        "name": "--salt",
-        "type": "bytes32",
-        "required": false,
-        "description": "Optional deterministic creation salt."
-      },
-      {
-        "name": "--submit",
-        "type": "boolean",
-        "required": false,
-        "description": "Submit the prepared transaction with the configured wallet."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Create existing token for subjects."
-  },
   "autolaunch subjects get": {
     "command": "autolaunch subjects get",
     "owner": "autolaunch",
@@ -4934,121 +4725,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Show Autolaunch subjects payment links."
   },
-  "autolaunch subjects regent-emissions": {
-    "command": "autolaunch subjects regent-emissions",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Show Autolaunch subjects REGENT emissions."
-  },
-  "autolaunch subjects settle-buyback": {
-    "command": "autolaunch subjects settle-buyback",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--amount-usdc",
-        "type": "string",
-        "required": true,
-        "description": "Pending USDC amount to settle into REGENT."
-      },
-      {
-        "name": "--min-regent-out",
-        "type": "string",
-        "required": true,
-        "description": "Minimum REGENT output accepted by the settlement."
-      },
-      {
-        "name": "--submit",
-        "type": "boolean",
-        "required": false,
-        "description": "Submit the prepared transaction with the configured wallet."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Show Autolaunch subjects settle buyback."
-  },
-  "autolaunch subjects stake": {
-    "command": "autolaunch subjects stake",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--amount",
-        "type": "string",
-        "required": true,
-        "description": "Amount of subject tokens to stake."
-      },
-      {
-        "name": "--receiver",
-        "type": "string",
-        "required": false,
-        "description": "Optional wallet address or ENS name that receives the stake position."
-      },
-      {
-        "name": "--submit",
-        "type": "boolean",
-        "required": false,
-        "description": "Submit the prepared transaction with the configured wallet."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Stake subjects."
-  },
   "autolaunch subjects staking": {
     "command": "autolaunch subjects staking",
     "owner": "autolaunch",
@@ -5112,45 +4788,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Sweep ingress for subjects."
-  },
-  "autolaunch subjects unstake": {
-    "command": "autolaunch subjects unstake",
-    "owner": "autolaunch",
-    "group": "markets-subjects",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "autolaunch",
-    "output_envelope": "market-envelopes",
-    "flags": [
-      {
-        "name": "--amount",
-        "type": "string",
-        "required": true,
-        "description": "Amount to unstake, in token base units."
-      },
-      {
-        "name": "--submit",
-        "type": "boolean",
-        "required": false,
-        "description": "Sign and submit the prepared transaction with the local wallet instead of only preparing it."
-      }
-    ],
-    "examples": [
-      "regents autolaunch auctions list",
-      "regents autolaunch subjects get <subject_id>",
-      "regents autolaunch bids quote --auction <auction_id>"
-    ],
-    "agent_metadata": {
-      "category": "market",
-      "prompt_behavior": "confirm_before_submit",
-      "json_support": "supported",
-      "mutation_class": "read-or-transaction-prepare",
-      "retry_behavior": "retry_reads_and_quotes",
-      "pagination": "cursor",
-      "async_behavior": "synchronous",
-      "input_mode": "args-and-flags"
-    },
-    "summary": "Unstake subjects."
   },
   "autolaunch subjects verify": {
     "command": "autolaunch subjects verify",
@@ -5576,7 +5213,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6304,7 +5941,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "privy-access-token",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6369,7 +6006,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6415,7 +6052,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6461,7 +6098,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6507,7 +6144,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6584,7 +6221,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6636,7 +6273,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6682,7 +6319,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6734,7 +6371,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6786,7 +6423,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6838,7 +6475,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6884,7 +6521,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -6930,7 +6567,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -7235,7 +6872,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -7274,7 +6911,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -7313,7 +6950,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -7352,7 +6989,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -7391,7 +7028,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "examples": [
       "regents platform auth status",
@@ -7422,7 +7059,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -7467,7 +7104,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -7506,7 +7143,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -7605,7 +7242,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -7671,7 +7308,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -7774,7 +7411,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -7834,7 +7471,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -7894,7 +7531,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -7980,7 +7617,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -8046,7 +7683,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -8106,7 +7743,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -8218,7 +7855,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -8263,6 +7900,612 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "auth_mode": "agent-siwa"
     },
     "summary": "Send a signed security report to Platform."
+  },
+  "service catalog check": {
+    "command": "service catalog check",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Show the catalog readiness checklist for one paid agent service.",
+      "operation_ids": [
+        "agentPlatformServiceCatalogReadiness"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Show the catalog readiness checklist for one paid agent service."
+  },
+  "service init": {
+    "command": "service init",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--name",
+        "type": "string",
+        "required": true,
+        "description": "Public service name."
+      },
+      {
+        "name": "--summary",
+        "type": "string",
+        "required": true,
+        "description": "Public service summary."
+      },
+      {
+        "name": "--price-label",
+        "type": "string",
+        "required": true,
+        "description": "Short public price label."
+      },
+      {
+        "name": "--kind",
+        "type": "string",
+        "required": false,
+        "default": "research",
+        "enum": [
+          "research",
+          "question-forge"
+        ],
+        "description": "Service kind. Use question-forge for Question Forge scientific operator services."
+      },
+      {
+        "name": "--skill-package",
+        "type": "string",
+        "required": false,
+        "description": "Skill package id for a Question Forge service."
+      },
+      {
+        "name": "--skill-package-version",
+        "type": "string",
+        "required": false,
+        "description": "Skill package version for a Question Forge service."
+      },
+      {
+        "name": "--schema-file",
+        "type": "string",
+        "required": true,
+        "description": "JSON file with request and result schemas."
+      },
+      {
+        "name": "--rwr-template",
+        "type": "string",
+        "required": true,
+        "description": "Regent Work Runtime template to use after payment."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Create or update the owner setup for one paid agent service.",
+      "operation_ids": [
+        "agentPlatformServiceDefinitionCreate",
+        "agentPlatformServiceDefinitionUpdate"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Create or update the owner setup for one paid agent service."
+  },
+  "service logs": {
+    "command": "service logs",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Show redacted operation logs for one owned paid agent service.",
+      "operation_ids": [
+        "agentPlatformServiceInvocationLogs"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Show redacted operation logs for one owned paid agent service."
+  },
+  "service pause": {
+    "command": "service pause",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Pause one listed paid agent service.",
+      "operation_ids": [
+        "agentPlatformServicePause"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Pause one listed paid agent service."
+  },
+  "service price set": {
+    "command": "service price set",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--amount-usdc",
+        "type": "string",
+        "required": true,
+        "description": "USDC amount charged for one call."
+      },
+      {
+        "name": "--network",
+        "type": "string",
+        "required": true,
+        "description": "Settlement network, such as eip155:8453."
+      },
+      {
+        "name": "--settlement-asset",
+        "type": "string",
+        "required": true,
+        "description": "USDC contract address for settlement."
+      },
+      {
+        "name": "--pay-to",
+        "type": "string",
+        "required": true,
+        "description": "Seller wallet address that receives settlement."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Save x402 pricing terms for one paid agent service.",
+      "operation_ids": [
+        "agentPlatformServicePricingUpdate"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Save x402 pricing terms for one paid agent service."
+  },
+  "service publish": {
+    "command": "service publish",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Publish one ready paid agent service to the public catalog.",
+      "operation_ids": [
+        "agentPlatformServicePublish"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Publish one ready paid agent service to the public catalog."
+  },
+  "service resume": {
+    "command": "service resume",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Resume one paused paid agent service after readiness checks pass.",
+      "operation_ids": [
+        "agentPlatformServiceResume"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Resume one paused paid agent service after readiness checks pass."
+  },
+  "service runs": {
+    "command": "service runs",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Show run history for one owned paid agent service.",
+      "operation_ids": [
+        "agentPlatformServiceInvocationLogs"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Show run history for one owned paid agent service."
+  },
+  "service test": {
+    "command": "service test",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Company slug that owns the service."
+      },
+      {
+        "name": "--service-slug",
+        "type": "string",
+        "required": true,
+        "description": "Service slug within the company."
+      },
+      {
+        "name": "--input-file",
+        "type": "string",
+        "required": false,
+        "description": "JSON input file for the sandbox run."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --company-id <company_id>",
+      "regents work get <work_item_id> --company-id <company_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Run a sandbox test before launching a scientific operator.",
+      "operation_ids": [
+        "agentPlatformServiceSandboxTest"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Run a sandbox test before launching a scientific operator."
   },
   "settings": {
     "command": "settings",
@@ -15048,7 +15291,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -15108,7 +15351,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -15172,7 +15415,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -15232,7 +15475,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -15284,7 +15527,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "agent-siwa",
+    "auth_audience": "platform",
     "output_envelope": "platform-json",
     "flags": [
       {
@@ -15376,7 +15620,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "completeRwrWorkerAssignment"
       ],
       "transport_kind": "http",
-      "auth_mode": "agent-siwa"
+      "auth_mode": "agent-siwa",
+      "auth_audience": "platform"
     },
     "summary": "Let one local worker check for assigned Regent work."
   },
@@ -15385,7 +15630,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -15445,7 +15690,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {
@@ -15534,7 +15779,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "owner": "platform",
     "group": "platform",
     "interface": "http",
-    "auth_mode": "mixed",
+    "auth_mode": "session-file",
     "output_envelope": "platform-json",
     "args": [
       {

@@ -67,9 +67,9 @@ describe("CLI config flows", () => {
     expect(writtenConfig.runtime.socketPath).toBe(path.join(harness.tempDir, "nested", "run", "regent.sock"));
     expect(writtenConfig.wallet.keystorePath).toBe(path.join(harness.tempDir, "nested", "keys", "agent-wallet.json"));
     expect(writtenConfig.gossipsub.peerIdPath).toBe(path.join(harness.tempDir, "nested", "p2p", "peer-id.json"));
-    expect(writtenConfig.services.platform.baseUrl).toBe("http://127.0.0.1:4000");
-    expect(writtenConfig.services.techtree.baseUrl).toBe("http://127.0.0.1:4000");
-    expect(writtenConfig.services.autolaunch.baseUrl).toBe("http://127.0.0.1:4000");
+    expect(writtenConfig.services.platform.baseUrl).toBe("https://regents.sh");
+    expect(writtenConfig.services.techtree.baseUrl).toBe("https://regents.sh");
+    expect(writtenConfig.services.autolaunch.baseUrl).toBe("https://regents.sh");
     expect(payload.directories.socket).toBe(path.dirname(writtenConfig.runtime.socketPath));
     expect(payload.directories.wallet).toBe(path.dirname(writtenConfig.wallet.keystorePath));
     expect(payload.directories.gossipsub).toBe(path.dirname(writtenConfig.gossipsub.peerIdPath));
@@ -178,15 +178,15 @@ describe("CLI config flows", () => {
       },
       services: {
         siwa: {
-          baseUrl: "http://127.0.0.1:4000",
+          baseUrl: "https://siwa-server.fly.dev",
           requestTimeoutMs: 10_000,
         },
         platform: {
-          baseUrl: "http://127.0.0.1:4000",
+          baseUrl: "https://regents.sh",
           requestTimeoutMs: 10_000,
         },
         autolaunch: {
-          baseUrl: "http://127.0.0.1:4000",
+          baseUrl: "https://regents.sh",
           requestTimeoutMs: 10_000,
         },
         techtree: {

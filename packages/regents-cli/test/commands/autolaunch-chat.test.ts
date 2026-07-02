@@ -31,7 +31,7 @@ const CREATOR_WALLET = "0x00000000000000000000000000000000000000cc";
 const DM_SCOPE = `dm:${SENDER_WALLET}:${CREATOR_WALLET}`;
 
 describe("autolaunch chat CLI commands", () => {
-  const expectedBaseUrl = "http://127.0.0.1:4000";
+  const expectedBaseUrl = "https://regents.sh";
   const fetchMock = vi.fn<typeof fetch>();
   const tempDirs: string[] = [];
 

@@ -287,19 +287,19 @@ export function defaultConfig(configPath?: string): RegentConfig {
     },
     services: {
       siwa: {
-        baseUrl: "http://127.0.0.1:4000",
+        baseUrl: "https://siwa-server.fly.dev",
         requestTimeoutMs: 10_000,
       },
       platform: {
-        baseUrl: "http://127.0.0.1:4000",
+        baseUrl: "https://regents.sh",
         requestTimeoutMs: 10_000,
       },
       autolaunch: {
-        baseUrl: "http://127.0.0.1:4000",
+        baseUrl: "https://regents.sh",
         requestTimeoutMs: 10_000,
       },
       techtree: {
-        baseUrl: "http://127.0.0.1:4000",
+        baseUrl: "https://regents.sh",
         requestTimeoutMs: 10_000,
       },
     },
