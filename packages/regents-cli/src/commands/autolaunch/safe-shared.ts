@@ -1,11 +1,8 @@
 import { loadConfig } from "../../internal-runtime/config.js";
-import {
-  FileWalletSecretSource,
-  EnvWalletSecretSource,
-} from "../../internal-runtime/agent/key-store.js";
 import { deriveWalletAddress } from "../../internal-runtime/agent/wallet.js";
 import { getBooleanFlag, getFlag, type ParsedCliArgs } from "../../parse.js";
 import { createPromptBoundary } from "../../terminal/prompts.js";
+import { configuredPrivateKey as readConfiguredPrivateKey } from "./shared.js";
 
 export const WEBSITE_WALLET_ENV = "AUTOLAUNCH_WALLET_ADDRESS";
 
@@ -41,14 +38,10 @@ export const requireAddress = (value: string, label: string): string => {
 export const configuredPrivateKey = async (
   configPath?: string,
 ): Promise<`0x${string}`> => {
-  const config = loadConfig(configPath);
-  const secretSource = process.env[config.wallet.privateKeyEnv]
-    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
-    : new FileWalletSecretSource(config.wallet.keystorePath);
-
   try {
-    return await secretSource.getPrivateKeyHex();
+    return await readConfiguredPrivateKey(configPath);
   } catch {
+    const config = loadConfig(configPath);
     throw new Error(
       `Agent signer wallet is not ready. Set ${config.wallet.privateKeyEnv} or initialize the local wallet first.`,
     );

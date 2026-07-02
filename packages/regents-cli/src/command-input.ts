@@ -53,6 +53,14 @@ export const parseRequiredNonNegativeIntegerFlag = (
   name: string,
 ): number => parseNonNegativeIntegerValue(requireArg(getFlag(args, name), name), `--${name}`);
 
+export const parseOptionalNonNegativeIntegerFlag = (
+  args: readonly string[] | ParsedCliArgs,
+  name: string,
+): number | undefined => {
+  const value = getFlag(args, name);
+  return value === undefined ? undefined : parseNonNegativeIntegerValue(value, `--${name}`);
+};
+
 export const parseOptionalPositiveIntegerFlag = (
   args: readonly string[] | ParsedCliArgs,
   name: string,

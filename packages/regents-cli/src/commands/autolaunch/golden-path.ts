@@ -5,10 +5,6 @@ import { CliUsageError } from "../../cli-usage-error.js";
 import { loadConfig } from "../../internal-runtime/config.js";
 import { ensureSecureDir, writeJsonFileAtomicSync } from "../../internal-runtime/paths.js";
 import {
-  FileWalletSecretSource,
-  EnvWalletSecretSource,
-} from "../../internal-runtime/agent/key-store.js";
-import {
   deriveWalletAddress,
   signPersonalMessage,
 } from "../../internal-runtime/agent/wallet.js";
@@ -37,6 +33,7 @@ import {
 } from "./pairing.js";
 import { printAgentSafeExplainer } from "./safe-explainer.js";
 import {
+  configuredPrivateKey,
   parsePollingIntervalSeconds,
   requestJson,
   submitPreparedTxRequest,
@@ -282,17 +279,6 @@ const promptedOptionalFlag = async (
       unavailableMessage: `Pass --${flag} <value>.`,
     }),
   );
-};
-
-const configuredPrivateKey = async (
-  configPath?: string,
-): Promise<`0x${string}`> => {
-  const config = loadConfig(configPath);
-  const secretSource = process.env[config.wallet.privateKeyEnv]
-    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
-    : new FileWalletSecretSource(config.wallet.keystorePath);
-
-  return await secretSource.getPrivateKeyHex();
 };
 
 const resolveWalletAddress = async (

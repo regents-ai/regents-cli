@@ -132,19 +132,6 @@ export const appendQuery = (
   return query ? `${path}?${query}` : path;
 };
 
-export const requirePositional = (
-  args: ParsedCliArgs,
-  index: number,
-  label: string,
-): string => {
-  const value = args.positionals[index];
-  if (!value) {
-    throw new Error(`missing required positional argument: ${label}`);
-  }
-
-  return value;
-};
-
 export const launchChainId = (args: ParsedCliArgs): string => {
   const explicit = getFlag(args, "chain-id");
   if (explicit) {

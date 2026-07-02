@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   optionalCsvFlag,
+  parseOptionalNonNegativeIntegerFlag,
   parseRequiredNonNegativeIntegerFlag,
   readJsonObjectValue,
   readOptionalJsonObjectFlag,
@@ -44,6 +45,8 @@ describe("CLI parsing", () => {
     expect(readOptionalJsonObjectFlag(parsed, "refs")).toEqual({ node: "node_123" });
     expect(optionalCsvFlag(parsed, "kind")).toEqual(["review", "node", "publish"]);
     expect(parseRequiredNonNegativeIntegerFlag(parsed, "attempt")).toBe(0);
+    expect(parseOptionalNonNegativeIntegerFlag(parsed, "attempt")).toBe(0);
+    expect(parseOptionalNonNegativeIntegerFlag(parsed, "missing")).toBeUndefined();
   });
 
   it("rejects malformed shared JSON and negative integer inputs", () => {

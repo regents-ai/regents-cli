@@ -1,5 +1,6 @@
 import fs from "node:fs";
 
+import { readJsonObjectValue } from "../command-input.js";
 import type { NodeCreateInput } from "../internal-types/index.js";
 
 import { daemonCall } from "../daemon-client.js";
@@ -22,20 +23,6 @@ const readAtPathValue = (value: string): string => {
   }
 
   return fs.readFileSync(value.slice(1), "utf8");
-};
-
-const readJsonObjectValue = (value: string, name: string): Record<string, unknown> => {
-  const raw = readAtPathValue(value);
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      throw new Error();
-    }
-
-    return parsed as Record<string, unknown>;
-  } catch {
-    throw new Error(`invalid ${name}`);
-  }
 };
 
 const parseSidelink = (value: string): { node_id: number; tag: string; ordinal?: number } => {

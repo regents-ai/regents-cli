@@ -2,7 +2,7 @@ import {
   readIdentityReceipt,
   updateIdentityReceipt,
 } from "../internal-runtime/identity/cache.js";
-import { getBooleanFlag, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, requirePositional, type ParsedCliArgs } from "../parse.js";
 import {
   CLI_PALETTE,
   isHumanTerminal,
@@ -13,7 +13,7 @@ import {
   renderPanel,
   tone,
 } from "../printer.js";
-import { parsePollingIntervalSeconds, requirePositional } from "./autolaunch/shared.js";
+import { parsePollingIntervalSeconds } from "./autolaunch/shared.js";
 import { requireAgentAuthState } from "./agent-auth.js";
 import { requestProductJson } from "./product-http.js";
 

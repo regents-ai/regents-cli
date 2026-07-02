@@ -1,6 +1,10 @@
 import fs from "node:fs";
 
 import { CliUsageError } from "../cli-usage-error.js";
+import {
+  parseOptionalNonNegativeIntegerFlag,
+  parseRequiredNonNegativeIntegerFlag,
+} from "../command-input.js";
 import { daemonCall } from "../daemon-client.js";
 import {
   getBooleanFlag,
@@ -38,36 +42,8 @@ const readJsonObjectFlag = (args: ParsedCliArgs, name: string): Record<string, u
   }
 };
 
-const parseNonNegativeInteger = (value: string, errorMessage: string): number => {
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed < 0 || String(parsed) !== value) {
-    throw new CliUsageError({
-      code: "invalid_flag_value",
-      message: errorMessage,
-    });
-  }
-
-  return parsed;
-};
-
-const requireNonNegativeIntegerFlag = (args: ParsedCliArgs, name: string): number =>
-  parseNonNegativeInteger(
-    requireArg(getFlag(args, name), `--${name}`),
-    `invalid integer for --${name}`,
-  );
-
-const parseNonNegativeIntegerFlag = (
-  args: ParsedCliArgs,
-  name: string,
-): number | undefined => {
-  const value = getFlag(args, name);
-  return value === undefined
-    ? undefined
-    : parseNonNegativeInteger(value, `invalid integer for --${name}`);
-};
-
 const requireBasisPointsFlag = (args: ParsedCliArgs, name: string): number => {
-  const value = requireNonNegativeIntegerFlag(args, name);
+  const value = parseRequiredNonNegativeIntegerFlag(args, name);
   if (value > 10_000) {
     throw new CliUsageError({
       code: "invalid_flag_value",
@@ -156,8 +132,8 @@ export async function runTechtreeTechLeaderboardsRegister(args: ParsedCliArgs, c
         kind: requireArg(getFlag(args, "kind"), "--kind"),
         title: requireArg(getFlag(args, "title"), "--title"),
         weight_bps: requireBasisPointsFlag(args, "weight-bps"),
-        starts_epoch: parseNonNegativeIntegerFlag(args, "starts-epoch"),
-        ends_epoch: parseNonNegativeIntegerFlag(args, "ends-epoch"),
+        starts_epoch: parseOptionalNonNegativeIntegerFlag(args, "starts-epoch"),
+        ends_epoch: parseOptionalNonNegativeIntegerFlag(args, "ends-epoch"),
         config_hash: requireBytes32Flag(args, "config-hash"),
         uri: requireArg(getFlag(args, "uri"), "--uri"),
         active: getBooleanFlag(args, "inactive") ? false : undefined,
@@ -185,7 +161,7 @@ export async function runTechtreeTechRewardsList(args: ParsedCliArgs, configPath
     await daemonCall(
       "techtree.tech.rewards.list",
       {
-        epoch: parseNonNegativeIntegerFlag(args, "epoch"),
+        epoch: parseOptionalNonNegativeIntegerFlag(args, "epoch"),
         lane: getFlag(args, "lane"),
         limit: parseIntegerFlag(args, "limit"),
       },
@@ -199,7 +175,7 @@ export async function runTechtreeTechRewardsProof(args: ParsedCliArgs, configPat
     await daemonCall(
       "techtree.tech.rewards.proof",
       {
-        epoch: requireNonNegativeIntegerFlag(args, "epoch"),
+        epoch: parseRequiredNonNegativeIntegerFlag(args, "epoch"),
         lane: requireRewardLane(args),
         agent_id: requireArg(getFlag(args, "agent-id"), "--agent-id"),
       },
@@ -213,7 +189,7 @@ export async function runTechtreeTechRewardsClaim(args: ParsedCliArgs, configPat
     await daemonCall(
       "techtree.tech.rewards.claim",
       {
-        epoch: requireNonNegativeIntegerFlag(args, "epoch"),
+        epoch: parseRequiredNonNegativeIntegerFlag(args, "epoch"),
         lane: requireRewardLane(args),
         agent_id: requireArg(getFlag(args, "agent-id"), "--agent-id"),
       },

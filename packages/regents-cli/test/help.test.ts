@@ -111,14 +111,46 @@ describe("scoped CLI help", () => {
     expect(output.stdout).toContain("regents platform formation status");
   });
 
+  it("distinguishes owner service commands from buyer x402 commands", async () => {
+    const init = await captureOutput(() => runCliEntrypoint(["service", "init", "--help"]));
+    const resume = await captureOutput(() => runCliEntrypoint(["service", "resume", "--help"]));
+    const logs = await captureOutput(() => runCliEntrypoint(["service", "logs", "--help"]));
+
+    expect(init.result).toBe(0);
+    expect(init.stdout).toContain("SERVICE INIT HELP");
+    expect(init.stdout).toContain("--kind");
+    expect(init.stdout).toContain("--skill-package");
+    expect(init.stdout).toContain("--skill-package-version");
+
+    expect(resume.result).toBe(0);
+    expect(resume.stdout).toContain("SERVICE RESUME HELP");
+    expect(resume.stdout).toContain("Use these commands only for a service you own or administer.");
+    expect(resume.stdout).toContain("Buyers use `regents x402 details`, `quote`, `prepare`, `fetch`, or `pay`");
+
+    expect(logs.result).toBe(0);
+    expect(logs.stdout).toContain("SERVICE LOGS HELP");
+    expect(logs.stdout).toContain("Needs a saved Regent website session from `regents platform auth login`.");
+    expect(logs.stdout).toContain("If a buyer needs to call the service, use the existing `regents x402` commands instead.");
+  });
+
   it("renders Regent worker help for Hermes and execution pools", async () => {
     const hermes = await captureOutput(() =>
       runCliEntrypoint(["agent", "connect", "hermes", "--help"]),
+    );
+    const hostedHermes = await captureOutput(() =>
+      runCliEntrypoint(["agent", "connect", "hosted-hermes", "--help"]),
     );
 
     expect(hermes.result).toBe(0);
     expect(hermes.stdout).toContain("AGENT CONNECT HERMES HELP");
     expect(hermes.stdout).toContain("regents agent connect hermes --company-id <id>");
+    expect(hermes.stdout).toContain("regents auth login --audience platform");
+    expect(hermes.stdout).toContain("--write-plugin");
+
+    expect(hostedHermes.result).toBe(0);
+    expect(hostedHermes.stdout).toContain("AGENT CONNECT HOSTED-HERMES HELP");
+    expect(hostedHermes.stdout).toContain("regents agent connect hosted-hermes --company-id <id> --runtime-id <id>");
+    expect(hostedHermes.stdout).toContain("Needs a saved Regent website session from `regents platform auth login`.");
 
     const pool = await captureOutput(() =>
       runCliEntrypoint(["agent", "execution-pool", "--help"]),
@@ -127,6 +159,24 @@ describe("scoped CLI help", () => {
     expect(pool.result).toBe(0);
     expect(pool.stdout).toContain("AGENT EXECUTION-POOL HELP");
     expect(pool.stdout).toContain("regents agent execution-pool --company-id <id>");
+  });
+
+  it("keeps local runtime status help free of website sign-in instructions", async () => {
+    const output = await captureOutput(() => runCliEntrypoint(["runtime", "status", "--help"]));
+
+    expect(output.result).toBe(0);
+    expect(output.stdout).toContain("RUNTIME STATUS HELP");
+    expect(output.stdout).toContain("No saved sign-in is needed.");
+    expect(output.stdout).not.toContain("regents platform auth login");
+  });
+
+  it("renders platform SIWA auth for local work loops", async () => {
+    const output = await captureOutput(() => runCliEntrypoint(["work", "local-loop", "--help"]));
+
+    expect(output.result).toBe(0);
+    expect(output.stdout).toContain("WORK LOCAL-LOOP HELP");
+    expect(output.stdout).toContain("regents auth login --audience platform");
+    expect(output.stdout).not.toContain("Needs a saved Regent website session");
   });
 
   it("renders Regent work help with concise output guidance", async () => {

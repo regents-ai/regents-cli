@@ -3,6 +3,7 @@ import {
   getBooleanFlag,
   getFlag,
   requireArg,
+  requirePositional,
   type ParsedCliArgs,
 } from "../../parse.js";
 import { printJson } from "../../printer.js";
@@ -13,7 +14,6 @@ import {
 import {
   type JsonObject,
   requestJson,
-  requirePositional,
   submitPreparedTxRequest,
   txRequestFromWalletAction,
 } from "./shared.js";

@@ -1,4 +1,4 @@
-import { getBooleanFlag, type ParsedCliArgs } from "../../parse.js";
+import { getBooleanFlag, requirePositional, type ParsedCliArgs } from "../../parse.js";
 import {
   CLI_PALETTE,
   isHumanTerminal,
@@ -9,7 +9,6 @@ import {
 import {
   parsePollingIntervalSeconds,
   requestJson,
-  requirePositional,
 } from "./shared.js";
 
 const displayValue = (value: unknown): string | null => {

@@ -1,3 +1,4 @@
+import { parseOptionalNonNegativeIntegerFlag } from "../command-input.js";
 import { daemonCall } from "../daemon-client.js";
 import { getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
@@ -6,20 +7,6 @@ const parseNodeId = (value: string | undefined, name = "node id"): number => {
   const parsed = Number.parseInt(requireArg(value, name), 10);
   if (!Number.isSafeInteger(parsed) || parsed <= 0) {
     throw new Error(`invalid ${name}`);
-  }
-
-  return parsed;
-};
-
-const parseNonNegativeIntegerFlag = (args: ParsedCliArgs, name: string): number | undefined => {
-  const value = getFlag(args, name);
-  if (value === undefined) {
-    return undefined;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isSafeInteger(parsed) || parsed < 0 || String(parsed) !== value) {
-    throw new Error(`invalid integer for --${name}`);
   }
 
   return parsed;
@@ -138,7 +125,7 @@ export async function runTechtreeScienceTasksReviewUpdate(
         workspace_path: requireArg(getFlag(args, "workspace-path"), "--workspace-path"),
         harbor_pr_url: getFlag(args, "pr-url"),
         latest_review_follow_up_note: getFlag(args, "follow-up-note"),
-        open_reviewer_concerns_count: parseNonNegativeIntegerFlag(args, "open-reviewer-concerns-count"),
+        open_reviewer_concerns_count: parseOptionalNonNegativeIntegerFlag(args, "open-reviewer-concerns-count"),
         any_concern_unanswered:
           getFlag(args, "any-concern-unanswered") === undefined
             ? undefined

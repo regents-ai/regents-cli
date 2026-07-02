@@ -324,29 +324,32 @@ export class RegentKernel {
   }
 
   async status(): Promise<RuntimeStatus> {
-    let health: RuntimeStatus["techtree"] = null;
-
-    try {
+    const healthPromise = (async (): Promise<RuntimeStatus["techtree"]> => {
       const startedAt = Date.now();
-      const payload = await this.techtree.health();
-      health = {
-        ok: true,
-        baseUrl: this.config.services.techtree.baseUrl,
-        latencyMs: Date.now() - startedAt,
-        payload,
-      };
-    } catch (error) {
-      health = {
-        ok: false,
-        baseUrl: this.config.services.techtree.baseUrl,
-        latencyMs: null,
-        error: error instanceof Error ? error.message : "health check failed",
-      };
-    }
+      try {
+        const payload = await this.techtree.health();
+        return {
+          ok: true,
+          baseUrl: this.config.services.techtree.baseUrl,
+          latencyMs: Date.now() - startedAt,
+          payload,
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          baseUrl: this.config.services.techtree.baseUrl,
+          latencyMs: null,
+          error: error instanceof Error ? error.message : "health check failed",
+        };
+      }
+    })();
 
     const session = this.sessionStore.getSiwaSession();
-    const agent = await this.agentRouter.status();
-    const gossipsub = await this.gossipsub.status();
+    const [health, agent, gossipsub] = await Promise.all([
+      healthPromise,
+      this.agentRouter.status(),
+      this.gossipsub.status(),
+    ]);
 
     return {
       running: this.started,
