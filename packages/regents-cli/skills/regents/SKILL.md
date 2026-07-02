@@ -49,8 +49,9 @@ regents identity ensure
 
 ## Messaging
 
-- XMTP inbox with new-message counts: `regents xmtp inbox`
-- Watch live XMTP messages: `regents xmtp tail`
+- Read Techtree chat scopes: `regents techtree chat read <scope>`
+- Send Techtree chat messages: `regents techtree chat send <scope> --message <text>`
+- Send direct messages: `regents techtree dm <node-id|address> --message <text>`
 - Saved chat follows: `regents chat follows list`
 
 ## Automation

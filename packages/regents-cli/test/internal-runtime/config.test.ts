@@ -277,7 +277,7 @@ describe("config loading", () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify({
-        xmtp: {
+        retiredFeature: {
           enabled: false,
         },
       }),

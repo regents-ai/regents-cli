@@ -154,7 +154,7 @@ describe("platform CLI command group", () => {
   it("uses the selected config for the whole platform sign-in flow", async () => {
     const defaultConfigPath = path.join(homeDir, ".regent", "config.json");
     fs.mkdirSync(path.dirname(defaultConfigPath), { recursive: true });
-    fs.writeFileSync(defaultConfigPath, `${JSON.stringify({ xmtp: { stale: true } })}\n`, "utf8");
+    fs.writeFileSync(defaultConfigPath, `${JSON.stringify({ retiredFeature: { stale: true } })}\n`, "utf8");
 
     const configPath = path.join(homeDir, "current-regent.config.json");
     writeInitialConfig(configPath, {

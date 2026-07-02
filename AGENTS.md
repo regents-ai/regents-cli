@@ -20,7 +20,7 @@ The Regent dependency skills are installed in `/Users/sean/Documents/regent/.age
 - `shared-siwa`: identity login, SIWA receipts, signed request envelopes, nonce/replay handling, and saved auth state.
 - `ens-agent-identity`: ENS, Basenames, ERC-8004 identity, resolver reads, and wallet-ready identity actions.
 - `agentbook-agentworld`: AgentBook, World ID trust evidence, and proof lookup/registration commands.
-- `xmtp-rooms`: room commands, XMTP inbox state, public room mirrors, and message sync behavior.
+- Chat commands use server-stored HTTP routes. Techtree and Autolaunch direct messages use `dm:<walletA>:<walletB>` scopes.
 - `safe-viem-wallet-actions`: Safe Protocol Kit, viem, prepared transactions, wallet action envelopes, preflight, and chain confirmation.
 - `rich-terminal-output`: terminal UI output, tables, panels, progress, and structured command results.
 

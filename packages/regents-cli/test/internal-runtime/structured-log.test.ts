@@ -36,17 +36,6 @@ const configFor = (homeDir: string): RegentConfig => ({
     bootstrap: [],
     peerIdPath: path.join(homeDir, ".regent", "p2p", "peer-id.json"),
   },
-  xmtp: {
-    enabled: false,
-    env: "production",
-    dbPath: path.join(homeDir, ".regent", "xmtp", "production", "client.db"),
-    dbEncryptionKeyPath: path.join(homeDir, ".regent", "xmtp", "production", "db.key"),
-    walletKeyPath: path.join(homeDir, ".regent", "xmtp", "production", "wallet.key"),
-    ownerInboxIds: [],
-    trustedInboxIds: [],
-    publicPolicyPath: path.join(homeDir, ".regent", "policies", "xmtp-public.md"),
-    profiles: { owner: "full", public: "messaging", group: "messaging" },
-  },
   agents: {
     defaultHarness: "hermes",
     harnesses: {},

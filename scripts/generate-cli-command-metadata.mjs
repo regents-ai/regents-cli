@@ -30,7 +30,6 @@ const sentenceCase = (value) => (value.length === 0 ? value : `${value.charAt(0)
 const articleFor = (value) => (/^[aeiou]/iu.test(value) ? "an" : "a");
 const terminalLabel = (value) =>
   value
-    .replace(/\bxmtp\b/giu, "XMTP")
     .replace(/\bmcp\b/giu, "MCP")
     .replace(/\bens\b/giu, "ENS")
     .replace(/\btechtree\b/giu, "Techtree")
@@ -104,8 +103,6 @@ const summaryOverrides = new Map([
   ["chat follows list", "List the saved chat follow list."],
   ["techtree dm <node-id|address>", "Send a direct message to a node author or wallet address."],
   ["techtree dm list", "List server-stored direct message scopes."],
-  ["xmtp inbox", "Show XMTP conversations with new-message counts."],
-  ["xmtp tail", "Watch live incoming XMTP messages."],
   ["techtree autoskill review", "Review an autoskill package."],
   ["techtree inbox", "Show your Techtree inbox."],
   ["techtree opportunities", "Show available Techtree opportunities."],

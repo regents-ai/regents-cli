@@ -15,29 +15,6 @@ const cliMocks = vi.hoisted(() => ({
   runDoctorMock: vi.fn(),
   runScopedDoctorMock: vi.fn(),
   runFullDoctorMock: vi.fn(),
-  initializeXmtpMock: vi.fn(),
-  getXmtpStatusMock: vi.fn(),
-  resolveXmtpInboxIdMock: vi.fn(),
-  resolveXmtpIdentifierMock: vi.fn(),
-  ensureXmtpPolicyFileMock: vi.fn(),
-  openXmtpPolicyInEditorMock: vi.fn(),
-  testXmtpDmMock: vi.fn(),
-  listXmtpGroupsMock: vi.fn(),
-  createXmtpGroupMock: vi.fn(),
-  addXmtpGroupMembersMock: vi.fn(),
-  removeXmtpGroupMembersMock: vi.fn(),
-  listXmtpGroupMembersMock: vi.fn(),
-  getXmtpGroupPermissionsMock: vi.fn(),
-  updateXmtpGroupPermissionMock: vi.fn(),
-  listXmtpGroupAdminsMock: vi.fn(),
-  listXmtpGroupSuperAdminsMock: vi.fn(),
-  addXmtpGroupAdminMock: vi.fn(),
-  removeXmtpGroupAdminMock: vi.fn(),
-  addXmtpGroupSuperAdminMock: vi.fn(),
-  removeXmtpGroupSuperAdminMock: vi.fn(),
-  revokeAllOtherXmtpInstallationsMock: vi.fn(),
-  rotateXmtpDbKeyMock: vi.fn(),
-  rotateXmtpWalletMock: vi.fn(),
   runTechtreeCoreJsonMock: vi.fn(),
   loadTechtreeRuntimeClientMock: vi.fn(),
   techtreeRuntimeClientMock: {
@@ -58,29 +35,6 @@ export const {
   runDoctorMock,
   runScopedDoctorMock,
   runFullDoctorMock,
-  initializeXmtpMock,
-  getXmtpStatusMock,
-  resolveXmtpInboxIdMock,
-  resolveXmtpIdentifierMock,
-  ensureXmtpPolicyFileMock,
-  openXmtpPolicyInEditorMock,
-  testXmtpDmMock,
-  listXmtpGroupsMock,
-  createXmtpGroupMock,
-  addXmtpGroupMembersMock,
-  removeXmtpGroupMembersMock,
-  listXmtpGroupMembersMock,
-  getXmtpGroupPermissionsMock,
-  updateXmtpGroupPermissionMock,
-  listXmtpGroupAdminsMock,
-  listXmtpGroupSuperAdminsMock,
-  addXmtpGroupAdminMock,
-  removeXmtpGroupAdminMock,
-  addXmtpGroupSuperAdminMock,
-  removeXmtpGroupSuperAdminMock,
-  revokeAllOtherXmtpInstallationsMock,
-  rotateXmtpDbKeyMock,
-  rotateXmtpWalletMock,
   runTechtreeCoreJsonMock,
   loadTechtreeRuntimeClientMock,
   techtreeRuntimeClientMock,
@@ -214,10 +168,6 @@ const agentHarnessSummary = (kind: string, active: boolean, profile = "owner") =
 });
 
 const defaultDaemonResponse = async (method: string, params?: unknown) => {
-  if (method === "xmtp.status") {
-    throw new Error("daemon unavailable");
-  }
-
   if (method.startsWith("techtree.v1.")) {
     const payload = (params ?? {}) as Record<string, unknown>;
     const tree = (payload.tree as string | undefined) ?? "main";
@@ -1017,29 +967,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
         runDoctor: runDoctorMock,
         runScopedDoctor: runScopedDoctorMock,
         runFullDoctor: runFullDoctorMock,
-        initializeXmtp: initializeXmtpMock,
-        getXmtpStatus: getXmtpStatusMock,
-        resolveXmtpInboxId: resolveXmtpInboxIdMock,
-        resolveXmtpIdentifier: resolveXmtpIdentifierMock,
-        ensureXmtpPolicyFile: ensureXmtpPolicyFileMock,
-        openXmtpPolicyInEditor: openXmtpPolicyInEditorMock,
-        testXmtpDm: testXmtpDmMock,
-        listXmtpGroups: listXmtpGroupsMock,
-        createXmtpGroup: createXmtpGroupMock,
-        addXmtpGroupMembers: addXmtpGroupMembersMock,
-        removeXmtpGroupMembers: removeXmtpGroupMembersMock,
-        listXmtpGroupMembers: listXmtpGroupMembersMock,
-        getXmtpGroupPermissions: getXmtpGroupPermissionsMock,
-        updateXmtpGroupPermission: updateXmtpGroupPermissionMock,
-        listXmtpGroupAdmins: listXmtpGroupAdminsMock,
-        listXmtpGroupSuperAdmins: listXmtpGroupSuperAdminsMock,
-        addXmtpGroupAdmin: addXmtpGroupAdminMock,
-        removeXmtpGroupAdmin: removeXmtpGroupAdminMock,
-        addXmtpGroupSuperAdmin: addXmtpGroupSuperAdminMock,
-        removeXmtpGroupSuperAdmin: removeXmtpGroupSuperAdminMock,
-        revokeAllOtherXmtpInstallations: revokeAllOtherXmtpInstallationsMock,
-        rotateXmtpDbKey: rotateXmtpDbKeyMock,
-        rotateXmtpWallet: rotateXmtpWalletMock,
         runTechtreeCoreJson: runTechtreeCoreJsonMock,
         loadTechtreeRuntimeClient: loadTechtreeRuntimeClientMock,
       };
@@ -1125,263 +1052,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
     runFullDoctorMock.mockReset();
     runFullDoctorMock.mockImplementation(async () => doctorReport("full"));
 
-    initializeXmtpMock.mockReset();
-    initializeXmtpMock.mockImplementation(async (_config, resolvedConfigPath: string) => ({
-      configPath: resolvedConfigPath,
-      enabled: true,
-      env: "production",
-      dbPath: path.join(tempDir, "xmtp", "production", "client.db"),
-      dbEncryptionKeyPath: path.join(tempDir, "xmtp", "production", "db.key"),
-      walletKeyPath: path.join(tempDir, "xmtp", "production", "wallet.key"),
-      publicPolicyPath: path.join(tempDir, "policies", "xmtp-public.md"),
-      ownerInboxIds: [],
-      trustedInboxIds: [],
-      profiles: {
-        owner: "full",
-        public: "messaging",
-        group: "messaging",
-      },
-      createdWalletKey: true,
-      createdDbEncryptionKey: true,
-      createdPolicyFile: true,
-      client: {
-        address: TEST_WALLET,
-        inboxId: "owner-inbox",
-        installationId: "installation-1",
-        isRegistered: true,
-        appVersion: "xmtp-cli/0.2.0",
-        libxmtpVersion: "1.9.1",
-      },
-    }));
-
-    getXmtpStatusMock.mockReset();
-    getXmtpStatusMock.mockImplementation(
-      async (xmtpConfig: {
-        enabled: boolean;
-        env: string;
-        dbPath: string;
-        walletKeyPath: string;
-        dbEncryptionKeyPath: string;
-        publicPolicyPath: string;
-        ownerInboxIds: string[];
-        trustedInboxIds: string[];
-        profiles: Record<string, string>;
-      }) => ({
-        enabled: xmtpConfig.enabled,
-        status: xmtpConfig.enabled ? "stopped" : "disabled",
-        configured: true,
-        connected: false,
-        ready: xmtpConfig.enabled,
-        started: false,
-        env: xmtpConfig.env,
-        dbPath: xmtpConfig.dbPath,
-        walletKeyPath: xmtpConfig.walletKeyPath,
-        dbEncryptionKeyPath: xmtpConfig.dbEncryptionKeyPath,
-        publicPolicyPath: xmtpConfig.publicPolicyPath,
-        ownerInboxIds: [...xmtpConfig.ownerInboxIds],
-        trustedInboxIds: [...xmtpConfig.trustedInboxIds],
-        profiles: { ...xmtpConfig.profiles },
-        note: "XMTP identity is initialized and ready",
-        lastError: null,
-        recentErrors: [],
-        recentConversations: [],
-        metrics: {
-          startedAt: null,
-          stoppedAt: null,
-          lastSyncAt: null,
-          lastMessageAt: null,
-          receivedMessages: 0,
-          sentMessages: 0,
-          sendFailures: 0,
-          groupsCreated: 0,
-          membersAdded: 0,
-          installationsRevoked: 0,
-          walletRotations: 0,
-          dbKeyRotations: 0,
-          restarts: 0,
-        },
-        routeState: xmtpConfig.enabled ? "blocked" : "disabled",
-        client: {
-          address: TEST_WALLET,
-          inboxId: "owner-inbox",
-          installationId: "installation-1",
-          isRegistered: true,
-        },
-      }),
-    );
-
-    resolveXmtpInboxIdMock.mockReset();
-    resolveXmtpInboxIdMock.mockResolvedValue("owner-inbox");
-    resolveXmtpIdentifierMock.mockReset();
-    resolveXmtpIdentifierMock.mockResolvedValue("owner-inbox");
-
-    ensureXmtpPolicyFileMock.mockReset();
-    ensureXmtpPolicyFileMock.mockImplementation((xmtpConfig: { publicPolicyPath: string }) => ({
-      created: !fs.existsSync(xmtpConfig.publicPolicyPath),
-      path: xmtpConfig.publicPolicyPath,
-    }));
-
-    openXmtpPolicyInEditorMock.mockReset();
-    openXmtpPolicyInEditorMock.mockReturnValue({
-      opened: false,
-      editor: null,
-    });
-
-    testXmtpDmMock.mockReset();
-    testXmtpDmMock.mockResolvedValue({
-      ok: true,
-      to: TEST_WALLET,
-      conversationId: "dm-1",
-      messageId: "message-1",
-      text: "hello",
-    });
-
-    listXmtpGroupsMock.mockReset();
-    listXmtpGroupsMock.mockResolvedValue({
-      ok: true,
-      conversations: [{ id: "group-1", type: "group", name: "Reviewers" }],
-    });
-
-    createXmtpGroupMock.mockReset();
-    createXmtpGroupMock.mockResolvedValue({
-      ok: true,
-      id: "group-1",
-      name: "Reviewers",
-      description: "Team review room",
-      imageUrl: null,
-      memberCount: 2,
-      members: [{ inboxId: "member-1" }, { inboxId: "member-2" }],
-    });
-
-    addXmtpGroupMembersMock.mockReset();
-    addXmtpGroupMembersMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      addedMembers: ["0x3333333333333333333333333333333333333333"],
-      count: 1,
-    });
-
-    removeXmtpGroupMembersMock.mockReset();
-    removeXmtpGroupMembersMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      removedMembers: ["0x3333333333333333333333333333333333333333"],
-      count: 1,
-    });
-
-    listXmtpGroupMembersMock.mockReset();
-    listXmtpGroupMembersMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      members: [
-        {
-          inboxId: "member-1",
-          accountIdentifiers: ["0x3333333333333333333333333333333333333333"],
-          installationIds: ["install-1"],
-          permissionLevel: "member",
-          consentState: "allowed",
-        },
-      ],
-      count: 1,
-    });
-
-    getXmtpGroupPermissionsMock.mockReset();
-    getXmtpGroupPermissionsMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      permissions: {
-        policyType: "custom",
-        policySet: {
-          addMemberPolicy: "admin",
-        },
-      },
-    });
-
-    updateXmtpGroupPermissionMock.mockReset();
-    updateXmtpGroupPermissionMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      permissionType: "add-member",
-      policy: "admin",
-      metadataField: null,
-    });
-
-    listXmtpGroupAdminsMock.mockReset();
-    listXmtpGroupAdminsMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      items: ["admin-inbox"],
-      count: 1,
-    });
-
-    listXmtpGroupSuperAdminsMock.mockReset();
-    listXmtpGroupSuperAdminsMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      items: ["super-admin-inbox"],
-      count: 1,
-    });
-
-    addXmtpGroupAdminMock.mockReset();
-    addXmtpGroupAdminMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      inboxId: "owner-inbox",
-      message: "Member promoted to admin",
-    });
-
-    removeXmtpGroupAdminMock.mockReset();
-    removeXmtpGroupAdminMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      inboxId: "owner-inbox",
-      message: "Admin demoted to member",
-    });
-
-    addXmtpGroupSuperAdminMock.mockReset();
-    addXmtpGroupSuperAdminMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      inboxId: "owner-inbox",
-      message: "Member promoted to super admin",
-    });
-
-    removeXmtpGroupSuperAdminMock.mockReset();
-    removeXmtpGroupSuperAdminMock.mockResolvedValue({
-      ok: true,
-      conversationId: "group-1",
-      inboxId: "owner-inbox",
-      message: "Super admin demoted to member",
-    });
-
-    revokeAllOtherXmtpInstallationsMock.mockReset();
-    revokeAllOtherXmtpInstallationsMock.mockResolvedValue({
-      ok: true,
-      currentInstallationId: "installation-1",
-      inboxId: "owner-inbox",
-      message: "All other installations have been revoked. Only this installation remains authorized.",
-    });
-
-    rotateXmtpDbKeyMock.mockReset();
-    rotateXmtpDbKeyMock.mockResolvedValue({
-      ok: true,
-      kind: "db-key",
-      dbPath: path.join(tempDir, "xmtp", "production", "client.db"),
-      walletKeyPath: path.join(tempDir, "xmtp", "production", "wallet.key"),
-      dbEncryptionKeyPath: path.join(tempDir, "xmtp", "production", "db.key"),
-      removedDatabase: true,
-    });
-
-    rotateXmtpWalletMock.mockReset();
-    rotateXmtpWalletMock.mockResolvedValue({
-      ok: true,
-      kind: "wallet",
-      dbPath: path.join(tempDir, "xmtp", "production", "client.db"),
-      walletKeyPath: path.join(tempDir, "xmtp", "production", "wallet.key"),
-      dbEncryptionKeyPath: path.join(tempDir, "xmtp", "production", "db.key"),
-      removedDatabase: true,
-    });
-
     runTechtreeCoreJsonMock.mockReset();
     runTechtreeCoreJsonMock.mockImplementation(async (entrypoint: string, input?: unknown) => {
       if (entrypoint.endsWith(".compile")) {
@@ -1465,29 +1135,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
     runDoctorMock.mockClear();
     runScopedDoctorMock.mockClear();
     runFullDoctorMock.mockClear();
-    initializeXmtpMock.mockClear();
-    getXmtpStatusMock.mockClear();
-    resolveXmtpInboxIdMock.mockClear();
-    resolveXmtpIdentifierMock.mockClear();
-    ensureXmtpPolicyFileMock.mockClear();
-    openXmtpPolicyInEditorMock.mockClear();
-    testXmtpDmMock.mockClear();
-    listXmtpGroupsMock.mockClear();
-    createXmtpGroupMock.mockClear();
-    addXmtpGroupMembersMock.mockClear();
-    removeXmtpGroupMembersMock.mockClear();
-    listXmtpGroupMembersMock.mockClear();
-    getXmtpGroupPermissionsMock.mockClear();
-    updateXmtpGroupPermissionMock.mockClear();
-    listXmtpGroupAdminsMock.mockClear();
-    listXmtpGroupSuperAdminsMock.mockClear();
-    addXmtpGroupAdminMock.mockClear();
-    removeXmtpGroupAdminMock.mockClear();
-    addXmtpGroupSuperAdminMock.mockClear();
-    removeXmtpGroupSuperAdminMock.mockClear();
-    revokeAllOtherXmtpInstallationsMock.mockClear();
-    rotateXmtpDbKeyMock.mockClear();
-    rotateXmtpWalletMock.mockClear();
     runTechtreeCoreJsonMock.mockClear();
     loadTechtreeRuntimeClientMock.mockClear();
     techtreeRuntimeClientMock.fetchNode.mockClear();

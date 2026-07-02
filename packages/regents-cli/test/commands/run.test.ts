@@ -154,8 +154,8 @@ describe("regents run presenter", () => {
           },
           {
             state: "off",
-            label: "XMTP listener checked",
-            detail: "XMTP listener is off in config.",
+            label: "Optional worker checked",
+            detail: "Optional worker is off in config.",
           },
         ],
         nextCommands: [

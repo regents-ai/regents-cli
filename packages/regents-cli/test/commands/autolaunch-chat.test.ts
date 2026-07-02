@@ -14,10 +14,6 @@ const { buildAgentAuthHeadersMock, loadAgentAuthStateMock, requireAgentAuthState
   requireAgentAuthStateMock: vi.fn(),
 }));
 
-const { sendXmtpConversationTextMock } = vi.hoisted(() => ({
-  sendXmtpConversationTextMock: vi.fn(),
-}));
-
 vi.mock("../../src/commands/agent-auth.js", () => ({
   buildAgentAuthHeaders: buildAgentAuthHeadersMock,
   loadAgentAuthState: loadAgentAuthStateMock,
@@ -68,7 +64,6 @@ describe("autolaunch chat CLI commands", () => {
     buildAgentAuthHeadersMock.mockReset();
     loadAgentAuthStateMock.mockReset();
     requireAgentAuthStateMock.mockReset();
-    sendXmtpConversationTextMock.mockReset();
 
     buildAgentAuthHeadersMock.mockResolvedValue({
       "x-siwa-receipt": "receipt_123",
@@ -165,7 +160,6 @@ describe("autolaunch chat CLI commands", () => {
     expect(requestInit?.method).toBe("POST");
     assertAgentAuthHeaders(requestInit?.headers as Headers);
     expect(JSON.parse(String(requestInit?.body))).toEqual({ body: "Auction opens at noon" });
-    expect(sendXmtpConversationTextMock).not.toHaveBeenCalled();
     expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
 
@@ -196,7 +190,6 @@ describe("autolaunch chat CLI commands", () => {
     expect(requestInit?.method).toBe("POST");
     assertAgentAuthHeaders(requestInit?.headers as Headers);
     expect(JSON.parse(String(requestInit?.body))).toEqual({ body: "hi room" });
-    expect(sendXmtpConversationTextMock).not.toHaveBeenCalled();
     expect(parsePrintedJson(output.stdout)).toEqual(payload);
   });
 

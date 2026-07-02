@@ -41,21 +41,6 @@ const testConfig = (root: string): RegentConfig => ({
     bootstrap: [],
     peerIdPath: path.join(root, "p2p", "peer-id.json"),
   },
-  xmtp: {
-    enabled: true,
-    env: "production",
-    dbPath: path.join(root, "xmtp", "client.db"),
-    dbEncryptionKeyPath: path.join(root, "xmtp", "db.key"),
-    walletKeyPath: path.join(root, "xmtp", "wallet.key"),
-    ownerInboxIds: ["inbox-owner"],
-    trustedInboxIds: [],
-    publicPolicyPath: path.join(root, "policies", "xmtp-public.md"),
-    profiles: {
-      owner: "full",
-      public: "messaging",
-      group: "messaging",
-    },
-  },
   agents: {
     defaultHarness: "hermes",
     harnesses: {},
