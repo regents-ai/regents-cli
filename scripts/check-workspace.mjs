@@ -173,42 +173,277 @@ const validateRuntimeContract = (runtime) => {
 const getByPath = (value, dottedPath) =>
   dottedPath.split(".").reduce((current, part) => current?.[part], value);
 
-const validateChainManifest = (manifestEntry) => {
-  if (!fileExists(manifestEntry.resolvedPath)) {
-    fail(`missing chain contract manifest ${manifestEntry.id}: ${manifestEntry.resolvedPath}`);
-    return;
+const CHAIN_TARGETS = new Set(["base-mainnet", "base-sepolia"]);
+const SIGNER_CLASSES = new Set([
+  "auction_tokens_recipient",
+  "authorized_creator",
+  "funds_recipient_strategy",
+  "launch_strategy",
+  "staker_wallet",
+  "strategy_operator",
+  "subject_manager",
+  "subject_manager_or_authorized_registrar",
+]);
+const BENEFICIARY_CLASSES = new Set([
+  "auction_tokens_recipient",
+  "launch_market",
+  "launch_pool_and_position_recipient",
+  "launch_wallet",
+  "staking_contract",
+  "staker_wallet",
+  "strategy",
+  "subject_identity",
+  "subject_owner",
+  "subject_splitter",
+  "vesting_wallet",
+]);
+const ROOT_CHAIN_MANIFEST_FIELDS = new Set(["version", "product", "contracts"]);
+const CONTRACT_FIELDS = new Set(["id", "artifact", "abi_path", "chain_target", "prepared_actions", "validation_command"]);
+const PREPARED_ACTION_FIELDS = new Set(["id", "function", "signer_class", "beneficiary_class"]);
+const CONTRACT_REQUIRED_FIELDS = ["id", "artifact", "abi_path", "chain_target", "prepared_actions", "validation_command"];
+const PREPARED_ACTION_REQUIRED_FIELDS = ["id", "function", "signer_class", "beneficiary_class"];
+const SNAKE_ID_PATTERN = /^[a-z][a-z0-9_]*$/u;
+const SOLIDITY_IDENTIFIER_PATTERN = /^[A-Za-z_$][A-Za-z0-9_$]*$/u;
+const ABI_PATH_PATTERN = /^[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)*$/u;
+const ARTIFACT_PATH_PATTERN = /^out\/[A-Za-z0-9_$.-]+\.sol\/[A-Za-z0-9_$.-]+\.json$/u;
+const VALIDATION_COMMAND_PATTERN = /^forge test --offline --match-contract [A-Za-z_][A-Za-z0-9_]*Test$/u;
+const CHAIN_MANIFEST_NEGATIVE_FIXTURES = [
+  {
+    name: "malformed artifact path",
+    path: "meta/fixtures/chain-contracts/invalid-artifact-path.yaml",
+    expected: "artifact must match",
+  },
+  {
+    name: "bad chain target",
+    path: "meta/fixtures/chain-contracts/invalid-chain-target.yaml",
+    expected: "chain_target must be one of",
+  },
+  {
+    name: "bad signer class",
+    path: "meta/fixtures/chain-contracts/invalid-signer-class.yaml",
+    expected: "signer_class must be one of",
+  },
+  {
+    name: "bad beneficiary class",
+    path: "meta/fixtures/chain-contracts/invalid-beneficiary-class.yaml",
+    expected: "beneficiary_class must be one of",
+  },
+  {
+    name: "missing validation command",
+    path: "meta/fixtures/chain-contracts/missing-validation-command.yaml",
+    expected: "is missing validation_command",
+  },
+];
+
+const hasOwn = (object, field) => Object.prototype.hasOwnProperty.call(object, field);
+const enumList = (values) => Array.from(values).sort().join(", ");
+
+const optionValue = (flag) => {
+  const index = process.argv.indexOf(flag);
+  if (index === -1) {
+    return undefined;
   }
-  const document = parseYamlFile(manifestEntry.resolvedPath);
-  if (document?.version !== 1 || typeof document.product !== "string") {
-    fail(`chain contract manifest ${manifestEntry.id} must set version: 1 and product`);
-    return;
+  const value = process.argv[index + 1];
+  if (!value || value.startsWith("--")) {
+    console.error(`${flag} requires a path`);
+    process.exit(1);
   }
-  for (const [index, contract] of asArray(document.contracts).entries()) {
+  return resolve(process.cwd(), value);
+};
+
+const rejectUnknownFields = (value, allowedFields, label, localFailures) => {
+  for (const field of Object.keys(value)) {
+    if (!allowedFields.has(field)) {
+      localFailures.push(`${label} has unknown field ${field}`);
+    }
+  }
+};
+
+const rejectMissingFields = (value, requiredFields, label, localFailures) => {
+  for (const field of requiredFields) {
+    if (!hasOwn(value, field)) {
+      localFailures.push(`${label} is missing ${field}`);
+    }
+  }
+};
+
+const validString = (value, label, localFailures, options = {}) => {
+  if (typeof value !== "string" || value.trim() === "") {
+    localFailures.push(`${label} must be a non-empty string`);
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (options.pattern && !options.pattern.test(trimmed)) {
+    localFailures.push(`${label} ${options.patternMessage ?? "has invalid shape"}`);
+    return undefined;
+  }
+  if (options.allowedValues && !options.allowedValues.has(trimmed)) {
+    localFailures.push(`${label} must be one of ${enumList(options.allowedValues)}`);
+    return undefined;
+  }
+  return trimmed;
+};
+
+const collectChainManifestFailures = (manifestEntry) => {
+  const localFailures = [];
+  const manifestPath = manifestEntry.documentPath ?? manifestEntry.resolvedPath;
+  const artifactBasePath = manifestEntry.artifactBasePath ?? dirname(manifestEntry.resolvedPath);
+
+  if (!fileExists(manifestPath)) {
+    localFailures.push(`missing chain contract manifest ${manifestEntry.id}: ${manifestPath}`);
+    return localFailures;
+  }
+
+  let document;
+  try {
+    document = parseYamlFile(manifestPath);
+  } catch (error) {
+    localFailures.push(`chain contract manifest ${manifestEntry.id} is not valid YAML: ${error instanceof Error ? error.message : String(error)}`);
+    return localFailures;
+  }
+
+  if (!isRecord(document)) {
+    localFailures.push(`chain contract manifest ${manifestEntry.id} must be a YAML object`);
+    return localFailures;
+  }
+
+  rejectUnknownFields(document, ROOT_CHAIN_MANIFEST_FIELDS, `chain contract manifest ${manifestEntry.id}`, localFailures);
+
+  if (document.version !== 1) {
+    localFailures.push(`chain contract manifest ${manifestEntry.id} must set version: 1`);
+  }
+  validString(document.product, `chain contract manifest ${manifestEntry.id}.product`, localFailures, {
+    pattern: /^[a-z][a-z0-9_-]*$/u,
+    patternMessage: "must start with a lowercase letter and use only lowercase letters, numbers, underscores, or hyphens",
+  });
+  if (!Array.isArray(document.contracts) || document.contracts.length === 0) {
+    localFailures.push(`chain contract manifest ${manifestEntry.id} must define at least one contract`);
+    return localFailures;
+  }
+
+  for (const [index, contract] of document.contracts.entries()) {
     if (!isRecord(contract)) {
-      fail(`chain contract manifest ${manifestEntry.id} has invalid contracts[${index}]`);
+      localFailures.push(`chain contract manifest ${manifestEntry.id} has invalid contracts[${index}]`);
       continue;
     }
-    const artifactPath = resolve(dirname(manifestEntry.resolvedPath), contract.artifact ?? "");
-    if (!fileExists(artifactPath)) {
-      fail(`chain contract ${manifestEntry.id}/${contract.id ?? index} is missing artifact: ${artifactPath}`);
-      continue;
-    }
-    const artifact = JSON.parse(readFileSync(artifactPath, "utf8"));
-    const abi = getByPath(artifact, contract.abi_path ?? "abi");
-    if (!Array.isArray(abi)) {
-      fail(`chain contract ${manifestEntry.id}/${contract.id ?? index} has no ABI at ${contract.abi_path ?? "abi"}`);
-      continue;
-    }
-    const functions = new Set(abi.filter((entry) => entry?.type === "function").map((entry) => entry.name));
-    for (const action of asArray(contract.prepared_actions)) {
-      if (!functions.has(action.function)) {
-        fail(`chain contract ${manifestEntry.id}/${contract.id ?? index} action ${action.id ?? "<unknown>"} references missing ABI function ${action.function}`);
-      }
-      for (const field of ["signer_class", "beneficiary_class"]) {
-        if (typeof action[field] !== "string" || action[field].trim() === "") {
-          fail(`chain contract ${manifestEntry.id}/${contract.id ?? index} action ${action.id ?? "<unknown>"} is missing ${field}`);
+
+    const contractLabelId = typeof contract.id === "string" && contract.id.trim() !== "" ? contract.id.trim() : String(index);
+    const contractLabel = `chain contract ${manifestEntry.id}/${contractLabelId}`;
+    rejectUnknownFields(contract, CONTRACT_FIELDS, contractLabel, localFailures);
+    rejectMissingFields(contract, CONTRACT_REQUIRED_FIELDS, contractLabel, localFailures);
+
+    validString(contract.id, `${contractLabel}.id`, localFailures, {
+      pattern: SNAKE_ID_PATTERN,
+      patternMessage: "must be lower_snake_case",
+    });
+    const artifact = validString(contract.artifact, `${contractLabel}.artifact`, localFailures, {
+      pattern: ARTIFACT_PATH_PATTERN,
+      patternMessage: "must match out/<Contract>.sol/<Contract>.json",
+    });
+    const abiPath = validString(contract.abi_path, `${contractLabel}.abi_path`, localFailures, {
+      pattern: ABI_PATH_PATTERN,
+      patternMessage: "must be a dotted ABI field path",
+    });
+    validString(contract.chain_target, `${contractLabel}.chain_target`, localFailures, {
+      allowedValues: CHAIN_TARGETS,
+    });
+    validString(contract.validation_command, `${contractLabel}.validation_command`, localFailures, {
+      pattern: VALIDATION_COMMAND_PATTERN,
+      patternMessage: "must match forge test --offline --match-contract <TestName>Test",
+    });
+
+    const actions = [];
+    if (!Array.isArray(contract.prepared_actions) || contract.prepared_actions.length === 0) {
+      localFailures.push(`${contractLabel}.prepared_actions must be a non-empty array`);
+    } else {
+      for (const [actionIndex, action] of contract.prepared_actions.entries()) {
+        if (!isRecord(action)) {
+          localFailures.push(`${contractLabel}.prepared_actions[${actionIndex}] must be an object`);
+          continue;
+        }
+
+        const actionLabelId = typeof action.id === "string" && action.id.trim() !== "" ? action.id.trim() : String(actionIndex);
+        const actionLabel = `${contractLabel} action ${actionLabelId}`;
+        rejectUnknownFields(action, PREPARED_ACTION_FIELDS, actionLabel, localFailures);
+        rejectMissingFields(action, PREPARED_ACTION_REQUIRED_FIELDS, actionLabel, localFailures);
+
+        validString(action.id, `${actionLabel}.id`, localFailures, {
+          pattern: SNAKE_ID_PATTERN,
+          patternMessage: "must be lower_snake_case",
+        });
+        const functionName = validString(action.function, `${actionLabel}.function`, localFailures, {
+          pattern: SOLIDITY_IDENTIFIER_PATTERN,
+          patternMessage: "must be a Solidity function name",
+        });
+        validString(action.signer_class, `${actionLabel}.signer_class`, localFailures, {
+          allowedValues: SIGNER_CLASSES,
+        });
+        validString(action.beneficiary_class, `${actionLabel}.beneficiary_class`, localFailures, {
+          allowedValues: BENEFICIARY_CLASSES,
+        });
+
+        if (functionName) {
+          actions.push({ label: actionLabel, functionName });
         }
       }
+    }
+
+    if (!artifact || !abiPath) {
+      continue;
+    }
+
+    const artifactPath = resolve(artifactBasePath, artifact);
+    if (!fileExists(artifactPath)) {
+      localFailures.push(`${contractLabel} is missing artifact: ${artifactPath}`);
+      continue;
+    }
+
+    let artifactDocument;
+    try {
+      artifactDocument = JSON.parse(readFileSync(artifactPath, "utf8"));
+    } catch (error) {
+      localFailures.push(`${contractLabel} artifact is not valid JSON: ${artifactPath}: ${error instanceof Error ? error.message : String(error)}`);
+      continue;
+    }
+
+    const abi = getByPath(artifactDocument, abiPath);
+    if (!Array.isArray(abi)) {
+      localFailures.push(`${contractLabel} has no ABI at ${abiPath}`);
+      continue;
+    }
+
+    const functions = new Set(abi.filter((entry) => entry?.type === "function").map((entry) => entry.name));
+    for (const action of actions) {
+      if (!functions.has(action.functionName)) {
+        localFailures.push(`${action.label} references missing ABI function ${action.functionName}`);
+      }
+    }
+  }
+
+  return localFailures;
+};
+
+const validateChainManifest = (manifestEntry) => {
+  for (const message of collectChainManifestFailures(manifestEntry)) {
+    fail(message);
+  }
+};
+
+const checkNegativeChainManifestFixtures = (manifestEntry) => {
+  for (const fixture of CHAIN_MANIFEST_NEGATIVE_FIXTURES) {
+    const fixturePath = resolve(workspaceRoot, fixture.path);
+    const fixtureFailures = collectChainManifestFailures({
+      ...manifestEntry,
+      id: `${manifestEntry.id} negative fixture ${fixture.name}`,
+      documentPath: fixturePath,
+      artifactBasePath: dirname(manifestEntry.resolvedPath),
+    });
+    if (fixtureFailures.length === 0) {
+      fail(`negative chain contract manifest fixture unexpectedly passed: ${relative(workspaceRoot, fixturePath)}`);
+      continue;
+    }
+    if (!fixtureFailures.some((message) => message.includes(fixture.expected))) {
+      fail(`negative chain contract manifest fixture failed for the wrong reason: ${relative(workspaceRoot, fixturePath)}; expected "${fixture.expected}", got "${fixtureFailures.join("; ")}"`);
     }
   }
 };
@@ -265,6 +500,30 @@ try {
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
+}
+
+const chainManifestEntries = chainContractManifestEntries(manifest, root);
+const chainManifestFixturePath = optionValue("--chain-manifest-fixture");
+if (chainManifestFixturePath) {
+  if (chainManifestEntries.length === 0) {
+    fail("Regent workspace manifest has no chain contract manifests to validate against");
+  } else {
+    const manifestEntry = chainManifestEntries[0];
+    validateChainManifest({
+      ...manifestEntry,
+      id: `${manifestEntry.id} fixture`,
+      documentPath: chainManifestFixturePath,
+      artifactBasePath: dirname(manifestEntry.resolvedPath),
+    });
+  }
+
+  if (failures.length > 0) {
+    console.error(failures.join("\n"));
+    process.exit(1);
+  }
+
+  console.log("chain contract manifest fixture passed");
+  process.exit(0);
 }
 
 const repos = repoEntries(manifest, root);
@@ -434,8 +693,11 @@ for (const runtime of runtimeContractEntries(manifest, root)) {
   validateRuntimeContract(runtime);
 }
 
-for (const manifestEntry of chainContractManifestEntries(manifest, root)) {
+for (const manifestEntry of chainManifestEntries) {
   validateChainManifest(manifestEntry);
+}
+if (chainManifestEntries.length > 0) {
+  checkNegativeChainManifestFixtures(chainManifestEntries[0]);
 }
 
 for (const generatedView of generatedViewEntries(manifest, root)) {

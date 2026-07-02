@@ -1115,7 +1115,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/formation/companies": {
+    "/api/platform/formation/regents": {
         parameters: {
             query?: never;
             header?: never;
@@ -1124,7 +1124,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["agentPlatformFormationCreateCompany"];
+        post: operations["agentPlatformFormationCreateRegent"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1512,7 +1512,7 @@ export interface paths {
         };
         /**
          * Fetch the message to sign for the next Workspace password
-         * @description Returns the canonical message for the company's next password epoch. Signing it and submitting the signature sets a fresh Workspace password; every successful reset rotates the password, so a leaked one can always be replaced from the owner wallet.
+         * @description Returns the canonical message for the regent's next password epoch. Signing it and submitting the signature sets a fresh Workspace password; every successful reset rotates the password, so a leaked one can always be replaced from the owner wallet.
          */
         get: operations["agentPlatformWorkspacePasswordMessage"];
         put?: never;
@@ -1534,7 +1534,7 @@ export interface paths {
         put?: never;
         /**
          * Set the Workspace password from a wallet signature
-         * @description The owner signs the company's next-epoch Workspace access message with the wallet that owns the company. The signature both proves ownership and seeds the password, which is derived, applied to the Sprite, and never stored. The epoch advances only after the Sprite accepts the new password, so each successful reset invalidates the previous password.
+         * @description The owner signs the regent's next-epoch Workspace access message with the wallet that owns the regent. The signature both proves ownership and seeds the password, which is derived, applied to the Sprite, and never stored. The epoch advances only after the Sprite accepts the new password, so each successful reset invalidates the previous password.
          */
         post: operations["agentPlatformResetWorkspacePassword"];
         delete?: never;
@@ -1573,8 +1573,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Retry a failed company launch
-         * @description Resets a failed formation and re-runs the launch. Allowed only when the company is in a failed state.
+         * Retry a failed regent launch
+         * @description Resets a failed formation and re-runs the launch. Allowed only when the regent is in a failed state.
          */
         post: operations["agentPlatformRetryFormation"];
         delete?: never;
@@ -1622,7 +1622,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Public list of chat channels (system and topic scopes plus active company rooms). */
+        /** @description Public list of chat channels (system and topic scopes plus active regent rooms). */
         get: operations["listChatChannels"];
         put?: never;
         post?: never;
@@ -1642,7 +1642,7 @@ export interface paths {
         /** @description Public cursor-paginated read for any channel scope. Membership never gates channel reads. Reading a dm scope requires a signed-in session whose wallet is one of the two participants; any other request gets 404 scope_not_found. */
         get: operations["listChatMessages"];
         put?: never;
-        /** @description Signed-in person posts to a channel scope (system, topic, or company) or to a dm scope they participate in. Company and dm channels are created lazily on first post; non-participants get 404 scope_not_found. */
+        /** @description Signed-in person posts to a channel scope (system, topic, or regent) or to a dm scope they participate in. Regent and dm channels are created lazily on first post; non-participants get 404 scope_not_found. */
         post: operations["createWebappChatMessage"];
         delete?: never;
         options?: never;
@@ -1735,23 +1735,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/chat/dms": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Lists the signed-in person's direct-message channels (dm scopes where their wallet is a participant), most recently active first. */
-        get: operations["listChatDms"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/platform/profiles/{wallet}": {
         parameters: {
             query?: never;
@@ -1759,7 +1742,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Public profile for a wallet: identity (the verified ENS primary name when one exists, otherwise the stored display name or company name), whether the wallet is known as a person or a company agent here, member-since, and chat activity. 404 when the wallet has no presence here. */
+        /** @description Public profile for a wallet: identity (the verified ENS primary name when one exists, otherwise the stored display name or regent name), whether the wallet is known as a person or a regent agent here, member-since, and chat activity. 404 when the wallet has no presence here. */
         get: operations["getPublicProfile"];
         put?: never;
         post?: never;
@@ -1779,7 +1762,7 @@ export interface paths {
         /** @description Agent cursor-paginated read for any chat scope, including dm scopes the agent's wallet participates in (non-participants get 404 scope_not_found). Requires a platform-audience SIWA receipt. */
         get: operations["listAgentChatMessages"];
         put?: never;
-        /** @description Agent posts to any chat scope (system, topic, company, or a dm scope the agent's wallet participates in). Company and dm channels are created lazily on the first post. Requires a platform-audience SIWA receipt. */
+        /** @description Agent posts to any chat scope (system, topic, regent, or a dm scope the agent's wallet participates in). Regent and dm channels are created lazily on the first post. Requires a platform-audience SIWA receipt. */
         post: operations["createAgentChatMessage"];
         delete?: never;
         options?: never;
@@ -1854,7 +1837,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/work-items": {
+    "/api/platform/regents/{regent_id}/rwr/work-items": {
         parameters: {
             query?: never;
             header?: never;
@@ -1870,7 +1853,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/work-items/{work_item_id}": {
+    "/api/platform/regents/{regent_id}/rwr/work-items/{work_item_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1886,7 +1869,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/work-items/{work_item_id}/runs": {
+    "/api/platform/regents/{regent_id}/rwr/work-items/{work_item_id}/runs": {
         parameters: {
             query?: never;
             header?: never;
@@ -1902,7 +1885,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1918,7 +1901,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/tree": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/tree": {
         parameters: {
             query?: never;
             header?: never;
@@ -1934,7 +1917,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/cancel": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -1950,7 +1933,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/retry": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/retry": {
         parameters: {
             query?: never;
             header?: never;
@@ -1966,7 +1949,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/events": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/events": {
         parameters: {
             query?: never;
             header?: never;
@@ -1982,7 +1965,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/events/stream": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/events/stream": {
         parameters: {
             query?: never;
             header?: never;
@@ -1998,7 +1981,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/events/batch": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/events/batch": {
         parameters: {
             query?: never;
             header?: never;
@@ -2014,7 +1997,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/artifacts": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/artifacts": {
         parameters: {
             query?: never;
             header?: never;
@@ -2030,7 +2013,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/artifacts/{artifact_id}": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/artifacts/{artifact_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2046,7 +2029,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/artifacts/{artifact_id}/publish": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/artifacts/{artifact_id}/publish": {
         parameters: {
             query?: never;
             header?: never;
@@ -2062,14 +2045,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/artifacts/{artifact_id}": {
+    "/api/platform/regents/{regent_id}/rwr/artifacts/{artifact_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["getRwrCompanyArtifact"];
+        get: operations["getRwrRegentArtifact"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2078,7 +2061,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/approvals": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/approvals": {
         parameters: {
             query?: never;
             header?: never;
@@ -2094,7 +2077,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/approvals/{approval_id}": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/approvals/{approval_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2110,7 +2093,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/approvals/{approval_id}/resolve": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/approvals/{approval_id}/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -2126,7 +2109,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/workers": {
+    "/api/platform/regents/{regent_id}/rwr/workers": {
         parameters: {
             query?: never;
             header?: never;
@@ -2142,7 +2125,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/workers/{worker_id}/heartbeat": {
+    "/api/platform/regents/{regent_id}/rwr/workers/{worker_id}/heartbeat": {
         parameters: {
             query?: never;
             header?: never;
@@ -2158,7 +2141,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/workers/{worker_id}/assignments": {
+    "/api/platform/regents/{regent_id}/rwr/workers/{worker_id}/assignments": {
         parameters: {
             query?: never;
             header?: never;
@@ -2174,7 +2157,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/assignments/{assignment_id}/claim": {
+    "/api/platform/regents/{regent_id}/rwr/assignments/{assignment_id}/claim": {
         parameters: {
             query?: never;
             header?: never;
@@ -2190,7 +2173,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/assignments/{assignment_id}/release": {
+    "/api/platform/regents/{regent_id}/rwr/assignments/{assignment_id}/release": {
         parameters: {
             query?: never;
             header?: never;
@@ -2206,7 +2189,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/assignments/{assignment_id}/complete": {
+    "/api/platform/regents/{regent_id}/rwr/assignments/{assignment_id}/complete": {
         parameters: {
             query?: never;
             header?: never;
@@ -2222,7 +2205,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes": {
         parameters: {
             query?: never;
             header?: never;
@@ -2238,7 +2221,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes/{runtime_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2254,7 +2237,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/checkpoint": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes/{runtime_id}/checkpoint": {
         parameters: {
             query?: never;
             header?: never;
@@ -2270,7 +2253,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/restore": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes/{runtime_id}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -2286,7 +2269,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/pause": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes/{runtime_id}/pause": {
         parameters: {
             query?: never;
             header?: never;
@@ -2302,7 +2285,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/resume": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes/{runtime_id}/resume": {
         parameters: {
             query?: never;
             header?: never;
@@ -2318,7 +2301,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/services": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes/{runtime_id}/services": {
         parameters: {
             query?: never;
             header?: never;
@@ -2334,7 +2317,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runtimes/{runtime_id}/health": {
+    "/api/platform/regents/{regent_id}/rwr/runtimes/{runtime_id}/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -2350,7 +2333,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/runs/{run_id}/delegations": {
+    "/api/platform/regents/{regent_id}/rwr/runs/{run_id}/delegations": {
         parameters: {
             query?: never;
             header?: never;
@@ -2366,7 +2349,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/agents/{source_id}/relationships": {
+    "/api/platform/regents/{regent_id}/rwr/agents/{source_id}/relationships": {
         parameters: {
             query?: never;
             header?: never;
@@ -2382,7 +2365,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/agents/{manager_id}/execution-pool": {
+    "/api/platform/regents/{regent_id}/rwr/agents/{manager_id}/execution-pool": {
         parameters: {
             query?: never;
             header?: never;
@@ -2398,7 +2381,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/platform/companies/{company_id}/rwr/agent-relationships/{relationship_id}": {
+    "/api/platform/regents/{regent_id}/rwr/agent-relationships/{relationship_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2843,7 +2826,7 @@ export interface components {
         RelationshipKind: "manager_of" | "preferred_executor" | "can_delegate_to" | "reports_to";
         /** @enum {string} */
         RelationshipStatus: "active" | "paused" | "revoked";
-        RwrCompanySummary: {
+        RwrRegentSummary: {
             id: number;
             name: string;
             slug: string;
@@ -2851,24 +2834,24 @@ export interface components {
         };
         RwrAgentProfile: {
             id: number;
-            company_id: number;
+            regent_id: number;
             name: string;
             agent_kind: components["schemas"]["AgentKind"];
             default_runner_kind: components["schemas"]["RunnerKind"] | null;
             status: string;
             /** @enum {string} */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
         };
         RwrWorkItem: {
             id: number;
-            company_id: number;
+            regent_id: number;
             title: string;
             description: string | null;
             status: string;
             /** @enum {string} */
             priority: "normal" | "urgent";
             /** @enum {string} */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
             desired_runner_kind: components["schemas"]["RunnerKind"] | null;
             assigned_worker_id: number | null;
             assigned_agent_profile_id: number | null;
@@ -2879,7 +2862,7 @@ export interface components {
         };
         RwrRun: {
             id: number;
-            company_id: number;
+            regent_id: number;
             work_item_id: number;
             parent_run_id: number | null;
             root_run_id: number | null;
@@ -2888,7 +2871,7 @@ export interface components {
             runner_kind: components["schemas"]["RunnerKind"];
             status: string;
             /** @enum {string} */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
             summary: string | null;
             failure_reason: string | null;
             cost_usd: string;
@@ -2903,14 +2886,14 @@ export interface components {
         };
         RwrRunEvent: {
             id: number;
-            company_id: number;
+            regent_id: number;
             run_id: number;
             sequence: number;
             kind: string;
             actor_kind: string | null;
             actor_id: string | null;
             /** @enum {string} */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
             /** @enum {string} */
             sensitivity: "normal" | "sensitive" | "secret";
             payload: {
@@ -2921,14 +2904,14 @@ export interface components {
         };
         RwrArtifact: {
             id: number;
-            company_id: number;
+            regent_id: number;
             work_item_id: number;
             run_id: number;
             artifact_type: string;
             title: string | null;
             url: string | null;
             /** @enum {string} */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
             attestation_level: string;
             /** Format: date-time */
             created_at: string;
@@ -2937,7 +2920,7 @@ export interface components {
         };
         RwrApproval: {
             id: number;
-            company_id: number;
+            regent_id: number;
             run_id: number;
             approval_type: string;
             /** @enum {string} */
@@ -2960,7 +2943,7 @@ export interface components {
         };
         RwrWorker: {
             id: number;
-            company_id: number;
+            regent_id: number;
             agent_profile_id: number;
             runtime_profile_id: number | null;
             name: string;
@@ -2977,7 +2960,7 @@ export interface components {
         };
         RwrRuntime: {
             id: number;
-            company_id: number;
+            regent_id: number;
             platform_agent_id: number | null;
             name: string;
             runner_kind: components["schemas"]["RunnerKind"];
@@ -2985,7 +2968,7 @@ export interface components {
             billing_mode: components["schemas"]["BillingMode"];
             status: string;
             /** @enum {string} */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
             config: {
                 [key: string]: unknown;
             };
@@ -2995,7 +2978,7 @@ export interface components {
         };
         RwrRuntimeService: {
             id: number;
-            company_id: number;
+            regent_id: number;
             runtime_profile_id: number;
             name: string;
             service_kind: string;
@@ -3007,7 +2990,7 @@ export interface components {
         };
         RwrRuntimeCheckpoint: {
             id: number;
-            company_id: number;
+            regent_id: number;
             runtime_profile_id: number;
             work_run_id: number | null;
             checkpoint_ref: string;
@@ -3026,7 +3009,7 @@ export interface components {
         };
         RwrAgentRelationship: {
             id: number;
-            company_id: number;
+            regent_id: number;
             source_agent_profile_id: number | null;
             target_agent_profile_id: number | null;
             source_worker_id: number | null;
@@ -3037,7 +3020,7 @@ export interface components {
         };
         RwrWorkerAssignment: {
             id: number;
-            company_id: number;
+            regent_id: number;
             worker_id: number;
             work_run_id: number;
             status: string;
@@ -3052,12 +3035,12 @@ export interface components {
             /** @constant */
             ok: true;
             authenticated: boolean;
-            companies: components["schemas"]["RwrCompanySummary"][];
+            regents: components["schemas"]["RwrRegentSummary"][];
         };
         RwrWorkItemListResponse: {
             /** @constant */
             ok: true;
-            company_id: number;
+            regent_id: number;
             work_items: components["schemas"]["RwrWorkItem"][];
         };
         RwrWorkItemResponse: {
@@ -3128,7 +3111,7 @@ export interface components {
         RwrWorkerListResponse: {
             /** @constant */
             ok: true;
-            company_id: number;
+            regent_id: number;
             workers: components["schemas"]["RwrWorker"][];
         };
         RwrWorkerResponse: {
@@ -3155,7 +3138,7 @@ export interface components {
         RwrRuntimeListResponse: {
             /** @constant */
             ok: true;
-            company_id: number;
+            regent_id: number;
             runtimes: components["schemas"]["RwrRuntime"][];
         };
         RwrRuntimeResponse: {
@@ -3181,14 +3164,14 @@ export interface components {
         RwrRuntimeServiceListResponse: {
             /** @constant */
             ok: true;
-            company_id: number;
+            regent_id: number;
             runtime_id: number;
             services: components["schemas"]["RwrRuntimeService"][];
         };
         RwrRuntimeHealthResponse: {
             /** @constant */
             ok: true;
-            company_id: number;
+            regent_id: number;
             runtime_id: number;
             health: {
                 status: string;
@@ -3222,7 +3205,7 @@ export interface components {
         RwrAgentRelationshipListResponse: {
             /** @constant */
             ok: true;
-            company_id: number;
+            regent_id: number;
             relationships: components["schemas"]["RwrAgentRelationship"][];
         };
         RwrAgentRelationshipResponse: {
@@ -3233,11 +3216,11 @@ export interface components {
         RwrExecutionPoolResponse: {
             /** @constant */
             ok: true;
-            company_id: number;
+            regent_id: number;
             workers: components["schemas"]["RwrWorker"][];
         };
         RwrWorkItemCreateRequest: {
-            company_id: string;
+            regent_id: string;
             title: string;
             description?: string | null;
             /**
@@ -3249,13 +3232,13 @@ export interface components {
              * @default operator
              * @enum {string}
              */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
             metadata?: {
                 [key: string]: unknown;
             };
         };
         RwrRunStartRequest: {
-            company_id: string;
+            regent_id: string;
             work_item_id: string;
             runner_kind: components["schemas"]["RunnerKind"];
             worker_id?: string | null;
@@ -3265,7 +3248,7 @@ export interface components {
             };
         };
         RwrWorkerRegistrationRequest: {
-            company_id: string;
+            regent_id: string;
             agent_kind: components["schemas"]["AgentKind"];
             worker_role: components["schemas"]["WorkerRole"];
             execution_surface: components["schemas"]["ExecutionSurface"];
@@ -3277,7 +3260,7 @@ export interface components {
             endpoint_url?: string | null;
         };
         RwrRuntimeCreateRequest: {
-            company_id: string;
+            regent_id: string;
             platform_agent_id?: string | null;
             name: string;
             runner_kind: components["schemas"]["RunnerKind"];
@@ -3286,7 +3269,7 @@ export interface components {
             /** @enum {string} */
             status?: "active" | "paused" | "retired";
             /** @enum {string} */
-            visibility?: "operator" | "company" | "public";
+            visibility?: "operator" | "regent" | "public";
             config?: {
                 [key: string]: unknown;
             };
@@ -3295,7 +3278,7 @@ export interface components {
             };
         };
         RwrRuntimeCheckpointRequest: {
-            company_id: string;
+            regent_id: string;
             runtime_id: string;
             checkpoint_ref: string;
             /** @enum {string} */
@@ -3307,7 +3290,7 @@ export interface components {
             };
         };
         RwrRuntimeRestoreRequest: {
-            company_id: string;
+            regent_id: string;
             runtime_id: string;
             checkpoint_id: string;
             metadata?: {
@@ -3315,14 +3298,14 @@ export interface components {
             };
         };
         RwrRunEventAppendRequest: {
-            company_id: string;
+            regent_id: string;
             run_id: string;
             sequence?: number;
             kind: string;
             actor_kind?: string;
             actor_id?: string | null;
             /** @enum {string} */
-            visibility?: "operator" | "company" | "public";
+            visibility?: "operator" | "regent" | "public";
             /** @enum {string} */
             sensitivity?: "normal" | "sensitive" | "secret";
             /** Format: date-time */
@@ -3333,7 +3316,7 @@ export interface components {
             };
         };
         RwrRunEventBatchAppendRequest: {
-            company_id: string;
+            regent_id: string;
             run_id: string;
             events: components["schemas"]["RwrRunEventBatchAppendItem"][];
         };
@@ -3343,7 +3326,7 @@ export interface components {
             actor_kind?: string;
             actor_id?: string | null;
             /** @enum {string} */
-            visibility?: "operator" | "company" | "public";
+            visibility?: "operator" | "regent" | "public";
             /** @enum {string} */
             sensitivity?: "normal" | "sensitive" | "secret";
             /** Format: date-time */
@@ -3354,21 +3337,21 @@ export interface components {
             };
         };
         RwrArtifactCreateRequest: {
-            company_id: string;
+            regent_id: string;
             run_id: string;
             artifact_type: string;
             title?: string | null;
             body?: string | null;
             url?: string | null;
             /** @enum {string} */
-            visibility: "operator" | "company" | "public";
+            visibility: "operator" | "regent" | "public";
             publish_action?: "publish_artifact" | null;
             metadata?: {
                 [key: string]: unknown;
             };
         };
         RwrApprovalResolveRequest: {
-            company_id: string;
+            regent_id: string;
             run_id: string;
             /** @enum {string} */
             decision: "approved" | "denied";
@@ -3377,7 +3360,7 @@ export interface components {
             };
         };
         RwrDelegationRequest: {
-            company_id: string;
+            regent_id: string;
             run_id: string;
             work_item_id?: string | null;
             relationship_kind?: components["schemas"]["RelationshipKind"];
@@ -3399,7 +3382,7 @@ export interface components {
             instructions?: string | null;
         };
         RwrAgentRelationshipCreateRequest: {
-            company_id: string;
+            regent_id: string;
             source_agent_profile_id?: string | null;
             target_agent_profile_id?: string | null;
             source_worker_id?: string | null;
@@ -3812,9 +3795,9 @@ export interface components {
             last_usage_sync_at: string | null;
             next_pause_threshold_usd_cents: number;
             pause_targets: components["schemas"]["RuntimePauseTarget"][];
-            paid_companies: number;
-            paused_companies: number;
-            trialing_companies: number;
+            paid_regents: number;
+            paused_regents: number;
+            trialing_regents: number;
             welcome_credit: components["schemas"]["WelcomeCredit"] | null;
         };
         BillingSetupCheckoutRequest: {
@@ -3855,11 +3838,11 @@ export interface components {
             pause_targets: components["schemas"]["RuntimePauseTarget"][];
             runtime_spend_usd_cents: number;
             llm_spend_usd_cents: number;
-            trialing_companies: number;
-            paid_companies: number;
-            paused_companies: number;
+            trialing_regents: number;
+            paid_regents: number;
+            paused_regents: number;
             welcome_credit: components["schemas"]["WelcomeCredit"] | null;
-            companies: {
+            regents: {
                 slug: string;
                 name: string;
                 runtime_status: string;
@@ -4087,14 +4070,9 @@ export interface components {
         };
         AgentAccessEligibility: {
             eligible: boolean;
-            /** @enum {string} */
-            rule: "hold_approved_collection_nft_and_claim_name";
             wallet_connected: boolean;
-            approved_collection_nft: boolean;
             claimed_name_ready: boolean;
-            qualifying_nft_count: number;
             available_claim_count: number;
-            approved_collections: ("animata1" | "animata2" | "animataPass")[];
         };
         PlatformBlocker: {
             key: string;
@@ -4140,7 +4118,7 @@ export interface components {
         };
         AgentFormationReadinessStep: {
             /** @enum {string} */
-            key: "identity" | "wallet" | "access" | "name" | "billing" | "template" | "company" | "launch_queue";
+            key: "identity" | "wallet" | "access" | "name" | "billing" | "template" | "regent" | "launch_queue";
             label: string;
             /** @enum {string} */
             status: "complete" | "ready" | "needs_action" | "waiting";
@@ -4171,13 +4149,13 @@ export interface components {
             claimed_names: components["schemas"]["ClaimedName"][];
             available_claims: components["schemas"]["ClaimedName"][];
             billing_account: components["schemas"]["BillingAccount"];
-            owned_companies: components["schemas"]["AgentRecord"][];
+            owned_regents: components["schemas"]["AgentRecord"][];
             active_formations: components["schemas"]["AgentFormation"][];
             readiness: components["schemas"]["AgentFormationReadiness"];
         };
         AgentFormationDoctorCheck: {
             /** @enum {string} */
-            key: "identity" | "wallet" | "access" | "name" | "billing" | "template" | "company" | "launch_queue" | "failed_provisioning" | "missing_subdomain" | "missing_runtime_status" | "failed_runtime" | "missing_hosted_service" | "zero_balance";
+            key: "identity" | "wallet" | "name" | "billing" | "template" | "regent" | "launch_queue" | "failed_provisioning" | "missing_subdomain" | "missing_runtime_status" | "failed_runtime" | "missing_hosted_service" | "zero_balance";
             label: string;
             /** @enum {string} */
             status: "complete" | "ready" | "needs_action" | "waiting";
@@ -4196,8 +4174,8 @@ export interface components {
             ok: boolean;
             doctor: components["schemas"]["AgentFormationDoctor"];
         };
-        PlatformCompanyProjection: {
-            company: components["schemas"]["AgentRecord"];
+        PlatformRegentProjection: {
+            regent: components["schemas"]["AgentRecord"];
             runtime: components["schemas"]["AgentRuntime"];
             formation: components["schemas"]["AgentFormation"] | null;
             public_profile: components["schemas"]["PublicAgentRecord"];
@@ -4215,7 +4193,7 @@ export interface components {
             formation: components["schemas"]["AgentFormationResponse"];
             billing_account: components["schemas"]["BillingAccount"];
             billing_usage: components["schemas"]["BillingUsageSummary"];
-            companies: components["schemas"]["PlatformCompanyProjection"][];
+            regents: components["schemas"]["PlatformRegentProjection"][];
             public_profiles: components["schemas"]["PublicAgentRecord"][];
             identity_links: components["schemas"]["AgentPlatformIdentityLinks"];
         };
@@ -4270,7 +4248,7 @@ export interface components {
             hermes_runtime_plugins: string[];
             /** @description Hermes shared skills materialized under `~/.hermes/skills/` during runtime bootstrap. */
             hermes_shared_skills: string[];
-            company_purpose: string;
+            regent_purpose: string;
             hermes_worker_role: string;
             recommended_network_domains: string[];
             checkpoint_moments: string[];
@@ -4358,7 +4336,7 @@ export interface components {
             sprite_metering_status: string;
             formation?: components["schemas"]["AgentFormation"] | null;
         };
-        CreateFormationCompanyRequest: {
+        CreateFormationRegentRequest: {
             claimedLabel: string;
         };
         AgentRuntime: {
@@ -4457,12 +4435,12 @@ export interface components {
             animata: number;
             "regent-animata-ii": number;
         };
-        /** @description A chat scope: system, topic:{slug}, company:{slug}, or dm:{walletA}:{walletB} (lowercased, lexicographically sorted participant wallets). */
+        /** @description A chat scope: system, topic:{slug}, regent:{slug}, or dm:{walletA}:{walletB} (lowercased, lexicographically sorted participant wallets). */
         ChatScopeValue: string;
         ChatChannel: {
             scope: components["schemas"]["ChatScopeValue"];
             /** @enum {string} */
-            kind: "system" | "topic" | "company" | "dm";
+            kind: "system" | "topic" | "regent" | "dm";
             name: string;
             status: string;
             last_message_at?: string | null;
@@ -4640,14 +4618,14 @@ export interface components {
         };
     };
     parameters: {
-        /** @description Published Regent company slug. */
+        /** @description Published Regent slug. */
         AgentSlug: string;
-        /** @description Regent Service slug within the company. */
+        /** @description Regent Service slug within the regent. */
         ServiceSlug: string;
         /** @description Regent Service invocation id. */
         InvocationId: string;
         SessionId: string;
-        CompanyId: string;
+        RegentId: string;
         ChatScope: components["schemas"]["ChatScopeValue"];
         ChatMessageId: number;
     };
@@ -4735,7 +4713,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Sitemap for the public entry pages and live company home pages */
+            /** @description Sitemap for the public entry pages and live regent home pages */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5635,9 +5613,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -5663,9 +5641,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -5691,9 +5669,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -5719,9 +5697,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -5747,9 +5725,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -5775,9 +5753,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -5822,9 +5800,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
                 /** @description Regent Service invocation id. */
                 invocation_id: components["parameters"]["InvocationId"];
@@ -5852,9 +5830,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
                 /** @description Regent Service invocation id. */
                 invocation_id: components["parameters"]["InvocationId"];
@@ -6522,7 +6500,7 @@ export interface operations {
             429: components["responses"]["StatusMessage429"];
         };
     };
-    agentPlatformFormationCreateCompany: {
+    agentPlatformFormationCreateRegent: {
         parameters: {
             query?: never;
             header?: never;
@@ -6531,7 +6509,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateFormationCompanyRequest"];
+                "application/json": components["schemas"]["CreateFormationRegentRequest"];
             };
         };
         responses: {
@@ -6587,14 +6565,14 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Owner list of callable Regent Service definitions for one company. */
+            /** @description Owner list of callable Regent Service definitions for one regent. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6614,7 +6592,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
             };
             cookie?: never;
@@ -6647,9 +6625,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6676,9 +6654,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6711,9 +6689,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6746,9 +6724,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6780,9 +6758,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6811,9 +6789,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6841,9 +6819,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6871,9 +6849,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -6900,9 +6878,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Published Regent company slug. */
+                /** @description Published Regent slug. */
                 slug: components["parameters"]["AgentSlug"];
-                /** @description Regent Service slug within the company. */
+                /** @description Regent Service slug within the regent. */
                 service_slug: components["parameters"]["ServiceSlug"];
             };
             cookie?: never;
@@ -7841,28 +7819,6 @@ export interface operations {
             429: components["responses"]["StatusMessage429"];
         };
     };
-    listChatDms: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Direct-message channels for the caller */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatDmListResponse"];
-                };
-            };
-            401: components["responses"]["StatusMessage401"];
-            429: components["responses"]["StatusMessage429"];
-        };
-    };
     getPublicProfile: {
         parameters: {
             query?: never;
@@ -8028,7 +7984,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Current Regent Work Runtime account and owned companies */
+            /** @description Current Regent Work Runtime account and owned regents */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -8045,13 +8001,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Regent Work Runtime work items for the company */
+            /** @description Regent Work Runtime work items for the regent */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -8068,7 +8024,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
             };
             cookie?: never;
         };
@@ -8095,7 +8051,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 work_item_id: string;
             };
             cookie?: never;
@@ -8119,7 +8075,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 work_item_id: string;
             };
             cookie?: never;
@@ -8147,7 +8103,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8171,7 +8127,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8195,7 +8151,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8219,7 +8175,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8243,7 +8199,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8267,7 +8223,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8296,7 +8252,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8320,7 +8276,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8349,7 +8305,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8373,7 +8329,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8402,7 +8358,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
                 artifact_id: string;
             };
@@ -8427,7 +8383,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
                 artifact_id: string;
             };
@@ -8447,19 +8403,19 @@ export interface operations {
             429: components["responses"]["StatusMessage429"];
         };
     };
-    getRwrCompanyArtifact: {
+    getRwrRegentArtifact: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 artifact_id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Regent Work Runtime company artifact */
+            /** @description Regent Work Runtime regent artifact */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -8476,7 +8432,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8500,7 +8456,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
                 approval_id: string;
             };
@@ -8525,7 +8481,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
                 approval_id: string;
             };
@@ -8554,13 +8510,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Regent Work Runtime workers for the company */
+            /** @description Regent Work Runtime workers for the regent */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -8577,7 +8533,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
             };
             cookie?: never;
         };
@@ -8605,7 +8561,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 worker_id: string;
             };
             cookie?: never;
@@ -8630,7 +8586,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 worker_id: string;
             };
             cookie?: never;
@@ -8655,7 +8611,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 assignment_id: string;
             };
             cookie?: never;
@@ -8680,7 +8636,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 assignment_id: string;
             };
             cookie?: never;
@@ -8705,7 +8661,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 assignment_id: string;
             };
             cookie?: never;
@@ -8730,13 +8686,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Regent Work Runtime profiles for the company */
+            /** @description Regent Work Runtime profiles for the regent */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -8753,7 +8709,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
             };
             cookie?: never;
         };
@@ -8763,7 +8719,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created Regent Work Runtime profile for the company */
+            /** @description Created Regent Work Runtime profile for the regent */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -8780,14 +8736,14 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 runtime_id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Regent Work Runtime profile for the company */
+            /** @description Regent Work Runtime profile for the regent */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -8804,7 +8760,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 runtime_id: string;
             };
             cookie?: never;
@@ -8832,7 +8788,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 runtime_id: string;
             };
             cookie?: never;
@@ -8860,7 +8816,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 runtime_id: string;
             };
             cookie?: never;
@@ -8884,7 +8840,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 runtime_id: string;
             };
             cookie?: never;
@@ -8908,7 +8864,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 runtime_id: string;
             };
             cookie?: never;
@@ -8932,7 +8888,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 runtime_id: string;
             };
             cookie?: never;
@@ -8956,7 +8912,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 run_id: string;
             };
             cookie?: never;
@@ -8985,7 +8941,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 source_id: string;
             };
             cookie?: never;
@@ -9009,7 +8965,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 source_id: string;
             };
             cookie?: never;
@@ -9037,7 +8993,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 manager_id: string;
             };
             cookie?: never;
@@ -9061,7 +9017,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                company_id: components["parameters"]["CompanyId"];
+                regent_id: components["parameters"]["RegentId"];
                 relationship_id: string;
             };
             cookie?: never;
