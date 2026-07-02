@@ -1667,6 +1667,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/chat/messages/{id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Signed-in chat admin hides a message from public chat reads. */
+        post: operations["hideWebappChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/chat/messages/{id}/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Signed-in chat admin restores a hidden message. */
+        post: operations["unhideWebappChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/chat/bans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Signed-in chat admin stops a wallet from posting or reacting. */
+        post: operations["banWebappChatWallet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/platform/chat/bans/{wallet}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Signed-in chat admin lets a wallet post and react again. */
+        delete: operations["unbanWebappChatWallet"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/platform/chat/dms": {
         parameters: {
             query?: never;
@@ -7581,6 +7649,194 @@ export interface operations {
             };
             401: components["responses"]["StatusMessage401"];
             404: components["responses"]["StatusMessage404"];
+            422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    hideWebappChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat message hidden */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            /** @description Signed-in wallet is not a chat admin; error.code is chat_admin_required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "chat_admin_required",
+                     *         "product": "platform",
+                     *         "status": 403,
+                     *         "path": "/api/platform/chat/messages/123/hide",
+                     *         "request_id": null,
+                     *         "message": "Only a chat admin can do that."
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["StatusMessage"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    unhideWebappChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ChatMessageId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat message restored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPostResponse"];
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            /** @description Signed-in wallet is not a chat admin; error.code is chat_admin_required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "chat_admin_required",
+                     *         "product": "platform",
+                     *         "status": 403,
+                     *         "path": "/api/platform/chat/messages/123/unhide",
+                     *         "request_id": null,
+                     *         "message": "Only a chat admin can do that."
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["StatusMessage"];
+                };
+            };
+            404: components["responses"]["StatusMessage404"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    banWebappChatWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    wallet_address: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Chat wallet banned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            /** @description Signed-in wallet is not a chat admin; error.code is chat_admin_required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "chat_admin_required",
+                     *         "product": "platform",
+                     *         "status": 403,
+                     *         "path": "/api/platform/chat/bans",
+                     *         "request_id": null,
+                     *         "message": "Only a chat admin can do that."
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["StatusMessage"];
+                };
+            };
+            422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
+    unbanWebappChatWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wallet: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat wallet unbanned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            401: components["responses"]["StatusMessage401"];
+            /** @description Signed-in wallet is not a chat admin; error.code is chat_admin_required. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "chat_admin_required",
+                     *         "product": "platform",
+                     *         "status": 403,
+                     *         "path": "/api/platform/chat/bans/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                     *         "request_id": null,
+                     *         "message": "Only a chat admin can do that."
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["StatusMessage"];
+                };
+            };
             422: components["responses"]["StatusMessage422"];
             429: components["responses"]["StatusMessage429"];
         };
