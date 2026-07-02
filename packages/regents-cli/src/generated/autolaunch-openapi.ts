@@ -124,23 +124,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/autolaunch/v1/chat/dms": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Lists the signed-in person's direct-message channels (dm scopes where their wallet is a participant), most recently active first. */
-        get: operations["listChatDms"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/autolaunch/v1/agent/chat/messages": {
         parameters: {
             query?: never;
@@ -3622,36 +3605,6 @@ export interface operations {
             };
             /** @description Unban request rejected */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            429: components["responses"]["RateLimitError"];
-        };
-    };
-    listChatDms: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Direct-message channels for the caller */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatDmListResponse"];
-                };
-            };
-            /** @description Missing signed-in browser session */
-            401: {
                 headers: {
                     [name: string]: unknown;
                 };
