@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import { resolve } from "node:path";
 import process from "node:process";
+import {
+  checkCliHttpRouteBindings,
+  formatCliHttpRouteIssue,
+} from "./cli-http-route-check.mjs";
 import { checkCliCommandMetadata } from "./generate-cli-command-metadata.mjs";
 import { loadYaml } from "./dependency-preflight.mjs";
 import {
@@ -24,25 +28,30 @@ const parseYaml = (file) => YAML.parse(fs.readFileSync(file, "utf8"));
 
 const readPaths = (file) => new Set(Object.keys(parseYaml(file).paths ?? {}));
 
-const readOperationPaths = (file) => {
+const httpMethods = new Set(["get", "put", "post", "delete", "options", "head", "patch", "trace"]);
+
+const readOperations = (file) => {
   const document = parseYaml(file);
-  const operationPaths = new Map();
+  const operations = new Map();
 
   for (const [path, methods] of Object.entries(document.paths ?? {})) {
     if (!methods || typeof methods !== "object") {
       continue;
     }
 
-    for (const operation of Object.values(methods)) {
+    for (const [method, operation] of Object.entries(methods)) {
+      if (!httpMethods.has(method.toLowerCase())) {
+        continue;
+      }
       if (!operation || typeof operation !== "object" || typeof operation.operationId !== "string") {
         continue;
       }
 
-      operationPaths.set(operation.operationId, path);
+      operations.set(operation.operationId, { method: method.toUpperCase(), path });
     }
   }
 
-  return operationPaths;
+  return operations;
 };
 
 const extractStrings = (input) => Array.from(input.matchAll(/"([^"]+)"/g), (match) => match[1]);
@@ -90,9 +99,12 @@ const platformPublicCommand = (command) =>
   command.startsWith("platform ") ||
   command.startsWith("runtime ") ||
   command.startsWith("agentbook ") ||
+  command.startsWith("service ") ||
   command.startsWith("work ") ||
+  command === "agent connect hosted-hermes" ||
   command === "agent connect hermes" ||
   command === "agent connect openclaw" ||
+  command === "agent chat" ||
   command === "agent link" ||
   command === "agent execution-pool" ||
   command === "bug" ||
@@ -211,7 +223,7 @@ const iterContractCommandRecords = (owner, contract) => {
   );
 };
 
-const flattenContract = (contract, operationPaths) => {
+const flattenContract = (contract, operationsById) => {
   if (contract?.openapi || Array.isArray(contract?.commands) || contract?.version !== 1) {
     fail("CLI contracts must use the v1 command_groups schema");
     return { commands: new Set(), paths: new Set(), rpcMethods: new Set(), operationIds: new Set() };
@@ -225,12 +237,12 @@ const flattenContract = (contract, operationPaths) => {
 
   const addOperationId = (operationId) => {
     operationIds.add(operationId);
-    const path = operationPaths.get(operationId);
-    if (!path) {
+    const operation = operationsById.get(operationId);
+    if (!operation) {
       fail(`CLI contract references unknown OpenAPI operationId: ${operationId}`);
       return;
     }
-    paths.add(path);
+    paths.add(operation.path);
   };
 
   for (const group of groups) {
@@ -254,6 +266,46 @@ const flattenContract = (contract, operationPaths) => {
   }
 
   return { commands, paths, rpcMethods, operationIds };
+};
+
+const validateCommandOperationMappings = (records, operationsByOwner, openApiFilesByOwner) => {
+  for (const record of records) {
+    const operationIds = record.metadata?.operation_ids;
+    if (!Array.isArray(operationIds) || operationIds.length === 0) {
+      continue;
+    }
+
+    const operationsById = operationsByOwner[record.owner];
+    const groupPaths = new Set(record.group?.path_templates ?? []);
+
+    for (const operationId of operationIds) {
+      if (typeof operationId !== "string" || operationId.length === 0) {
+        fail(`CLI contract command ${record.owner} "${record.command}" has an invalid operation_id entry`);
+        continue;
+      }
+
+      const operation = operationsById?.get(operationId);
+      if (!operation) {
+        fail(
+          [
+            `CLI contract command ${record.owner} "${record.command}" maps to missing OpenAPI operationId: ${operationId}`,
+            `owner api-contract: ${openApiFilesByOwner[record.owner]}`,
+          ].join("\n"),
+        );
+        continue;
+      }
+
+      if (!groupPaths.has(operation.path)) {
+        fail(
+          [
+            `CLI contract command ${record.owner} "${record.command}" maps to OpenAPI operation outside its path_templates: ${operationId}`,
+            `resolved operation: ${operation.method} ${operation.path}`,
+            `owner api-contract: ${openApiFilesByOwner[record.owner]}`,
+          ].join("\n"),
+        );
+      }
+    }
+  }
 };
 
 const fail = (message) => {
@@ -307,14 +359,14 @@ const contracts = Object.fromEntries(
   Object.entries(cliContractFiles).map(([owner, file]) => [owner, parseYaml(file)]),
 );
 
-const operationPathsByOwner = Object.fromEntries(
-  Object.entries(openApiFiles).map(([owner, file]) => [owner, readOperationPaths(file)]),
+const operationsByOwner = Object.fromEntries(
+  Object.entries(openApiFiles).map(([owner, file]) => [owner, readOperations(file)]),
 );
 
 const flattenedContracts = Object.fromEntries(
   Object.entries(contracts).map(([owner, contract]) => [
     owner,
-    flattenContract(contract, operationPathsByOwner[owner]),
+    flattenContract(contract, operationsByOwner[owner]),
   ]),
 );
 
@@ -323,6 +375,8 @@ const contractCommandRecords = Object.entries(contracts).flatMap(([owner, contra
     owner === "platform" ? platformPublicCommand(record.command) : true,
   ),
 );
+
+validateCommandOperationMappings(contractCommandRecords, operationsByOwner, openApiFiles);
 
 for (const record of contractCommandRecords) {
   const words = commandWords(record.command);
@@ -484,6 +538,15 @@ for (const command of routeCommands) {
   if (!registryCommands.has(command)) {
     fail(`CLI dispatcher contains route missing from shipped contracts: ${command}`);
   }
+}
+
+for (const issue of checkCliHttpRouteBindings({
+  root,
+  openApiFiles,
+  shippedCommands: shippedContractCommands,
+  YAML,
+})) {
+  fail(formatCliHttpRouteIssue(issue, openApiFiles));
 }
 
 const requiredChatCommands = [
