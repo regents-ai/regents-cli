@@ -115,19 +115,10 @@ describe("guided regents init", () => {
     });
 
     operatorInitDeps.callJsonRpc = vi.fn().mockResolvedValue({ ok: true });
-    operatorInitDeps.spawnDetachedRuntime = vi.fn();
-    operatorInitDeps.wait = async () => {};
     operatorInitDeps.pluginStatus = vi.fn(() => ({
       ok: true,
       selectedRuntime: "auto",
       runtimes: [installedRuntime("hermes", true), installedRuntime("openclaw", true)],
-    }));
-    operatorInitDeps.installPlugin = vi.fn((runtime) => ({
-      ok: true,
-      runtime,
-      pluginPath: path.join(tempDir, `.${runtime}`),
-      skillsPath: path.join(tempDir, `.${runtime}`, "skills"),
-      files: [],
     }));
     operatorInitDeps.runScopedDoctor = vi.fn().mockResolvedValue(readyDoctorReport);
   });
@@ -162,20 +153,15 @@ describe("guided regents init", () => {
       identity: { network: "base", agent_id: TEST_AGENT_ID },
       next_actions: ["regents status"],
     });
-    expect(operatorInitDeps.installPlugin).not.toHaveBeenCalled();
-    expect(operatorInitDeps.spawnDetachedRuntime).not.toHaveBeenCalled();
   });
 
-  it("installs only the missing runtime tools and starts the daemon when needed", async () => {
+  it("reports missing runtime tools and daemon work without performing it", async () => {
     operatorInitDeps.pluginStatus = vi.fn(() => ({
       ok: true,
       selectedRuntime: "auto",
       runtimes: [installedRuntime("hermes", true), installedRuntime("openclaw", false)],
     }));
-    operatorInitDeps.callJsonRpc = vi
-      .fn()
-      .mockRejectedValueOnce(new Error("socket missing"))
-      .mockResolvedValue({ ok: true });
+    operatorInitDeps.callJsonRpc = vi.fn().mockRejectedValue(new Error("socket missing"));
 
     const output = await captureOutput(async () =>
       runOperatorInit(parseCliArgs(["--config", configPath]), configPath),
@@ -187,12 +173,13 @@ describe("guided regents init", () => {
       ok: true,
       command: "init",
       status: "waiting",
-      plugin: { installed_now: ["openclaw"] },
-      daemon: { running: true, started_now: true },
-      next_actions: ["regents identity ensure"],
+      plugin: { installed_now: [] },
+      daemon: { running: false, started_now: false },
+      next_actions: [
+        "regents plugin install --runtime openclaw",
+        "regents run",
+        "regents identity ensure",
+      ],
     });
-    expect(operatorInitDeps.installPlugin).toHaveBeenCalledTimes(1);
-    expect(operatorInitDeps.installPlugin).toHaveBeenCalledWith("openclaw");
-    expect(operatorInitDeps.spawnDetachedRuntime).toHaveBeenCalledWith(configPath);
   });
 });

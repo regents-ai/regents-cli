@@ -1060,8 +1060,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
 
     const { operatorInitDeps } = await import("../../src/commands/operator.js");
     operatorInitDeps.callJsonRpc = (async () => ({ ok: true })) as typeof operatorInitDeps.callJsonRpc;
-    operatorInitDeps.spawnDetachedRuntime = async () => {};
-    operatorInitDeps.wait = async () => {};
     operatorInitDeps.pluginStatus = (runtime = "auto") => ({
       ok: true,
       selectedRuntime: runtime,
@@ -1069,13 +1067,6 @@ export function setupCliEntrypointHarness(): CliEntrypointHarness {
         { runtime: "hermes", installed: true, pluginPath: path.join(tempDir, ".hermes"), skillsPath: path.join(tempDir, ".hermes", "skills") },
         { runtime: "openclaw", installed: true, pluginPath: path.join(tempDir, ".openclaw"), skillsPath: path.join(tempDir, ".openclaw", "skills") },
       ],
-    });
-    operatorInitDeps.installPlugin = (runtime) => ({
-      ok: true,
-      runtime,
-      pluginPath: path.join(tempDir, `.${runtime}`),
-      skillsPath: path.join(tempDir, `.${runtime}`, "skills"),
-      files: [],
     });
     operatorInitDeps.runScopedDoctor = runScopedDoctorMock as typeof operatorInitDeps.runScopedDoctor;
 

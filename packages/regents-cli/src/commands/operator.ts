@@ -15,10 +15,9 @@ import {
 } from "../internal-runtime/index.js";
 import { readIdentityReceipt, receiptMatchesRequest } from "../internal-runtime/identity/cache.js";
 import { identityNetworkForChainId } from "../internal-runtime/identity/shared.js";
-import { installPlugin, pluginStatus } from "../internal-runtime/plugin-bridge.js";
+import { pluginStatus } from "../internal-runtime/plugin-bridge.js";
 import type { RegentConfig } from "../internal-types/index.js";
 import { getBooleanFlag, getFlag, type ParsedCliArgs } from "../parse.js";
-import { spawnDetachedRuntime } from "../runtime-spawn.js";
 import {
   CLI_PALETTE,
   isHumanTerminal,
@@ -93,19 +92,13 @@ const readCurrentIdentityReceipt = (
 export interface OperatorInitDeps {
   callJsonRpc: typeof callJsonRpc;
   runScopedDoctor: typeof runScopedDoctor;
-  spawnDetachedRuntime: typeof spawnDetachedRuntime;
   pluginStatus: typeof pluginStatus;
-  installPlugin: typeof installPlugin;
-  wait: (ms: number) => Promise<void>;
 }
 
 export const operatorInitDeps: OperatorInitDeps = {
   callJsonRpc,
   runScopedDoctor,
-  spawnDetachedRuntime,
   pluginStatus,
-  installPlugin,
-  wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 };
 
 const runtimePingReady = async (socketPath: string): Promise<boolean> => {
@@ -115,17 +108,6 @@ const runtimePingReady = async (socketPath: string): Promise<boolean> => {
   } catch {
     return false;
   }
-};
-
-const waitForRuntimeSocket = async (socketPath: string): Promise<boolean> => {
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    if (await runtimePingReady(socketPath)) {
-      return true;
-    }
-    await operatorInitDeps.wait(250);
-  }
-
-  return false;
 };
 
 const runtimeReadiness = async (
@@ -151,22 +133,13 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
 
   ensureDirectories(Object.values(directories));
 
-  const missingRuntimes = operatorInitDeps
-    .pluginStatus("auto")
-    .runtimes.filter((runtime) => !runtime.installed)
-    .map((runtime) => runtime.runtime);
-  for (const runtime of missingRuntimes) {
-    operatorInitDeps.installPlugin(runtime);
-  }
   const plugin = operatorInitDeps.pluginStatus("auto");
+  const missingRuntimes = plugin.runtimes
+    .filter((runtime) => !runtime.installed)
+    .map((runtime) => runtime.runtime);
 
-  const daemonAlreadyRunning = await runtimePingReady(config.runtime.socketPath);
-  let daemonStarted = false;
-  if (!daemonAlreadyRunning) {
-    await operatorInitDeps.spawnDetachedRuntime(resolvedConfigPath);
-    daemonStarted = await waitForRuntimeSocket(config.runtime.socketPath);
-  }
-  const daemonRunning = daemonAlreadyRunning || daemonStarted;
+  const runtime = await runtimeReadiness(config.runtime.socketPath);
+  const daemonRunning = runtime.ready;
 
   const doctorReport = await operatorInitDeps.runScopedDoctor(
     { scope: "runtime" },
@@ -187,6 +160,9 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
   });
 
   const nextActions = [
+    ...(missingRuntimes.length === 0
+      ? []
+      : [`regents plugin install --runtime ${missingRuntimes.length === 1 ? missingRuntimes[0] : "auto"}`]),
     ...(daemonRunning ? [] : ["regents run"]),
     ...doctorFailures.map((check) => check.remediation ?? `Fix doctor check ${check.id}`),
     ...(wallet.account ? [] : ["regents wallet setup"]),
@@ -199,12 +175,14 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
     component(
       "plugins",
       plugin.runtimes.every((runtime) => runtime.installed) ? "ready" : "waiting",
-      missingRuntimes.length > 0 ? `installed ${missingRuntimes.join(", ")}` : "Hermes and OpenClaw tools already installed",
+      missingRuntimes.length > 0
+        ? `Run regents plugin install --runtime ${missingRuntimes.length === 1 ? missingRuntimes[0] : "auto"}`
+        : "Hermes and OpenClaw tools already installed",
     ),
     component(
       "runtime",
       daemonRunning ? "ready" : "blocked",
-      daemonStarted ? "started in the background" : daemonRunning ? "already running" : "Run regents run",
+      daemonRunning ? "already running" : runtime.socketExists ? "Run regents doctor --fix" : "Run regents run",
     ),
     component(
       "doctor",
@@ -224,7 +202,7 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
   ];
 
   const payload = {
-    ok: daemonRunning && doctorFailures.length === 0,
+    ok: true,
     command: "init",
     status: ready ? "ready" : "waiting",
     config_path: resolvedConfigPath,
@@ -232,12 +210,12 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
     directories,
     plugin: {
       selected_runtime: "auto",
-      installed_now: missingRuntimes,
+      installed_now: [],
       runtimes: plugin.runtimes.map(({ runtime, installed }) => ({ runtime, installed })),
     },
     daemon: {
       running: daemonRunning,
-      started_now: daemonStarted,
+      started_now: false,
       socket_path: config.runtime.socketPath,
     },
     doctor: {
@@ -273,7 +251,7 @@ export async function runOperatorInit(args: ParsedCliArgs, configPath?: string):
       renderPanel("◆ NEXT", [...payload.next_actions]),
     ].join("\n\n"),
   );
-  return payload.ok ? 0 : 1;
+  return 0;
 }
 
 export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string): Promise<number> {
