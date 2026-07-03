@@ -7,11 +7,16 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  buildPairingPayload,
   createVoiceGatewayServer,
   resolveOpenaiApiKey,
+  resolvePairingToken,
 } from "../../src/commands/voice.js";
 import { loadConfig } from "../../src/internal-runtime/config.js";
 import type { RegentVoiceConfig } from "../../src/internal-types/index.js";
+
+const TEST_TOKEN = "pair-token-abc";
+const authHeaders = (token = TEST_TOKEN): Record<string, string> => ({ authorization: `Bearer ${token}` });
 
 const voiceConfig = (overrides: Partial<RegentVoiceConfig> = {}): RegentVoiceConfig => ({
   openaiApiKeyEnv: "TEST_OPENAI_KEY",
@@ -135,12 +140,12 @@ describe("voice gateway /hermes/voice/session", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", "local-hermes");
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN, "local-hermes");
     const base = await startServer(server);
     try {
       const response = await request(base, "/hermes/voice/session", {
         method: "POST",
-        headers: { "content-type": "application/json", "openai-safety-identifier": "safety-abc" },
+        headers: { ...authHeaders(), "content-type": "application/json", "openai-safety-identifier": "safety-abc" },
         body: JSON.stringify({ voice: "marin", reasoning_effort: "low" }),
       });
       expect(response.status).toBe(201);
@@ -181,10 +186,10 @@ describe("voice gateway /hermes/voice/session", () => {
 
   it("returns a provider error (not a crash) when the mint call fails", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("nope", { status: 500 })));
-    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123");
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN);
     const base = await startServer(server);
     try {
-      const response = await request(base, "/hermes/voice/session", { method: "POST", body: "{}" });
+      const response = await request(base, "/hermes/voice/session", { method: "POST", headers: authHeaders(), body: "{}" });
       expect(response.status).toBe(502);
       expect(response.json() as { error: string }).toEqual({ ok: false, error: "provider_unavailable" });
     } finally {
@@ -195,10 +200,10 @@ describe("voice gateway /hermes/voice/session", () => {
 
 describe("voice gateway other routes", () => {
   it("status reports enabled/health/model registry, healthz is a liveness probe", async () => {
-    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123");
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN);
     const base = await startServer(server);
     try {
-      const status = (await request(base, "/hermes/voice/status")).json() as Record<string, unknown>;
+      const status = (await request(base, "/hermes/voice/status", { headers: authHeaders() })).json() as Record<string, unknown>;
       expect(status.enabled).toBe(true);
       expect(status.health).toBe("ok");
       expect(status.tool_registry_digest).toEqual(expect.any(String));
@@ -214,26 +219,115 @@ describe("voice gateway other routes", () => {
   it("prewarm, disconnect, and tool-result acknowledge without minting", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123");
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN);
     const base = await startServer(server);
     try {
-      expect((await request(base, "/hermes/voice/prewarm", { method: "POST", body: "{}" })).status).toBe(202);
-      expect((await request(base, "/hermes/voice/disconnect", { method: "POST", body: JSON.stringify({ session_id: "s1" }) })).status).toBe(200);
-      expect((await request(base, "/hermes/voice/tool-result", { method: "POST", body: "{}" })).status).toBe(202);
+      expect((await request(base, "/hermes/voice/prewarm", { method: "POST", headers: authHeaders(), body: "{}" })).status).toBe(202);
+      expect((await request(base, "/hermes/voice/disconnect", { method: "POST", headers: authHeaders(), body: JSON.stringify({ session_id: "s1" }) })).status).toBe(200);
+      expect((await request(base, "/hermes/voice/tool-result", { method: "POST", headers: authHeaders(), body: "{}" })).status).toBe(202);
       expect(fetchMock).not.toHaveBeenCalled();
     } finally {
       await closeServer(server);
     }
   });
 
-  it("unknown route is a 404, not a crash", async () => {
-    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123");
+  it("unknown route (with a valid token) is a 404, not a crash", async () => {
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN);
     const base = await startServer(server);
     try {
-      const response = await request(base, "/hermes/voice/unknown");
+      const response = await request(base, "/hermes/voice/unknown", { headers: authHeaders() });
       expect(response.status).toBe(404);
     } finally {
       await closeServer(server);
     }
+  });
+});
+
+describe("voice gateway pairing token (security-critical)", () => {
+  it("rejects session minting with 401 when no token is presented — before any OpenAI call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN);
+    const base = await startServer(server);
+    try {
+      const response = await request(base, "/hermes/voice/session", { method: "POST", body: "{}" });
+      expect(response.status).toBe(401);
+      expect(response.json() as { error: string }).toEqual({ ok: false, error: "unauthorized" });
+      // Critical: the OpenAI key was never spent for an unpaired request.
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      await closeServer(server);
+    }
+  });
+
+  it("rejects a wrong token and accepts the correct one", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ value: "ek_ok" }), { status: 200 })),
+    );
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN);
+    const base = await startServer(server);
+    try {
+      const wrong = await request(base, "/hermes/voice/session", {
+        method: "POST",
+        headers: authHeaders("not-the-token"),
+        body: "{}",
+      });
+      expect(wrong.status).toBe(401);
+
+      const right = await request(base, "/hermes/voice/session", {
+        method: "POST",
+        headers: authHeaders(),
+        body: "{}",
+      });
+      expect(right.status).toBe(201);
+    } finally {
+      await closeServer(server);
+    }
+  });
+
+  it("gates status/prewarm/disconnect/tool-result but leaves healthz open", async () => {
+    const server = createVoiceGatewayServer(voiceConfig(), "sk-test-123", TEST_TOKEN);
+    const base = await startServer(server);
+    try {
+      expect((await request(base, "/hermes/voice/status")).status).toBe(401);
+      expect((await request(base, "/hermes/voice/prewarm", { method: "POST", body: "{}" })).status).toBe(401);
+      expect((await request(base, "/hermes/voice/disconnect", { method: "POST", body: "{}" })).status).toBe(401);
+      expect((await request(base, "/hermes/voice/tool-result", { method: "POST", body: "{}" })).status).toBe(401);
+      // Liveness probe stays unauthenticated.
+      expect((await request(base, "/hermes/voice/healthz")).status).toBe(200);
+    } finally {
+      await closeServer(server);
+    }
+  });
+});
+
+describe("pairing token + QR payload", () => {
+  afterEach(() => {
+    delete process.env.HERMES_VOICE_GATEWAY_TOKEN;
+  });
+
+  it("the pairing token is distinct from the OpenAI key and uses HERMES_VOICE_GATEWAY_TOKEN when set", () => {
+    process.env.HERMES_VOICE_GATEWAY_TOKEN = "configured-pair-token";
+    expect(resolvePairingToken()).toBe("configured-pair-token");
+    // The pairing token is not the OpenAI API key.
+    expect(resolvePairingToken()).not.toContain("sk-");
+  });
+
+  it("generates a fresh random token when HERMES_VOICE_GATEWAY_TOKEN is unset", () => {
+    delete process.env.HERMES_VOICE_GATEWAY_TOKEN;
+    const a = resolvePairingToken();
+    const b = resolvePairingToken();
+    expect(a).toMatch(/^[A-Za-z0-9_-]{20,}$/);
+    expect(a).not.toBe(b);
+  });
+
+  it("the QR pairing payload round-trips as { baseUrl, token }", () => {
+    const payload = buildPairingPayload("http://192.168.1.20:8787", "pair-token-xyz");
+    expect(payload).toEqual({ baseUrl: "http://192.168.1.20:8787", token: "pair-token-xyz" });
+    // The QR carries exactly this JSON; it must parse back to the same shape.
+    const roundTripped = JSON.parse(JSON.stringify(payload)) as typeof payload;
+    expect(roundTripped).toEqual(payload);
+    expect(Object.keys(roundTripped).sort()).toEqual(["baseUrl", "token"]);
   });
 });

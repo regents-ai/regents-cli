@@ -44,6 +44,7 @@
     "@worldcoin/idkit-core": "4.0.15",
     "@x402/evm": "2.12.0",
     "@x402/fetch": "2.12.0",
+    "qrcode-terminal": "0.12.0",
     "viem": "2.47.1",
     "yaml": "2.8.3",
     "zod": "4.3.6"
@@ -56,5 +57,8 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests --fileParallelism=false --testTimeout=20000 --hookTimeout=20000",
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/qrcode-terminal": "0.12.2"
   }
 }

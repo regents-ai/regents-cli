@@ -75,6 +75,34 @@ x-regent-voice-gateway:
     named by config services.voice.openaiApiKeyEnv and injects it as
     OPENAI_API_KEY when minting. The raw key is never written to config or logs.
     If the named env var is missing, serve fails fast with no fallback source.
+  pairing:
+    affordance: >-
+      `regents voice serve` prints a scannable QR code to the terminal on
+      startup. Chosen over a separate `voice pair` command so the token shown is
+      always the one the running gateway actually accepts (no stale/mismatched
+      token). The Regents app scans it to learn the gateway URL and the pairing
+      token.
+    payload:
+      description: >-
+        The QR encodes a compact JSON pairing payload. The app stores it and
+        sends the token on every /hermes/voice/* request.
+      shape: '{ "baseUrl": "<gateway http base url>", "token": "<pairing token>" }'
+      fields:
+        baseUrl: The gateway base URL the app should call, e.g. http://192.168.1.20:8787
+        token: >-
+          Required pairing token that authenticates app->gateway requests. This
+          is NOT the OpenAI API key — it only gates access to the local gateway.
+  auth:
+    scheme: bearer
+    token_source: >-
+      The pairing token comes from env var HERMES_VOICE_GATEWAY_TOKEN when set;
+      otherwise `regents voice serve` generates a random token for the session.
+      The same token is embedded in the QR payload.
+    requirement: >-
+      Every /hermes/voice/* route except /hermes/voice/healthz requires the
+      pairing token as `Authorization: Bearer <token>`. Requests without a valid
+      token are rejected 401 before any OpenAI mint, so only the paired app can
+      spend the user's OpenAI key.
   routes:
     - method: POST
       path: /hermes/voice/session
@@ -96,7 +124,7 @@ x-regent-voice-gateway:
       description: "Record a device-owned voice tool result; returns { ok: true }."
     - method: GET
       path: /hermes/voice/healthz
-      description: Liveness probe for the gateway process.
+      description: Liveness probe for the gateway process. Unauthenticated (no token required).
   tool_registry:
     source: codex-regents-plugin/assets/voice-tools.json
     note: >-

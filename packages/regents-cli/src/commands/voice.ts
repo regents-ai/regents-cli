@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
+import os from "node:os";
+
+import qrcodeTerminal from "qrcode-terminal";
 
 import { CliUsageError } from "../cli-usage-error.js";
 import * as RegentRuntime from "../internal-runtime/index.js";
@@ -10,6 +13,54 @@ import { getFlag, parseIntegerFlag, type ParsedCliArgs } from "../parse.js";
 const MAX_BODY_BYTES = 1_048_576;
 const OPENAI_CLIENT_SECRETS_URL = "https://api.openai.com/v1/realtime/client_secrets";
 const OPENAI_CALLS_URL = "https://api.openai.com/v1/realtime/calls";
+// Env var carrying the pairing token, matching the hosted sprite gateway's name.
+const GATEWAY_TOKEN_ENV = "HERMES_VOICE_GATEWAY_TOKEN";
+
+/**
+ * The pairing token authenticates app->gateway requests. It is NOT the OpenAI
+ * API key — it only gates access to the local gateway so nobody else on the
+ * network can spend the user's key. Sourced from HERMES_VOICE_GATEWAY_TOKEN
+ * when set, otherwise generated per serve session.
+ */
+export const resolvePairingToken = (): string => {
+  const configured = process.env[GATEWAY_TOKEN_ENV]?.trim();
+  return configured && configured.length > 0 ? configured : crypto.randomBytes(24).toString("base64url");
+};
+
+export interface VoicePairingPayload {
+  baseUrl: string;
+  token: string;
+}
+
+/** The QR payload the app scans: gateway base URL + required pairing token. */
+export const buildPairingPayload = (baseUrl: string, token: string): VoicePairingPayload => ({
+  baseUrl,
+  token,
+});
+
+/** Constant-time compare of the bearer token on a request against the expected token. */
+const isAuthorized = (req: IncomingMessage, token: string): boolean => {
+  const header = req.headers.authorization;
+  const value = Array.isArray(header) ? header[0] : header;
+  if (!value || !value.startsWith("Bearer ")) {
+    return false;
+  }
+  const provided = Buffer.from(value.slice("Bearer ".length));
+  const expected = Buffer.from(token);
+  return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+};
+
+/** First non-internal IPv4 address, so the QR points at a phone-reachable URL. */
+const firstLanAddress = (): string | null => {
+  for (const addrs of Object.values(os.networkInterfaces())) {
+    for (const addr of addrs ?? []) {
+      if (addr.family === "IPv4" && !addr.internal) {
+        return addr.address;
+      }
+    }
+  }
+  return null;
+};
 
 // Byte-parity with codex-regents-plugin/assets/voice-tools.json and the hosted
 // sprite registry, so local and hosted agents advertise identical voice tools.
@@ -173,10 +224,16 @@ const readBody = async (req: IncomingMessage): Promise<Record<string, unknown>> 
  * client_secret at mint time; the app POSTs its SDP offer to calls_url with
  * that secret. The API key is passed in already-resolved — this function never
  * reads or persists it beyond the OpenAI mint call.
+ *
+ * `pairingToken` gates every /hermes/voice/* route except healthz: a request
+ * must carry `Authorization: Bearer <pairingToken>` or it is rejected 401
+ * before any OpenAI mint. This is the app<->gateway pairing token, distinct
+ * from the OpenAI API key.
  */
 export function createVoiceGatewayServer(
   voice: RegentVoiceConfig,
   apiKey: string,
+  pairingToken: string,
   agentId = process.env.REGENT_COMPANY_ID || process.env.REGENT_RUNTIME_ID || "local-hermes",
 ): http.Server {
   const sessions = new Map<string, SessionRecord>();
@@ -255,10 +312,19 @@ export function createVoiceGatewayServer(
       const { pathname } = url;
       const { method } = req;
 
+      // healthz is a liveness probe and stays unauthenticated.
       if (pathname === "/hermes/voice/healthz" && method === "GET") {
         sendJson(res, health() === "unavailable" ? 503 : 200, { ok: health() !== "unavailable", health: health() });
         return;
       }
+
+      // Every other /hermes/voice/* route requires the pairing token. Reject
+      // before any OpenAI mint so an unpaired client can never spend the key.
+      if (!isAuthorized(req, pairingToken)) {
+        sendJson(res, 401, { ok: false, error: "unauthorized" });
+        return;
+      }
+
       if (pathname === "/hermes/voice/status" && method === "GET") {
         sendJson(res, 200, statusPayload());
         return;
@@ -314,7 +380,9 @@ export async function runVoiceServe(args: ParsedCliArgs, configPath?: string): P
   const host = getFlag(args, "host") ?? "127.0.0.1";
   const port = parseIntegerFlag(args, "port") ?? voice.port;
 
-  const server = createVoiceGatewayServer(voice, apiKey);
+  // Pairing token gates app->gateway requests. Distinct from the OpenAI key.
+  const pairingToken = resolvePairingToken();
+  const server = createVoiceGatewayServer(voice, apiKey, pairingToken);
 
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
@@ -326,6 +394,17 @@ export async function runVoiceServe(args: ParsedCliArgs, configPath?: string): P
       resolve();
     });
   });
+
+  // The phone can't reach localhost; prefer a LAN address for the QR base URL.
+  const reachableHost = host === "127.0.0.1" || host === "0.0.0.0" ? firstLanAddress() ?? host : host;
+  const baseUrl = `http://${reachableHost}:${port}`;
+  const payload = buildPairingPayload(baseUrl, pairingToken);
+
+  process.stderr.write("\n[regents voice] Scan this QR in the Regents app to pair:\n\n");
+  qrcodeTerminal.generate(JSON.stringify(payload), { small: true }, (qr) => {
+    process.stderr.write(`${qr}\n`);
+  });
+  process.stderr.write(`[regents voice] pairing url: ${baseUrl}\n`);
 
   // Keep the process alive until the server closes.
   await new Promise<void>((resolve) => {
