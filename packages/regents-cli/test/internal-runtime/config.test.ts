@@ -112,6 +112,16 @@ describe("config loading", () => {
           baseUrl: "http://127.0.0.1:4300",
           requestTimeoutMs: 2_500,
         },
+        voice: {
+          openaiApiKeyEnv: "OPENAI_API_KEY",
+          port: 8787,
+          model: "gpt-realtime-2",
+          transcriptionModel: "gpt-realtime-whisper",
+          defaultVoice: "marin",
+          reasoningEffort: "low",
+          sessionTtlSeconds: 60,
+          toolRegistryPath: "./config/voice-tools.json",
+        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

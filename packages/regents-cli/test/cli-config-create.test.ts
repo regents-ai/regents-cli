@@ -110,6 +110,16 @@ describe("CLI config flows", () => {
             baseUrl: "http://127.0.0.1:5555",
             requestTimeoutMs: 2500,
           },
+          voice: {
+            openaiApiKeyEnv: "OPENAI_API_KEY",
+            port: 8787,
+            model: "gpt-realtime-2",
+            transcriptionModel: "gpt-realtime-whisper",
+            defaultVoice: "marin",
+            reasoningEffort: "low",
+            sessionTtlSeconds: 60,
+            toolRegistryPath: path.join(harness.tempDir, "config", "voice-tools.json"),
+          },
         },
         wallet: {
           privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -192,6 +202,16 @@ describe("CLI config flows", () => {
         techtree: {
           baseUrl: "http://127.0.0.1:4100",
           requestTimeoutMs: 10_000,
+        },
+        voice: {
+          openaiApiKeyEnv: "OPENAI_API_KEY",
+          port: 8787,
+          model: "gpt-realtime-2",
+          transcriptionModel: "gpt-realtime-whisper",
+          defaultVoice: "marin",
+          reasoningEffort: "low",
+          sessionTtlSeconds: 60,
+          toolRegistryPath: path.join(harness.tempDir, "config", "voice-tools.json"),
         },
       },
       wallet: {
@@ -288,6 +308,16 @@ describe("CLI config flows", () => {
           techtree: {
             baseUrl: "http://127.0.0.1:4455",
             requestTimeoutMs: 2500,
+          },
+          voice: {
+            openaiApiKeyEnv: "OPENAI_API_KEY",
+            port: 8787,
+            model: "gpt-realtime-2",
+            transcriptionModel: "gpt-realtime-whisper",
+            defaultVoice: "marin",
+            reasoningEffort: "low",
+            sessionTtlSeconds: 60,
+            toolRegistryPath: path.join(harness.tempDir, "config", "voice-tools.json"),
           },
         },
         wallet: {
@@ -395,6 +425,16 @@ describe("CLI config flows", () => {
           techtree: {
             baseUrl: "http://127.0.0.1:4455",
             requestTimeoutMs: 2500,
+          },
+          voice: {
+            openaiApiKeyEnv: "OPENAI_API_KEY",
+            port: 8787,
+            model: "gpt-realtime-2",
+            transcriptionModel: "gpt-realtime-whisper",
+            defaultVoice: "marin",
+            reasoningEffort: "low",
+            sessionTtlSeconds: 60,
+            toolRegistryPath: path.join(harness.tempDir, "config", "voice-tools.json"),
           },
         },
         wallet: {

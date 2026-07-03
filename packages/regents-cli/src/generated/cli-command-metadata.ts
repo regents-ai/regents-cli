@@ -335,6 +335,7 @@ export const CLI_COMMANDS = [
   "techtree work publish",
   "update",
   "version",
+  "voice serve",
   "wallet agentic balance",
   "wallet agentic fund",
   "wallet agentic login",
@@ -760,6 +761,9 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   ],
   "version": [
     "version"
+  ],
+  "voice": [
+    "voice serve"
   ],
   "wallet": [
     "wallet agentic balance",
@@ -15135,6 +15139,41 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Print the installed Regents CLI version. Also available as --version.",
     "next_step": "regents update"
+  },
+  "voice serve": {
+    "command": "voice serve",
+    "owner": "shared-services",
+    "group": "voice",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "host",
+        "required": false,
+        "description": "Host to bind the local Hermes voice gateway. Defaults to 127.0.0.1."
+      },
+      {
+        "name": "port",
+        "required": false,
+        "description": "Port for the local Hermes voice gateway. Defaults to the configured voice port (8787)."
+      }
+    ],
+    "examples": [
+      "regents voice serve",
+      "regents voice serve --host 127.0.0.1 --port 8787"
+    ],
+    "agent_metadata": {
+      "category": "integration",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "args"
+    },
+    "summary": "Show voice serve."
   },
   "wallet agentic balance": {
     "command": "wallet agentic balance",

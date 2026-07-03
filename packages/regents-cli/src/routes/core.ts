@@ -31,6 +31,7 @@ import { runSetupSkills } from "../commands/setup-skills.js";
 import { runTechtreeStartCommand } from "../commands/techtree-start.js";
 import { runUpdate } from "../commands/update.js";
 import { runVersion } from "../commands/version.js";
+import { runVoiceServe } from "../commands/voice.js";
 import {
   runX402Details,
   runX402Fetch,
@@ -75,6 +76,7 @@ export const coreHandlers: CliHandlerRegistry = {
   "mcp tools list": { run: () => runMcpToolsList() },
   "mcp doctor": { run: ({ parsedArgs, configPath }) => runMcpDoctor(parsedArgs, configPath) },
   "mcp serve": { run: ({ parsedArgs, configPath }) => runMcpServe(parsedArgs, configPath) },
+  "voice serve": { run: ({ parsedArgs, configPath }) => runVoiceServe(parsedArgs, configPath) },
   "x402 search": { run: ({ parsedArgs }) => runX402Search(parsedArgs), variadicTail: true },
   "x402 details": { run: ({ parsedArgs, configPath }) => runX402Details(parsedArgs, configPath) },
   "x402 quote": { run: ({ parsedArgs, configPath }) => runX402Quote(parsedArgs, configPath) },

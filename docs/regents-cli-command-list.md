@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 357.
+Total commands: 358.
 
 ## Full Command List
 
@@ -441,6 +441,10 @@ Total commands: 357.
 ### Version
 
 - `regents version` - Print the installed Regents CLI version. Also available as --version.
+
+### Voice
+
+- `regents voice serve` - Show voice serve.
 
 ### Wallet
 

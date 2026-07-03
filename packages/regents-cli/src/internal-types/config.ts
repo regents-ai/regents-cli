@@ -14,11 +14,31 @@ export interface RegentServiceConfig {
   requestTimeoutMs: number;
 }
 
+export interface RegentVoiceConfig {
+  /** Name of the env var holding the OpenAI API key (env-indirection; the raw key is never stored in config). */
+  openaiApiKeyEnv: string;
+  /** Port the local Hermes voice gateway binds. */
+  port: number;
+  /** Realtime model bound to the ephemeral client_secret at mint time. */
+  model: string;
+  /** Input-audio transcription model. */
+  transcriptionModel: string;
+  /** Default output voice. */
+  defaultVoice: string;
+  /** Reasoning effort for the realtime session. */
+  reasoningEffort: "minimal" | "low" | "medium" | "high" | "xhigh";
+  /** Ephemeral secret / session lifetime in seconds. */
+  sessionTtlSeconds: number;
+  /** Path to the voice tool registry JSON (byte-parity with the hosted registry). */
+  toolRegistryPath: string;
+}
+
 export interface RegentServicesConfig {
   siwa: RegentServiceConfig;
   platform: RegentServiceConfig;
   autolaunch: RegentServiceConfig;
   techtree: RegentServiceConfig;
+  voice: RegentVoiceConfig;
 }
 
 export interface RegentAuthConfig {

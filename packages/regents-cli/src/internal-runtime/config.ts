@@ -37,6 +37,16 @@ const configSchema = z.object({
     platform: serviceConfigSchema,
     autolaunch: serviceConfigSchema,
     techtree: serviceConfigSchema,
+    voice: z.object({
+      openaiApiKeyEnv: z.string().min(1),
+      port: z.number().int().positive(),
+      model: z.string().min(1),
+      transcriptionModel: z.string().min(1),
+      defaultVoice: z.string().min(1),
+      reasoningEffort: z.enum(["minimal", "low", "medium", "high", "xhigh"]),
+      sessionTtlSeconds: z.number().int().positive(),
+      toolRegistryPath: z.string().min(1),
+    }).strict(),
   }).strict(),
   wallet: z.object({
     privateKeyEnv: z.string().min(1),
@@ -87,6 +97,7 @@ const configOverrideSchema = z.object({
       platform: serviceConfigSchema.partial().optional(),
       autolaunch: serviceConfigSchema.partial().optional(),
       techtree: serviceConfigSchema.partial().optional(),
+      voice: configSchema.shape.services.shape.voice.partial().optional(),
     })
     .partial()
     .optional(),
@@ -170,6 +181,10 @@ const normalizeConfig = (config: RegentConfig, configPath?: string): RegentConfi
       platform: { ...config.services.platform },
       autolaunch: { ...config.services.autolaunch },
       techtree: { ...config.services.techtree },
+      voice: {
+        ...config.services.voice,
+        toolRegistryPath: normalizePath(config.services.voice.toolRegistryPath, resolvedConfigRootDir),
+      },
     },
     wallet: {
       ...config.wallet,
@@ -301,6 +316,16 @@ export function defaultConfig(configPath?: string): RegentConfig {
       techtree: {
         baseUrl: "https://regents.sh",
         requestTimeoutMs: 10_000,
+      },
+      voice: {
+        openaiApiKeyEnv: "OPENAI_API_KEY",
+        port: 8787,
+        model: "gpt-realtime-2",
+        transcriptionModel: "gpt-realtime-whisper",
+        defaultVoice: "marin",
+        reasoningEffort: "low",
+        sessionTtlSeconds: 60,
+        toolRegistryPath: path.join(rootDir, "config", "voice-tools.json"),
       },
     },
     wallet: {
