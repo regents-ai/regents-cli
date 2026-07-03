@@ -5,6 +5,8 @@ import { writeJsonFileAtomicSync } from "../paths.js";
 import { decryptPrivateKey, encryptPrivateKey, type WalletKeyEnvelope } from "./wallet-crypto.js";
 import { resolveDek, resolveOrCreateDek } from "./wallet-dek.js";
 
+const PRIVATE_KEY_REGEX = /^0x[0-9a-fA-F]{64}$/;
+
 /**
  * ESCAPE HATCH — resolve the raw private key for external SDKs that require key
  * material and cannot accept a viem account or `signMessage` callback (currently
@@ -19,7 +21,14 @@ export const resolveRawPrivateKeyForExternalSdk = async (input: {
 }): Promise<`0x${string}`> => {
   const fromEnv = process.env[input.privateKeyEnv];
   if (fromEnv) {
-    return fromEnv as `0x${string}`;
+    const trimmed = fromEnv.trim();
+    if (!PRIVATE_KEY_REGEX.test(trimmed)) {
+      throw new RegentError(
+        "wallet_private_key_invalid",
+        `environment variable ${input.privateKeyEnv} does not contain a valid 32-byte hex private key`,
+      );
+    }
+    return trimmed as `0x${string}`;
   }
 
   return readEncryptedKeystore(input.keystorePath);

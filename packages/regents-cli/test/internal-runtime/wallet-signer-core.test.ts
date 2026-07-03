@@ -239,4 +239,30 @@ describe("LocalKeySignerBackend adapter correctness", () => {
     });
     await expect(backend.address()).rejects.toMatchObject({ code: "wallet_keystore_missing" });
   });
+
+  it("rejects a malformed env key with wallet_private_key_invalid (not a raw viem error)", async () => {
+    process.env[ENV_KEY_VAR] = "not-a-valid-key";
+    const backend = new LocalKeySignerBackend({
+      privateKeyEnv: ENV_KEY_VAR,
+      keystorePath: keystorePath(),
+    });
+    await expect(backend.address()).rejects.toMatchObject({ code: "wallet_private_key_invalid" });
+  });
+
+  it("does not permanently cache a rejected resolution: a retry after the key appears succeeds", async () => {
+    delete process.env[ENV_KEY_VAR];
+    setKeychainForTesting(null);
+    const backend = new LocalKeySignerBackend({
+      privateKeyEnv: ENV_KEY_VAR,
+      keystorePath: keystorePath(),
+    });
+
+    // First call fails (no key anywhere).
+    await expect(backend.address()).rejects.toMatchObject({ code: "wallet_keystore_missing" });
+
+    // Fix the condition, then retry the SAME backend instance.
+    process.env[ENV_KEY_VAR] = TEST_KEY;
+    expect(await backend.address()).toBe(privateKeyToAccount(TEST_KEY).address);
+    expect(backend.keySource).toBe("env");
+  });
 });

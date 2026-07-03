@@ -50,15 +50,25 @@ export async function runWalletImport(
   const json = getBooleanFlag(args, "json");
 
   try {
-    // Key input is stdin or the REGENT_WALLET_PRIVATE_KEY env var only, never a
-    // flag value, so it cannot leak into shell history.
-    const fromEnv = process.env.REGENT_WALLET_PRIVATE_KEY?.trim();
-    const privateKey = fromEnv && fromEnv.length > 0 ? fromEnv : await readPrivateKeyFromStdin();
+    // Refuse when the plaintext env key is set: the runtime signer reads
+    // REGENT_WALLET_PRIVATE_KEY first, so the encrypted keystore we are about to
+    // write would be ignored. Fail closed and write nothing.
+    if ((process.env.REGENT_WALLET_PRIVATE_KEY ?? "").trim().length > 0) {
+      throw new RegentError(
+        "wallet_import_env_conflict",
+        "REGENT_WALLET_PRIVATE_KEY is set. The runtime signer reads that plaintext env key first, so the encrypted keystore would be ignored. Unset REGENT_WALLET_PRIVATE_KEY, then run `regents wallet import` again.",
+      );
+    }
+
+    // The private key is read from standard input only, never from a flag value
+    // or an environment variable, so it cannot leak into shell history or be
+    // silently shadowed by a stale env key.
+    const privateKey = await readPrivateKeyFromStdin();
 
     if (!PRIVATE_KEY_REGEX.test(privateKey)) {
       throw new RegentError(
         "wallet_private_key_invalid",
-        "Provide a 32-byte hex private key (0x + 64 hex) on stdin or via REGENT_WALLET_PRIVATE_KEY.",
+        "Provide a 32-byte hex private key (0x + 64 hex) on standard input.",
       );
     }
 
