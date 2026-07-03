@@ -13,7 +13,7 @@ import {
   runWalletAgenticStatus,
   runWalletAgenticVerify,
 } from "../commands/wallet-agentic.js";
-import { runWalletSetup, runWalletStatus } from "../commands/wallet.js";
+import { runWalletImport, runWalletSetup, runWalletStatus } from "../commands/wallet.js";
 import type { CliHandlerRegistry } from "./shared.js";
 
 export const walletIdentityAuthHandlers: CliHandlerRegistry = {
@@ -24,6 +24,7 @@ export const walletIdentityAuthHandlers: CliHandlerRegistry = {
   "identity status": { run: ({ parsedArgs, configPath }) => runIdentityStatus(parsedArgs, configPath) },
   "identity graph": { run: ({ parsedArgs, configPath }) => runIdentityGraph(parsedArgs, configPath) },
   "wallet status": { run: ({ parsedArgs, configPath }) => runWalletStatus(parsedArgs, configPath) },
+  "wallet import": { run: ({ parsedArgs, configPath }) => runWalletImport(parsedArgs, configPath) },
   "wallet setup": { run: ({ parsedArgs, configPath }) => runWalletSetup(parsedArgs, configPath) },
   "wallet agentic status": { run: ({ parsedArgs }) => runWalletAgenticStatus(parsedArgs) },
   "wallet agentic login": { run: ({ parsedArgs }) => runWalletAgenticLogin(parsedArgs) },

@@ -5,12 +5,13 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../src/index.js";
-import type { WalletSecretSource } from "../src/internal-runtime/agent/key-store.js";
+import type { SignerBackend } from "../src/internal-runtime/agent/signer-backend.js";
 import { RegentX402Client } from "../src/internal-runtime/x402/client.js";
 import { hashValue } from "../src/internal-runtime/x402/hash.js";
 import type { PaymentBindingV1 } from "../src/internal-types/index.js";
 import { EXPECTED_PLATFORM_CONTRACT_DIGEST } from "../src/generated/platform-contract-digest.js";
 import { captureOutput } from "./helpers/output.js";
+import { privateKeyToAccount } from "viem/accounts";
 
 const PRIVATE_KEY = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bdA02913";
@@ -19,9 +20,16 @@ const PAY_TO = "0x1111111111111111111111111111111111111111";
 const encodeHeader = (value: unknown): string =>
   Buffer.from(JSON.stringify(value), "utf8").toString("base64");
 
-const createWalletSource = (): WalletSecretSource => ({
-  getPrivateKeyHex: async () => PRIVATE_KEY,
-});
+const createSigner = (): SignerBackend => {
+  const account = privateKeyToAccount(PRIVATE_KEY);
+  return {
+    address: async () => account.address,
+    signMessage: async (message) => account.signMessage({ message }),
+    signTypedData: async (data) => account.signTypedData(data),
+    signTransaction: async (tx) => account.signTransaction(tx),
+    toViemAccount: async () => account,
+  };
+};
 
 const createPaymentBinding = (
   amount: string,
@@ -182,7 +190,7 @@ describe("local security release smoke", () => {
 
     const client = new RegentX402Client({
       stateDir,
-      walletSecretSource: createWalletSource(),
+      signer: createSigner(),
       fetch: async () =>
         new Response("{}", {
           status: 402,

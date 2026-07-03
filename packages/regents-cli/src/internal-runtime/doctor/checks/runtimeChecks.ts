@@ -8,6 +8,7 @@ import {
   SUPPORTED_PLATFORM_CONTRACT_MAJOR,
 } from "../../../generated/platform-contract-digest.js";
 import { writeInitialConfigIfMissing } from "../../config.js";
+import { LocalKeySignerBackend } from "../../agent/local-signer-backend.js";
 import { callJsonRpc } from "../../jsonrpc/client.js";
 import { defaultConfigPath } from "../../paths.js";
 import { buildBackendDetails, ensureDirExists, skipDueToMissingConfig, uniquePaths } from "./shared.js";
@@ -321,35 +322,34 @@ export function runtimeChecks(): DoctorCheckDefinition[] {
       scope: "runtime",
       title: "wallet available",
       run: async (ctx) => {
-        if (!ctx.config || !ctx.walletSecretSource) {
+        if (!ctx.config || !ctx.signer) {
           return skipDueToMissingConfig();
         }
 
         try {
-          const privateKey = await ctx.walletSecretSource.getPrivateKeyHex();
-          const walletAddress = await import("../../agent/wallet.js").then(({ deriveWalletAddress }) =>
-            deriveWalletAddress(privateKey),
-          );
+          const walletAddress = await ctx.signer.address();
+          const keySource =
+            ctx.signer instanceof LocalKeySignerBackend ? ctx.signer.keySource : null;
 
           return {
             status: "ok",
-            message: "Wallet secret source is available and signer initialized",
+            message: "Wallet signer is available and initialized",
             details: {
               walletAddress,
               source:
-                "envVarName" in ctx.walletSecretSource
-                  ? { type: "env", envVarName: ctx.walletSecretSource.envVarName }
-                  : "filePath" in ctx.walletSecretSource
-                    ? { type: "file", filePath: ctx.walletSecretSource.filePath }
+                keySource === "env"
+                  ? { type: "env", envVarName: ctx.config.wallet.privateKeyEnv }
+                  : keySource === "keystore"
+                    ? { type: "keystore", keystorePath: ctx.config.wallet.keystorePath }
                     : { type: "unknown" },
             },
           };
         } catch (error) {
           return {
             status: "fail",
-            message: "Wallet secret source could not be loaded",
+            message: "Wallet signer could not be loaded",
             details: buildBackendDetails(error),
-            remediation: `Set ${ctx.config.wallet.privateKeyEnv} or configure ${ctx.config.wallet.keystorePath}`,
+            remediation: `Set ${ctx.config.wallet.privateKeyEnv} or run \`regents wallet import\` to store an encrypted key at ${ctx.config.wallet.keystorePath}`,
           };
         }
       },

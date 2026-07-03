@@ -1,8 +1,8 @@
 import { loadConfig } from "../../internal-runtime/config.js";
-import { deriveWalletAddress } from "../../internal-runtime/agent/wallet.js";
+import type { SignerBackend } from "../../internal-runtime/agent/signer-backend.js";
 import { getBooleanFlag, getFlag, type ParsedCliArgs } from "../../parse.js";
 import { createPromptBoundary } from "../../terminal/prompts.js";
-import { configuredPrivateKey as readConfiguredPrivateKey } from "./shared.js";
+import { configuredSigner as readConfiguredSigner } from "./shared.js";
 
 export const WEBSITE_WALLET_ENV = "AUTOLAUNCH_WALLET_ADDRESS";
 
@@ -35,11 +35,12 @@ export const requireAddress = (value: string, label: string): string => {
   return normalizeAddress(value);
 };
 
-export const configuredPrivateKey = async (
-  configPath?: string,
-): Promise<`0x${string}`> => {
+export const configuredSigner = async (configPath?: string): Promise<SignerBackend> => {
   try {
-    return await readConfiguredPrivateKey(configPath);
+    const signer = await readConfiguredSigner(configPath);
+    // Resolve eagerly so a missing key surfaces here with the friendly message.
+    await signer.address();
+    return signer;
   } catch {
     const config = loadConfig(configPath);
     throw new Error(
@@ -51,7 +52,7 @@ export const configuredPrivateKey = async (
 export const resolveAgentSigner = async (
   configPath?: string,
 ): Promise<SafeWizardSigner> => {
-  const address = await deriveWalletAddress(await configuredPrivateKey(configPath));
+  const address = await (await configuredSigner(configPath)).address();
   return { address, source: "config" };
 };
 

@@ -244,7 +244,7 @@ export async function handleTechtreeAutoskillBuy(
   const headers = headersRecord(init.headers);
   const x402 = new RegentX402Client({
     stateDir: ctx.config.runtime.stateDir,
-    walletSecretSource: ctx.walletSecretSource,
+    signer: ctx.signer,
   });
   const prepared = await x402.prepare({
     url,
@@ -291,7 +291,7 @@ export async function handleTechtreeAutoskillRefund(
   const init = await ctx.techtree.buildAuthedRequestInit("GET", path);
   const x402 = new RegentX402Client({
     stateDir: ctx.config.runtime.stateDir,
-    walletSecretSource: ctx.walletSecretSource,
+    signer: ctx.signer,
   });
   const refund = await x402.refund({
     url,

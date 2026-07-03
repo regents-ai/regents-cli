@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 358.
+Total commands: 359.
 
 ## Full Command List
 
@@ -453,6 +453,7 @@ Total commands: 358.
 - `regents wallet agentic login` - Sign in with the Agent wallet.
 - `regents wallet agentic status` - Show Agent wallet readiness.
 - `regents wallet agentic verify` - Verify the Agent wallet sign-in.
+- `regents wallet import` - Show wallet import.
 - `regents wallet setup` - Set up the local wallet path.
 - `regents wallet status` - Show wallet readiness.
 

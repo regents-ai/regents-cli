@@ -11,7 +11,8 @@ import {
   TechtreeV1PublisherAdapter,
   type WorkloadAdapter,
 } from "./agent/seams.js";
-import { EnvWalletSecretSource, FileWalletSecretSource, type WalletSecretSource } from "./agent/key-store.js";
+import { LocalKeySignerBackend } from "./agent/local-signer-backend.js";
+import type { SignerBackend } from "./agent/signer-backend.js";
 import { loadConfig } from "./config.js";
 import { JsonRpcError } from "./errors.js";
 import {
@@ -200,7 +201,7 @@ export interface RuntimeContext {
   sessionStore: SessionStore;
   techtree: TechtreeClient;
   techtreePublisher: TechtreePublisher;
-  walletSecretSource: WalletSecretSource;
+  signer: SignerBackend;
   gossipsub: GossipsubAdapter;
   agentRouter: AgentRouter;
   workload: WorkloadAdapter;
@@ -208,14 +209,11 @@ export interface RuntimeContext {
   requestShutdown: () => void;
 }
 
-const createWalletSecretSource = (config: RegentConfig): WalletSecretSource => {
-  const envVarName = config.wallet.privateKeyEnv;
-  if (process.env[envVarName]) {
-    return new EnvWalletSecretSource(envVarName);
-  }
-
-  return new FileWalletSecretSource(config.wallet.keystorePath);
-};
+const createSigner = (config: RegentConfig): SignerBackend =>
+  new LocalKeySignerBackend({
+    privateKeyEnv: config.wallet.privateKeyEnv,
+    keystorePath: config.wallet.keystorePath,
+  });
 
 const stopIgnoringErrors = async (stopper: { stop: () => Promise<void> }): Promise<void> => {
   await stopper.stop().catch(() => undefined);
@@ -228,7 +226,7 @@ export class RegentKernel {
   readonly config: RegentConfig;
   readonly stateStore: StateStore;
   readonly sessionStore: SessionStore;
-  readonly walletSecretSource: WalletSecretSource;
+  readonly signer: SignerBackend;
   readonly techtree: TechtreeClient;
   readonly techtreePublisher: TechtreePublisher;
   readonly gossipsub: GossipsubAdapter;
@@ -247,13 +245,12 @@ export class RegentKernel {
     this.config = loadConfig(configPath);
     this.stateStore = new StateStore(path.join(this.config.runtime.stateDir, "runtime-state.json"));
     this.sessionStore = new SessionStore(this.stateStore);
-    this.walletSecretSource = createWalletSecretSource(this.config);
+    this.signer = createSigner(this.config);
     this.techtree = new TechtreeClient({
       config: this.config,
       baseUrl: this.config.services.techtree.baseUrl,
       requestTimeoutMs: this.config.services.techtree.requestTimeoutMs,
       sessionStore: this.sessionStore,
-      walletSecretSource: this.walletSecretSource,
       stateStore: this.stateStore,
     });
     this.techtreePublisher = new TechtreeV1PublisherAdapter(
@@ -398,7 +395,7 @@ export class RegentKernel {
       sessionStore: this.sessionStore,
       techtree: this.techtree,
       techtreePublisher: this.techtreePublisher,
-      walletSecretSource: this.walletSecretSource,
+      signer: this.signer,
       gossipsub: this.gossipsub,
       agentRouter: this.agentRouter,
       workload: this.workload,

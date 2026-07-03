@@ -12,7 +12,7 @@ import { RegentX402Client } from "../x402/client.js";
 const clientForContext = (ctx: RuntimeContext): RegentX402Client =>
   new RegentX402Client({
     stateDir: ctx.config.runtime.stateDir,
-    walletSecretSource: ctx.walletSecretSource,
+    signer: ctx.signer,
   });
 
 export const handleX402Details = (ctx: RuntimeContext, params: X402RequestInput) =>

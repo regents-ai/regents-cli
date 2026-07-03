@@ -341,6 +341,7 @@ export const CLI_COMMANDS = [
   "wallet agentic login",
   "wallet agentic status",
   "wallet agentic verify",
+  "wallet import",
   "wallet setup",
   "wallet status",
   "whoami",
@@ -771,6 +772,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "wallet agentic login",
     "wallet agentic status",
     "wallet agentic verify",
+    "wallet import",
     "wallet setup",
     "wallet status"
   ],
@@ -15366,6 +15368,46 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     },
     "summary": "Verify the Agent wallet sign-in.",
     "next_step": "regents wallet agentic balance --chain base --json"
+  },
+  "wallet import": {
+    "command": "wallet import",
+    "owner": "shared-services",
+    "group": "wallet",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "loose-object",
+    "flags": [
+      {
+        "name": "--stdin",
+        "type": "boolean",
+        "required": false,
+        "description": "Read the private key from standard input (default). The key is never accepted as a flag value to avoid shell-history leakage."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the import result as JSON. Never includes any key material."
+      }
+    ],
+    "examples": [
+      "regents wallet status",
+      "regents wallet agentic status --json",
+      "regents wallet agentic fund --amount-usdc 10 --chain base"
+    ],
+    "agent_metadata": {
+      "category": "wallet",
+      "prompt_behavior": "prompt_when_creating_wallet",
+      "json_support": "supported",
+      "mutation_class": "local-read-or-write",
+      "retry_behavior": "safe_for_status",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "next_step": "regents wallet status"
+    },
+    "summary": "Show wallet import.",
+    "next_step": "regents wallet status"
   },
   "wallet setup": {
     "command": "wallet setup",

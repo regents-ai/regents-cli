@@ -11,7 +11,6 @@ import {
   type PaymentRequirements,
 } from "@x402/fetch";
 import { createPublicClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 
 import type {
@@ -34,7 +33,7 @@ import type {
   X402SelectedPaymentRequirement,
 } from "../../internal-types/index.js";
 
-import type { WalletSecretSource } from "../agent/key-store.js";
+import type { SignerBackend } from "../agent/signer-backend.js";
 import { RegentError } from "../errors.js";
 import { hashValue, sha256Hex } from "./hash.js";
 import { X402LocalStore } from "./store.js";
@@ -43,7 +42,7 @@ type FetchLike = typeof globalThis.fetch;
 
 interface X402WrapperOptions {
   stateDir: string;
-  walletSecretSource: WalletSecretSource;
+  signer: SignerBackend;
   fetch?: FetchLike;
 }
 
@@ -478,12 +477,12 @@ interface DiscoveredPayment {
 
 export class RegentX402Client {
   readonly store: X402LocalStore;
-  private readonly walletSecretSource: WalletSecretSource;
+  private readonly signer: SignerBackend;
   private readonly fetch: FetchLike;
 
   constructor(options: X402WrapperOptions) {
     this.store = new X402LocalStore(options.stateDir);
-    this.walletSecretSource = options.walletSecretSource;
+    this.signer = options.signer;
     this.fetch = options.fetch ?? globalThis.fetch;
   }
 
@@ -729,7 +728,7 @@ export class RegentX402Client {
     selectedNetwork: string,
     maxDepositAmount?: string,
   ): Promise<x402HTTPClient> {
-    const account = privateKeyToAccount(await this.walletSecretSource.getPrivateKeyHex());
+    const account = await this.signer.toViemAccount();
     const client = new x402Client((_version, requirements) => {
       const selected = requirements.find((requirement) => paymentRequirementHash(requirement) === selectedRequirementHash);
       if (!selected) {
@@ -754,7 +753,7 @@ export class RegentX402Client {
       throw new RegentError("x402_unsupported_network", `Regent x402 does not support network ${selectedNetwork}.`);
     }
 
-    const evmSigner = signer ?? (privateKeyToAccount(await this.walletSecretSource.getPrivateKeyHex()) as unknown as ClientEvmSigner);
+    const evmSigner = signer ?? ((await this.signer.toViemAccount()) as unknown as ClientEvmSigner);
     return new BatchSettlementEvmScheme(
       toClientEvmSigner(
         evmSigner,

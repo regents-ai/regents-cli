@@ -1,5 +1,4 @@
 import { loadAgentAuthState } from "../agent-auth.js";
-import { deriveWalletAddress, signPersonalMessage } from "../../internal-runtime/agent/wallet.js";
 import type { LocalAgentIdentity } from "../../internal-types/index.js";
 import { getBooleanFlag, getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import {
@@ -13,7 +12,7 @@ import {
 } from "../../printer.js";
 import {
   baseUrl,
-  configuredPrivateKey,
+  configuredSigner,
   parsePollingIntervalSeconds,
   requestTypedJson,
   type JsonObject,
@@ -293,8 +292,8 @@ export const runAutolaunchPair = async (
   const { code, nonce } = requirePairingCode(args);
   const { identity } = loadAgentAuthState(configPath);
   const agent = requireIdentity(identity);
-  const privateKey = await configuredPrivateKey(configPath);
-  const signingWalletAddress = await deriveWalletAddress(privateKey);
+  const signer = await configuredSigner(configPath);
+  const signingWalletAddress = await signer.address();
 
   assertSigningWalletMatchesIdentity(signingWalletAddress, agent.walletAddress);
 
@@ -308,7 +307,7 @@ export const runAutolaunchPair = async (
     agent_registry_address: agent.registryAddress,
     agent_token_id: agent.tokenId,
     signature_type: "evm_personal_sign",
-    signature: await signPersonalMessage(privateKey, message),
+    signature: await signer.signMessage(message),
     signed_at: new Date().toISOString(),
     ...(label !== undefined ? { agent_label: label } : {}),
   };

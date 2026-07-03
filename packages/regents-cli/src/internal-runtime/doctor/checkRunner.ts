@@ -9,7 +9,7 @@ import type {
 } from "../../internal-types/index.js";
 import type { RuntimeContext } from "../runtime.js";
 
-import { EnvWalletSecretSource, FileWalletSecretSource } from "../agent/key-store.js";
+import { LocalKeySignerBackend } from "../agent/local-signer-backend.js";
 import { loadConfig } from "../config.js";
 import { DoctorInternalError, errorMessage } from "../errors.js";
 import { defaultConfigPath, expandHome } from "../paths.js";
@@ -52,14 +52,15 @@ const DEFAULT_REQUIRED_OK = new Set([
   "techtree.authenticated.probe",
 ]);
 
-const createWalletSecretSource = (config: DoctorCheckContext["config"]) => {
+const createSigner = (config: DoctorCheckContext["config"]) => {
   if (!config) {
-    throw new DoctorInternalError("doctor config must be loaded before creating a wallet source");
+    throw new DoctorInternalError("doctor config must be loaded before creating a signer");
   }
 
-  return process.env[config.wallet.privateKeyEnv]
-    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
-    : new FileWalletSecretSource(config.wallet.keystorePath);
+  return new LocalKeySignerBackend({
+    privateKeyEnv: config.wallet.privateKeyEnv,
+    keystorePath: config.wallet.keystorePath,
+  });
 };
 
 function resolveConfigPath(configPath?: string): string {
@@ -80,7 +81,7 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
     configLoadError: null,
     stateStore: runtimeContext?.stateStore ?? null,
     sessionStore: runtimeContext?.sessionStore ?? null,
-    walletSecretSource: runtimeContext?.walletSecretSource ?? null,
+    signer: runtimeContext?.signer ?? null,
     techtree: runtimeContext?.techtree ?? null,
     fix: invocation.params?.fix ?? false,
     verbose: invocation.params?.verbose ?? false,
@@ -97,7 +98,7 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
         context.configLoadError = null;
         context.stateStore = runtimeContext.stateStore;
         context.sessionStore = runtimeContext.sessionStore;
-        context.walletSecretSource = runtimeContext.walletSecretSource;
+        context.signer = runtimeContext.signer;
         context.techtree = runtimeContext.techtree;
         return;
       }
@@ -108,13 +109,12 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
           path.join(config.runtime.stateDir, "runtime-state.json"),
         );
         const sessionStore = new SessionStore(stateStore);
-        const walletSecretSource = createWalletSecretSource(config);
+        const signer = createSigner(config);
         const techtree = new TechtreeClient({
           config,
           baseUrl: config.services.techtree.baseUrl,
           requestTimeoutMs: config.services.techtree.requestTimeoutMs,
           sessionStore,
-          walletSecretSource,
           stateStore,
         });
 
@@ -122,7 +122,7 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
         context.configLoadError = null;
         context.stateStore = stateStore;
         context.sessionStore = sessionStore;
-        context.walletSecretSource = walletSecretSource;
+        context.signer = signer;
         context.techtree = techtree;
       } catch (error) {
         context.config = null;
@@ -130,7 +130,7 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
           error instanceof Error ? error : new Error(String(error));
         context.stateStore = null;
         context.sessionStore = null;
-        context.walletSecretSource = null;
+        context.signer = null;
         context.techtree = null;
       }
     },

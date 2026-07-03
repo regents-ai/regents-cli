@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { deriveWalletAddress } from "../../agent/wallet.js";
 import { getCurrentAgentIdentity } from "../../agent/profile.js";
 import { RegentError, TechtreeApiError } from "../../errors.js";
 import { readIdentityReceipt } from "../../identity/cache.js";
@@ -49,11 +48,10 @@ export async function deriveSignerWalletAddress(ctx: DoctorCheckContext): Promis
             expectedAddress: identity.walletAddress,
         })).address;
     }
-    if (!ctx.walletSecretSource) {
+    if (!ctx.signer) {
         return null;
     }
-    const privateKey = await ctx.walletSecretSource.getPrivateKeyHex();
-    return deriveWalletAddress(privateKey);
+    return ctx.signer.address();
 }
 
 export function buildBackendDetails(error: unknown): Record<string, unknown> {

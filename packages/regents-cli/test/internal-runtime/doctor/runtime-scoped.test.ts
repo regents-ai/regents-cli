@@ -10,8 +10,15 @@ import {
 } from "../../../src/generated/platform-contract-digest.js";
 import { runScopedDoctor, writeInitialConfig } from "../../../src/internal-runtime/index.js";
 
+const savedWalletKeyEnv = process.env.REGENT_WALLET_PRIVATE_KEY;
+
 afterEach(() => {
   vi.unstubAllGlobals();
+  if (savedWalletKeyEnv === undefined) {
+    delete process.env.REGENT_WALLET_PRIVATE_KEY;
+  } else {
+    process.env.REGENT_WALLET_PRIVATE_KEY = savedWalletKeyEnv;
+  }
 });
 
 describe("runtime-scoped doctor", () => {
@@ -51,14 +58,10 @@ describe("runtime-scoped doctor", () => {
 
     fs.mkdirSync(path.dirname(socketPath), { recursive: true });
     fs.writeFileSync(socketPath, "stale socket", "utf8");
-    fs.mkdirSync(path.dirname(keystorePath), { recursive: true });
-    fs.writeFileSync(
-      keystorePath,
-      `${JSON.stringify({
-        privateKey: "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
-      })}\n`,
-      "utf8",
-    );
+    // Provide the wallet key via the env source (the headless path); the signer
+    // resolves it without any key on disk.
+    process.env.REGENT_WALLET_PRIVATE_KEY =
+      "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 
     const report = await runScopedDoctor(
       {

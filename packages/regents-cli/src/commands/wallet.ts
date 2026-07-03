@@ -1,10 +1,22 @@
 import type { ParsedCliArgs } from "../parse.js";
 
 import { coinbaseStatus, loadConfig, setupCoinbaseWallet } from "../internal-runtime/index.js";
-import { CommandExitError } from "../internal-runtime/errors.js";
+import { CommandExitError, RegentError } from "../internal-runtime/errors.js";
 import { exitCodeForError } from "../exit-codes.js";
 import { getBooleanFlag, getFlag } from "../parse.js";
 import { printJson, printText } from "../printer.js";
+import { writeEncryptedKeystore } from "../internal-runtime/agent/wallet-keystore.js";
+import { deriveWalletAddress } from "../internal-runtime/agent/wallet.js";
+
+const PRIVATE_KEY_REGEX = /^0x[0-9a-fA-F]{64}$/;
+
+const readPrivateKeyFromStdin = async (): Promise<string> => {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks).toString("utf8").trim();
+};
 
 const renderWalletStatus = (status: Awaited<ReturnType<typeof coinbaseStatus>>): string => {
   if (status.ok && status.account) {
@@ -30,6 +42,65 @@ const failurePayload = (error: CommandExitError) => ({
   message: error.message,
   details: (error.details as Record<string, unknown> | undefined) ?? undefined,
 });
+
+export async function runWalletImport(
+  args: readonly string[] | ParsedCliArgs,
+  configPath?: string,
+): Promise<number> {
+  const json = getBooleanFlag(args, "json");
+
+  try {
+    // Key input is stdin or the REGENT_WALLET_PRIVATE_KEY env var only, never a
+    // flag value, so it cannot leak into shell history.
+    const fromEnv = process.env.REGENT_WALLET_PRIVATE_KEY?.trim();
+    const privateKey = fromEnv && fromEnv.length > 0 ? fromEnv : await readPrivateKeyFromStdin();
+
+    if (!PRIVATE_KEY_REGEX.test(privateKey)) {
+      throw new RegentError(
+        "wallet_private_key_invalid",
+        "Provide a 32-byte hex private key (0x + 64 hex) on stdin or via REGENT_WALLET_PRIVATE_KEY.",
+      );
+    }
+
+    const config = loadConfig(configPath);
+    const address = await deriveWalletAddress(privateKey as `0x${string}`);
+    const { dekSource } = await writeEncryptedKeystore(config.wallet.keystorePath, privateKey);
+
+    const result = {
+      ok: true as const,
+      address,
+      keystore_path: config.wallet.keystorePath,
+      encrypted: true as const,
+      dek_source: dekSource,
+      next_steps: ["regents wallet status"],
+    };
+    if (json) {
+      printJson(result);
+    } else {
+      printText(
+        [
+          "Wallet key imported and encrypted at rest.",
+          `address: ${address}`,
+          `keystore: ${config.wallet.keystorePath}`,
+          `encryption key: ${dekSource === "env" ? "environment (REGENTS_WALLET_KEY)" : "OS keychain"}`,
+          "next: regents wallet status",
+        ].join("\n"),
+      );
+    }
+    return 0;
+  } catch (error) {
+    const regentError =
+      error instanceof RegentError
+        ? error
+        : new RegentError("wallet_import_failed", error instanceof Error ? error.message : "Wallet import failed.");
+    if (json) {
+      printJson({ ok: false, code: regentError.code, message: regentError.message });
+    } else {
+      printText(regentError.message);
+    }
+    return exitCodeForError(regentError);
+  }
+}
 
 export async function runWalletStatus(
   args: readonly string[] | ParsedCliArgs,

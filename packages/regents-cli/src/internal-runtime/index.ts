@@ -1,4 +1,3 @@
-export * from "./agent/key-store.js";
 export * from "./agent/profile.js";
 export * from "./agent/wallet.js";
 export * from "./coinbase.js";

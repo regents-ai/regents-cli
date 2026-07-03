@@ -139,7 +139,6 @@ import type {
   WatchRecord,
   WorkPacketResponse,
 } from "../../internal-types/index.js";
-import type { WalletSecretSource } from "../agent/key-store.js";
 import type { SessionStore } from "../store/session-store.js";
 import type { StateStore } from "../store/state-store.js";
 import { AuthResource } from "./client/auth.js";
@@ -163,7 +162,6 @@ export class TechtreeClient {
   readonly config: RegentConfig;
   readonly requestTimeoutMs: number;
   readonly sessionStore: SessionStore;
-  readonly walletSecretSource: WalletSecretSource;
   readonly stateStore: StateStore;
   readonly siwaClient: SiwaClient;
 
@@ -187,14 +185,12 @@ export class TechtreeClient {
     baseUrl: string;
     requestTimeoutMs: number;
     sessionStore: SessionStore;
-    walletSecretSource: WalletSecretSource;
     stateStore: StateStore;
   }) {
     this.config = args.config;
     this.baseUrl = args.baseUrl.replace(/\/+$/, "");
     this.requestTimeoutMs = args.requestTimeoutMs;
     this.sessionStore = args.sessionStore;
-    this.walletSecretSource = args.walletSecretSource;
     this.stateStore = args.stateStore;
     this.request = new TechtreeRequestClient({
       config: args.config,

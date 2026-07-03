@@ -3,11 +3,12 @@ import { randomBytes } from "node:crypto";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { sendValidatedTransaction } from "../../internal-runtime/base-contract-client.js";
+import { loadConfig } from "../../internal-runtime/config.js";
+import { resolveRawPrivateKeyForExternalSdk } from "../../internal-runtime/agent/wallet-keystore.js";
 import type { ParsedCliArgs } from "../../parse.js";
 import { getFlag } from "../../parse.js";
 import { printJson } from "../../printer.js";
 import {
-  configuredPrivateKey,
   normalizeText,
   resolveAgentSigner,
   resolveBackupSigner,
@@ -86,7 +87,13 @@ export async function runAutolaunchSafeCreate(
   }
 
   const rpcUrl = requireBaseMainnetRpcUrl(args);
-  const privateKey = await configuredPrivateKey(configPath);
+  // Safe protocol-kit requires the raw private key string; it cannot take a
+  // viem account or a signMessage callback (see resolveRawPrivateKeyForExternalSdk).
+  const config = loadConfig(configPath);
+  const privateKey = await resolveRawPrivateKeyForExternalSdk({
+    privateKeyEnv: config.wallet.privateKeyEnv,
+    keystorePath: config.wallet.keystorePath,
+  });
   const account = privateKeyToAccount(privateKey);
   const saltNonce = resolveSaltNonce(args);
   const protocolKitModule = await import("@safe-global/protocol-kit");

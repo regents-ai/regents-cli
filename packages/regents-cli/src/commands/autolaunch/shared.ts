@@ -13,10 +13,8 @@ import {
 } from "../../internal-runtime/base-contract-client.js";
 import { loadConfig } from "../../internal-runtime/config.js";
 import type { SiwaAudience } from "../../internal-types/index.js";
-import {
-  EnvWalletSecretSource,
-  FileWalletSecretSource,
-} from "../../internal-runtime/agent/key-store.js";
+import { getActiveSigner } from "../../internal-runtime/agent/local-signer-backend.js";
+import type { SignerBackend } from "../../internal-runtime/agent/signer-backend.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import { requestProductJson } from "../product-http.js";
 
@@ -160,15 +158,8 @@ export const requireLaunchChainId = (args: ParsedCliArgs): ActiveAutolaunchLaunc
   throw new Error("autolaunch launch supports Base mainnet (8453)");
 };
 
-export const configuredPrivateKey = async (
-  configPath?: string,
-): Promise<`0x${string}`> => {
-  const config = loadConfig(configPath);
-  const secretSource = process.env[config.wallet.privateKeyEnv]
-    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
-    : new FileWalletSecretSource(config.wallet.keystorePath);
-
-  return await secretSource.getPrivateKeyHex();
+export const configuredSigner = async (configPath?: string): Promise<SignerBackend> => {
+  return getActiveSigner(loadConfig(configPath));
 };
 
 const requirePreparedTxChainId = (
@@ -318,7 +309,7 @@ export const submitPreparedTxRequest = async (
   txRequest: TransactionRequest,
   configPath?: string,
 ): Promise<`0x${string}`> => {
-  const account = privateKeyToAccount(await configuredPrivateKey(configPath));
+  const account = await (await configuredSigner(configPath)).toViemAccount();
   return submitValidatedTransaction(account, txRequest);
 };
 

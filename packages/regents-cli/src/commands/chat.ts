@@ -4,8 +4,6 @@ import type { ChatLiveEvent, RegentConfig } from "../internal-types/index.js";
 
 import {
   addChatSubscription,
-  EnvWalletSecretSource,
-  FileWalletSecretSource,
   listChatSubscriptions,
   loadConfig,
   readChatCursors,
@@ -99,9 +97,6 @@ const loadTechtreeClient = (configPath?: string): { config: RegentConfig; client
   const config = loadConfig(configPath);
   const stateStore = new StateStore(path.join(config.runtime.stateDir, "runtime-state.json"));
   const sessionStore = new SessionStore(stateStore);
-  const walletSecretSource = process.env[config.wallet.privateKeyEnv]
-    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
-    : new FileWalletSecretSource(config.wallet.keystorePath);
 
   return {
     config,
@@ -110,7 +105,6 @@ const loadTechtreeClient = (configPath?: string): { config: RegentConfig; client
       baseUrl: config.services.techtree.baseUrl,
       requestTimeoutMs: config.services.techtree.requestTimeoutMs,
       sessionStore,
-      walletSecretSource,
       stateStore,
     }),
   };

@@ -686,6 +686,8 @@ command_groups:
       commands:
         wallet status:
           next_step: regents wallet setup
+        wallet import:
+          next_step: regents wallet status
         wallet setup:
           next_step: regents identity ensure
         wallet agentic status:
@@ -700,6 +702,7 @@ command_groups:
           next_step: regents wallet agentic balance --chain base --json
     commands:
       - wallet status
+      - wallet import
       - wallet setup
       - wallet agentic status
       - wallet agentic login
@@ -745,6 +748,15 @@ command_groups:
           enum: [base]
           required: true
           description: Chain to fund.
+      wallet import:
+        - name: --stdin
+          type: boolean
+          required: false
+          description: Read the private key from standard input (default). The key is never accepted as a flag value to avoid shell-history leakage.
+        - name: --json
+          type: boolean
+          required: false
+          description: Print the import result as JSON. Never includes any key material.
   - name: runtime-local
     interface: runtime
     auth_mode: none

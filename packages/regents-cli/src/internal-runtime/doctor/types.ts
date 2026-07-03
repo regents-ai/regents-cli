@@ -11,7 +11,7 @@ import type {
   NodeCreateResponse,
   RegentConfig,
 } from "../../internal-types/index.js";
-import type { WalletSecretSource } from "../agent/key-store.js";
+import type { SignerBackend } from "../agent/signer-backend.js";
 import type { RuntimeContext } from "../runtime.js";
 import type { SessionStore } from "../store/session-store.js";
 import type { StateStore } from "../store/state-store.js";
@@ -45,7 +45,7 @@ export interface DoctorCheckContext {
   configLoadError: Error | null;
   stateStore: StateStore | null;
   sessionStore: SessionStore | null;
-  walletSecretSource: WalletSecretSource | null;
+  signer: SignerBackend | null;
   techtree: TechtreeClient | null;
   fix: boolean;
   verbose: boolean;

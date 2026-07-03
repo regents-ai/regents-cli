@@ -4,10 +4,6 @@ import path from "node:path";
 import { CliUsageError } from "../../cli-usage-error.js";
 import { loadConfig } from "../../internal-runtime/config.js";
 import { ensureSecureDir, writeJsonFileAtomicSync } from "../../internal-runtime/paths.js";
-import {
-  deriveWalletAddress,
-  signPersonalMessage,
-} from "../../internal-runtime/agent/wallet.js";
 import { SiwaClient } from "../../internal-runtime/siwa/siwa.js";
 import {
   getFlag,
@@ -33,7 +29,7 @@ import {
 } from "./pairing.js";
 import { printAgentSafeExplainer } from "./safe-explainer.js";
 import {
-  configuredPrivateKey,
+  configuredSigner,
   parsePollingIntervalSeconds,
   requestJson,
   submitPreparedTxRequest,
@@ -298,7 +294,7 @@ const resolveWalletAddress = async (
     return fallbackWallet as `0x${string}`;
   }
 
-  return await deriveWalletAddress(await configuredPrivateKey(configPath));
+  return (await configuredSigner(configPath)).address();
 };
 
 const readImageInput = async (
@@ -467,8 +463,8 @@ const requestSiwaLaunchBundle = async (
     audience: "autolaunch",
   });
   const config = loadConfig(configPath);
-  const privateKey = await configuredPrivateKey(configPath);
-  const derivedAddress = await deriveWalletAddress(privateKey);
+  const signer = await configuredSigner(configPath);
+  const derivedAddress = await signer.address();
   if (derivedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
     throw new Error(
       `wallet mismatch: config signer ${derivedAddress} does not match ${walletAddress}`,
@@ -504,7 +500,7 @@ const requestSiwaLaunchBundle = async (
     issuedAt,
     statement: "Authorize an Autolaunch launch.",
   });
-  const signature = await signPersonalMessage(privateKey, message);
+  const signature = await signer.signMessage(message);
 
   return {
     wallet_address: walletAddress,

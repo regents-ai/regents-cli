@@ -5,7 +5,7 @@ import {
   type Address,
   type Chain,
   type Hex,
-  type PrivateKeyAccount,
+  type LocalAccount,
 } from "viem";
 import { base, baseSepolia, mainnet } from "viem/chains";
 
@@ -88,7 +88,7 @@ const sameAddress = (left: Address, right: Address): boolean =>
   left.toLowerCase() === right.toLowerCase();
 
 const assertExpectedSigner = (
-  account: PrivateKeyAccount,
+  account: LocalAccount,
   txRequest: TransactionRequest,
 ): void => {
   if (!sameAddress(account.address, txRequest.expected_signer)) {
@@ -114,7 +114,7 @@ export const assertSuccessfulReceipt = (
 };
 
 export const submitValidatedTransaction = async (
-  account: PrivateKeyAccount,
+  account: LocalAccount,
   txRequest: TransactionRequest,
 ): Promise<`0x${string}`> => {
   const result = await sendValidatedTransaction(account, txRequest);
@@ -122,7 +122,7 @@ export const submitValidatedTransaction = async (
 };
 
 export const createBaseContractClients = (
-  account: PrivateKeyAccount,
+  account: LocalAccount,
   chainId: SupportedTransactionChainId,
   rpcUrlOverride?: string,
 ): BaseContractClients => {
@@ -141,7 +141,7 @@ export const createBaseContractClients = (
 };
 
 export const sendValidatedTransaction = async (
-  account: PrivateKeyAccount,
+  account: LocalAccount,
   txRequest: TransactionRequest,
   rpcUrlOverride?: string,
 ): Promise<{
