@@ -1903,13 +1903,9 @@ export interface components {
             gas_fee: string | null;
         };
         SwapQuoteEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             quote: components["schemas"]["SwapQuote"];
         };
         SwapPrepareEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             swap: {
                 wallet_action: components["schemas"]["WalletAction"];
                 quote: components["schemas"]["SwapQuote"];
@@ -1942,8 +1938,6 @@ export interface components {
             agent: components["schemas"]["AgentPairingAgent"] | null;
         };
         AgentPairingSessionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             session: components["schemas"]["AgentPairingSession"];
         };
         AgentPairingCompleteRequest: {
@@ -1986,8 +1980,6 @@ export interface components {
             human: components["schemas"]["AgentConnectionHuman"] | null;
         };
         AgentConnectionSessionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             connection: components["schemas"]["AgentConnectionSession"];
         };
         ErrorEnvelope: {
@@ -2085,8 +2077,6 @@ export interface components {
             data: components["schemas"]["PublicProfile"];
         };
         PrivySessionCsrf: {
-            /** @enum {boolean} */
-            ok: true;
             csrf_token: string;
         };
         PrivySessionRequest: {
@@ -2095,8 +2085,6 @@ export interface components {
             display_name?: string | null;
         };
         PrivySessionResponse: {
-            /** @enum {boolean} */
-            ok: true;
             human: {
                 id: number;
                 privy_user_id: string;
@@ -2146,14 +2134,9 @@ export interface components {
             recipient?: components["schemas"]["Address"] | null;
         };
         OkEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
-        } & {
             [key: string]: unknown;
         };
         AgentSessionResponse: {
-            /** @enum {boolean} */
-            ok: true;
             session: {
                 session_id: string;
                 /** @enum {string} */
@@ -2189,8 +2172,6 @@ export interface components {
             [key: string]: unknown;
         };
         PreparedActionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             job_id?: string;
             subject_id?: string;
             prepared: components["schemas"]["PreparedAction"];
@@ -2218,14 +2199,10 @@ export interface components {
             identity_agent_id?: components["schemas"]["UintParam"];
         };
         PreparedRevenueSubjectActionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject?: components["schemas"]["RevenueSubject"] | null;
             prepared: components["schemas"]["PreparedAction"];
         };
         RegentStakingPreparedActionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             staking?: {
                 [key: string]: unknown;
             } | null;
@@ -2240,8 +2217,6 @@ export interface components {
             source: "techtree";
         };
         AgentReadinessEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             agent_id: string;
             agent_name?: string | null;
             launch_eligible: boolean;
@@ -2332,13 +2307,9 @@ export interface components {
             minimum_raise_quote: components["schemas"]["DecimalString"];
         };
         PrelaunchPlanEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             plan: components["schemas"]["PrelaunchPlan"];
         };
         PrelaunchPlanListEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             items: components["schemas"]["PrelaunchPlan"][];
         };
         PrelaunchValidation: {
@@ -2349,8 +2320,6 @@ export interface components {
             [key: string]: unknown;
         };
         PrelaunchPlanValidationEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             plan: components["schemas"]["PrelaunchPlan"];
             validation: components["schemas"]["PrelaunchValidation"];
         };
@@ -2369,8 +2338,6 @@ export interface components {
             [key: string]: unknown;
         };
         LaunchPlanEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             plan: components["schemas"]["PrelaunchPlan"];
             launch: components["schemas"]["LaunchRef"];
         };
@@ -2384,16 +2351,12 @@ export interface components {
             [key: string]: unknown;
         };
         PrelaunchAssetEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             asset: components["schemas"]["PrelaunchAsset"];
         };
         PrelaunchMetadataRequest: {
             metadata: components["schemas"]["PrelaunchMetadataDraft"];
         };
         PrelaunchMetadataPreviewEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             html?: string | null;
         } & {
             [key: string]: unknown;
@@ -2409,9 +2372,6 @@ export interface components {
             minimum_raise_quote: components["schemas"]["DecimalString"];
         };
         LaunchPreviewEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
-        } & {
             [key: string]: unknown;
         };
         LaunchCreateRequest: components["schemas"]["LaunchPreviewRequest"] & {
@@ -2447,8 +2407,6 @@ export interface components {
             required_demand_next_tick_q96?: components["schemas"]["UintLike"];
         };
         LaunchJobEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             job: components["schemas"]["LaunchJob"];
         } & {
             [key: string]: unknown;
@@ -2492,8 +2450,6 @@ export interface components {
             tiers: components["schemas"]["LaunchCreationTaskTiers"];
         };
         LaunchCreationStateEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             creation_state: components["schemas"]["LaunchCreationState"];
         };
         UintLike: number | string | null;
@@ -2534,8 +2490,6 @@ export interface components {
             ownership_status: components["schemas"]["LifecycleOwnershipStatus"];
         };
         LifecycleJobEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             job: components["schemas"]["LaunchJob"];
             auction: {
                 [key: string]: unknown;
@@ -2556,8 +2510,6 @@ export interface components {
             ownership_status: components["schemas"]["LifecycleOwnershipStatus"];
         };
         LifecycleFinalizeEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             job: components["schemas"]["LaunchJob"];
             auction: {
                 [key: string]: unknown;
@@ -2583,8 +2535,6 @@ export interface components {
             tx_hash: components["schemas"]["HexData"];
         };
         LifecycleFinalizeRegisterEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             job_id: string;
             tx_hash: components["schemas"]["HexData"];
             recommended_action: components["schemas"]["LifecycleAction"];
@@ -2686,19 +2636,13 @@ export interface components {
         };
         /** @description Auction list responses use `items`, not the older generic `data` array shape. */
         AuctionListEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             items: components["schemas"]["AuctionSummary"][];
             generated_at: components["schemas"]["DateTime"];
         };
         AuctionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             auction: components["schemas"]["AuctionSummary"];
         };
         AuctionReturnsEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             items: components["schemas"]["AuctionSummary"][];
             next_cursor?: string | null;
         };
@@ -2723,10 +2667,7 @@ export interface components {
             warnings: string[];
             prepared?: components["schemas"]["PreparedAction"] | null;
         };
-        AuctionBidQuoteEnvelope: components["schemas"]["AuctionBidQuote"] & {
-            /** @enum {boolean} */
-            ok: true;
-        };
+        AuctionBidQuoteEnvelope: components["schemas"]["AuctionBidQuote"] & Record<string, never>;
         CreateAuctionBidRequest: {
             amount: components["schemas"]["DecimalString"];
             max_price: components["schemas"]["DecimalString"];
@@ -2774,13 +2715,9 @@ export interface components {
             inserted_at?: components["schemas"]["DateTime"] | null;
         };
         BidPositionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             bid: components["schemas"]["BidPosition"];
         };
         BidPositionListEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             items: components["schemas"]["BidPosition"][];
         };
         /** @enum {string} */
@@ -2830,13 +2767,9 @@ export interface components {
             team_shared_status: components["schemas"]["TeamSharedStatus"];
         };
         RevenueSubjectEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject: components["schemas"]["RevenueSubject"];
         };
         RevenueSubjectListEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             token_address: components["schemas"]["Address"];
             subjects: components["schemas"]["RevenueSubject"][];
         };
@@ -2873,8 +2806,6 @@ export interface components {
             expected_min_regent_out_raw?: number | null;
         };
         SubjectBuybackEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject_id: string;
             buybacks: components["schemas"]["BuybackStatus"];
             settlements: components["schemas"]["BuybackSettlement"][];
@@ -2910,8 +2841,6 @@ export interface components {
             created_by_connected_wallet: boolean;
         };
         SubjectPaymentLinksEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject_id: string;
             factory_address: components["schemas"]["Address"] | null;
             destination: components["schemas"]["Address"] | null;
@@ -2932,14 +2861,10 @@ export interface components {
             log_index?: number | null;
         };
         RegentEmissionListEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject_id: string;
             emissions: components["schemas"]["RegentEmission"][];
         };
         SubjectStakingEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject_id: string;
             staking: {
                 [key: string]: unknown;
@@ -3036,13 +2961,9 @@ export interface components {
             }[];
         };
         SubjectEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject: components["schemas"]["Subject"];
         };
         SubjectIngressEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject: components["schemas"]["Subject"];
         };
         SubjectAccountingTag: {
@@ -3061,8 +2982,6 @@ export interface components {
             log_index?: number | null;
         };
         SubjectAccountingTagsEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject_id: string;
             chain_id: components["schemas"]["AutolaunchChainId"];
             from_block: number;
@@ -3073,8 +2992,6 @@ export interface components {
             accounting_tags: components["schemas"]["SubjectAccountingTag"][];
         };
         PreparedSubjectActionEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             subject?: components["schemas"]["Subject"] | null;
             prepared?: components["schemas"]["PreparedAction"] | null;
         } & {
@@ -3104,13 +3021,9 @@ export interface components {
             holdings: components["schemas"]["HoldingRow"][];
         };
         HoldingsEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             holdings: components["schemas"]["Holdings"];
         };
         AgentTrustEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             agent_id: string;
             trust: components["schemas"]["AuctionTrust"];
         };
@@ -3118,8 +3031,6 @@ export interface components {
             agent_id: string;
         };
         XLinkStartEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             /** @example twitter */
             provider: string;
             /** @example x */
@@ -3164,8 +3075,6 @@ export interface components {
             error_message?: string | null;
         };
         ProfileSnapshotEnvelope: {
-            /** @enum {boolean} */
-            ok: true;
             profile: components["schemas"]["ProfileSnapshot"];
         };
     };
