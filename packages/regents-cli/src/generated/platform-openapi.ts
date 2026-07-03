@@ -1632,6 +1632,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/platform/chat/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public NDJSON stream of chat events for one or more scopes (comma-separated; default system). dm scopes are rejected with 422 invalid_chat_scope — dm consumers poll the cursor-paginated message read instead. */
+        get: operations["streamChatMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/platform/chat/messages": {
         parameters: {
             query?: never;
@@ -2487,7 +2504,7 @@ export interface components {
             /** @enum {string} */
             schema: "regent.platform.service_result.v1";
             service_kind: components["schemas"]["RegentServiceKind"];
-            agent_slug: string;
+            public_regent_identity: components["schemas"]["RegentServiceResultProofRegentIdentity"];
             service_slug: string;
             service_name: string | null;
             template_kind: string | null;
@@ -2504,6 +2521,12 @@ export interface components {
                 [key: string]: string | number | boolean | null;
             };
             artifact: components["schemas"]["RegentServiceProofArtifactReference"] | null;
+        };
+        /** @description Public Regent identity carried on a sanitized service result proof. */
+        RegentServiceResultProofRegentIdentity: {
+            agent_slug: string;
+            display_name: string | null;
+            wallet_address: string | null;
         };
         /** @description Callable Regent Service setup linked to one public Regent Service Card. */
         RegentServiceDefinition: {
@@ -7543,11 +7566,38 @@ export interface operations {
             429: components["responses"]["StatusMessage429"];
         };
     };
+    streamChatMessages: {
+        parameters: {
+            query?: {
+                scopes?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description NDJSON chat stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/x-ndjson": string;
+                };
+            };
+            422: components["responses"]["StatusMessage422"];
+            429: components["responses"]["StatusMessage429"];
+        };
+    };
     listChatMessages: {
         parameters: {
             query: {
                 scope: components["parameters"]["ChatScope"];
+                /** @description Return messages older than this message id, newest first. Mutually exclusive with after. */
                 before?: number;
+                /** @description Return messages newer than this message id, oldest first. Mutually exclusive with before. */
+                after?: number;
                 limit?: number;
             };
             header?: never;
@@ -7565,6 +7615,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatListResponse"];
                 };
             };
+            400: components["responses"]["StatusMessage400"];
             404: components["responses"]["StatusMessage404"];
             429: components["responses"]["StatusMessage429"];
         };
@@ -7847,7 +7898,10 @@ export interface operations {
         parameters: {
             query: {
                 scope: components["parameters"]["ChatScope"];
+                /** @description Return messages older than this message id, newest first. Mutually exclusive with after. */
                 before?: number;
+                /** @description Return messages newer than this message id, oldest first. Mutually exclusive with before. */
+                after?: number;
                 limit?: number;
             };
             header?: never;
@@ -7865,6 +7919,7 @@ export interface operations {
                     "application/json": components["schemas"]["ChatListResponse"];
                 };
             };
+            400: components["responses"]["StatusMessage400"];
             404: components["responses"]["StatusMessage404"];
             429: components["responses"]["StatusMessage429"];
         };

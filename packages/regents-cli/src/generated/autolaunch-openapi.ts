@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/autolaunch/v1/chat/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public NDJSON stream of chat events for one or more scopes (comma-separated; default system). dm scopes are rejected with 422 invalid_chat_scope — dm consumers poll the cursor-paginated message read instead. */
+        get: operations["streamChatMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/autolaunch/v1/chat/messages": {
         parameters: {
             query?: never;
@@ -2749,6 +2766,7 @@ export interface components {
             next_action_label?: string | null;
             tx_actions?: {
                 exit?: components["schemas"]["PositionAction"] | null;
+                return_quote_token?: components["schemas"]["PositionAction"] | null;
                 claim?: components["schemas"]["PositionAction"] | null;
             };
             return_action?: components["schemas"]["PositionAction"] | null;
@@ -3210,11 +3228,46 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
+    streamChatMessages: {
+        parameters: {
+            query?: {
+                scopes?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description NDJSON chat stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/x-ndjson": string;
+                };
+            };
+            /** @description Unknown chat scope */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+        };
+    };
     listChatMessages: {
         parameters: {
             query: {
                 scope: components["parameters"]["ChatScope"];
+                /** @description Return messages older than this message id, newest first. Mutually exclusive with after. */
                 before?: number;
+                /** @description Return messages newer than this message id, oldest first. Mutually exclusive with before. */
+                after?: number;
                 limit?: number;
             };
             header?: never;
@@ -3230,6 +3283,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            /** @description Invalid cursor parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             /** @description Unknown chat scope */
@@ -3619,7 +3681,10 @@ export interface operations {
         parameters: {
             query: {
                 scope: components["parameters"]["ChatScope"];
+                /** @description Return messages older than this message id, newest first. Mutually exclusive with after. */
                 before?: number;
+                /** @description Return messages newer than this message id, oldest first. Mutually exclusive with before. */
+                after?: number;
                 limit?: number;
             };
             header?: never;
@@ -3635,6 +3700,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            /** @description Invalid cursor parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             /** @description Unknown chat scope */

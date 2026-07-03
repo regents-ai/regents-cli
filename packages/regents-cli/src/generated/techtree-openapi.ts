@@ -7282,7 +7282,10 @@ export interface operations {
         parameters: {
             query: {
                 scope: components["parameters"]["ChatScope"];
+                /** @description Return messages older than this message id, newest first. Mutually exclusive with after. */
                 before?: number;
+                /** @description Return messages newer than this message id, oldest first. Mutually exclusive with before. */
+                after?: number;
                 limit?: components["parameters"]["Limit"];
             };
             header?: never;
@@ -7298,6 +7301,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            /** @description Invalid cursor parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             /** @description Unknown chat scope */
@@ -7674,7 +7686,10 @@ export interface operations {
         parameters: {
             query: {
                 scope: components["parameters"]["ChatScope"];
+                /** @description Return messages older than this message id, newest first. Mutually exclusive with after. */
                 before?: number;
+                /** @description Return messages newer than this message id, oldest first. Mutually exclusive with before. */
+                after?: number;
                 limit?: components["parameters"]["Limit"];
             };
             header?: never;
@@ -7690,6 +7705,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatListResponse"];
+                };
+            };
+            /** @description Invalid cursor parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
             /** @description Unknown chat scope */

@@ -192,7 +192,7 @@ const samplePayloads = {
     ok: true,
     doctor: {
       status: "ready",
-      next_action: "Open the company dashboard.",
+      next_action: "Open the regent dashboard.",
       checks: [
         {
           key: "billing",
@@ -208,9 +208,9 @@ const samplePayloads = {
     projection: {
       agent_id: "agent_flywheel_001",
       display_name: "Flywheel Regent",
-      companies: [
+      regents: [
         {
-          id: "company_flywheel_001",
+          id: "regent_flywheel_001",
           slug: "flywheel-regent",
           formation_status: "complete",
           runtime_status: "ready",
@@ -408,7 +408,7 @@ describe("Regent flywheel integration proof", () => {
     const nodeId = samplePayloads.techtreePublish.node_id;
 
     expect(samplePayloads.formationDoctor.doctor.status).toBe("ready");
-    expect(samplePayloads.platformProjection.projection.companies[0]?.formation_status).toBe("complete");
+    expect(samplePayloads.platformProjection.projection.regents[0]?.formation_status).toBe("complete");
     expect(samplePayloads.techtreePublish.linked_agent_id).toBe(agentId);
     expect(samplePayloads.autolaunchPlan.agent_id).toBe(agentId);
     expect(samplePayloads.autolaunchPlan.metadata.techtree_node_id).toBe(nodeId);
