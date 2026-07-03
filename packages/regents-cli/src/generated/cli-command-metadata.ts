@@ -5147,7 +5147,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       }
     ],
     "examples": [
-      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
       "regents budget status --json",
       "regents budget ledger --budget bud_..."
     ],
@@ -5181,7 +5181,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       }
     ],
     "examples": [
-      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
       "regents budget status --json",
       "regents budget ledger --budget bud_..."
     ],
@@ -5215,7 +5215,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       }
     ],
     "examples": [
-      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
       "regents budget status --json",
       "regents budget ledger --budget bud_..."
     ],
@@ -5255,7 +5255,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       }
     ],
     "examples": [
-      "regents budget grant --agent agent_123 --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
+      "regents budget grant --agent <agent-id> --amount-usdc 10 --max-payment-usdc 0.25 --mode techtree_research --rail agentic-wallet --expires 7d",
       "regents budget status --json",
       "regents budget ledger --budget bud_..."
     ],
