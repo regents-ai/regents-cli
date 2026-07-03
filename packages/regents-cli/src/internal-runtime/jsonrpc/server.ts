@@ -5,6 +5,7 @@ import type { JsonRpcFailure, JsonRpcRequest, JsonRpcSuccess, RegentRpcMethod } 
 
 import { JsonRpcError, RegentError, errorMessage } from "../errors.js";
 import { ensureParentDir } from "../paths.js";
+import { claimUnixSocketPath } from "../unix-socket-guard.js";
 import { REGENT_RPC_METHOD_SET } from "./methods.js";
 
 export type JsonRpcHandler = (method: RegentRpcMethod, params: unknown) => Promise<unknown>;
@@ -72,9 +73,7 @@ export class JsonRpcServer {
     }
 
     ensureParentDir(this.socketPath);
-    if (fs.existsSync(this.socketPath)) {
-      fs.rmSync(this.socketPath, { force: true });
-    }
+    await claimUnixSocketPath(this.socketPath);
 
     this.server = net.createServer((socket) => {
       let buffer = "";

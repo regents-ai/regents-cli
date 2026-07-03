@@ -116,11 +116,11 @@ export const requestProductResponse = async (
     }
   }
 
-  if (options.service === "platform" && options.method !== "GET") {
-    await ensureCompatiblePlatformContract(baseUrl);
-  }
-
   try {
+    if (options.service === "platform" && options.method !== "GET") {
+      await ensureCompatiblePlatformContract(baseUrl, controller.signal);
+    }
+
     const response = await fetch(`${baseUrl}${options.path}`, {
       method: options.method,
       headers,
@@ -146,6 +146,10 @@ export const requestProductResponse = async (
 
     return { response, requestId };
   } catch (error) {
+    if (error instanceof CliUsageError) {
+      throw error;
+    }
+
     const timedOut = error instanceof Error && error.name === "AbortError";
     const message =
       timedOut
@@ -188,10 +192,11 @@ export const requestProductResponse = async (
   }
 };
 
-const ensureCompatiblePlatformContract = async (baseUrl: string): Promise<void> => {
+const ensureCompatiblePlatformContract = async (baseUrl: string, signal: AbortSignal): Promise<void> => {
   const response = await fetch(`${baseUrl}/api-contract.openapiv3.yaml`, {
     method: "GET",
     headers: { accept: "application/yaml" },
+    signal,
   });
 
   if (!response.ok) {

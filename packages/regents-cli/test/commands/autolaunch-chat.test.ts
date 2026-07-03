@@ -103,7 +103,7 @@ describe("autolaunch chat CLI commands", () => {
     expect(parsePrintedJson(output.stdout)).toEqual(channelsPayload());
   });
 
-  it("reads a scope with cursor pagination flags", async () => {
+  it("reads a scope with forward cursor pagination flags", async () => {
     const configPath = createConfigPath();
     const payload = {
       data: [{ id: 7, scope: "system", body: "hello" }],
@@ -117,7 +117,7 @@ describe("autolaunch chat CLI commands", () => {
         "chat",
         "read",
         "system",
-        "--before",
+        "--after",
         "10",
         "--limit",
         "5",
@@ -128,9 +128,32 @@ describe("autolaunch chat CLI commands", () => {
 
     expect(output.result).toBe(0);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
-      `${expectedBaseUrl}/api/autolaunch/v1/chat/messages?scope=system&before=10&limit=5`,
+      `${expectedBaseUrl}/api/autolaunch/v1/chat/messages?scope=system&after=10&limit=5`,
     );
     expect(parsePrintedJson(output.stdout)).toEqual(payload);
+  });
+
+  it("rejects conflicting chat read cursors before making a request", async () => {
+    const configPath = createConfigPath();
+
+    const output = await captureOutput(() =>
+      runCliEntrypoint([
+        "autolaunch",
+        "chat",
+        "read",
+        "system",
+        "--before",
+        "10",
+        "--after",
+        "11",
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(output.result).toBe(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(output.stderr).toContain("--before and --after cannot be used together");
   });
 
   it("sends to a channel scope over the agent HTTP route", async () => {

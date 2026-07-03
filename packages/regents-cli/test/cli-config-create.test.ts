@@ -487,12 +487,13 @@ describe("CLI config flows", () => {
       harness.runCliEntrypoint(["config", "write", "--config", harness.configPath, "--input", "replacement.json"]),
     );
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(JSON.parse(output.stderr)).toEqual({
-      error: {
-        code: "command_failed",
+      error: expect.objectContaining({
+        code: "invalid_flag_value",
         message: "--input must use @/absolute/or/relative/path.json syntax",
-      },
+        example: "--input @./replacement.json",
+      }),
     });
   });
 });

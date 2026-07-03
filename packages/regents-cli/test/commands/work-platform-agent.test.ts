@@ -39,7 +39,7 @@ const PLATFORM_CONTRACT_URL = "http://127.0.0.1:4010/api-contract.openapiv3.yaml
 
 const workItem = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 123,
-  company_id: 123,
+  regent_id: 123,
   title: "Review launch notes",
   description: "Check the public launch notes.",
   status: "open",
@@ -55,7 +55,7 @@ const workItem = (overrides: Record<string, unknown> = {}): Record<string, unkno
 
 const runRecord = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 456,
-  company_id: 123,
+  regent_id: 123,
   work_item_id: 123,
   parent_run_id: null,
   root_run_id: null,
@@ -74,7 +74,7 @@ const runRecord = (overrides: Record<string, unknown> = {}): Record<string, unkn
 
 const agentProfile = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 321,
-  company_id: 123,
+  regent_id: 123,
   name: "OpenClaw desk",
   agent_kind: "openclaw",
   default_runner_kind: "openclaw_local_executor",
@@ -85,7 +85,7 @@ const agentProfile = (overrides: Record<string, unknown> = {}): Record<string, u
 
 const worker = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 789,
-  company_id: 123,
+  regent_id: 123,
   agent_profile_id: 321,
   runtime_profile_id: null,
   name: "OpenClaw desk",
@@ -103,7 +103,7 @@ const worker = (overrides: Record<string, unknown> = {}): Record<string, unknown
 
 const relationship = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 654,
-  company_id: 123,
+  regent_id: 123,
   source_agent_profile_id: 321,
   target_agent_profile_id: 322,
   source_worker_id: null,
@@ -116,7 +116,7 @@ const relationship = (overrides: Record<string, unknown> = {}): Record<string, u
 
 const runtime = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 44,
-  company_id: 123,
+  regent_id: 123,
   platform_agent_id: 321,
   name: "Hosted Hermes",
   runner_kind: "hermes_hosted_manager",
@@ -129,7 +129,7 @@ const runtime = (overrides: Record<string, unknown> = {}): Record<string, unknow
 
 const runtimeService = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 55,
-  company_id: 123,
+  regent_id: 123,
   runtime_profile_id: 44,
   name: "Hermes agent",
   service_kind: "hermes_agent",
@@ -251,7 +251,7 @@ describe("work and platform agent commands", () => {
     fs.rmSync(homeDir, { recursive: true, force: true });
   });
 
-  it("creates work through the current company route", async () => {
+  it("creates work through the current regent route", async () => {
     mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, work_item: workItem() }), {
         status: 201,
@@ -263,8 +263,8 @@ describe("work and platform agent commands", () => {
       runCliEntrypoint([
         "work",
         "create",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--title",
         "Review launch notes",
         "--description",
@@ -276,12 +276,12 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/work-items",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/work-items",
     );
     expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         title: "Review launch notes",
         description: "Check the public launch notes.",
       }),
@@ -302,8 +302,8 @@ describe("work and platform agent commands", () => {
         "work",
         "run",
         "work_123",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--runner",
         "openclaw_local_executor",
         "--worker-id",
@@ -317,11 +317,11 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/work-items/work_123/runs",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/work-items/work_123/runs",
     );
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         work_item_id: "work_123",
         runner_kind: "openclaw_local_executor",
         worker_id: "worker_123",
@@ -344,8 +344,8 @@ describe("work and platform agent commands", () => {
         "work",
         "cancel",
         "run_456",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--session-file",
         sessionFile,
       ]),
@@ -353,7 +353,7 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_456/cancel",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/run_456/cancel",
     );
     expect(productFetchCalls()[0]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
@@ -374,8 +374,8 @@ describe("work and platform agent commands", () => {
         "work",
         "retry",
         "run_456",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--session-file",
         sessionFile,
       ]),
@@ -383,7 +383,7 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_456/retry",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/run_456/retry",
     );
     expect(productFetchCalls()[0]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; result: { run: { id: number } } }>(output.stdout)).toMatchObject({
@@ -405,7 +405,7 @@ describe("work and platform agent commands", () => {
         "work",
         "run",
         "123",
-        "--company-id",
+        "--regent-id",
         "123",
         "--runner",
         "openclaw_local_executor",
@@ -422,7 +422,7 @@ describe("work and platform agent commands", () => {
     expect(visible).toContain("WORK STARTED");
     expect(visible).toContain("run id");
     expect(visible).toContain("456");
-    expect(visible).toContain("regents work watch 456 --company-id 123");
+    expect(visible).toContain("regents work watch 456 --regent-id 123");
   });
 
   it("keeps raw JSON output when script mode is requested on a human terminal", async () => {
@@ -438,8 +438,8 @@ describe("work and platform agent commands", () => {
       runCliEntrypoint([
         "work",
         "create",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--title",
         "Review launch notes",
         "--session-file",
@@ -466,8 +466,8 @@ describe("work and platform agent commands", () => {
         "agent",
         "connect",
         "openclaw",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--role",
         "executor",
         "--name",
@@ -479,11 +479,11 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/workers",
     );
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         agent_kind: "openclaw",
         worker_role: "executor",
         execution_surface: "local_bridge",
@@ -528,8 +528,8 @@ describe("work and platform agent commands", () => {
         "agent",
         "connect",
         "hermes",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--role",
         "manager",
         "--name",
@@ -542,7 +542,7 @@ describe("work and platform agent commands", () => {
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         agent_kind: "hermes",
         worker_role: "manager",
         execution_surface: "local_bridge",
@@ -571,14 +571,14 @@ describe("work and platform agent commands", () => {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
-      new Response(JSON.stringify({ ok: true, company_id: 123, runtime_id: 44, services: [runtimeService()] }), {
+      new Response(JSON.stringify({ ok: true, regent_id: 123, runtime_id: 44, services: [runtimeService()] }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
       new Response(
         JSON.stringify({
           ok: true,
-          company_id: 123,
+          regent_id: 123,
           runtime_id: 44,
           health: {
             status: "healthy",
@@ -599,8 +599,8 @@ describe("work and platform agent commands", () => {
         "agent",
         "connect",
         "hosted-hermes",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--runtime-id",
         "runtime_44",
         "--session-file",
@@ -612,9 +612,9 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls().map((call) => call[0])).toEqual([
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/services",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/health",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/services",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/health",
     ]);
     const printed = parsePrintedJson<{
       command: string;
@@ -626,7 +626,7 @@ describe("work and platform agent commands", () => {
     expect(printed.result.health.available).toBe(true);
   });
 
-  it("sends a hosted agent chat message to the selected company slug", async () => {
+  it("sends a hosted agent chat message to the selected regent slug", async () => {
     mockPlatformResponses(
       new Response(
         JSON.stringify({
@@ -685,7 +685,7 @@ describe("work and platform agent commands", () => {
     expect(printed.result.run.runtime_id).toBe("sprite-runtime-1");
   });
 
-  it("infers the hosted agent chat slug when the session owns one company", async () => {
+  it("infers the hosted agent chat slug when the session owns one regent", async () => {
     mockPlatformResponses(
       new Response(
         JSON.stringify({
@@ -699,7 +699,7 @@ describe("work and platform agent commands", () => {
         JSON.stringify({
           ok: true,
           slug: "solo",
-          reply: "Solo company is ready.",
+          reply: "Solo regent is ready.",
           run: {
             runtime_id: "sprite-runtime-solo",
             exit_code: 0,
@@ -738,7 +738,7 @@ describe("work and platform agent commands", () => {
     );
   });
 
-  it("requires a hosted agent chat slug when the session owns multiple companies", async () => {
+  it("requires a hosted agent chat slug when the session owns multiple regents", async () => {
     mockPlatformResponses(
       new Response(
         JSON.stringify({
@@ -763,7 +763,7 @@ describe("work and platform agent commands", () => {
     );
 
     expect(output.result).not.toBe(0);
-    expect(output.stderr).toContain("--slug is required when your saved session owns more than one company.");
+    expect(output.stderr).toContain("--slug is required when your saved session owns more than one regent.");
     expect(productFetchCalls().map((call) => call[0])).toEqual([
       "http://127.0.0.1:4010/api/platform/auth/privy/profile",
     ]);
@@ -822,8 +822,8 @@ describe("work and platform agent commands", () => {
         "agent",
         "connect",
         "openclaw",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--role",
         "executor",
         "--name",
@@ -841,7 +841,7 @@ describe("work and platform agent commands", () => {
     expect(visible).toContain("789");
     expect(visible).toContain(path.join(homeDir, ".openclaw", "skills", "regents-work", "SKILL.md"));
     expect(collapsePanelText(visible)).toContain(
-      "regents work run <work-id> --company-id 123 --runner openclaw_local_executor --worker-id 789",
+      "regents work run <work-id> --regent-id 123 --runner openclaw_local_executor --worker-id 789",
     );
   });
 
@@ -857,8 +857,8 @@ describe("work and platform agent commands", () => {
       runCliEntrypoint([
         "agent",
         "link",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--manager-agent-id",
         "agent_manager",
         "--executor-agent-id",
@@ -872,11 +872,11 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/agent_manager/relationships",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/agents/agent_manager/relationships",
     );
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         source_agent_profile_id: "agent_manager",
         target_agent_profile_id: "agent_executor",
         relationship_kind: "can_delegate_to",
@@ -910,8 +910,8 @@ describe("work and platform agent commands", () => {
       runCliEntrypoint([
         "agent",
         "link",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--manager-worker-id",
         "worker_manager",
         "--executor-worker-id",
@@ -925,11 +925,11 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/worker_manager/relationships",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/agents/worker_manager/relationships",
     );
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         source_worker_id: "worker_manager",
         target_worker_id: "worker_executor",
         relationship_kind: "can_delegate_to",
@@ -948,7 +948,7 @@ describe("work and platform agent commands", () => {
           events: [
             {
               id: 987,
-              company_id: 123,
+              regent_id: 123,
               run_id: 456,
               sequence: 1,
               kind: "queued",
@@ -973,8 +973,8 @@ describe("work and platform agent commands", () => {
         "work",
         "watch",
         "run_123",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--once",
         "--session-file",
         sessionFile,
@@ -983,7 +983,7 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/run_123/events",
     );
     expect(parsePrintedJson<{ result: { events: unknown[] } }>(output.stdout).result.events).toHaveLength(1);
   });
@@ -1016,8 +1016,8 @@ describe("work and platform agent commands", () => {
         "work",
         "watch",
         "run_123",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--max-polls",
         "2",
         "--poll-ms",
@@ -1029,8 +1029,8 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls().map((call) => call[0])).toEqual([
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/run_123/events",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/run_123/events",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/run_123/events",
     ]);
     const lines = output.stdout.trim().split("\n").map((line) => JSON.parse(line));
     expect(lines).toHaveLength(2);
@@ -1067,8 +1067,8 @@ describe("work and platform agent commands", () => {
         "work",
         "watch",
         "run_123",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--max-polls",
         "2",
         "--poll-ms",
@@ -1091,14 +1091,14 @@ describe("work and platform agent commands", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          assignments: [{ id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "available" }],
+          assignments: [{ id: 11, regent_id: 123, worker_id: 789, work_run_id: 456, status: "available" }],
         }),
         { status: 200 },
       ),
       new Response(
         JSON.stringify({
           ok: true,
-          assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "claimed" },
+          assignment: { id: 11, regent_id: 123, worker_id: 789, work_run_id: 456, status: "claimed" },
         }),
         { status: 200 },
       ),
@@ -1110,7 +1110,7 @@ describe("work and platform agent commands", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          assignment: { id: 11, company_id: 123, worker_id: 789, work_run_id: 456, status: "completed" },
+          assignment: { id: 11, regent_id: 123, worker_id: 789, work_run_id: 456, status: "completed" },
         }),
         { status: 200 },
       ),
@@ -1120,8 +1120,8 @@ describe("work and platform agent commands", () => {
       runCliEntrypoint([
         "work",
         "local-loop",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--worker-id",
         "worker_123",
         "--once",
@@ -1140,17 +1140,17 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls().map((call) => call[0])).toEqual([
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers/worker_123/heartbeat",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/workers/worker_123/assignments",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/assignments/11/claim",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/456/events",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/456/artifacts",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runs/456/delegations",
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/assignments/11/complete",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/workers/worker_123/heartbeat",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/workers/worker_123/assignments",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/assignments/11/claim",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/456/events",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/456/artifacts",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runs/456/delegations",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/assignments/11/complete",
     ]);
     expect(productFetchCalls()[3]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         run_id: 456,
         kind: "local_worker_checked_assignment",
         payload: { worker_id: "worker_123" },
@@ -1160,7 +1160,7 @@ describe("work and platform agent commands", () => {
     );
     expect(productFetchCalls()[4]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         run_id: 456,
         artifact_type: "note",
         title: "Approved note",
@@ -1170,7 +1170,7 @@ describe("work and platform agent commands", () => {
     );
     expect(productFetchCalls()[5]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         run_id: 456,
         requested_runner_kind: "codex_exec",
         tasks: [{ title: "Review final answer" }],
@@ -1187,7 +1187,7 @@ describe("work and platform agent commands", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          company_id: 123,
+          regent_id: 123,
           workers: [
             worker(),
             worker({
@@ -1214,8 +1214,8 @@ describe("work and platform agent commands", () => {
       runCliEntrypoint([
         "agent",
         "execution-pool",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--manager",
         "agent_manager",
         "--session-file",
@@ -1225,7 +1225,7 @@ describe("work and platform agent commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/agents/agent_manager/execution-pool",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/agents/agent_manager/execution-pool",
     );
     expect(parsePrintedJson<{ result: { workers: unknown[] } }>(output.stdout).result.workers).toHaveLength(2);
   });
@@ -1236,7 +1236,7 @@ describe("work and platform agent commands", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          company_id: 123,
+          regent_id: 123,
           workers: [worker(), worker({ id: 790, name: "Hermes desk", agent_kind: "hermes" })],
         }),
         {
@@ -1250,7 +1250,7 @@ describe("work and platform agent commands", () => {
       runCliEntrypoint([
         "agent",
         "execution-pool",
-        "--company-id",
+        "--regent-id",
         "123",
         "--manager",
         "321",
@@ -1267,7 +1267,7 @@ describe("work and platform agent commands", () => {
     expect(visible).toContain("OpenClaw desk");
     expect(visible).toContain("Hermes desk");
     expect(collapsePanelText(visible)).toContain(
-      "regents work run <work-id> --company-id 123 --runner <runner> --worker-id <worker-id>",
+      "regents work run <work-id> --regent-id 123 --runner <runner> --worker-id <worker-id>",
     );
   });
 });

@@ -29,7 +29,7 @@ const PLATFORM_CONTRACT_URL = "http://127.0.0.1:4010/api-contract.openapiv3.yaml
 
 const runtime = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 44,
-  company_id: 123,
+  regent_id: 123,
   platform_agent_id: null,
   name: "Hosted manager",
   runner_kind: "hermes_hosted_manager",
@@ -44,7 +44,7 @@ const runtime = (overrides: Record<string, unknown> = {}): Record<string, unknow
 
 const checkpoint = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   id: 88,
-  company_id: 123,
+  regent_id: 123,
   runtime_profile_id: 44,
   work_run_id: null,
   checkpoint_ref: "before-release",
@@ -149,8 +149,8 @@ describe("runtime commands", () => {
       runCliEntrypoint([
         "runtime",
         "create",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--name",
         "Hosted manager",
         "--platform-agent-id",
@@ -168,12 +168,12 @@ describe("runtime commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes",
     );
     expect((productFetchCalls()[0]?.[1]?.headers as Headers).get("x-csrf-token")).toBe("csrf-token");
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         platform_agent_id: "agent_77",
         name: "Hosted manager",
         runner_kind: "hermes_hosted_manager",
@@ -197,8 +197,8 @@ describe("runtime commands", () => {
         "runtime",
         "checkpoint",
         "runtime_44",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--checkpoint-ref",
         "before-release",
         "--session-file",
@@ -208,11 +208,11 @@ describe("runtime commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/checkpoint",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/checkpoint",
     );
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         runtime_id: "runtime_44",
         checkpoint_ref: "before-release",
       }),
@@ -236,8 +236,8 @@ describe("runtime commands", () => {
         "runtime",
         "restore",
         "runtime_44",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--checkpoint-id",
         "checkpoint_88",
         "--session-file",
@@ -247,11 +247,11 @@ describe("runtime commands", () => {
 
     expect(output.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/restore",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/restore",
     );
     expect(productFetchCalls()[0]?.[1]?.body).toBe(
       JSON.stringify({
-        company_id: "company_123",
+        regent_id: "regent_123",
         runtime_id: "runtime_44",
         checkpoint_id: "checkpoint_88",
       }),
@@ -266,12 +266,12 @@ describe("runtime commands", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          company_id: 123,
+          regent_id: 123,
           runtime_id: 44,
           services: [
             {
               id: 7,
-              company_id: 123,
+              regent_id: 123,
               runtime_profile_id: 44,
               name: "Workspace",
               service_kind: "workspace",
@@ -286,7 +286,7 @@ describe("runtime commands", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          company_id: 123,
+          regent_id: 123,
           runtime_id: 44,
           health: {
             status: "healthy",
@@ -320,8 +320,8 @@ describe("runtime commands", () => {
         "runtime",
         "services",
         "runtime_44",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--session-file",
         sessionFile,
         "--json",
@@ -332,8 +332,8 @@ describe("runtime commands", () => {
         "runtime",
         "health",
         "runtime_44",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--session-file",
         sessionFile,
         "--json",
@@ -343,10 +343,10 @@ describe("runtime commands", () => {
     expect(servicesOutput.result).toBe(0);
     expect(healthOutput.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/services",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/services",
     );
     expect(productFetchCalls()[1]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/health",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/health",
     );
     expect(parsePrintedJson<{ result: { services: unknown[] } }>(servicesOutput.stdout).result.services).toHaveLength(1);
     expect(parsePrintedJson<{ result: { health: { available: boolean } } }>(healthOutput.stdout).result.health.available).toBe(
@@ -360,7 +360,7 @@ describe("runtime commands", () => {
       new Response(
         JSON.stringify({
           ok: true,
-          company_id: 123,
+          regent_id: 123,
           runtime_id: 44,
           health: {
             status: "needs_attention",
@@ -394,8 +394,8 @@ describe("runtime commands", () => {
         "runtime",
         "health",
         "runtime_44",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--session-file",
         sessionFile,
       ]),
@@ -434,8 +434,8 @@ describe("runtime commands", () => {
         "runtime",
         "pause",
         "runtime_44",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--session-file",
         sessionFile,
       ]),
@@ -445,8 +445,8 @@ describe("runtime commands", () => {
         "runtime",
         "resume",
         "runtime_44",
-        "--company-id",
-        "company_123",
+        "--regent-id",
+        "regent_123",
         "--session-file",
         sessionFile,
       ]),
@@ -455,10 +455,10 @@ describe("runtime commands", () => {
     expect(pauseOutput.result).toBe(0);
     expect(resumeOutput.result).toBe(0);
     expect(productFetchCalls()[0]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/pause",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/pause",
     );
     expect(productFetchCalls()[1]?.[0]).toBe(
-      "http://127.0.0.1:4010/api/platform/companies/company_123/rwr/runtimes/runtime_44/resume",
+      "http://127.0.0.1:4010/api/platform/regents/regent_123/rwr/runtimes/runtime_44/resume",
     );
   });
 });

@@ -5,7 +5,7 @@ import { expandHome } from "../../internal-runtime/index.js";
 import { renderHermesRegentsWorkSkill } from "./skill-template.js";
 
 export interface WriteHermesConnectorInput {
-  readonly companyId: string;
+  readonly regentId: string;
   readonly workerId: string;
   readonly workerName: string;
   readonly pluginPath?: string;
@@ -25,9 +25,9 @@ export const defaultHermesSkillPath = (): string =>
 
 const renderHermesRegentsWorkPlugin = (input: WriteHermesConnectorInput): string => `name: regents-work
 version: 1.0.0
-description: Local Regent company work bridge for Hermes
+description: Local Regent regent work bridge for Hermes
 metadata:
-  company_id: ${JSON.stringify(input.companyId)}
+  regent_id: ${JSON.stringify(input.regentId)}
   worker_id: ${JSON.stringify(input.workerId)}
   worker_name: ${JSON.stringify(input.workerName)}
   local_bridge:
@@ -35,8 +35,8 @@ metadata:
     args:
       - work
       - local-loop
-      - --company-id
-      - ${JSON.stringify(input.companyId)}
+      - --regent-id
+      - ${JSON.stringify(input.regentId)}
       - --worker-id
       - ${JSON.stringify(input.workerId)}
 `;
@@ -53,7 +53,7 @@ export const writeHermesRegentsWorkConnector = async (
   await writeFile(
     skillPath,
     renderHermesRegentsWorkSkill({
-      companyId: input.companyId,
+      regentId: input.regentId,
       workerId: input.workerId,
       workerName: input.workerName,
     }),

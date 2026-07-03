@@ -305,7 +305,7 @@ describe("platform CLI command group", () => {
   it("reads the Platform projection", async () => {
     writeSession();
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ ok: true, agent_id: "agent_123", companies: [] }), {
+      new Response(JSON.stringify({ ok: true, agent_id: "agent_123", regents: [] }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
@@ -374,7 +374,7 @@ describe("platform CLI command group", () => {
     });
   });
 
-  it("pauses a company's hosted runtime", async () => {
+  it("pauses a Regent's hosted runtime", async () => {
     writeSession();
     fetchMock
       .mockResolvedValueOnce(platformContractResponse())
@@ -397,7 +397,7 @@ describe("platform CLI command group", () => {
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "platform",
-        "company",
+        "regent",
         "pause",
         "--origin",
         "http://127.0.0.1:4010",
@@ -413,12 +413,12 @@ describe("platform CLI command group", () => {
     expect(fetchMock.mock.calls[1]?.[0]).toBe("http://127.0.0.1:4010/api/platform/sprites/tempo/pause");
     expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("POST");
     expect(parsePrintedJson<{ command: string; sprite: { runtime_status: string } }>(output.stdout)).toMatchObject({
-      command: "regents platform company pause",
+      command: "regents platform regent pause",
       sprite: { slug: "tempo", runtime_status: "paused" },
     });
   });
 
-  it("resumes a company's hosted runtime", async () => {
+  it("resumes a Regent's hosted runtime", async () => {
     writeSession();
     fetchMock
       .mockResolvedValueOnce(platformContractResponse())
@@ -442,7 +442,7 @@ describe("platform CLI command group", () => {
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "platform",
-        "company",
+        "regent",
         "resume",
         "--origin",
         "http://127.0.0.1:4010",
@@ -464,7 +464,7 @@ describe("platform CLI command group", () => {
         billing_account: { runtime_credit_balance_usd_cents: number };
       }>(output.stdout),
     ).toMatchObject({
-      command: "regents platform company resume",
+      command: "regents platform regent resume",
       sprite: { slug: "tempo", runtime_status: "ready" },
       billing_account: { runtime_credit_balance_usd_cents: 5_000 },
     });
@@ -792,7 +792,7 @@ describe("platform CLI command group", () => {
     const output = await captureOutput(() =>
       runCliEntrypoint([
         "platform",
-        "company",
+        "regent",
         "pause",
         "--origin",
         "http://127.0.0.1:4010",

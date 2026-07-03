@@ -20,7 +20,7 @@ import { requestProductJson } from "../product-http.js";
 
 type JsonObject = Record<string, unknown>;
 
-const companyId = (args: ParsedCliArgs): string => requireArg(getFlag(args, "company-id"), "company-id");
+const regentId = (args: ParsedCliArgs): string => requireArg(getFlag(args, "regent-id"), "regent-id");
 
 const relationshipMember = (
   args: ParsedCliArgs,
@@ -30,11 +30,18 @@ const relationshipMember = (
   const workerId = getFlag(args, input.workerFlag);
 
   if (agentId && workerId) {
-    throw new Error(`use either --${input.agentFlag} or --${input.workerFlag} for the ${input.label}, not both`);
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `use either --${input.agentFlag} or --${input.workerFlag} for the ${input.label}, not both`,
+    });
   }
 
   if (!agentId && !workerId) {
-    throw new Error(`missing ${input.label}: pass --${input.agentFlag} or --${input.workerFlag}`);
+    throw new CliUsageError({
+      code: "missing_required_argument",
+      message: `missing ${input.label}: pass --${input.agentFlag} or --${input.workerFlag}`,
+      missing: [`--${input.agentFlag}`, `--${input.workerFlag}`],
+    });
   }
 
   return {
@@ -86,8 +93,8 @@ const requestPlatformAgentJson = async (
   return { origin: productBaseUrl(loadConfig(configPath), "platform"), data };
 };
 
-const runtimePath = (resolvedCompanyId: string, runtimeId: string): string =>
-  `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runtimes/${encodeURIComponent(runtimeId)}`;
+const runtimePath = (resolvedRegentId: string, runtimeId: string): string =>
+  `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/runtimes/${encodeURIComponent(runtimeId)}`;
 
 const chatMessage = (args: ParsedCliArgs): string => {
   const message = args.positionals.slice(2).join(" ").trim();
@@ -170,12 +177,12 @@ const resolveAgentChatSlug = async (
   if (slugs.length > 1) {
     throw new CliUsageError({
       code: "missing_required_argument",
-      message: "--slug is required when your saved session owns more than one company.",
+      message: "--slug is required when your saved session owns more than one regent.",
       missing: ["--slug"],
     });
   }
 
-  throw new Error("No company was found for the saved platform session.");
+  throw new Error("No regent was found for the saved platform session.");
 };
 
 export async function runAgentChat(args: ParsedCliArgs): Promise<void> {
@@ -207,7 +214,7 @@ export async function runAgentChat(args: ParsedCliArgs): Promise<void> {
 }
 
 export async function runAgentConnectHostedHermes(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const runtimeId = requireArg(getFlag(args, "runtime-id"), "runtime-id");
   const { origin, session } = await loadResolvedPlatformSession(args);
   const configPath = getFlag(args, "config");
@@ -223,7 +230,7 @@ export async function runAgentConnectHostedHermes(args: ParsedCliArgs): Promise<
 
     return data;
   };
-  const basePath = runtimePath(resolvedCompanyId, runtimeId);
+  const basePath = runtimePath(resolvedRegentId, runtimeId);
   const runtime = await requestHostedJson(basePath);
   const services = await requestHostedJson(`${basePath}/services`);
   const health = await requestHostedJson(`${basePath}/health`);
@@ -233,7 +240,7 @@ export async function runAgentConnectHostedHermes(args: ParsedCliArgs): Promise<
     command: "regents agent connect hosted-hermes",
     origin,
     result: {
-      company_id: resolvedCompanyId,
+      regent_id: resolvedRegentId,
       runtime_id: runtimeId,
       runtime: runtime.runtime,
       services: services.services,
@@ -243,14 +250,14 @@ export async function runAgentConnectHostedHermes(args: ParsedCliArgs): Promise<
 }
 
 export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const role = requireArg(getFlag(args, "role"), "role");
   const displayName = getFlag(args, "name") ?? "Hermes local worker";
   const { origin, data } = await requestPlatformAgentJson(configPath, {
     method: "POST",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/workers`,
     body: {
-      company_id: resolvedCompanyId,
+      regent_id: resolvedRegentId,
       agent_kind: "hermes",
       worker_role: role,
       execution_surface: "local_bridge",
@@ -264,7 +271,7 @@ export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: st
   });
   const connector = writePluginEnabled(args)
     ? await writeHermesRegentsWorkConnector({
-        companyId: resolvedCompanyId,
+        regentId: resolvedRegentId,
         workerId: registeredWorkerId(data),
         workerName: displayName,
       })
@@ -283,15 +290,15 @@ export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: st
 }
 
 export async function runAgentConnectOpenClaw(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const role = requireArg(getFlag(args, "role"), "role");
   const displayName = getFlag(args, "name") ?? "OpenClaw local worker";
   const runnerKind = role === "manager" ? "openclaw_local_manager" : "openclaw_local_executor";
   const { origin, data } = await requestPlatformAgentJson(configPath, {
     method: "POST",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/workers`,
     body: {
-      company_id: resolvedCompanyId,
+      regent_id: resolvedRegentId,
       agent_kind: "openclaw",
       worker_role: role,
       execution_surface: "local_bridge",
@@ -305,7 +312,7 @@ export async function runAgentConnectOpenClaw(args: ParsedCliArgs, configPath?: 
   });
   const skill = writeSkillEnabled(args)
     ? await writeOpenClawRegentsWorkSkill({
-        companyId: resolvedCompanyId,
+        regentId: resolvedRegentId,
         workerId: registeredWorkerId(data),
         workerName: displayName,
       })
@@ -323,7 +330,7 @@ export async function runAgentConnectOpenClaw(args: ParsedCliArgs, configPath?: 
 }
 
 export async function runAgentLink(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const manager = relationshipMember(args, {
     agentFlag: "manager-agent-id",
     workerFlag: "manager-worker-id",
@@ -340,9 +347,9 @@ export async function runAgentLink(args: ParsedCliArgs): Promise<void> {
     origin,
     session,
     method: "POST",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/agents/${encodeURIComponent(manager.routeId)}/relationships`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/agents/${encodeURIComponent(manager.routeId)}/relationships`,
     body: {
-      company_id: resolvedCompanyId,
+      regent_id: resolvedRegentId,
       ...(manager.agentId ? { source_agent_profile_id: manager.agentId } : {}),
       ...(manager.workerId ? { source_worker_id: manager.workerId } : {}),
       ...(executor.agentId ? { target_agent_profile_id: executor.agentId } : {}),
@@ -356,14 +363,14 @@ export async function runAgentLink(args: ParsedCliArgs): Promise<void> {
 }
 
 export async function runAgentExecutionPool(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const manager = requireArg(getFlag(args, "manager"), "manager");
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
     origin,
     session,
     method: "GET",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/agents/${encodeURIComponent(manager)}/execution-pool`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/agents/${encodeURIComponent(manager)}/execution-pool`,
   });
 
   printAgentExecutionPoolResult(args, { ok: true, command: "regents agent execution-pool", origin, result: data });

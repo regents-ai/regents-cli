@@ -9,11 +9,12 @@ import { readIdentityReceipt } from "../../src/internal-runtime/identity/cache.j
 import { ensureIdentity } from "../../src/internal-runtime/identity/ensure.js";
 import { writeFakeCdp } from "../support/fake-cdp.js";
 import { TechtreeContractServer } from "../../../../test-support/techtree-contract-server.js";
+import { describeNetwork } from "../../../../test-support/integration.js";
 
 const FIRST_WALLET = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 const SECOND_WALLET = "0x1111111111111111111111111111111111111111";
 
-describe("ensureIdentity", () => {
+describeNetwork("ensureIdentity", () => {
   let server: TechtreeContractServer;
   let tempDir = "";
   let configPath = "";

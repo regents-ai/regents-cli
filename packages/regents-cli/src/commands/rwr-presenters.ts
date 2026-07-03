@@ -188,7 +188,7 @@ export const printWorkCreateResult = (args: ParsedCliArgs, payload: RwrPayload):
   printRwrPayload(args, payload, () => {
     const workItem = workItemFromPayload(payload);
     const workId = idValue(workItem);
-    const companyId = displayValue(workItem.company_id) ?? "<id>";
+    const regentId = displayValue(workItem.regent_id) ?? "<id>";
     const runner = displayValue(workItem.desired_runner_kind) ?? "<runner>";
 
     return [
@@ -197,30 +197,30 @@ export const printWorkCreateResult = (args: ParsedCliArgs, payload: RwrPayload):
         titleColor: CLI_PALETTE.title,
       }),
       nextPanel([
-        `Start it with ${commandValue(`regents work run ${workId} --company-id ${companyId} --runner ${runner}`)}.`,
+        `Start it with ${commandValue(`regents work run ${workId} --regent-id ${regentId} --runner ${runner}`)}.`,
       ]),
     ].join("\n\n");
   });
 
 export const printWorkListResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
   printRwrPayload(args, payload, () => {
-    const companyId = displayValue(payload.result.company_id) ?? "<id>";
+    const regentId = displayValue(payload.result.regent_id) ?? "<id>";
     const workItems = Array.isArray(payload.result.work_items)
       ? payload.result.work_items.map((item) => asRecord(item, "a work item"))
       : [];
 
     if (workItems.length === 0) {
       return [
-        renderKeyValuePanel("◆ COMPANY WORK", [
-          { label: "company", value: companyId, valueColor: CLI_PALETTE.emphasis },
+        renderKeyValuePanel("◆ REGENT WORK", [
+          { label: "regent", value: regentId, valueColor: CLI_PALETTE.emphasis },
           { label: "open work", value: "0" },
         ]),
-        nextPanel([`Create work with ${commandValue(`regents work create --company-id ${companyId} --title "<title>"`)}.`]),
+        nextPanel([`Create work with ${commandValue(`regents work create --regent-id ${regentId} --title "<title>"`)}.`]),
       ].join("\n\n");
     }
 
     return [
-      renderTablePanel("◆ COMPANY WORK", [
+      renderTablePanel("◆ REGENT WORK", [
         { header: "id", color: CLI_PALETTE.secondary },
         { header: "status", color: CLI_PALETTE.secondary },
         { header: "title", color: CLI_PALETTE.secondary },
@@ -242,7 +242,7 @@ export const printWorkListResult = (args: ParsedCliArgs, payload: RwrPayload): v
           CLI_PALETTE.secondary,
         ],
       }))),
-      nextPanel([`Start one with ${commandValue(`regents work run <work-id> --company-id ${companyId} --runner <runner>`)}.`]),
+      nextPanel([`Start one with ${commandValue(`regents work run <work-id> --regent-id ${regentId} --runner <runner>`)}.`]),
     ].join("\n\n");
   });
 
@@ -250,14 +250,14 @@ export const printWorkShowResult = (args: ParsedCliArgs, payload: RwrPayload): v
   printRwrPayload(args, payload, () => {
     const workItem = workItemFromPayload(payload);
     const workId = idValue(workItem);
-    const companyId = displayValue(workItem.company_id) ?? "<id>";
+    const regentId = displayValue(workItem.regent_id) ?? "<id>";
 
     return [
       renderKeyValuePanel("◆ WORK ITEM", workRows(workItem), {
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,
       }),
-      nextPanel([`Start it with ${commandValue(`regents work run ${workId} --company-id ${companyId} --runner <runner>`)}.`]),
+      nextPanel([`Start it with ${commandValue(`regents work run ${workId} --regent-id ${regentId} --runner <runner>`)}.`]),
     ].join("\n\n");
   });
 
@@ -265,14 +265,14 @@ export const printWorkRunResult = (args: ParsedCliArgs, payload: RwrPayload): vo
   printRwrPayload(args, payload, () => {
     const run = runFromPayload(payload);
     const runId = idValue(run);
-    const companyId = displayValue(run.company_id) ?? "<id>";
+    const regentId = displayValue(run.regent_id) ?? "<id>";
 
     return [
       renderKeyValuePanel("◆ WORK STARTED", runRows(run), {
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,
       }),
-      nextPanel([`Check progress with ${commandValue(`regents work watch ${runId} --company-id ${companyId}`)}.`]),
+      nextPanel([`Check progress with ${commandValue(`regents work watch ${runId} --regent-id ${regentId}`)}.`]),
     ].join("\n\n");
   });
 
@@ -292,7 +292,7 @@ export const printWorkWatchTimelineResult = (
   printText(
     (() => {
     const runId = displayValue(payload.result.run_id) ?? "<run-id>";
-    const companyId = getFlag(args, "company-id") ?? "<id>";
+    const regentId = getFlag(args, "regent-id") ?? "<id>";
     const allEvents = Array.isArray(payload.result.events)
       ? payload.result.events.map((event) => asRecord(event, "a run update"))
       : [];
@@ -316,7 +316,7 @@ export const printWorkWatchTimelineResult = (
           { label: "run id", value: runId, valueColor: CLI_PALETTE.emphasis },
           { label: "new updates", value: "0" },
         ]),
-        nextPanel([`Check again with ${commandValue(`regents work watch ${runId} --company-id ${companyId}`)}.`]),
+        nextPanel([`Check again with ${commandValue(`regents work watch ${runId} --regent-id ${regentId}`)}.`]),
       ].join("\n\n");
     }
 
@@ -354,7 +354,7 @@ export const printAgentConnectHermesResult = (args: ParsedCliArgs, payload: RwrH
   printRwrPayload(args, payload, () => {
     const worker = workerFromPayload(payload);
     const workerId = idValue(worker);
-    const companyId = displayValue(worker.company_id) ?? "<id>";
+    const regentId = displayValue(worker.regent_id) ?? "<id>";
 
     return [
       renderKeyValuePanel("◆ LOCAL HERMES CONNECTED", [
@@ -373,7 +373,7 @@ export const printAgentConnectHermesResult = (args: ParsedCliArgs, payload: RwrH
         payload.hermes.pluginFile
           ? `Hermes can now discover ${tone("regents-work", CLI_PALETTE.emphasis, true)} from ${payload.hermes.pluginFile}.`
           : "Hermes was connected. No local plugin files were written.",
-        `Check available work with ${commandValue(`regents work local-loop --company-id ${companyId} --worker-id ${workerId} --once`)}.`,
+        `Check available work with ${commandValue(`regents work local-loop --regent-id ${regentId} --worker-id ${workerId} --once`)}.`,
       ]),
     ].join("\n\n");
   });
@@ -383,7 +383,7 @@ export const printAgentConnectHostedHermesResult = (args: ParsedCliArgs, payload
     const runtime = runtimeFromPayload(payload);
     const health = asRecord(payload.result.health, "runtime health");
     const services = Array.isArray(payload.result.services) ? (payload.result.services as JsonObject[]) : [];
-    const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const regentId = displayValue(payload.result.regent_id) ?? getFlag(args, "regent-id") ?? "<id>";
     const runtimeId = idValue(runtime);
 
     return [
@@ -419,7 +419,7 @@ export const printAgentConnectHostedHermesResult = (args: ParsedCliArgs, payload
         ],
       }))),
       nextPanel([
-        `Refresh health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`,
+        `Refresh health with ${commandValue(`regents runtime health ${runtimeId} --regent-id ${regentId}`)}.`,
         "Interactive hosted Hermes chat is not available from this command.",
       ]),
     ].join("\n\n");
@@ -442,7 +442,7 @@ export const printRuntimeResult = (
   printRwrPayload(args, payload, () => {
     const runtime = runtimeFromPayload(payload);
     const runtimeId = idValue(runtime);
-    const companyId = displayValue(runtime.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const regentId = displayValue(runtime.regent_id) ?? getFlag(args, "regent-id") ?? "<id>";
     const titleByState = {
       created: "◆ RUNTIME CREATED",
       status: "◆ RUNTIME STATUS",
@@ -455,7 +455,7 @@ export const printRuntimeResult = (
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,
       }),
-      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --regent-id ${regentId}`)}.`]),
     ].join("\n\n");
   });
 
@@ -463,7 +463,7 @@ export const printRuntimeCheckpointResult = (args: ParsedCliArgs, payload: RwrPa
   printRwrPayload(args, payload, () => {
     const checkpoint = checkpointFromPayload(payload);
     const runtimeId = args.positionals[2] ?? displayValue(checkpoint.runtime_profile_id) ?? "<runtime-id>";
-    const companyId = displayValue(checkpoint.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const regentId = displayValue(checkpoint.regent_id) ?? getFlag(args, "regent-id") ?? "<id>";
 
     return [
       renderKeyValuePanel("◆ CHECKPOINT SAVED", checkpointRows(checkpoint), {
@@ -471,7 +471,7 @@ export const printRuntimeCheckpointResult = (args: ParsedCliArgs, payload: RwrPa
         titleColor: CLI_PALETTE.title,
       }),
       nextPanel([
-        `Restore it with ${commandValue(`regents runtime restore ${runtimeId} --company-id ${companyId} --checkpoint-id ${idValue(checkpoint)}`)}.`,
+        `Restore it with ${commandValue(`regents runtime restore ${runtimeId} --regent-id ${regentId} --checkpoint-id ${idValue(checkpoint)}`)}.`,
       ]),
     ].join("\n\n");
   });
@@ -482,7 +482,7 @@ export const printRuntimeRestoreResult = (args: ParsedCliArgs, payload: RwrPaylo
     const checkpoint = checkpointFromPayload(payload);
     const restore = asRecord(payload.result.restore, "a restore result");
     const runtimeId = idValue(runtime);
-    const companyId = displayValue(runtime.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const regentId = displayValue(runtime.regent_id) ?? getFlag(args, "regent-id") ?? "<id>";
 
     return [
       renderKeyValuePanel("◆ RESTORE ACCEPTED", [
@@ -495,13 +495,13 @@ export const printRuntimeRestoreResult = (args: ParsedCliArgs, payload: RwrPaylo
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,
       }),
-      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --regent-id ${regentId}`)}.`]),
     ].join("\n\n");
   });
 
 export const printRuntimeServicesResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
   printRwrPayload(args, payload, () => {
-    const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const regentId = displayValue(payload.result.regent_id) ?? getFlag(args, "regent-id") ?? "<id>";
     const runtimeId = displayValue(payload.result.runtime_id) ?? args.positionals[2] ?? "<runtime-id>";
     const services = Array.isArray(payload.result.services)
       ? payload.result.services.map((service) => asRecord(service, "a runtime service"))
@@ -513,7 +513,7 @@ export const printRuntimeServicesResult = (args: ParsedCliArgs, payload: RwrPayl
           { label: "runtime id", value: runtimeId, valueColor: CLI_PALETTE.emphasis },
           { label: "services", value: "0" },
         ]),
-        nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+        nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --regent-id ${regentId}`)}.`]),
       ].join("\n\n");
     }
 
@@ -540,7 +540,7 @@ export const printRuntimeServicesResult = (args: ParsedCliArgs, payload: RwrPayl
           CLI_PALETTE.secondary,
         ],
       }))),
-      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --company-id ${companyId}`)}.`]),
+      nextPanel([`Check health with ${commandValue(`regents runtime health ${runtimeId} --regent-id ${regentId}`)}.`]),
     ].join("\n\n");
   });
 
@@ -549,7 +549,7 @@ export const printRuntimeHealthResult = (args: ParsedCliArgs, payload: RwrPayloa
     const health = asRecord(payload.result.health, "runtime health");
     const controlRoom = asRecord(health.control_room, "control room");
     const gbrain = asRecord(controlRoom.gbrain, "gbrain");
-    const companyId = displayValue(payload.result.company_id) ?? getFlag(args, "company-id") ?? "<id>";
+    const regentId = displayValue(payload.result.regent_id) ?? getFlag(args, "regent-id") ?? "<id>";
     const runtimeId = displayValue(payload.result.runtime_id) ?? args.positionals[2] ?? "<runtime-id>";
 
     return [
@@ -575,7 +575,7 @@ export const printRuntimeHealthResult = (args: ParsedCliArgs, payload: RwrPayloa
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,
       }),
-      nextPanel([`List services with ${commandValue(`regents runtime services ${runtimeId} --company-id ${companyId}`)}.`]),
+      nextPanel([`List services with ${commandValue(`regents runtime services ${runtimeId} --regent-id ${regentId}`)}.`]),
     ].join("\n\n");
   });
 
@@ -583,7 +583,7 @@ export const printAgentConnectOpenClawResult = (args: ParsedCliArgs, payload: Rw
   printRwrPayload(args, payload, () => {
     const worker = workerFromPayload(payload);
     const workerId = idValue(worker);
-    const companyId = displayValue(worker.company_id) ?? "<id>";
+    const regentId = displayValue(worker.regent_id) ?? "<id>";
 
     return [
       renderKeyValuePanel("◆ OPENCLAW CONNECTED", [
@@ -599,7 +599,7 @@ export const printAgentConnectOpenClawResult = (args: ParsedCliArgs, payload: Rw
         payload.openclaw.skillFile
           ? `OpenClaw can now use ${tone("regents-work", CLI_PALETTE.emphasis, true)} from ${payload.openclaw.skillFile}.`
           : "OpenClaw was connected. No local skill file was written.",
-        `Start work with ${commandValue(`regents work run <work-id> --company-id ${companyId} --runner openclaw_local_executor --worker-id ${workerId}`)}.`,
+        `Start work with ${commandValue(`regents work run <work-id> --regent-id ${regentId} --runner openclaw_local_executor --worker-id ${workerId}`)}.`,
       ]),
     ].join("\n\n");
   });
@@ -607,7 +607,7 @@ export const printAgentConnectOpenClawResult = (args: ParsedCliArgs, payload: Rw
 export const printAgentLinkResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
   printRwrPayload(args, payload, () => {
     const relationship = relationshipFromPayload(payload);
-    const companyId = displayValue(relationship.company_id) ?? "<id>";
+    const regentId = displayValue(relationship.regent_id) ?? "<id>";
     const manager =
       displayValue(relationship.source_agent_profile_id) ?? displayValue(relationship.source_worker_id) ?? "<manager>";
     const executor =
@@ -624,13 +624,13 @@ export const printAgentLinkResult = (args: ParsedCliArgs, payload: RwrPayload): 
         borderColor: CLI_PALETTE.chrome,
         titleColor: CLI_PALETTE.title,
       }),
-      nextPanel([`List assignable workers with ${commandValue(`regents agent execution-pool --company-id ${companyId} --manager ${manager}`)}.`]),
+      nextPanel([`List assignable workers with ${commandValue(`regents agent execution-pool --regent-id ${regentId} --manager ${manager}`)}.`]),
     ].join("\n\n");
   });
 
 export const printAgentExecutionPoolResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
   printRwrPayload(args, payload, () => {
-    const companyId = displayValue(payload.result.company_id) ?? "<id>";
+    const regentId = displayValue(payload.result.regent_id) ?? "<id>";
     const workers = Array.isArray(payload.result.workers)
       ? payload.result.workers.map((worker) => asRecord(worker, "a worker"))
       : [];
@@ -638,16 +638,16 @@ export const printAgentExecutionPoolResult = (args: ParsedCliArgs, payload: RwrP
     if (workers.length === 0) {
       return [
         renderKeyValuePanel("◆ ASSIGNABLE WORKERS", [
-          { label: "company", value: companyId, valueColor: CLI_PALETTE.emphasis },
+          { label: "regent", value: regentId, valueColor: CLI_PALETTE.emphasis },
           { label: "workers", value: "0" },
         ]),
-        nextPanel([`Connect a worker with ${commandValue(`regents agent connect openclaw --company-id ${companyId} --role executor`)}.`]),
+        nextPanel([`Connect a worker with ${commandValue(`regents agent connect openclaw --regent-id ${regentId} --role executor`)}.`]),
       ].join("\n\n");
     }
 
     return [
       renderKeyValuePanel("◆ ASSIGNABLE WORKERS", [
-        { label: "company", value: companyId, valueColor: CLI_PALETTE.emphasis },
+        { label: "regent", value: regentId, valueColor: CLI_PALETTE.emphasis },
         { label: "workers", value: String(workers.length), valueColor: CLI_PALETTE.emphasis },
       ]),
       renderTablePanel("◆ WORKER LIST", [
@@ -658,6 +658,6 @@ export const printAgentExecutionPoolResult = (args: ParsedCliArgs, payload: RwrP
         { header: "status", color: CLI_PALETTE.secondary },
         { header: "last seen", color: CLI_PALETTE.secondary },
       ], workerTableRows(workers)),
-      nextPanel([`Start work with ${commandValue(`regents work run <work-id> --company-id ${companyId} --runner <runner> --worker-id <worker-id>`)}.`]),
+      nextPanel([`Start work with ${commandValue(`regents work run <work-id> --regent-id ${regentId} --runner <runner> --worker-id <worker-id>`)}.`]),
     ].join("\n\n");
   });

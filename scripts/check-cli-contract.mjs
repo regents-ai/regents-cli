@@ -573,14 +573,50 @@ for (const command of requiredChatCommands) {
   }
 }
 
-const requiredRpcMethods = [
-  "techtree.chat.channels",
-  "techtree.chat.history",
-  "techtree.chat.post",
+const requiredTechtreeChatPaths = [
+  "/api/techtree/v1/chat/channels",
+  "/api/techtree/v1/chat/messages",
+  "/api/techtree/v1/chat/stream",
+  "/api/techtree/v1/agent/chat/messages",
+  "/api/techtree/v1/agent/chat/dms",
 ];
-for (const method of requiredRpcMethods) {
-  if (!flattenedContracts.techtree.rpcMethods.has(method)) {
-    fail(`Techtree CLI contract is missing runtime RPC method: ${method}`);
+for (const path of requiredTechtreeChatPaths) {
+  if (!flattenedContracts.techtree.paths.has(path)) {
+    fail(`Techtree CLI contract is missing chat path: ${path}`);
+  }
+}
+
+const requiredAutolaunchChatCommands = [
+  "autolaunch chat list",
+  "autolaunch chat read <scope>",
+  "autolaunch chat tail [scope...]",
+  "autolaunch chat send <scope>",
+  "autolaunch chat unread [scope...]",
+  "autolaunch chat subscribe add <scope>",
+  "autolaunch chat subscribe remove <scope>",
+  "autolaunch chat subscribe list",
+  "autolaunch dm <subject-id|address>",
+  "autolaunch dm list",
+];
+for (const command of requiredAutolaunchChatCommands) {
+  if (!flattenedContracts.autolaunch.commands.has(command)) {
+    fail(`Autolaunch CLI contract is missing chat command: ${command}`);
+  }
+  if (!routeCommands.has(command)) {
+    fail(`CLI dispatcher is missing required Autolaunch chat route: ${command}`);
+  }
+}
+
+const requiredAutolaunchChatPaths = [
+  "/api/autolaunch/v1/chat/channels",
+  "/api/autolaunch/v1/chat/messages",
+  "/api/autolaunch/v1/chat/stream",
+  "/api/autolaunch/v1/agent/chat/messages",
+  "/api/autolaunch/v1/agent/chat/dms",
+];
+for (const path of requiredAutolaunchChatPaths) {
+  if (!flattenedContracts.autolaunch.paths.has(path)) {
+    fail(`Autolaunch CLI contract is missing chat path: ${path}`);
   }
 }
 

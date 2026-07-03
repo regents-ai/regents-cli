@@ -99,5 +99,5 @@ When you change an HTTP-backed CLI command or backend route:
 Not everything in the CLI belongs in these three files.
 
 - Local runtime JSON-RPC stays documented in [`json-rpc-methods.md`](/Users/sean/Documents/regent/regents-cli/docs/json-rpc-methods.md).
-- Local chat transport stays outside OpenAPI. The CLI surface is `regents techtree chat ...`, with one chat scope (`system`, `topic:<slug>`, or `node:<node-id>`) selecting the Techtree channel or node room.
+- Product chat commands use the owning HTTP contracts. The CLI surfaces are `regents techtree chat ...` and `regents autolaunch chat ...`, with one chat scope selecting the product room.
 - Purely local setup commands such as `regents run`, `regents init`, `regents config ...`, and doctor/runtime helpers do not belong in the HTTP contracts.

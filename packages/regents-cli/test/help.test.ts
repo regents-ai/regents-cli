@@ -143,13 +143,13 @@ describe("scoped CLI help", () => {
 
     expect(hermes.result).toBe(0);
     expect(hermes.stdout).toContain("AGENT CONNECT HERMES HELP");
-    expect(hermes.stdout).toContain("regents agent connect hermes --company-id <id>");
+    expect(hermes.stdout).toContain("regents agent connect hermes --regent-id <id>");
     expect(hermes.stdout).toContain("regents auth login --audience platform");
     expect(hermes.stdout).toContain("--write-plugin");
 
     expect(hostedHermes.result).toBe(0);
     expect(hostedHermes.stdout).toContain("AGENT CONNECT HOSTED-HERMES HELP");
-    expect(hostedHermes.stdout).toContain("regents agent connect hosted-hermes --company-id <id> --runtime-id <id>");
+    expect(hostedHermes.stdout).toContain("regents agent connect hosted-hermes --regent-id <id> --runtime-id <id>");
     expect(hostedHermes.stdout).toContain("Needs a saved Regent website session from `regents platform auth login`.");
 
     const pool = await captureOutput(() =>
@@ -158,7 +158,7 @@ describe("scoped CLI help", () => {
 
     expect(pool.result).toBe(0);
     expect(pool.stdout).toContain("AGENT EXECUTION-POOL HELP");
-    expect(pool.stdout).toContain("regents agent execution-pool --company-id <id>");
+    expect(pool.stdout).toContain("regents agent execution-pool --regent-id <id>");
   });
 
   it("keeps local runtime status help free of website sign-in instructions", async () => {

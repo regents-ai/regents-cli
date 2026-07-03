@@ -28,7 +28,7 @@ interface GraphCheck {
 
 interface PlatformLink {
   readonly platform_agent_id: string | null;
-  readonly company_id: string | null;
+  readonly regent_id: string | null;
   readonly public_slug: string | null;
   readonly claimed_name: string | null;
   readonly hosted_runtime_id: string | null;
@@ -175,10 +175,10 @@ const platformLinkResult = async (
         const wallet = asText(candidate.wallet_address);
         return wallet !== null && sameAddress(wallet, receipt.address);
       }) ?? profiles[0];
-    const companies = asRecordArray(projection.companies);
-    const companyRecord = asRecord(companies[0]?.company);
+    const regents = asRecordArray(projection.regents);
+    const regentRecord = asRecord(regents[0]?.regent);
 
-    if (!profile && !companyRecord) {
+    if (!profile && !regentRecord) {
       return {
         link: null,
         check: {
@@ -190,11 +190,11 @@ const platformLinkResult = async (
     }
 
     const link: PlatformLink = {
-      platform_agent_id: asId(profile?.id ?? companyRecord?.id),
-      company_id: asId(companyRecord?.id),
-      public_slug: asText(profile?.slug ?? companyRecord?.slug),
-      claimed_name: asText(profile?.claimed_label ?? companyRecord?.claimed_label),
-      hosted_runtime_id: asText(companyRecord?.sprite_service_name ?? companyRecord?.sprite_name),
+      platform_agent_id: asId(profile?.id ?? regentRecord?.id),
+      regent_id: asId(regentRecord?.id),
+      public_slug: asText(profile?.slug ?? regentRecord?.slug),
+      claimed_name: asText(profile?.claimed_label ?? regentRecord?.claimed_label),
+      hosted_runtime_id: asText(regentRecord?.sprite_service_name ?? regentRecord?.sprite_name),
       techtree: {
         profile_id: asId(techtreeLinks.profile_id),
         node_ids: asIdArray(techtreeLinks.node_ids),

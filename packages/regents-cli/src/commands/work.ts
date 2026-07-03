@@ -16,7 +16,7 @@ import { requestProductJson } from "./product-http.js";
 
 type JsonObject = Record<string, unknown>;
 
-const companyId = (args: ParsedCliArgs): string => requireArg(getFlag(args, "company-id"), "company-id");
+const regentId = (args: ParsedCliArgs): string => requireArg(getFlag(args, "regent-id"), "regent-id");
 
 const positional = (args: ParsedCliArgs, index: number, name: string): string =>
   requireArg(args.positionals[index], name);
@@ -59,14 +59,14 @@ const requestAgentWorkJson = async (
 };
 
 export async function runWorkCreate(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const title = requireArg(getFlag(args, "title"), "title");
   const description = getFlag(args, "description") ?? null;
   const { origin, data } = await requestWorkJson(args, {
     method: "POST",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/work-items`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/work-items`,
     body: {
-      company_id: resolvedCompanyId,
+      regent_id: resolvedRegentId,
       title,
       description,
     },
@@ -76,37 +76,37 @@ export async function runWorkCreate(args: ParsedCliArgs): Promise<void> {
 }
 
 export async function runWorkList(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const { origin, data } = await requestWorkJson(args, {
     method: "GET",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/work-items`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/work-items`,
   });
 
   printWorkListResult(args, { ok: true, command: "regents work list", origin, result: data });
 }
 
 export async function runWorkGet(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const workItemId = positional(args, 2, "work_item_id");
   const { origin, data } = await requestWorkJson(args, {
     method: "GET",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/work-items/${encodeURIComponent(workItemId)}`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/work-items/${encodeURIComponent(workItemId)}`,
   });
 
   printWorkShowResult(args, { ok: true, command: "regents work get", origin, result: data });
 }
 
 export async function runWorkRun(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const workItemId = positional(args, 2, "work_item_id");
   const runnerKind = requireArg(getFlag(args, "runner"), "runner");
   const workerId = getFlag(args, "worker-id") ?? null;
   const instructions = getFlag(args, "instructions") ?? null;
   const { origin, data } = await requestWorkJson(args, {
     method: "POST",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/work-items/${encodeURIComponent(workItemId)}/runs`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/work-items/${encodeURIComponent(workItemId)}/runs`,
     body: {
-      company_id: resolvedCompanyId,
+      regent_id: resolvedRegentId,
       work_item_id: workItemId,
       runner_kind: runnerKind,
       worker_id: workerId,
@@ -118,29 +118,29 @@ export async function runWorkRun(args: ParsedCliArgs): Promise<void> {
 }
 
 export async function runWorkCancel(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const runId = positional(args, 2, "run_id");
   const { origin, data } = await requestWorkJson(args, {
     method: "POST",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(runId)}/cancel`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/runs/${encodeURIComponent(runId)}/cancel`,
   });
 
   printWorkRunResult(args, { ok: true, command: "regents work cancel", origin, result: data });
 }
 
 export async function runWorkRetry(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const runId = positional(args, 2, "run_id");
   const { origin, data } = await requestWorkJson(args, {
     method: "POST",
-    path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(runId)}/retry`,
+    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/runs/${encodeURIComponent(runId)}/retry`,
   });
 
   printWorkRunResult(args, { ok: true, command: "regents work retry", origin, result: data });
 }
 
 export async function runWorkWatch(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const runId = positional(args, 2, "run_id");
   const pollMs = parseIntegerFlag(args, "poll-ms") ?? 2_000;
   const maxPolls = getBooleanFlag(args, "once") ? 1 : parseIntegerFlag(args, "max-polls");
@@ -150,7 +150,7 @@ export async function runWorkWatch(args: ParsedCliArgs): Promise<void> {
   while (maxPolls === undefined || polls < maxPolls) {
     const { origin, data } = await requestWorkJson(args, {
       method: "GET",
-      path: `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(runId)}/events`,
+      path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/runs/${encodeURIComponent(runId)}/events`,
     });
 
     printWorkWatchTimelineResult(args, { ok: true, command: "regents work watch", origin, result: data }, {
@@ -167,15 +167,15 @@ export async function runWorkWatch(args: ParsedCliArgs): Promise<void> {
 }
 
 export async function runWorkLocalLoop(args: ParsedCliArgs): Promise<void> {
-  const resolvedCompanyId = companyId(args);
+  const resolvedRegentId = regentId(args);
   const workerId = requireArg(getFlag(args, "worker-id"), "worker-id");
   const once = getBooleanFlag(args, "once");
   let remaining = once ? 1 : Number.POSITIVE_INFINITY;
-  const baseWorkerPath = `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/workers/${encodeURIComponent(workerId)}`;
+  const baseWorkerPath = `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/workers/${encodeURIComponent(workerId)}`;
   const assignmentPath = (assignmentId: string | number, action: string): string =>
-    `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/assignments/${encodeURIComponent(String(assignmentId))}/${action}`;
+    `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/assignments/${encodeURIComponent(String(assignmentId))}/${action}`;
   const runPath = (assignment: LocalWorkerAssignment, suffix: string): string =>
-    `/api/platform/companies/${encodeURIComponent(resolvedCompanyId)}/rwr/runs/${encodeURIComponent(String(assignment.work_run_id))}/${suffix}`;
+    `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/runs/${encodeURIComponent(String(assignment.work_run_id))}/${suffix}`;
 
   await runLocalWorkerLoop<LocalWorkerAssignment>({
     shouldContinue: () => remaining-- > 0,
@@ -199,7 +199,7 @@ export async function runWorkLocalLoop(args: ParsedCliArgs): Promise<void> {
         method: "POST",
         path: runPath(assignment, "events"),
         body: {
-          company_id: resolvedCompanyId,
+          regent_id: resolvedRegentId,
           run_id: assignment.work_run_id,
           kind: event.kind,
           payload: event.payload ?? {},
@@ -213,7 +213,7 @@ export async function runWorkLocalLoop(args: ParsedCliArgs): Promise<void> {
         method: "POST",
         path: runPath(assignment, "artifacts"),
         body: {
-          company_id: resolvedCompanyId,
+          regent_id: resolvedRegentId,
           run_id: assignment.work_run_id,
           ...artifact,
         },
@@ -224,7 +224,7 @@ export async function runWorkLocalLoop(args: ParsedCliArgs): Promise<void> {
         method: "POST",
         path: runPath(assignment, "delegations"),
         body: {
-          company_id: resolvedCompanyId,
+          regent_id: resolvedRegentId,
           run_id: assignment.work_run_id,
           ...delegation,
         },

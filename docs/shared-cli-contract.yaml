@@ -46,9 +46,14 @@ x-regent-chat-room-contract:
       DM scopes are dm:<walletA>:<walletB> with both wallet addresses lowercased,
       lexicographically sorted, and unequal.
   transport_boundary: >-
-    CLI chat commands use product HTTP chat routes or local runtime transport.
+    CLI chat commands use product HTTP chat routes.
     Direct messages are server-stored chat scopes on product HTTP chat routes,
     participant-gated by the authenticated SIWA wallet.
+  agent_loop:
+    reactive: Use product `chat tail [scope...]` commands for live room activity.
+    catch_up: Use product `chat unread [scope...]` commands after disconnects; they poll forward with `after=<saved-message-id>`.
+    send: Provide a deterministic `--client-message-id` for retried sends.
+    rate_limit: On HTTP 429, wait for Retry-After when present, otherwise retry with exponential backoff and jitter.
 x-regent-mcp-tools:
   owner: regents-cli
   server: local
@@ -310,11 +315,14 @@ command_groups:
           input_mode: flags
           summary: >
             Update the Regents CLI in place via npm. Defaults to the latest
-            published release; --version installs a specific one.
+            published release; --version installs a specific one. With --check
+            it only reports the installed and latest versions without changing
+            anything.
           next_step: regents setup --quick
           examples:
             - regents update
             - regents update --version 0.6.0
+            - regents update --check --json
         setup:
           category: local-setup
           prompt_behavior: may_prompt
@@ -416,6 +424,21 @@ command_groups:
             - regents agent-context
             - regents agent-context --area techtree
             - regents agent-context --command "techtree node create"
+        commands list:
+          category: local-control
+          prompt_behavior: never_prompt
+          json_support: supported
+          mutation_class: local-read
+          retry_behavior: safe
+          pagination: bounded
+          async_behavior: synchronous
+          input_mode: flags
+          summary: List every shipped Regents CLI command with its summary, flags, and args.
+          next_step: regents agent-context
+          examples:
+            - regents commands list
+            - regents commands list --json
+            - regents commands list --search chat --json
         meta check:
           category: diagnostics
           prompt_behavior: never_prompt
@@ -452,6 +475,7 @@ command_groups:
       - status
       - whoami
       - agent-context
+      - commands list
       - setup
       - setup skills
       - plugin status
@@ -474,6 +498,28 @@ command_groups:
           type: boolean
           required: false
           description: Include the saved Platform account projection when a Platform session is present.
+      update:
+        - name: --check
+          type: boolean
+          required: false
+          description: Report the installed and latest published versions without changing anything.
+        - name: --version
+          type: string
+          required: false
+          description: Install this exact published version instead of the latest release.
+        - name: --json
+          type: boolean
+          required: false
+          description: Print the update or version-check result as JSON.
+      commands list:
+        - name: --search
+          type: string
+          required: false
+          description: Only include commands whose name or summary contains this text.
+        - name: --json
+          type: boolean
+          required: false
+          description: Print the command index as JSON.
       agent-context:
         - name: --area
           type: string

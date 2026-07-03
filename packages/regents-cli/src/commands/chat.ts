@@ -1,17 +1,27 @@
-import net from "node:net";
+import path from "node:path";
 
 import type { ChatLiveEvent, RegentConfig } from "../internal-types/index.js";
 
-import { daemonCall } from "../daemon-client.js";
 import {
   addChatSubscription,
+  EnvWalletSecretSource,
+  FileWalletSecretSource,
   listChatSubscriptions,
   loadConfig,
   readChatCursors,
   removeChatSubscription,
+  SessionStore,
+  StateStore,
+  TechtreeClient,
   writeChatCursors,
   type ChatProduct,
 } from "../internal-runtime/index.js";
+import {
+  ProductHttpError,
+  requestProductResponse,
+  type ProductServiceName,
+} from "../internal-runtime/product-http-client.js";
+import { messageWithRetryAfter } from "../internal-runtime/rate-limit-message.js";
 import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { CLI_PALETTE, isHumanTerminal, printJson, printJsonLine, renderPanel, tone } from "../printer.js";
 import { requireAgentAuthState } from "./agent-auth.js";
@@ -74,6 +84,38 @@ const renderChatEvent = (event: ChatLiveEvent): string => {
 
 const requireScope = (args: ParsedCliArgs): string => requireArg(args.positionals[3], "scope");
 
+export const parseChatCursorFlags = (args: ParsedCliArgs): { before?: number; after?: number } => {
+  const before = parseIntegerFlag(args, "before");
+  const after = parseIntegerFlag(args, "after");
+
+  if (before !== undefined && after !== undefined) {
+    throw new Error("--before and --after cannot be used together");
+  }
+
+  return { before, after };
+};
+
+const loadTechtreeClient = (configPath?: string): { config: RegentConfig; client: TechtreeClient } => {
+  const config = loadConfig(configPath);
+  const stateStore = new StateStore(path.join(config.runtime.stateDir, "runtime-state.json"));
+  const sessionStore = new SessionStore(stateStore);
+  const walletSecretSource = process.env[config.wallet.privateKeyEnv]
+    ? new EnvWalletSecretSource(config.wallet.privateKeyEnv)
+    : new FileWalletSecretSource(config.wallet.keystorePath);
+
+  return {
+    config,
+    client: new TechtreeClient({
+      config,
+      baseUrl: config.services.techtree.baseUrl,
+      requestTimeoutMs: config.services.techtree.requestTimeoutMs,
+      sessionStore,
+      walletSecretSource,
+      stateStore,
+    }),
+  };
+};
+
 const normalizeWalletAddress = (value: string, label: string): `0x${string}` => {
   if (!WALLET_ADDRESS_PATTERN.test(value)) {
     throw new Error(`${label} must be a 0x wallet address`);
@@ -109,36 +151,29 @@ export const resolveChatScopes = (
 };
 
 export async function runTechtreeChatList(configPath?: string): Promise<void> {
-  printJson(await daemonCall("techtree.chat.channels", undefined, configPath));
+  const { client } = loadTechtreeClient(configPath);
+  printJson(await client.listChatChannels());
 }
 
 export async function runTechtreeChatRead(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const filter = resolveChatAuthorFilter(args, loadConfig(configPath));
-  const result = await daemonCall(
-    "techtree.chat.history",
-    {
-      scope: requireScope(args),
-      limit: parseIntegerFlag(args, "limit"),
-      before: parseIntegerFlag(args, "before"),
-    },
-    configPath,
-  );
+  const { config, client } = loadTechtreeClient(configPath);
+  const filter = resolveChatAuthorFilter(args, config);
+  const result = await client.listChatMessages(requireScope(args), {
+    ...parseChatCursorFlags(args),
+    limit: parseIntegerFlag(args, "limit"),
+  });
 
   printJson(filter ? { ...result, data: result.data.filter(filter) } : result);
 }
 
 export async function runTechtreeChatSend(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const { client } = loadTechtreeClient(configPath);
   printJson(
-    await daemonCall(
-      "techtree.chat.post",
-      {
-        scope: requireScope(args),
-        body: requireArg(getFlag(args, "message"), "--message"),
-        reply_to_message_id: parseIntegerFlag(args, "reply-to"),
-        client_message_id: getFlag(args, "client-message-id"),
-      },
-      configPath,
-    ),
+    await client.createAgentChatMessage(requireScope(args), {
+      body: requireArg(getFlag(args, "message"), "--message"),
+      reply_to_message_id: parseIntegerFlag(args, "reply-to"),
+      client_message_id: getFlag(args, "client-message-id"),
+    }),
   );
 }
 
@@ -147,11 +182,11 @@ export async function runTechtreeChatTail(args: ParsedCliArgs, configPath?: stri
   const scopes = resolveChatScopes(args.positionals.slice(3), config, "techtree");
   const filter = resolveChatAuthorFilter(args, config);
 
-  await tailChatScopes(scopes, filter, configPath);
+  await tailChatScopes(scopes, filter, configPath, getBooleanFlag(args, "json"));
 }
 
 export async function runTechtreeChatUnread(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const config = loadConfig(configPath);
+  const { config, client } = loadTechtreeClient(configPath);
   const scopes = resolveChatScopes(args.positionals.slice(3), config, "techtree");
   const filter = resolveChatAuthorFilter(args, config);
   const peek = getBooleanFlag(args, "peek");
@@ -163,8 +198,8 @@ export async function runTechtreeChatUnread(args: ParsedCliArgs, configPath?: st
       peek,
       config,
       product: "techtree",
-      fetchPage: (scope, before) =>
-        daemonCall("techtree.chat.history", { scope, limit: CHAT_UNREAD_PAGE_LIMIT, before }, configPath),
+      fetchPage: (scope, after) =>
+        client.listChatMessages(scope, { limit: CHAT_UNREAD_PAGE_LIMIT, after }),
     }),
   );
 }
@@ -182,9 +217,9 @@ export interface ChatUnreadResult {
 }
 
 /**
- * Shared unread driver for both products: per scope, page the newest messages
- * back to the saved cursor, report the new ones oldest-first, and advance the
- * cursor to the newest fetched id unless peeking.
+ * Shared unread driver for both products: per scope, page forward from the saved
+ * cursor, report the new messages oldest-first, and advance the cursor to the
+ * newest fetched id unless peeking.
  */
 export const collectUnreadForScopes = async (input: {
   scopes: readonly string[];
@@ -192,7 +227,7 @@ export const collectUnreadForScopes = async (input: {
   peek: boolean;
   config: RegentConfig;
   product: ChatProduct;
-  fetchPage: (scope: string, before?: number) => Promise<{
+  fetchPage: (scope: string, after?: number) => Promise<{
     data: ChatAuthorMessage[];
     pagination?: { limit?: number; next_cursor?: number | null };
   }>;
@@ -204,7 +239,7 @@ export const collectUnreadForScopes = async (input: {
   for (const scope of input.scopes) {
     const cursor = cursors[scope];
     const { messages, newestId } = await collectUnreadMessages(
-      (before) => input.fetchPage(scope, before),
+      (after) => input.fetchPage(scope, after),
       cursor,
     );
 
@@ -251,7 +286,8 @@ export async function runTechtreeDm(args: ParsedCliArgs, configPath?: string): P
 
   let wallet: string;
   if (/^\d+$/.test(target)) {
-    const node = await daemonCall("techtree.nodes.get", { id: Number.parseInt(target, 10) }, configPath);
+    const { client } = loadTechtreeClient(configPath);
+    const node = await client.getNode(Number.parseInt(target, 10));
     const creatorWallet = node.data.creator_agent?.wallet_address;
     if (!creatorWallet) {
       throw new Error(`node ${target} has no creator agent wallet to DM`);
@@ -265,91 +301,114 @@ export async function runTechtreeDm(args: ParsedCliArgs, configPath?: string): P
   }
 
   const { identity } = requireAgentAuthState(configPath, { audience: "techtree" });
+  const { client } = loadTechtreeClient(configPath);
   printJson(
-    await daemonCall(
-      "techtree.chat.post",
-      {
-        scope: dmScopeForWallets(identity.walletAddress, wallet),
-        body: message,
-      },
-      configPath,
-    ),
+    await client.createAgentChatMessage(dmScopeForWallets(identity.walletAddress, wallet), {
+      body: message,
+    }),
   );
 }
 
 export async function runTechtreeDmList(args: ParsedCliArgs, configPath?: string): Promise<void> {
   void args;
-  printJson(await daemonCall("techtree.chat.dms", undefined, configPath));
+  const { client } = loadTechtreeClient(configPath);
+  printJson(await client.listAgentChatDms());
 }
 
-export async function tailChatScopes(
-  scopes: readonly string[],
-  filter: ChatAuthorFilter,
-  configPath?: string,
+const streamPath = (pathTemplate: string, scopes: readonly string[]): string => {
+  const query = new URLSearchParams({ scopes: scopes.join(",") });
+  return `${pathTemplate}?${query.toString()}`;
+};
+
+const streamErrorMessage = async (
+  response: Response,
+  fallback: string,
+): Promise<string> => {
+  try {
+    const payload = await response.json() as unknown;
+    const error = payload && typeof payload === "object" ? (payload as { error?: unknown }).error : undefined;
+    const message =
+      error && typeof error === "object" && typeof (error as { message?: unknown }).message === "string"
+        ? String((error as { message: string }).message)
+        : fallback;
+
+    return messageWithRetryAfter(response.status, response.headers, message);
+  } catch {
+    return messageWithRetryAfter(response.status, response.headers, fallback);
+  }
+};
+
+export async function tailProductChatStream(
+  input: {
+    service: ProductServiceName;
+    path: string;
+    commandName: string;
+    scopes: readonly string[];
+    filter: ChatAuthorFilter;
+    configPath?: string;
+    json?: boolean;
+  },
 ): Promise<void> {
-  const status = await daemonCall("gossipsub.status", undefined, configPath);
+  const humanOutput = !input.json && isHumanTerminal();
+  const requestPath = streamPath(input.path, input.scopes);
+  const controller = new AbortController();
+  const handleSignal = (): void => controller.abort();
 
-  if (!status.enabled) {
-    throw new Error("chat transport is disabled in config");
-  }
+  process.on("SIGINT", handleSignal);
+  process.on("SIGTERM", handleSignal);
 
-  if (!status.eventSocketPath) {
-    throw new Error("runtime did not expose a local chat transport socket");
-  }
-
-  const eventSocketPath = status.eventSocketPath;
-
-  await new Promise<void>((resolve, reject) => {
-    const socket = net.createConnection(eventSocketPath);
-    let buffer = "";
-    let settled = false;
-
-    const cleanup = (): void => {
-      process.off("SIGINT", handleSignal);
-      process.off("SIGTERM", handleSignal);
-      socket.removeAllListeners();
-      socket.end();
-      socket.destroy();
-    };
-
-    const finish = (error?: Error): void => {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      cleanup();
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    };
-
-    const handleSignal = () => {
-      finish();
-    };
-
-    process.on("SIGINT", handleSignal);
-    process.on("SIGTERM", handleSignal);
-
-    socket.setEncoding("utf8");
-    socket.on("connect", () => {
-      socket.write(`${JSON.stringify({ scopes })}\n`);
-      if (isHumanTerminal()) {
-        process.stdout.write(
-          `${renderPanel("◆ CHAT LISTENING", [
-            `${tone("scopes", CLI_PALETTE.secondary)} ${tone(scopes.join(", "), CLI_PALETTE.primary, true)}`,
-            `${tone("socket", CLI_PALETTE.secondary)} ${tone(eventSocketPath, CLI_PALETTE.primary)}`,
-          ], {
-            borderColor: CLI_PALETTE.emphasis,
-            titleColor: CLI_PALETTE.title,
-          })}\n\n`,
-        );
-      }
+  try {
+    const { response, requestId } = await requestProductResponse({
+      service: input.service,
+      method: "GET",
+      path: requestPath,
+      configPath: input.configPath,
+      commandName: input.commandName,
+      timeoutMs: 0,
+      signal: controller.signal,
+      headers: { accept: "application/x-ndjson" },
     });
-    socket.on("data", (chunk) => {
-      buffer += chunk;
+
+    if (!response.ok) {
+      throw new ProductHttpError({
+        service: input.service,
+        status: response.status,
+        path: requestPath,
+        requestId,
+        message: await streamErrorMessage(
+          response,
+          `Regent ${input.service} chat stream failed (${response.status}).`,
+        ),
+      });
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("expected chat stream response body");
+    }
+
+    if (humanOutput) {
+      process.stdout.write(
+        `${renderPanel("◆ CHAT LISTENING", [
+          `${tone("scopes", CLI_PALETTE.secondary)} ${tone(input.scopes.join(", "), CLI_PALETTE.primary, true)}`,
+          `${tone("stream", CLI_PALETTE.secondary)} ${tone(requestPath, CLI_PALETTE.primary)}`,
+        ], {
+          borderColor: CLI_PALETTE.emphasis,
+          titleColor: CLI_PALETTE.title,
+        })}\n\n`,
+      );
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (!controller.signal.aborted) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
 
       while (true) {
         const newlineIndex = buffer.indexOf("\n");
@@ -369,16 +428,15 @@ export async function tailChatScopes(
         try {
           payload = JSON.parse(line) as unknown;
         } catch {
-          finish(new Error("runtime chat transport stream returned invalid JSON"));
-          return;
+          throw new Error("chat stream returned invalid JSON");
         }
 
         if (isChatLiveEvent(payload)) {
-          if (filter && !filter(payload.message)) {
+          if (input.filter && !input.filter(payload.message)) {
             continue;
           }
 
-          if (isHumanTerminal()) {
+          if (humanOutput) {
             process.stdout.write(`${renderChatEvent(payload)}\n\n`);
           } else {
             printJsonLine(payload);
@@ -390,23 +448,59 @@ export async function tailChatScopes(
           continue;
         }
 
+        if (payload && typeof payload === "object" && "event" in payload && payload.event === "ready") {
+          continue;
+        }
+
         if (payload && typeof payload === "object" && "error" in payload) {
-          finish(
-            new Error(
-              `runtime chat transport error: ${String((payload as { error?: unknown }).error ?? "unknown")}`,
-            ),
+          throw new Error(
+            `chat stream error: ${String((payload as { error?: unknown }).error ?? "unknown")}`,
           );
-          return;
         }
       }
-    });
+    }
+  } catch (error) {
+    if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
+      return;
+    }
 
-    socket.on("error", () => {
-      finish(new Error(`unable to connect to local chat transport socket at ${eventSocketPath}`));
-    });
+    throw error;
+  } finally {
+    process.off("SIGINT", handleSignal);
+    process.off("SIGTERM", handleSignal);
+  }
+}
 
-    socket.on("close", () => {
-      finish();
-    });
+export async function tailChatScopes(
+  scopes: readonly string[],
+  filter: ChatAuthorFilter,
+  configPath?: string,
+  json?: boolean,
+): Promise<void> {
+  await tailProductChatStream({
+    service: "techtree",
+    path: "/api/techtree/v1/chat/stream",
+    commandName: "regents techtree chat tail",
+    scopes,
+    filter,
+    configPath,
+    json,
+  });
+}
+
+export async function tailAutolaunchChatScopes(
+  scopes: readonly string[],
+  filter: ChatAuthorFilter,
+  configPath?: string,
+  json?: boolean,
+): Promise<void> {
+  await tailProductChatStream({
+    service: "autolaunch",
+    path: "/api/autolaunch/v1/chat/stream",
+    commandName: "regents autolaunch chat tail",
+    scopes,
+    filter,
+    configPath,
+    json,
   });
 }

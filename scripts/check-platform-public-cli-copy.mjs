@@ -104,7 +104,50 @@ const commandRows = metadata.commands.map((command) => ({
   key: commandKey(command),
 }));
 const exactCommandsByKey = new Map(commandRows.map((row) => [row.key, row]));
-const publicCommandPattern = /\bregents(?:\s+[A-Za-z0-9_<>{}\[\].:/=-]+)+/gu;
+
+// A command token run inside an already-command-formatted span. Because the
+// enclosing span is a code context (backticks, `code(...)`, `<code>`, a
+// `command:` value, or a standalone command line), the leading `regents` is
+// known to be an invocation and not a plural noun in prose.
+const commandBodyPattern = /regents(?:\s+[A-Za-z0-9_<>{}\[\].:/=-]+)+/u;
+
+// Command-formatted spans on a single line. Each pattern captures the span's
+// inner text in group 1 so prose mentioning "regents" outside these spans is
+// never treated as a command.
+const commandSpanPatterns = [
+  /command:\s*"([^"]*)"/gu, // `command: "regents ..."` map values
+  /\bcode\("([^"]*)"\)/gu, // Phoenix `code("regents ...")` helper
+  /`([^`]*)`/gu, // Markdown / prose backtick code spans
+  /<code[^>]*>([^<]*)<\/code>/gu, // HEEx `<code>regents ...</code>` blocks
+];
+
+// A whole line whose only meaningful content is a command invocation: heredoc
+// command blocks, `<pre>` steps, and quoted command list entries. The line is
+// pure command, so a `regents` in mid-sentence prose can never reach here.
+const standaloneCommandPattern = /^\s*"?(regents\s+[^"`]*?)"?,?\s*$/u;
+
+const collectSpanCommands = (line) => {
+  const commands = [];
+  for (const pattern of commandSpanPatterns) {
+    for (const match of line.matchAll(pattern)) {
+      const inner = stripHtmlEntities(match[1]);
+      const commandMatch = commandBodyPattern.exec(inner);
+      if (commandMatch) {
+        commands.push(commandMatch[0]);
+      }
+    }
+  }
+  return commands;
+};
+
+const collectStandaloneCommand = (line) => {
+  const standaloneMatch = standaloneCommandPattern.exec(line);
+  if (!standaloneMatch) {
+    return [];
+  }
+  const commandMatch = commandBodyPattern.exec(stripHtmlEntities(standaloneMatch[1]));
+  return commandMatch ? [commandMatch[0]] : [];
+};
 
 const extractCommands = (relativePath) => {
   const filePath = path.join(platformRepo.resolvedPath, relativePath);
@@ -120,14 +163,16 @@ const extractCommands = (relativePath) => {
 
   const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/u);
 
-  return lines.flatMap((line, index) =>
-    Array.from(line.matchAll(publicCommandPattern), (match) => ({
+  return lines.flatMap((line, index) => {
+    const spanCommands = collectSpanCommands(line);
+    const rawCommands = spanCommands.length > 0 ? spanCommands : collectStandaloneCommand(line);
+    return rawCommands.map((raw) => ({
       kind: "command",
       relativePath,
       line: index + 1,
-      raw: stripHtmlEntities(match[0]).replace(/\s+/gu, " ").trim(),
-    })),
-  );
+      raw: raw.replace(/\s+/gu, " ").trim(),
+    }));
+  });
 };
 
 const matchCommand = (key) => {

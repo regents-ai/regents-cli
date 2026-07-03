@@ -19,7 +19,7 @@ export class ChatResource {
 
   async listChatMessages(
     scope: string,
-    params?: { before?: number; limit?: number },
+    params?: { after?: number; before?: number; limit?: number },
   ): Promise<ChatListResponse> {
     return this.request.getJson<ChatListResponse>(
       withQuery("/api/techtree/v1/chat/messages", { scope, ...params }),

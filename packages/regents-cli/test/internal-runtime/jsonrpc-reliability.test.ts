@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { callJsonRpc } from "../../src/internal-runtime/jsonrpc/client.js";
 import { JsonRpcServer } from "../../src/internal-runtime/jsonrpc/server.js";
+import { describeNetwork } from "../../../../test-support/integration.js";
 
 const waitForEvent = (emitter: net.Socket, event: string): Promise<void> =>
   new Promise((resolve) => {
@@ -33,7 +34,7 @@ const readLine = (socket: net.Socket): Promise<string> =>
     socket.once("error", reject);
   });
 
-describe("JSON-RPC reliability", () => {
+describeNetwork("JSON-RPC reliability", () => {
   let tempDir = "";
   let socketPath = "";
 
@@ -160,6 +161,47 @@ describe("JSON-RPC reliability", () => {
 
       await expect(callJsonRpc(socketPath, "runtime.ping")).resolves.toEqual({ ok: true });
       expect(calls).toBe(3);
+    });
+  });
+
+  describe("socket path claiming", () => {
+    let servers: JsonRpcServer[] = [];
+
+    afterEach(async () => {
+      const activeServers = servers;
+      servers = [];
+      for (const activeServer of activeServers) {
+        await activeServer.stop().catch(() => {});
+      }
+    });
+
+    it("refuses to start while another daemon is listening on the socket", async () => {
+      const first = new JsonRpcServer(socketPath, async () => ({ ok: true }));
+      servers.push(first);
+      await first.start();
+
+      const second = new JsonRpcServer(socketPath, async () => ({ ok: false }));
+
+      await expect(second.start()).rejects.toMatchObject({
+        name: "CliUsageError",
+        code: "runtime_already_running",
+      });
+
+      // The first daemon is untouched and still answers on its socket.
+      await expect(callJsonRpc(socketPath, "runtime.ping")).resolves.toEqual({ ok: true });
+    });
+
+    it("removes a genuinely stale socket file and starts", async () => {
+      // A leftover socket path with nothing listening behind it: the probe
+      // connection fails, so the guard may unlink it.
+      fs.writeFileSync(socketPath, "");
+      expect(fs.existsSync(socketPath)).toBe(true);
+
+      const server = new JsonRpcServer(socketPath, async () => ({ ok: true }));
+      servers.push(server);
+      await server.start();
+
+      await expect(callJsonRpc(socketPath, "runtime.ping")).resolves.toEqual({ ok: true });
     });
   });
 });

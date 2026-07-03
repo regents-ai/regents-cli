@@ -9,6 +9,7 @@ import { RegentX402Client } from "../../src/internal-runtime/x402/client.js";
 import type { WalletSecretSource } from "../../src/internal-runtime/agent/key-store.js";
 import { hashValue } from "../../src/internal-runtime/x402/hash.js";
 import type { PaymentBindingV1 } from "../../src/internal-types/index.js";
+import { describeNetwork } from "../../../../test-support/integration.js";
 
 const PRIVATE_KEY = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bdA02913";
@@ -178,6 +179,9 @@ describe("Regent x402 wrapper", () => {
     };
   };
 
+  // Cases that bind a real loopback HTTP payment server run under the network
+  // gate; the injected-fetch unit tests below stay ungated and always run.
+  describeNetwork("real payment server", () => {
   it("quotes, prepares, pays only after approval, and stores a receipt", async () => {
     const paidServer = await startPaidServer();
     const client = new RegentX402Client({
@@ -223,6 +227,7 @@ describe("Regent x402 wrapper", () => {
     } finally {
       await paidServer.close();
     }
+  });
   });
 
   it("selects batch settlement only when an operator deposit cap is present", async () => {
@@ -418,6 +423,7 @@ describe("Regent x402 wrapper", () => {
     }
   });
 
+  describeNetwork("real payment server (rejection paths)", () => {
   it("does not pay when the prepared intent has not been approved", async () => {
     const paidServer = await startPaidServer();
     const client = new RegentX402Client({
@@ -496,5 +502,6 @@ describe("Regent x402 wrapper", () => {
     } finally {
       await paidServer.close();
     }
+  });
   });
 });

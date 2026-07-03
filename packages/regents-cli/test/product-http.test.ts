@@ -150,6 +150,77 @@ describe("product HTTP client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("aborts a stalled Platform contract preflight with the request timeout", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-product-http-"));
+    const config = defaultConfig(path.join(tempDir, "config.json"));
+
+    const fetchMock = vi.fn(
+      (_url: string, init?: { signal?: AbortSignal }) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("The operation was aborted.", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      requestProductResponse({
+        service: "platform",
+        method: "POST",
+        path: "/api/test",
+        config,
+        timeoutMs: 50,
+        body: JSON.stringify({ ok: true }),
+      }),
+    ).rejects.toMatchObject({
+      name: "ProductHttpError",
+      timedOut: true,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("/api-contract.openapiv3.yaml");
+  });
+
+  it("aborts a stalled Platform contract preflight when the caller aborts", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-product-http-"));
+    const config = defaultConfig(path.join(tempDir, "config.json"));
+    const caller = new AbortController();
+
+    const fetchMock = vi.fn(
+      (_url: string, init?: { signal?: AbortSignal }) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("The operation was aborted.", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const pending = expect(
+      requestProductResponse({
+        service: "platform",
+        method: "POST",
+        path: "/api/test",
+        config,
+        signal: caller.signal,
+        body: JSON.stringify({ ok: true }),
+      }),
+    ).rejects.toMatchObject({
+      name: "ProductHttpError",
+      timedOut: true,
+    });
+
+    caller.abort();
+    await pending;
+  });
+
   it("shows the server-provided wait time for rate-limit responses", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-product-http-"));
     const config = defaultConfig(path.join(tempDir, "config.json"));

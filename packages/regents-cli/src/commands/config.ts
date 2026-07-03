@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 import * as RegentRuntime from "../internal-runtime/index.js";
 
+import { CliUsageError } from "../cli-usage-error.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
@@ -11,7 +12,11 @@ const resolveConfigPath = (args: ParsedCliArgs): string =>
 const readFileFlag = (value: string | undefined, name: string): string => {
   const fileFlag = requireArg(value, name);
   if (!fileFlag.startsWith("@")) {
-    throw new Error(`--${name} must use @/absolute/or/relative/path.json syntax`);
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `--${name} must use @/absolute/or/relative/path.json syntax`,
+      example: `--${name} @./replacement.json`,
+    });
   }
 
   return fs.readFileSync(fileFlag.slice(1), "utf8");

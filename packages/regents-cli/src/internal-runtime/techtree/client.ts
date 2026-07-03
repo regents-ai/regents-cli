@@ -780,7 +780,7 @@ export class TechtreeClient {
 
   listChatMessages(
     scope: string,
-    params?: { before?: number; limit?: number },
+    params?: { after?: number; before?: number; limit?: number },
   ): Promise<ChatListResponse> {
     return this.chat.listChatMessages(scope, params);
   }

@@ -7,6 +7,7 @@ import {
 } from "../commands/agent.js";
 import { runAgentContext } from "../commands/agent-context.js";
 import { runBudgetGrant, runBudgetLedger, runBudgetRevoke, runBudgetStatus } from "../commands/budget.js";
+import { runCommandsList } from "../commands/commands-list.js";
 import { runConfigGet, runConfigWrite } from "../commands/config.js";
 import { runDoctorCommand, runDoctorContractsCommand, runDoctorWorkspaceCommand } from "../commands/doctor.js";
 import { runGossipsubStatus } from "../commands/gossipsub.js";
@@ -58,6 +59,7 @@ export const coreHandlers: CliHandlerRegistry = {
   "plugin doctor": { run: ({ parsedArgs }) => runPluginDoctor(parsedArgs) },
   "setup skills": { run: ({ parsedArgs }) => runSetupSkills(parsedArgs) },
   run: { run: ({ parsedArgs, configPath }) => runRuntime(parsedArgs, configPath) },
+  "commands list": { run: ({ parsedArgs }) => runCommandsList(parsedArgs) },
   "config get": { run: ({ parsedArgs }) => runConfigGet(parsedArgs) },
   "config write": { run: ({ parsedArgs }) => runConfigWrite(parsedArgs) },
   "meta check": { run: ({ parsedArgs }) => runMetaCheck(parsedArgs) },

@@ -1,3 +1,4 @@
+import { CliUsageError } from "../cli-usage-error.js";
 import {
   parseOptionalPositiveIntegerFlag,
   parseRequiredNonNegativeIntegerFlag,
@@ -31,7 +32,11 @@ const parseCompletionStatus = (value: string | undefined): HeartbeatWakeupComple
   }
 
   if (!COMPLETION_STATUSES.has(value)) {
-    throw new Error("invalid --status");
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: "invalid --status",
+      validValues: [...COMPLETION_STATUSES],
+    });
   }
 
   return value as HeartbeatWakeupCompleteInput["status"];

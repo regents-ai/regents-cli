@@ -41,17 +41,15 @@ const readWatchedNodeEvent = async (
 
     socket.setEncoding("utf8");
     socket.on("connect", () => {
-      setTimeout(() => {
-        if (triggerStarted) {
-          return;
-        }
+      if (triggerStarted) {
+        return;
+      }
 
-        triggerStarted = true;
-        void trigger().catch((error) => {
-          cleanup();
-          reject(error);
-        });
-      }, 1_000);
+      triggerStarted = true;
+      void trigger().catch((error) => {
+        cleanup();
+        reject(error);
+      });
     });
 
     socket.on("data", (chunk) => {

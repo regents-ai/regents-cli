@@ -1,3 +1,4 @@
+import { CliUsageError } from "../cli-usage-error.js";
 import {
   runAutoskillInitEval,
   runAutoskillInitSkill,
@@ -153,7 +154,11 @@ import type { CliHandlerRegistry } from "./shared.js";
 
 const requireNodeId = (value: string | undefined): number => {
   if (!value) {
-    throw new Error("missing required node id");
+    throw new CliUsageError({
+      code: "missing_required_argument",
+      message: "node id is required.",
+      missing: ["node id"],
+    });
   }
 
   return parsePositiveInteger(value, "invalid node id");
@@ -161,7 +166,11 @@ const requireNodeId = (value: string | undefined): number => {
 
 const requireAgentId = (value: string | undefined): number => {
   if (!value) {
-    throw new Error("missing required agent id");
+    throw new CliUsageError({
+      code: "missing_required_argument",
+      message: "agent id is required.",
+      missing: ["agent id"],
+    });
   }
 
   return parsePositiveInteger(value, "invalid agent id");

@@ -10,6 +10,7 @@ export {
   runAutolaunchChatSubscribeAdd,
   runAutolaunchChatSubscribeList,
   runAutolaunchChatSubscribeRemove,
+  runAutolaunchChatTail,
   runAutolaunchChatUnread,
   runAutolaunchDm,
   runAutolaunchDmList,

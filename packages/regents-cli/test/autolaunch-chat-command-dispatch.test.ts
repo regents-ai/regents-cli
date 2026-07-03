@@ -4,12 +4,14 @@ const {
   runAutolaunchChatListMock,
   runAutolaunchChatReadMock,
   runAutolaunchChatSendMock,
+  runAutolaunchChatTailMock,
   runAutolaunchDmMock,
   runAutolaunchDmListMock,
 } = vi.hoisted(() => ({
   runAutolaunchChatListMock: vi.fn(async () => undefined),
   runAutolaunchChatReadMock: vi.fn(async () => undefined),
   runAutolaunchChatSendMock: vi.fn(async () => undefined),
+  runAutolaunchChatTailMock: vi.fn(async () => undefined),
   runAutolaunchDmMock: vi.fn(async () => undefined),
   runAutolaunchDmListMock: vi.fn(async () => undefined),
 }));
@@ -24,6 +26,7 @@ vi.mock("../src/commands/autolaunch/chat.js", async () => {
     runAutolaunchChatList: runAutolaunchChatListMock,
     runAutolaunchChatRead: runAutolaunchChatReadMock,
     runAutolaunchChatSend: runAutolaunchChatSendMock,
+    runAutolaunchChatTail: runAutolaunchChatTailMock,
     runAutolaunchDm: runAutolaunchDmMock,
     runAutolaunchDmList: runAutolaunchDmListMock,
   };
@@ -36,6 +39,7 @@ describe("autolaunch chat command dispatch", () => {
     runAutolaunchChatListMock.mockClear();
     runAutolaunchChatReadMock.mockClear();
     runAutolaunchChatSendMock.mockClear();
+    runAutolaunchChatTailMock.mockClear();
     runAutolaunchDmMock.mockClear();
     runAutolaunchDmListMock.mockClear();
   });
@@ -54,6 +58,13 @@ describe("autolaunch chat command dispatch", () => {
     await expect(runCliEntrypoint(["autolaunch", "chat", "read", "system", "--limit", "5"])).resolves.toBe(0);
     expect(runAutolaunchChatReadMock).toHaveBeenCalledTimes(1);
     expect(runAutolaunchChatListMock).not.toHaveBeenCalled();
+  });
+
+  it("routes autolaunch chat tail with a scope", async () => {
+    const { runCliEntrypoint } = await import("../src/index.js");
+
+    await expect(runCliEntrypoint(["autolaunch", "chat", "tail", "topic:auctions"])).resolves.toBe(0);
+    expect(runAutolaunchChatTailMock).toHaveBeenCalledTimes(1);
   });
 
   it("routes autolaunch chat send with a scope", async () => {

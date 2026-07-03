@@ -10,6 +10,9 @@
   "bin": {
     "regents": "dist/index.js"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "files": [
     "dist",
     "skills",

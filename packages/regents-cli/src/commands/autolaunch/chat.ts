@@ -12,7 +12,13 @@ import { printJson } from "../../printer.js";
 import { requireAgentAuthState } from "../agent-auth.js";
 import { resolveChatAuthorFilter } from "../chat-filter.js";
 import { CHAT_UNREAD_PAGE_LIMIT } from "../chat-unread.js";
-import { collectUnreadForScopes, dmScopeForWallets, resolveChatScopes } from "../chat.js";
+import {
+  collectUnreadForScopes,
+  dmScopeForWallets,
+  parseChatCursorFlags,
+  resolveChatScopes,
+  tailAutolaunchChatScopes,
+} from "../chat.js";
 import { appendQuery, requestTypedJson } from "./shared.js";
 
 const SUBJECT_ID_PATTERN = /^0x[0-9a-fA-F]{64}$/;
@@ -27,13 +33,14 @@ const requireScope = (args: ParsedCliArgs): string => requireArg(args.positional
 
 const fetchChatMessages = (
   scope: string,
-  params: { before?: number; limit?: number },
+  params: { after?: number; before?: number; limit?: number },
   configPath?: string,
 ): Promise<ChatListResponse> =>
   requestTypedJson<ChatListResponse>(
     "GET",
     appendQuery("/api/autolaunch/v1/chat/messages", {
       scope,
+      after: params.after?.toString(),
       before: params.before?.toString(),
       limit: params.limit?.toString(),
     }),
@@ -50,7 +57,7 @@ export async function runAutolaunchChatRead(args: ParsedCliArgs, configPath?: st
   const result = await fetchChatMessages(
     scope,
     {
-      before: parseIntegerFlag(args, "before"),
+      ...parseChatCursorFlags(args),
       limit: parseIntegerFlag(args, "limit"),
     },
     configPath,
@@ -80,6 +87,14 @@ export async function runAutolaunchChatSend(args: ParsedCliArgs, configPath?: st
   );
 }
 
+export async function runAutolaunchChatTail(args: ParsedCliArgs, configPath?: string): Promise<void> {
+  const config = loadConfig(configPath);
+  const scopes = resolveChatScopes(args.positionals.slice(3), config, "autolaunch");
+  const filter = resolveChatAuthorFilter(args, config);
+
+  await tailAutolaunchChatScopes(scopes, filter, configPath, getBooleanFlag(args, "json"));
+}
+
 export async function runAutolaunchChatUnread(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const config = loadConfig(configPath);
   const scopes = resolveChatScopes(args.positionals.slice(3), config, "autolaunch");
@@ -93,8 +108,8 @@ export async function runAutolaunchChatUnread(args: ParsedCliArgs, configPath?: 
       peek,
       config,
       product: "autolaunch",
-      fetchPage: (scope, before) =>
-        fetchChatMessages(scope, { before, limit: CHAT_UNREAD_PAGE_LIMIT }, configPath),
+      fetchPage: (scope, after) =>
+        fetchChatMessages(scope, { after, limit: CHAT_UNREAD_PAGE_LIMIT }, configPath),
     }),
   );
 }

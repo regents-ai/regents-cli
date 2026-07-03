@@ -1,9 +1,8 @@
 import fs from "node:fs";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { runCliEntrypoint } from "../../src/index.js";
 import { writeInitialConfig } from "../../src/internal-runtime/config.js";
@@ -81,6 +80,7 @@ describe("top-level operator status commands", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     process.env.HOME = originalHome;
     process.env.PATH = originalPath;
     process.env.CDP_KEY_ID = originalKeyId;
@@ -241,17 +241,15 @@ describe("top-level operator status commands", () => {
     const sessionFile = path.join(tempDir, ".regent", "platform", "session.json");
     fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
     const seenPaths: string[] = [];
-    const server = http.createServer((request, response) => {
-      seenPaths.push(request.url ?? "");
-      response.writeHead(200, { "content-type": "application/json" });
-      response.end(JSON.stringify({ ok: true, agent_id: TEST_AGENT_ID, companies: [] }));
+    const origin = "https://platform.example";
+    const fetchMock = vi.fn<typeof fetch>(async (input) => {
+      seenPaths.push(new URL(String(input)).pathname);
+      return new Response(JSON.stringify({ ok: true, agent_id: TEST_AGENT_ID, regents: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     });
-    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
-    const address = server.address();
-    if (!address || typeof address === "string") {
-      throw new Error("Platform test server did not start.");
-    }
-    const origin = `http://127.0.0.1:${address.port}`;
+    vi.stubGlobal("fetch", fetchMock);
     fs.writeFileSync(
       sessionFile,
       `${JSON.stringify({
@@ -267,7 +265,6 @@ describe("top-level operator status commands", () => {
     const output = await captureOutput(async () =>
       runCliEntrypoint(["whoami", "--full", "--config", configPath, "--session-file", sessionFile]),
     );
-    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
 
     expect(output).toMatchObject({ result: 0 });
     expect(seenPaths).toEqual(["/api/platform/projection"]);

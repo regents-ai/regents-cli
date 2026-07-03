@@ -281,6 +281,11 @@ const requireAtomicAmount = (value: string, errorCode: string, message: string):
   }
 };
 
+const isSupportedRequirement = (requirement: PaymentRequirements): boolean =>
+  SUPPORTED_SCHEMES.has(requirement.scheme) &&
+  requirement.network.startsWith("eip155:") &&
+  (requirement.scheme !== "batch-settlement" || SUPPORTED_BATCH_NETWORKS.has(requirement.network));
+
 const selectedRequirement = (requirement: PaymentRequirements): X402SelectedPaymentRequirement => {
   if (!SUPPORTED_SCHEMES.has(requirement.scheme)) {
     throw new RegentError("x402_unsupported_scheme", `Regent x402 does not support scheme ${requirement.scheme}.`);
@@ -313,12 +318,7 @@ const selectRequirement = (
   maxAmount?: string,
 ): X402SelectedPaymentRequirement => {
   const supported = accepts
-    .filter(
-      (requirement) =>
-        SUPPORTED_SCHEMES.has(requirement.scheme) &&
-        requirement.network.startsWith("eip155:") &&
-        (requirement.scheme !== "batch-settlement" || SUPPORTED_BATCH_NETWORKS.has(requirement.network)),
-    )
+    .filter(isSupportedRequirement)
     .sort((left, right) => {
       if (left.scheme === right.scheme) {
         return 0;
@@ -509,12 +509,7 @@ export class RegentX402Client {
       x402_version: paymentRequired.x402Version,
       resource: paymentRequired.resource as unknown as Record<string, unknown>,
       accepts: paymentRequired.accepts
-        .filter(
-          (requirement) =>
-            SUPPORTED_SCHEMES.has(requirement.scheme) &&
-            requirement.network.startsWith("eip155:") &&
-            (requirement.scheme !== "batch-settlement" || SUPPORTED_BATCH_NETWORKS.has(requirement.network)),
-        )
+        .filter(isSupportedRequirement)
         .map(selectedRequirement),
       payment_required_hash: discovered.paymentRequiredHash ?? hashValue(paymentRequired),
       ...(paymentRequired.error ? { error: paymentRequired.error } : {}),

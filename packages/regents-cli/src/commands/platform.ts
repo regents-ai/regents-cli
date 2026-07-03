@@ -227,7 +227,7 @@ export async function runPlatformBillingSpendControlsSet(args: ParsedCliArgs): P
   });
 }
 
-export async function runPlatformCompanyRuntime(args: ParsedCliArgs): Promise<void> {
+export async function runPlatformRegentRuntime(args: ParsedCliArgs): Promise<void> {
   const slug = requireArg(getFlag(args, "slug"), "slug");
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
@@ -235,19 +235,19 @@ export async function runPlatformCompanyRuntime(args: ParsedCliArgs): Promise<vo
     path: `/api/platform/agents/${encodeURIComponent(slug)}/runtime`,
     method: "GET",
     session,
-    commandName: "regents platform company runtime",
+    commandName: "regents platform regent runtime",
     configPath: getFlag(args, "config"),
   });
 
   printJson({
     ok: true,
-    command: "regents platform company runtime",
+    command: "regents platform regent runtime",
     origin,
     runtime: data,
   });
 }
 
-export async function runPlatformCompanyPause(args: ParsedCliArgs): Promise<void> {
+export async function runPlatformRegentPause(args: ParsedCliArgs): Promise<void> {
   const slug = requireArg(getFlag(args, "slug"), "slug");
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
@@ -255,19 +255,19 @@ export async function runPlatformCompanyPause(args: ParsedCliArgs): Promise<void
     path: `/api/platform/sprites/${encodeURIComponent(slug)}/pause`,
     method: "POST",
     session,
-    commandName: "regents platform company pause",
+    commandName: "regents platform regent pause",
     configPath: getFlag(args, "config"),
   });
 
   printJson({
     ok: true,
-    command: "regents platform company pause",
+    command: "regents platform regent pause",
     origin,
     sprite: data.sprite,
   });
 }
 
-export async function runPlatformCompanyResume(args: ParsedCliArgs): Promise<void> {
+export async function runPlatformRegentResume(args: ParsedCliArgs): Promise<void> {
   const slug = requireArg(getFlag(args, "slug"), "slug");
   const { origin, session } = await loadResolvedPlatformSession(args);
   const { data } = await requestPlatformSessionJson({
@@ -275,13 +275,13 @@ export async function runPlatformCompanyResume(args: ParsedCliArgs): Promise<voi
     path: `/api/platform/sprites/${encodeURIComponent(slug)}/resume`,
     method: "POST",
     session,
-    commandName: "regents platform company resume",
+    commandName: "regents platform regent resume",
     configPath: getFlag(args, "config"),
   });
 
   printJson({
     ok: true,
-    command: "regents platform company resume",
+    command: "regents platform regent resume",
     origin,
     sprite: data.sprite,
     billing_account: data.billing_account,

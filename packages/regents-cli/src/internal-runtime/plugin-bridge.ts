@@ -290,27 +290,7 @@ const hermesPluginYaml = (): string => `name: regent
 version: 0.3.0
 description: Typed Regent bridge for Hermes
 provides_tools:
-  - regent_status
-  - regent_setup_status
-  - regent_runtime_start
-  - regent_runtime_stop
-  - regent_identity_ensure
-  - regent_agent_graph
-  - regent_work_next
-  - regent_work_accept
-  - regent_heartbeat_schedule
-  - regent_heartbeat_start
-  - regent_heartbeat_complete
-  - regent_workspace_pair
-  - regent_benchmark_run
-  - regent_science_task_review_loop
-  - regent_notebook_publish
-  - regent_fold_status
-  - regent_fold_proof
-  - regent_budget_status
-  - regent_x402_pay_guarded
-  - regent_receipt_create
-  - regent_receipt_share_draft
+${REGENT_PLUGIN_TOOL_NAMES.map((name) => `  - ${name}`).join("\n")}
 `;
 
 const hermesInitPy = (): string => `from .tools import *  # noqa: F401,F403
@@ -563,29 +543,7 @@ const openclawPluginJson = (): string => `${JSON.stringify({
   name: "regent",
   version: "0.3.0",
   description: "Typed Regent bridge for OpenClaw",
-  tools: [
-    "regent_status",
-    "regent_setup_status",
-    "regent_runtime_start",
-    "regent_runtime_stop",
-    "regent_identity_ensure",
-    "regent_agent_graph",
-    "regent_work_next",
-    "regent_work_accept",
-    "regent_heartbeat_schedule",
-    "regent_heartbeat_start",
-    "regent_heartbeat_complete",
-    "regent_workspace_pair",
-    "regent_benchmark_run",
-    "regent_science_task_review_loop",
-    "regent_notebook_publish",
-    "regent_fold_status",
-    "regent_fold_proof",
-    "regent_budget_status",
-    "regent_x402_pay_guarded",
-    "regent_receipt_create",
-    "regent_receipt_share_draft",
-  ],
+  tools: [...REGENT_PLUGIN_TOOL_NAMES],
 }, null, 2)}
 `;
 

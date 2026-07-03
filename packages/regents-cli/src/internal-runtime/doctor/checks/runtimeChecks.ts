@@ -3,6 +3,10 @@ import net from "node:net";
 import path from "node:path";
 
 import type { DoctorCheckDefinition } from "../types.js";
+import {
+  EXPECTED_PLATFORM_CONTRACT_DIGEST,
+  SUPPORTED_PLATFORM_CONTRACT_MAJOR,
+} from "../../../generated/platform-contract-digest.js";
 import { writeInitialConfigIfMissing } from "../../config.js";
 import { callJsonRpc } from "../../jsonrpc/client.js";
 import { defaultConfigPath } from "../../paths.js";
@@ -234,6 +238,82 @@ export function runtimeChecks(): DoctorCheckDefinition[] {
             remediation: "Run `regents doctor --fix` or `regents run`",
           };
         }
+      },
+    },
+    {
+      id: "runtime.platform.contract",
+      scope: "runtime",
+      title: "platform contract match",
+      run: async (ctx) => {
+        if (!ctx.config) {
+          return skipDueToMissingConfig();
+        }
+
+        const baseUrl = ctx.config.services.platform.baseUrl.replace(/\/+$/u, "");
+        const contractUrl = `${baseUrl}/api-contract.openapiv3.yaml`;
+        let response: Response;
+
+        try {
+          response = await fetch(contractUrl, {
+            method: "GET",
+            headers: { accept: "application/yaml" },
+            signal: AbortSignal.timeout(ctx.config.services.platform.requestTimeoutMs),
+          });
+        } catch (error) {
+          return {
+            status: "warn",
+            message: "The Platform contract version could not be checked because Platform is unreachable",
+            details: {
+              contractUrl,
+              error: buildBackendDetails(error),
+            },
+            remediation: "Verify the Platform base URL and your network connection, then run `regents doctor` again",
+          };
+        }
+
+        if (!response.ok) {
+          return {
+            status: "warn",
+            message: "Platform did not answer the contract version check",
+            details: {
+              contractUrl,
+              status: response.status,
+            },
+            remediation: "Verify the Platform base URL, then run `regents doctor` again",
+          };
+        }
+
+        const major = response.headers.get("x-regents-contract-major");
+        const digest = response.headers.get("x-regents-contract-digest");
+
+        if (major === SUPPORTED_PLATFORM_CONTRACT_MAJOR && digest === EXPECTED_PLATFORM_CONTRACT_DIGEST) {
+          return {
+            status: "ok",
+            message: "This CLI and the Platform expect the same contract version",
+            details: {
+              contractUrl,
+              major,
+              digest,
+            },
+          };
+        }
+
+        return {
+          status: "fail",
+          message: "This CLI and the Platform expect different contract versions, so Platform-backed commands will be refused",
+          details: {
+            contractUrl,
+            expected: {
+              major: SUPPORTED_PLATFORM_CONTRACT_MAJOR,
+              digest: EXPECTED_PLATFORM_CONTRACT_DIGEST,
+            },
+            served: {
+              major,
+              digest,
+            },
+          },
+          remediation: "Run `regents update` to install the CLI release that matches this Platform",
+        };
       },
     },
     {

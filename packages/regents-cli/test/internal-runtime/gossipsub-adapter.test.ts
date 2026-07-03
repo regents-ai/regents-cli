@@ -14,6 +14,7 @@ import {
   ChatRelaySocketServer,
 } from "../../src/internal-runtime/transports/chat-relay-socket.js";
 import { resolveWatchedNodeRelaySocketPath } from "../../src/internal-runtime/transports/watched-node-relay-socket.js";
+import { describeNetwork } from "../../../../test-support/integration.js";
 
 const TEST_EVENT: ChatLiveEvent = {
   event: "message.created",
@@ -167,6 +168,9 @@ describe("gossipsub relay adapter", () => {
     await dispose();
   });
 
+  // These two cases bind a real unix-domain socket via ChatRelaySocketServer,
+  // so they run under the network gate and skip in a restricted sandbox.
+  describeNetwork("chat event socket", () => {
   it("writes relay events to the chat event socket", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-gossipsub-socket-"));
     tempArtifacts.push(tempDir);
@@ -251,6 +255,7 @@ describe("gossipsub relay adapter", () => {
     });
 
     await server.stop();
+  });
   });
 
   it("falls back to short /tmp relay socket paths when runtime path is too long", () => {

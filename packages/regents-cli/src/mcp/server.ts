@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as z from "zod/v4";
 
 import { lookupAgentbookTrust, prepareAgentbookRegistration } from "../commands/agentbook.js";
+import { regentsCliVersion } from "../internal-runtime/product-http-client.js";
 import { RegentKernel } from "../internal-runtime/runtime.js";
 import { redactRegentErrorMessage, redactRegentSecrets } from "./redact.js";
 import { REGENTS_MCP_TOOL_DEFINITIONS, regentsMcpToolsList } from "./tool-registry.js";
@@ -84,7 +85,7 @@ export async function createRegentsMcpServer(options: CreateRegentsMcpServerOpti
   const server = new McpServer(
     {
       name: "regents",
-      version: "0.1.0",
+      version: regentsCliVersion,
     },
     {
       instructions: [

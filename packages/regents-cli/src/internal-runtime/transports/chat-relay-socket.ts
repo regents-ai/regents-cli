@@ -2,6 +2,7 @@ import fs from "node:fs";
 import net from "node:net";
 
 import { ensureParentDir } from "../paths.js";
+import { claimUnixSocketPath } from "../unix-socket-guard.js";
 import { DEFAULT_CHAT_SCOPE, type GossipsubAdapter } from "./gossipsub-adapter.js";
 import { resolveRelaySocketPath } from "./unix-socket-path.js";
 
@@ -26,9 +27,7 @@ export class ChatRelaySocketServer {
     }
 
     ensureParentDir(this.socketPath);
-    if (fs.existsSync(this.socketPath)) {
-      fs.rmSync(this.socketPath, { force: true });
-    }
+    await claimUnixSocketPath(this.socketPath);
 
     this.server = net.createServer((socket) => {
       socket.setEncoding("utf8");

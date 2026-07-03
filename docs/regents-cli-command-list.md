@@ -4,20 +4,20 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 355.
+Total commands: 357.
 
 ## Full Command List
 
 ### Agent
 
 - `regents agent chat` - Send one message to a hosted Hermes agent and print the reply.
-- `regents agent connect hermes` - Connect local Hermes as a worker for one Regent company.
-- `regents agent connect hosted-hermes` - Inspect one hosted Hermes runtime for a Regent company.
-- `regents agent connect openclaw` - Connect a local OpenClaw worker to one Regent company.
+- `regents agent connect hermes` - Connect local Hermes as a worker for one Regent.
+- `regents agent connect hosted-hermes` - Inspect one hosted Hermes runtime for a Regent.
+- `regents agent connect openclaw` - Connect a local OpenClaw worker to one Regent.
 - `regents agent execution-pool` - List the workers available to one manager.
 - `regents agent harness list` - List harness.
 - `regents agent init` - Set up agent.
-- `regents agent link` - Link one manager to one worker for a Regent company.
+- `regents agent link` - Link one manager to one worker for a Regent.
 - `regents agent profile get` - Show profile.
 - `regents agent profile list` - List profile.
 - `regents agent status` - Show agent status.
@@ -54,6 +54,7 @@ Total commands: 355.
 - `regents autolaunch chat subscribe add <scope>` - Add a scope to the saved Autolaunch chat subscriptions.
 - `regents autolaunch chat subscribe list` - List the saved Autolaunch chat subscriptions.
 - `regents autolaunch chat subscribe remove <scope>` - Remove a scope from the saved Autolaunch chat subscriptions.
+- `regents autolaunch chat tail [scope...]` - Watch chat [scope...].
 - `regents autolaunch chat unread [scope...]` - Show new chat messages since the saved cursors.
 - `regents autolaunch connect start` - Start connect.
 - `regents autolaunch contracts admin` - Show Autolaunch contracts admin.
@@ -142,6 +143,10 @@ Total commands: 355.
 - `regents chat follows list` - List the saved chat follow list.
 - `regents chat follows remove <wallet|label>` - Remove a wallet or label from the saved chat follow list.
 
+### Commands
+
+- `regents commands list` - List every shipped Regents CLI command with its summary, flags, and args.
+
 ### Config
 
 - `regents config get` - Show local Regent configuration.
@@ -199,13 +204,13 @@ Total commands: 355.
 - `regents platform billing account` - Show the billing account tied to the saved platform session.
 - `regents platform billing spend-controls set` - Save monthly hosting, model usage, and automatic credit top-up settings.
 - `regents platform billing topup` - Start a Stripe checkout that adds shared runtime credit.
-- `regents platform billing usage` - Show shared runtime credit and company usage from the saved platform session.
-- `regents platform company pause` - Pause the hosted runtime for one owned company.
-- `regents platform company resume` - Resume the hosted runtime for one owned company.
-- `regents platform company runtime` - Show runtime state for one owned company from the saved platform session.
-- `regents platform formation doctor` - Explain why company opening is blocked or what is ready next.
-- `regents platform formation status` - Show launch readiness from the saved session, including claimed names, billing, and owned companies.
+- `regents platform billing usage` - Show shared runtime credit and regent usage from the saved platform session.
+- `regents platform formation doctor` - Explain why regent opening is blocked or what is ready next.
+- `regents platform formation status` - Show launch readiness from the saved session, including claimed names, billing, and owned regents.
 - `regents platform projection` - Show the canonical Platform projection for product and mobile clients.
+- `regents platform regent pause` - Pause the hosted runtime for one owned regent.
+- `regents platform regent resume` - Resume the hosted runtime for one owned regent.
+- `regents platform regent runtime` - Show runtime state for one owned regent from the saved platform session.
 
 ### Plugin
 
@@ -238,13 +243,13 @@ Total commands: 355.
 ### Runtime
 
 - `regents runtime checkpoint` - Save a checkpoint for one runtime.
-- `regents runtime create` - Create a runtime for one Regent company.
-- `regents runtime get` - Show one runtime for a Regent company.
+- `regents runtime create` - Create a runtime for one Regent.
+- `regents runtime get` - Show one runtime for a Regent.
 - `regents runtime health` - Show health for one runtime.
-- `regents runtime pause` - Pause one runtime for a Regent company.
+- `regents runtime pause` - Pause one runtime for a Regent.
 - `regents runtime policy` - Show runtime policy settings.
 - `regents runtime restore` - Restore one runtime from a checkpoint.
-- `regents runtime resume` - Resume one runtime for a Regent company.
+- `regents runtime resume` - Resume one runtime for a Regent.
 - `regents runtime services` - List services for one runtime.
 - `regents runtime status` - Show runtime status.
 - `regents runtime tools` - List runtime tools.
@@ -430,7 +435,7 @@ Total commands: 355.
 
 ### Update
 
-- `regents update` - Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one.
+- `regents update` - Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one. With --check it only reports the installed and latest versions without changing anything.
 
 
 ### Version
@@ -454,9 +459,9 @@ Total commands: 355.
 ### Work
 
 - `regents work cancel` - Cancel one work run.
-- `regents work create` - Create work for one Regent company.
-- `regents work get` - Show one work item for a Regent company.
-- `regents work list` - List work for one Regent company.
+- `regents work create` - Create work for one Regent.
+- `regents work get` - Show one work item for a Regent.
+- `regents work list` - List work for one Regent.
 - `regents work local-loop` - Let one local worker check for assigned Regent work.
 - `regents work retry` - Start a new attempt for one work run.
 - `regents work run` - Start a run for one work item.

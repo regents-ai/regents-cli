@@ -34,6 +34,7 @@ export const CLI_COMMANDS = [
   "autolaunch chat subscribe add <scope>",
   "autolaunch chat subscribe list",
   "autolaunch chat subscribe remove <scope>",
+  "autolaunch chat tail [scope...]",
   "autolaunch chat unread [scope...]",
   "autolaunch connect start",
   "autolaunch contracts admin",
@@ -112,6 +113,7 @@ export const CLI_COMMANDS = [
   "chat follows add <wallet|label>",
   "chat follows list",
   "chat follows remove <wallet|label>",
+  "commands list",
   "config get",
   "config write",
   "doctor",
@@ -141,12 +143,12 @@ export const CLI_COMMANDS = [
   "platform billing spend-controls set",
   "platform billing topup",
   "platform billing usage",
-  "platform company pause",
-  "platform company resume",
-  "platform company runtime",
   "platform formation doctor",
   "platform formation status",
   "platform projection",
+  "platform regent pause",
+  "platform regent resume",
+  "platform regent runtime",
   "plugin doctor",
   "plugin install",
   "plugin status",
@@ -401,6 +403,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "autolaunch chat subscribe add <scope>",
     "autolaunch chat subscribe list",
     "autolaunch chat subscribe remove <scope>",
+    "autolaunch chat tail [scope...]",
     "autolaunch chat unread [scope...]",
     "autolaunch connect start",
     "autolaunch contracts admin",
@@ -486,6 +489,9 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "chat follows list",
     "chat follows remove <wallet|label>"
   ],
+  "commands": [
+    "commands list"
+  ],
   "config": [
     "config get",
     "config write"
@@ -534,12 +540,12 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "platform billing spend-controls set",
     "platform billing topup",
     "platform billing usage",
-    "platform company pause",
-    "platform company resume",
-    "platform company runtime",
     "platform formation doctor",
     "platform formation status",
-    "platform projection"
+    "platform projection",
+    "platform regent pause",
+    "platform regent resume",
+    "platform regent runtime"
   ],
   "plugin": [
     "plugin doctor",
@@ -808,7 +814,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": false,
-        "description": "Company slug. Required only when the saved session owns more than one company."
+        "description": "Regent slug. Required only when the saved session owns more than one regent."
       },
       {
         "name": "--timeout-seconds",
@@ -833,8 +839,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -865,10 +871,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--name",
@@ -897,8 +903,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -910,7 +916,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Connect local Hermes as a worker for one Regent company.",
+      "summary": "Connect local Hermes as a worker for one Regent.",
       "operation_ids": [
         "registerRwrWorker"
       ],
@@ -918,7 +924,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "auth_mode": "agent-siwa",
       "auth_audience": "platform"
     },
-    "summary": "Connect local Hermes as a worker for one Regent company."
+    "summary": "Connect local Hermes as a worker for one Regent."
   },
   "agent connect hosted-hermes": {
     "command": "agent connect hosted-hermes",
@@ -929,10 +935,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--runtime-id",
@@ -956,8 +962,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -969,7 +975,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Inspect one hosted Hermes runtime for a Regent company.",
+      "summary": "Inspect one hosted Hermes runtime for a Regent.",
       "operation_ids": [
         "getRwrRuntime",
         "listRwrRuntimeServices",
@@ -978,7 +984,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Inspect one hosted Hermes runtime for a Regent company."
+    "summary": "Inspect one hosted Hermes runtime for a Regent."
   },
   "agent connect openclaw": {
     "command": "agent connect openclaw",
@@ -990,10 +996,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--name",
@@ -1022,8 +1028,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -1035,7 +1041,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Connect a local OpenClaw worker to one Regent company.",
+      "summary": "Connect a local OpenClaw worker to one Regent.",
       "operation_ids": [
         "registerRwrWorker"
       ],
@@ -1043,7 +1049,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "auth_mode": "agent-siwa",
       "auth_audience": "platform"
     },
-    "summary": "Connect a local OpenClaw worker to one Regent company."
+    "summary": "Connect a local OpenClaw worker to one Regent."
   },
   "agent execution-pool": {
     "command": "agent execution-pool",
@@ -1054,10 +1060,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--manager",
@@ -1081,8 +1087,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -1174,10 +1180,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--manager-agent-id",
@@ -1231,8 +1237,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -1244,14 +1250,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Link one manager to one worker for a Regent company.",
+      "summary": "Link one manager to one worker for a Regent.",
       "operation_ids": [
         "createRwrAgentRelationship"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Link one manager to one worker for a Regent company."
+    "summary": "Link one manager to one worker for a Regent."
   },
   "agent profile get": {
     "command": "agent profile get",
@@ -1402,8 +1408,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -1442,8 +1448,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -1490,8 +1496,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -1865,10 +1871,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -1881,7 +1888,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "List chat.",
@@ -1894,7 +1901,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "flags": [
       {
         "name": "--limit",
@@ -1906,7 +1913,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--before",
         "type": "integer",
         "required": false,
-        "description": "Only return messages older than this message id."
+        "description": "Only return messages older than this message id. Mutually exclusive with --after."
+      },
+      {
+        "name": "--after",
+        "type": "integer",
+        "required": false,
+        "description": "Only return messages newer than this message id. Mutually exclusive with --before."
       },
       {
         "name": "--from",
@@ -1923,7 +1936,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -1936,7 +1950,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch chat read.",
@@ -1949,7 +1963,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "flags": [
       {
         "name": "--message",
@@ -1972,7 +1986,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -1985,7 +2000,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch chat send.",
@@ -1998,10 +2013,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -2014,7 +2030,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "Add a scope to the saved Autolaunch chat subscriptions.",
@@ -2027,10 +2043,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -2043,7 +2060,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "List the saved Autolaunch chat subscriptions.",
@@ -2056,10 +2073,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -2072,10 +2090,54 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "Remove a scope from the saved Autolaunch chat subscriptions.",
+    "next_step": "Use `regents autolaunch chat read system` to read the public room."
+  },
+  "autolaunch chat tail [scope...]": {
+    "command": "autolaunch chat tail [scope...]",
+    "owner": "autolaunch",
+    "group": "chat",
+    "interface": "mixed",
+    "auth_mode": "mixed",
+    "auth_audience": "autolaunch",
+    "output_envelope": "chat-list-or-stream",
+    "flags": [
+      {
+        "name": "--from",
+        "type": "string",
+        "required": false,
+        "description": "Only show messages from this wallet or label. Repeatable."
+      },
+      {
+        "name": "--following",
+        "type": "boolean",
+        "required": false,
+        "description": "Only show messages from the saved follow list."
+      }
+    ],
+    "examples": [
+      "regents autolaunch chat list",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
+      "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
+      "regents autolaunch chat unread",
+      "regents autolaunch chat read system --following",
+      "regents autolaunch dm 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Question about your token\""
+    ],
+    "agent_metadata": {
+      "category": "messaging",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "read-or-message-write",
+      "retry_behavior": "retry_history_only",
+      "pagination": "cursor",
+      "async_behavior": "stream_or_synchronous",
+      "input_mode": "args-and-flags"
+    },
+    "summary": "Watch chat [scope...].",
     "next_step": "Use `regents autolaunch chat read system` to read the public room."
   },
   "autolaunch chat unread [scope...]": {
@@ -2085,7 +2147,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "flags": [
       {
         "name": "--peek",
@@ -2108,7 +2170,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -2121,7 +2184,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "Show new chat messages since the saved cursors.",
@@ -2324,7 +2387,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "flags": [
       {
         "name": "--message",
@@ -2335,7 +2398,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -2348,7 +2412,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "Show Autolaunch dm.",
@@ -2361,10 +2425,11 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "mixed",
     "auth_mode": "mixed",
     "auth_audience": "autolaunch",
-    "output_envelope": "chat-list-or-messages",
+    "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents autolaunch chat list",
-      "regents autolaunch chat read system --limit 50",
+      "regents autolaunch chat read system --after 123 --limit 50",
+      "regents autolaunch chat tail system topic:auctions",
       "regents autolaunch chat send token:0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b --message \"Auction opens at noon\"",
       "regents autolaunch chat unread",
       "regents autolaunch chat read system --following",
@@ -2377,7 +2442,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "mutation_class": "read-or-message-write",
       "retry_behavior": "retry_history_only",
       "pagination": "cursor",
-      "async_behavior": "synchronous",
+      "async_behavior": "stream_or_synchronous",
       "input_mode": "args-and-flags"
     },
     "summary": "List dm.",
@@ -5231,8 +5296,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -5321,6 +5386,47 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Remove a wallet or label from the saved chat follow list."
+  },
+  "commands list": {
+    "command": "commands list",
+    "owner": "shared-services",
+    "group": "operator",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "operator-status-envelopes",
+    "flags": [
+      {
+        "name": "--search",
+        "type": "string",
+        "required": false,
+        "description": "Only include commands whose name or summary contains this text."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the command index as JSON."
+      }
+    ],
+    "examples": [
+      "regents commands list",
+      "regents commands list --json",
+      "regents commands list --search chat --json"
+    ],
+    "agent_metadata": {
+      "category": "local-control",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "bounded",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "List every shipped Regents CLI command with its summary, flags, and args.",
+      "next_step": "regents agent-context"
+    },
+    "summary": "List every shipped Regents CLI command with its summary, flags, and args.",
+    "next_step": "regents agent-context"
   },
   "config get": {
     "command": "config get",
@@ -5978,8 +6084,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6025,8 +6131,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6071,8 +6177,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6117,8 +6223,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6194,8 +6300,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6246,8 +6352,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6292,8 +6398,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6305,170 +6411,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Show shared runtime credit and company usage from the saved platform session.",
+      "summary": "Show shared runtime credit and regent usage from the saved platform session.",
       "operation_ids": [
         "agentPlatformBillingUsage"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Show shared runtime credit and company usage from the saved platform session."
-  },
-  "platform company pause": {
-    "command": "platform company pause",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "http",
-    "auth_mode": "session-file",
-    "output_envelope": "platform-json",
-    "flags": [
-      {
-        "name": "--slug",
-        "type": "string",
-        "required": true,
-        "description": "Company slug to pause."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags",
-      "summary": "Pause the hosted runtime for one owned company.",
-      "operation_ids": [
-        "agentPlatformPauseSprite"
-      ],
-      "transport_kind": "http-cookie-session",
-      "auth_mode": "session-file"
-    },
-    "summary": "Pause the hosted runtime for one owned company."
-  },
-  "platform company resume": {
-    "command": "platform company resume",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "http",
-    "auth_mode": "session-file",
-    "output_envelope": "platform-json",
-    "flags": [
-      {
-        "name": "--slug",
-        "type": "string",
-        "required": true,
-        "description": "Company slug to resume."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags",
-      "summary": "Resume the hosted runtime for one owned company.",
-      "operation_ids": [
-        "agentPlatformResumeSprite"
-      ],
-      "transport_kind": "http-cookie-session",
-      "auth_mode": "session-file"
-    },
-    "summary": "Resume the hosted runtime for one owned company."
-  },
-  "platform company runtime": {
-    "command": "platform company runtime",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "http",
-    "auth_mode": "session-file",
-    "output_envelope": "platform-json",
-    "flags": [
-      {
-        "name": "--slug",
-        "type": "string",
-        "required": true,
-        "description": "Company slug to inspect."
-      },
-      {
-        "name": "--origin",
-        "type": "string",
-        "required": false,
-        "default": "https://regents.sh",
-        "description": "Platform origin to call. Defaults to the saved session origin when present."
-      },
-      {
-        "name": "--session-file",
-        "type": "string",
-        "required": false,
-        "description": "Local path for the saved platform session file."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags",
-      "summary": "Show runtime state for one owned company from the saved platform session.",
-      "operation_ids": [
-        "agentPlatformFormationRuntime"
-      ],
-      "transport_kind": "http-cookie-session",
-      "auth_mode": "session-file"
-    },
-    "summary": "Show runtime state for one owned company from the saved platform session."
+    "summary": "Show shared runtime credit and regent usage from the saved platform session."
   },
   "platform formation doctor": {
     "command": "platform formation doctor",
@@ -6494,8 +6444,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6507,14 +6457,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Explain why company opening is blocked or what is ready next.",
+      "summary": "Explain why regent opening is blocked or what is ready next.",
       "operation_ids": [
         "agentPlatformFormationDoctor"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Explain why company opening is blocked or what is ready next."
+    "summary": "Explain why regent opening is blocked or what is ready next."
   },
   "platform formation status": {
     "command": "platform formation status",
@@ -6540,8 +6490,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6553,14 +6503,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Show launch readiness from the saved session, including claimed names, billing, and owned companies.",
+      "summary": "Show launch readiness from the saved session, including claimed names, billing, and owned regents.",
       "operation_ids": [
         "agentPlatformFormation"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Show launch readiness from the saved session, including claimed names, billing, and owned companies."
+    "summary": "Show launch readiness from the saved session, including claimed names, billing, and owned regents."
   },
   "platform projection": {
     "command": "platform projection",
@@ -6586,8 +6536,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6607,6 +6557,162 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "auth_mode": "session-file"
     },
     "summary": "Show the canonical Platform projection for product and mobile clients."
+  },
+  "platform regent pause": {
+    "command": "platform regent pause",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Regent slug to pause."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Pause the hosted runtime for one owned regent.",
+      "operation_ids": [
+        "agentPlatformPauseSprite"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Pause the hosted runtime for one owned regent."
+  },
+  "platform regent resume": {
+    "command": "platform regent resume",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Regent slug to resume."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Resume the hosted runtime for one owned regent.",
+      "operation_ids": [
+        "agentPlatformResumeSprite"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Resume the hosted runtime for one owned regent."
+  },
+  "platform regent runtime": {
+    "command": "platform regent runtime",
+    "owner": "platform",
+    "group": "platform",
+    "interface": "http",
+    "auth_mode": "session-file",
+    "output_envelope": "platform-json",
+    "flags": [
+      {
+        "name": "--slug",
+        "type": "string",
+        "required": true,
+        "description": "Regent slug to inspect."
+      },
+      {
+        "name": "--origin",
+        "type": "string",
+        "required": false,
+        "default": "https://regents.sh",
+        "description": "Platform origin to call. Defaults to the saved session origin when present."
+      },
+      {
+        "name": "--session-file",
+        "type": "string",
+        "required": false,
+        "description": "Local path for the saved platform session file."
+      }
+    ],
+    "examples": [
+      "regents platform auth status",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
+      "regents regent-staking get"
+    ],
+    "agent_metadata": {
+      "category": "platform",
+      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
+      "json_support": "supported",
+      "mutation_class": "command_specific",
+      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
+      "pagination": "bounded_unless_command_declares_cursor",
+      "async_behavior": "synchronous_or_polling",
+      "input_mode": "args-and-flags",
+      "summary": "Show runtime state for one owned regent from the saved platform session.",
+      "operation_ids": [
+        "agentPlatformFormationRuntime"
+      ],
+      "transport_kind": "http-cookie-session",
+      "auth_mode": "session-file"
+    },
+    "summary": "Show runtime state for one owned regent from the saved platform session."
   },
   "plugin doctor": {
     "command": "plugin doctor",
@@ -6884,8 +6990,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6923,8 +7029,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -6962,8 +7068,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7001,8 +7107,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7032,8 +7138,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7077,8 +7183,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7116,8 +7222,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7169,8 +7275,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7254,10 +7360,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--checkpoint-ref",
@@ -7281,8 +7387,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7312,10 +7418,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--name",
@@ -7384,8 +7490,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7397,14 +7503,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Create a runtime for one Regent company.",
+      "summary": "Create a runtime for one Regent.",
       "operation_ids": [
         "createRwrRuntime"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Create a runtime for one Regent company."
+    "summary": "Create a runtime for one Regent."
   },
   "runtime get": {
     "command": "runtime get",
@@ -7423,10 +7529,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -7444,8 +7550,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7457,14 +7563,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Show one runtime for a Regent company.",
+      "summary": "Show one runtime for a Regent.",
       "operation_ids": [
         "getRwrRuntime"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Show one runtime for a Regent company."
+    "summary": "Show one runtime for a Regent."
   },
   "runtime health": {
     "command": "runtime health",
@@ -7483,10 +7589,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -7504,8 +7610,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7543,10 +7649,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -7564,8 +7670,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7577,14 +7683,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Pause one runtime for a Regent company.",
+      "summary": "Pause one runtime for a Regent.",
       "operation_ids": [
         "pauseRwrRuntime"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Pause one runtime for a Regent company."
+    "summary": "Pause one runtime for a Regent."
   },
   "runtime policy": {
     "command": "runtime policy",
@@ -7629,10 +7735,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--checkpoint-id",
@@ -7656,8 +7762,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7695,10 +7801,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -7716,8 +7822,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7729,14 +7835,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Resume one runtime for a Regent company.",
+      "summary": "Resume one runtime for a Regent.",
       "operation_ids": [
         "resumeRwrRuntime"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Resume one runtime for a Regent company."
+    "summary": "Resume one runtime for a Regent."
   },
   "runtime services": {
     "command": "runtime services",
@@ -7755,10 +7861,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -7776,8 +7882,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7879,8 +7985,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7913,13 +8019,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--origin",
@@ -7937,8 +8043,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -7971,13 +8077,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--name",
@@ -8048,8 +8154,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -8083,13 +8189,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--origin",
@@ -8107,8 +8213,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -8141,13 +8247,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--origin",
@@ -8165,8 +8271,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -8199,13 +8305,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--amount-usdc",
@@ -8247,8 +8353,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -8281,13 +8387,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--origin",
@@ -8305,8 +8411,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -8339,13 +8445,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--origin",
@@ -8363,8 +8469,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -8397,13 +8503,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--origin",
@@ -8421,8 +8527,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -8455,13 +8561,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--slug",
         "type": "string",
         "required": true,
-        "description": "Company slug that owns the service."
+        "description": "Regent slug that owns the service."
       },
       {
         "name": "--service-slug",
         "type": "string",
         "required": true,
-        "description": "Service slug within the company."
+        "description": "Service slug within the regent."
       },
       {
         "name": "--input-file",
@@ -8485,8 +8591,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -10876,7 +10982,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -10913,7 +11019,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "--before",
         "type": "integer",
         "required": false,
-        "description": "Only return messages older than this message id."
+        "description": "Only return messages older than this message id. Mutually exclusive with --after."
+      },
+      {
+        "name": "--after",
+        "type": "integer",
+        "required": false,
+        "description": "Only return messages newer than this message id. Mutually exclusive with --before."
       },
       {
         "name": "--from",
@@ -10930,7 +11042,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -10978,7 +11090,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -11006,7 +11118,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -11034,7 +11146,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -11062,7 +11174,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -11104,7 +11216,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -11152,7 +11264,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -11238,7 +11350,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -11266,7 +11378,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "chat-list-or-stream",
     "examples": [
       "regents techtree chat list",
-      "regents techtree chat read system --limit 50",
+      "regents techtree chat read system --after 123 --limit 50",
       "regents techtree chat send node:123 --message \"Ready\"",
       "regents techtree chat tail system topic:protein-folding node:123",
       "regents techtree chat unread",
@@ -14958,9 +15070,30 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "interface": "runtime",
     "auth_mode": "none",
     "output_envelope": "operator-status-envelopes",
+    "flags": [
+      {
+        "name": "--check",
+        "type": "boolean",
+        "required": false,
+        "description": "Report the installed and latest published versions without changing anything."
+      },
+      {
+        "name": "--version",
+        "type": "string",
+        "required": false,
+        "description": "Install this exact published version instead of the latest release."
+      },
+      {
+        "name": "--json",
+        "type": "boolean",
+        "required": false,
+        "description": "Print the update or version-check result as JSON."
+      }
+    ],
     "examples": [
       "regents update",
-      "regents update --version 0.6.0"
+      "regents update --version 0.6.0",
+      "regents update --check --json"
     ],
     "agent_metadata": {
       "category": "local-setup",
@@ -14971,10 +15104,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags",
-      "summary": "Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one.\n",
+      "summary": "Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one. With --check it only reports the installed and latest versions without changing anything.\n",
       "next_step": "regents setup --quick"
     },
-    "summary": "Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one.\n",
+    "summary": "Update the Regents CLI in place via npm. Defaults to the latest published release; --version installs a specific one. With --check it only reports the installed and latest versions without changing anything.\n",
     "next_step": "regents setup --quick"
   },
   "version": {
@@ -15303,10 +15436,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -15324,8 +15457,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -15355,10 +15488,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--title",
@@ -15388,8 +15521,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -15401,14 +15534,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Create work for one Regent company.",
+      "summary": "Create work for one Regent.",
       "operation_ids": [
         "createRwrWorkItem"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Create work for one Regent company."
+    "summary": "Create work for one Regent."
   },
   "work get": {
     "command": "work get",
@@ -15427,10 +15560,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -15448,8 +15581,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -15461,14 +15594,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "Show one work item for a Regent company.",
+      "summary": "Show one work item for a Regent.",
       "operation_ids": [
         "getRwrWorkItem"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "Show one work item for a Regent company."
+    "summary": "Show one work item for a Regent."
   },
   "work list": {
     "command": "work list",
@@ -15479,10 +15612,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -15500,8 +15633,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -15513,14 +15646,14 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "bounded_unless_command_declares_cursor",
       "async_behavior": "synchronous_or_polling",
       "input_mode": "args-and-flags",
-      "summary": "List work for one Regent company.",
+      "summary": "List work for one Regent.",
       "operation_ids": [
         "listRwrWorkItems"
       ],
       "transport_kind": "http-cookie-session",
       "auth_mode": "session-file"
     },
-    "summary": "List work for one Regent company."
+    "summary": "List work for one Regent."
   },
   "work local-loop": {
     "command": "work local-loop",
@@ -15532,10 +15665,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     "output_envelope": "platform-json",
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--worker-id",
@@ -15595,8 +15728,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -15642,10 +15775,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -15663,8 +15796,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -15702,10 +15835,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--runner",
@@ -15752,8 +15885,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {
@@ -15791,10 +15924,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "flags": [
       {
-        "name": "--company-id",
+        "name": "--regent-id",
         "type": "string",
         "required": true,
-        "description": "Regent company id."
+        "description": "Regent id."
       },
       {
         "name": "--origin",
@@ -15832,8 +15965,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents platform auth status",
-      "regents runtime get <runtime_id> --company-id <company_id>",
-      "regents work get <work_item_id> --company-id <company_id>",
+      "regents runtime get <runtime_id> --regent-id <regent_id>",
+      "regents work get <work_item_id> --regent-id <regent_id>",
       "regents regent-staking get"
     ],
     "agent_metadata": {

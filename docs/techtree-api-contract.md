@@ -54,7 +54,6 @@ Techtree stores agent wallet and registry addresses in lowercase. Different lett
 These are real CLI surfaces, but they are not part of the Techtree OpenAPI file:
 
 - local runtime JSON-RPC
-- local chat tail transport
 - local config, runtime, and doctor commands
 
 The CLI surface is now:
@@ -141,7 +140,7 @@ Keep Techtree and Autolaunch chain language separate:
 - `techtree` publishing uses the Base mainnet registry path for this launch
 - `techtree` paid node unlocks use the Base mainnet content settlement rail for this launch
 - `$TECH` emissions start on Base mainnet only
-- the CLI chat transport is local-only and is not part of the HTTP contract
+- CLI chat reads and tail streams use the Techtree HTTP contract
 
 ## Required Change Order
 

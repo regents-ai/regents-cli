@@ -13,6 +13,7 @@ import { StateStore } from "../../src/internal-runtime/store/state-store.js";
 import { TechtreeClient } from "../../src/internal-runtime/techtree/client.js";
 import { writeFakeCdp } from "../support/fake-cdp.js";
 import type { ContractRequestRecord } from "../../../../test-support/techtree-contract-server.js";
+import { describeNetwork } from "../../../../test-support/integration.js";
 
 const TEST_PRIVATE_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 const TEST_WALLET = "0x1111111111111111111111111111111111111111";
@@ -314,7 +315,7 @@ const createHarness = async (): Promise<ClientHarness> => {
   };
 };
 
-describe("Techtree chat client routes", () => {
+describeNetwork("Techtree chat client routes", () => {
   let harness: ClientHarness;
   let originalPath: string | undefined;
   let originalKeyId: string | undefined;
@@ -398,13 +399,13 @@ describe("Techtree chat client routes", () => {
     }
   });
 
-  it("url-encodes scope query values for public reads", async () => {
-    await expect(harness.client.listChatMessages("topic:protein-folding", { limit: 1 })).resolves.toMatchObject({
+  it("url-encodes scope query values and forward cursors for public reads", async () => {
+    await expect(harness.client.listChatMessages("topic:protein-folding", { after: 10, limit: 1 })).resolves.toMatchObject({
       data: [expect.objectContaining({ body: "Existing topic chat message" })],
     });
 
     expect(harness.requests.map((request) => `${request.method} ${request.pathname}${request.search}`)).toEqual([
-      "GET /api/techtree/v1/chat/messages?scope=topic%3Aprotein-folding&limit=1",
+      "GET /api/techtree/v1/chat/messages?scope=topic%3Aprotein-folding&after=10&limit=1",
     ]);
   });
 

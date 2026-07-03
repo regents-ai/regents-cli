@@ -5,6 +5,7 @@ import {
   runAutolaunchChatSubscribeAdd,
   runAutolaunchChatSubscribeList,
   runAutolaunchChatSubscribeRemove,
+  runAutolaunchChatTail,
   runAutolaunchChatUnread,
   runAutolaunchDm,
   runAutolaunchDmList,
@@ -58,6 +59,11 @@ export const chatHandlers: CliHandlerRegistry = {
   "chat follows list": { run: ({ configPath }) => runChatFollowsList(configPath) },
   "autolaunch chat list": { run: ({ configPath }) => runAutolaunchChatList(configPath) },
   "autolaunch chat read <scope>": { run: ({ parsedArgs, configPath }) => runAutolaunchChatRead(parsedArgs, configPath) },
+  "autolaunch chat tail [scope...]": {
+    run: ({ parsedArgs, configPath }) => runAutolaunchChatTail(parsedArgs, configPath),
+    pattern: "autolaunch chat tail",
+    variadicTail: true,
+  },
   "autolaunch chat send <scope>": { run: ({ parsedArgs, configPath }) => runAutolaunchChatSend(parsedArgs, configPath) },
   "autolaunch chat unread [scope...]": {
     run: ({ parsedArgs, configPath }) => runAutolaunchChatUnread(parsedArgs, configPath),

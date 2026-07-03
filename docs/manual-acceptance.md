@@ -8,7 +8,7 @@ Keep the launch split explicit:
 
 - SIWA identity login uses Base mainnet
 - Techtree publishing for this launch uses Base mainnet
-- Regent chat transport stays local-only, including CLI tail of the `webapp` and `agent` rooms
+- Regent chat reads and tail streams use the product HTTP chat contracts
 - paid node unlocks use Base mainnet settlement with server-verified entitlement
 
 ## Preferred guided path

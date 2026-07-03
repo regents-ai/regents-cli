@@ -68,6 +68,62 @@ describe("version and update commands", () => {
     expect(payload.next).toContain("regents setup --quick");
   });
 
+  it("update --check reports installed vs latest without installing anything", async () => {
+    const logPath = stubNpm('echo "9.9.9"');
+    const output = captureStdout();
+
+    expect(await runUpdate(parseCliArgs(["--check", "--json"]))).toBe(0);
+    output.restore();
+
+    expect(fs.readFileSync(logPath, "utf8").trim()).toBe("view @regentslabs/cli version");
+    const payload = JSON.parse(output.lines.join(""));
+    expect(payload.ok).toBe(true);
+    expect(payload.check).toBe(true);
+    expect(payload.installed_version).toMatch(/^\d+\.\d+\.\d+/);
+    expect(payload.latest_version).toBe("9.9.9");
+    expect(payload.up_to_date).toBe(false);
+    expect(payload.next).toEqual(["regents update"]);
+  });
+
+  it("update --check prints plain text when JSON is not requested", async () => {
+    const logPath = stubNpm('echo "9.9.9"');
+    const output = captureStdout();
+
+    expect(await runUpdate(parseCliArgs(["--check"]))).toBe(0);
+    output.restore();
+
+    expect(fs.readFileSync(logPath, "utf8").trim()).toBe("view @regentslabs/cli version");
+    const text = output.lines.join("");
+    expect(text).toContain("9.9.9 is available");
+    expect(text).toContain("regents update");
+  });
+
+  it("update --check reports the up-to-date state", async () => {
+    const { cliVersion } = await import("../../src/printer.js");
+    stubNpm(`echo "${cliVersion()}"`);
+    const output = captureStdout();
+
+    expect(await runUpdate(parseCliArgs(["--check", "--json"]))).toBe(0);
+    output.restore();
+
+    const payload = JSON.parse(output.lines.join(""));
+    expect(payload.up_to_date).toBe(true);
+    expect(payload.next).toEqual([]);
+  });
+
+  it("update --check fails cleanly when the registry cannot be read", async () => {
+    stubNpm("echo unreachable >&2; exit 1");
+    const output = captureStdout();
+
+    expect(await runUpdate(parseCliArgs(["--check", "--json"]))).toBe(1);
+    output.restore();
+
+    const payload = JSON.parse(output.lines.join(""));
+    expect(payload.ok).toBe(false);
+    expect(payload.latest_version).toBeNull();
+    expect(payload.detail).toContain("could not be read");
+  });
+
   it("update reports failure with a manual fallback", async () => {
     stubNpm("echo boom >&2; exit 1");
     const output = captureStdout();

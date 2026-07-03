@@ -2,12 +2,34 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import {
+  EXPECTED_PLATFORM_CONTRACT_DIGEST,
+  SUPPORTED_PLATFORM_CONTRACT_MAJOR,
+} from "../../../src/generated/platform-contract-digest.js";
 import { runScopedDoctor, writeInitialConfig } from "../../../src/internal-runtime/index.js";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("runtime-scoped doctor", () => {
   it("applies safe local fixes for missing runtime dirs and stale socket files", async () => {
+    // Keep the platform contract check off the network.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response("openapi: 3.0.3\n", {
+          status: 200,
+          headers: {
+            "x-regents-contract-major": SUPPORTED_PLATFORM_CONTRACT_MAJOR,
+            "x-regents-contract-digest": EXPECTED_PLATFORM_CONTRACT_DIGEST,
+          },
+        }),
+      ),
+    );
+
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-doctor-runtime-"));
     const configPath = path.join(tempDir, "regent.config.json");
     const socketPath = path.join(tempDir, "runtime", "regent.sock");

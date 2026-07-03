@@ -5,7 +5,7 @@ import { expandHome } from "../../internal-runtime/index.js";
 import { renderOpenClawRegentsWorkSkill } from "./skill-template.js";
 
 export interface WriteOpenClawSkillInput {
-  readonly companyId: string;
+  readonly regentId: string;
   readonly workerId: string;
   readonly workerName: string;
   readonly skillPath?: string;
@@ -26,7 +26,7 @@ export const writeOpenClawRegentsWorkSkill = async (
   await writeFile(
     skillPath,
     renderOpenClawRegentsWorkSkill({
-      companyId: input.companyId,
+      regentId: input.regentId,
       workerId: input.workerId,
       workerName: input.workerName,
     }),

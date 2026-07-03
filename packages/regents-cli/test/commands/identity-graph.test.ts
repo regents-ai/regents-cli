@@ -213,7 +213,7 @@ describe("identity graph command", () => {
                 wallet_address: testWallet,
               },
             ],
-            companies: [{ company: { id: "co_1", sprite_service_name: "sprite-agent-x" } }],
+            regents: [{ regent: { id: "co_1", sprite_service_name: "sprite-agent-x" } }],
             identity_links: {
               techtree: {
                 profile_id: "tt_profile_1",
@@ -399,7 +399,7 @@ describe("identity graph command", () => {
     expect(checkByItem(graph, "autolaunch link").status).toBe("MATCH");
     expect(graph.product_links.platform).toEqual({
       platform_agent_id: "pp_1",
-      company_id: "co_1",
+      regent_id: "co_1",
       public_slug: "agent-x",
       claimed_name: "Agent X",
       hosted_runtime_id: "sprite-agent-x",
