@@ -222,11 +222,6 @@ const routeShapeMatches = (openApiRouteShape, cliRouteShape) => {
   return openApiSegments.every((segment, index) => segment === "{}" || segment === cliSegments[index]);
 };
 
-const shouldSkipOperation = (operation) => {
-  const segments = operation.routeShape.split("/").filter(Boolean);
-  return segments.at(-1) === "{}";
-};
-
 export const collectCliHttpRouteIssues = ({
   routeSources,
   commandSources,
@@ -250,10 +245,6 @@ export const collectCliHttpRouteIssues = ({
     }
 
     for (const operation of collectHttpOperationsFromFunctionBody(handler.body)) {
-      if (shouldSkipOperation(operation)) {
-        continue;
-      }
-
       const key = `${operation.method} ${operation.routeShape}`;
       if (openApiIndex.byMethodAndShape.has(key)) {
         continue;

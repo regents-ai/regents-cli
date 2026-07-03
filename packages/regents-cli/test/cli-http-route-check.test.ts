@@ -89,4 +89,61 @@ describe("CLI HTTP route contract check", () => {
       'CLI command "autolaunch subjects stake" calls missing API operation: POST /api/autolaunch/v1/agent/subjects/{}/stake',
     );
   });
+
+  it("reports routes ending in a dynamic segment when they are missing from the contract", () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-cli-http-route-check-"));
+    const techtreeContract = path.join(tempDir, "techtree-api.openapiv3.yaml");
+    fs.writeFileSync(
+      techtreeContract,
+      YAML.stringify({
+        openapi: "3.1.0",
+        info: { title: "Techtree fixture", version: "0.0.0" },
+        paths: {
+          "/api/techtree/v1/nodes/{node_id}": {
+            get: { operationId: "getNode" },
+          },
+        },
+      }),
+      "utf8",
+    );
+
+    const routeSources = [
+      `
+        export const techtreeHandlers = {
+          "techtree node get": { run: ({ parsedArgs, configPath }) => runTechtreeNodeGet(parsedArgs, configPath) },
+          "techtree node delete": { run: ({ parsedArgs, configPath }) => runTechtreeNodeDelete(parsedArgs, configPath) },
+        };
+      `,
+    ];
+    const commandSources = [
+      {
+        path: "nodes.ts",
+        source: `
+          export async function runTechtreeNodeGet(args, configPath) {
+            await requestJson("GET", \`/api/techtree/v1/nodes/\${encodeURIComponent("node_123")}\`, { configPath });
+          }
+
+          export async function runTechtreeNodeDelete(args, configPath) {
+            await requestJson("DELETE", \`/api/techtree/v1/nodes/\${encodeURIComponent("node_123")}\`, { configPath });
+          }
+        `,
+      },
+    ];
+
+    const issues = collectCliHttpRouteIssues({
+      routeSources,
+      commandSources,
+      openApiFiles: { techtree: techtreeContract },
+      shippedCommands: new Set(["techtree node get", "techtree node delete"]),
+      YAML,
+    });
+
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({
+      command: "techtree node delete",
+      method: "DELETE",
+      routeShape: "/api/techtree/v1/nodes/{}",
+      likelyOwner: "techtree",
+    });
+  });
 });
