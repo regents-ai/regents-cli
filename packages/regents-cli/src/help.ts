@@ -2194,12 +2194,14 @@ const renderRootHelp = (configPath: string): string =>
   [
     renderBanner(),
     renderPanel("◆ REGENT CLI HELP", [
-      "Work with Regent from the terminal.",
+      ...columnLines([
+        ["usage", "regents <command> [flags]"],
+        ["new here", "run `regents init` for guided setup"],
+        ["sign in", "protected commands use a saved Agent account"],
+        ["config", configPath],
+      ]),
       "",
-      `${tone("usage", CLI_PALETTE.secondary, true)} regents <command> [flags]`,
-      `${tone("auth", CLI_PALETTE.secondary, true)} Protected commands use a saved Agent account.`,
-      `${tone("output", CLI_PALETTE.secondary, true)} Human output uses panels and status lines. \`--json\` prints raw JSON.`,
-      `${tone("next", CLI_PALETTE.secondary, true)} Default config: ${configPath}. ${globalNextStep}`,
+      tone(globalNextStep, CLI_PALETTE.secondary),
     ]),
     renderPanel(
       "◆ GETTING STARTED",

@@ -36,12 +36,9 @@ const alphaWarning =
   "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form";
 
 const startRows = [
-  ["regents init", "guided setup and readiness"],
+  ["regents init", "guided setup and a readiness check"],
   ["regents setup skills", "install the Regents agent skills"],
   ["regents status", "see what is ready"],
-  ["regents identity ensure", "connect the Agent account"],
-  ["regents identity graph", "check the saved Agent account"],
-  ["regents run", "start local work"],
 ];
 const commandWidth = Math.max(...startRows.map(([command]) => command.length));
 
@@ -49,14 +46,18 @@ process.stdout.write(
   [
     "",
     ...(logoFits ? [...logoRows.map((row) => paint(row, gold)), ""] : []),
-    paint(`Regents CLI v${version} installed.`, ivory, true),
+    paint(`Regents CLI v${version} is installed.`, ivory, true),
     paint(alphaWarning, gold, true),
     "",
-    paint("Get started:", grey, true),
+    `${paint("Start here:", grey, true)}  ${paint("run", grey)} ${paint("regents init", ivory, true)} ${paint("for guided setup.", grey)}`,
+    "",
+    paint("Or pick a command:", grey, true),
     ...startRows.map(
       ([command, description]) =>
         `  ${paint(command.padEnd(commandWidth), ivory, true)}  ${paint(description, grey)}`,
     ),
+    "",
+    paint("Already installed? You are on the latest. Run `regents` to see what is ready.", grey),
     "",
   ].join("\n"),
 );

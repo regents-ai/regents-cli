@@ -92,7 +92,7 @@ describe("printer surface", () => {
 
     expect(visibleLines.every((line) => line.length <= 40)).toBe(true);
     expect(output).toContain("REGENT CLI HELP");
-    expect(output).toContain("Default config:");
+    expect(output).toContain("/Users/sean/.regent/config.json");
   });
 
   it("keeps table panels readable in narrow terminals", () => {
