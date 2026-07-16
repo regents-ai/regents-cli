@@ -1,171 +1,50 @@
-import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
-import YAML from "yaml";
 
 import { buildContractDoctorReport, buildWorkspaceDoctorReport } from "../src/commands/doctor.js";
 import { route, routeMatches } from "../src/routes/shared.js";
-import { readWorkspaceManifest, requiredWorkspaceFiles } from "../src/workspace/manifest.js";
 
-const workspaceRoot = path.resolve(import.meta.dirname, "../../..");
-const regentRoot = path.resolve(workspaceRoot, "..");
-const sharedApi = path.join(workspaceRoot, "docs/regent-services-contract.openapiv3.yaml");
-const sharedCli = path.join(workspaceRoot, "docs/shared-cli-contract.yaml");
-const sharedGenerated = path.join(workspaceRoot, "packages/regents-cli/src/generated/regent-services-openapi.ts");
-const walletActionSchema = path.join(workspaceRoot, "docs/schemas/wallet-action.schema.yaml");
+const repoRoot = path.resolve(import.meta.dirname, "../../..");
 
-const writeManifest = (body: string): string => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-workspace-"));
-  const manifestPath = path.join(dir, "regent-workspace.yaml");
-  fs.writeFileSync(manifestPath, body, "utf8");
-  return manifestPath;
-};
-
-const tempConfigPath = (): string => {
-  return path.join(fs.mkdtempSync(path.join(os.tmpdir(), "regent-config-")), "regent.config.json");
-};
-
-describe("contract observability", () => {
-  it("reports loaded contracts, generated files, command coverage, and base URLs from the workspace manifest", () => {
-    const manifestPath = writeManifest(`
-repos:
-  regents-cli:
-    path: ${workspaceRoot}
-    required_for_public_beta: true
-    release_group: public_beta
-    owner: regents-cli
-    owns:
-      - operator_control_surface
-    api_contracts:
-      - id: shared_services_api
-        owner: shared-services
-        path: docs/regent-services-contract.openapiv3.yaml
-        include_in_cli_command_check: true
-        generated_bindings:
-          - path: regents-cli/packages/regents-cli/src/generated/regent-services-openapi.ts
-            generator: openapi-typescript
-    cli_contracts:
-      - id: shared_cli
-        owner: shared-services
-        path: docs/shared-cli-contract.yaml
-        include_in_cli_command_check: true
-    acceptance_commands:
-      - cwd: ${workspaceRoot}
-        command: pnpm check:workspace
-schemas:
-  wallet_action:
-    path: ${walletActionSchema}
-money_movement:
-  - id: regent_staking_claim
-    owner_product: shared-services
-    route_class: prepare
-    signer: staker_wallet
-    beneficiary: staker_wallet
-    source_of_truth: chain
-    confirmation_rule: receipt_and_claimable_read
-incident_classes:
-  - id: staking_claims
-    owner_repo: shared-services
-    recovery_command: regents regent-staking get
-    requires_reconciliation_job: true
-`);
-    const report = buildContractDoctorReport(tempConfigPath(), { manifestPath });
-
-    expect(report.command).toBe("regents doctor contracts");
-    expect(report.manifestPath).toBe(manifestPath);
-    expect(report.files).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          owner: "shared-services",
-          kind: "cli",
-          loaded: true,
-          commandStatus: "covered",
-        }),
-        expect.objectContaining({
-          owner: "shared-services",
-          kind: "api",
-          loaded: true,
-          generatedStatus: expect.stringMatching(/^(present|stale)$/u),
-        }),
-      ]),
-    );
-    expect(report.summary.loaded).toBeGreaterThan(0);
+describe("repository-local observability", () => {
+  it("reports local contracts, generated files, and command coverage", () => {
+    const report = buildContractDoctorReport();
+    expect(report).toMatchObject({
+      ok: true,
+      command: "regents doctor contracts",
+      root: repoRoot,
+      summary: { loaded: 3, missingFiles: 0, missingGeneratedBindings: 0, missingCommands: 0 },
+    });
+    expect(report.files).toEqual(expect.arrayContaining([
+      expect.objectContaining({ owner: "regents-cli", kind: "cli", loaded: true, commandStatus: "covered" }),
+      expect.objectContaining({ owner: "shared-services", kind: "api", loaded: true, generatedStatus: "present" }),
+      expect.objectContaining({ owner: "regents-cli", kind: "runtime", loaded: true, generatedStatus: "present" }),
+    ]));
+    for (const file of report.files) expect(file.contractPath.startsWith(repoRoot)).toBe(true);
   });
 
-  it("reports workspace readiness from the workspace manifest", () => {
-    const manifestPath = path.join(regentRoot, "meta/stack.yaml");
-    const report = buildWorkspaceDoctorReport(undefined, { manifestPath });
-
-    expect(report.command).toBe("regents doctor workspace");
-    expect(report.manifestPath).toBe(manifestPath);
-    expect(report.repos).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "regents-cli", loaded: true, requiredForPublicBeta: true }),
-        expect.objectContaining({ name: "design-system", loaded: true, requiredForPublicBeta: false }),
-      ]),
-    );
-    expect(report.walletActionSchemaLoaded).toBe(true);
-    expect(report.moneyMovementRows).toBeGreaterThan(0);
-  });
-
-  it("checks declared local path dependencies as workspace requirements", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "regent-workspace-root-"));
-    const product = path.join(root, "product");
-    const dependency = path.join(root, "shared", "dependency");
-    fs.mkdirSync(product, { recursive: true });
-    fs.mkdirSync(dependency, { recursive: true });
-
-    const manifestPath = writeManifest(`
-repos:
-  product:
-    path: ${product}
-    required_for_public_beta: true
-    local_path_dependencies:
-      - ../shared/dependency
-schemas:
-  wallet_action:
-    path: ${walletActionSchema}
-`);
-    const manifest = readWorkspaceManifest(workspaceRoot, YAML, manifestPath);
-
-    expect(requiredWorkspaceFiles(manifest, workspaceRoot)).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          label: "product local dependency ../shared/dependency",
-          path: dependency,
-          kind: "dir",
-        }),
-      ]),
-    );
-  });
-
-  it("finds the workspace manifest when launched from the package directory", () => {
+  it("reports standalone workspace readiness from repository-local files", () => {
     const previousCwd = process.cwd();
-    process.chdir(path.join(workspaceRoot, "packages/regents-cli"));
+    process.chdir(path.join(repoRoot, "packages/regents-cli"));
     try {
       const report = buildWorkspaceDoctorReport();
-
-      expect(report.root).toBe(workspaceRoot);
-      expect(report.manifestPath).toBe(path.join(regentRoot, "meta/stack.yaml"));
+      expect(report).toMatchObject({
+        ok: true,
+        command: "regents doctor workspace",
+        root: repoRoot,
+        summary: { missingFiles: 0 },
+      });
+      expect(report.summary.requiredFiles).toBeGreaterThan(0);
+      expect(report.files.every((file) => file.loaded && file.path.startsWith(repoRoot))).toBe(true);
     } finally {
       process.chdir(previousCwd);
     }
   });
 
-  it("reports a clear failure when the workspace manifest is missing", () => {
-    const manifestPath = path.join(os.tmpdir(), "regent-missing-workspace.yaml");
-
-    expect(() => buildContractDoctorReport(tempConfigPath(), { manifestPath })).toThrow(
-      `Regent stack contract is missing: ${manifestPath}`,
-    );
-  });
-
   it("does not match extra words unless the route declares them", () => {
     const exact = route("techtree status", async () => 0);
     const variadic = route("doctor", async () => 0, { variadicTail: true });
-
     expect(routeMatches(exact, ["techtree", "status"])).toBe(true);
     expect(routeMatches(exact, ["techtree", "status", "extra"])).toBe(false);
     expect(routeMatches(variadic, ["doctor", "auth"])).toBe(true);

@@ -2,9 +2,9 @@
 
 This file lists the full command surface shipped by the standalone Regents CLI in this repo.
 
-Source used: CLI contract YAML files via `scripts/generate-cli-command-metadata.mjs`.
+Sources used: repository-local route registries and `docs/shared-cli-contract.yaml` via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 359.
+Total commands: 357.
 
 ## Full Command List
 
@@ -190,11 +190,6 @@ Total commands: 359.
 - `regents mcp export codex` - Print MCP setup for Codex.
 - `regents mcp serve` - Start the Regents MCP server.
 - `regents mcp tools list` - List tools.
-
-### Meta
-
-- `regents meta check` - Check the Regent meta control plane for drift.
-- `regents meta render` - Refresh the generated Regent meta views.
 
 ### Platform
 

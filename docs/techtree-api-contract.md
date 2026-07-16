@@ -1,8 +1,8 @@
 # Techtree API Guide
 
-The source of truth for Techtree HTTP routes is now the OpenAPI file at [`../../platform/contracts/techtree/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/api-contract.openapiv3.yaml).
+The CLI consumes the reviewed Techtree API binding checked in at `packages/regents-cli/src/generated/techtree-openapi.ts`.
 
-The source of truth for the shipped Techtree CLI command surface is [`../../platform/contracts/techtree/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/cli-contract.yaml).
+The shipped command set comes from repository-local route registries and checked-in command metadata.
 
 This markdown file is the short operator and contributor guide for that contract. It is no longer the thing the CLI or backend should be changed against first.
 
@@ -23,7 +23,7 @@ The Techtree contract includes:
 - reviewer, review, and certificate routes
 - the `/api/techtree/v1/runtime/*` publish and fetch endpoints that the CLI runtime still uses
 
-Shared SIWA auth is not Techtree-owned. Its source of truth is [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml), and its shared Elixir codebase is [`/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir`](/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir).
+Shared SIWA auth is not Techtree-owned. The CLI consumes its repository-local contract from [`regent-services-contract.openapiv3.yaml`](regent-services-contract.openapiv3.yaml).
 
 ## Preferred Agent Path
 
@@ -144,10 +144,8 @@ Keep Techtree and Autolaunch chain language separate:
 
 ## Required Change Order
 
-When a Techtree HTTP route changes:
+When a reviewed Techtree API binding changes:
 
-1. Edit [`../../platform/contracts/techtree/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/api-contract.openapiv3.yaml).
-2. Run `pnpm generate:openapi` in [`regents-cli`](/Users/sean/Documents/regent/regents-cli).
-3. Update Techtree backend code.
-4. Update CLI code and tests.
-5. Run `pnpm check:openapi` and the relevant test slices.
+1. Land the reviewed copied binding through its dedicated synchronization work.
+2. Update CLI code and tests against that checked-in binding.
+3. Run `pnpm check:openapi`, `pnpm check:cli-contract`, and the relevant test slices.

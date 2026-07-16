@@ -1,103 +1,45 @@
 # API Contract Workflow
 
-This is the hard-cutover contract-first workflow for the shipped Regents CLI surface.
+Regents CLI is validated as a standalone repository. Local checks never discover private coordination files or require another product checkout.
 
-## Source Of Truth
+## Repository-local truth
 
-The portfolio release contract lives in:
+- `shared-cli-contract.yaml` owns repository-local public commands, flags, arguments, auth modes, and help metadata.
+- `regent-services-contract.openapiv3.yaml` owns the shared-services HTTP routes maintained here.
+- `json-rpc-methods.yaml` owns local runtime JSON-RPC methods.
+- `schemas/wallet-action.schema.yaml` owns the prepared wallet-action envelope.
+- `../packages/regents-cli/src/contracts/api-ownership.ts` maps API-backed commands to product owners.
+- `../packages/regents-cli/src/generated/` contains checked-in generated bindings and reviewed copies of product-owned API inputs.
 
-- [`meta/stack.yaml`](/Users/sean/Documents/regent/meta/stack.yaml)
+The Platform, Techtree, and Autolaunch generated bindings are copied inputs. Their upstream synchronization happens in separately authorized work and is not performed or discovered by this repository's checks.
 
-That file declares the required repos, owned domains, contract files, generated bindings, release checks, shared contract mirrors, money-movement rows, and incident classes. Cross-repo release checks read from that file instead of keeping separate path lists. `pnpm check:meta` (aliased by `pnpm check:workspace`) validates it.
+## Change order
 
-Backend HTTP contracts now live in exactly four OpenAPI files:
+For a repository-owned CLI command change:
 
-- [`../../platform/contracts/platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/api-contract.openapiv3.yaml)
-- [`../../platform/contracts/techtree/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/api-contract.openapiv3.yaml)
-- [`../../platform/contracts/autolaunch/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/autolaunch/api-contract.openapiv3.yaml)
-- [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml)
+1. Update `shared-cli-contract.yaml`.
+2. Update the route handler and tests.
+3. Run `pnpm generate:cli-command-metadata`.
+4. Run the ordered checks below.
 
-If an HTTP route changes, the owning OpenAPI file changes first. If the OpenAPI file did not change, the backend contract did not change.
+For a shared-services HTTP change:
 
-CLI command contracts now live in exactly four YAML files:
+1. Update `regent-services-contract.openapiv3.yaml`.
+2. Run `pnpm generate:openapi`.
+3. Update implementation and tests.
+4. Run the ordered checks below.
 
-- [`../../platform/contracts/platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/cli-contract.yaml)
-- [`../../platform/contracts/techtree/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/techtree/cli-contract.yaml)
-- [`../../platform/contracts/autolaunch/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/autolaunch/cli-contract.yaml)
-- [`shared-cli-contract.yaml`](/Users/sean/Documents/regent/regents-cli/docs/shared-cli-contract.yaml)
+For a product-owned API change, land the reviewed copied binding through its dedicated synchronization work before changing code that consumes it.
 
-If a shipped command changes, the owning CLI contract file changes first. If the CLI contract file did not change, the command surface did not change.
-
-Regents CLI is the strongest source for shipped command behavior. Product HTTP contracts still own route shape, but app routes, database state, fixtures, and tests must conform when a Platform, Techtree, Autolaunch, or shared-service flow is exposed through the shipped CLI.
-
-Served contract copies are generated artifacts:
-
-- [`../../platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/api-contract.openapiv3.yaml) comes from [`../../platform/contracts/platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/api-contract.openapiv3.yaml)
-- [`../../platform/priv/contracts/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/priv/contracts/api-contract.openapiv3.yaml) comes from [`../../platform/contracts/platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/api-contract.openapiv3.yaml)
-- [`../../platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/cli-contract.yaml) comes from [`../../platform/contracts/platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/cli-contract.yaml)
-- [`../../platform/priv/contracts/cli-contract.yaml`](/Users/sean/Documents/regent/platform/priv/contracts/cli-contract.yaml) comes from [`../../platform/contracts/platform/cli-contract.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/cli-contract.yaml)
-- [`../../fly-sentinel/priv/static/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/fly-sentinel/priv/static/api-contract.openapiv3.yaml) comes from [`../../fly-sentinel/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/fly-sentinel/api-contract.openapiv3.yaml)
-- [`../../platform/contracts/shared/regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/shared/regent-services-contract.openapiv3.yaml) comes from [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml)
-- [`../../siwa-server/priv/static/regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/siwa-server/priv/static/regent-services-contract.openapiv3.yaml) comes from [`regent-services-contract.openapiv3.yaml`](/Users/sean/Documents/regent/regents-cli/docs/regent-services-contract.openapiv3.yaml)
-- [`../../platform/priv/static/install.sh`](/Users/sean/Documents/regent/platform/priv/static/install.sh) comes from [`../scripts/install.sh`](/Users/sean/Documents/regent/regents-cli/scripts/install.sh)
-
-Refresh these artifacts with:
-
-```bash
-../../scripts/sync-contract-artifacts.sh
-```
-
-## Ownership
-
-- `techtree` owns Techtree HTTP routes, including the public `/api/techtree/v1/runtime/*` read endpoints and agent-authenticated `/api/techtree/v1/agent/runtime/*` publish endpoints, the BBH stack, reviewer routes, and certificate verification.
-- `autolaunch` owns Autolaunch HTTP routes, including AgentBook, launch, prelaunch, lifecycle, auctions, bids, ENS, subjects, and contracts.
-- `platform` owns Platform HTTP routes, including AgentBook trust sessions and platform-managed ENS preparation.
-- `shared-services` owns shared identity, shared SIWA auth, signed request verification, shared Regent staking, health, metrics, contract discovery, and keyring routes.
-
-The shared SIWA codebase is [`/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir`](/Users/sean/Documents/regent/elixir-utils/siwa/siwa-elixir). Product repos may host adapters or route mounts, but they do not own the shared SIWA contract.
-
-The checked-in command ownership registry lives at [`../packages/regents-cli/src/contracts/api-ownership.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/contracts/api-ownership.ts). Every API-backed CLI command must map to one of those four owners.
-
-## Generated Types
-
-The CLI generates TypeScript contract types from those OpenAPI files into:
-
-- [`../packages/regents-cli/src/generated/platform-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/platform-openapi.ts)
-- [`../packages/regents-cli/src/generated/techtree-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/techtree-openapi.ts)
-- [`../packages/regents-cli/src/generated/autolaunch-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/autolaunch-openapi.ts)
-- [`../packages/regents-cli/src/generated/regent-services-openapi.ts`](/Users/sean/Documents/regent/regents-cli/packages/regents-cli/src/generated/regent-services-openapi.ts)
-
-Regenerate them with:
-
-```bash
-pnpm generate:openapi
-```
-
-Check that the repo is in sync with the contract files with:
+## Validation
 
 ```bash
 pnpm check:workspace
 pnpm check:openapi
+pnpm check:cli-contract
+pnpm build
+pnpm typecheck
+pnpm test
 ```
 
-The release helper now treats `pnpm check:workspace` and `pnpm check:openapi` as release gates.
-
-## Required Change Order
-
-When you change an HTTP-backed CLI command or backend route:
-
-1. Edit the owning OpenAPI file if the backend HTTP contract changed.
-2. Edit the owning CLI contract YAML if the shipped command surface changed.
-3. Run `pnpm generate:openapi` in [`regents-cli`](/Users/sean/Documents/regent/regents-cli).
-4. Update backend code to match the contract.
-5. Update CLI code to match the contract.
-6. Update or add tests.
-7. Run `pnpm check:workspace`, `pnpm check:openapi`, `pnpm check:cli-contract`, `pnpm typecheck`, and the relevant test slices.
-
-## Not In OpenAPI
-
-Not everything in the CLI belongs in these three files.
-
-- Local runtime JSON-RPC stays documented in [`json-rpc-methods.md`](/Users/sean/Documents/regent/regents-cli/docs/json-rpc-methods.md).
-- Product chat commands use the owning HTTP contracts. The CLI surfaces are `regents techtree chat ...` and `regents autolaunch chat ...`, with one chat scope selecting the product room.
-- Purely local setup commands such as `regents run`, `regents init`, `regents config ...`, and doctor/runtime helpers do not belong in the HTTP contracts.
+These gates verify only repository-local contracts, copied inputs, generated files, routes, documentation, and tests.

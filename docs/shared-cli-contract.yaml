@@ -515,33 +515,6 @@ command_groups:
             - regents commands list
             - regents commands list --json
             - regents commands list --search chat --json
-        meta check:
-          category: diagnostics
-          prompt_behavior: never_prompt
-          json_support: supported
-          mutation_class: local-read
-          retry_behavior: safe
-          pagination: none
-          async_behavior: synchronous
-          input_mode: flags
-          summary: Check the Regent meta control plane for drift.
-          next_step: regents meta render --check
-          examples:
-            - regents meta check
-        meta render:
-          category: diagnostics
-          prompt_behavior: never_prompt
-          json_support: supported
-          mutation_class: local-write
-          retry_behavior: safe
-          pagination: none
-          async_behavior: synchronous
-          input_mode: flags
-          summary: Refresh the generated Regent meta views.
-          next_step: regents meta check
-          examples:
-            - regents meta render
-            - regents meta render --check
     commands:
       - init
       - start
@@ -560,8 +533,6 @@ command_groups:
       - run
       - config get
       - config write
-      - meta check
-      - meta render
       - agent init
       - agent status
       - agent profile list
@@ -652,20 +623,6 @@ command_groups:
           enum: [auto, hermes, openclaw]
           required: false
           description: Runtime to diagnose. Defaults to auto, which diagnoses both runtimes. Use hermes or openclaw when the agent app says Regent tools are missing.
-      meta check:
-        - name: --json
-          type: boolean
-          required: false
-          description: Print the check result as JSON.
-      meta render:
-        - name: --check
-          type: boolean
-          required: false
-          description: Check whether generated meta views are current without changing files.
-        - name: --json
-          type: boolean
-          required: false
-          description: Print the render result as JSON.
   - name: wallet
     interface: runtime
     auth_mode: none

@@ -1,208 +1,65 @@
-import fs from "node:fs";
 import path from "node:path";
-
-import YAML from "yaml";
 
 import { getBooleanFlag, type ParsedCliArgs } from "../parse.js";
 import { printJson, printText } from "../printer.js";
 import { renderTablePanel } from "../terminal/table.js";
-import {
-    allContractEntries,
-    defaultWorkspaceManifestPath,
-    incidentClasses,
-    knownReleaseGaps,
-    moneyMovementRows,
-    readWorkspaceManifest,
-    repoEntries,
-    sharedContractPairs,
-    walletActionSchemaPath,
-} from "../workspace/manifest.js";
-import { dirExists, fileExists, findRepoRoot } from "./doctor-shared.js";
+import { fileExists, findRepoRoot } from "./doctor-shared.js";
 
-interface WorkspaceDoctorRepoResult {
-    readonly name: string;
-    readonly owner: string;
+interface LocalWorkspaceFile {
+    readonly label: string;
     readonly path: string;
     readonly loaded: boolean;
-    readonly requiredForPublicBeta: boolean;
-    readonly releaseGroup: string;
-    readonly ownedDomainCount: number;
-    readonly contractCount: number;
-    readonly acceptanceCommandCount: number;
 }
 
 interface WorkspaceDoctorReport {
     readonly ok: boolean;
     readonly command: "regents doctor workspace";
     readonly root: string;
-    readonly manifestPath: string;
-    readonly repos: readonly WorkspaceDoctorRepoResult[];
-    readonly sharedContractPairs: readonly {
-        readonly id: string;
-        readonly source: string;
-        readonly mirror: string;
-        readonly matches: boolean;
-    }[];
-    readonly walletActionSchemaPath: string;
-    readonly walletActionSchemaLoaded: boolean;
-    readonly moneyMovementRows: number;
-    readonly incidentClasses: number;
-    readonly openReleaseGaps: number;
+    readonly files: readonly LocalWorkspaceFile[];
     readonly summary: {
-        readonly requiredRepos: number;
-        readonly missingRequiredRepos: number;
-        readonly contracts: number;
-        readonly acceptanceCommands: number;
+        readonly requiredFiles: number;
+        readonly missingFiles: number;
     };
 }
 
-interface BuildWorkspaceDoctorReportOptions {
-    readonly manifestPath?: string;
-}
+const requiredFiles = (root: string): readonly Omit<LocalWorkspaceFile, "loaded">[] => [
+    { label: "workspace package", path: path.join(root, "package.json") },
+    { label: "CLI package", path: path.join(root, "packages/regents-cli/package.json") },
+    { label: "shared CLI contract", path: path.join(root, "docs/shared-cli-contract.yaml") },
+    { label: "shared services contract", path: path.join(root, "docs/regent-services-contract.openapiv3.yaml") },
+    { label: "runtime contract", path: path.join(root, "docs/json-rpc-methods.yaml") },
+    { label: "WalletAction schema", path: path.join(root, "docs/schemas/wallet-action.schema.yaml") },
+    { label: "CLI command metadata", path: path.join(root, "packages/regents-cli/src/generated/cli-command-metadata.ts") },
+    { label: "Platform copied API binding", path: path.join(root, "packages/regents-cli/src/generated/platform-openapi.ts") },
+    { label: "Techtree copied API binding", path: path.join(root, "packages/regents-cli/src/generated/techtree-openapi.ts") },
+    { label: "Autolaunch copied API binding", path: path.join(root, "packages/regents-cli/src/generated/autolaunch-openapi.ts") },
+    { label: "shared services generated binding", path: path.join(root, "packages/regents-cli/src/generated/regent-services-openapi.ts") },
+];
 
-export const buildWorkspaceDoctorReport = (
-    _configPath?: string,
-    options: BuildWorkspaceDoctorReportOptions = {},
-): WorkspaceDoctorReport => {
+export const buildWorkspaceDoctorReport = (): WorkspaceDoctorReport => {
     const root = findRepoRoot();
-    const manifestPath = options.manifestPath ?? defaultWorkspaceManifestPath(root);
-    const manifest = readWorkspaceManifest(root, YAML, manifestPath);
-    const contracts = allContractEntries(manifest, root);
-    const repos = repoEntries(manifest, root).map((repo: {
-        name: string;
-        owner: string;
-        resolvedPath: string;
-        requiredForPublicBeta: boolean;
-        releaseGroup: string;
-        owns: readonly string[];
-        acceptanceCommands: readonly unknown[];
-    }): WorkspaceDoctorRepoResult => ({
-        name: repo.name,
-        owner: repo.owner,
-        path: repo.resolvedPath,
-        loaded: dirExists(repo.resolvedPath),
-        requiredForPublicBeta: repo.requiredForPublicBeta,
-        releaseGroup: repo.releaseGroup,
-        ownedDomainCount: repo.owns.length,
-        contractCount: contracts.filter((contract: { repo: string }) => contract.repo === repo.name).length,
-        acceptanceCommandCount: repo.acceptanceCommands.length,
-    }));
-
-    const pairs = sharedContractPairs(manifest, root).map((pair: { id: string; source: string; mirror: string }) => ({
-        id: pair.id,
-        source: pair.source,
-        mirror: pair.mirror,
-        matches: fileExists(pair.source) && fileExists(pair.mirror) && fs.readFileSync(pair.source).equals(fs.readFileSync(pair.mirror)),
-    }));
-    const schemaPath = walletActionSchemaPath(manifest, root);
-    const missingRequiredRepos = repos.filter((repo) => repo.requiredForPublicBeta && !repo.loaded).length;
-    const acceptanceCommands = repos.reduce((count, repo) => count + repo.acceptanceCommandCount, 0);
-    const pairFailures = pairs.filter((pair) => !pair.matches).length;
-
+    const files = requiredFiles(root).map((file) => ({ ...file, loaded: fileExists(file.path) }));
+    const missingFiles = files.filter((file) => !file.loaded).length;
     return {
-        ok: missingRequiredRepos === 0 && pairFailures === 0 && fileExists(schemaPath),
+        ok: missingFiles === 0,
         command: "regents doctor workspace",
         root,
-        manifestPath,
-        repos,
-        sharedContractPairs: pairs,
-        walletActionSchemaPath: schemaPath,
-        walletActionSchemaLoaded: fileExists(schemaPath),
-        moneyMovementRows: moneyMovementRows(manifest).length,
-        incidentClasses: incidentClasses(manifest).length,
-        openReleaseGaps: knownReleaseGaps(manifest).filter((gap: { status: string }) => gap.status !== "done").length,
-        summary: {
-            requiredRepos: repos.filter((repo) => repo.requiredForPublicBeta).length,
-            missingRequiredRepos,
-            contracts: contracts.length,
-            acceptanceCommands,
-        },
+        files,
+        summary: { requiredFiles: files.length, missingFiles },
     };
 };
 
-const renderWorkspaceDoctorReport = (report: WorkspaceDoctorReport): string => {
-    return [
-        renderTablePanel(
-            "WORKSPACE",
-            [
-                { header: "repo" },
-                { header: "group" },
-                { header: "required" },
-                { header: "present" },
-                { header: "contracts", align: "right" },
-                { header: "checks", align: "right" },
-                { header: "path" },
-            ],
-            report.repos.map((repo) => ({
-                cells: [
-                    repo.name,
-                    repo.releaseGroup,
-                    repo.requiredForPublicBeta ? "yes" : "no",
-                    repo.loaded ? "yes" : "no",
-                    String(repo.contractCount),
-                    String(repo.acceptanceCommandCount),
-                    path.relative(report.root, repo.path),
-                ],
-            })),
-        ),
-        renderTablePanel(
-            "SHARED CONTRACTS",
-            [
-                { header: "pair" },
-                { header: "matches" },
-                { header: "source" },
-                { header: "mirror" },
-            ],
-            report.sharedContractPairs.map((pair) => ({
-                cells: [
-                    pair.id,
-                    pair.matches ? "yes" : "no",
-                    path.relative(report.root, pair.source),
-                    path.relative(report.root, pair.mirror),
-                ],
-            })),
-        ),
-        renderTablePanel(
-            "SUMMARY",
-            [
-                { header: "required repos", align: "right" },
-                { header: "missing repos", align: "right" },
-                { header: "contracts", align: "right" },
-                { header: "checks", align: "right" },
-                { header: "money rows", align: "right" },
-                { header: "incidents", align: "right" },
-                { header: "open gaps", align: "right" },
-                { header: "WalletAction" },
-                { header: "ready" },
-            ],
-            [
-                {
-                    cells: [
-                        String(report.summary.requiredRepos),
-                        String(report.summary.missingRequiredRepos),
-                        String(report.summary.contracts),
-                        String(report.summary.acceptanceCommands),
-                        String(report.moneyMovementRows),
-                        String(report.incidentClasses),
-                        String(report.openReleaseGaps),
-                        report.walletActionSchemaLoaded ? "present" : "missing",
-                        report.ok ? "yes" : "no",
-                    ],
-                },
-            ],
-        ),
-    ].join("\n\n");
-};
+const renderWorkspaceDoctorReport = (report: WorkspaceDoctorReport): string => renderTablePanel(
+    "LOCAL WORKSPACE",
+    [{ header: "input" }, { header: "present" }, { header: "path" }],
+    report.files.map((file) => ({
+        cells: [file.label, file.loaded ? "yes" : "no", path.relative(report.root, file.path)],
+    })),
+);
 
-export const runDoctorWorkspaceCommand = (args: ParsedCliArgs, configPath?: string): number => {
-    const json = getBooleanFlag(args, "json");
-    const report = buildWorkspaceDoctorReport(configPath);
-    if (json) {
-        printJson(report);
-    }
-    else {
-        printText(renderWorkspaceDoctorReport(report));
-    }
-
+export const runDoctorWorkspaceCommand = (args: ParsedCliArgs, _configPath?: string): number => {
+    const report = buildWorkspaceDoctorReport();
+    if (getBooleanFlag(args, "json")) printJson(report);
+    else printText(renderWorkspaceDoctorReport(report));
     return report.ok ? 0 : 1;
 };

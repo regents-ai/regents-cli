@@ -48,7 +48,7 @@ Manual installs need `regents init`. Run `regents setup` when you want the guide
 
 ## Agent Orientation
 
-Command behavior starts in the CLI contracts, then flows into generated files and handlers. The main CLI contract is [`docs/shared-cli-contract.yaml`](docs/shared-cli-contract.yaml). Product HTTP routes live in the sibling Platform contracts under `../platform/contracts/{platform,techtree,autolaunch}/api-contract.openapiv3.yaml`. Generated files under `packages/regents-cli/src/generated/` are build artifacts.
+Command behavior starts in [`docs/shared-cli-contract.yaml`](docs/shared-cli-contract.yaml), local route registries, and the checked-in API bindings under `packages/regents-cli/src/generated/`. The repository builds and validates without private coordination files or another product checkout.
 
 Repo instructions live in [`AGENTS.md`](AGENTS.md). Agent skills ship under [`packages/regents-cli/skills/`](packages/regents-cli/skills/).
 
@@ -58,7 +58,7 @@ Use these checks before handing work back:
 pnpm build
 pnpm typecheck
 pnpm test
-pnpm check:meta
+pnpm check:workspace
 pnpm check:openapi
 pnpm check:cli-contract
 ```

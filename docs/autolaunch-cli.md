@@ -4,9 +4,9 @@ Autolaunch is a command group inside `regents-cli`.
 
 If you already have an agent, use `regents autolaunch ...`. If you do not have an agent yet, use [regents.sh](https://regents.sh) to make one.
 
-The source of truth for Autolaunch HTTP routes is the OpenAPI file at [`../../platform/contracts/autolaunch/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/autolaunch/api-contract.openapiv3.yaml).
+The CLI consumes the reviewed Autolaunch API binding checked in at `packages/regents-cli/src/generated/autolaunch-openapi.ts`.
 
-The Platform-owned `regent-staking` rail uses [`../../platform/contracts/platform/api-contract.openapiv3.yaml`](/Users/sean/Documents/regent/platform/contracts/platform/api-contract.openapiv3.yaml) as its source of truth.
+The `regent-staking` rail consumes the reviewed Platform API binding checked in at `packages/regents-cli/src/generated/platform-openapi.ts`.
 
 Chain language for this command group:
 
@@ -120,7 +120,7 @@ regents autolaunch vesting status --job <job-id>
 
 Skip the Safe commands only when the agent Safe already exists and the launch plan already points to it.
 
-For first-time walkthroughs and common-command guides, use the public Autolaunch guides at `/learn/autolaunch/` on regents.sh (sources live in [`../../platform/learn-site/src/content/docs/learn/autolaunch/`](/Users/sean/Documents/regent/platform/learn-site/src/content/docs/learn/autolaunch)).
+For first-time walkthroughs and common-command guides, use the public Autolaunch guides at `/learn/autolaunch/` on regents.sh.
 
 ## Fixed economic rules
 

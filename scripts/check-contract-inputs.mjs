@@ -1,38 +1,27 @@
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import process from "node:process";
-import { loadYaml } from "./dependency-preflight.mjs";
-import {
-  readWorkspaceManifest,
-  requiredWorkspaceFiles,
-} from "../packages/regents-cli/src/workspace/manifest.js";
 
 const root = resolve(import.meta.dirname, "..");
-const YAML = await loadYaml(root);
-const manifest = readWorkspaceManifest(root, YAML);
+const requiredInputs = [
+  ["shared CLI contract", "docs/shared-cli-contract.yaml"],
+  ["shared services OpenAPI contract", "docs/regent-services-contract.openapiv3.yaml"],
+  ["runtime JSON-RPC contract", "docs/json-rpc-methods.yaml"],
+  ["WalletAction schema", "docs/schemas/wallet-action.schema.yaml"],
+  ["Platform copied API binding", "packages/regents-cli/src/generated/platform-openapi.ts"],
+  ["Techtree copied API binding", "packages/regents-cli/src/generated/techtree-openapi.ts"],
+  ["Autolaunch copied API binding", "packages/regents-cli/src/generated/autolaunch-openapi.ts"],
+  ["shared services generated binding", "packages/regents-cli/src/generated/regent-services-openapi.ts"],
+];
 
-const requiredFiles = requiredWorkspaceFiles(manifest, root);
-
-const missingFiles = requiredFiles.filter(({ path, kind }) => {
-  try {
-    if (!existsSync(path)) {
-      return true;
-    }
-    const stats = statSync(path);
-    return kind === "dir" ? !stats.isDirectory() : !stats.isFile();
-  } catch {
-    return true;
-  }
+const missing = requiredInputs.filter(([, relativePath]) => {
+  const inputPath = resolve(root, relativePath);
+  return !existsSync(inputPath) || !statSync(inputPath).isFile();
 });
 
-if (missingFiles.length > 0) {
-  console.error("Contract checks need these files before they can run:");
-  for (const file of missingFiles) {
-    console.error(`- ${file.label}: ${file.path}`);
-  }
-  console.error("");
-  console.error("Check out the sibling contract repositories, then rerun the check.");
+if (missing.length > 0) {
+  console.error("Repository checks need these local inputs:");
+  for (const [label, relativePath] of missing) console.error(`- ${label}: ${relativePath}`);
   process.exit(1);
 }
 
-console.log("contract input check passed");
+console.log("repository-local contract input check passed");
