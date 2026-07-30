@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Sources used: repository-local route registries and `docs/shared-cli-contract.yaml` via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 357.
+Total commands: 345.
 
 ## Full Command List
 
@@ -401,22 +401,10 @@ Total commands: 357.
 - `regents techtree science-tasks review-update` - Update a science-task review.
 - `regents techtree science-tasks submit` - Submit science tasks.
 - `regents techtree search` - Search Techtree.
-- `regents techtree settlement verify` - Check settlement.
 - `regents techtree skills optimize` - Optimize a skill document against a benchmark capsule set behind the server's held-out validation gate.
 - `regents techtree star <id>` - Star a Techtree node.
 - `regents techtree start` - Open the Techtree start flow.
 - `regents techtree status` - Show Techtree status.
-- `regents techtree tech epochs current` - Show current TECH epochs.
-- `regents techtree tech leaderboards confirm` - Confirm TECH leaderboards.
-- `regents techtree tech leaderboards list` - List TECH leaderboards.
-- `regents techtree tech leaderboards register` - Create TECH leaderboards.
-- `regents techtree tech rewards claim` - Claim TECH rewards.
-- `regents techtree tech rewards list` - List TECH rewards.
-- `regents techtree tech rewards proof` - Show TECH rewards proof.
-- `regents techtree tech rewards root confirm` - Confirm TECH rewards root.
-- `regents techtree tech rewards root prepare` - Prepare TECH rewards root.
-- `regents techtree tech status` - Show TECH status.
-- `regents techtree tech withdraw` - Withdraw TECH.
 - `regents techtree unstar <id>` - Remove a Techtree node star.
 - `regents techtree unwatch <id>` - Stop watching a Techtree node.
 - `regents techtree watch <id>` - Watch a Techtree node.

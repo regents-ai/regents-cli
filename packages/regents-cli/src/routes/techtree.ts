@@ -83,17 +83,6 @@ import {
   runTechtreeRunbookQuestionsGet,
   runTechtreeRunbookQuestionsList,
   runTechtreeRunbookUnlock,
-  runTechtreeTechEpochCurrent,
-  runTechtreeTechLeaderboardsConfirm,
-  runTechtreeTechLeaderboardsList,
-  runTechtreeTechLeaderboardsRegister,
-  runTechtreeTechRewardsClaim,
-  runTechtreeTechRewardsList,
-  runTechtreeTechRewardsProof,
-  runTechtreeTechRewardsRootConfirm,
-  runTechtreeTechRewardsRootPrepare,
-  runTechtreeTechStatus,
-  runTechtreeTechWithdraw,
 } from "../commands/techtree.js";
 import {
   runTechtreeFoldPolicyInit,
@@ -107,7 +96,6 @@ import {
 } from "../commands/techtree-identities.js";
 import { runTechtreeSkillsOptimize } from "../commands/techtree-skills.js";
 import { runTechtreeStartCommand } from "../commands/techtree-start.js";
-import { runTechtreeSettlementVerify } from "../commands/techtree-settlement-verify.js";
 import {
   runTechtreeBbhDraftApply,
   runTechtreeBbhDraftCreate,
@@ -226,18 +214,6 @@ export const techtreeHandlers: CliHandlerRegistry = {
   "techtree runbook answer vote <answer_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookAnswerVote(parsedArgs, configPath) },
   "techtree runbook mark-solved <question_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookMarkSolved(parsedArgs, configPath) },
   "techtree runbook unlock <answer_id>": { run: ({ parsedArgs, configPath }) => runTechtreeRunbookUnlock(parsedArgs, configPath) },
-  "techtree tech status": { run: ({ parsedArgs, configPath }) => runTechtreeTechStatus(parsedArgs, configPath) },
-  "techtree tech epochs current": { run: ({ parsedArgs, configPath }) => runTechtreeTechEpochCurrent(parsedArgs, configPath) },
-  "techtree tech leaderboards list": { run: ({ parsedArgs, configPath }) => runTechtreeTechLeaderboardsList(parsedArgs, configPath) },
-  "techtree tech leaderboards register": { run: ({ parsedArgs, configPath }) => runTechtreeTechLeaderboardsRegister(parsedArgs, configPath) },
-  "techtree tech leaderboards confirm": { run: ({ parsedArgs, configPath }) => runTechtreeTechLeaderboardsConfirm(parsedArgs, configPath) },
-  "techtree tech rewards list": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsList(parsedArgs, configPath) },
-  "techtree tech rewards proof": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsProof(parsedArgs, configPath) },
-  "techtree tech rewards claim": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsClaim(parsedArgs, configPath) },
-  "techtree tech rewards root prepare": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsRootPrepare(parsedArgs, configPath) },
-  "techtree tech rewards root confirm": { run: ({ parsedArgs, configPath }) => runTechtreeTechRewardsRootConfirm(parsedArgs, configPath) },
-  "techtree tech withdraw": { run: ({ parsedArgs, configPath }) => runTechtreeTechWithdraw(parsedArgs, configPath) },
-  "techtree settlement verify": { run: ({ parsedArgs, configPath }) => runTechtreeSettlementVerify(parsedArgs, configPath) },
   // `techtree start` owns its exit code via runTechtreeStartCommand (mirrors top-level `start`).
   "techtree start": { run: ({ parsedArgs, configPath }) => runTechtreeStartCommand(parsedArgs, configPath) },
   "techtree skills optimize": { run: ({ parsedArgs, configPath }) => runTechtreeSkillsOptimize(parsedArgs, configPath) },

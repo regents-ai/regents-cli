@@ -70,17 +70,6 @@ import {
   handleTechtreeRunbookQuestionsGet,
   handleTechtreeRunbookQuestionsList,
   handleTechtreeRunbookUnlock,
-  handleTechtreeTechEpochCurrent,
-  handleTechtreeTechLeaderboardsConfirm,
-  handleTechtreeTechLeaderboardsList,
-  handleTechtreeTechLeaderboardsRegister,
-  handleTechtreeTechRewardsClaim,
-  handleTechtreeTechRewardsList,
-  handleTechtreeTechRewardsProof,
-  handleTechtreeTechRewardsRootConfirm,
-  handleTechtreeTechRewardsRootPrepare,
-  handleTechtreeTechStatus,
-  handleTechtreeTechWithdraw,
   handleTechtreeCommentCreate,
   handleTechtreeInboxGet,
   handleTechtreeAgentProfile,
@@ -668,55 +657,6 @@ export class RegentKernel {
         return handleTechtreeFoldEvidencePacket(ctx);
       case "techtree.fold.proof":
         return handleTechtreeFoldProof(ctx, params as Parameters<typeof handleTechtreeFoldProof>[1]);
-      case "techtree.tech.status":
-        return handleTechtreeTechStatus(ctx);
-      case "techtree.tech.epochs.current":
-        return handleTechtreeTechEpochCurrent(ctx);
-      case "techtree.tech.leaderboards.list":
-        return handleTechtreeTechLeaderboardsList(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechLeaderboardsList>[1],
-        );
-      case "techtree.tech.leaderboards.register":
-        return handleTechtreeTechLeaderboardsRegister(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechLeaderboardsRegister>[1],
-        );
-      case "techtree.tech.leaderboards.confirm":
-        return handleTechtreeTechLeaderboardsConfirm(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechLeaderboardsConfirm>[1],
-        );
-      case "techtree.tech.rewards.list":
-        return handleTechtreeTechRewardsList(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechRewardsList>[1],
-        );
-      case "techtree.tech.rewards.proof":
-        return handleTechtreeTechRewardsProof(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechRewardsProof>[1],
-        );
-      case "techtree.tech.rewards.claim":
-        return handleTechtreeTechRewardsClaim(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechRewardsClaim>[1],
-        );
-      case "techtree.tech.rewards.root.prepare":
-        return handleTechtreeTechRewardsRootPrepare(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechRewardsRootPrepare>[1],
-        );
-      case "techtree.tech.rewards.root.confirm":
-        return handleTechtreeTechRewardsRootConfirm(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechRewardsRootConfirm>[1],
-        );
-      case "techtree.tech.withdraw":
-        return handleTechtreeTechWithdraw(
-          ctx,
-          params as Parameters<typeof handleTechtreeTechWithdraw>[1],
-        );
       case "techtree.runbook.questions.list":
         return handleTechtreeRunbookQuestionsList(
           ctx,

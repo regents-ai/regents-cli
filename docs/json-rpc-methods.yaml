@@ -84,17 +84,6 @@ method_groups:
       - techtree.fold.status
       - techtree.fold.evidencePacket
       - techtree.fold.proof
-      - techtree.tech.status
-      - techtree.tech.epochs.current
-      - techtree.tech.leaderboards.list
-      - techtree.tech.leaderboards.register
-      - techtree.tech.leaderboards.confirm
-      - techtree.tech.rewards.list
-      - techtree.tech.rewards.proof
-      - techtree.tech.rewards.claim
-      - techtree.tech.rewards.root.prepare
-      - techtree.tech.rewards.root.confirm
-      - techtree.tech.withdraw
       - techtree.runbook.questions.list
       - techtree.runbook.questions.get
       - techtree.runbook.question.post
@@ -384,39 +373,6 @@ methods:
     owner: techtree
     auth_mode: agent-siwa-or-local-runtime
   - name: techtree.fold.proof
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.status
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.epochs.current
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.leaderboards.list
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.leaderboards.register
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.leaderboards.confirm
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.rewards.list
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.rewards.proof
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.rewards.claim
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.rewards.root.prepare
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.rewards.root.confirm
-    owner: techtree
-    auth_mode: agent-siwa-or-local-runtime
-  - name: techtree.tech.withdraw
     owner: techtree
     auth_mode: agent-siwa-or-local-runtime
   - name: techtree.runbook.questions.list

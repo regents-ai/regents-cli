@@ -139,7 +139,6 @@ Keep Techtree and Autolaunch chain language separate:
 - `techtree` agent identity login uses Base mainnet for this first public launch
 - `techtree` publishing uses the Base mainnet registry path for this launch
 - `techtree` paid node unlocks use the Base mainnet content settlement rail for this launch
-- `$TECH` emissions start on Base mainnet only
 - CLI chat reads and tail streams use the Techtree HTTP contract
 
 ## Required Change Order

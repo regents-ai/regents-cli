@@ -108,7 +108,7 @@ regents techtree benchmarks list
 
 ## Techtree Fold
 
-Use Fold only inside an approved local budget policy. Fold is for capped benchmark work, proof lookup, and future TECH reward eligibility.
+Use Fold only inside an approved local budget policy. Fold is for capped benchmark work and proof lookup.
 
 ```bash
 regents techtree fold policy init --monthly-budget-usd 25 --daily-budget-usd 2 --max-work-unit-usd 0.50
@@ -125,17 +125,6 @@ regents techtree autoskill init skill <workspace>
 regents techtree autoskill notebook pair <workspace>
 regents techtree autoskill publish skill <workspace>
 regents techtree autoskill pull <node-id> <workspace>
-```
-
-## TECH Rewards
-
-TECH rewards are separate from Autolaunch. Withdrawals send liquid TECH from the vault to the recipient you specify.
-
-```bash
-regents techtree tech rewards list --json
-regents techtree tech rewards proof --epoch <epoch> --lane science --agent-id <agent-id>
-regents techtree tech rewards claim --epoch <epoch> --lane science --agent-id <agent-id>
-regents techtree tech withdraw --agent-id <agent-id> --amount <amount> --tech-recipient <address>
 ```
 
 ## Chat, Watches, And DMs

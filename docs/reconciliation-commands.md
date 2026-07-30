@@ -1,6 +1,6 @@
 # Chain / API Reconciliation Commands
 
-Status: SHIPPED (2026-06-10). All five commands are live — `identity graph`, `autolaunch contracts verify`, `autolaunch subjects verify`, `regent-staking verify`, `techtree settlement verify`. The four verify commands gained their owning-contract entries (autolaunch/docs/cli-contract.yaml, platform/cli-contract.yaml, techtree/docs/cli-contract.yaml) and full implementations + tests. Several checks render `UNVERIFIABLE` until the sibling-API gaps below are closed (untyped autolaunch contract overviews and subject→launch link). Autolaunch subject money rows now publish explicit current-state fields and read sources. The vendored read ABIs are pinned to RegentRevenueStaking.sol and TechRewardRouter.sol; if those contracts change, update the ABIs in the command files. The "Required sibling-repo entries" and API-gap lists below are retained as the record of what was added and what remains to file with owners.
+Status: SHIPPED (2026-06-10). Four commands are live — `identity graph`, `autolaunch contracts verify`, `autolaunch subjects verify`, and `regent-staking verify`. The three verify commands gained their owning-contract entries (autolaunch/docs/cli-contract.yaml and platform/cli-contract.yaml) and full implementations + tests. Several checks render `UNVERIFIABLE` until the sibling-API gaps below are closed (untyped autolaunch contract overviews and subject→launch link). Autolaunch subject money rows now publish explicit current-state fields and read sources. The vendored read ABI is pinned to RegentRevenueStaking.sol; if that contract changes, update the ABI in the command file. The "Required sibling-repo entries" and API-gap lists below are retained as the record of what was added and what remains to file with owners.
 
 The Regents CLI is the bridge that checks product workflow state against onchain truth.
 These commands read public product APIs and chain RPC, then report where the two views
@@ -20,7 +20,6 @@ agree, disagree, or cannot be compared.
 | Binding | Contract file | Reconciliation-relevant operations |
 | --- | --- | --- |
 | `autolaunch-openapi.ts` | `autolaunch/docs/api-contract.openapiv3.yaml` | `agentListAgents`, `agentGetAgent`, `getContractsAdminOverview`, `agentGetContractsJobOverview`, `agentGetContractsSubjectOverview`, `agentGetSubject`, `agentListSubjectsByToken`, `agentGetSubjectIngress`, `agentGetSubjectStaking`, `agentListSubjectBuybacks`, `agentGetAuction`, `agentGetLaunchJob`, `agentGetLifecycleJob`, `agentGetVestingStatus` |
-| `techtree-openapi.ts` | `techtree/docs/api-contract.openapiv3.yaml` | `getTechStatus` (contract addresses), `getCurrentTechEpoch`, `listTechRewards` (manifests with `merkle_root`, `tx_hash`, `status`), `getTechRewardProof`, `getReviewerProfile` |
 | `platform-openapi.ts` | `platform/api-contract.openapiv3.yaml` | `getAgentRegentStakingOverview`, `getAgentRegentStakingAccount` (both return `RegentStakingState` with `contract_address`, `chain_id`, totals, and per-wallet balances/claimables), `/api/platform/projection` (`AgentPlatformProjection` with companies, runtime, public profiles) |
 | `regent-services-openapi.ts` | `docs/regent-services-contract.openapiv3.yaml` | Shared identity and SIWA routes. No reconciliation data. |
 
@@ -182,35 +181,7 @@ wallet against the staking contract.
     method names in `RegentStakingState`, or the CLI vendors the staking read ABI once
     the contract source is pinned.
 
-## 4. `regents techtree settlement verify` (design-only)
-
-Verifies TECH reward settlement records (paid-node / reward manifests) against chain
-receipts.
-
-- Data sources (API): `getTechStatus` (`GET /api/techtree/v1/tech/status` — `TechContractStatus`
-  publishes `chain_id`, `token`, `reward_router`, `agent_reward_vault`,
-  `emission_controller`, `leaderboard_registry`), `getCurrentTechEpoch`,
-  `listTechRewards` (`GET /api/techtree/v1/tech/rewards?epoch=&lane=` — manifests with
-  `merkle_root`, `manifest_hash`, `total_allocated_amount`, `status`, `tx_hash`),
-  `getTechRewardProof` for one agent's allocation.
-- Data sources (chain, Base): for each manifest with `status: posted` —
-  `getTransactionReceipt(tx_hash)` (success, to-address equals `reward_router`);
-  `readContract` on the reward router for the allocation root of `(epoch, lane)` and
-  compare with `merkle_root`; optionally verify the agent's Merkle proof locally
-  against the posted root (pure computation, no extra API).
-- Verdict logic: posted manifest whose `tx_hash` receipt is missing/failed →
-  `MISMATCH` (`Next: chain wins for rewards. The settlement record is not confirmed onchain; this is incident class paid_payload_entitlement (owner: techtree).`).
-  Onchain root differs from the manifest root → `MISMATCH` (chain wins). Manifest in
-  `prepared` state with no `tx_hash` → `MATCH` for workflow (product wins for
-  not-yet-posted records), with the detail saying settlement is pending.
-- Output: one row per `(epoch, lane)` manifest; with `--agent` adds an
-  `allocation proof` row for that agent id; `--json` includes manifests and receipts.
-- Missing from sibling APIs:
-  - The reward-router read ABI (allocation-root getter name) is not published. Either
-    techtree adds it to `TechContractStatus` or the CLI vendors the read ABI from
-    `techtree/contracts` once pinned.
-
-## 5. `regents identity graph` (shipped)
+## 4. `regents identity graph` (shipped)
 
 Renders the cross-product `agent_id` mapping anchored on
 `/Users/sean/Documents/regent/docs/schemas/agent-identity-graph.schema.yaml`:
@@ -269,13 +240,9 @@ Renders the cross-product `agent_id` mapping anchored on
   (positional `<address>` optional; flags: `--rpc-url`, `--json`) with
   `transport.operationIds: [getAgentRegentStakingOverview, getAgentRegentStakingAccount]`
   and availability `current` (it is a `regent-staking ` platform public command).
-- `techtree/docs/cli-contract.yaml`: add `techtree settlement verify`
-  (flags: `--epoch`, `--lane`, `--agent`, `--rpc-url`, `--json`) with path bindings
-  `/api/techtree/v1/tech/status`, `/api/techtree/v1/tech/epochs/current`, `/api/techtree/v1/tech/rewards`,
-  `/api/techtree/v1/tech/rewards/proof`, mirrored in `techtreeApiCommandGroups`.
 - API gaps to file with owners: typed Autolaunch contracts overviews, subject ingress
-  expected-unswept amounts, staking read ABI (platform), reward-router read ABI and
-  agent activity summary (techtree), agent card `launch_id` (autolaunch), and the
+  expected-unswept amounts, staking read ABI (platform), agent activity summary
+  (techtree), agent card `launch_id` (autolaunch), and the
   `LooseListEnvelope` drift on `GET /api/autolaunch/v1/agent/agents` — contract declares `data`,
   server returns `items` (autolaunch).
 

@@ -6,7 +6,6 @@ export * from "./techtree/notebooks.js";
 export * from "./techtree/benchmarks.js";
 export * from "./techtree/fold.js";
 export * from "./techtree/heartbeats.js";
-export * from "./techtree/tech.js";
 export * from "./techtree/runbook.js";
 export * from "./techtree/autoskill.js";
 export * from "./techtree/bbh.js";

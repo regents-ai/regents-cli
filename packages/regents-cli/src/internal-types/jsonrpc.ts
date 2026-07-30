@@ -124,20 +124,6 @@ import type {
   RunbookUnlockResponse,
   RunbookVoteInput,
   RunbookVoteResponse,
-  TechEpochResponse,
-  TechLeaderboardConfirmInput,
-  TechLeaderboardConfirmResponse,
-  TechLeaderboardListResponse,
-  TechLeaderboardRegisterPrepareInput,
-  TechPreparedTransactionResponse,
-  TechRewardClaimPrepareInput,
-  TechRewardProofResponse,
-  TechRewardRootConfirmInput,
-  TechRewardRootConfirmResponse,
-  TechRewardRootPrepareInput,
-  TechRewardsResponse,
-  TechStatusResponse,
-  TechWithdrawPrepareInput,
   TechtreeEvidencePacketResponse,
   TechtreeWorkKind,
   TechtreeWorkListResponse,
@@ -293,17 +279,6 @@ export type RegentRpcMethod =
   | "techtree.fold.status"
   | "techtree.fold.evidencePacket"
   | "techtree.fold.proof"
-  | "techtree.tech.status"
-  | "techtree.tech.epochs.current"
-  | "techtree.tech.leaderboards.list"
-  | "techtree.tech.leaderboards.register"
-  | "techtree.tech.leaderboards.confirm"
-  | "techtree.tech.rewards.list"
-  | "techtree.tech.rewards.proof"
-  | "techtree.tech.rewards.claim"
-  | "techtree.tech.rewards.root.prepare"
-  | "techtree.tech.rewards.root.confirm"
-  | "techtree.tech.withdraw"
   | "techtree.runbook.questions.list"
   | "techtree.runbook.questions.get"
   | "techtree.runbook.question.post"
@@ -534,17 +509,6 @@ export interface RegentRpcParamsMap {
   "techtree.fold.status": undefined;
   "techtree.fold.evidencePacket": undefined;
   "techtree.fold.proof": { attempt_id: string };
-  "techtree.tech.status": undefined;
-  "techtree.tech.epochs.current": undefined;
-  "techtree.tech.leaderboards.list": { status?: string; limit?: number } | undefined;
-  "techtree.tech.leaderboards.register": TechLeaderboardRegisterPrepareInput;
-  "techtree.tech.leaderboards.confirm": TechLeaderboardConfirmInput;
-  "techtree.tech.rewards.list": { epoch?: number; lane?: string; limit?: number } | undefined;
-  "techtree.tech.rewards.proof": { epoch: number; lane: string; agent_id: string };
-  "techtree.tech.rewards.claim": TechRewardClaimPrepareInput;
-  "techtree.tech.rewards.root.prepare": TechRewardRootPrepareInput;
-  "techtree.tech.rewards.root.confirm": TechRewardRootConfirmInput;
-  "techtree.tech.withdraw": TechWithdrawPrepareInput;
   "techtree.runbook.questions.list": { q?: string; status?: string; limit?: number } | undefined;
   "techtree.runbook.questions.get": { id: string };
   "techtree.runbook.question.post": RunbookQuestionCreateInput;
@@ -748,17 +712,6 @@ export interface RegentRpcResultMap {
   "techtree.fold.status": FoldStatusResponse;
   "techtree.fold.evidencePacket": TechtreeEvidencePacketResponse;
   "techtree.fold.proof": BenchmarkProofResponse;
-  "techtree.tech.status": TechStatusResponse;
-  "techtree.tech.epochs.current": TechEpochResponse;
-  "techtree.tech.leaderboards.list": TechLeaderboardListResponse;
-  "techtree.tech.leaderboards.register": TechPreparedTransactionResponse;
-  "techtree.tech.leaderboards.confirm": TechLeaderboardConfirmResponse;
-  "techtree.tech.rewards.list": TechRewardsResponse;
-  "techtree.tech.rewards.proof": TechRewardProofResponse;
-  "techtree.tech.rewards.claim": TechPreparedTransactionResponse;
-  "techtree.tech.rewards.root.prepare": TechPreparedTransactionResponse;
-  "techtree.tech.rewards.root.confirm": TechRewardRootConfirmResponse;
-  "techtree.tech.withdraw": TechPreparedTransactionResponse;
   "techtree.runbook.questions.list": RunbookQuestionListResponse;
   "techtree.runbook.questions.get": RunbookQuestionResponse;
   "techtree.runbook.question.post": RunbookQuestionResponse;
