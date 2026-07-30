@@ -1,9 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import type { NodeCreateResponse } from "../../internal-types/index.js";
-import type { RuntimeContext } from "../runtime.js";
-
 export type NotebookKind = "paper" | "freeform";
 
 export interface NotebookWorkspaceActionResult {
@@ -12,12 +9,6 @@ export interface NotebookWorkspaceActionResult {
   notebook_path: string;
   manifest_path: string;
   next: string[];
-}
-
-export interface NotebookPublishResult {
-  ok: true;
-  workspace_path: string;
-  techtree: NodeCreateResponse;
 }
 
 interface NotebookManifest {
@@ -119,9 +110,6 @@ export async function initNotebookWorkspace(input: {
     "",
     "Use this folder to capture the research question, method, evidence, and result.",
     "",
-    "Publish with:",
-    `regents techtree notebooks publish --workspace-path ${workspacePath}`,
-    "",
   ].join("\n"));
 
   return {
@@ -129,10 +117,7 @@ export async function initNotebookWorkspace(input: {
     workspace_path: workspacePath,
     notebook_path: notebookPath,
     manifest_path: manifestPath,
-    next: [
-      `uvx marimo edit ${notebookPath}`,
-      `regents techtree notebooks publish --workspace-path ${workspacePath}`,
-    ],
+    next: [`uvx marimo edit ${notebookPath}`],
   };
 }
 
@@ -152,36 +137,6 @@ export async function pairNotebookWorkspace(input: {
     workspace_path: workspacePath,
     notebook_path: notebookPath,
     manifest_path: path.join(workspacePath, manifestFile),
-    next: [
-      `uvx marimo edit ${notebookPath}`,
-      `regents techtree notebooks publish --workspace-path ${workspacePath}`,
-    ],
-  };
-}
-
-export async function publishNotebookWorkspace(
-  ctx: RuntimeContext,
-  input: { workspace_path: string; parent_id?: number },
-): Promise<NotebookPublishResult> {
-  const workspacePath = path.resolve(input.workspace_path);
-  const manifest = readManifest(workspacePath);
-  const notebookPath = path.join(workspacePath, manifest.notebook_file);
-  const notebookSourceBody = fs.readFileSync(notebookPath, "utf8");
-  const sourceSummary = manifest.source ? ` Source: ${manifest.source}.` : "";
-
-  const techtree = await ctx.techtree.createNode({
-    seed: "Notebooks",
-    kind: "result",
-    title: manifest.title,
-    parent_id: input.parent_id,
-    summary: `${manifest.summary}${sourceSummary}`,
-    notebook_source: notebookSourceBody,
-    idempotency_key: `notebook:${manifest.kind}:${workspacePath}`,
-  });
-
-  return {
-    ok: true,
-    workspace_path: workspacePath,
-    techtree,
+    next: [`uvx marimo edit ${notebookPath}`],
   };
 }

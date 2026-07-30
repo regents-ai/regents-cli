@@ -1,5 +1,5 @@
 export type DoctorStatus = "ok" | "warn" | "fail" | "skip";
-export type DoctorScope = "runtime" | "auth" | "techtree" | "transports" | "artifact" | "bbh";
+export type DoctorScope = "runtime" | "auth" | "transports";
 export type DoctorMode = "default" | "scoped" | "full";
 
 export interface DoctorCheckResult {

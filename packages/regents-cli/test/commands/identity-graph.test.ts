@@ -109,7 +109,6 @@ describe("identity graph command", () => {
     config.services.siwa.baseUrl = "https://siwa.regents.test";
     config.services.platform.baseUrl = platformOrigin;
     config.services.autolaunch.baseUrl = "http://127.0.0.1:4010";
-    config.services.techtree.baseUrl = "http://127.0.0.1:4020";
     fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
   };
 

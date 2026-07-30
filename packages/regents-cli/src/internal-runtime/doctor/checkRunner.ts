@@ -15,13 +15,8 @@ import { DoctorInternalError, errorMessage } from "../errors.js";
 import { defaultConfigPath, expandHome } from "../paths.js";
 import { SessionStore } from "../store/session-store.js";
 import { StateStore } from "../store/state-store.js";
-import { TechtreeClient } from "../techtree/client.js";
 import { authChecks } from "./checks/authChecks.js";
-import { artifactChecks } from "./checks/artifactChecks.js";
-import { bbhChecks } from "./checks/bbhChecks.js";
-import { fullChecks } from "./checks/fullChecks.js";
 import { runtimeChecks } from "./checks/runtimeChecks.js";
-import { techtreeChecks } from "./checks/techtreeChecks.js";
 import { transportChecks } from "./checks/transportChecks.js";
 import { deriveNextSteps } from "./renderNextSteps.js";
 import type {
@@ -33,28 +28,14 @@ import type {
 const DEFAULT_CHECK_FACTORIES: Array<() => DoctorCheckDefinition[]> = [
   runtimeChecks,
   authChecks,
-  techtreeChecks,
   transportChecks,
 ];
 
-const DEFAULT_REQUIRED_OK = new Set([
-  "runtime.config.load",
-  "runtime.paths.ensure",
-  "runtime.wallet.source",
-  "auth.identity.headers",
-  "auth.siwa.nonce.endpoint",
-  "auth.session.present",
-  "auth.session.freshness",
-  "auth.session.binding",
-  "auth.http-envelope.build",
-  "techtree.health",
-  "techtree.public.read",
-  "techtree.authenticated.probe",
-]);
-
 const createSigner = (config: DoctorCheckContext["config"]) => {
   if (!config) {
-    throw new DoctorInternalError("doctor config must be loaded before creating a signer");
+    throw new DoctorInternalError(
+      "doctor config must be loaded before creating a signer",
+    );
   }
 
   return new LocalKeySignerBackend({
@@ -63,35 +44,24 @@ const createSigner = (config: DoctorCheckContext["config"]) => {
   });
 };
 
-function resolveConfigPath(configPath?: string): string {
-  return path.resolve(expandHome(configPath ?? defaultConfigPath()));
-}
+const resolveConfigPath = (configPath?: string): string =>
+  path.resolve(expandHome(configPath ?? defaultConfigPath()));
 
 function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
   const runtimeContext = invocation.runtimeContext ?? null;
-  const resolvedConfigPath = resolveConfigPath(
-    invocation.configPath ?? runtimeContext?.runtime.configPath,
-  );
-
   const context: DoctorCheckContext = {
     mode: invocation.mode,
-    configPath: resolvedConfigPath,
+    configPath: resolveConfigPath(
+      invocation.configPath ?? runtimeContext?.runtime.configPath,
+    ),
     runtimeContext,
     config: runtimeContext?.config ?? null,
     configLoadError: null,
     stateStore: runtimeContext?.stateStore ?? null,
     sessionStore: runtimeContext?.sessionStore ?? null,
     signer: runtimeContext?.signer ?? null,
-    techtree: runtimeContext?.techtree ?? null,
     fix: invocation.params?.fix ?? false,
     verbose: invocation.params?.verbose ?? false,
-    knownParentId:
-      invocation.mode === "full" ? invocation.params?.knownParentId : undefined,
-    cleanupCommentBodyPrefix:
-      invocation.mode === "full"
-        ? invocation.params?.cleanupCommentBodyPrefix ?? "regent-doctor-comment"
-        : "regent-doctor-comment",
-    fullState: {},
     refreshConfig: () => {
       if (runtimeContext) {
         context.config = runtimeContext.config;
@@ -99,7 +69,6 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
         context.stateStore = runtimeContext.stateStore;
         context.sessionStore = runtimeContext.sessionStore;
         context.signer = runtimeContext.signer;
-        context.techtree = runtimeContext.techtree;
         return;
       }
 
@@ -108,22 +77,11 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
         const stateStore = new StateStore(
           path.join(config.runtime.stateDir, "runtime-state.json"),
         );
-        const sessionStore = new SessionStore(stateStore);
-        const signer = createSigner(config);
-        const techtree = new TechtreeClient({
-          config,
-          baseUrl: config.services.techtree.baseUrl,
-          requestTimeoutMs: config.services.techtree.requestTimeoutMs,
-          sessionStore,
-          stateStore,
-        });
-
         context.config = config;
         context.configLoadError = null;
         context.stateStore = stateStore;
-        context.sessionStore = sessionStore;
-        context.signer = signer;
-        context.techtree = techtree;
+        context.sessionStore = new SessionStore(stateStore);
+        context.signer = createSigner(config);
       } catch (error) {
         context.config = null;
         context.configLoadError =
@@ -131,7 +89,6 @@ function buildDoctorContext(invocation: DoctorInvocation): DoctorCheckContext {
         context.stateStore = null;
         context.sessionStore = null;
         context.signer = null;
-        context.techtree = null;
       }
     },
   };
@@ -145,69 +102,72 @@ const buildCheckResult = (
   outcome: Awaited<ReturnType<DoctorCheckDefinition["run"]>>,
   startedAtIso: string,
   startedMs: number,
-): DoctorCheckResult => {
-  return {
-    id: check.id,
-    scope: check.scope,
-    status: outcome.status,
-    title: check.title,
-    message: outcome.message,
-    ...(outcome.details ? { details: outcome.details } : {}),
-    ...(outcome.remediation ? { remediation: outcome.remediation } : {}),
-    ...(outcome.fixApplied ? { fixApplied: outcome.fixApplied } : {}),
-    startedAt: startedAtIso,
-    finishedAt: new Date().toISOString(),
-    durationMs: Date.now() - startedMs,
-  };
-};
+): DoctorCheckResult => ({
+  id: check.id,
+  scope: check.scope,
+  status: outcome.status,
+  title: check.title,
+  message: outcome.message,
+  ...(outcome.details ? { details: outcome.details } : {}),
+  ...(outcome.remediation ? { remediation: outcome.remediation } : {}),
+  ...(outcome.fixApplied ? { fixApplied: outcome.fixApplied } : {}),
+  startedAt: startedAtIso,
+  finishedAt: new Date().toISOString(),
+  durationMs: Date.now() - startedMs,
+});
 
 const buildCrashedCheckResult = (
   check: DoctorCheckDefinition,
   error: unknown,
   startedAtIso: string,
   startedMs: number,
-): DoctorCheckResult => {
-  return {
-    id: check.id,
-    scope: check.scope,
-    status: "fail",
-    title: check.title,
-    message: "Doctor check crashed before it could return a result",
-    details: {
-      internal: true,
-      code: "doctor_check_crashed",
-      error: errorMessage(error),
-      ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
-    },
-    remediation: "Inspect the failing doctor check implementation and retry",
-    startedAt: startedAtIso,
-    finishedAt: new Date().toISOString(),
-    durationMs: Date.now() - startedMs,
-  };
-};
+): DoctorCheckResult => ({
+  id: check.id,
+  scope: check.scope,
+  status: "fail",
+  title: check.title,
+  message: "Doctor check crashed before it could return a result",
+  details: {
+    internal: true,
+    code: "doctor_check_crashed",
+    error: errorMessage(error),
+    ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
+  },
+  remediation: "Inspect the failing doctor check implementation and retry",
+  startedAt: startedAtIso,
+  finishedAt: new Date().toISOString(),
+  durationMs: Date.now() - startedMs,
+});
 
 export async function runChecksSequentially(
   checks: DoctorCheckDefinition[],
   ctx: DoctorCheckContext,
 ): Promise<DoctorCheckResult[]> {
   const results: DoctorCheckResult[] = [];
-
   for (const check of checks) {
     const startedAtIso = new Date().toISOString();
     const startedMs = Date.now();
-
     try {
-      const outcome = await check.run(ctx);
-      results.push(buildCheckResult(check, outcome, startedAtIso, startedMs));
+      results.push(
+        buildCheckResult(
+          check,
+          await check.run(ctx),
+          startedAtIso,
+          startedMs,
+        ),
+      );
     } catch (error) {
-      results.push(buildCrashedCheckResult(check, error, startedAtIso, startedMs));
+      results.push(
+        buildCrashedCheckResult(check, error, startedAtIso, startedMs),
+      );
     }
   }
-
   return results;
 }
 
-export function summarizeChecks(results: DoctorCheckResult[]): DoctorReport["summary"] {
+export function summarizeChecks(
+  results: DoctorCheckResult[],
+): DoctorReport["summary"] {
   return results.reduce<DoctorReport["summary"]>(
     (summary, check) => {
       summary[check.status] += 1;
@@ -218,7 +178,6 @@ export function summarizeChecks(results: DoctorCheckResult[]): DoctorReport["sum
 }
 
 export function computeReportOk(
-  _invocation: DoctorInvocation,
   results: DoctorCheckResult[],
 ): boolean {
   return results.every((check) => check.status !== "fail");
@@ -229,83 +188,25 @@ const defaultChecks = (): DoctorCheckDefinition[] =>
 
 function selectChecks(invocation: DoctorInvocation): DoctorCheckDefinition[] {
   const checks = defaultChecks();
-
-  if (invocation.mode !== "scoped") {
-    return checks;
-  }
-
-  if (invocation.params.scope === "artifact") {
-    return artifactChecks();
-  }
-
-  if (invocation.params.scope === "bbh") {
-    return bbhChecks();
-  }
-
-  return checks.filter((check) => check.scope === invocation.params.scope);
-}
-
-const collectBlockingChecks = (results: DoctorCheckResult[]) => {
-  return results
-    .filter((check) => DEFAULT_REQUIRED_OK.has(check.id) && check.status !== "ok")
-    .map((check) => ({
-      id: check.id,
-      status: check.status,
-      message: check.message,
-      ...(check.remediation ? { remediation: check.remediation } : {}),
-    }));
-};
-
-const hasBlockingFailuresForFull = (results: DoctorCheckResult[]): boolean =>
-  collectBlockingChecks(results).length > 0;
-
-function buildFullPreconditionFailure(
-  results: DoctorCheckResult[],
-): DoctorCheckResult {
-  const blockingChecks = collectBlockingChecks(results);
-  const startedAt = new Date().toISOString();
-  const primaryRemediation = blockingChecks.find(
-    (check) => check.remediation,
-  )?.remediation;
-
-  return {
-    id: "full.preconditions",
-    scope: "techtree",
-    status: "fail",
-    title: "full proof preconditions",
-    message:
-      "Full proof did not run because required default doctor checks are not yet passing",
-    details: {
-      blockingChecks,
-    },
-    remediation:
-      primaryRemediation ??
-      "Resolve the blocking doctor checks and retry `regents doctor --full`",
-    startedAt,
-    finishedAt: startedAt,
-    durationMs: 0,
-  };
+  return invocation.mode === "scoped"
+    ? checks.filter((check) => check.scope === invocation.params.scope)
+    : checks;
 }
 
 export async function runDoctorInvocation(
   invocation: DoctorInvocation,
 ): Promise<DoctorReport> {
   try {
-    const ctx = buildDoctorContext(invocation);
-    const results = await runChecksSequentially(selectChecks(invocation), ctx);
-
-    if (invocation.mode === "full") {
-      if (hasBlockingFailuresForFull(results)) {
-        results.push(buildFullPreconditionFailure(results));
-      } else {
-        results.push(...(await runChecksSequentially(fullChecks(), ctx)));
-      }
-    }
-
+    const results = await runChecksSequentially(
+      selectChecks(invocation),
+      buildDoctorContext(invocation),
+    );
     return {
-      ok: computeReportOk(invocation, results),
+      ok: computeReportOk(results),
       mode: invocation.mode,
-      ...(invocation.mode === "scoped" ? { scope: invocation.params.scope } : {}),
+      ...(invocation.mode === "scoped"
+        ? { scope: invocation.params.scope }
+        : {}),
       summary: summarizeChecks(results),
       checks: results,
       nextSteps: deriveNextSteps(results),
@@ -315,7 +216,6 @@ export async function runDoctorInvocation(
     if (error instanceof DoctorInternalError) {
       throw error;
     }
-
     throw new DoctorInternalError(
       "doctor execution failed before a report could be produced",
       error,
@@ -325,11 +225,12 @@ export async function runDoctorInvocation(
 
 const runDoctorByMode = (
   mode: DoctorInvocation["mode"],
-  params: DoctorRunParams | DoctorRunScopedParams | DoctorRunFullParams | undefined,
-  options?: {
-    configPath?: string;
-    runtimeContext?: RuntimeContext;
-  },
+  params:
+    | DoctorRunParams
+    | DoctorRunScopedParams
+    | DoctorRunFullParams
+    | undefined,
+  options?: { configPath?: string; runtimeContext?: RuntimeContext },
 ): Promise<DoctorReport> => {
   if (mode === "scoped") {
     return runDoctorInvocation({
@@ -339,7 +240,6 @@ const runDoctorByMode = (
       runtimeContext: options?.runtimeContext,
     });
   }
-
   if (mode === "full") {
     return runDoctorInvocation({
       mode,
@@ -348,7 +248,6 @@ const runDoctorByMode = (
       runtimeContext: options?.runtimeContext,
     });
   }
-
   return runDoctorInvocation({
     mode,
     params: params as DoctorRunParams | undefined,

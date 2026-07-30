@@ -69,7 +69,9 @@ export const requestProductJson = async <T>(
   options: ProductJsonRequestOptions = {},
 ): Promise<T> => {
   const audience = options.authAudience ?? "regent-services";
-  const service = options.service ?? (audience === "regent-services" ? "siwa" : audience);
+  const service =
+    options.service ??
+    (audience === "platform" || audience === "autolaunch" ? audience : "siwa");
   const bodyText = options.body === undefined ? undefined : JSON.stringify(options.body);
   const headers = new Headers({ accept: "application/json" });
 

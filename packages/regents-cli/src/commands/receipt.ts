@@ -30,8 +30,6 @@ const printReceipt = (
 export async function runReceiptCreate(args: ParsedCliArgs, configPath?: string): Promise<number> {
   const config = loadConfig(configPath);
   const receipt = createReceipt(config, {
-    attempt_id: getFlag(args, "from-attempt"),
-    notebook_id: getFlag(args, "from-notebook"),
     x402_payment_id: getFlag(args, "from-x402-payment"),
     budget_entry: getFlag(args, "from-budget-entry"),
   });
@@ -63,7 +61,7 @@ export async function runReceiptList(args: ParsedCliArgs, configPath?: string): 
   }
 
   printText(receipts.length === 0
-    ? "No Regent receipts yet.\nnext: regents receipt create --from-attempt <attempt-id> --json"
+    ? "No Regent receipts yet.\nnext: regents receipt create --from-x402-payment <payment-id> --json"
     : `${receipts.map((entry) => entry.receipt_id).join("\n")}\nnext: regents receipt get --receipt ${receipts[0]?.receipt_id}`);
   return 0;
 }
@@ -73,10 +71,10 @@ export async function runReceiptShareDraft(args: ParsedCliArgs, configPath?: str
   const receipt = findReceipt(config, requireArg(getFlag(args, "receipt"), "--receipt"));
   const draft = receiptShareDraft(receipt);
   if (getBooleanFlag(args, "json")) {
-    printJson({ ok: true, draft, next_steps: ["regents techtree fold report --agent <agent-id> --json"] });
+    printJson({ ok: true, draft, next_steps: [] });
     return 0;
   }
 
-  printText(`${draft.copy}\nnext: regents techtree fold report --agent <agent-id> --json`);
+  printText(draft.copy);
   return 0;
 }

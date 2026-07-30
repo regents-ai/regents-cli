@@ -55,7 +55,6 @@ export async function runSetup(args: ParsedCliArgs): Promise<number> {
         "regents plugin install",
         "regents identity ensure",
         "regents run",
-        "regents techtree work next --json",
       ],
     });
     return 0;

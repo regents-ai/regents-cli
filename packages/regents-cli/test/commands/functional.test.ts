@@ -4,83 +4,41 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { RegentRuntime, writeInitialConfig } from "../../src/internal-runtime/index.js";
+import { writeInitialConfig } from "../../src/internal-runtime/config.js";
 import { runCliEntrypoint } from "../../src/index.js";
+import { writeFakeCdp } from "../support/fake-cdp.js";
 import { TechtreeContractServer } from "../../../../test-support/techtree-contract-server.js";
-import { describeNetwork } from "../../../../test-support/integration.js";
 import { captureOutput } from "../../../../test-support/test-helpers.js";
 
 const TEST_WALLET = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 const TEST_REGISTRY = "0x2222222222222222222222222222222222222222";
 const TEST_AGENT_REGISTRY = `eip155:8453:${TEST_REGISTRY}`;
 const TEST_AGENT_ID = `${TEST_AGENT_REGISTRY}:99`;
-const TEST_SIGNATURE = `0x${"1".repeat(130)}`;
 
-describeNetwork.sequential("CLI functional flows against the real runtime", () => {
-  let server: TechtreeContractServer;
-  let runtime: RegentRuntime | null = null;
-  let tempDir = "";
+describe.sequential("wallet and identity functional flows", () => {
   let configPath = "";
   let originalHome: string | undefined;
-  let originalPath: string | undefined;
   let originalKeyId: string | undefined;
   let originalKeySecret: string | undefined;
+  let originalPath: string | undefined;
   let originalWalletSecret: string | undefined;
+  let server: TechtreeContractServer;
+  let tempDir = "";
 
-  const receiptPath = (): string => path.join(tempDir, ".regent", "identity", "receipt-v1.json");
-  const walletStatePath = (): string => path.join(tempDir, "state", "coinbase-wallet.json");
-
+  const receiptPath = (): string =>
+    path.join(tempDir, ".regent", "identity", "receipt-v1.json");
+  const walletStatePath = (): string =>
+    path.join(tempDir, "state", "coinbase-wallet.json");
   const identityRequestCount = (): number =>
-    server.requests.filter((request) => request.pathname.startsWith("/api/shared/identity/")).length;
-
-  const writeFakeCdp = (): void => {
-    const binDir = path.join(tempDir, "bin");
-    fs.mkdirSync(binDir, { recursive: true });
-    const scriptPath = path.join(binDir, "cdp");
-    fs.writeFileSync(
-      scriptPath,
-      `#!/bin/bash
-set -euo pipefail
-
-if [[ "$#" -ge 4 && "$1" == "evm" && "$2" == "accounts" && "$3" == "by-name" && "$4" == "main" ]]; then
-  printf '{"name":"main","address":"${TEST_WALLET}"}\\n'
-  exit 0
-fi
-
-if [[ "$#" -ge 3 && "$1" == "evm" && "$2" == "accounts" && "$3" == "list" ]]; then
-  printf '{"accounts":[{"name":"main","address":"${TEST_WALLET}"}]}\\n'
-  exit 0
-fi
-
-if [[ "$#" -ge 4 && "$1" == "evm" && "$2" == "accounts" && "$3" == "create" ]]; then
-  printf '{"name":"main","address":"${TEST_WALLET}"}\\n'
-  exit 0
-fi
-
-if [[ "$#" -ge 5 && "$1" == "evm" && "$2" == "accounts" && "$3" == "sign" && "$4" == "message" ]]; then
-  printf '{"signature":"${TEST_SIGNATURE}"}\\n'
-  exit 0
-fi
-
-if [[ "$#" -ge 1 && "$1" == "mcp" ]]; then
-  printf '{"ok":true}\\n'
-  exit 0
-fi
-
-echo "unsupported cdp command: $*" >&2
-exit 1
-`,
-      "utf8",
-    );
-    fs.chmodSync(scriptPath, 0o755);
-    process.env.PATH = `${binDir}:${originalPath ?? ""}`;
-  };
+    server.requests.filter((request) =>
+      request.pathname.startsWith("/api/shared/identity/"),
+    ).length;
 
   beforeEach(async () => {
     server = new TechtreeContractServer();
     await server.start();
 
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-cli-functional-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-wallet-identity-"));
     configPath = path.join(tempDir, "regent.config.json");
     originalHome = process.env.HOME;
     originalPath = process.env.PATH;
@@ -89,20 +47,18 @@ exit 1
     originalWalletSecret = process.env.CDP_WALLET_SECRET;
 
     process.env.HOME = tempDir;
+    process.env.PATH = `${writeFakeCdp(tempDir, {
+      accounts: [{ name: "main", address: TEST_WALLET }],
+    })}:${originalPath ?? ""}`;
     process.env.CDP_KEY_ID = "test-key";
     process.env.CDP_KEY_SECRET = "test-secret";
     process.env.CDP_WALLET_SECRET = "test-wallet-secret";
-    writeFakeCdp();
 
     writeInitialConfig(configPath, {
       runtime: {
         socketPath: path.join(tempDir, "runtime", "regent.sock"),
         stateDir: path.join(tempDir, "state"),
         logLevel: "debug",
-      },
-      auth: {
-        audience: "techtree",
-        defaultChainId: 8453,
       },
       services: {
         siwa: {
@@ -117,58 +73,65 @@ exit 1
           baseUrl: "http://127.0.0.1:4010",
           requestTimeoutMs: 1_000,
         },
-        techtree: {
-          baseUrl: server.baseUrl,
-          requestTimeoutMs: 1_000,
-        },
-      },
-      wallet: {
-        privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
-        keystorePath: path.join(tempDir, "keys", "agent-wallet.json"),
       },
     });
-
-    runtime = new RegentRuntime(configPath);
-    await runtime.start();
   });
 
   afterEach(async () => {
-    if (runtime) {
-      await runtime.stop();
-    }
     await server.stop();
     process.env.HOME = originalHome;
     process.env.PATH = originalPath;
     process.env.CDP_KEY_ID = originalKeyId;
     process.env.CDP_KEY_SECRET = originalKeySecret;
     process.env.CDP_WALLET_SECRET = originalWalletSecret;
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it("creates a Coinbase wallet state file, creates a shared identity receipt, and reuses the cache", async () => {
-    const walletSetup = await captureOutput(async () =>
+  it("creates the configured Coinbase wallet and persists its local state", async () => {
+    process.env.PATH = `${writeFakeCdp(tempDir, {
+      accounts: [{ name: "secondary", address: TEST_WALLET }],
+    })}:${originalPath ?? ""}`;
+
+    const output = await captureOutput(async () =>
       runCliEntrypoint(["wallet", "setup", "--json", "--config", configPath]),
     );
-    expect(walletSetup.result).toBe(0);
-    expect(JSON.parse(walletSetup.stdout)).toEqual({
+
+    expect(output.result).toBe(0);
+    expect(JSON.parse(output.stdout)).toEqual({
       ok: true,
       provider: "coinbase-cdp",
       wallet: {
         name: "main",
         address: TEST_WALLET,
       },
-      created: false,
+      created: true,
       state_path: walletStatePath(),
       next_steps: [
         "regents identity ensure",
       ],
     });
     expect(fs.existsSync(walletStatePath())).toBe(true);
+  });
 
-    const firstEnsure = await captureOutput(async () =>
-      runCliEntrypoint(["identity", "ensure", "--json", "--network", "base", "--config", configPath]),
+  it("creates an identity receipt, reuses its cache, and refreshes on request", async () => {
+    await captureOutput(async () =>
+      runCliEntrypoint(["wallet", "setup", "--json", "--config", configPath]),
     );
-    expect(firstEnsure.result).toBe(0);
-    expect(JSON.parse(firstEnsure.stdout)).toEqual({
+
+    const first = await captureOutput(async () =>
+      runCliEntrypoint([
+        "identity",
+        "ensure",
+        "--json",
+        "--network",
+        "base",
+        "--config",
+        configPath,
+      ]),
+    );
+
+    expect(first.result).toBe(0);
+    expect(JSON.parse(first.stdout)).toEqual({
       status: "ok",
       provider: "coinbase-cdp",
       network: "base",
@@ -180,12 +143,10 @@ exit 1
       receipt_expires_at: "2999-01-01T00:00:00.000Z",
       cache_path: receiptPath(),
       next_steps: [
-        "regents auth login --audience techtree",
-        "regents run --fold autoresearch",
+        "regents auth login --audience platform",
+        "regents run",
       ],
     });
-
-    expect(fs.existsSync(receiptPath())).toBe(true);
     expect(JSON.parse(fs.readFileSync(receiptPath(), "utf8"))).toEqual({
       version: 1,
       regent_base_url: server.baseUrl,
@@ -205,13 +166,21 @@ exit 1
     });
 
     const requestsAfterFirstEnsure = identityRequestCount();
-    const secondEnsure = await captureOutput(async () =>
-      runCliEntrypoint(["identity", "ensure", "--json", "--network", "base", "--config", configPath]),
+    const cached = await captureOutput(async () =>
+      runCliEntrypoint([
+        "identity",
+        "ensure",
+        "--json",
+        "--network",
+        "base",
+        "--config",
+        configPath,
+      ]),
     );
-    expect(secondEnsure.result).toBe(0);
+    expect(cached.result).toBe(0);
     expect(identityRequestCount()).toBe(requestsAfterFirstEnsure);
 
-    const refreshedEnsure = await captureOutput(async () =>
+    const refreshed = await captureOutput(async () =>
       runCliEntrypoint([
         "identity",
         "ensure",
@@ -223,18 +192,36 @@ exit 1
         configPath,
       ]),
     );
-    expect(refreshedEnsure.result).toBe(0);
+    expect(refreshed.result).toBe(0);
     expect(identityRequestCount()).toBeGreaterThan(requestsAfterFirstEnsure);
   }, 15_000);
 
-  it("reports the Coinbase wallet and identity status through the narrowed CLI surface", async () => {
-    await captureOutput(async () => runCliEntrypoint(["wallet", "setup", "--json", "--config", configPath]));
+  it("reports the Coinbase wallet and identity status", async () => {
     await captureOutput(async () =>
-      runCliEntrypoint(["identity", "ensure", "--json", "--network", "base", "--config", configPath]),
+      runCliEntrypoint(["wallet", "setup", "--json", "--config", configPath]),
+    );
+    await captureOutput(async () =>
+      runCliEntrypoint([
+        "identity",
+        "ensure",
+        "--json",
+        "--network",
+        "base",
+        "--config",
+        configPath,
+      ]),
     );
 
     const status = await captureOutput(async () =>
-      runCliEntrypoint(["identity", "status", "--json", "--network", "base", "--config", configPath]),
+      runCliEntrypoint([
+        "identity",
+        "status",
+        "--json",
+        "--network",
+        "base",
+        "--config",
+        configPath,
+      ]),
     );
 
     expect(status.result).toBe(0);
@@ -255,7 +242,7 @@ exit 1
     );
   }, 15_000);
 
-  it("fails cleanly when the Coinbase command line tool is not available", async () => {
+  it("fails cleanly when the Coinbase CLI is unavailable", async () => {
     process.env.PATH = path.join(tempDir, "empty-bin");
     fs.mkdirSync(process.env.PATH, { recursive: true });
 
@@ -264,14 +251,12 @@ exit 1
     );
 
     expect(output.result).toBe(1);
-    expect(JSON.parse(output.stdout)).toEqual(
-      expect.objectContaining({
-        ok: false,
-        provider: "coinbase-cdp",
-        next_action: expect.objectContaining({
-          command: expect.stringContaining("regents wallet setup"),
-        }),
-      }),
-    );
+    expect(JSON.parse(output.stdout)).toMatchObject({
+      ok: false,
+      provider: "coinbase-cdp",
+      next_action: {
+        command: expect.stringContaining("regents wallet setup"),
+      },
+    });
   });
 });

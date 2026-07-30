@@ -6,17 +6,27 @@ import type {
   SiwaVerifyResponse,
 } from "../../internal-types/index.js";
 
+import { parseServiceBaseUrl } from "../config.js";
 import { AuthError } from "../errors.js";
 import { ProductHttpError, requestProductResponse } from "../product-http-client.js";
 import { messageWithRetryAfter } from "../rate-limit-message.js";
 
-const DEFAULT_DOMAIN = "regent.cx";
-const DEFAULT_URI = "https://regent.cx/api/shared/siwa/verify";
 const DEFAULT_STATEMENT = siwaAudienceStatement("Regents CLI");
 type SiwaRequestBody = NonNullable<Parameters<typeof fetch>[1]> extends { readonly body?: infer Body } ? Body : never;
 
 export function siwaAudienceStatement(audience: string): string {
   return `Sign in to ${audience}.`;
+}
+
+export function siwaMessageLocation(platformBaseUrl: string): {
+  domain: string;
+  uri: string;
+} {
+  const parsed = parseServiceBaseUrl(platformBaseUrl);
+  return {
+    domain: parsed.host,
+    uri: parsed.origin,
+  };
 }
 
 export function buildSiwaMessage(input: {
@@ -139,6 +149,7 @@ export class SiwaClient {
   }
 
   static defaultMessageInput(input: {
+    config: RegentConfig;
     walletAddress: string;
     chainId: number;
     registryAddress: string;
@@ -147,9 +158,10 @@ export class SiwaClient {
     issuedAt?: string;
     statement?: string;
   }): string {
+    const location = siwaMessageLocation(input.config.services.platform.baseUrl);
     return buildSiwaMessage({
-      domain: DEFAULT_DOMAIN,
-      uri: DEFAULT_URI,
+      domain: location.domain,
+      uri: location.uri,
       walletAddress: input.walletAddress,
       chainId: input.chainId,
       registryAddress: input.registryAddress,

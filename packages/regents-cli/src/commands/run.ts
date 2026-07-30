@@ -1,12 +1,11 @@
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 
-import { CliUsageError } from "../cli-usage-error.js";
 import { readBudgetFile } from "../internal-runtime/budget-store.js";
 import { RegentRuntime, defaultConfigPath } from "../internal-runtime/index.js";
 import { pluginStatus, type PluginRuntimeStatus } from "../internal-runtime/plugin-bridge.js";
 import type { RegentConfig } from "../internal-types/index.js";
-import { getBooleanFlag, getFlag, type ParsedCliArgs } from "../parse.js";
+import { getBooleanFlag, type ParsedCliArgs } from "../parse.js";
 import { CLI_PALETTE, isHumanTerminal, printJson, printText, renderBanner, renderPanel, tone } from "../printer.js";
 
 export type RuntimeCapabilityState = "ready" | "waiting" | "off";
@@ -40,23 +39,15 @@ export interface RuntimeRunReport {
   readonly stateDir: string;
   readonly services: {
     readonly siwa: string;
-    readonly techtree: string;
     readonly platform: string;
     readonly autolaunch: string;
   };
   readonly gbrain: GBrainReadiness;
   readonly capabilities: readonly RuntimeCapability[];
-  readonly foldTrack: string | null;
   readonly plugin: ReturnType<typeof pluginStatus>;
   readonly nextCommands: readonly RuntimeNextCommand[];
   readonly safetyNotes: readonly string[];
-  readonly mode: "local_runtime" | "techtree_fold";
-  readonly fold: null | {
-    readonly preset: string;
-    readonly defaultWorkKind: "freeform-notebook" | "benchmark";
-    readonly proofAnchor: "techtree_attempt_or_notebook";
-    readonly next: readonly string[];
-  };
+  readonly mode: "local_runtime";
   readonly agenticWallet: {
     readonly required: false;
     readonly whenNeeded: string;
@@ -242,22 +233,7 @@ export const pluginRuntimeCapabilities = (
     };
   });
 
-const parseFoldTrack = (value: string | undefined): "starter" | "autoresearch" | "bbh-public-v1" | null => {
-  if (value === undefined) {
-    return null;
-  }
-  if (value === "starter" || value === "autoresearch" || value === "bbh-public-v1") {
-    return value;
-  }
-
-  throw new CliUsageError({
-    code: "invalid_flag_value",
-    message: "--fold must be starter, autoresearch, or bbh-public-v1.",
-    validValues: ["starter", "autoresearch", "bbh-public-v1"],
-  });
-};
-
-const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): RuntimeRunReport => {
+const buildRuntimeRunReport = (runtime: RegentRuntime): RuntimeRunReport => {
   const config = runtime.config;
   const state = runtime.stateStore.read();
   const identity = state.agent;
@@ -266,7 +242,6 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
   const walletEnvSet = Boolean(process.env[config.wallet.privateKeyEnv]);
   const walletFileExists = fs.existsSync(config.wallet.keystorePath);
   const harnesses = enabledHarnessNames(config);
-  const foldTrack = parseFoldTrack(getFlag(args, "fold"));
   const plugin = pluginStatus("auto");
   const budgets = readBudgetFile(config).budgets;
   const activeBudgetCount = budgets.filter((budget) => budget.status === "active").length;
@@ -279,33 +254,11 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
     stateDir: config.runtime.stateDir,
     services: {
       siwa: config.services.siwa.baseUrl,
-      techtree: config.services.techtree.baseUrl,
       platform: config.services.platform.baseUrl,
       autolaunch: config.services.autolaunch.baseUrl,
     },
     gbrain,
-    foldTrack,
-    mode: foldTrack ? "techtree_fold" : "local_runtime",
-    fold: foldTrack
-      ? {
-          preset: foldTrack,
-          defaultWorkKind: foldTrack === "bbh-public-v1" ? "benchmark" : "freeform-notebook",
-          proofAnchor: "techtree_attempt_or_notebook",
-          next: foldTrack === "bbh-public-v1"
-            ? [
-                "regents techtree work next --kind benchmark --json",
-                "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>",
-                "regents techtree work publish --workspace-path ./work/<slug>",
-                "regents techtree fold proof --attempt <attempt-id> --json",
-              ]
-            : [
-                "regents techtree notebooks init --kind freeform --title \"Research notebook\" --workspace-path ./techtree-work/autoresearch",
-                "regents techtree notebooks pair --workspace-path ./techtree-work/autoresearch",
-                "regents techtree notebooks publish --workspace-path ./techtree-work/autoresearch",
-                "regents receipt create --from-notebook <node-id> --json",
-              ],
-        }
-      : null,
+    mode: "local_runtime",
     plugin,
     capabilities: [
       {
@@ -344,16 +297,6 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
       },
       ...pluginRuntimeCapabilities(plugin),
       {
-        state: "ready",
-        label: "Techtree work tools loaded",
-        detail: "Work, benchmark, Science Task, notebook, Autoskill, Fold proof, and publish commands are ready in another terminal.",
-      },
-      {
-        state: "ready",
-        label: "Techtree connection target checked",
-        detail: `Commands will talk to ${config.services.techtree.baseUrl}.`,
-      },
-      {
         state: activeBudgetCount > 0 ? "ready" : "waiting",
         label: "Research budget checked",
         detail: activeBudgetCount > 0
@@ -363,24 +306,12 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
       {
         state: "waiting",
         label: "Agentic Wallet checked",
-        detail: "Agentic Wallet is optional for Techtree research and needed only for paid x402 spend or earn flows.",
+        detail: "Agentic Wallet is optional and needed only for paid x402 spend or earn flows.",
       },
       {
         state: "waiting",
         label: "Autolaunch readiness checked",
-        detail: "Autolaunch stays locked until Techtree evidence exists and an operator approves.",
-      },
-      {
-        state: config.gossipsub.enabled ? "ready" : "off",
-        label: "Chat event relay checked",
-        detail: config.gossipsub.enabled
-          ? "Chat tail commands can open live scope streams from another terminal."
-          : "Chat relay is off in config; direct Techtree chat commands can still run.",
-      },
-      {
-        state: "ready",
-        label: "Watched Techtree node relay started",
-        detail: "Watch-style commands can stream changes while this terminal stays open.",
+        detail: "Autolaunch remains operator-approved.",
       },
       {
         state: harnesses.length > 0 ? "ready" : "waiting",
@@ -392,33 +323,9 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
     ],
     nextCommands: [
       {
-        label: "Choose work",
-        command: "regents techtree work next --json",
-        when: "get the next agent-ready Techtree work item.",
-      },
-      {
-        label: "Accept work",
-        command: "regents techtree work accept --work-unit <id> --workspace-path ./work/<slug>",
-        when: "create the local folder for the selected work.",
-      },
-      {
-        label: "Terminal Science Bench",
-        command: "regents techtree science run --task harbor-framework/terminal-bench-science:tasks/<domain>/<field>/<task> --run-dir ./science-runs/<task>",
-        when: "run a local science task and save the files on this machine.",
-      },
-      ...(foldTrack
-        ? [{
-            label: "Fold starter",
-            command: foldTrack === "bbh-public-v1"
-              ? "regents techtree work next --kind benchmark --json"
-              : "regents techtree notebooks init --kind freeform --title \"Research notebook\" --workspace-path ./techtree-work/autoresearch",
-            when: "start Techtree work without needing Agentic Wallet.",
-          }]
-        : []),
-      {
         label: "Readiness",
         command: "regents status",
-        when: "see wallet, identity, Techtree, and chat readiness.",
+        when: "see wallet, identity, and local runtime readiness.",
       },
       {
         label: "Account",
@@ -441,26 +348,6 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
         when: "prepare Autolaunch agent, Safe, prelaunch, and launch commands.",
       },
       {
-        label: "Techtree sign-in",
-        command: "regents auth login --audience techtree",
-        when: "prepare Techtree publish, review, BBH, and collaboration commands.",
-      },
-      {
-        label: "Techtree search",
-        command: "regents techtree search --query <query>",
-        when: "search Techtree.",
-      },
-      {
-        label: "Techtree workspace",
-        command: "regents techtree start",
-        when: "run the guided Techtree readiness path.",
-      },
-      {
-        label: "Live chat",
-        command: "regents techtree chat tail system",
-        when: "watch Techtree chat events if the relay is enabled.",
-      },
-      {
         label: "Diagnostics",
         command: "regents doctor runtime",
         when: "check local command access if a command cannot connect.",
@@ -479,7 +366,7 @@ const buildRuntimeRunReport = (runtime: RegentRuntime, args: ParsedCliArgs): Run
     },
     autolaunch: {
       state: "locked",
-      reason: "Techtree evidence is an input to readiness; it does not approve a launch by itself.",
+      reason: "An operator must approve a launch.",
     },
   };
 };
@@ -510,18 +397,6 @@ export const renderRuntimeRunScreen = (report: RuntimeRunReport): string =>
       borderColor: CLI_PALETTE.accent,
       titleColor: CLI_PALETTE.title,
     }),
-    ...(report.fold
-      ? [renderPanel("◆ FOLD STARTER", [
-          `Preset: ${report.fold.preset}`,
-          "Fold reports on Techtree attempts, notebook publications, receipts, and verifier evidence.",
-          "Agentic Wallet is optional until paid access is needed.",
-          "",
-          ...report.fold.next,
-        ], {
-          borderColor: CLI_PALETTE.accent,
-          titleColor: CLI_PALETTE.title,
-        })]
-      : []),
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -538,7 +413,7 @@ const renderRuntimeStoppedScreen = (): string =>
 export async function runRuntime(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const runtime = new RegentRuntime(configPath);
   await runtime.start();
-  const report = buildRuntimeRunReport(runtime, args);
+  const report = buildRuntimeRunReport(runtime);
   const humanOutput = isHumanTerminal() && !getBooleanFlag(args, "json");
   if (humanOutput) {
     printText(renderRuntimeRunScreen(report));

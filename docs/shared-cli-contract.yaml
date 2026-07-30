@@ -14,8 +14,8 @@ help:
     then the command.
   bare_invocation: >
     Running `regents` with no arguments prints a short readiness summary
-    (local runtime, wallet, identity, saved sign-ins, and Fold state when
-    active) followed by one line pointing to `regents --help`.
+    (local runtime, wallet, identity, and saved sign-ins) followed by one line
+    pointing to `regents --help`.
   failure_next_step: >
     When a command fails and its contract metadata carries a next_step, the
     shared error output prints `Next: <step>` with the error. Errors that
@@ -39,14 +39,14 @@ help:
     - Keep command-level help scoped to the requested command group.
 x-regent-chat-room-contract:
   owner: regents-cli
-  product_room_authority: Product room keys and membership rules stay in Platform, Autolaunch, and Techtree contracts.
+  product_room_authority: Product room keys and membership rules stay in Platform and Autolaunch contracts.
   thread_identifier_boundary:
     chat_commands: "Chat scopes: system, topic:<slug>, node:<node-id>, dm:<walletA>:<walletB>"
     dm_scope_rule: >-
       DM scopes are dm:<walletA>:<walletB> with both wallet addresses lowercased,
       lexicographically sorted, and unequal.
   transport_boundary: >-
-    CLI chat commands use product HTTP chat routes.
+    CLI chat commands use Autolaunch HTTP chat routes.
     Direct messages are server-stored chat scopes on product HTTP chat routes,
     participant-gated by the authenticated SIWA wallet.
   agent_loop:
@@ -156,68 +156,12 @@ x-regent-mcp-tools:
       rpc_method: auth.siwa.status
     - name: regents.runtime.status
       title: Regents runtime status
-      description: Read local Regent runtime, Techtree, and relay readiness.
+      description: Read local Regent runtime and transport readiness.
       risk_class: read
       owner: regents-cli
       auth_mode: local
       dispatch: runtime-rpc
       rpc_method: runtime.status
-    - name: regents.techtree.search
-      title: Search Techtree
-      description: Search Techtree nodes and comments through the Regent runtime.
-      risk_class: read
-      owner: techtree
-      auth_mode: agent-siwa
-      dispatch: runtime-rpc
-      rpc_method: techtree.search.query
-    - name: regents.techtree.node.get
-      title: Read Techtree node
-      description: Read one Techtree node by id.
-      risk_class: read
-      owner: techtree
-      auth_mode: agent-siwa
-      dispatch: runtime-rpc
-      rpc_method: techtree.nodes.get
-    - name: regents.techtree.node.reviews
-      title: Read Techtree node reviews
-      description: Read the threaded reviews for one Techtree node, including reviews of reviews.
-      risk_class: read
-      owner: techtree
-      auth_mode: agent-siwa
-      dispatch: runtime-rpc
-      rpc_method: techtree.nodes.reviews
-    - name: regents.techtree.agent.profile
-      title: Read Techtree agent profile
-      description: "Read the public profile for one Techtree agent: published work, counts by kind, and review activity."
-      risk_class: read
-      owner: techtree
-      auth_mode: agent-siwa
-      dispatch: runtime-rpc
-      rpc_method: techtree.agents.profile
-    - name: regents.techtree.node.create
-      title: Create Techtree node
-      description: Create one Techtree node as the authenticated Regent agent.
-      risk_class: write
-      owner: techtree
-      auth_mode: agent-siwa
-      dispatch: runtime-rpc
-      rpc_method: techtree.nodes.create
-    - name: regents.techtree.bbh.draft.list
-      title: List BBH drafts
-      description: List BBH draft capsules visible to the authenticated Regent agent.
-      risk_class: read
-      owner: techtree
-      auth_mode: agent-siwa
-      dispatch: runtime-rpc
-      rpc_method: techtree.v1.bbh.draft.list
-    - name: regents.techtree.bbh.draft.create
-      title: Create BBH draft
-      description: Create a BBH draft capsule from a local workspace.
-      risk_class: write
-      owner: techtree
-      auth_mode: agent-siwa
-      dispatch: runtime-rpc
-      rpc_method: techtree.v1.bbh.draft.create
     - name: regents.agentbook.status
       title: AgentBook status
       description: Read the saved human-backed AgentBook trust summary for the current Regent agent.
@@ -340,19 +284,6 @@ command_groups:
           next_step: regents status
           examples:
             - regents init
-        start:
-          category: local-setup
-          prompt_behavior: never_prompt
-          json_support: supported
-          mutation_class: local-read-or-write
-          retry_behavior: safe_for_reads
-          pagination: none
-          async_behavior: synchronous
-          input_mode: flags
-          summary: Open the first-run Techtree start flow. Alias for regents techtree start.
-          next_step: regents techtree work next --json
-          examples:
-            - regents start
         settings:
           category: local-setup
           prompt_behavior: never_prompt
@@ -442,10 +373,9 @@ command_groups:
           pagination: none
           async_behavior: long_running
           input_mode: flags
-          next_step: regents techtree work next --json
+          next_step: regents status
           examples:
             - regents run
-            - regents run --fold autoresearch
             - regents run --json
         plugin status:
           category: local-setup
@@ -499,7 +429,7 @@ command_groups:
           examples:
             - regents agent-context
             - regents agent-context --area techtree
-            - regents agent-context --command "techtree node create"
+            - regents agent-context --command "techtree notebooks init"
         commands list:
           category: local-control
           prompt_behavior: never_prompt
@@ -517,7 +447,6 @@ command_groups:
             - regents commands list --search chat --json
     commands:
       - init
-      - start
       - settings
       - version
       - update
@@ -571,11 +500,11 @@ command_groups:
         - name: --area
           type: string
           required: false
-          description: Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, chat, work, or mcp.
+          description: Only include commands for one area, such as techtree, autolaunch, platform, wallet, x402, work, or mcp.
         - name: --command
           type: string
           required: false
-          description: Only include the one exact command named, such as "techtree node create".
+          description: Only include the one exact command named, such as "techtree notebooks init".
         - name: --json
           type: boolean
           required: false
@@ -600,11 +529,6 @@ command_groups:
           type: boolean
           required: false
           description: Print the local runtime summary as JSON.
-        - name: --fold
-          type: enum
-          enum: [starter, autoresearch, bbh-public-v1]
-          required: false
-          description: Start Regent with a proof-producing Techtree Fold track.
       plugin status:
         - name: --runtime
           type: enum
@@ -737,7 +661,7 @@ command_groups:
         runtime tools:
           next_step: regents runtime policy --json
         runtime policy:
-          next_step: regents techtree work next --json
+          next_step: regents status
     commands:
       - runtime status
       - runtime tools
@@ -857,6 +781,52 @@ command_groups:
         - name: port
           required: false
           description: Port for the local Hermes voice gateway. Defaults to the configured voice port (8787).
+  - name: notebooks
+    interface: runtime
+    auth_mode: none
+    output_envelope: loose-object
+    agent_metadata:
+      category: notebooks
+      prompt_behavior: never_prompt
+      json_support: supported
+      mutation_class: local-write
+      retry_behavior: safe_for_local_files
+      pagination: none
+      async_behavior: synchronous
+      input_mode: flags
+      examples:
+        - regents techtree notebooks init --kind paper --title "Paper title" --source arxiv:2401.00001 --workspace-path ./paper-note --json
+        - regents techtree notebooks pair --workspace-path ./paper-note --json
+      commands:
+        techtree notebooks init:
+          next_step: regents techtree notebooks pair --workspace-path <workspace>
+    commands:
+      - techtree notebooks init
+      - techtree notebooks pair
+    command_flags:
+      techtree notebooks init:
+        - name: kind
+          type: enum
+          enum: [paper, freeform]
+          required: true
+          description: Notebook kind.
+        - name: workspace-path
+          type: path
+          required: true
+          description: Local workspace to create.
+        - name: title
+          type: string
+          required: true
+          description: Notebook title.
+        - name: source
+          type: string
+          required: false
+          description: Optional paper or source reference.
+      techtree notebooks pair:
+        - name: workspace-path
+          type: path
+          required: true
+          description: Existing local notebook workspace.
   - name: x402
     interface: runtime
     auth_mode: local-wallet
@@ -1109,7 +1079,7 @@ command_groups:
       async_behavior: synchronous
       input_mode: flags
       examples:
-        - regents receipt create --from-attempt attempt_... --json
+        - regents receipt create --from-x402-payment payment_... --json
         - regents receipt list --json
         - regents receipt share-draft --receipt rcpt_...
       commands:
@@ -1120,7 +1090,7 @@ command_groups:
         receipt list:
           next_step: regents receipt get --receipt <receipt-id>
         receipt share-draft:
-          next_step: regents techtree fold report --agent <agent-id> --json
+          next_step: regents receipt list --json
     commands:
       - receipt create
       - receipt get
@@ -1128,14 +1098,6 @@ command_groups:
       - receipt share-draft
     flags:
       receipt create:
-        - name: --from-attempt
-          type: string
-          required: false
-          description: Techtree benchmark attempt id to cite.
-        - name: --from-notebook
-          type: string
-          required: false
-          description: Techtree notebook publication node id to cite.
         - name: --from-x402-payment
           type: string
           required: false
@@ -1193,7 +1155,6 @@ command_groups:
       - doctor
       - doctor runtime
       - doctor auth
-      - doctor techtree
       - doctor transports
       - doctor contracts
       - doctor workspace

@@ -5,6 +5,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { runConfigGet, runConfigWrite } from "../../src/commands/config.js";
+import { defaultConfig } from "../../src/internal-runtime/config.js";
 import { parseCliArgs } from "../../src/parse.js";
 import { captureOutput, parsePrintedJson } from "../helpers/output.js";
 
@@ -17,7 +18,7 @@ describe("config commands", () => {
       configPath,
       JSON.stringify({
         services: {
-          techtree: {
+          platform: {
             baseUrl: "http://127.0.0.1:4100",
           },
         },
@@ -26,21 +27,7 @@ describe("config commands", () => {
     );
 
     const { stdout } = await captureOutput(() => runConfigGet(parseCliArgs(["--config", configPath])));
-    const printed = parsePrintedJson<{
-      runtime: { socketPath: string; stateDir: string; logLevel: string };
-      auth: { audience: string; defaultChainId: number };
-      services: {
-        siwa: { baseUrl: string; requestTimeoutMs: number };
-        platform: { baseUrl: string; requestTimeoutMs: number };
-        autolaunch: { baseUrl: string; requestTimeoutMs: number };
-        techtree: { baseUrl: string; requestTimeoutMs: number };
-      };
-      agents: { defaultHarness: string; harnesses: { hermes: { workspaceRoot: string }; codex: { workspaceRoot: string } } };
-      workloads: {
-        bbh: { workspaceRoot: string; defaultHarness: string; defaultProfile: string };
-        science: { workspaceRoot: string; taskRepoRoot: string; defaultAgent: string; defaultModel: string; publishVisibility: string };
-      };
-    }>(stdout);
+    const printed = parsePrintedJson<ReturnType<typeof defaultConfig>>(stdout);
 
     expect(printed.runtime.socketPath).toBe(path.join(tempDir, "run", "regent.sock"));
     expect(printed.runtime.stateDir).toBe(path.join(tempDir, "state"));
@@ -49,135 +36,25 @@ describe("config commands", () => {
       audience: "techtree",
       defaultChainId: 8453,
     });
-    expect(printed.services.techtree).toEqual({
+    expect(printed.services.platform).toEqual({
       baseUrl: "http://127.0.0.1:4100",
       requestTimeoutMs: 10_000,
     });
     expect(printed.agents.defaultHarness).toBe("hermes");
     expect(printed.agents.harnesses.hermes.workspaceRoot).toBe(path.join(tempDir, "workspaces", "hermes"));
     expect(printed.agents.harnesses.codex.workspaceRoot).toBe(path.join(tempDir, "workspaces", "codex"));
-    expect(printed.workloads.bbh).toEqual({
-      workspaceRoot: path.join(tempDir, "workspaces", "bbh"),
-      defaultHarness: "hermes",
-      defaultProfile: "bbh",
-    });
-    expect(printed.workloads.science).toMatchObject({
-      workspaceRoot: path.join(tempDir, "workspaces", "science"),
-      taskRepoRoot: path.join(tempDir, "workspaces", "science", "repos"),
-      defaultAgent: "codex",
-      defaultModel: "openai/gpt-5.4",
-    });
   });
 
   it("writes a full validated replacement config from @file input", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "regents-cli-config-write-"));
     const configPath = path.join(tempDir, "config.json");
     const inputPath = path.join(tempDir, "replacement.json");
+    const replacement = defaultConfig(configPath);
 
-    fs.writeFileSync(
-      inputPath,
-      JSON.stringify({
-        runtime: {
-          socketPath: path.join(tempDir, "alt", "regent.sock"),
-          stateDir: path.join(tempDir, "alt-state"),
-          logLevel: "error",
-        },
-        auth: {
-          audience: "techtree",
-          defaultChainId: 8453,
-        },
-        services: {
-          siwa: {
-            baseUrl: "http://127.0.0.1:4000",
-            requestTimeoutMs: 3500,
-          },
-          platform: {
-            baseUrl: "http://127.0.0.1:4000",
-            requestTimeoutMs: 3500,
-          },
-          autolaunch: {
-            baseUrl: "http://127.0.0.1:4000",
-            requestTimeoutMs: 3500,
-          },
-          techtree: {
-            baseUrl: "http://127.0.0.1:4300",
-            requestTimeoutMs: 3500,
-          },
-          voice: {
-            openaiApiKeyEnv: "OPENAI_API_KEY",
-            port: 8787,
-            model: "gpt-realtime-2",
-            transcriptionModel: "gpt-realtime-whisper",
-            defaultVoice: "marin",
-            reasoningEffort: "low",
-            sessionTtlSeconds: 60,
-            toolRegistryPath: path.join(tempDir, "config", "voice-tools.json"),
-          },
-        },
-        wallet: {
-          privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
-          keystorePath: path.join(tempDir, "keys", "agent-wallet.json"),
-        },
-        gossipsub: {
-          enabled: false,
-          listenAddrs: [],
-          bootstrap: [],
-          peerIdPath: path.join(tempDir, "p2p", "peer-id.json"),
-        },
-        agents: {
-          defaultHarness: "hermes",
-          harnesses: {
-            openclaw: {
-              enabled: false,
-              entrypoint: "openclaw",
-              workspaceRoot: path.join(tempDir, "workspaces", "openclaw"),
-              profiles: ["owner", "public", "group", "bbh"],
-            },
-            hermes: {
-              enabled: true,
-              entrypoint: "hermes",
-              workspaceRoot: path.join(tempDir, "workspaces", "hermes"),
-              profiles: ["owner", "public", "group", "bbh"],
-            },
-            claude_code: {
-              enabled: false,
-              entrypoint: "claude",
-              workspaceRoot: path.join(tempDir, "workspaces", "claude-code"),
-              profiles: ["owner", "public", "group", "bbh"],
-            },
-            codex: {
-              enabled: false,
-              entrypoint: "codex",
-              workspaceRoot: path.join(tempDir, "workspaces", "codex"),
-              profiles: ["owner", "public", "group", "bbh", "science"],
-            },
-            custom: {
-              enabled: false,
-              entrypoint: "custom-harness",
-              workspaceRoot: path.join(tempDir, "workspaces", "custom"),
-              profiles: ["custom"],
-            },
-          },
-        },
-        workloads: {
-          bbh: {
-            workspaceRoot: path.join(tempDir, "workspaces", "bbh"),
-            defaultHarness: "hermes",
-            defaultProfile: "bbh",
-          },
-          science: {
-            workspaceRoot: path.join(tempDir, "workspaces", "science"),
-            taskRepoRoot: path.join(tempDir, "workspaces", "science", "repos"),
-            defaultAgent: "codex",
-            defaultModel: "openai/gpt-5.4",
-            defaultEnvironment: "docker",
-            defaultTaskRef: "main",
-            publishVisibility: "public",
-          },
-        },
-      }),
-      "utf8",
-    );
+    replacement.runtime.logLevel = "error";
+    replacement.services.platform.baseUrl = "http://127.0.0.1:4300";
+    replacement.services.platform.requestTimeoutMs = 3500;
+    fs.writeFileSync(inputPath, JSON.stringify(replacement), "utf8");
 
     const { stdout } = await captureOutput(() =>
       runConfigWrite(parseCliArgs(["--config", configPath, "--input", `@${inputPath}`])),
@@ -185,25 +62,18 @@ describe("config commands", () => {
     const printed = parsePrintedJson<{
       ok: boolean;
       configPath: string;
-      config: {
-        auth: { audience: string; defaultChainId: number };
-        services: { techtree: { baseUrl: string; requestTimeoutMs: number } };
-        runtime: { logLevel: string };
-        agents: { defaultHarness: string };
-        workloads: { bbh: { defaultProfile: string } };
-      };
+      config: ReturnType<typeof defaultConfig>;
     }>(stdout);
 
     expect(printed.ok).toBe(true);
     expect(printed.configPath).toBe(configPath);
     expect(printed.config.runtime.logLevel).toBe("error");
     expect(printed.config.agents.defaultHarness).toBe("hermes");
-    expect(printed.config.workloads.bbh.defaultProfile).toBe("bbh");
     expect(printed.config.auth).toEqual({
       audience: "techtree",
       defaultChainId: 8453,
     });
-    expect(printed.config.services.techtree).toEqual({
+    expect(printed.config.services.platform).toEqual({
       baseUrl: "http://127.0.0.1:4300",
       requestTimeoutMs: 3500,
     });

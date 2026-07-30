@@ -25,7 +25,6 @@ const testConfig = (root: string): RegentConfig => ({
     siwa: { baseUrl: "http://127.0.0.1:4000", requestTimeoutMs: 1_000 },
     platform: { baseUrl: "http://127.0.0.1:4000", requestTimeoutMs: 1_000 },
     autolaunch: { baseUrl: "http://127.0.0.1:4010", requestTimeoutMs: 1_000 },
-    techtree: { baseUrl: "http://127.0.0.1:4100", requestTimeoutMs: 1_000 },
   },
   wallet: {
     privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -41,22 +40,6 @@ const testConfig = (root: string): RegentConfig => ({
     defaultHarness: "hermes",
     harnesses: {},
   },
-  workloads: {
-    bbh: {
-      workspaceRoot: path.join(root, "workspaces", "bbh"),
-      defaultHarness: "hermes",
-      defaultProfile: "bbh",
-    },
-    science: {
-      workspaceRoot: path.join(root, "workspaces", "science"),
-      taskRepoRoot: path.join(root, "workspaces", "science", "repos"),
-      defaultAgent: "codex",
-      defaultModel: "openai/gpt-5.4",
-      defaultEnvironment: "docker",
-      defaultTaskRef: "main",
-      publishVisibility: "public",
-    },
-  },
 });
 
 const testContext = (root: string): DoctorCheckContext => ({
@@ -68,7 +51,6 @@ const testContext = (root: string): DoctorCheckContext => ({
   stateStore: null,
   sessionStore: null,
   walletSecretSource: null,
-  techtree: null,
   fix: false,
   verbose: false,
   cleanupCommentBodyPrefix: "regent-doctor-comment",

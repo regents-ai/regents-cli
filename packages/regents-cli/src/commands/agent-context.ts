@@ -69,10 +69,7 @@ const safeHarnesses = (config: RegentConfig) =>
 
 const availableProfiles = (config: RegentConfig): readonly string[] =>
   Array.from(
-    new Set([
-      ...Object.values(config.agents.harnesses).flatMap((harness) => harness.profiles),
-      config.workloads.bbh.defaultProfile,
-    ]),
+    new Set(Object.values(config.agents.harnesses).flatMap((harness) => harness.profiles)),
   ).sort();
 
 const safeConfigSummary = (configPath?: string) => {
@@ -109,13 +106,6 @@ const safeConfigSummary = (configPath?: string) => {
       default_harness: config.agents.defaultHarness,
       harnesses: safeHarnesses(config),
     },
-    workloads: {
-      bbh: {
-        workspace_root: config.workloads.bbh.workspaceRoot,
-        default_harness: config.workloads.bbh.defaultHarness,
-        default_profile: config.workloads.bbh.defaultProfile,
-      },
-    },
     available_profiles: availableProfiles(config),
   };
 };
@@ -140,7 +130,7 @@ const filteredCommandNames = (filters: AgentContextFilters): readonly string[] =
         message: `No shipped command matches: ${filters.command}`,
         command: "regents agent-context",
         usage: 'regents agent-context [--area <name>] [--command "<command>"]',
-        example: 'regents agent-context --command "techtree node create"',
+        example: 'regents agent-context --command "techtree notebooks init"',
       });
     }
 

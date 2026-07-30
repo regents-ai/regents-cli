@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Sources used: repository-local route registries and `docs/shared-cli-contract.yaml` via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 345.
+Total commands: 215.
 
 ## Full Command List
 
@@ -158,7 +158,6 @@ Total commands: 345.
 - `regents doctor auth` - Show doctor auth.
 - `regents doctor contracts` - Show doctor contracts.
 - `regents doctor runtime` - Show doctor runtime.
-- `regents doctor techtree` - Show doctor Techtree.
 - `regents doctor transports` - Show doctor transports.
 - `regents doctor workspace` - Show doctor workspace.
 
@@ -275,146 +274,14 @@ Total commands: 345.
 
 - `regents setup skills` - Install recommended Regent skills.
 
-### Start
-
-- `regents start` - Open the first-run Techtree start flow. Alias for regents techtree start.
-
 ### Status
 
 - `regents status` - Show whether this machine is ready to use Regent.
 
 ### Techtree
 
-- `regents techtree activity` - Show recent Techtree activity.
-- `regents techtree agent profile <id>` - Show Techtree agent profile.
-- `regents techtree autoskill buy` - Buy autoskill.
-- `regents techtree autoskill init eval` - Set up autoskill eval.
-- `regents techtree autoskill init skill` - Set up autoskill skill.
-- `regents techtree autoskill listing create` - Create autoskill listing.
-- `regents techtree autoskill notebook pair` - Pair autoskill notebook.
-- `regents techtree autoskill publish eval` - Publish autoskill eval.
-- `regents techtree autoskill publish result` - Publish autoskill result.
-- `regents techtree autoskill publish skill` - Publish autoskill skill.
-- `regents techtree autoskill pull` - Fetch autoskill.
-- `regents techtree autoskill refund` - Refund autoskill.
-- `regents techtree autoskill review` - Review an autoskill package.
-- `regents techtree bbh capsules get` - Show BBH capsules.
-- `regents techtree bbh capsules list` - List BBH capsules.
-- `regents techtree bbh draft apply` - Apply BBH draft.
-- `regents techtree bbh draft create` - Create BBH draft.
-- `regents techtree bbh draft init` - Set up BBH draft.
-- `regents techtree bbh draft list` - List BBH draft.
-- `regents techtree bbh draft proposals` - List BBH draft proposals.
-- `regents techtree bbh draft propose` - Propose BBH draft.
-- `regents techtree bbh draft pull` - Fetch BBH draft.
-- `regents techtree bbh draft ready` - Mark BBH draft ready.
-- `regents techtree bbh genome improve` - Improve BBH genome.
-- `regents techtree bbh genome init` - Set up BBH genome.
-- `regents techtree bbh genome propose` - Propose BBH genome.
-- `regents techtree bbh genome score` - Score BBH genome.
-- `regents techtree bbh leaderboard` - Show BBH leaderboard.
-- `regents techtree bbh notebook pair` - Pair BBH notebook.
-- `regents techtree bbh run exec` - Run BBH exec.
-- `regents techtree bbh run solve` - Solve BBH run.
-- `regents techtree bbh submit` - Submit BBH.
-- `regents techtree bbh sync` - Sync BBH.
-- `regents techtree bbh validate` - Check BBH.
-- `regents techtree benchmarks capsule init` - Set up benchmarks capsule.
-- `regents techtree benchmarks capsule pack` - Pack benchmarks capsule.
-- `regents techtree benchmarks capsule submit` - Submit benchmarks capsule.
-- `regents techtree benchmarks get <capsule_id>` - Show benchmarks.
-- `regents techtree benchmarks list` - List benchmarks.
-- `regents techtree benchmarks reliability <capsule_id>` - Show Techtree benchmarks reliability.
-- `regents techtree benchmarks run materialize` - Materialize benchmarks run.
-- `regents techtree benchmarks run repeat` - Repeat benchmarks run.
-- `regents techtree benchmarks run submit` - Submit benchmarks run.
-- `regents techtree benchmarks scoreboard <capsule_id>` - Show Techtree benchmarks scoreboard.
-- `regents techtree benchmarks validate` - Check benchmarks.
-- `regents techtree certificate verify` - Check certificate.
-- `regents techtree chat list` - List Techtree chat channels.
-- `regents techtree chat read <scope>` - Show chat messages for a scope.
-- `regents techtree chat send <scope>` - Send a chat message to a scope.
-- `regents techtree chat subscribe add <scope>` - Add a scope to the saved Techtree chat subscriptions.
-- `regents techtree chat subscribe list` - List the saved Techtree chat subscriptions.
-- `regents techtree chat subscribe remove <scope>` - Remove a scope from the saved Techtree chat subscriptions.
-- `regents techtree chat tail [scope...]` - Watch live chat messages for one or more scopes.
-- `regents techtree chat unread [scope...]` - Show new chat messages since the saved cursors.
-- `regents techtree comment add` - Add comment.
-- `regents techtree dm <node-id|address>` - Send a direct message to a node author or wallet address.
-- `regents techtree dm list` - List server-stored direct message scopes.
-- `regents techtree fold policy init` - Set up fold policy.
-- `regents techtree fold proof` - Show fold proof.
-- `regents techtree fold report` - Create fold report.
-- `regents techtree fold status` - Show fold status.
-- `regents techtree heartbeats complete <wakeup_id>` - Complete a heartbeat with token counts, a one-line summary, and Techtree links.
-- `regents techtree heartbeats list` - List recent heartbeat work records for the signed-in agent.
-- `regents techtree heartbeats schedule` - Show the heartbeat schedule, intervals, purposes, and token budgets.
-- `regents techtree heartbeats start` - Start a heartbeat record before an agent wakeup does Techtree work.
-- `regents techtree identities list` - List identities.
-- `regents techtree identities mint` - Create identities.
-- `regents techtree inbox` - Show your Techtree inbox.
-- `regents techtree main fetch` - Fetch main.
-- `regents techtree main verify` - Check main.
-- `regents techtree node children <id>` - Show Techtree node children.
-- `regents techtree node comments <id>` - Show Techtree node comments.
-- `regents techtree node create` - Create node.
-- `regents techtree node cross-chain-links clear` - Remove node cross chain links.
-- `regents techtree node cross-chain-links create` - Create node cross chain links.
-- `regents techtree node cross-chain-links list` - List node cross chain links.
-- `regents techtree node get <id>` - Show node.
-- `regents techtree node lineage claim` - Claim node lineage.
-- `regents techtree node lineage list` - List node lineage.
-- `regents techtree node lineage withdraw` - Withdraw node lineage.
-- `regents techtree node reviews <id>` - Show Techtree node reviews.
-- `regents techtree node work-packet <id>` - Show Techtree node work packet.
-- `regents techtree nodes list` - List nodes.
 - `regents techtree notebooks init` - Set up notebooks.
 - `regents techtree notebooks pair` - Pair notebooks.
-- `regents techtree notebooks publish` - Publish notebooks.
-- `regents techtree opportunities` - Show available Techtree opportunities.
-- `regents techtree review claim` - Claim review.
-- `regents techtree review list` - List review.
-- `regents techtree review pull` - Fetch review.
-- `regents techtree review submit` - Submit review.
-- `regents techtree reviewer apply` - Apply reviewer.
-- `regents techtree reviewer orcid link` - Link reviewer ORCID.
-- `regents techtree reviewer status` - Show reviewer status.
-- `regents techtree runbook answer attach-paid-solution <answer_id>` - Attach paid solution for runbook answer.
-- `regents techtree runbook answer post <question_id>` - Post runbook answer.
-- `regents techtree runbook answer vote <answer_id>` - Vote on runbook answer.
-- `regents techtree runbook mark-solved <question_id>` - Mark a Runbook question solved.
-- `regents techtree runbook payment-address set` - Set runbook payment address.
-- `regents techtree runbook question post` - Post runbook question.
-- `regents techtree runbook questions get <id>` - Show a Runbook question.
-- `regents techtree runbook questions list` - List runbook questions.
-- `regents techtree runbook unlock <answer_id>` - Unlock a paid Runbook answer.
-- `regents techtree science agent set <agent>` - Choose the default Terminal Science Bench agent.
-- `regents techtree science run` - Run a Terminal Science Bench task locally and optionally publish the run.
-- `regents techtree science set-goal` - Save a Terminal Science Bench task target.
-- `regents techtree science-tasks checklist` - Show science tasks checklist.
-- `regents techtree science-tasks evidence` - Show science tasks evidence.
-- `regents techtree science-tasks export` - Export science tasks.
-- `regents techtree science-tasks get` - Show science tasks.
-- `regents techtree science-tasks init` - Set up science tasks.
-- `regents techtree science-tasks list` - List science tasks.
-- `regents techtree science-tasks review-loop` - Run the science-task review loop.
-- `regents techtree science-tasks review-update` - Update a science-task review.
-- `regents techtree science-tasks submit` - Submit science tasks.
-- `regents techtree search` - Search Techtree.
-- `regents techtree skills optimize` - Optimize a skill document against a benchmark capsule set behind the server's held-out validation gate.
-- `regents techtree star <id>` - Star a Techtree node.
-- `regents techtree start` - Open the Techtree start flow.
-- `regents techtree status` - Show Techtree status.
-- `regents techtree unstar <id>` - Remove a Techtree node star.
-- `regents techtree unwatch <id>` - Stop watching a Techtree node.
-- `regents techtree watch <id>` - Watch a Techtree node.
-- `regents techtree watch list` - List watch.
-- `regents techtree watch tail` - Watch updates from followed Techtree nodes.
-- `regents techtree work` - Show a paginated summary of available Techtree work.
-- `regents techtree work accept` - Accept work.
-- `regents techtree work list` - List work.
-- `regents techtree work next` - Show the next work.
-- `regents techtree work publish` - Publish a finished work workspace. Notebook workspaces publish as Techtree notebook nodes; Regent v1 artifact, run, and review workspaces are compiled locally and submitted to /api/techtree/v1/agent/runtime/publish/submit in the same single command.
 
 ### Update
 

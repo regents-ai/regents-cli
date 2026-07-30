@@ -24,23 +24,21 @@ describe("Regent plugin bridge installer", () => {
     }
   });
 
-  it("installs typed tools and Fold proof by attempt", () => {
+  it("installs the typed local-runtime bridge", () => {
     const report = installPlugin("hermes");
 
     const toolsPath = path.join(tempHome, ".hermes", "plugins", "regent", "tools.py");
     const tools = fs.readFileSync(toolsPath, "utf8");
     expect(tools).toContain("regent_runtime_start");
+    expect(tools).toContain("regent_workspace_pair");
     expect(tools).toContain("regent_x402_pay_guarded");
-    expect(tools).toContain("\"--attempt\", str(params[\"attempt_id\"])");
-    expect(tools).not.toContain("--run\", str(params[\"run_id\"])");
+    expect(tools).not.toContain("regent_techtree_fold");
 
     const skillNames = fs.readdirSync(path.join(tempHome, ".hermes", "plugins", "regent", "skills")).sort();
     expect(skillNames).toEqual([
       "regent-notebooks",
       "regent-receipts",
       "regent-runtime",
-      "regent-techtree-fold",
-      "regent-techtree-work",
       "regent-wallet-budget",
       "regent-x402",
     ]);

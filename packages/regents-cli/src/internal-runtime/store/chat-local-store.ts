@@ -5,7 +5,7 @@ import type { RegentConfig } from "../../internal-types/index.js";
 
 import { writeJsonFileAtomicSync } from "../paths.js";
 
-export type ChatProduct = "techtree" | "autolaunch";
+export type ChatProduct = "autolaunch";
 
 const WALLET_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 

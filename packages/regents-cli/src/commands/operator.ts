@@ -281,8 +281,6 @@ export async function runOperatorStatus(args: ParsedCliArgs, configPath?: string
     ),
     component("identity", receipt ? "ready" : "waiting", receipt ? receipt.agent_id : "Run regents identity ensure"),
     component("runtime", runtime.ready ? "ready" : "waiting", runtime.ready ? config.runtime.socketPath : runtimeNextAction),
-    component("techtree", "ready", config.services.techtree.baseUrl),
-    component("chat", runtime.ready ? "ready" : "waiting", runtime.ready ? undefined : runtimeNextAction),
   ];
   const blocked = components.filter((item) => item.status === "blocked").length;
   const waiting = components.filter((item) => item.status === "waiting").length;
@@ -348,21 +346,6 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
       .map((session) => session.audience),
   ];
 
-  let fold: { verified_attempt_count: number; highest_proof_level: string } | null = null;
-  if (runtime.ready && siwaSession) {
-    try {
-      const foldStatus = await daemonCall("techtree.fold.status", undefined, resolvedConfigPath);
-      if (foldStatus?.data?.policy?.enabled) {
-        fold = {
-          verified_attempt_count: foldStatus.data.verified_attempt_count,
-          highest_proof_level: foldStatus.data.highest_proof_level,
-        };
-      }
-    } catch {
-      fold = null;
-    }
-  }
-
   const components = [
     component(
       "runtime",
@@ -384,9 +367,6 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
       signIns.length > 0 ? "ready" : "waiting",
       signIns.length > 0 ? signIns.join(", ") : "Run regents auth login --audience <product>",
     ),
-    ...(fold
-      ? [component("fold", "ready", `active · ${fold.verified_attempt_count} verified attempts · ${fold.highest_proof_level}`)]
-      : []),
   ];
   const waiting = components.filter((item) => item.status === "waiting").length;
 
@@ -396,7 +376,6 @@ export async function runOperatorOverview(args: ParsedCliArgs, configPath?: stri
     status: waiting > 0 ? "waiting" : "ready",
     config_path: resolvedConfigPath,
     components,
-    ...(fold ? { fold } : {}),
     help: "Run regents --help for all commands.",
   };
 

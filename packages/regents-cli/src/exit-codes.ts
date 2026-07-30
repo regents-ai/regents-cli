@@ -1,5 +1,5 @@
 import { isCliUsageError } from "./cli-usage-error.js";
-import { AuthError, RegentError, TechtreeApiError } from "./internal-runtime/errors.js";
+import { AuthError, RegentError } from "./internal-runtime/errors.js";
 import { ProductHttpError } from "./internal-runtime/product-http-client.js";
 
 /**
@@ -118,16 +118,6 @@ export const exitCodeForError = (error: unknown): CliExitCode => {
 
   if (error instanceof ProductHttpError) {
     return exitCodeForKnownCode(productHttpErrorCode(error));
-  }
-
-  if (error instanceof TechtreeApiError) {
-    if (error.status === 401 || error.status === 403) {
-      return EXIT_CODES.authMissing;
-    }
-
-    if (error.status === 404) {
-      return EXIT_CODES.notFound;
-    }
   }
 
   return exitCodeForKnownCode(codeForError(error));

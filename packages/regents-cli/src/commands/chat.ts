@@ -1,16 +1,8 @@
-import path from "node:path";
-
 import type { ChatLiveEvent, RegentConfig } from "../internal-types/index.js";
 
 import {
-  addChatSubscription,
   listChatSubscriptions,
-  loadConfig,
   readChatCursors,
-  removeChatSubscription,
-  SessionStore,
-  StateStore,
-  TechtreeClient,
   writeChatCursors,
   type ChatProduct,
 } from "../internal-runtime/index.js";
@@ -20,9 +12,8 @@ import {
   type ProductServiceName,
 } from "../internal-runtime/product-http-client.js";
 import { messageWithRetryAfter } from "../internal-runtime/rate-limit-message.js";
-import { getBooleanFlag, getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { parseIntegerFlag, type ParsedCliArgs } from "../parse.js";
 import { CLI_PALETTE, isHumanTerminal, printJson, printJsonLine, renderPanel, tone } from "../printer.js";
-import { requireAgentAuthState } from "./agent-auth.js";
 import { resolveChatAuthorFilter, type ChatAuthorFilter, type ChatAuthorMessage } from "./chat-filter.js";
 import { collectUnreadMessages, CHAT_UNREAD_PAGE_LIMIT } from "./chat-unread.js";
 
@@ -80,8 +71,6 @@ const renderChatEvent = (event: ChatLiveEvent): string => {
   });
 };
 
-const requireScope = (args: ParsedCliArgs): string => requireArg(args.positionals[3], "scope");
-
 export const parseChatCursorFlags = (args: ParsedCliArgs): { before?: number; after?: number } => {
   const before = parseIntegerFlag(args, "before");
   const after = parseIntegerFlag(args, "after");
@@ -91,23 +80,6 @@ export const parseChatCursorFlags = (args: ParsedCliArgs): { before?: number; af
   }
 
   return { before, after };
-};
-
-const loadTechtreeClient = (configPath?: string): { config: RegentConfig; client: TechtreeClient } => {
-  const config = loadConfig(configPath);
-  const stateStore = new StateStore(path.join(config.runtime.stateDir, "runtime-state.json"));
-  const sessionStore = new SessionStore(stateStore);
-
-  return {
-    config,
-    client: new TechtreeClient({
-      config,
-      baseUrl: config.services.techtree.baseUrl,
-      requestTimeoutMs: config.services.techtree.requestTimeoutMs,
-      sessionStore,
-      stateStore,
-    }),
-  };
 };
 
 const normalizeWalletAddress = (value: string, label: string): `0x${string}` => {
@@ -143,60 +115,6 @@ export const resolveChatScopes = (
   const subscriptions = listChatSubscriptions(config, product);
   return subscriptions.length > 0 ? subscriptions : DEFAULT_SCOPES;
 };
-
-export async function runTechtreeChatList(configPath?: string): Promise<void> {
-  const { client } = loadTechtreeClient(configPath);
-  printJson(await client.listChatChannels());
-}
-
-export async function runTechtreeChatRead(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const { config, client } = loadTechtreeClient(configPath);
-  const filter = resolveChatAuthorFilter(args, config);
-  const result = await client.listChatMessages(requireScope(args), {
-    ...parseChatCursorFlags(args),
-    limit: parseIntegerFlag(args, "limit"),
-  });
-
-  printJson(filter ? { ...result, data: result.data.filter(filter) } : result);
-}
-
-export async function runTechtreeChatSend(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const { client } = loadTechtreeClient(configPath);
-  printJson(
-    await client.createAgentChatMessage(requireScope(args), {
-      body: requireArg(getFlag(args, "message"), "--message"),
-      reply_to_message_id: parseIntegerFlag(args, "reply-to"),
-      client_message_id: getFlag(args, "client-message-id"),
-    }),
-  );
-}
-
-export async function runTechtreeChatTail(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const config = loadConfig(configPath);
-  const scopes = resolveChatScopes(args.positionals.slice(3), config, "techtree");
-  const filter = resolveChatAuthorFilter(args, config);
-
-  await tailChatScopes(scopes, filter, configPath, getBooleanFlag(args, "json"));
-}
-
-export async function runTechtreeChatUnread(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const { config, client } = loadTechtreeClient(configPath);
-  const scopes = resolveChatScopes(args.positionals.slice(3), config, "techtree");
-  const filter = resolveChatAuthorFilter(args, config);
-  const peek = getBooleanFlag(args, "peek");
-
-  printJson(
-    await collectUnreadForScopes({
-      scopes,
-      filter,
-      peek,
-      config,
-      product: "techtree",
-      fetchPage: (scope, after) =>
-        client.listChatMessages(scope, { limit: CHAT_UNREAD_PAGE_LIMIT, after }),
-    }),
-  );
-}
 
 export interface ChatUnreadScopeResult {
   scope: string;
@@ -256,58 +174,6 @@ export const collectUnreadForScopes = async (input: {
 
   return { peek: input.peek, data };
 };
-
-export async function runTechtreeChatSubscribeAdd(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const scope = requireArg(args.positionals[4], "scope");
-  const config = loadConfig(configPath);
-  printJson({ ok: true, product: "techtree", ...addChatSubscription(config, "techtree", scope) });
-}
-
-export async function runTechtreeChatSubscribeRemove(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const scope = requireArg(args.positionals[4], "scope");
-  const config = loadConfig(configPath);
-  printJson({ ok: true, product: "techtree", ...removeChatSubscription(config, "techtree", scope) });
-}
-
-export async function runTechtreeChatSubscribeList(configPath?: string): Promise<void> {
-  const config = loadConfig(configPath);
-  printJson({ ok: true, product: "techtree", scopes: listChatSubscriptions(config, "techtree") });
-}
-
-export async function runTechtreeDm(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const target = requireArg(args.positionals[2], "node-id or address");
-  const message = requireArg(getFlag(args, "message"), "--message");
-
-  let wallet: string;
-  if (/^\d+$/.test(target)) {
-    const { client } = loadTechtreeClient(configPath);
-    const node = await client.getNode(Number.parseInt(target, 10));
-    const creatorWallet = node.data.creator_agent?.wallet_address;
-    if (!creatorWallet) {
-      throw new Error(`node ${target} has no creator agent wallet to DM`);
-    }
-
-    wallet = creatorWallet;
-  } else if (/^0x[0-9a-fA-F]{40}$/.test(target)) {
-    wallet = target;
-  } else {
-    throw new Error(`invalid DM target: ${target}; expected a numeric node id or a 0x wallet address`);
-  }
-
-  const { identity } = requireAgentAuthState(configPath, { audience: "techtree" });
-  const { client } = loadTechtreeClient(configPath);
-  printJson(
-    await client.createAgentChatMessage(dmScopeForWallets(identity.walletAddress, wallet), {
-      body: message,
-    }),
-  );
-}
-
-export async function runTechtreeDmList(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  void args;
-  const { client } = loadTechtreeClient(configPath);
-  printJson(await client.listAgentChatDms());
-}
 
 const streamPath = (pathTemplate: string, scopes: readonly string[]): string => {
   const query = new URLSearchParams({ scopes: scopes.join(",") });
@@ -463,23 +329,6 @@ export async function tailProductChatStream(
     process.off("SIGINT", handleSignal);
     process.off("SIGTERM", handleSignal);
   }
-}
-
-export async function tailChatScopes(
-  scopes: readonly string[],
-  filter: ChatAuthorFilter,
-  configPath?: string,
-  json?: boolean,
-): Promise<void> {
-  await tailProductChatStream({
-    service: "techtree",
-    path: "/api/techtree/v1/chat/stream",
-    commandName: "regents techtree chat tail",
-    scopes,
-    filter,
-    configPath,
-    json,
-  });
 }
 
 export async function tailAutolaunchChatScopes(

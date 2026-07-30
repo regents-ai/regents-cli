@@ -1,7 +1,12 @@
 import { getCurrentAgentIdentity, getMissingAgentIdentityFields } from "../../agent/profile.js";
 import { resolveAuthenticatedAgentSigningContext } from "../../techtree/auth.js";
 import { buildAuthenticatedFetchInit } from "../../siwa/request-builder.js";
-import { buildSiwaMessage, siwaAudienceStatement, SiwaClient } from "../../siwa/siwa.js";
+import {
+  buildSiwaMessage,
+  siwaAudienceStatement,
+  SiwaClient,
+  siwaMessageLocation,
+} from "../../siwa/siwa.js";
 import {
   coveredComponentsForAgentHeaders,
   parseSignatureInputHeader,
@@ -143,7 +148,7 @@ export function authChecks(): DoctorCheckDefinition[] {
       scope: "auth",
       title: "SIWA nonce endpoint reachable",
       run: async (ctx) => {
-        if (!ctx.config || !ctx.techtree || !ctx.stateStore) {
+        if (!ctx.config || !ctx.stateStore) {
           return skipDueToMissingConfig();
         }
 
@@ -189,7 +194,7 @@ export function authChecks(): DoctorCheckDefinition[] {
             status: "fail",
             message: "SIWA nonce endpoint is unreachable or returned an error",
             details: buildBackendDetails(error),
-            remediation: "Verify the Techtree base URL and Phoenix availability",
+            remediation: "Verify the SIWA service base URL and endpoint availability",
           };
         }
       },
@@ -199,7 +204,7 @@ export function authChecks(): DoctorCheckDefinition[] {
       scope: "auth",
       title: "SIWA verify endpoint reachable",
       run: async (ctx) => {
-        if (!ctx.config || !ctx.techtree || !ctx.stateStore) {
+        if (!ctx.config || !ctx.stateStore) {
           return skipDueToMissingConfig();
         }
 
@@ -213,9 +218,10 @@ export function authChecks(): DoctorCheckDefinition[] {
         }
 
         const nonce = `doctor-unverifiable-${Date.now()}`;
+        const location = siwaMessageLocation(ctx.config.services.platform.baseUrl);
         const message = buildSiwaMessage({
-          domain: "regent.cx",
-          uri: "https://regent.cx/api/shared/siwa/verify",
+          domain: location.domain,
+          uri: location.uri,
           walletAddress: identity.walletAddress,
           chainId: identity.chainId,
           registryAddress: identity.registryAddress,
@@ -251,7 +257,7 @@ export function authChecks(): DoctorCheckDefinition[] {
               chainId: response.data.chainId,
             },
             remediation:
-              "Inspect SIWA verify validation on the Techtree backend before relying on this environment",
+              "Inspect SIWA verify validation on the SIWA service before relying on this environment",
           };
         } catch (error) {
           const details = buildBackendDetails(error);
@@ -278,7 +284,7 @@ export function authChecks(): DoctorCheckDefinition[] {
             message:
               "SIWA verify endpoint is unreachable or did not return a usable denial response",
             details,
-            remediation: "Verify the Techtree base URL and SIWA verify route behavior",
+            remediation: "Verify the SIWA service base URL and verify route behavior",
           };
         }
       },

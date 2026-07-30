@@ -17,3 +17,15 @@ export interface GossipsubCommandResult {
   code: "not_implemented";
   message: string;
 }
+
+export interface ChatLiveEvent {
+  event: string;
+  message: {
+    id?: number;
+    scope?: string;
+    body?: string;
+    author_label?: string | null;
+    author_wallet_address?: string | null;
+    [key: string]: unknown;
+  };
+}

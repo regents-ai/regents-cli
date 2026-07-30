@@ -47,19 +47,6 @@ describe("scoped CLI help", () => {
     expect(output.stdout).toContain("regents autolaunch prelaunch validate --plan <plan-id>");
   });
 
-  it("renders prerequisite and failure guidance for common Techtree commands", async () => {
-    const output = await captureOutput(() =>
-      runCliEntrypoint(["techtree", "work", "next", "--help"]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(output.stdout).toContain("TECHTREE WORK NEXT HELP");
-    expect(output.stdout).toContain("BEFORE YOU RUN THIS");
-    expect(output.stdout).toContain("regents auth login --audience techtree");
-    expect(output.stdout).toContain("IF THIS FAILS");
-    expect(output.stdout).toContain("regents techtree work accept --work-unit <id>");
-  });
-
   it("renders setup skills help", async () => {
     const output = await captureOutput(() => runCliEntrypoint(["setup", "skills", "--help"]));
 
@@ -206,17 +193,6 @@ describe("scoped CLI help", () => {
     }
 
     expect(helpless).toEqual([]);
-  });
-
-  it("keeps bespoke prerequisite and failure prose on top of the metadata skeleton", () => {
-    // techtree work next carries hand-written prose (prerequisites + "if it fails")
-    // that has no metadata source; it must survive the metadata-driven skeleton.
-    const help = renderScopedHelp(["techtree", "work", "next"], "/tmp/regent.json");
-
-    expect(help).toContain("BEFORE YOU RUN THIS");
-    expect(help).toContain("regents auth login --audience techtree");
-    expect(help).toContain("IF THIS FAILS");
-    expect(help).toContain("regents techtree work accept --work-unit <id>");
   });
 
   it("keeps command help stable", () => {

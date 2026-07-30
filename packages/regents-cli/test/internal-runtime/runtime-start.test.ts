@@ -45,43 +45,4 @@ describe("runtime startup", () => {
     await Promise.resolve();
     expect(stop).toHaveBeenCalledTimes(2);
   });
-
-  it("dispatches the next BBH assignment method", async () => {
-    const runtime = new RegentRuntime("/tmp/regent-runtime-assignment-next.json");
-    const assignment = {
-      data: {
-        assignment_ref: "assignment-1",
-        split: "challenge",
-        capsule: {
-          capsule_id: "capsule-1",
-          provider: "bbh",
-          provider_ref: "provider-1",
-          split: "challenge",
-          language: "python",
-          mode: "fixed",
-          assignment_policy: "auto",
-          title: "Capsule",
-          hypothesis: "Hypothesis",
-          protocol_md: "Protocol",
-          rubric_json: {},
-          task_json: {},
-          data_files: [],
-        },
-      },
-    };
-    const nextBbhAssignment = vi.fn(async () => assignment);
-
-    Object.assign(runtime as unknown as Record<string, unknown>, {
-      techtree: { nextBbhAssignment },
-    });
-
-    const result = await (
-      runtime as unknown as {
-        dispatch: (method: string, params: unknown) => Promise<unknown>;
-      }
-    ).dispatch("techtree.v1.bbh.assignment.next", { split: "challenge" });
-
-    expect(result).toBe(assignment);
-    expect(nextBbhAssignment).toHaveBeenCalledWith({ split: "challenge" });
-  });
 });

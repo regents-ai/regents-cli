@@ -76,10 +76,6 @@ describe("auth envelope doctor check", () => {
             baseUrl: "http://127.0.0.1:4010",
             requestTimeoutMs: 1_000,
           },
-          techtree: {
-            baseUrl: "http://127.0.0.1:4000",
-            requestTimeoutMs: 1_000,
-          },
         },
         wallet: {
           privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",

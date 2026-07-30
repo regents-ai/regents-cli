@@ -68,17 +68,7 @@ export const REGENT_PLUGIN_TOOL_NAMES = [
   "regent_runtime_stop",
   "regent_identity_ensure",
   "regent_agent_graph",
-  "regent_work_next",
-  "regent_work_accept",
-  "regent_heartbeat_schedule",
-  "regent_heartbeat_start",
-  "regent_heartbeat_complete",
   "regent_workspace_pair",
-  "regent_benchmark_run",
-  "regent_science_task_review_loop",
-  "regent_notebook_publish",
-  "regent_fold_status",
-  "regent_fold_proof",
   "regent_budget_status",
   "regent_x402_pay_guarded",
   "regent_receipt_create",
@@ -319,17 +309,7 @@ ALLOWED: Dict[str, List[str]] = {
     "regent_runtime_stop": ["runtime", "status", "--json"],
     "regent_identity_ensure": ["identity", "ensure", "--json"],
     "regent_agent_graph": ["identity", "graph", "--json"],
-    "regent_work_next": ["techtree", "work", "next", "--json"],
-    "regent_work_accept": ["techtree", "work", "accept", "--json"],
-    "regent_heartbeat_schedule": ["techtree", "heartbeats", "schedule", "--json"],
-    "regent_heartbeat_start": ["techtree", "heartbeats", "start", "--json"],
-    "regent_heartbeat_complete": ["techtree", "heartbeats", "complete"],
     "regent_workspace_pair": ["techtree", "notebooks", "pair", "--json"],
-    "regent_benchmark_run": ["techtree", "benchmarks", "run", "materialize", "--json"],
-    "regent_science_task_review_loop": ["techtree", "science-tasks", "review-loop", "--json"],
-    "regent_notebook_publish": ["techtree", "notebooks", "publish", "--json"],
-    "regent_fold_status": ["techtree", "fold", "status", "--json"],
-    "regent_fold_proof": ["techtree", "fold", "proof", "--json"],
     "regent_budget_status": ["budget", "status", "--json"],
     "regent_x402_pay_guarded": ["x402", "pay"],
     "regent_receipt_create": ["receipt", "create", "--json"],
@@ -382,12 +362,8 @@ def regent_setup_status(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
     return _run(ALLOWED["regent_setup_status"])
 
 
-def regent_runtime_start(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    argv = list(ALLOWED["regent_runtime_start"])
-    if params.get("mode") == "techtree_fold":
-        argv.extend(["--fold", str(params.get("preset") or "autoresearch")])
-    return _start(argv)
+def regent_runtime_start(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    return _start(ALLOWED["regent_runtime_start"])
 
 
 def regent_runtime_stop(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
@@ -402,97 +378,9 @@ def regent_agent_graph(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
     return _run(ALLOWED["regent_agent_graph"])
 
 
-def regent_work_next(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    argv = list(ALLOWED["regent_work_next"])
-    kind = (params or {}).get("kind")
-    if kind:
-        argv.extend(["--kind", str(kind)])
-    return _run(argv)
-
-
-def regent_work_accept(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    argv = list(ALLOWED["regent_work_accept"])
-    argv.extend(["--work-unit", str(params["work_unit"])])
-    if params.get("workspace_path"):
-        argv.extend(["--workspace-path", str(params["workspace_path"])])
-    return _run(argv)
-
-
-def regent_heartbeat_schedule(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    return _run(ALLOWED["regent_heartbeat_schedule"])
-
-
-def _extend_json_arg(argv: List[str], flag: str, value: Any) -> None:
-    if value is not None:
-        argv.extend([flag, json.dumps(value)])
-
-
-def regent_heartbeat_start(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    argv = list(ALLOWED["regent_heartbeat_start"])
-    argv.extend(["--heartbeat", str(params["heartbeat_name"])])
-    if params.get("runtime"):
-        argv.extend(["--runtime", str(params["runtime"])])
-    if params.get("planned_at"):
-        argv.extend(["--planned-at", str(params["planned_at"])])
-    _extend_json_arg(argv, "--refs", params.get("techtree_refs"))
-    _extend_json_arg(argv, "--metadata", params.get("metadata"))
-    return _run(argv)
-
-
-def regent_heartbeat_complete(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    argv = [*ALLOWED["regent_heartbeat_complete"], str(params["wakeup_id"])]
-    if params.get("status"):
-        argv.extend(["--status", str(params["status"])])
-    argv.extend(["--input-tokens", str(params["input_tokens"])])
-    argv.extend(["--output-tokens", str(params["output_tokens"])])
-    argv.extend(["--total-tokens", str(params["total_tokens"])])
-    argv.extend(["--summary", str(params["summary"])])
-    _extend_json_arg(argv, "--refs", params.get("techtree_refs"))
-    _extend_json_arg(argv, "--metadata", params.get("metadata"))
-    argv.append("--json")
-    return _run(argv)
-
-
 def regent_workspace_pair(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
     params = params or {}
     return _run([*ALLOWED["regent_workspace_pair"], "--workspace-path", str(params["workspace_path"])])
-
-
-def regent_benchmark_run(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    return _run([
-        *ALLOWED["regent_benchmark_run"],
-        "--capsule-id", str(params["capsule_id"]),
-        "--workspace-path", str(params["workspace_path"]),
-    ])
-
-
-def regent_science_task_review_loop(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    argv = [*ALLOWED["regent_science_task_review_loop"], "--workspace-path", str(params["workspace_path"])]
-    if params.get("pr_url"):
-        argv.extend(["--pr-url", str(params["pr_url"])])
-    return _run(argv)
-
-
-def regent_notebook_publish(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    argv = [*ALLOWED["regent_notebook_publish"], "--workspace-path", str(params["workspace_path"])]
-    if params.get("parent_id"):
-        argv.extend(["--parent-id", str(params["parent_id"])])
-    return _run(argv)
-
-
-def regent_fold_status(_: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    return _run(ALLOWED["regent_fold_status"])
-
-
-def regent_fold_proof(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    params = params or {}
-    return _run([*ALLOWED["regent_fold_proof"], "--attempt", str(params["attempt_id"])])
 
 
 def regent_budget_status(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
@@ -525,12 +413,10 @@ def regent_x402_pay_guarded(params: Dict[str, Any] | None = None) -> Dict[str, A
 def regent_receipt_create(params: Dict[str, Any] | None = None) -> Dict[str, Any]:
     params = params or {}
     argv = list(ALLOWED["regent_receipt_create"])
-    if params.get("attempt_id"):
-        argv.extend(["--from-attempt", str(params["attempt_id"])])
-    elif params.get("notebook_id"):
-        argv.extend(["--from-notebook", str(params["notebook_id"])])
-    elif params.get("x402_payment_id"):
+    if params.get("x402_payment_id"):
         argv.extend(["--from-x402-payment", str(params["x402_payment_id"])])
+    elif params.get("budget_entry"):
+        argv.extend(["--from-budget-entry", str(params["budget_entry"])])
     return _run(argv)
 
 
@@ -554,17 +440,7 @@ const openclawIndexJs = (): string => `export const tools = {
   regent_runtime_stop: ["runtime", "status", "--json"],
   regent_identity_ensure: ["identity", "ensure", "--json"],
   regent_agent_graph: ["identity", "graph", "--json"],
-  regent_work_next: ["techtree", "work", "next", "--json"],
-  regent_work_accept: ["techtree", "work", "accept", "--json"],
-  regent_heartbeat_schedule: ["techtree", "heartbeats", "schedule", "--json"],
-  regent_heartbeat_start: ["techtree", "heartbeats", "start", "--json"],
-  regent_heartbeat_complete: ["techtree", "heartbeats", "complete"],
   regent_workspace_pair: ["techtree", "notebooks", "pair", "--json"],
-  regent_benchmark_run: ["techtree", "benchmarks", "run", "materialize", "--json"],
-  regent_science_task_review_loop: ["techtree", "science-tasks", "review-loop", "--json"],
-  regent_notebook_publish: ["techtree", "notebooks", "publish", "--json"],
-  regent_fold_status: ["techtree", "fold", "status", "--json"],
-  regent_fold_proof: ["techtree", "fold", "proof", "--json"],
   regent_budget_status: ["budget", "status", "--json"],
   regent_x402_pay_guarded: ["x402", "pay"],
   regent_receipt_create: ["receipt", "create", "--json"],
@@ -578,32 +454,14 @@ const regentSkills = (): Array<{ name: string; body: string }> => [
     body: `# Regent Runtime
 
 Use Regent plugin tools. Do not run raw shell, raw regents, raw awal, raw curl, or raw npx.
-Start with regent_setup_status, then regent_runtime_start, then regent_heartbeat_schedule, then regent_heartbeat_start.
-Complete every wakeup with regent_heartbeat_complete including token counts, a one-line summary, and Techtree links.
-`,
-  },
-  {
-    name: "regent-techtree-fold",
-    body: `# Regent Techtree Fold
-
-Use regent_fold_status and regent_fold_proof. Fold reports on existing Techtree attempts, notebooks, receipts, and verifier evidence.
-Do not claim a new certificate unless Techtree returns that evidence.
-`,
-  },
-  {
-    name: "regent-techtree-work",
-    body: `# Regent Techtree Work
-
-Use regent_heartbeat_start before work, then regent_work_next, regent_work_accept, regent_workspace_pair, regent_benchmark_run, regent_science_task_review_loop, and regent_notebook_publish.
-Use regent_heartbeat_complete after work with input_tokens, output_tokens, total_tokens, summary, and techtree_refs.
-Do not create work claims without a Regent receipt or Techtree evidence reference.
+Start with regent_setup_status, then regent_runtime_start.
 `,
   },
   {
     name: "regent-notebooks",
     body: `# Regent Notebooks
 
-Use Regent notebook tools to create, pair, and publish marimo notebooks.
+Use regent_workspace_pair to pair an initialized marimo notebook workspace.
 Keep paper notebooks tied to their arXiv or alphaXiv source when available.
 `,
   },
@@ -627,7 +485,7 @@ Do not bypass Regent budgets with raw curl, raw npx, raw AWAL, or raw shell.
     name: "regent-receipts",
     body: `# Regent Receipts
 
-Use regent_receipt_create and regent_receipt_share_draft after Techtree or x402 work.
+Use regent_receipt_create and regent_receipt_share_draft after x402 or budget activity.
 Share copy is a draft. Do not claim revenue unless the receipt proves recognized revenue.
 `,
   },

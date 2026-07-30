@@ -1,7 +1,7 @@
 import { CliUsageError } from "../cli-usage-error.js";
 import { withNextSteps } from "../command-payload.js";
 import { daemonCall } from "../daemon-client.js";
-import { getFlag, parseIntegerFlag, requireArg, type ParsedCliArgs } from "../parse.js";
+import { getFlag, requireArg, type ParsedCliArgs } from "../parse.js";
 import { printJson } from "../printer.js";
 
 const parseKind = (value: string | undefined): "paper" | "freeform" => {
@@ -40,20 +40,6 @@ export async function runTechtreeNotebooksPair(args: ParsedCliArgs, configPath?:
         workspace_path: workspacePath,
       },
       configPath,
-    ), [`regents techtree notebooks publish --workspace-path ${workspacePath}`]),
-  );
-}
-
-export async function runTechtreeNotebooksPublish(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const workspacePath = requireArg(getFlag(args, "workspace-path"), "--workspace-path");
-  printJson(
-    withNextSteps(await daemonCall(
-      "techtree.notebooks.publish",
-      {
-        workspace_path: workspacePath,
-        parent_id: parseIntegerFlag(args, "parent-id"),
-      },
-      configPath,
-    ), ["regents receipt create --from-notebook <node-id> --json"]),
+    ), []),
   );
 }

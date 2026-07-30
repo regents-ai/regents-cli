@@ -55,44 +55,6 @@ describe("contract command route matching", () => {
       "runtime restore",
       "runtime resume",
       "runtime services",
-      "techtree autoskill buy",
-      "techtree autoskill init eval",
-      "techtree autoskill init skill",
-      "techtree autoskill notebook pair",
-      "techtree autoskill publish eval",
-      "techtree autoskill publish result",
-      "techtree autoskill publish skill",
-      "techtree autoskill pull",
-      "techtree autoskill refund",
-      "techtree bbh capsules get",
-      "techtree bbh draft apply",
-      "techtree bbh draft create",
-      "techtree bbh draft init",
-      "techtree bbh draft propose",
-      "techtree bbh draft pull",
-      "techtree bbh draft ready",
-      "techtree bbh genome improve",
-      "techtree bbh genome init",
-      "techtree bbh genome propose",
-      "techtree bbh genome score",
-      "techtree bbh notebook pair",
-      "techtree bbh run exec",
-      "techtree bbh run solve",
-      "techtree certificate verify",
-      "techtree chat tail [scope...]",
-      "techtree chat unread [scope...]",
-      "techtree main fetch",
-      "techtree main verify",
-      "techtree node cross-chain-links clear",
-      "techtree node cross-chain-links create",
-      "techtree node cross-chain-links list",
-      "techtree node lineage claim",
-      "techtree node lineage list",
-      "techtree node lineage withdraw",
-      "techtree review claim",
-      "techtree review pull",
-      "techtree review submit",
-      "techtree science-tasks get",
       "work cancel",
       "work get",
       "work retry",
@@ -108,12 +70,9 @@ describe("contract command route matching", () => {
 
   it("does not let value slots consume known command words", () => {
     const autolaunchAgentRoute = cliRoutes.find((route) => route.command === "autolaunch agent <id>");
-    const techtreeWatchRoute = cliRoutes.find((route) => route.command === "techtree watch <id>");
 
     expect(autolaunchAgentRoute).toBeDefined();
-    expect(techtreeWatchRoute).toBeDefined();
     expect(routeMatches(autolaunchAgentRoute!, ["autolaunch", "agent", "readiness"])).toBe(false);
-    expect(routeMatches(techtreeWatchRoute!, ["techtree", "watch", "tail"])).toBe(false);
   });
 
   it("dispatches to the most specific matching command", async () => {

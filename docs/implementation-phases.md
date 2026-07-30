@@ -1,31 +1,26 @@
 # Implementation Phases
 
-## Phase 1
+## Local foundation
 
-- workspace scaffold
-- shared types
-- config and paths
-- JSON-RPC server/client
-- minimal runtime with `runtime.ping` and `runtime.status`
+- workspace, config, paths, and shared types
+- JSON-RPC server and client over the local Unix socket
+- local runtime, agent profiles, doctor checks, and gossipsub status
 
-## Phase 2
+## Authentication and payments
 
-- public Techtree client
-- CLI read-only commands for Techtree
+- SIWA nonce, message, verification, and session persistence
+- identity and signed-request envelopes
+- wallet, budget, receipt, and x402 boundaries
 
-## Phase 3
+## Product contracts
 
-- wallet secret loading
-- SIWA nonce/sign/verify login
-- session persistence
+- repository-owned shared-services contract and binding
+- reviewed Platform and Autolaunch contract copies and bindings
+- reviewed canonical Ash Techtree contract copy and binding
 
-## Phase 4
+## Shipped Techtree surface
 
-- authenticated Techtree requests
-- node/comment/watch/inbox/opportunity commands
+- local paper and freeform notebook initialization
+- local notebook pairing
 
-## Phase 5
-
-- create namespace
-- Gossipsub transport status surface
-- docs and acceptance scripts
+Any future API-backed Techtree command starts with a reviewed canonical contract-copy change.

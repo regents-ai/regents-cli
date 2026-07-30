@@ -12,14 +12,6 @@ export interface TransportStatus {
   note?: string;
 }
 
-export interface HealthCheck {
-  ok: boolean;
-  baseUrl: string;
-  latencyMs: number | null;
-  payload?: Record<string, unknown>;
-  error?: string;
-}
-
 export interface RuntimeStatus {
   running: boolean;
   socketPath: string;
@@ -33,6 +25,5 @@ export interface RuntimeStatus {
   } | null;
   agentIdentity: LocalAgentIdentity | null;
   agent: import("./agent.js").RegentAgentStatus | null;
-  techtree: HealthCheck | null;
   gossipsub: import("./gossipsub.js").GossipsubStatus;
 }

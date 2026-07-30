@@ -4,28 +4,31 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { callJsonRpc, RegentRuntime, writeInitialConfig } from "../src/internal-runtime/index.js";
+import {
+  callJsonRpc,
+  RegentRuntime,
+  writeInitialConfig,
+} from "../src/internal-runtime/index.js";
 import { runCliEntrypoint } from "../src/index.js";
-import { TechtreeContractServer } from "../../../test-support/techtree-contract-server.js";
-import { describeNetwork } from "../../../test-support/integration.js";
-import { captureOutput } from "../../../test-support/test-helpers.js";
 import { writeFakeCdp } from "./support/fake-cdp.js";
+import { TechtreeContractServer } from "../../../test-support/techtree-contract-server.js";
+import { captureOutput } from "../../../test-support/test-helpers.js";
 
 const TEST_PRIVATE_KEY =
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
 
-describeNetwork.sequential("CLI doctor command", () => {
-  let server: TechtreeContractServer;
-  let runtime: RegentRuntime | null = null;
-  let tempDir = "";
+describe.sequential("CLI doctor command", () => {
   let configPath = "";
   let originalHome: string | undefined;
-  let originalPath: string | undefined;
   let originalKeyId: string | undefined;
   let originalKeySecret: string | undefined;
-  let originalWalletSecret: string | undefined;
+  let originalPath: string | undefined;
   let originalPrivateKey: string | undefined;
+  let originalWalletSecret: string | undefined;
+  let runtime: RegentRuntime | null = null;
+  let server: TechtreeContractServer;
   let socketPath = "";
+  let tempDir = "";
 
   beforeEach(async () => {
     server = new TechtreeContractServer();
@@ -54,10 +57,6 @@ describeNetwork.sequential("CLI doctor command", () => {
         stateDir: path.join(tempDir, "state"),
         logLevel: "debug",
       },
-      auth: {
-        audience: "techtree",
-        defaultChainId: 8453,
-      },
       services: {
         siwa: {
           baseUrl: server.baseUrl,
@@ -69,10 +68,6 @@ describeNetwork.sequential("CLI doctor command", () => {
         },
         autolaunch: {
           baseUrl: "http://127.0.0.1:4010",
-          requestTimeoutMs: 1_000,
-        },
-        techtree: {
-          baseUrl: server.baseUrl,
           requestTimeoutMs: 1_000,
         },
       },
@@ -87,9 +82,7 @@ describeNetwork.sequential("CLI doctor command", () => {
   });
 
   afterEach(async () => {
-    if (runtime) {
-      await runtime.stop();
-    }
+    await runtime?.stop();
     await server.stop();
     process.env.HOME = originalHome;
     process.env.PATH = originalPath;
@@ -97,11 +90,10 @@ describeNetwork.sequential("CLI doctor command", () => {
     process.env.CDP_KEY_SECRET = originalKeySecret;
     process.env.CDP_WALLET_SECRET = originalWalletSecret;
     process.env.REGENT_WALLET_PRIVATE_KEY = originalPrivateKey;
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it("renders a human-readable report when auth is not yet established", async () => {
-    fs.mkdirSync(path.join(path.dirname(configPath), "runtime"), { recursive: true });
-
+  it("renders human guidance when authentication is not established", async () => {
     const output = await captureOutput(async () =>
       runCliEntrypoint(["doctor", "--config", configPath]),
     );
@@ -114,7 +106,7 @@ describeNetwork.sequential("CLI doctor command", () => {
     expect(output.stdout).toContain("Run `regents identity ensure`");
   });
 
-  it("renders JSON output with a successful authenticated probe", async () => {
+  it("renders authenticated doctor results as JSON", async () => {
     await captureOutput(async () =>
       runCliEntrypoint(["wallet", "setup", "--json", "--config", configPath]),
     );
@@ -134,15 +126,13 @@ describeNetwork.sequential("CLI doctor command", () => {
         chainId: 8453,
         audience: "techtree",
       }),
-    ).resolves.toMatchObject({
-      code: "siwa_verified",
-    });
+    ).resolves.toMatchObject({ code: "siwa_verified" });
 
     const output = await captureOutput(async () =>
       runCliEntrypoint(["doctor", "--json", "--config", configPath]),
     );
-
     const report = JSON.parse(output.stdout);
+
     expect(output.result).toBe(0);
     expect(output.stderr).toBe("");
     expect(report).toEqual(
@@ -150,11 +140,23 @@ describeNetwork.sequential("CLI doctor command", () => {
         mode: "default",
         checks: expect.arrayContaining([
           expect.objectContaining({
-            id: "techtree.authenticated.probe",
+            id: "auth.siwa.nonce.endpoint",
+            status: "ok",
+          }),
+          expect.objectContaining({
+            id: "auth.siwa.verify.endpoint",
+            status: "ok",
+          }),
+          expect.objectContaining({
+            id: "auth.session.present",
+            status: "ok",
+          }),
+          expect.objectContaining({
+            id: "auth.http-envelope.build",
             status: "ok",
           }),
         ]),
       }),
     );
-  });
+  }, 15_000);
 });

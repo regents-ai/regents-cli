@@ -52,11 +52,11 @@ describe("printer surface", () => {
     expect(output).toContain("R E G E N T   C L I");
     expect(output).toContain("START HERE");
     expect(output).toContain("PRODUCT AREAS");
-    expect(output).toContain("TECHTREE LOOP");
+    expect(output).toContain("TECHTREE NOTEBOOKS");
     expect(output).toContain("COMMON NEXT STEPS");
     expect(output).toContain("direct control surface for Regent operators and agents");
     expect(output).toContain("Use regents.sh for guided browser setup.");
-    expect(output).toContain("Use this CLI for local identity, runtime, Techtree work, and Autolaunch work.");
+    expect(output).toContain("Use this CLI for local identity, runtime, notebooks, and Autolaunch work.");
     expect(output).toContain("Run `regents help <product>` or `regents <command> --help`.");
     expect(output).toContain("regents init");
     expect(output).toContain("regents status");
@@ -64,18 +64,10 @@ describe("printer surface", () => {
     expect(output).toContain("regents run");
     expect(output).toContain("regents doctor");
     expect(output).toContain("regents platform auth login");
-    expect(output).toContain("regents techtree start");
-    expect(output).toContain("regents techtree work");
+    expect(output).toContain("regents techtree notebooks init");
+    expect(output).toContain("regents techtree notebooks pair");
     expect(output).toContain("regents autolaunch prelaunch wizard");
     expect(output).toContain("regents autolaunch launch run");
-    expect(output).toContain("regents techtree bbh capsules list [--lane climb|benchmark|challenge]");
-    expect(output).toContain("regents techtree bbh run exec [path] --capsule <capsule-id> [--lane climb|benchmark|challenge]");
-    expect(output).toContain("regents techtree bbh notebook pair [path]");
-    expect(output).toContain("regents techtree bbh run solve [path] --solver hermes|openclaw|skydiscover");
-    expect(output).toContain("regents techtree bbh submit [path]");
-    expect(output).toContain("regents techtree bbh validate [path]");
-    expect(output).toContain("regents techtree search --query <query>");
-    expect(output).toContain("regents techtree chat tail [scope...]");
     expect(output).toContain("regents autolaunch safe wizard");
     expect(output).toContain("regents bug --summary");
     expect(output).toContain("regents security-report --summary");
@@ -206,13 +198,13 @@ describe("printer surface", () => {
       printJson({
         ok: true,
         created: true,
-        next: ["regents techtree work next --json"],
+        next: ["regents techtree notebooks init --json"],
       });
     });
 
     const nextIndex = output.stdout.lastIndexOf("NEXT");
     expect(nextIndex).toBeGreaterThan(output.stdout.indexOf("REGENT OUTPUT DECK"));
-    expect(output.stdout).toContain("regents techtree work next --json");
+    expect(output.stdout).toContain("regents techtree notebooks init --json");
   });
 
   it("renders a framed error for human terminals", async () => {

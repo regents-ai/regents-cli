@@ -5,10 +5,11 @@ const root = resolve(import.meta.dirname, "..");
 const requiredInputs = [
   ["shared CLI contract", "docs/shared-cli-contract.yaml"],
   ["shared services OpenAPI contract", "docs/regent-services-contract.openapiv3.yaml"],
+  ["Ash Techtree OpenAPI contract", "docs/ash-techtree-contract.openapiv3.yaml"],
   ["runtime JSON-RPC contract", "docs/json-rpc-methods.yaml"],
   ["WalletAction schema", "docs/schemas/wallet-action.schema.yaml"],
   ["Platform copied API binding", "packages/regents-cli/src/generated/platform-openapi.ts"],
-  ["Techtree copied API binding", "packages/regents-cli/src/generated/techtree-openapi.ts"],
+  ["Ash Techtree generated API binding", "packages/regents-cli/src/generated/ash-techtree-openapi.ts"],
   ["Autolaunch copied API binding", "packages/regents-cli/src/generated/autolaunch-openapi.ts"],
   ["shared services generated binding", "packages/regents-cli/src/generated/regent-services-openapi.ts"],
 ];

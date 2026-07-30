@@ -15,17 +15,13 @@ export async function runRuntimeLocalStatus(configPath?: string): Promise<number
     socket_path: config.runtime.socketPath,
     state_dir: config.runtime.stateDir,
     identity: state.agent?.registryAddress && state.agent?.tokenId ? "ready" : "missing",
-    techtree: config.services.techtree.baseUrl,
     agentic_wallet: "optional",
     budgets: {
       active: budgets.filter((budget) => budget.status === "active").length,
     },
     plugins: pluginStatus("auto").runtimes,
     runtime_socket_present: fs.existsSync(config.runtime.socketPath),
-    next_steps: [
-      "regents runtime tools --json",
-      "regents techtree work next --json",
-    ],
+    next_steps: ["regents runtime tools --json"],
   });
   return 0;
 }
@@ -34,7 +30,7 @@ export async function runRuntimeLocalTools(): Promise<number> {
   printJson({
     ok: true,
     tools: REGENT_PLUGIN_TOOL_NAMES,
-    note: "Use typed Regent plugin tools. Do not call raw shell for Regent wallet, payment, or Techtree work.",
+    note: "Use typed Regent plugin tools. Do not call raw shell for Regent wallet or payment work.",
     next_steps: ["regents runtime policy --json"],
   });
   return 0;
@@ -47,10 +43,9 @@ export async function runRuntimeLocalPolicy(configPath?: string): Promise<number
     ok: true,
     budget_model: "Regent-mediated policy, not custody isolation.",
     wallet_model: "Regent identity wallet is separate from Agentic Wallet spend.",
-    techtree_model: "Fold reports on existing Techtree attempts, notebooks, receipts, and verifier evidence.",
-    autolaunch_model: "Techtree evidence can support readiness; operator approval is still required.",
+    autolaunch_model: "Operator approval is required.",
     active_budget_count: budgets.filter((budget) => budget.status === "active").length,
-    next_steps: ["regents techtree work next --json"],
+    next_steps: [],
   });
   return 0;
 }

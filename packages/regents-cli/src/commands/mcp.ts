@@ -50,7 +50,6 @@ export async function runMcpDoctor(_args: ParsedCliArgs, configPath?: string): P
     config: {
       state_dir: kernel.config.runtime.stateDir,
       socket_path: kernel.config.runtime.socketPath,
-      techtree_base_url: kernel.config.services.techtree.baseUrl,
       platform_base_url: kernel.config.services.platform.baseUrl,
     },
     tools: regentsMcpToolsList().tools,

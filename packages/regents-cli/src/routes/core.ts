@@ -27,7 +27,6 @@ import { runReceiptCreate, runReceiptGet, runReceiptList, runReceiptShareDraft }
 import { runRuntime } from "../commands/run.js";
 import { runSetup } from "../commands/setup.js";
 import { runSetupSkills } from "../commands/setup-skills.js";
-import { runTechtreeStartCommand } from "../commands/techtree-start.js";
 import { runUpdate } from "../commands/update.js";
 import { runVersion } from "../commands/version.js";
 import { runVoiceServe } from "../commands/voice.js";
@@ -45,8 +44,6 @@ import type { CliHandlerRegistry } from "./shared.js";
 
 export const coreHandlers: CliHandlerRegistry = {
   init: { run: ({ parsedArgs, configPath }) => runOperatorInit(parsedArgs, configPath) },
-  // `start` and `techtree start` own their exit code via runTechtreeStartCommand.
-  start: { run: ({ parsedArgs, configPath }) => runTechtreeStartCommand(parsedArgs, configPath) },
   settings: { run: ({ parsedArgs }) => runConfigGet(parsedArgs) },
   status: { run: ({ parsedArgs, configPath }) => runOperatorStatus(parsedArgs, configPath) },
   whoami: { run: ({ parsedArgs, configPath }) => runOperatorWhoami(parsedArgs, configPath) },
@@ -64,7 +61,6 @@ export const coreHandlers: CliHandlerRegistry = {
   "config write": { run: ({ parsedArgs }) => runConfigWrite(parsedArgs) },
   "doctor runtime": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
   "doctor auth": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
-  "doctor techtree": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
   "doctor transports": { run: ({ parsedArgs, configPath }) => runDoctorCommand(parsedArgs, configPath) },
   "doctor contracts": { run: ({ parsedArgs, configPath }) => runDoctorContractsCommand(parsedArgs, configPath) },
   "doctor workspace": { run: ({ parsedArgs, configPath }) => runDoctorWorkspaceCommand(parsedArgs, configPath) },

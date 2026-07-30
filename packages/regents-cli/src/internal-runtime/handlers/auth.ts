@@ -14,7 +14,12 @@ import { identityNetworkForChainId } from "../identity/shared.js";
 import { receiptToIdentity } from "../identity/shared.js";
 import type { RuntimeContext } from "../runtime.js";
 import { requireAuthenticatedAgentContext } from "../techtree/auth.js";
-import { buildSiwaMessage, siwaAudienceStatement, SiwaClient } from "../siwa/siwa.js";
+import {
+  buildSiwaMessage,
+  siwaAudienceStatement,
+  SiwaClient,
+  siwaMessageLocation,
+} from "../siwa/siwa.js";
 
 const normalizeAudience = (value: string): SiwaAudience => {
   switch (value) {
@@ -99,9 +104,10 @@ export async function handleAuthSiwaLogin(
     audience,
   });
 
+  const location = siwaMessageLocation(ctx.config.services.platform.baseUrl);
   const message = buildSiwaMessage({
-    domain: "regent.cx",
-    uri: "https://regent.cx/api/shared/siwa/verify",
+    domain: location.domain,
+    uri: location.uri,
     walletAddress,
     chainId: identity.chainId,
     registryAddress,

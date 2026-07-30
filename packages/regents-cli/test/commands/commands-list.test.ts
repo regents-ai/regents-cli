@@ -53,7 +53,7 @@ describe("commands list", () => {
     const payload = JSON.parse(output.lines.join(""));
     expect(payload.search).toBe("chat tail");
     const names = payload.commands.map((entry: { command: string }) => entry.command);
-    expect(names).toContain("techtree chat tail [scope...]");
+    expect(names).toContain("autolaunch chat tail [scope...]");
     expect(names).not.toContain("version");
     expect(payload.total).toBe(names.length);
   });

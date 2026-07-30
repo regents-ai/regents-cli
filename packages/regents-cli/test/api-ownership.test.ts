@@ -11,7 +11,7 @@ const loadGeneratedPathSet = (relativePath: string): Set<string> => {
 };
 
 const pathsByOwner = {
-  techtree: loadGeneratedPathSet("../src/generated/techtree-openapi.ts"),
+  techtree: loadGeneratedPathSet("../src/generated/ash-techtree-openapi.ts"),
   autolaunch: loadGeneratedPathSet("../src/generated/autolaunch-openapi.ts"),
   platform: loadGeneratedPathSet("../src/generated/platform-openapi.ts"),
   "shared-services": new Set([
@@ -29,7 +29,7 @@ describe("API command ownership registry", () => {
 
   it("uses only current status labels", () => {
     expect(new Set(apiCommandOwnership.map((group) => group.status))).toEqual(
-      new Set(["current", "current-local-and-api"]),
+      new Set(["current", "current-local-and-api", "local"]),
     );
   });
 
@@ -42,33 +42,19 @@ describe("API command ownership registry", () => {
     expect(missingPaths).toEqual([]);
   });
 
-  it("only leaves paths empty for documented local-and-API command groups", () => {
+  it("only leaves paths empty for documented local-only command groups", () => {
     expect(apiCommandOwnership.filter(
-      (group) => group.pathTemplates.length === 0 && (group.status !== "current-local-and-api" || !group.note),
+      (group) => group.pathTemplates.length === 0 && (group.status !== "local" || !group.note),
     )).toEqual([]);
   });
 
-  it("registers the full science-task CLI surface against its copied binding", () => {
-    const group = apiCommandOwnership.find((entry) => entry.commands.includes("techtree science-tasks list"));
+  it("classifies the surviving notebook commands as local-only", () => {
+    const group = apiCommandOwnership.find((entry) => entry.owner === "techtree");
     expect(group).toMatchObject({
+      commands: ["techtree notebooks init", "techtree notebooks pair"],
       owner: "techtree",
-      status: "current",
-      commands: [
-        "techtree science-tasks list", "techtree science-tasks get", "techtree science-tasks init",
-        "techtree science-tasks checklist", "techtree science-tasks evidence", "techtree science-tasks export",
-        "techtree science-tasks submit", "techtree science-tasks review-update", "techtree science-tasks review-loop",
-      ],
+      status: "local",
+      pathTemplates: [],
     });
-    for (const pathTemplate of group?.pathTemplates ?? []) expect(pathsByOwner.techtree.has(pathTemplate)).toBe(true);
-  });
-
-  it("registers the Terminal Science run lane against its copied binding", () => {
-    const group = apiCommandOwnership.find((entry) => entry.commands.includes("techtree science run"));
-    expect(group).toMatchObject({
-      owner: "techtree",
-      status: "current",
-      commands: ["techtree science set-goal", "techtree science agent set <agent>", "techtree science run"],
-    });
-    for (const pathTemplate of group?.pathTemplates ?? []) expect(pathsByOwner.techtree.has(pathTemplate)).toBe(true);
   });
 });

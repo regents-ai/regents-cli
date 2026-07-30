@@ -171,10 +171,6 @@ describe("platform CLI command group", () => {
           baseUrl: "http://127.0.0.1:4010",
           requestTimeoutMs: 1000,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:4010",
-          requestTimeoutMs: 1000,
-        },
       },
     });
 

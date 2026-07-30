@@ -24,7 +24,6 @@ const configFor = (homeDir: string): RegentConfig => ({
     siwa: { baseUrl: "http://127.0.0.1:4000", requestTimeoutMs: 1000 },
     platform: { baseUrl: "http://127.0.0.1:4000", requestTimeoutMs: 1000 },
     autolaunch: { baseUrl: "http://127.0.0.1:4010", requestTimeoutMs: 1000 },
-    techtree: { baseUrl: "http://127.0.0.1:4001", requestTimeoutMs: 1000 },
   },
   wallet: {
     privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -39,22 +38,6 @@ const configFor = (homeDir: string): RegentConfig => ({
   agents: {
     defaultHarness: "hermes",
     harnesses: {},
-  },
-  workloads: {
-    bbh: {
-      workspaceRoot: path.join(homeDir, ".regent", "workspaces", "bbh"),
-      defaultHarness: "hermes",
-      defaultProfile: "bbh",
-    },
-    science: {
-      workspaceRoot: path.join(homeDir, ".regent", "workspaces", "science"),
-      taskRepoRoot: path.join(homeDir, ".regent", "workspaces", "science", "repos"),
-      defaultAgent: "codex",
-      defaultModel: "openai/gpt-5.4",
-      defaultEnvironment: "docker",
-      defaultTaskRef: "main",
-      publishVisibility: "public",
-    },
   },
 });
 

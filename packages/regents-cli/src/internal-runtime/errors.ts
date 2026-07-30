@@ -30,17 +30,6 @@ export class AuthError extends RegentError {
   }
 }
 
-export class TechtreeApiError extends RegentError {
-  readonly status?: number;
-  readonly payload?: unknown;
-
-  constructor(message: string, options?: { code?: string; status?: number; payload?: unknown; cause?: unknown }) {
-    super(options?.code ?? "techtree_api_error", message, options?.cause);
-    this.status = options?.status;
-    this.payload = options?.payload;
-  }
-}
-
 export class JsonRpcError extends RegentError {
   readonly rpcCode?: number;
   readonly details?: Record<string, unknown>;

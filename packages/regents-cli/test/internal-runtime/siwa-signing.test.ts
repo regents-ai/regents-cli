@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { LocalAgentIdentity, SiwaSession } from "../../src/internal-types/index.js";
+import {
+  defaultConfig,
+  SERVICE_BASE_URL_ERROR,
+} from "../../src/internal-runtime/config.js";
 
 import {
   buildAuthenticatedFetchInit,
@@ -8,6 +12,7 @@ import {
 } from "../../src/internal-runtime/siwa/request-builder.js";
 import {
   buildSiwaMessage,
+  SiwaClient,
   siwaAudienceStatement,
 } from "../../src/internal-runtime/siwa/siwa.js";
 import {
@@ -19,10 +24,40 @@ import {
 } from "../../src/internal-runtime/siwa/signing.js";
 
 describe("siwa message construction", () => {
+  const messageInput = (baseUrl: string) => {
+    const config = defaultConfig();
+    config.services.platform.baseUrl = baseUrl;
+    return {
+      config,
+      walletAddress: "0x1111111111111111111111111111111111111111",
+      chainId: 8453,
+      registryAddress: "0x2222222222222222222222222222222222222222",
+      tokenId: "99",
+      nonce: "12345678deadbeef",
+      issuedAt: "2026-03-10T00:00:00.000Z",
+    };
+  };
+
+  const completeMessage = (domain: string, uri: string): string =>
+    [
+      `${domain} wants you to sign in with your Agent account:`,
+      "0x1111111111111111111111111111111111111111",
+      "",
+      "Sign in to Regents CLI.",
+      "",
+      `URI: ${uri}`,
+      "Version: 1",
+      "Agent ID: 99",
+      "Agent Registry: eip155:8453:0x2222222222222222222222222222222222222222",
+      "Chain ID: 8453",
+      "Nonce: 12345678deadbeef",
+      "Issued At: 2026-03-10T00:00:00.000Z",
+    ].join("\n");
+
   it("builds the expected SIWA message", () => {
     const message = buildSiwaMessage({
-      domain: "regent.cx",
-      uri: "https://regent.cx/login",
+      domain: "platform.example",
+      uri: "https://platform.example/login",
       walletAddress: "0x1111111111111111111111111111111111111111",
       chainId: 8453,
       registryAddress: "0x2222222222222222222222222222222222222222",
@@ -34,12 +69,12 @@ describe("siwa message construction", () => {
 
     expect(message).toBe(
       [
-        "regent.cx wants you to sign in with your Agent account:",
+        "platform.example wants you to sign in with your Agent account:",
         "0x1111111111111111111111111111111111111111",
         "",
         "Sign in to Regents CLI.",
         "",
-        "URI: https://regent.cx/login",
+        "URI: https://platform.example/login",
         "Version: 1",
         "Agent ID: 99",
         "Agent Registry: eip155:8453:0x2222222222222222222222222222222222222222",
@@ -47,6 +82,40 @@ describe("siwa message construction", () => {
         "Nonce: 12345678deadbeef",
         "Issued At: 2026-03-10T00:00:00.000Z",
       ].join("\n"),
+    );
+  });
+
+  it.each([
+    {
+      name: "path, query, and fragment",
+      baseUrl: "https://regents.sh/a/path?next=https://evil.example#fragment",
+      domain: "regents.sh",
+      uri: "https://regents.sh",
+    },
+    {
+      name: "non-default port",
+      baseUrl: "https://preview.regents.example:8443/a/path",
+      domain: "preview.regents.example:8443",
+      uri: "https://preview.regents.example:8443",
+    },
+  ])("builds the complete canonical message for $name", ({ baseUrl, domain, uri }) => {
+    expect(SiwaClient.defaultMessageInput(messageInput(baseUrl))).toBe(
+      completeMessage(domain, uri),
+    );
+  });
+
+  it.each([
+    ["newline injection", "https://regents.sh/\nURI: https://evil.example"],
+    ["carriage-return injection", "https://regents.sh/\rURI: https://evil.example"],
+    ["NUL control-character injection", "https://regents.sh/\u0000URI:https://evil.example"],
+    ["javascript scheme", "javascript:alert(1)"],
+    ["FTP scheme", "ftp://regents.sh"],
+    ["userinfo", "https://operator:secret@regents.sh"],
+    ["empty username", "https://@regents.sh"],
+    ["empty username and password", "https://:@regents.sh"],
+  ])("rejects %s before constructing signed bytes", (_name, baseUrl) => {
+    expect(() => SiwaClient.defaultMessageInput(messageInput(baseUrl))).toThrow(
+      SERVICE_BASE_URL_ERROR,
     );
   });
 

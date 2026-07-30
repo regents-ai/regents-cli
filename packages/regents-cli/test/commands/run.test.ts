@@ -122,7 +122,6 @@ describe("regents run presenter", () => {
         stateDir: "/tmp/regent/state",
         services: {
           siwa: "https://siwa.example",
-          techtree: "https://techtree.example",
           platform: "https://platform.example",
           autolaunch: "https://autolaunch.example",
         },
@@ -165,9 +164,9 @@ describe("regents run presenter", () => {
             when: "prepare shared Regent actions.",
           },
           {
-            label: "Techtree search",
-            command: "regents techtree search --query <query>",
-            when: "search Techtree.",
+            label: "Techtree notebook",
+            command: "regents techtree notebooks init",
+            when: "start a local research notebook.",
           },
         ],
         safetyNotes: [
@@ -182,7 +181,7 @@ describe("regents run presenter", () => {
         },
         autolaunch: {
           state: "locked",
-          reason: "Techtree evidence is an input to readiness; it does not approve a launch by itself.",
+          reason: "Launch readiness must be confirmed through Autolaunch.",
         },
       }),
     );
@@ -195,7 +194,7 @@ describe("regents run presenter", () => {
     expect(output).toContain("Agent identity checked");
     expect(output).toContain("RUN THESE IN ANOTHER TERMINAL");
     expect(output).toContain("regents auth login --audience regent-services");
-    expect(output).toContain("regents techtree search --query <query>");
+    expect(output).toContain("regents techtree notebooks init");
     expect(output).toContain("It does not start hosted Regent.");
     expect(output).toContain("It does not move funds.");
     expect(output).not.toContain("local runtime");

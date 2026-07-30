@@ -10,7 +10,7 @@ import {
   SUPPORTED_PLATFORM_CONTRACT_MAJOR,
 } from "../generated/platform-contract-digest.js";
 
-export type ProductServiceName = "siwa" | "platform" | "autolaunch" | "techtree";
+export type ProductServiceName = "siwa" | "platform" | "autolaunch";
 export type ProductHttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type ProductHttpHeaders = ConstructorParameters<typeof Headers>[0];
 type ProductHttpBody = NonNullable<Parameters<typeof fetch>[1]> extends { readonly body?: infer Body } ? Body : never;

@@ -40,10 +40,6 @@ describe("Regents MCP server", () => {
           baseUrl: "http://127.0.0.1:4101",
           requestTimeoutMs: 1_000,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:4102",
-          requestTimeoutMs: 1_000,
-        },
       },
       wallet: {
         privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -70,11 +66,10 @@ describe("Regents MCP server", () => {
 
       expect(toolNames).toContain("regents.runtime.identity.status");
       expect(toolNames).toContain("regents.runtime.status");
-      expect(toolNames).toContain("regents.techtree.search");
-      expect(toolNames).toContain("regents.techtree.node.create");
       expect(toolNames).toContain("regents.x402.fetch");
       expect(toolNames).toContain("regents.x402.refund");
       expect(toolNames).not.toContain("regents.wallet.action.submit");
+      expect(toolNames.some((name) => name.startsWith("regents.techtree."))).toBe(false);
       expect(toolNames.some((name) => name.includes(".submit"))).toBe(false);
 
       const identity = await client.callTool({
@@ -225,11 +220,11 @@ describe("Regents MCP server", () => {
     await client.connect(clientTransport);
 
     try {
-      // The test config points Techtree at a port with nothing listening, so the
-      // kernel call throws. The wrapper must turn that into a clean isError result.
+      // The protected URL has nothing listening, so the kernel call throws. The
+      // wrapper must turn that into a clean isError result.
       const failed = await client.callTool({
-        name: "regents.techtree.search",
-        arguments: { q: "anything" },
+        name: "regents.x402.details",
+        arguments: { url: "http://127.0.0.1:9/protected" },
       });
 
       expect(failed.isError).toBe(true);
@@ -260,10 +255,10 @@ describe("Regents MCP server", () => {
     await client.connect(clientTransport);
 
     try {
-      // techtree.search requires a non-empty `q`; an empty string violates the schema.
+      // x402 details requires a valid URL.
       const result = await client.callTool({
-        name: "regents.techtree.search",
-        arguments: { q: "" },
+        name: "regents.x402.details",
+        arguments: { url: "" },
       });
       expect(result.isError).toBe(true);
     } finally {

@@ -43,10 +43,10 @@ describe("repository-local observability", () => {
   });
 
   it("does not match extra words unless the route declares them", () => {
-    const exact = route("techtree status", async () => 0);
+    const exact = route("techtree notebooks pair", async () => 0);
     const variadic = route("doctor", async () => 0, { variadicTail: true });
-    expect(routeMatches(exact, ["techtree", "status"])).toBe(true);
-    expect(routeMatches(exact, ["techtree", "status", "extra"])).toBe(false);
+    expect(routeMatches(exact, ["techtree", "notebooks", "pair"])).toBe(true);
+    expect(routeMatches(exact, ["techtree", "notebooks", "pair", "extra"])).toBe(false);
     expect(routeMatches(variadic, ["doctor", "auth"])).toBe(true);
   });
 });

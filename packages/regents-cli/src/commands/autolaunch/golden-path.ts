@@ -492,6 +492,7 @@ const requestSiwaLaunchBundle = async (
   const nonce = noncePayload.data.nonce;
   const issuedAt = new Date().toISOString();
   const message = SiwaClient.defaultMessageInput({
+    config,
     walletAddress,
     chainId: AUTOLAUNCH_CHAIN_ID,
     registryAddress: identity.registryAddress,

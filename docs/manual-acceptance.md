@@ -1,151 +1,48 @@
-# Manual Acceptance Script
+# Manual Acceptance
 
-This workspace ships one operator-facing install target: `@regentslabs/cli`. The internal runtime and shared types packages stay inside the workspace and are not separate release products.
+Use this flow to verify the local Techtree notebook survivor after the canonical contract cutover.
 
-This script assumes a reachable backend that serves the current Techtree product API contract and shared SIWA rail through the configured `/api/shared/siwa/*` routes. During the unified web app refactor, this is a contract-validation setup; shipped browser routes belong to the Regent web app.
+## Preconditions
 
-Keep the launch split explicit:
+- dependencies are already installed
+- the six repository checks are green
+- no external service is required
 
-- SIWA identity login uses Base mainnet
-- Techtree publishing for this launch uses Base mainnet
-- Regent chat reads and tail streams use the product HTTP chat contracts
-- paid node unlocks use Base mainnet settlement with server-verified entitlement
+## Local notebook flow
 
-## Preferred guided path
-
-If you want the CLI to drive the setup flow itself, start here:
-
-```bash
-regents techtree start
-```
-
-What still must already exist before the guided flow can finish:
-
-- a wallet key in `REGENT_WALLET_PRIVATE_KEY`
-- a reachable Techtree backend and shared SIWA service path
-- a Base mainnet RPC URL plus Base mainnet ETH only if the guided start needs to mint a fresh Techtree identity
-
-The rest of this document remains the explicit operator-by-operator version of the same flow.
-
-## Key Concepts
-
-- Guided start: `regents techtree start` is the first step. It prepares local config, checks the runtime, helps bind identity, and confirms readiness.
-- Run folder: the local folder for one active run. After the guided start, the usual next move is to open the next Techtree task or start the BBH loop.
-- Live tree: the public map of seeds, nodes, and branches.
-- BBH branch: the Big-Bench Hard research branch. It gives you a notebook flow, optional SkyDiscover search, and Hypotest replay validation.
-
-## 1. Set wallet env
-
-```bash
-export REGENT_WALLET_PRIVATE_KEY=0xYOUR_PRIVATE_KEY
-```
-
-## 2. Start the contract-validation backend
-
-Until the Techtree domain move is complete, run the backend that currently serves the Techtree API contract:
-
-```bash
-mix phx.server
-```
-
-## 3. Initialize local config
-
-```bash
-pnpm --filter @regentslabs/cli exec regents init
-```
-
-`init` writes the local config when needed. Re-running it keeps the existing config and recreates missing local directories.
-
-## 4. Start the runtime
+Start the local runtime:
 
 ```bash
 pnpm --filter @regentslabs/cli exec regents run
 ```
 
-## 5. Confirm or mint a Techtree agent identity
-
-These are separate paths, not one generic "testnet" path.
+In another terminal, create a temporary paper notebook:
 
 ```bash
-pnpm --filter @regentslabs/cli exec regents techtree identities list --chain base-mainnet
+pnpm --filter @regentslabs/cli exec regents techtree notebooks init \
+  --kind paper \
+  --title "Cutover acceptance" \
+  --source "local acceptance" \
+  --workspace-path /tmp/regents-cutover-notebook \
+  --json
 ```
 
-If the wallet does not already own a usable agent identity, mint one:
+Confirm that the result names `notebook.json`, `analysis.py`, and the next pair command. Then pair it:
 
 ```bash
-pnpm --filter @regentslabs/cli exec regents techtree identities mint --chain base-mainnet
+pnpm --filter @regentslabs/cli exec regents techtree notebooks pair \
+  --workspace-path /tmp/regents-cutover-notebook \
+  --json
 ```
 
-Use the returned identity details in the Regent identity step.
+Confirm that the result points to the same workspace and returns only the local marimo edit step. No publish, search, chat, benchmark, science, or work-feed command should appear.
 
-## 6. Ensure Regent identity
+## Contract and command proof
 
 ```bash
-pnpm --filter @regentslabs/cli exec regents identity ensure \
-  --network base
+pnpm check:workspace
+pnpm check:openapi
+pnpm check:cli-contract
 ```
 
-`regents identity ensure` uses Base by default and uses the Coinbase wallet path.
-
-Protected Techtree routes (`node create`, `comment add`, `work-packet`, `watch`, `inbox`, `opportunities`) require a current Regent identity receipt.
-
-## 7. Read public nodes
-
-```bash
-pnpm --filter @regentslabs/cli exec regents techtree nodes list --limit 5
-```
-
-## 8. Read public activity and search
-
-```bash
-pnpm --filter @regentslabs/cli exec regents techtree activity --limit 10
-pnpm --filter @regentslabs/cli exec regents techtree search --query root --limit 5
-```
-
-## 9. Create a node
-
-```bash
-pnpm --filter @regentslabs/cli exec regents techtree node create \
-  --seed ML \
-  --kind hypothesis \
-  --title "CLI integration node" \
-  --parent-id 1 \
-  --notebook-source @./examples/notebook.py
-```
-
-If you are creating a paid node, pass a JSON payload file through `--paid-payload`. The payout wallet may differ from the node creator wallet by setting `x402_pay_to_address` in that file.
-
-## 10. Add a comment
-
-```bash
-pnpm --filter @regentslabs/cli exec regents techtree comment add \
-  --node-id 1 \
-  --body-markdown "Interesting result"
-```
-
-## 11. Read inbox
-
-```bash
-pnpm --filter @regentslabs/cli exec regents techtree inbox --limit 25
-```
-
-## 12. Read and replace the local config
-
-```bash
-pnpm --filter @regentslabs/cli exec regents config get
-pnpm --filter @regentslabs/cli exec regents config write --input @/absolute/path/to/replacement.json
-```
-
-## 13. Tail chat scopes from the CLI
-
-```bash
-pnpm --filter @regentslabs/cli exec regents techtree chat tail system
-pnpm --filter @regentslabs/cli exec regents techtree chat tail topic:protein-folding
-```
-
-## 14. Verify a paid autoskill purchase and pull the unlocked bundle
-
-```bash
-pnpm --filter @regentslabs/cli exec regents techtree autoskill buy 42
-pnpm --filter @regentslabs/cli exec regents techtree autoskill pull 42 ./pull-workspace
-```
+The workspace report must list the Ash Techtree contract copy and `ash-techtree-openapi.ts`. The command metadata must list only notebook `init` and `pair` under the Techtree group.

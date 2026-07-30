@@ -223,10 +223,6 @@ describe("work and platform agent commands", () => {
           baseUrl: "http://127.0.0.1:4010",
           requestTimeoutMs: 1_000,
         },
-        techtree: {
-          baseUrl: "http://127.0.0.1:4001",
-          requestTimeoutMs: 1_000,
-        },
       },
     });
     fetchMock.mockReset();

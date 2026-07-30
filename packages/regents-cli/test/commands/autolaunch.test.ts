@@ -1402,68 +1402,6 @@ describe("autolaunch CLI command group", () => {
     });
   });
 
-  it("lists ERC-8004 identities through the techtree namespace", async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            data: {
-              agents: [
-                {
-                  chainId: "8453",
-                  agentId: "88",
-                  owner: "0x00000000000000000000000000000000000000aa",
-                  operators: [],
-                  agentWallet: null,
-                  registrationFile: { name: "Techtree Agent", active: true },
-                },
-              ],
-            },
-          }),
-          {
-            status: 200,
-            headers: { "content-type": "application/json" },
-          },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: { agents: [] } }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: { agents: [] } }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      );
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "techtree",
-        "identities",
-        "list",
-        "--chain",
-        "base-mainnet",
-        "--owner",
-        "0x00000000000000000000000000000000000000aa",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(
-      parsePrintedJson<{ launchable: Array<{ agent_id: string }> }>(
-        output.stdout,
-      ),
-    ).toMatchObject({
-      ok: true,
-      chain_id: 8453,
-      owner_address: "0x00000000000000000000000000000000000000aa",
-      launchable: [{ agent_id: mainnetLaunchableAgentId }],
-    });
-  });
-
   it("mints an ERC-8004 identity and reports the new agent id", async () => {
     process.env.AUTOLAUNCH_AGENT_PRIVATE_KEY =
       "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -1535,41 +1473,6 @@ describe("autolaunch CLI command group", () => {
       "missing private key (--private-key, AUTOLAUNCH_AGENT_PRIVATE_KEY, or REGENT_WALLET_PRIVATE_KEY)",
     );
     expect(writeContractMock).not.toHaveBeenCalled();
-  });
-
-  it("mints an ERC-8004 identity through the techtree namespace", async () => {
-    process.env.AUTOLAUNCH_AGENT_PRIVATE_KEY =
-      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    process.env.BASE_MAINNET_RPC_URL = "https://rpc.base.example";
-    writeContractMock.mockResolvedValue("0xbeef");
-    waitForReceiptMock.mockResolvedValue({
-      status: "success",
-      blockNumber: 456n,
-      logs: [],
-    });
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "techtree",
-        "identities",
-        "mint",
-        "--chain",
-        "base-mainnet",
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(writeContractMock).toHaveBeenCalledTimes(1);
-    expect(
-      parsePrintedJson<{ agent_id: string | null; chain_id: number }>(
-        output.stdout,
-      ),
-    ).toMatchObject({
-      ok: true,
-      chain_id: 8453,
-      agent_id: mainnetAgentId,
-      owner_address: "0x00000000000000000000000000000000000000aa",
-      agent_uri: null,
-    });
   });
 
   it("runs the prelaunch wizard on Base mainnet", async () => {

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getCurrentAgentIdentity } from "../../agent/profile.js";
-import { RegentError, TechtreeApiError } from "../../errors.js";
+import { RegentError } from "../../errors.js";
 import { readIdentityReceipt } from "../../identity/cache.js";
 import { resolveIdentitySigner, resolveSignerFromReceipt } from "../../identity/providers.js";
 import { identityNetworkForChainId } from "../../identity/shared.js";
@@ -55,35 +55,6 @@ export async function deriveSignerWalletAddress(ctx: DoctorCheckContext): Promis
 }
 
 export function buildBackendDetails(error: unknown): Record<string, unknown> {
-    if (error instanceof TechtreeApiError) {
-        const payload = isRecord(error.payload)
-            ? error.payload
-            : undefined;
-        const backendError = isRecord(payload?.error)
-            ? payload.error
-            : undefined;
-        const backend = backendError
-            ? {
-                ...(typeof backendError.code === "string" ? { code: backendError.code } : {}),
-                ...(typeof backendError.message === "string" ? { message: backendError.message } : {}),
-                ...("details" in backendError ? { details: backendError.details } : {}),
-            }
-            : payload;
-        const siwa = isRecord(backend) &&
-            "details" in backend &&
-            isRecord(backend.details) &&
-            "siwa" in backend.details &&
-            isRecord(backend.details.siwa)
-            ? backend.details.siwa
-            : undefined;
-        return {
-            code: error.code,
-            message: error.message,
-            ...(error.status === undefined ? {} : { status: error.status }),
-            ...(backend === undefined ? {} : { backend }),
-            ...(siwa === undefined ? {} : { siwa }),
-        };
-    }
     if (error instanceof RegentError) {
         const status = isRecord(error) && typeof error.status === "number" ? error.status : undefined;
         return {

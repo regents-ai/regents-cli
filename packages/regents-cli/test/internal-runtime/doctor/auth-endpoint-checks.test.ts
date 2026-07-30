@@ -29,7 +29,6 @@ const testConfig = (root: string): RegentConfig => ({
     siwa: { baseUrl: "http://127.0.0.1:4000", requestTimeoutMs: 1_000 },
     platform: { baseUrl: "http://127.0.0.1:4000", requestTimeoutMs: 1_000 },
     autolaunch: { baseUrl: "http://127.0.0.1:4010", requestTimeoutMs: 1_000 },
-    techtree: { baseUrl: "http://127.0.0.1:4100", requestTimeoutMs: 1_000 },
   },
   wallet: {
     privateKeyEnv: "REGENT_WALLET_PRIVATE_KEY",
@@ -44,22 +43,6 @@ const testConfig = (root: string): RegentConfig => ({
   agents: {
     defaultHarness: "hermes",
     harnesses: {},
-  },
-  workloads: {
-    bbh: {
-      workspaceRoot: path.join(root, "workspaces", "bbh"),
-      defaultHarness: "hermes",
-      defaultProfile: "bbh",
-    },
-    science: {
-      workspaceRoot: path.join(root, "workspaces", "science"),
-      taskRepoRoot: path.join(root, "workspaces", "science", "repos"),
-      defaultAgent: "codex",
-      defaultModel: "openai/gpt-5.4",
-      defaultEnvironment: "docker",
-      defaultTaskRef: "main",
-      publishVisibility: "public",
-    },
   },
 });
 
@@ -86,7 +69,6 @@ const buildContext = (root: string): { ctx: DoctorCheckContext; sessionStore: Se
       stateStore,
       sessionStore,
       walletSecretSource: null,
-      techtree: {} as DoctorCheckContext["techtree"],
       fix: false,
       verbose: false,
       cleanupCommentBodyPrefix: "regent-doctor-comment",
@@ -99,6 +81,14 @@ const buildContext = (root: string): { ctx: DoctorCheckContext; sessionStore: Se
 const runVerifyEndpointCheck = async (ctx: DoctorCheckContext) => {
   const [result] = await runChecksSequentially(
     authChecks().filter((check) => check.id === "auth.siwa.verify.endpoint"),
+    ctx,
+  );
+  return result;
+};
+
+const runNonceEndpointCheck = async (ctx: DoctorCheckContext) => {
+  const [result] = await runChecksSequentially(
+    authChecks().filter((check) => check.id === "auth.siwa.nonce.endpoint"),
     ctx,
   );
   return result;
@@ -159,6 +149,21 @@ describe("auth.siwa.verify.endpoint doctor check", () => {
     expect(sessionStore.getSiwaSession()).toBeNull();
   });
 
+  it("identifies the SIWA service when the nonce endpoint is unreachable", async () => {
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockRejectedValue(new TypeError("fetch failed")));
+    const { ctx } = buildContext(tempRoot);
+
+    const result = await runNonceEndpointCheck(ctx);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: "auth.siwa.nonce.endpoint",
+        status: "fail",
+        remediation: expect.stringContaining("SIWA service base URL"),
+      }),
+    );
+  });
+
   it("fails when the endpoint is unreachable", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(new TypeError("fetch failed"));
     vi.stubGlobal("fetch", fetchMock);
@@ -170,7 +175,7 @@ describe("auth.siwa.verify.endpoint doctor check", () => {
       expect.objectContaining({
         id: "auth.siwa.verify.endpoint",
         status: "fail",
-        remediation: expect.stringContaining("Techtree base URL"),
+        remediation: expect.stringContaining("SIWA service base URL"),
         details: expect.objectContaining({
           code: "siwa_request_failed",
         }),
@@ -191,7 +196,7 @@ describe("auth.siwa.verify.endpoint doctor check", () => {
       expect.objectContaining({
         id: "auth.siwa.verify.endpoint",
         status: "fail",
-        remediation: expect.stringContaining("Techtree base URL"),
+        remediation: expect.stringContaining("SIWA service base URL"),
         details: expect.objectContaining({
           status: 404,
         }),
@@ -248,7 +253,7 @@ describe("auth.siwa.verify.endpoint doctor check", () => {
       expect.objectContaining({
         id: "auth.siwa.verify.endpoint",
         status: "warn",
-        remediation: expect.stringContaining("SIWA verify validation"),
+        remediation: expect.stringContaining("SIWA service"),
       }),
     );
     expect(sessionStore.getSiwaSession()).toBeNull();

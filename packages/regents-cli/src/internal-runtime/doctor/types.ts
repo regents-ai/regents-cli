@@ -1,5 +1,4 @@
 import type {
-  CommentCreateResponse,
   DoctorCheckResult,
   DoctorMode,
   DoctorReport,
@@ -8,14 +7,12 @@ import type {
   DoctorRunScopedParams,
   DoctorScope,
   DoctorStatus,
-  NodeCreateResponse,
   RegentConfig,
 } from "../../internal-types/index.js";
 import type { SignerBackend } from "../agent/signer-backend.js";
 import type { RuntimeContext } from "../runtime.js";
 import type { SessionStore } from "../store/session-store.js";
 import type { StateStore } from "../store/state-store.js";
-import type { TechtreeClient } from "../techtree/client.js";
 
 export interface DoctorCheckOutcome {
   status: DoctorStatus;
@@ -32,11 +29,6 @@ export interface DoctorCheckDefinition {
   run: (ctx: DoctorCheckContext) => Promise<DoctorCheckOutcome>;
 }
 
-export interface DoctorFullState {
-  nodeResponse?: NodeCreateResponse;
-  commentResponse?: CommentCreateResponse;
-}
-
 export interface DoctorCheckContext {
   mode: DoctorMode;
   configPath: string;
@@ -46,12 +38,8 @@ export interface DoctorCheckContext {
   stateStore: StateStore | null;
   sessionStore: SessionStore | null;
   signer: SignerBackend | null;
-  techtree: TechtreeClient | null;
   fix: boolean;
   verbose: boolean;
-  knownParentId?: number;
-  cleanupCommentBodyPrefix: string;
-  fullState: DoctorFullState;
   refreshConfig: () => void;
 }
 

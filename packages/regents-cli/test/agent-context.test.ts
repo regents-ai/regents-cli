@@ -60,8 +60,8 @@ describe("agent-context", () => {
       expect(payload.profile.wallet.private_key_env).toBe("REGENT_AGENT_CONTEXT_PRIVATE_KEY");
       expect(payload.profile.wallet.keystore_configured).toBe(true);
       expect(payload.profile.agents.default_harness).toBe("hermes");
-      expect(payload.profile.agents.harnesses.hermes.profiles).toContain("bbh");
-      expect(payload.profile.available_profiles).toContain("bbh");
+      expect(payload.profile.agents.harnesses.hermes.profiles).toContain("owner");
+      expect(payload.profile.available_profiles).toContain("owner");
       expect(payload.conventions).toMatchObject({
         json_flag: "--json",
         no_input_flag: "--no-input",

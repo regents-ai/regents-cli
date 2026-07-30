@@ -110,8 +110,8 @@ describe("CLI HTTP route contract check", () => {
     const routeSources = [
       `
         export const techtreeHandlers = {
-          "techtree node get": { run: ({ parsedArgs, configPath }) => runTechtreeNodeGet(parsedArgs, configPath) },
-          "techtree node delete": { run: ({ parsedArgs, configPath }) => runTechtreeNodeDelete(parsedArgs, configPath) },
+          "fixture node get": { run: ({ parsedArgs, configPath }) => runFixtureNodeGet(parsedArgs, configPath) },
+          "fixture node delete": { run: ({ parsedArgs, configPath }) => runFixtureNodeDelete(parsedArgs, configPath) },
         };
       `,
     ];
@@ -119,11 +119,11 @@ describe("CLI HTTP route contract check", () => {
       {
         path: "nodes.ts",
         source: `
-          export async function runTechtreeNodeGet(args, configPath) {
+          export async function runFixtureNodeGet(args, configPath) {
             await requestJson("GET", \`/api/techtree/v1/nodes/\${encodeURIComponent("node_123")}\`, { configPath });
           }
 
-          export async function runTechtreeNodeDelete(args, configPath) {
+          export async function runFixtureNodeDelete(args, configPath) {
             await requestJson("DELETE", \`/api/techtree/v1/nodes/\${encodeURIComponent("node_123")}\`, { configPath });
           }
         `,
@@ -134,13 +134,13 @@ describe("CLI HTTP route contract check", () => {
       routeSources,
       commandSources,
       openApiFiles: { techtree: techtreeContract },
-      shippedCommands: new Set(["techtree node get", "techtree node delete"]),
+      shippedCommands: new Set(["fixture node get", "fixture node delete"]),
       YAML,
     });
 
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({
-      command: "techtree node delete",
+      command: "fixture node delete",
       method: "DELETE",
       routeShape: "/api/techtree/v1/nodes/{}",
       likelyOwner: "techtree",

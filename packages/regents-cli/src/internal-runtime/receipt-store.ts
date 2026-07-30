@@ -11,12 +11,7 @@ export interface RegentReceipt {
   readonly schema: "regents.receipt.v1";
   readonly receipt_id: string;
   readonly created_at: string;
-  readonly kind: "techtree_research" | "x402_payment" | "budget_entry";
-  readonly techtree?: {
-    readonly attempt_id?: string;
-    readonly node_id?: string;
-    readonly proof_level?: "self_reported" | "external_eval" | "reproducible" | "tee_attested" | "cross_provider";
-  };
+  readonly kind: "x402_payment" | "budget_entry";
   readonly x402?: {
     readonly payments: readonly string[];
     readonly earnings: readonly string[];
@@ -59,17 +54,9 @@ const writeReceiptFile = (config: RegentConfig, file: ReceiptFile): void => {
 };
 
 const buildShareCopy = (input: {
-  readonly attempt_id?: string;
-  readonly notebook_id?: string;
   readonly x402_payment_id?: string;
   readonly budget_entry?: string;
 }): string => {
-  if (input.attempt_id) {
-    return `My agent completed Techtree work with attempt ${input.attempt_id}.`;
-  }
-  if (input.notebook_id) {
-    return `My agent published a Techtree notebook with reference ${input.notebook_id}.`;
-  }
   if (input.budget_entry) {
     return `My agent recorded budget activity with reference ${input.budget_entry}.`;
   }
@@ -79,19 +66,17 @@ const buildShareCopy = (input: {
 export const createReceipt = (
   config: RegentConfig,
   input: {
-    readonly attempt_id?: string;
-    readonly notebook_id?: string;
     readonly x402_payment_id?: string;
     readonly budget_entry?: string;
   },
 ): RegentReceipt => {
-  const selected = [input.attempt_id, input.notebook_id, input.x402_payment_id, input.budget_entry].filter(Boolean);
+  const selected = [input.x402_payment_id, input.budget_entry].filter(Boolean);
   if (selected.length !== 1) {
     throw new CliUsageError({
       code: "invalid_receipt_source",
       message: "Choose exactly one receipt source.",
-      validValues: ["--from-attempt", "--from-notebook", "--from-x402-payment", "--from-budget-entry"],
-      example: "regents receipt create --from-attempt attempt_123 --json",
+      validValues: ["--from-x402-payment", "--from-budget-entry"],
+      example: "regents receipt create --from-x402-payment payment_123 --json",
     });
   }
 
@@ -99,12 +84,10 @@ export const createReceipt = (
     schema: "regents.receipt.v1",
     receipt_id: `rcpt_${crypto.randomBytes(12).toString("hex")}`,
     created_at: new Date().toISOString(),
-    kind: input.x402_payment_id ? "x402_payment" : input.budget_entry ? "budget_entry" : "techtree_research",
+    kind: input.x402_payment_id ? "x402_payment" : "budget_entry",
     ...(input.x402_payment_id
       ? { x402: { payments: [input.x402_payment_id], earnings: [] } }
-      : input.budget_entry
-        ? { budget: { ledger_entry: input.budget_entry } }
-      : { techtree: { attempt_id: input.attempt_id, node_id: input.notebook_id } }),
+      : { budget: { ledger_entry: input.budget_entry as string } }),
     recognized_revenue: false,
     share_copy: buildShareCopy(input),
   };

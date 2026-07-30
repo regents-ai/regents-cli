@@ -37,7 +37,6 @@ export interface RegentServicesConfig {
   siwa: RegentServiceConfig;
   platform: RegentServiceConfig;
   autolaunch: RegentServiceConfig;
-  techtree: RegentServiceConfig;
   voice: RegentVoiceConfig;
 }
 
@@ -70,27 +69,6 @@ export interface RegentAgentsConfig {
   harnesses: Record<string, RegentHarnessConfig>;
 }
 
-export interface RegentBbhWorkloadConfig {
-  workspaceRoot: string;
-  defaultHarness: RegentExecutorHarnessKind;
-  defaultProfile: string;
-}
-
-export interface RegentScienceWorkloadConfig {
-  workspaceRoot: string;
-  taskRepoRoot: string;
-  defaultAgent: RegentExecutorHarnessKind;
-  defaultModel: string;
-  defaultEnvironment: "docker";
-  defaultTaskRef: string;
-  publishVisibility: "public";
-}
-
-export interface RegentWorkloadsConfig {
-  bbh: RegentBbhWorkloadConfig;
-  science: RegentScienceWorkloadConfig;
-}
-
 export interface RegentConfig {
   runtime: RegentRuntimeConfig;
   auth: RegentAuthConfig;
@@ -98,5 +76,4 @@ export interface RegentConfig {
   wallet: RegentWalletConfig;
   gossipsub: RegentGossipsubConfig;
   agents: RegentAgentsConfig;
-  workloads: RegentWorkloadsConfig;
 }
