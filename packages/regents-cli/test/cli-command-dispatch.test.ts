@@ -158,4 +158,22 @@ describe("CLI command dispatch", () => {
       error: { code: "unknown_command" },
     });
   });
+
+  it("does not dispatch the deleted Hermes connector", async () => {
+    const output = await captureOutput(async () =>
+      harness.runCliEntrypoint([
+        "agent",
+        "connect",
+        "hermes",
+        "--json",
+        "--config",
+        harness.configPath,
+      ]),
+    );
+    expect(output.result).toBe(2);
+    expect(output.stdout).toBe("");
+    expect(JSON.parse(output.stderr)).toMatchObject({
+      error: { code: "unknown_command" },
+    });
+  });
 });

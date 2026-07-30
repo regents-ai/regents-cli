@@ -341,7 +341,6 @@ export const platformApiCommandGroups = [
       "runtime services",
       "runtime health",
       "agent connect hosted-hermes",
-      "agent connect hermes",
       "agent connect openclaw",
       "agent link",
       "agent execution-pool",

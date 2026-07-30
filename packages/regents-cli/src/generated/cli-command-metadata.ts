@@ -3,7 +3,6 @@
 
 export const CLI_COMMANDS = [
   "agent chat",
-  "agent connect hermes",
   "agent connect hosted-hermes",
   "agent connect openclaw",
   "agent execution-pool",
@@ -222,7 +221,6 @@ export const CLI_COMMANDS = [
 export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
   "agent": [
     "agent chat",
-    "agent connect hermes",
     "agent connect hosted-hermes",
     "agent connect openclaw",
     "agent execution-pool",
@@ -574,71 +572,6 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "auth_mode": "session-file"
     },
     "summary": "Send one message to a hosted Hermes agent and print the reply."
-  },
-  "agent connect hermes": {
-    "command": "agent connect hermes",
-    "owner": "platform",
-    "group": "platform",
-    "interface": "http",
-    "auth_mode": "agent-siwa",
-    "auth_audience": "platform",
-    "output_envelope": "platform-json",
-    "flags": [
-      {
-        "name": "--regent-id",
-        "type": "string",
-        "required": true,
-        "description": "Regent id."
-      },
-      {
-        "name": "--name",
-        "type": "string",
-        "required": false,
-        "description": "Display name."
-      },
-      {
-        "name": "--role",
-        "type": "string",
-        "required": true,
-        "enum": [
-          "manager",
-          "executor",
-          "hybrid"
-        ],
-        "description": "Worker role."
-      },
-      {
-        "name": "--write-plugin",
-        "type": "boolean",
-        "required": false,
-        "default": true,
-        "description": "Write the local Hermes plugin and skill files."
-      }
-    ],
-    "examples": [
-      "regents platform auth status",
-      "regents runtime get <runtime_id> --regent-id <regent_id>",
-      "regents work get <work_item_id> --regent-id <regent_id>",
-      "regents regent-staking get"
-    ],
-    "agent_metadata": {
-      "category": "platform",
-      "prompt_behavior": "prompt_when_signing_or_opening_hosted_flow",
-      "json_support": "supported",
-      "mutation_class": "command_specific",
-      "retry_behavior": "safe_for_reads_prepare_only_for_actions",
-      "pagination": "bounded_unless_command_declares_cursor",
-      "async_behavior": "synchronous_or_polling",
-      "input_mode": "args-and-flags",
-      "summary": "Connect local Hermes as a worker for one Regent.",
-      "operation_ids": [
-        "registerRwrWorker"
-      ],
-      "transport_kind": "http",
-      "auth_mode": "agent-siwa",
-      "auth_audience": "platform"
-    },
-    "summary": "Connect local Hermes as a worker for one Regent."
   },
   "agent connect hosted-hermes": {
     "command": "agent connect hosted-hermes",

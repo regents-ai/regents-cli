@@ -26,19 +26,19 @@ regents platform formation status
 Create work:
 
 ```bash
-regents work create --company-id <company-id> --title "<title>" --description "<details>"
+regents work create --regent-id <regent-id> --title "<title>" --description "<details>"
 ```
 
 Run work:
 
 ```bash
-regents work run <work-item-id> --company-id <company-id> --runner <runner>
+regents work run <work-item-id> --regent-id <regent-id> --runner <runner>
 ```
 
 Watch work:
 
 ```bash
-regents work watch <run-id> --company-id <company-id>
+regents work watch <run-id> --regent-id <regent-id>
 ```
 
 ## Local Workers
@@ -50,19 +50,13 @@ This does not open remote shell access to the person's machine. Work runs only t
 Connect OpenClaw:
 
 ```bash
-regents agent connect openclaw --company-id <company-id> --role executor
-```
-
-Connect Hermes:
-
-```bash
-regents agent connect hermes --company-id <company-id> --role manager
+regents agent connect openclaw --regent-id <regent-id> --role executor
 ```
 
 Check a local worker once:
 
 ```bash
-regents work local-loop --company-id <company-id> --worker-id <worker-id> --once
+regents work local-loop --regent-id <regent-id> --worker-id <worker-id> --once
 ```
 
 Use `--json --no-input` when running from an automated agent.

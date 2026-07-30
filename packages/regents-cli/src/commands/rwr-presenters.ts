@@ -28,13 +28,6 @@ type RwrOpenClawPayload = RwrPayload & {
   };
 };
 
-type RwrHermesPayload = RwrPayload & {
-  readonly hermes: {
-    readonly pluginFile: string | null;
-    readonly skillFile: string | null;
-  };
-};
-
 const asRecord = (value: unknown, label: string): JsonObject => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`Regent returned ${label} that this command cannot show.`);
@@ -84,7 +77,7 @@ const nextPanel = (lines: readonly string[]): string =>
 
 const printRwrPayload = (
   args: ParsedCliArgs,
-  payload: RwrPayload | RwrOpenClawPayload | RwrHermesPayload,
+  payload: RwrPayload,
   renderHuman: () => string,
 ): void => {
   if (isHumanTerminal() && !getBooleanFlag(args, "json")) {
@@ -349,34 +342,6 @@ export const printWorkWatchTimelineResult = (
     })(),
   );
 };
-
-export const printAgentConnectHermesResult = (args: ParsedCliArgs, payload: RwrHermesPayload): void =>
-  printRwrPayload(args, payload, () => {
-    const worker = workerFromPayload(payload);
-    const workerId = idValue(worker);
-    const regentId = displayValue(worker.regent_id) ?? "<id>";
-
-    return [
-      renderKeyValuePanel("◆ LOCAL HERMES CONNECTED", [
-        ...workerRows(worker),
-        ...(payload.hermes.pluginFile
-          ? [{ label: "plugin file", value: payload.hermes.pluginFile, valueColor: CLI_PALETTE.emphasis }]
-          : []),
-        ...(payload.hermes.skillFile
-          ? [{ label: "skill file", value: payload.hermes.skillFile, valueColor: CLI_PALETTE.emphasis }]
-          : []),
-      ], {
-        borderColor: CLI_PALETTE.chrome,
-        titleColor: CLI_PALETTE.title,
-      }),
-      nextPanel([
-        payload.hermes.pluginFile
-          ? `Hermes can now discover ${tone("regents-work", CLI_PALETTE.emphasis, true)} from ${payload.hermes.pluginFile}.`
-          : "Hermes was connected. No local plugin files were written.",
-        `Check available work with ${commandValue(`regents work local-loop --regent-id ${regentId} --worker-id ${workerId} --once`)}.`,
-      ]),
-    ].join("\n\n");
-  });
 
 export const printAgentConnectHostedHermesResult = (args: ParsedCliArgs, payload: RwrPayload): void =>
   printRwrPayload(args, payload, () => {

@@ -120,19 +120,10 @@ describe("scoped CLI help", () => {
     expect(logs.stdout).toContain("If a buyer needs to call the service, use the existing `regents x402` commands instead.");
   });
 
-  it("renders Regent worker help for Hermes and execution pools", async () => {
-    const hermes = await captureOutput(() =>
-      runCliEntrypoint(["agent", "connect", "hermes", "--help"]),
-    );
+  it("renders Regent worker help for hosted Hermes and execution pools", async () => {
     const hostedHermes = await captureOutput(() =>
       runCliEntrypoint(["agent", "connect", "hosted-hermes", "--help"]),
     );
-
-    expect(hermes.result).toBe(0);
-    expect(hermes.stdout).toContain("AGENT CONNECT HERMES HELP");
-    expect(hermes.stdout).toContain("regents agent connect hermes --regent-id <id>");
-    expect(hermes.stdout).toContain("regents auth login --audience platform");
-    expect(hermes.stdout).toContain("--write-plugin");
 
     expect(hostedHermes.result).toBe(0);
     expect(hostedHermes.stdout).toContain("AGENT CONNECT HOSTED-HERMES HELP");

@@ -499,68 +499,6 @@ describe("work and platform agent commands", () => {
     expect(fs.readFileSync(printed.openclaw.skillFile, "utf8")).toContain("--worker-id 789");
   });
 
-  it("connects Hermes through the local bridge and writes connector files", async () => {
-    mockPlatformResponses(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          agent_profile: agentProfile({ agent_kind: "hermes", default_runner_kind: "hermes_local_manager" }),
-          worker: worker({
-            name: "Hermes desk",
-            agent_kind: "hermes",
-            worker_role: "manager",
-            runner_kind: "hermes_local_manager",
-          }),
-        }),
-        {
-          status: 201,
-          headers: { "content-type": "application/json" },
-        },
-      ),
-    );
-
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "agent",
-        "connect",
-        "hermes",
-        "--regent-id",
-        "regent_123",
-        "--role",
-        "manager",
-        "--name",
-        "Hermes desk",
-        "--config",
-        configPath,
-      ]),
-    );
-
-    expect(output.result).toBe(0);
-    expect(productFetchCalls()[0]?.[1]?.body).toBe(
-      JSON.stringify({
-        regent_id: "regent_123",
-        agent_kind: "hermes",
-        worker_role: "manager",
-        execution_surface: "local_bridge",
-        runner_kind: "hermes_local_manager",
-        billing_mode: "user_local",
-        trust_scope: "local_user_controlled",
-        reported_usage_policy: "self_reported",
-        display_name: "Hermes desk",
-        endpoint_url: null,
-      }),
-    );
-
-    const printed = parsePrintedJson<{ hermes: { pluginFile: string; skillFile: string } }>(output.stdout);
-    expect(printed.hermes.pluginFile).toBe(
-      path.join(homeDir, ".hermes", "plugins", "regents-work", "plugin.yaml"),
-    );
-    expect(printed.hermes.skillFile).toBe(path.join(homeDir, ".hermes", "skills", "regents-work", "SKILL.md"));
-    expect(fs.existsSync(path.join(homeDir, ".hermes", "connectors", "regents-work.json"))).toBe(false);
-    expect(fs.readFileSync(printed.hermes.pluginFile, "utf8")).toContain("worker_id: \"789\"");
-    expect(fs.readFileSync(printed.hermes.skillFile, "utf8")).toContain("Do not upload secrets, private memory");
-  });
-
   it("inspects hosted Hermes through runtime status, service, and health routes", async () => {
     mockPlatformResponses(
       new Response(JSON.stringify({ ok: true, runtime: runtime() }), {

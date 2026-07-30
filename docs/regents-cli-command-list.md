@@ -4,14 +4,13 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Sources used: repository-local route registries and `docs/shared-cli-contract.yaml` via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 215.
+Total commands: 214.
 
 ## Full Command List
 
 ### Agent
 
 - `regents agent chat` - Send one message to a hosted Hermes agent and print the reply.
-- `regents agent connect hermes` - Connect local Hermes as a worker for one Regent.
 - `regents agent connect hosted-hermes` - Inspect one hosted Hermes runtime for a Regent.
 - `regents agent connect openclaw` - Connect a local OpenClaw worker to one Regent.
 - `regents agent execution-pool` - List the workers available to one manager.

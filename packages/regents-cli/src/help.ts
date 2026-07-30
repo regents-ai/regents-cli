@@ -437,15 +437,6 @@ const commandHelpOverlay: Record<string, Partial<HelpEntry>> = {
     output: "Shows availability, status, and metering status.",
     nextStep: "Run `regents runtime services <runtime-id> --regent-id <id>` to inspect published services.",
   },
-  "agent connect hermes": {
-    summary: "Connect local Hermes as a regent worker.",
-    usage: "regents agent connect hermes --regent-id <id> --role <manager|executor|hybrid>",
-    flags: ["--regent-id <id>", "--role <manager|executor|hybrid>", "--name <name>", "--write-plugin <true|false>", "--config <path>"],
-    examples: ["regents agent connect hermes --regent-id <id> --role manager"],
-    auth: "Needs `regents auth login --audience platform` and `regents identity ensure`.",
-    output: "Shows the worker id, role, status, and local Hermes plugin files.",
-    nextStep: "Use the generated Hermes skill, or run `regents work local-loop`.",
-  },
   "agent connect hosted-hermes": {
     usage: "regents agent connect hosted-hermes --regent-id <id> --runtime-id <id>",
     flags: ["--regent-id <id>", "--runtime-id <id>", "--origin <url>", "--session-file <path>", "--config <path>"],

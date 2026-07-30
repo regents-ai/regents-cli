@@ -1,6 +1,5 @@
 import {
   runAgentChat,
-  runAgentConnectHermes,
   runAgentConnectHostedHermes,
   runAgentConnectOpenClaw,
   runAgentExecutionPool,
@@ -15,9 +14,6 @@ export const platformAgentHandlers: CliHandlerRegistry = {
   },
   "agent connect hosted-hermes": {
     run: ({ parsedArgs }) => runAgentConnectHostedHermes(parsedArgs),
-  },
-  "agent connect hermes": {
-    run: ({ parsedArgs, configPath }) => runAgentConnectHermes(parsedArgs, configPath),
   },
   "agent connect openclaw": {
     run: ({ parsedArgs, configPath }) => runAgentConnectOpenClaw(parsedArgs, configPath),

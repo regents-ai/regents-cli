@@ -1,4 +1,3 @@
-import { writeHermesRegentsWorkConnector } from "../../agents/hermes/connect.js";
 import { writeOpenClawRegentsWorkSkill } from "../../agents/openclaw/connect.js";
 import { CliUsageError } from "../../cli-usage-error.js";
 import { loadConfig } from "../../internal-runtime/index.js";
@@ -6,7 +5,6 @@ import { productBaseUrl } from "../../internal-runtime/product-http-client.js";
 import { getFlag, requireArg, type ParsedCliArgs } from "../../parse.js";
 import {
   printAgentChatResult,
-  printAgentConnectHermesResult,
   printAgentConnectHostedHermesResult,
   printAgentConnectOpenClawResult,
   printAgentExecutionPoolResult,
@@ -53,11 +51,6 @@ const relationshipMember = (
 
 const writeSkillEnabled = (args: ParsedCliArgs): boolean => {
   const value = getFlag(args, "write-skill");
-  return value === undefined || value === "true" || value === "1" || value === "yes";
-};
-
-const writePluginEnabled = (args: ParsedCliArgs): boolean => {
-  const value = getFlag(args, "write-plugin");
   return value === undefined || value === "true" || value === "1" || value === "yes";
 };
 
@@ -245,46 +238,6 @@ export async function runAgentConnectHostedHermes(args: ParsedCliArgs): Promise<
       runtime: runtime.runtime,
       services: services.services,
       health: health.health,
-    },
-  });
-}
-
-export async function runAgentConnectHermes(args: ParsedCliArgs, configPath?: string): Promise<void> {
-  const resolvedRegentId = regentId(args);
-  const role = requireArg(getFlag(args, "role"), "role");
-  const displayName = getFlag(args, "name") ?? "Hermes local worker";
-  const { origin, data } = await requestPlatformAgentJson(configPath, {
-    method: "POST",
-    path: `/api/platform/regents/${encodeURIComponent(resolvedRegentId)}/rwr/workers`,
-    body: {
-      regent_id: resolvedRegentId,
-      agent_kind: "hermes",
-      worker_role: role,
-      execution_surface: "local_bridge",
-      runner_kind: "hermes_local_manager",
-      billing_mode: "user_local",
-      trust_scope: "local_user_controlled",
-      reported_usage_policy: "self_reported",
-      display_name: displayName,
-      endpoint_url: null,
-    },
-  });
-  const connector = writePluginEnabled(args)
-    ? await writeHermesRegentsWorkConnector({
-        regentId: resolvedRegentId,
-        workerId: registeredWorkerId(data),
-        workerName: displayName,
-      })
-    : null;
-
-  printAgentConnectHermesResult(args, {
-    ok: true,
-    command: "regents agent connect hermes",
-    origin,
-    result: data,
-    hermes: {
-      pluginFile: connector?.pluginPath ?? null,
-      skillFile: connector?.skillPath ?? null,
     },
   });
 }
