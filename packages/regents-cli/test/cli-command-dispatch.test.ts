@@ -140,6 +140,26 @@ describe("CLI command dispatch", () => {
     });
   });
 
+  it("dispatches Verify run, status, and receipt show as local runtime methods", async () => {
+    const run = await captureOutput(async () => harness.runCliEntrypoint([
+      "techtree", "verify", "run", "--builtin", "--fixture", "--config", harness.configPath,
+    ]));
+    expect(run.result).toBe(0);
+    expect(JSON.parse(run.stdout)).toMatchObject({ method: "techtree.verify.run", params: { builtin: true, executor: "fixture" } });
+
+    const status = await captureOutput(async () => harness.runCliEntrypoint([
+      "techtree", "verify", "status", "--comparison-id", "comparison-123", "--config", harness.configPath,
+    ]));
+    expect(status.result).toBe(0);
+    expect(JSON.parse(status.stdout)).toMatchObject({ method: "techtree.verify.status", params: { comparison_id: "comparison-123" } });
+
+    const show = await captureOutput(async () => harness.runCliEntrypoint([
+      "techtree", "verify", "receipt", "show", "--digest", "a".repeat(64), "--config", harness.configPath,
+    ]));
+    expect(show.result).toBe(0);
+    expect(JSON.parse(show.stdout)).toMatchObject({ method: "techtree.verify.receipt.show", params: { digest: "a".repeat(64) } });
+  });
+
   it("does not dispatch deleted old-tree commands", async () => {
     const output = await captureOutput(async () =>
       harness.runCliEntrypoint([

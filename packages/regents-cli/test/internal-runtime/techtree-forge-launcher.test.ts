@@ -107,4 +107,25 @@ describe("Techtree Forge Python launcher", () => {
       { timeout: 2_000, interval: 20 },
     );
   });
+
+  it("kills and rejects python3 output above the shared capture limit", async () => {
+    const directory = temporaryDirectory();
+    installFakePython(
+      directory,
+      "#!/bin/sh\n/usr/bin/head -c 4194305 /dev/zero | /usr/bin/tr '\\000' x\n",
+    );
+    process.env.PATH = directory;
+
+    await expect(
+      runVerifyRuntimePython(["-c", "ignored"], {
+        runtimeDirectory: directory,
+        purpose: "testing output capture",
+        timeoutMs: 5_000,
+      }),
+    ).rejects.toMatchObject({
+      code: "verify_runtime_unavailable",
+      message: expect.stringContaining("stdout exceeded 4194304 bytes"),
+      details: { stream: "stdout", max_output_bytes: 4_194_304 },
+    });
+  });
 });

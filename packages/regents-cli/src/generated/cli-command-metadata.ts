@@ -190,6 +190,9 @@ export const CLI_COMMANDS = [
   "techtree forge family validate",
   "techtree notebooks init",
   "techtree notebooks pair",
+  "techtree verify receipt show",
+  "techtree verify run",
+  "techtree verify status",
   "update",
   "version",
   "voice serve",
@@ -465,7 +468,10 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree forge family show",
     "techtree forge family validate",
     "techtree notebooks init",
-    "techtree notebooks pair"
+    "techtree notebooks pair",
+    "techtree verify receipt show",
+    "techtree verify run",
+    "techtree verify status"
   ],
   "update": [
     "update"
@@ -8417,6 +8423,123 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "flags"
     },
     "summary": "Pair notebooks."
+  },
+  "techtree verify receipt show": {
+    "command": "techtree verify receipt show",
+    "owner": "shared-services",
+    "group": "techtree-verify",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "strict-closed-json",
+    "flags": [
+      {
+        "name": "digest",
+        "type": "string",
+        "required": true,
+        "description": "SHA-256 receipt digest returned by verify run."
+      }
+    ],
+    "examples": [
+      "regents techtree verify run --builtin --fixture --json",
+      "regents techtree verify status --comparison-id <comparison-id> --json",
+      "regents techtree verify receipt show --digest <sha256-digest> --json"
+    ],
+    "agent_metadata": {
+      "category": "techtree-verify",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Show and verify an immutable local evaluation receipt.",
+      "next_step": "regents techtree verify run --builtin --fixture --json"
+    },
+    "summary": "Show and verify an immutable local evaluation receipt.",
+    "next_step": "regents techtree verify run --builtin --fixture --json"
+  },
+  "techtree verify run": {
+    "command": "techtree verify run",
+    "owner": "shared-services",
+    "group": "techtree-verify",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "strict-closed-json",
+    "flags": [
+      {
+        "name": "builtin",
+        "type": "boolean",
+        "required": true,
+        "description": "Use the built-in deterministic contract-drift family."
+      },
+      {
+        "name": "fixture",
+        "type": "boolean",
+        "required": false,
+        "description": "Use the offline no-key fixture executor. Without this flag, an explicit Hermes command configuration is required."
+      },
+      {
+        "name": "hermes-command-json",
+        "type": "string",
+        "required": false,
+        "description": "JSON string array for the explicitly configured local Hermes launcher. Hermes credentials must already be configured outside Regent files."
+      }
+    ],
+    "examples": [
+      "regents techtree verify run --builtin --fixture --json",
+      "regents techtree verify status --comparison-id <comparison-id> --json",
+      "regents techtree verify receipt show --digest <sha256-digest> --json"
+    ],
+    "agent_metadata": {
+      "category": "techtree-verify",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "never_retry",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Run the built-in matched Verify comparison and emit local receipts.",
+      "next_step": "regents techtree verify run --builtin --fixture --json"
+    },
+    "summary": "Run the built-in matched Verify comparison and emit local receipts.",
+    "next_step": "regents techtree verify run --builtin --fixture --json"
+  },
+  "techtree verify status": {
+    "command": "techtree verify status",
+    "owner": "shared-services",
+    "group": "techtree-verify",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "strict-closed-json",
+    "flags": [
+      {
+        "name": "comparison-id",
+        "type": "string",
+        "required": true,
+        "description": "Comparison identifier returned by verify run."
+      }
+    ],
+    "examples": [
+      "regents techtree verify run --builtin --fixture --json",
+      "regents techtree verify status --comparison-id <comparison-id> --json",
+      "regents techtree verify receipt show --digest <sha256-digest> --json"
+    ],
+    "agent_metadata": {
+      "category": "techtree-verify",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Show a local Verify comparison without changing it.",
+      "next_step": "regents techtree verify run --builtin --fixture --json"
+    },
+    "summary": "Show a local Verify comparison without changing it.",
+    "next_step": "regents techtree verify run --builtin --fixture --json"
   },
   "update": {
     "command": "update",

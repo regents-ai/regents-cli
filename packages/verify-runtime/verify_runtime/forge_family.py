@@ -4,22 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-
-FAMILY_CONTRACT: dict[str, Any] = {
-    "schema_version": 1,
-    "family_id": "techtree.contract-drift-repair.v1",
-    "product_status": "planned",
-    "kind": "deterministic_contract_drift_repair",
-    "executor": "hermes",
-    "intervention": {
-        "artifact": "SKILL.md",
-        "changed_file_count": 1,
-    },
-    "verifier": {
-        "protocol": "deterministic_contract_drift",
-        "protocol_version": 1,
-    },
-}
+from .families import FAMILY_CONTRACT
 
 
 class ValidationError(ValueError):

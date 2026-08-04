@@ -4,6 +4,9 @@ import json
 import subprocess
 import sys
 from copy import deepcopy
+from pathlib import Path
+
+import pytest
 
 from verify_runtime import FAMILY_CONTRACT
 
@@ -62,3 +65,102 @@ def test_rejects_unknown_methods_and_extra_envelope_fields() -> None:
             "extra": True,
         }
     )["error"] == {"code": -32600, "message": "request has additional fields"}
+
+
+def test_verify_run_status_and_receipt_show(tmp_path: Path) -> None:
+    run = call({
+        "jsonrpc": "2.0",
+        "id": "run",
+        "method": "techtree.verify.run",
+        "params": {
+            "state_dir": str(tmp_path),
+            "builtin": True,
+            "executor": "fixture",
+            "hermes_command": None,
+        },
+    })["result"]
+    assert run["status"] == "completed"
+    assert len(run["receipts"]) == 2
+    status = call({
+        "jsonrpc": "2.0",
+        "id": "status",
+        "method": "techtree.verify.status",
+        "params": {"state_dir": str(tmp_path), "comparison_id": run["comparison_id"]},
+    })["result"]
+    assert status == run
+    for pointer in run["receipts"]:
+        shown = call({
+            "jsonrpc": "2.0",
+            "id": "show",
+            "method": "techtree.verify.receipt.show",
+            "params": {"state_dir": str(tmp_path), "digest": pointer["digest"]},
+        })["result"]
+        assert shown["verified"] is True
+        assert shown["receipt"]["capsules"].keys() == {"baseline", "candidate"}
+
+
+def test_hermes_runner_is_config_gated(tmp_path: Path) -> None:
+    response = call({
+        "jsonrpc": "2.0",
+        "id": "run",
+        "method": "techtree.verify.run",
+        "params": {
+            "state_dir": str(tmp_path),
+            "builtin": True,
+            "executor": "hermes",
+            "hermes_command": None,
+        },
+    })
+    assert response["error"] == {
+        "code": -32602,
+        "message": "Hermes execution requires a non-empty command string array",
+    }
+
+
+def test_hermes_resolution_failure_is_truthful_infrastructure_error(tmp_path: Path) -> None:
+    response = call({
+        "jsonrpc": "2.0",
+        "id": "run",
+        "method": "techtree.verify.run",
+        "params": {
+            "state_dir": str(tmp_path),
+            "builtin": True,
+            "executor": "hermes",
+            "hermes_command": [str(tmp_path / "missing-hermes")],
+        },
+    })
+    assert response["error"]["code"] == -32003
+    assert "not found" in response["error"]["message"]
+
+
+@pytest.mark.parametrize("probe", ["status-list", "huge-cost"])
+def test_malformed_hermes_result_is_receipted_through_runtime_entrypoint(tmp_path: Path, probe: str) -> None:
+    script = tmp_path / "fake_hermes.py"
+    script.write_text("""
+import sys
+arguments = sys.argv[1:]
+probe = arguments[arguments.index('--probe') + 1]
+if arguments[-1:] == ['--version']:
+    print('Hermes Agent v9.9.9')
+elif arguments[-2:] == ['config', 'show']:
+    print("  Model:        {'provider': 'configured-provider', 'default': 'configured-model'}")
+elif probe == 'status-list':
+    print('{"status":[],"score_millis":null,"cost_usd_cents":0,"detail":"bad"}')
+else:
+    print('{"status":"completed","score_millis":1,"cost_usd_cents":' + ('9' * 5000) + ',"detail":"bad"}')
+""", encoding="utf-8")
+
+    response = call({
+        "jsonrpc": "2.0",
+        "id": "run",
+        "method": "techtree.verify.run",
+        "params": {
+            "state_dir": str(tmp_path / "state"),
+            "builtin": True,
+            "executor": "hermes",
+            "hermes_command": [sys.executable, str(script), "--probe", probe],
+        },
+    })
+
+    assert response["result"]["status"] == "invalid"
+    assert response["result"]["receipts"]

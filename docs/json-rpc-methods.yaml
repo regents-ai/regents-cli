@@ -30,6 +30,9 @@ method_groups:
     methods:
       - techtree.forge.family.show
       - techtree.forge.family.validate
+      - techtree.verify.run
+      - techtree.verify.status
+      - techtree.verify.receipt.show
       - techtree.notebooks.init
       - techtree.notebooks.pair
   - name: x402
@@ -90,6 +93,15 @@ methods:
     owner: techtree
     auth_mode: local-runtime
   - name: techtree.forge.family.validate
+    owner: techtree
+    auth_mode: local-runtime
+  - name: techtree.verify.run
+    owner: techtree
+    auth_mode: local-runtime
+  - name: techtree.verify.status
+    owner: techtree
+    auth_mode: local-runtime
+  - name: techtree.verify.receipt.show
     owner: techtree
     auth_mode: local-runtime
   - name: techtree.notebooks.init

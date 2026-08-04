@@ -4,13 +4,20 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 from typing import Any
 
 from .forge_family import FAMILY_CONTRACT, ValidationError, validate_family
+from .receipts import show_receipt
+from .runner import ComparisonBusyError, ComparisonSpendExhaustedError, ComparisonStateError, FixtureExecutor, HermesExecutor, run_builtin_comparison, show_comparison_status
+from .runner.executors import RuntimeResolutionError
 
 
 METHOD_SHOW = "techtree.forge.family.show"
 METHOD_VALIDATE = "techtree.forge.family.validate"
+METHOD_VERIFY_RUN = "techtree.verify.run"
+METHOD_VERIFY_STATUS = "techtree.verify.status"
+METHOD_RECEIPT_SHOW = "techtree.verify.receipt.show"
 
 
 def _error(request_id: str | None, code: int, message: str) -> dict[str, Any]:
@@ -42,10 +49,51 @@ def _dispatch(request: Any) -> dict[str, Any]:
             if type(params) is not dict or set(params) != {"input"}:
                 raise ValidationError("validate params must contain only input")
             result = validate_family(params["input"])
+        elif method == METHOD_VERIFY_RUN:
+            if type(params) is not dict or set(params) != {"state_dir", "builtin", "executor", "hermes_command"}:
+                raise ValidationError("verify run params must contain only state_dir, builtin, executor, and hermes_command")
+            if type(params["state_dir"]) is not str or not params["state_dir"]:
+                raise ValidationError("state_dir must be a non-empty string")
+            if params["builtin"] is not True:
+                raise ValidationError("only the built-in family is available")
+            if params["executor"] == "fixture":
+                if params["hermes_command"] is not None:
+                    raise ValidationError("fixture execution does not accept a Hermes command")
+                executor = FixtureExecutor()
+            elif params["executor"] == "hermes":
+                command = params["hermes_command"]
+                if type(command) is not list or not command or any(type(part) is not str or not part for part in command):
+                    raise ValidationError("Hermes execution requires a non-empty command string array")
+                executor = HermesExecutor(tuple(command))
+            else:
+                raise ValidationError("executor must be fixture or hermes")
+            result = run_builtin_comparison(Path(params["state_dir"]), executor)
+        elif method == METHOD_VERIFY_STATUS:
+            if type(params) is not dict or set(params) != {"state_dir", "comparison_id"}:
+                raise ValidationError("verify status params must contain only state_dir and comparison_id")
+            if type(params["state_dir"]) is not str or type(params["comparison_id"]) is not str:
+                raise ValidationError("state_dir and comparison_id must be strings")
+            result = show_comparison_status(Path(params["state_dir"]), params["comparison_id"])
+        elif method == METHOD_RECEIPT_SHOW:
+            if type(params) is not dict or set(params) != {"state_dir", "digest"}:
+                raise ValidationError("receipt show params must contain only state_dir and digest")
+            if type(params["state_dir"]) is not str or type(params["digest"]) is not str:
+                raise ValidationError("state_dir and digest must be strings")
+            result = show_receipt(Path(params["state_dir"]), params["digest"])
         else:
             return _error(request_id, -32601, "method not found")
-    except ValidationError as error:
+    except (ValidationError, ValueError) as error:
         return _error(request_id, -32602, str(error))
+    except FileNotFoundError as error:
+        return _error(request_id, -32004, str(error))
+    except RuntimeResolutionError as error:
+        return _error(request_id, -32003, str(error))
+    except ComparisonBusyError as error:
+        return _error(request_id, -32005, str(error))
+    except ComparisonSpendExhaustedError as error:
+        return _error(request_id, -32006, str(error))
+    except ComparisonStateError as error:
+        return _error(request_id, -32003, str(error))
 
     return {"jsonrpc": "2.0", "id": request_id, "result": result}
 

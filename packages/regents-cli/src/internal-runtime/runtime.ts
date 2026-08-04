@@ -38,6 +38,11 @@ import {
   handleTechtreeNotebooksPair,
 } from "./handlers/techtree/notebooks.js";
 import {
+  handleTechtreeVerifyReceiptShow,
+  handleTechtreeVerifyRun,
+  handleTechtreeVerifyStatus,
+} from "./handlers/techtree/verify.js";
+import {
   handleX402Details,
   handleX402Fetch,
   handleX402Prepare,
@@ -263,6 +268,21 @@ export class RegentKernel {
       case "techtree.forge.family.validate":
         return handleTechtreeForgeFamilyValidate(
           params as Parameters<typeof handleTechtreeForgeFamilyValidate>[0],
+        );
+      case "techtree.verify.run":
+        return handleTechtreeVerifyRun(
+          ctx.config.runtime.stateDir,
+          params as Parameters<typeof handleTechtreeVerifyRun>[1],
+        );
+      case "techtree.verify.status":
+        return handleTechtreeVerifyStatus(
+          ctx.config.runtime.stateDir,
+          params as Parameters<typeof handleTechtreeVerifyStatus>[1],
+        );
+      case "techtree.verify.receipt.show":
+        return handleTechtreeVerifyReceiptShow(
+          ctx.config.runtime.stateDir,
+          params as Parameters<typeof handleTechtreeVerifyReceiptShow>[1],
         );
       case "techtree.notebooks.init":
         return handleTechtreeNotebooksInit(

@@ -81,6 +81,58 @@ export interface TechtreeForgeFamilyValidationResult {
   changed_files: ["SKILL.md"];
 }
 
+export type TechtreeVerifyTerminalStatus =
+  | "completed"
+  | "timeout"
+  | "invalid"
+  | "agent_failure"
+  | "infrastructure_failure";
+
+export interface TechtreeVerifyRunParams {
+  builtin: true;
+  executor: "fixture" | "hermes";
+  hermes_command?: string[];
+}
+
+export interface TechtreeVerifyStatusParams {
+  comparison_id: string;
+}
+
+export interface TechtreeVerifyRunResult {
+  schema_version: 1;
+  comparison_id: string;
+  status: TechtreeVerifyTerminalStatus;
+  family_id: "techtree.contract-drift-repair.v1";
+  protocol_id: string;
+  capsule_ids: { baseline: string; candidate: string };
+  run_ids: string[];
+  receipts: Array<{ algorithm: "sha256"; digest: string; path: string }>;
+  summary: {
+    comparison_result: string;
+    baseline_completed: number;
+    candidate_completed: number;
+    task_count: number;
+    total_cost_usd_cents: number;
+  };
+  policy: {
+    policy_id: "verify-public-default-v1";
+    attempts_per_task: 1;
+    max_task_wall_seconds: 600;
+    max_comparison_spend_usd_cents: 1000;
+    timeout_treatment: string;
+    missing_result_treatment: string;
+    infrastructure_failure_treatment: string;
+  };
+}
+
+export interface TechtreeVerifyReceiptShowResult {
+  schema_version: 1;
+  digest: string;
+  algorithm: "sha256";
+  verified: true;
+  receipt: Record<string, unknown>;
+}
+
 export type RegentRpcMethod =
   | "runtime.ping"
   | "runtime.status"
@@ -98,6 +150,9 @@ export type RegentRpcMethod =
   | "auth.siwa.status"
   | "techtree.forge.family.show"
   | "techtree.forge.family.validate"
+  | "techtree.verify.run"
+  | "techtree.verify.status"
+  | "techtree.verify.receipt.show"
   | "techtree.notebooks.init"
   | "techtree.notebooks.pair"
   | "x402.details"
@@ -137,6 +192,9 @@ export interface RegentRpcParamsMap {
   "auth.siwa.status": undefined;
   "techtree.forge.family.show": undefined;
   "techtree.forge.family.validate": { input: TechtreeForgeFamilyValidationInput };
+  "techtree.verify.run": TechtreeVerifyRunParams;
+  "techtree.verify.status": TechtreeVerifyStatusParams;
+  "techtree.verify.receipt.show": { digest: string };
   "techtree.notebooks.init": {
     workspace_path: string;
     kind: "paper" | "freeform";
@@ -174,6 +232,9 @@ export interface RegentRpcResultMap {
   };
   "techtree.forge.family.show": TechtreeForgeFamilyContract;
   "techtree.forge.family.validate": TechtreeForgeFamilyValidationResult;
+  "techtree.verify.run": TechtreeVerifyRunResult;
+  "techtree.verify.status": TechtreeVerifyRunResult;
+  "techtree.verify.receipt.show": TechtreeVerifyReceiptShowResult;
   "techtree.notebooks.init": NotebookWorkspaceActionResult;
   "techtree.notebooks.pair": NotebookWorkspaceActionResult;
   "x402.details": X402DetailsResponse;

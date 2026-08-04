@@ -34,6 +34,9 @@ This file is generated from the current runtime method registry.
 
 - `techtree.forge.family.show`
 - `techtree.forge.family.validate`
+- `techtree.verify.run`
+- `techtree.verify.status`
+- `techtree.verify.receipt.show`
 - `techtree.notebooks.init`
 - `techtree.notebooks.pair`
 

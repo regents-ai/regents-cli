@@ -13,6 +13,7 @@ import { JsonRpcError } from "../../errors.js";
 
 const MINIMUM_PYTHON_MINOR = 12;
 const PYTHON_PROCESS_TIMEOUT_MS = 30_000;
+const MAX_PYTHON_OUTPUT_BYTES = 4 * 1024 * 1024;
 const PYTHON_REMEDY =
   "Install Python 3.12 or newer and ensure it is available as python3 on PATH.";
 
@@ -61,8 +62,10 @@ export const runVerifyRuntimePython = (
   options: PythonProcessOptions,
 ): Promise<PythonProcessResult> =>
   new Promise((resolve, reject) => {
-    let stdout = "";
-    let stderr = "";
+    const stdoutChunks: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
     let settled = false;
     const timeoutMs = options.timeoutMs ?? PYTHON_PROCESS_TIMEOUT_MS;
     const child = spawn("python3", [...args], {
@@ -97,10 +100,32 @@ export const runVerifyRuntimePython = (
       });
     }, timeoutMs);
 
-    child.stdout.setEncoding("utf8");
-    child.stderr.setEncoding("utf8");
-    child.stdout.on("data", (chunk: string) => { stdout += chunk; });
-    child.stderr.on("data", (chunk: string) => { stderr += chunk; });
+    const capture = (
+      stream: "stdout" | "stderr",
+      chunks: Buffer[],
+      capturedBytes: number,
+      chunk: Buffer,
+    ): number => {
+      const remaining = MAX_PYTHON_OUTPUT_BYTES - capturedBytes;
+      if (remaining > 0) {
+        chunks.push(chunk.subarray(0, remaining));
+      }
+      if (chunk.length > remaining) {
+        child.kill("SIGKILL");
+        finish(() => reject(verifyRuntimeUnavailable(
+          `python3 ${stream} exceeded ${MAX_PYTHON_OUTPUT_BYTES} bytes while ${options.purpose}.`,
+          { details: { stream, max_output_bytes: MAX_PYTHON_OUTPUT_BYTES } },
+        )));
+      }
+      return capturedBytes + Math.min(chunk.length, Math.max(remaining, 0));
+    };
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      stdoutBytes = capture("stdout", stdoutChunks, stdoutBytes, chunk);
+    });
+    child.stderr.on("data", (chunk: Buffer) => {
+      stderrBytes = capture("stderr", stderrChunks, stderrBytes, chunk);
+    });
     child.stdin.on("error", () => undefined);
     child.once("error", (error) => {
       finish(() => {
@@ -113,7 +138,11 @@ export const runVerifyRuntimePython = (
       });
     });
     child.once("close", (code) => {
-      finish(() => resolve({ exitCode: code, stdout, stderr }));
+      finish(() => resolve({
+        exitCode: code,
+        stdout: Buffer.concat(stdoutChunks).toString("utf8"),
+        stderr: Buffer.concat(stderrChunks).toString("utf8"),
+      }));
     });
 
     child.stdin.end(options.input);
