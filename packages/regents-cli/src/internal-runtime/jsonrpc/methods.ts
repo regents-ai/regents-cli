@@ -15,6 +15,8 @@ export const REGENT_RPC_METHODS = {
   authSiwaLogin: "auth.siwa.login",
   authSiwaLogout: "auth.siwa.logout",
   authSiwaStatus: "auth.siwa.status",
+  techtreeForgeFamilyShow: "techtree.forge.family.show",
+  techtreeForgeFamilyValidate: "techtree.forge.family.validate",
   techtreeNotebooksInit: "techtree.notebooks.init",
   techtreeNotebooksPair: "techtree.notebooks.pair",
   x402Details: "x402.details",

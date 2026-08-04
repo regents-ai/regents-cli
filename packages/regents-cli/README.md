@@ -28,6 +28,8 @@ regents run
 
 Manual installs need `regents init`. Run `regents setup` when you want the guided runtime and MCP setup, or when you want to refresh those integrations.
 
+The local `regents techtree forge family` commands require Python 3.12 or newer available as `python3`. Their bundled runtime has no third-party runtime dependencies and does not use UV, create a virtual environment, download packages, or access the network when a command runs.
+
 ## Important Commands
 
 | Command | Use it for |

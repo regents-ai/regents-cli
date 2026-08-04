@@ -30,6 +30,10 @@ import {
   handleRuntimeStatus,
 } from "./handlers/runtime.js";
 import {
+  handleTechtreeForgeFamilyShow,
+  handleTechtreeForgeFamilyValidate,
+} from "./handlers/techtree/forge.js";
+import {
   handleTechtreeNotebooksInit,
   handleTechtreeNotebooksPair,
 } from "./handlers/techtree/notebooks.js";
@@ -254,6 +258,12 @@ export class RegentKernel {
         return handleAuthSiwaStatus(ctx);
       case "auth.siwa.logout":
         return handleAuthSiwaLogout(ctx);
+      case "techtree.forge.family.show":
+        return handleTechtreeForgeFamilyShow();
+      case "techtree.forge.family.validate":
+        return handleTechtreeForgeFamilyValidate(
+          params as Parameters<typeof handleTechtreeForgeFamilyValidate>[0],
+        );
       case "techtree.notebooks.init":
         return handleTechtreeNotebooksInit(
           params as Parameters<typeof handleTechtreeNotebooksInit>[0],

@@ -54,7 +54,7 @@
   },
   "scripts": {
     "postinstall": "node postinstall.cjs",
-    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc -p tsconfig.json",
+    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc -p tsconfig.json && node ../../scripts/copy-verify-runtime.mjs",
     "prepack": "pnpm build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",

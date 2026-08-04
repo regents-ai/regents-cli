@@ -186,6 +186,8 @@ export const CLI_COMMANDS = [
   "setup",
   "setup skills",
   "status",
+  "techtree forge family show",
+  "techtree forge family validate",
   "techtree notebooks init",
   "techtree notebooks pair",
   "update",
@@ -460,6 +462,8 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "status"
   ],
   "techtree": [
+    "techtree forge family show",
+    "techtree forge family validate",
     "techtree notebooks init",
     "techtree notebooks pair"
   ],
@@ -8272,6 +8276,61 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "args-and-flags"
     },
     "summary": "Show whether this machine is ready to use Regent."
+  },
+  "techtree forge family show": {
+    "command": "techtree forge family show",
+    "owner": "shared-services",
+    "group": "techtree-forge-family",
+    "interface": "local-runtime",
+    "auth_mode": "none",
+    "output_envelope": "strict-closed-json",
+    "examples": [
+      "regents techtree forge family show --json",
+      "regents techtree forge family validate --input-json '{\"family\":{\"schema_version\":1,\"family_id\":\"techtree.contract-drift-repair.v1\",\"product_status\":\"planned\",\"kind\":\"deterministic_contract_drift_repair\",\"executor\":\"hermes\",\"intervention\":{\"artifact\":\"SKILL.md\",\"changed_file_count\":1},\"verifier\":{\"protocol\":\"deterministic_contract_drift\",\"protocol_version\":1}},\"baseline\":{\"files\":{\"SKILL.md\":\"before\"}},\"candidate\":{\"files\":{\"SKILL.md\":\"after\"}}}' --json"
+    ],
+    "agent_metadata": {
+      "category": "techtree-forge",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Show the one planned deterministic contract-drift repair family."
+    },
+    "summary": "Show the one planned deterministic contract-drift repair family."
+  },
+  "techtree forge family validate": {
+    "command": "techtree forge family validate",
+    "owner": "shared-services",
+    "group": "techtree-forge-family",
+    "interface": "local-runtime",
+    "auth_mode": "none",
+    "output_envelope": "strict-closed-json",
+    "flags": [
+      {
+        "name": "input-json",
+        "required": true,
+        "description": "Inline closed validation input containing family, baseline, and candidate records."
+      }
+    ],
+    "examples": [
+      "regents techtree forge family show --json",
+      "regents techtree forge family validate --input-json '{\"family\":{\"schema_version\":1,\"family_id\":\"techtree.contract-drift-repair.v1\",\"product_status\":\"planned\",\"kind\":\"deterministic_contract_drift_repair\",\"executor\":\"hermes\",\"intervention\":{\"artifact\":\"SKILL.md\",\"changed_file_count\":1},\"verifier\":{\"protocol\":\"deterministic_contract_drift\",\"protocol_version\":1}},\"baseline\":{\"files\":{\"SKILL.md\":\"before\"}},\"candidate\":{\"files\":{\"SKILL.md\":\"after\"}}}' --json"
+    ],
+    "agent_metadata": {
+      "category": "techtree-forge",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-read",
+      "retry_behavior": "safe",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Validate the closed family contract and a one-file SKILL.md change."
+    },
+    "summary": "Validate the closed family contract and a one-file SKILL.md change."
   },
   "techtree notebooks init": {
     "command": "techtree notebooks init",

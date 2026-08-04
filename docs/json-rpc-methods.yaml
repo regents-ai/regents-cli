@@ -28,6 +28,8 @@ method_groups:
       - auth.siwa.status
   - name: techtree
     methods:
+      - techtree.forge.family.show
+      - techtree.forge.family.validate
       - techtree.notebooks.init
       - techtree.notebooks.pair
   - name: x402
@@ -83,6 +85,12 @@ methods:
     auth_mode: local-runtime
   - name: auth.siwa.status
     owner: regents-cli
+    auth_mode: local-runtime
+  - name: techtree.forge.family.show
+    owner: techtree
+    auth_mode: local-runtime
+  - name: techtree.forge.family.validate
+    owner: techtree
     auth_mode: local-runtime
   - name: techtree.notebooks.init
     owner: regents-cli

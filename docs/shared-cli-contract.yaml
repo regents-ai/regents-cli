@@ -781,6 +781,36 @@ command_groups:
         - name: port
           required: false
           description: Port for the local Hermes voice gateway. Defaults to the configured voice port (8787).
+  - name: techtree-forge-family
+    interface: local-runtime
+    auth_mode: none
+    output_envelope: strict-closed-json
+    note: These commands invoke only the bundled UV-managed Verify runtime. They do not read or write user configuration, contact a provider, or mutate product state.
+    agent_metadata:
+      category: techtree-forge
+      prompt_behavior: never_prompt
+      json_support: supported
+      mutation_class: local-read
+      retry_behavior: safe
+      pagination: none
+      async_behavior: synchronous
+      input_mode: flags
+      examples:
+        - regents techtree forge family show --json
+        - 'regents techtree forge family validate --input-json ''{"family":{"schema_version":1,"family_id":"techtree.contract-drift-repair.v1","product_status":"planned","kind":"deterministic_contract_drift_repair","executor":"hermes","intervention":{"artifact":"SKILL.md","changed_file_count":1},"verifier":{"protocol":"deterministic_contract_drift","protocol_version":1}},"baseline":{"files":{"SKILL.md":"before"}},"candidate":{"files":{"SKILL.md":"after"}}}'' --json'
+      commands:
+        techtree forge family show:
+          summary: Show the one planned deterministic contract-drift repair family.
+        techtree forge family validate:
+          summary: Validate the closed family contract and a one-file SKILL.md change.
+    commands:
+      - techtree forge family show
+      - techtree forge family validate
+    command_flags:
+      techtree forge family validate:
+        - name: input-json
+          required: true
+          description: Inline closed validation input containing family, baseline, and candidate records.
   - name: notebooks
     interface: runtime
     auth_mode: none

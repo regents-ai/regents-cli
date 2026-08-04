@@ -4,7 +4,7 @@ This file lists the full command surface shipped by the standalone Regents CLI i
 
 Sources used: repository-local route registries and `docs/shared-cli-contract.yaml` via `scripts/generate-cli-command-metadata.mjs`.
 
-Total commands: 214.
+Total commands: 216.
 
 ## Full Command List
 
@@ -279,6 +279,8 @@ Total commands: 214.
 
 ### Techtree
 
+- `regents techtree forge family show` - Show the one planned deterministic contract-drift repair family.
+- `regents techtree forge family validate` - Validate the closed family contract and a one-file SKILL.md change.
 - `regents techtree notebooks init` - Set up notebooks.
 - `regents techtree notebooks pair` - Pair notebooks.
 

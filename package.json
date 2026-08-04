@@ -21,7 +21,7 @@
     "check:pack-cli-contents": "node scripts/check-packed-cli-package.mjs",
     "test:integration": "pnpm --filter @regentslabs/cli --if-present test:integration",
     "pack:cli": "bash -lc 'mkdir -p .packed && cd packages/regents-cli && pnpm pack --pack-destination ../../.packed'",
-    "test:pack-smoke": "bash scripts/packed-install-smoke.sh",
+    "test:pack-smoke": "bash ./scripts/packed-install-smoke.sh",
     "release:cli": "bash scripts/release-cli.sh",
     "clean": "pnpm --filter @regentslabs/cli clean"
   },

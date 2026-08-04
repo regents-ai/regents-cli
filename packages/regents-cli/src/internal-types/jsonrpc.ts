@@ -52,6 +52,35 @@ export interface JsonRpcFailure {
 
 export type JsonRpcResponse<T = unknown> = JsonRpcSuccess<T> | JsonRpcFailure;
 
+export interface TechtreeForgeFamilyContract {
+  schema_version: 1;
+  family_id: "techtree.contract-drift-repair.v1";
+  product_status: "planned";
+  kind: "deterministic_contract_drift_repair";
+  executor: "hermes";
+  intervention: {
+    artifact: "SKILL.md";
+    changed_file_count: 1;
+  };
+  verifier: {
+    protocol: "deterministic_contract_drift";
+    protocol_version: 1;
+  };
+}
+
+export interface TechtreeForgeFamilyValidationInput {
+  family: TechtreeForgeFamilyContract;
+  baseline: { files: { "SKILL.md": string } };
+  candidate: { files: { "SKILL.md": string } };
+}
+
+export interface TechtreeForgeFamilyValidationResult {
+  schema_version: 1;
+  valid: true;
+  family_id: "techtree.contract-drift-repair.v1";
+  changed_files: ["SKILL.md"];
+}
+
 export type RegentRpcMethod =
   | "runtime.ping"
   | "runtime.status"
@@ -67,6 +96,8 @@ export type RegentRpcMethod =
   | "auth.siwa.login"
   | "auth.siwa.logout"
   | "auth.siwa.status"
+  | "techtree.forge.family.show"
+  | "techtree.forge.family.validate"
   | "techtree.notebooks.init"
   | "techtree.notebooks.pair"
   | "x402.details"
@@ -104,6 +135,8 @@ export interface RegentRpcParamsMap {
   };
   "auth.siwa.logout": undefined;
   "auth.siwa.status": undefined;
+  "techtree.forge.family.show": undefined;
+  "techtree.forge.family.validate": { input: TechtreeForgeFamilyValidationInput };
   "techtree.notebooks.init": {
     workspace_path: string;
     kind: "paper" | "freeform";
@@ -139,6 +172,8 @@ export interface RegentRpcResultMap {
     session: SiwaSession | null;
     appSessions: AppSiwaSession[];
   };
+  "techtree.forge.family.show": TechtreeForgeFamilyContract;
+  "techtree.forge.family.validate": TechtreeForgeFamilyValidationResult;
   "techtree.notebooks.init": NotebookWorkspaceActionResult;
   "techtree.notebooks.pair": NotebookWorkspaceActionResult;
   "x402.details": X402DetailsResponse;

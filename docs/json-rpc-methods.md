@@ -32,6 +32,8 @@ This file is generated from the current runtime method registry.
 
 ## Techtree
 
+- `techtree.forge.family.show`
+- `techtree.forge.family.validate`
 - `techtree.notebooks.init`
 - `techtree.notebooks.pair`
 

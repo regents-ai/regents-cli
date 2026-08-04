@@ -7,7 +7,7 @@ import { renderJsonRpcMethodsDoc } from "../src/internal-runtime/jsonrpc/docs.js
 import { REGENT_RPC_METHODS } from "../src/internal-runtime/jsonrpc/methods.js";
 
 describe("JSON-RPC methods doc", () => {
-  it("matches the live runtime method registry", () => {
+  it("keeps the committed generated Markdown equal to renderer output", () => {
     const docsPath = new URL("../../../docs/json-rpc-methods.md", import.meta.url);
     const currentDoc = fs.readFileSync(docsPath, "utf8");
 
