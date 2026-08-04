@@ -815,7 +815,7 @@ command_groups:
     interface: runtime
     auth_mode: none
     output_envelope: strict-closed-json
-    note: Verify state and receipts stay local. The fixture path is deterministic, requires no credentials, and makes no network calls. Hosted Hermes execution requires an explicit local command configuration and is subject to the locked policy limits.
+    note: Verify state and receipts stay local. The fixture path is deterministic, requires no credentials, and makes no network calls. Hosted Hermes execution requires an explicit local command configuration. Prime execution requires the optional adapter group and REGENT_VERIFY_PRIME_FACTORY configuration. Both live executors remain subject to the locked policy limits.
     agent_metadata:
       category: techtree-verify
       prompt_behavior: never_prompt
@@ -827,6 +827,7 @@ command_groups:
       input_mode: flags
       examples:
         - regents techtree verify run --builtin --fixture --json
+        - regents techtree verify run --builtin --prime --json
         - regents techtree verify status --comparison-id <comparison-id> --json
         - regents techtree verify receipt show --digest <sha256-digest> --json
       commands:
@@ -854,7 +855,11 @@ command_groups:
         - name: fixture
           type: boolean
           required: false
-          description: Use the offline no-key fixture executor. Without this flag, an explicit Hermes command configuration is required.
+          description: Use the offline no-key fixture executor. It cannot be combined with Prime or Hermes configuration.
+        - name: prime
+          type: boolean
+          required: false
+          description: Select the config-gated Prime executor. The local runtime process must have the optional adapter group installed and REGENT_VERIFY_PRIME_FACTORY set to module:function.
         - name: hermes-command-json
           type: string
           required: false

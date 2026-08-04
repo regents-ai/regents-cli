@@ -79,7 +79,10 @@ describe("techtree verify offline CLI e2e", () => {
       "techtree", "verify", "run", "--builtin", "--json", "--config", configPath,
     ]));
     expect(JSON.parse(missingConfig.stderr)).toMatchObject({
-      error: { code: "missing_verify_executor_configuration", next_steps: [expect.stringContaining("--fixture")] },
+      error: {
+        code: "missing_verify_executor_configuration",
+        next_steps: [expect.stringContaining("--fixture"), expect.stringContaining("--prime")],
+      },
     });
 
     const missingReceipt = await captureOutput(() => runCliEntrypoint([

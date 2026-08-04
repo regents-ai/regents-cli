@@ -1,4 +1,5 @@
 import { REGENT_RPC_METHODS } from "./methods.js";
+import { TECHTREE_VERIFY_EXECUTORS } from "../../internal-types/jsonrpc.js";
 
 const SECTION_ORDER = [
   { title: "Runtime", prefix: "runtime." },
@@ -33,6 +34,13 @@ export function renderJsonRpcMethodsDoc(): string {
     }
     lines.push("");
   }
+
+  lines.push(
+    "## Techtree Verify executor vocabulary",
+    "",
+    ...TECHTREE_VERIFY_EXECUTORS.map((executor) => `- \`${executor}\``),
+    "",
+  );
 
   return `${lines.join("\n").trimEnd()}\n`;
 }

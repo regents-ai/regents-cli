@@ -26,17 +26,23 @@ ROLES = (
 )
 
 _FAMILY_ID = FAMILY.family_id
-_GRADER_DIGEST = sha256_bytes(b"deterministic-contract-drift-grader-v1\n")
+GRADER_SOURCE = b"deterministic-contract-drift-grader-v1\n"
+TASK_INPUTS = {
+    "contract-drift-development-1": b"development-visible-contract-drift\n",
+    "contract-drift-validation-1": b"validation-contract-drift\n",
+    "contract-drift-untouched-1": b"sealed-untouched-contract-drift\n",
+}
+_GRADER_DIGEST = sha256_bytes(GRADER_SOURCE)
 
 
-def _task(task_id: str, partition: str, prompt: bytes) -> TaskInstance:
-    return TaskInstance(1, task_id, _FAMILY_ID, f"{_FAMILY_ID}.{partition}", partition, "repair-agent", sha256_bytes(prompt), _GRADER_DIGEST)  # type: ignore[arg-type]
+def _task(task_id: str, partition: str) -> TaskInstance:
+    return TaskInstance(1, task_id, _FAMILY_ID, f"{_FAMILY_ID}.{partition}", partition, "repair-agent", sha256_bytes(TASK_INPUTS[task_id]), _GRADER_DIGEST)  # type: ignore[arg-type]
 
 
 TASKS = (
-    _task("contract-drift-development-1", "development", b"development-visible-contract-drift\n"),
-    _task("contract-drift-validation-1", "validation", b"validation-contract-drift\n"),
-    _task("contract-drift-untouched-1", "untouched", b"sealed-untouched-contract-drift\n"),
+    _task("contract-drift-development-1", "development"),
+    _task("contract-drift-validation-1", "validation"),
+    _task("contract-drift-untouched-1", "untouched"),
 )
 
 SLICES = tuple(

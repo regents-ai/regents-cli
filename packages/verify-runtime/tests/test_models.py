@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -19,6 +20,7 @@ from verify_runtime.model import (
     canonical_json_bytes,
 )
 from verify_runtime.protocol import lock_builtin_protocol
+import verify_runtime.protocol.lock as protocol_lock
 from verify_runtime.runner import FixtureExecutor
 
 
@@ -49,6 +51,34 @@ def test_canonical_records_reject_unknown_fields() -> None:
     unsupported_version = FAMILY.to_dict() | {"schema_version": 2}
     with pytest.raises(ModelValidationError, match="must equal 1"):
         EnvironmentFamily.from_dict(unsupported_version)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    (
+        ("input_digest", "not-a-sha256-digest", "task.input_digest must be a lowercase SHA-256 digest"),
+        ("grader_digest", "F" * 64, "task.grader_digest must be a lowercase SHA-256 digest"),
+        ("task_id", " whitespace ", "task.task_id must be trimmed"),
+        ("role_id", "role\x00id", "task.role_id must contain only printable characters"),
+    ),
+)
+def test_protocol_lock_rejects_malformed_task_identity(monkeypatch, field: str, value: str, message: str) -> None:
+    identity = FixtureExecutor().resolve_identity()
+    baseline = resolve_capsule(
+        declared_capsule("builtin://baseline/SKILL.md", executor="fixture"),
+        BASELINE_SKILL,
+        identity=identity,
+    )
+    candidate = resolve_capsule(
+        declared_capsule("builtin://candidate/SKILL.md", executor="fixture"),
+        CANDIDATE_SKILL,
+        identity=identity,
+    )
+    malformed = replace(TASKS[0], **{field: value})
+    monkeypatch.setattr(protocol_lock, "TASKS", (malformed, *TASKS[1:]))
+
+    with pytest.raises(ModelValidationError, match=message):
+        lock_builtin_protocol(baseline, candidate)
 
 
 def test_model_layer_imports_neither_runner_nor_adapters() -> None:

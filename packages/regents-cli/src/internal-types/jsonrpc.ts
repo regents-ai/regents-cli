@@ -88,9 +88,12 @@ export type TechtreeVerifyTerminalStatus =
   | "agent_failure"
   | "infrastructure_failure";
 
+export const TECHTREE_VERIFY_EXECUTORS = ["fixture", "hermes", "prime"] as const;
+export type TechtreeVerifyExecutor = (typeof TECHTREE_VERIFY_EXECUTORS)[number];
+
 export interface TechtreeVerifyRunParams {
   builtin: true;
-  executor: "fixture" | "hermes";
+  executor: TechtreeVerifyExecutor;
   hermes_command?: string[];
 }
 

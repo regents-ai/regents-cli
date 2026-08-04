@@ -13,6 +13,7 @@ class ModelValidationError(ValueError):
 
 
 MAX_RECORD_INTEGER = 1_000_000_000
+MAX_IDENTIFIER_LENGTH = 256
 
 
 def require_record(value: Any, path: str) -> dict[str, Any]:
@@ -46,6 +47,35 @@ def require_string(value: Any, path: str, *, allow_empty: bool = False) -> str:
     except UnicodeEncodeError as error:
         raise ModelValidationError(f"{path} must be UTF-8 encodable") from error
     return value
+
+
+def require_identifier(value: Any, path: str) -> str:
+    identifier = require_string(value, path)
+    if identifier != identifier.strip():
+        raise ModelValidationError(f"{path} must be trimmed")
+    if len(identifier) > MAX_IDENTIFIER_LENGTH:
+        raise ModelValidationError(f"{path} must be at most {MAX_IDENTIFIER_LENGTH} characters")
+    if not identifier.isprintable():
+        raise ModelValidationError(f"{path} must contain only printable characters")
+    return identifier
+
+
+def require_identifier_list(value: Any, path: str) -> list[str]:
+    require_type(value, list, path)
+    return [require_identifier(item, f"{path}[{index}]") for index, item in enumerate(value)]
+
+
+def require_sha256(value: Any, path: str) -> str:
+    digest = require_string(value, path)
+    if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
+        raise ModelValidationError(f"{path} must be a lowercase SHA-256 digest")
+    return digest
+
+
+def require_nullable_sha256(value: Any, path: str) -> str | None:
+    if value is None:
+        return None
+    return require_sha256(value, path)
 
 
 def require_int(value: Any, path: str, *, minimum: int = 0) -> int:

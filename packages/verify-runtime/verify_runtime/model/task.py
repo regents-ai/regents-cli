@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .base import require_exact_keys, require_record, require_schema_version, require_string
+from .base import require_exact_keys, require_identifier, require_record, require_schema_version, require_sha256, require_string
 from .benchmark import PARTITIONS, Partition
 
 
@@ -45,11 +45,11 @@ class TaskInstance:
             raise ValueError("task.partition must be development, validation, or untouched")
         return cls(
             require_schema_version(record["schema_version"], "task.schema_version"),
-            require_string(record["task_id"], "task.task_id"),
-            require_string(record["family_id"], "task.family_id"),
-            require_string(record["slice_id"], "task.slice_id"),
+            require_identifier(record["task_id"], "task.task_id"),
+            require_identifier(record["family_id"], "task.family_id"),
+            require_identifier(record["slice_id"], "task.slice_id"),
             partition,  # type: ignore[arg-type]
-            require_string(record["role_id"], "task.role_id"),
-            require_string(record["input_digest"], "task.input_digest"),
-            require_string(record["grader_digest"], "task.grader_digest"),
+            require_identifier(record["role_id"], "task.role_id"),
+            require_sha256(record["input_digest"], "task.input_digest"),
+            require_sha256(record["grader_digest"], "task.grader_digest"),
         )

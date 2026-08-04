@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .base import require_bounded_int, require_exact_keys, require_int, require_record, require_schema_version, require_string
+from .base import require_bounded_int, require_exact_keys, require_identifier, require_int, require_record, require_schema_version, require_string
 from .capsule import Capsule
 from .protocol import EvaluationProtocol
 from .run import RunRecord
@@ -50,4 +50,4 @@ class EvaluationReceipt:
         for name in ("baseline_score_millis", "candidate_score_millis"):
             score = outcome[name]
             scores.append(None if score is None else require_bounded_int(score, f"receipt.outcome.{name}"))
-        return cls(require_schema_version(record["schema_version"], "receipt.schema_version"), require_string(record["receipt_id"], "receipt.receipt_id"), require_string(record["task_id"], "receipt.task_id"), EvaluationProtocol.from_dict(record["protocol"]), Capsule.from_dict(capsules["baseline"]), Capsule.from_dict(capsules["candidate"]), RunRecord.from_dict(runs["baseline"]), RunRecord.from_dict(runs["candidate"]), require_string(outcome["comparison_result"], "receipt.outcome.comparison_result"), scores[0], scores[1], require_int(cost["total_usd_cents"], "receipt.cost.total_usd_cents"))
+        return cls(require_schema_version(record["schema_version"], "receipt.schema_version"), require_identifier(record["receipt_id"], "receipt.receipt_id"), require_identifier(record["task_id"], "receipt.task_id"), EvaluationProtocol.from_dict(record["protocol"]), Capsule.from_dict(capsules["baseline"]), Capsule.from_dict(capsules["candidate"]), RunRecord.from_dict(runs["baseline"]), RunRecord.from_dict(runs["candidate"]), require_string(outcome["comparison_result"], "receipt.outcome.comparison_result"), scores[0], scores[1], require_int(cost["total_usd_cents"], "receipt.cost.total_usd_cents"))

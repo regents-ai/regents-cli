@@ -1,6 +1,18 @@
 """Provider-neutral, versioned Verify records."""
 
-from .base import MAX_RECORD_INTEGER, ModelValidationError, canonical_json_bytes, content_id, sha256_bytes, strict_json_loads
+from .base import (
+    MAX_RECORD_INTEGER,
+    ModelValidationError,
+    canonical_json_bytes,
+    content_id,
+    require_bounded_int,
+    require_exact_keys,
+    require_record,
+    require_string,
+    require_type,
+    sha256_bytes,
+    strict_json_loads,
+)
 from .benchmark import BenchmarkRole, BenchmarkSlice, Partition
 from .capsule import Capsule, DeclaredCapsule, ObservedCapsule, ResolvedCapsule
 from .family import EnvironmentFamily
@@ -30,6 +42,11 @@ __all__ = [
     "VerifyPolicy",
     "canonical_json_bytes",
     "content_id",
+    "require_bounded_int",
+    "require_exact_keys",
+    "require_record",
+    "require_string",
+    "require_type",
     "sha256_bytes",
     "strict_json_loads",
 ]

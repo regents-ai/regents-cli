@@ -9,6 +9,9 @@ dependencies = []
 dev = [
   "pytest==8.4.2",
 ]
+adapters-prime = [
+  "verifiers==0.2.1",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

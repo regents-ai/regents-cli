@@ -98,6 +98,18 @@ methods:
   - name: techtree.verify.run
     owner: techtree
     auth_mode: local-runtime
+    params:
+      builtin:
+        type: boolean
+        const: true
+      executor:
+        type: string
+        enum: [fixture, hermes, prime]
+      hermes_command:
+        type: array-or-null
+        items: string
+    configuration:
+      prime: Set REGENT_VERIFY_PRIME_FACTORY=module:function in the local runtime process and install the optional adapters-prime group.
   - name: techtree.verify.status
     owner: techtree
     auth_mode: local-runtime

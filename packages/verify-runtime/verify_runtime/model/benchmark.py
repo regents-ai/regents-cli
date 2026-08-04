@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from .base import require_exact_keys, require_int, require_record, require_schema_version, require_string, require_string_list
+from .base import require_exact_keys, require_identifier, require_identifier_list, require_int, require_record, require_schema_version, require_string
 
 Partition = Literal["development", "validation", "untouched"]
 PARTITIONS = {"development", "validation", "untouched"}
@@ -27,7 +27,7 @@ class BenchmarkRole:
         require_exact_keys(record, {"schema_version", "role_id", "purpose", "access"}, "role")
         return cls(
             require_schema_version(record["schema_version"], "role.schema_version"),
-            require_string(record["role_id"], "role.role_id"),
+            require_identifier(record["role_id"], "role.role_id"),
             require_string(record["purpose"], "role.purpose"),
             require_string(record["access"], "role.access"),
         )
@@ -61,9 +61,9 @@ class BenchmarkSlice:
             raise ValueError("slice.partition must be development, validation, or untouched")
         return cls(
             require_schema_version(record["schema_version"], "slice.schema_version"),
-            require_string(record["slice_id"], "slice.slice_id"),
-            require_string(record["family_id"], "slice.family_id"),
+            require_identifier(record["slice_id"], "slice.slice_id"),
+            require_identifier(record["family_id"], "slice.family_id"),
             partition,  # type: ignore[arg-type]
-            tuple(require_string_list(record["role_ids"], "slice.role_ids")),
-            tuple(require_string_list(record["task_ids"], "slice.task_ids")),
+            tuple(require_identifier_list(record["role_ids"], "slice.role_ids")),
+            tuple(require_identifier_list(record["task_ids"], "slice.task_ids")),
         )

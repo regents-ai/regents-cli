@@ -40,6 +40,18 @@ describe("techtree verify commands", () => {
     }, undefined);
   });
 
+  it("dispatches the config-gated Prime executor without live access", async () => {
+    const { runTechtreeVerifyRun } = await import("../../src/commands/techtree-verify.js");
+    const { parseCliArgs } = await import("../../src/parse.js");
+    await captureOutput(() => runTechtreeVerifyRun(parseCliArgs(["--builtin", "--prime"])));
+    expect(daemonCallMock).toHaveBeenLastCalledWith("techtree.verify.run", {
+      builtin: true,
+      executor: "prime",
+      hermes_command: undefined,
+    }, undefined);
+    await expect(runTechtreeVerifyRun(parseCliArgs(["--builtin", "--prime", "--fixture"]))).rejects.toThrow("mutually exclusive");
+  });
+
   it("reads comparison status and receipts by stable identifiers", async () => {
     const { runTechtreeVerifyReceiptShow, runTechtreeVerifyStatus } = await import("../../src/commands/techtree-verify.js");
     const { parseCliArgs } = await import("../../src/parse.js");

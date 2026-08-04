@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .base import require_exact_keys, require_int, require_record, require_schema_version, require_string
+from .base import require_exact_keys, require_identifier, require_int, require_record, require_schema_version, require_string
 
 
 @dataclass(frozen=True)
@@ -51,7 +51,7 @@ class EnvironmentFamily:
         require_exact_keys(verifier, {"protocol", "protocol_version"}, "family.verifier")
         return cls(
             schema_version=require_schema_version(record["schema_version"], "family.schema_version"),
-            family_id=require_string(record["family_id"], "family.family_id"),
+            family_id=require_identifier(record["family_id"], "family.family_id"),
             product_status=require_string(record["product_status"], "family.product_status"),
             kind=require_string(record["kind"], "family.kind"),
             executor=require_string(record["executor"], "family.executor"),

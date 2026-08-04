@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from .base import require_bounded_int, require_exact_keys, require_int, require_record, require_schema_version, require_string, require_type
+from .base import require_bounded_int, require_exact_keys, require_identifier, require_int, require_record, require_schema_version, require_sha256, require_string, require_type
 
 TerminalStatus = Literal["completed", "timeout", "invalid", "agent_failure", "infrastructure_failure"]
 TERMINAL_STATUSES = {"completed", "timeout", "invalid", "agent_failure", "infrastructure_failure"}
@@ -67,7 +67,7 @@ class RunRecord:
         artifacts = []
         for index, item in enumerate(record["artifacts"]):
             artifact = require_record(item, f"run.artifacts[{index}]"); require_exact_keys(artifact, {"name", "digest", "size_bytes"}, f"run.artifacts[{index}]")
-            artifacts.append((require_string(artifact["name"], f"run.artifacts[{index}].name"), require_string(artifact["digest"], f"run.artifacts[{index}].digest"), require_int(artifact["size_bytes"], f"run.artifacts[{index}].size_bytes")))
+            artifacts.append((require_string(artifact["name"], f"run.artifacts[{index}].name"), require_sha256(artifact["digest"], f"run.artifacts[{index}].digest"), require_int(artifact["size_bytes"], f"run.artifacts[{index}].size_bytes")))
         return cls(
-            require_schema_version(record["schema_version"], "run.schema_version"), require_string(record["run_id"], "run.run_id"), require_string(record["protocol_id"], "run.protocol_id"), require_string(record["capsule_id"], "run.capsule_id"), require_string(record["side"], "run.side"), require_string(record["task_id"], "run.task_id"), require_int(record["attempt"], "run.attempt", minimum=1), status, score, require_string(outcome["detail"], "run.outcome.detail", allow_empty=True), tuple(artifacts), require_int(cost["usd_cents"], "run.cost.usd_cents"), require_int(timing["wall_time_ms"], "run.timing.wall_time_ms"), require_string(execution["executor"], "run.execution.executor"), exit_code,
+            require_schema_version(record["schema_version"], "run.schema_version"), require_identifier(record["run_id"], "run.run_id"), require_identifier(record["protocol_id"], "run.protocol_id"), require_identifier(record["capsule_id"], "run.capsule_id"), require_string(record["side"], "run.side"), require_identifier(record["task_id"], "run.task_id"), require_int(record["attempt"], "run.attempt", minimum=1), status, score, require_string(outcome["detail"], "run.outcome.detail", allow_empty=True), tuple(artifacts), require_int(cost["usd_cents"], "run.cost.usd_cents"), require_int(timing["wall_time_ms"], "run.timing.wall_time_ms"), require_string(execution["executor"], "run.execution.executor"), exit_code,
         )  # type: ignore[arg-type]

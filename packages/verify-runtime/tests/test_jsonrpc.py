@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from copy import deepcopy
@@ -11,13 +12,14 @@ import pytest
 from verify_runtime import FAMILY_CONTRACT
 
 
-def call(request: object) -> dict[str, object]:
+def call(request: object, *, env: dict[str, str] | None = None) -> dict[str, object]:
     result = subprocess.run(
         [sys.executable, "-m", "verify_runtime"],
         input=json.dumps(request),
         text=True,
         capture_output=True,
         check=True,
+        env=None if env is None else os.environ | env,
     )
     assert result.stderr == ""
     return json.loads(result.stdout)
@@ -115,6 +117,32 @@ def test_hermes_runner_is_config_gated(tmp_path: Path) -> None:
         "code": -32602,
         "message": "Hermes execution requires a non-empty command string array",
     }
+
+
+def test_prime_runner_is_config_gated_and_reachable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    request = {
+        "jsonrpc": "2.0",
+        "id": "run",
+        "method": "techtree.verify.run",
+        "params": {
+            "state_dir": str(tmp_path),
+            "builtin": True,
+            "executor": "prime",
+            "hermes_command": None,
+        },
+    }
+    monkeypatch.delenv("REGENT_VERIFY_PRIME_FACTORY", raising=False)
+    unconfigured = call(request)
+    assert unconfigured["error"]["code"] == -32602
+    assert "REGENT_VERIFY_PRIME_FACTORY=module:function" in unconfigured["error"]["message"]
+    tests_path = str(Path(__file__).parent)
+    python_path = tests_path if not os.environ.get("PYTHONPATH") else f"{tests_path}{os.pathsep}{os.environ['PYTHONPATH']}"
+    configured = call(
+        request,
+        env={"REGENT_VERIFY_PRIME_FACTORY": "prime_fixture_factory:create_executor", "PYTHONPATH": python_path},
+    )
+    assert configured["result"]["status"] == "completed"
+    assert len(configured["result"]["receipts"]) == 2
 
 
 def test_hermes_resolution_failure_is_truthful_infrastructure_error(tmp_path: Path) -> None:

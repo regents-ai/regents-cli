@@ -8441,6 +8441,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree verify run --builtin --fixture --json",
+      "regents techtree verify run --builtin --prime --json",
       "regents techtree verify status --comparison-id <comparison-id> --json",
       "regents techtree verify receipt show --digest <sha256-digest> --json"
     ],
@@ -8477,7 +8478,13 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "name": "fixture",
         "type": "boolean",
         "required": false,
-        "description": "Use the offline no-key fixture executor. Without this flag, an explicit Hermes command configuration is required."
+        "description": "Use the offline no-key fixture executor. It cannot be combined with Prime or Hermes configuration."
+      },
+      {
+        "name": "prime",
+        "type": "boolean",
+        "required": false,
+        "description": "Select the config-gated Prime executor. The local runtime process must have the optional adapter group installed and REGENT_VERIFY_PRIME_FACTORY set to module:function."
       },
       {
         "name": "hermes-command-json",
@@ -8488,6 +8495,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree verify run --builtin --fixture --json",
+      "regents techtree verify run --builtin --prime --json",
       "regents techtree verify status --comparison-id <comparison-id> --json",
       "regents techtree verify receipt show --digest <sha256-digest> --json"
     ],
@@ -8523,6 +8531,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
     ],
     "examples": [
       "regents techtree verify run --builtin --fixture --json",
+      "regents techtree verify run --builtin --prime --json",
       "regents techtree verify status --comparison-id <comparison-id> --json",
       "regents techtree verify receipt show --digest <sha256-digest> --json"
     ],

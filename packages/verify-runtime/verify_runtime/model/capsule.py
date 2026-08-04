@@ -7,10 +7,13 @@ from typing import Any
 
 from .base import (
     require_exact_keys,
+    require_identifier,
     require_int,
+    require_nullable_sha256,
     require_nullable_string,
     require_record,
     require_schema_version,
+    require_sha256,
     require_string,
     require_string_list,
     require_type,
@@ -85,7 +88,7 @@ class DeclaredCapsule:
             require_string(record["context_memory_policy"], "capsule.declared.context_memory_policy"),
             tuple(require_string_list(record["runtime_permissions"], "capsule.declared.runtime_permissions")),
             tuple(require_string_list(record["private_knowledge_commitments"], "capsule.declared.private_knowledge_commitments")),
-            require_string(record["budget_policy_id"], "capsule.declared.budget_policy_id"),
+            require_identifier(record["budget_policy_id"], "capsule.declared.budget_policy_id"),
             require_string(record["termination_policy"], "capsule.declared.termination_policy"),
             require_string(record["publication_policy"], "capsule.declared.publication_policy"),
         )
@@ -133,7 +136,7 @@ class ResolvedCapsule:
             for index, item in enumerate(raw):
                 component = require_record(item, f"{path}[{index}]")
                 require_exact_keys(component, {"name", "digest", "mutability"}, f"{path}[{index}]")
-                result.append((require_string(component["name"], f"{path}[{index}].name"), require_string(component["digest"], f"{path}[{index}].digest"), require_string(component["mutability"], f"{path}[{index}].mutability")))
+                result.append((require_string(component["name"], f"{path}[{index}].name"), require_sha256(component["digest"], f"{path}[{index}].digest"), require_string(component["mutability"], f"{path}[{index}].mutability")))
             return tuple(result)
         return cls(
             require_string(model["provider"], "capsule.resolved.model.provider"),
@@ -142,10 +145,10 @@ class ResolvedCapsule:
             require_nullable_string(model["behavioral_fingerprint"], "capsule.resolved.model.behavioral_fingerprint"),
             require_string(model["mutability"], "capsule.resolved.model.mutability"),
             require_string(hermes["version"], "capsule.resolved.hermes.version"),
-            require_nullable_string(hermes["digest"], "capsule.resolved.hermes.digest"),
+            require_nullable_sha256(hermes["digest"], "capsule.resolved.hermes.digest"),
             require_string(hermes["mutability"], "capsule.resolved.hermes.mutability"),
             require_string(skill["source"], "capsule.resolved.skill.source"),
-            require_string(skill["digest"], "capsule.resolved.skill.digest"),
+            require_sha256(skill["digest"], "capsule.resolved.skill.digest"),
             require_string(skill["mutability"], "capsule.resolved.skill.mutability"),
             components(record["tools"], "capsule.resolved.tools"),
             components(record["configs"], "capsule.resolved.configs"),
@@ -185,4 +188,4 @@ class Capsule:
     def from_dict(cls, value: Any) -> "Capsule":
         record = require_record(value, "capsule")
         require_exact_keys(record, {"schema_version", "capsule_id", "declared", "resolved", "observed"}, "capsule")
-        return cls(require_schema_version(record["schema_version"], "capsule.schema_version"), require_string(record["capsule_id"], "capsule.capsule_id"), DeclaredCapsule.from_dict(record["declared"]), ResolvedCapsule.from_dict(record["resolved"]), ObservedCapsule.from_dict(record["observed"]))
+        return cls(require_schema_version(record["schema_version"], "capsule.schema_version"), require_identifier(record["capsule_id"], "capsule.capsule_id"), DeclaredCapsule.from_dict(record["declared"]), ResolvedCapsule.from_dict(record["resolved"]), ObservedCapsule.from_dict(record["observed"]))

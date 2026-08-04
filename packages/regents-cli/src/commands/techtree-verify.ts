@@ -25,19 +25,23 @@ export async function runTechtreeVerifyRun(args: ParsedCliArgs, configPath?: str
     throw new CliUsageError({ code: "missing_required_argument", message: "--builtin is required.", missing: ["--builtin"] });
   }
   const fixture = getBooleanFlag(args, "fixture");
+  const prime = getBooleanFlag(args, "prime");
   const hermesCommand = parseHermesCommand(getFlag(args, "hermes-command-json"));
-  if (fixture && hermesCommand) {
-    throw new CliUsageError({ code: "invalid_flag_value", message: "--fixture cannot be combined with --hermes-command-json." });
+  if ([fixture, prime, hermesCommand !== undefined].filter(Boolean).length > 1) {
+    throw new CliUsageError({ code: "invalid_flag_value", message: "--fixture, --prime, and --hermes-command-json are mutually exclusive." });
   }
-  if (!fixture && !hermesCommand) {
-    throw new JsonRpcError("Use --fixture or provide --hermes-command-json to configure the Verify executor.", {
+  if (!fixture && !prime && !hermesCommand) {
+    throw new JsonRpcError("Use --fixture, --prime, or provide --hermes-command-json to configure the Verify executor.", {
       code: "missing_verify_executor_configuration",
-      nextSteps: ["Run `regents techtree verify run --builtin --fixture --json` for the offline path."],
+      nextSteps: [
+        "Run `regents techtree verify run --builtin --fixture --json` for the offline path.",
+        "For Prime, configure REGENT_VERIFY_PRIME_FACTORY=module:function and install the optional adapters-prime group before using --prime.",
+      ],
     });
   }
   printJson(await daemonCall("techtree.verify.run", {
     builtin: true,
-    executor: fixture ? "fixture" : "hermes",
+    executor: fixture ? "fixture" : prime ? "prime" : "hermes",
     hermes_command: hermesCommand,
   }, configPath));
 }

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from verify_runtime.families import FAMILY, TASKS
-from verify_runtime.model import Capsule, EvaluationProtocol, MatchedSelection, VerifyPolicy, content_id
+from verify_runtime.model import Capsule, EnvironmentFamily, EvaluationProtocol, MatchedSelection, TaskInstance, VerifyPolicy, content_id
 
 FOUNDER_DEFAULT_POLICY = VerifyPolicy(
     policy_id="verify-public-default-v1",
@@ -27,8 +27,10 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
     if baseline_resolved != candidate_resolved:
         raise ValueError("built-in comparison resolved more than SKILL.md differently")
 
+    family = EnvironmentFamily.from_dict(FAMILY.to_dict())
+    tasks = tuple(TaskInstance.from_dict(task.to_dict()) for task in TASKS)
     partitions = {
-        partition: tuple(task.task_id for task in TASKS if task.partition == partition)
+        partition: tuple(task.task_id for task in tasks if task.partition == partition)
         for partition in ("development", "validation", "untouched")
     }
     selections = tuple(
@@ -38,15 +40,15 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
         )
     )
     identity = {
-        "family_id": FAMILY.family_id,
+        "family_id": family.family_id,
         "capsules": {"baseline": baseline.capsule_id, "candidate": candidate.capsule_id},
         "selections": [selection.to_dict() for selection in selections],
         "policy": FOUNDER_DEFAULT_POLICY.to_dict(),
     }
-    return EvaluationProtocol(
+    protocol = EvaluationProtocol(
         schema_version=1,
         protocol_id=content_id("protocol", identity),
-        family_id=FAMILY.family_id,
+        family_id=family.family_id,
         baseline_capsule_id=baseline.capsule_id,
         candidate_capsule_id=candidate.capsule_id,
         intervention_class="skill",
@@ -62,3 +64,4 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
         rejected_candidate_ids=(),
         policy=FOUNDER_DEFAULT_POLICY,
     )
+    return EvaluationProtocol.from_dict(protocol.to_dict())

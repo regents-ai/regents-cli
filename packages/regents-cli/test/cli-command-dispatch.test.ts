@@ -147,6 +147,12 @@ describe("CLI command dispatch", () => {
     expect(run.result).toBe(0);
     expect(JSON.parse(run.stdout)).toMatchObject({ method: "techtree.verify.run", params: { builtin: true, executor: "fixture" } });
 
+    const prime = await captureOutput(async () => harness.runCliEntrypoint([
+      "techtree", "verify", "run", "--builtin", "--prime", "--config", harness.configPath,
+    ]));
+    expect(prime.result).toBe(0);
+    expect(JSON.parse(prime.stdout)).toMatchObject({ method: "techtree.verify.run", params: { builtin: true, executor: "prime" } });
+
     const status = await captureOutput(async () => harness.runCliEntrypoint([
       "techtree", "verify", "status", "--comparison-id", "comparison-123", "--config", harness.configPath,
     ]));

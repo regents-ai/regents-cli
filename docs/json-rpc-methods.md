@@ -52,3 +52,9 @@ This file is generated from the current runtime method registry.
 ## Transports
 
 - `gossipsub.status`
+
+## Techtree Verify executor vocabulary
+
+- `fixture`
+- `hermes`
+- `prime`

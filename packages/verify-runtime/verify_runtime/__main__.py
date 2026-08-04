@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import importlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
 
 from .forge_family import FAMILY_CONTRACT, ValidationError, validate_family
 from .receipts import show_receipt
-from .runner import ComparisonBusyError, ComparisonSpendExhaustedError, ComparisonStateError, FixtureExecutor, HermesExecutor, run_builtin_comparison, show_comparison_status
+from .runner import ComparisonBusyError, ComparisonSpendExhaustedError, ComparisonStateError, Executor, FixtureExecutor, HermesExecutor, run_builtin_comparison, show_comparison_status
 from .runner.executors import RuntimeResolutionError
 
 
@@ -18,6 +20,38 @@ METHOD_VALIDATE = "techtree.forge.family.validate"
 METHOD_VERIFY_RUN = "techtree.verify.run"
 METHOD_VERIFY_STATUS = "techtree.verify.status"
 METHOD_RECEIPT_SHOW = "techtree.verify.receipt.show"
+PRIME_FACTORY_ENV = "REGENT_VERIFY_PRIME_FACTORY"
+
+
+def _prime_executor(state_dir: Path) -> Executor:
+    reference = os.environ.get(PRIME_FACTORY_ENV)
+    if reference is None:
+        raise ValidationError(
+            "Prime execution is not configured. Set "
+            f"{PRIME_FACTORY_ENV}=module:function in the local runtime process, "
+            "install the adapters-prime dependency group for live use, and retry."
+        )
+    module_name, separator, attribute_name = reference.partition(":")
+    if separator != ":" or not module_name or not attribute_name or ":" in attribute_name:
+        raise ValidationError(f"{PRIME_FACTORY_ENV} must use module:function syntax")
+    try:
+        factory = getattr(importlib.import_module(module_name), attribute_name)
+    except (ImportError, AttributeError) as error:
+        raise ValidationError(
+            f"{PRIME_FACTORY_ENV} could not be loaded; verify the configured module:function and retry"
+        ) from error
+    if not callable(factory):
+        raise ValidationError(f"{PRIME_FACTORY_ENV} must resolve to a callable")
+    try:
+        executor = factory(state_dir)
+    except ModuleNotFoundError as error:
+        raise ValidationError(
+            "Prime executor configuration could not start; install the adapters-prime dependency group, "
+            "verify the configured module:function, and retry"
+        ) from error
+    if getattr(executor, "name", None) != "prime":
+        raise ValidationError("Prime executor configuration returned the wrong executor")
+    return executor
 
 
 def _error(request_id: str | None, code: int, message: str) -> dict[str, Any]:
@@ -65,8 +99,12 @@ def _dispatch(request: Any) -> dict[str, Any]:
                 if type(command) is not list or not command or any(type(part) is not str or not part for part in command):
                     raise ValidationError("Hermes execution requires a non-empty command string array")
                 executor = HermesExecutor(tuple(command))
+            elif params["executor"] == "prime":
+                if params["hermes_command"] is not None:
+                    raise ValidationError("Prime execution does not accept a Hermes command")
+                executor = _prime_executor(Path(params["state_dir"]))
             else:
-                raise ValidationError("executor must be fixture or hermes")
+                raise ValidationError("executor must be fixture, hermes, or configured prime")
             result = run_builtin_comparison(Path(params["state_dir"]), executor)
         elif method == METHOD_VERIFY_STATUS:
             if type(params) is not dict or set(params) != {"state_dir", "comparison_id"}:
