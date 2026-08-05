@@ -59,6 +59,23 @@ describe("techtree verify offline CLI e2e", () => {
         receipt: { capsules: { baseline: {}, candidate: {} }, runs: { baseline: {}, candidate: {} } },
       });
     }
+    const upliftOutput = await captureOutput(() => runCliEntrypoint([
+      "techtree", "uplift", "report",
+      "--receipt-digest", run.receipts[0]!.digest,
+      "--receipt-digest", run.receipts[1]!.digest,
+      "--json", "--config", configPath,
+    ]));
+    expect(JSON.parse(upliftOutput.stdout)).toMatchObject({
+      status: "completed",
+      report: {
+        outcome: "positive",
+        evidence_class: "single_run",
+        reproduction_status: "not_run",
+        reproduction_package_status: "available",
+        decision_sentence: "This skill improved held-out performance by 100 percentage points, ending at 100%, with no severe regressions.",
+      },
+      reproduction_package: { digest: expect.any(String) },
+    });
     expect(performance.now() - started).toBeLessThanOrEqual(120_000);
   });
 
@@ -90,6 +107,16 @@ describe("techtree verify offline CLI e2e", () => {
     ]));
     expect(JSON.parse(missingReceipt.stderr)).toMatchObject({
       error: { code: "verify_record_not_found", next_steps: [expect.stringContaining("verify run")] },
+    });
+
+    const missingUpliftReceipts = await captureOutput(() => runCliEntrypoint([
+      "techtree", "uplift", "report",
+      "--receipt-digest", "a".repeat(64),
+      "--receipt-digest", "b".repeat(64),
+      "--json", "--config", configPath,
+    ]));
+    expect(JSON.parse(missingUpliftReceipts.stderr)).toMatchObject({
+      error: { code: "uplift_receipt_not_found", next_steps: [expect.stringContaining("verify run")] },
     });
 
     const malformedBin = path.join(tempDir, "malformed-bin");

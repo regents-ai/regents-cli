@@ -330,7 +330,7 @@ def normalize_prime_payload(
             _sha256(wire_identity["hermes_digest"], "prime.identity.hermes_digest")
         locked_task = expected_task.to_dict()
         wire_task = _record(wire["task"], "prime.task")
-        required_task_fields = set(locked_task) - set(_TASK_IDENTITY_FIELDS)
+        required_task_fields = set(locked_task) - set(_TASK_IDENTITY_FIELDS) - {"provenance"}
         if set(wire_task) - set(locked_task) or required_task_fields - set(wire_task):
             raise ValueError("prime.task does not match the canonical task shape")
         wire_task_identity = _optional_identity_values(
@@ -340,13 +340,14 @@ def normalize_prime_payload(
         )
         wire_task_values = {name: str(wire_task[name]) for name in locked_task if name in wire_task}
         wire_task_values.update(wire_task_identity)
+        wire_task_values.setdefault("provenance", str(locked_task["provenance"]))
         task_identity_mismatches = _identity_mismatches(
             wire_task_values,
             {name: str(locked_task[name]) for name in locked_task},
             prefix="task",
         )
         if not task_identity_mismatches:
-            TaskInstance.from_dict(wire_task)
+            TaskInstance.from_dict({"provenance": locked_task["provenance"], **wire_task})
 
         trace = _record(wire["trace"], "prime.trace")
         _exact(trace, _TRACE_KEYS, "prime.trace")

@@ -38,6 +38,12 @@ def require_type(value: Any, expected: type, path: str) -> Any:
     return value
 
 
+def require_bool(value: Any, path: str) -> bool:
+    if type(value) is not bool:
+        raise ModelValidationError(f"{path} must be bool")
+    return value
+
+
 def require_string(value: Any, path: str, *, allow_empty: bool = False) -> str:
     require_type(value, str, path)
     if not allow_empty and not value:
@@ -109,6 +115,12 @@ def require_nullable_string(value: Any, path: str) -> str | None:
     if value is None:
         return None
     return require_string(value, path)
+
+
+def require_nullable_int(value: Any, path: str, *, minimum: int = -MAX_RECORD_INTEGER) -> int | None:
+    if value is None:
+        return None
+    return require_bounded_int(value, path, minimum=minimum)
 
 
 def require_string_list(value: Any, path: str) -> list[str]:

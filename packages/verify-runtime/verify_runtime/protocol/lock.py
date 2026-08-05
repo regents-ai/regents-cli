@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from verify_runtime.families import FAMILY, TASKS
+from verify_runtime.families import CANDIDATE_SKILL, DECISION_RULE, FAMILY, TASKS, TASKSET_VERSION, TREATMENT_DIFF
 from verify_runtime.model import Capsule, EnvironmentFamily, EvaluationProtocol, MatchedSelection, TaskInstance, VerifyPolicy, content_id
 
 FOUNDER_DEFAULT_POLICY = VerifyPolicy(
@@ -34,7 +34,7 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
         for partition in ("development", "validation", "untouched")
     }
     selections = tuple(
-        MatchedSelection(task_id, partition, order)
+        MatchedSelection(task_id, partition, order, next(task.provenance for task in tasks if task.task_id == task_id))
         for order, (partition, task_id) in enumerate(
             (("validation", partitions["validation"][0]), ("untouched", partitions["untouched"][0]))
         )
@@ -44,6 +44,9 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
         "capsules": {"baseline": baseline.capsule_id, "candidate": candidate.capsule_id},
         "selections": [selection.to_dict() for selection in selections],
         "policy": FOUNDER_DEFAULT_POLICY.to_dict(),
+        "taskset_version": TASKSET_VERSION,
+        "treatment_diff": TREATMENT_DIFF,
+        "decision_rule": DECISION_RULE.to_dict(),
     }
     protocol = EvaluationProtocol(
         schema_version=1,
@@ -63,5 +66,17 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
         optimizer_candidate_count=1,
         rejected_candidate_ids=(),
         policy=FOUNDER_DEFAULT_POLICY,
+        taskset_version=TASKSET_VERSION,
+        treatment_skill_source="builtin://candidate/SKILL.md",
+        treatment_skill_content=CANDIDATE_SKILL.decode("utf-8"),
+        treatment_diff=TREATMENT_DIFF,
+        exact_commands=(
+            "regents techtree verify run --builtin --executor <fixture|hermes|prime> --json",
+            "regents techtree uplift report --receipt-digest <sha256> --receipt-digest <sha256> --json",
+        ),
+        harness_settings=(("profile", "default"),),
+        seeds=(),
+        expected_output_schema="verify_runtime.execution_result.v1",
+        decision_rule=DECISION_RULE,
     )
     return EvaluationProtocol.from_dict(protocol.to_dict())

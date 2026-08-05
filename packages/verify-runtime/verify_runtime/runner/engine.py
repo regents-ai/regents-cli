@@ -17,7 +17,7 @@ from verify_runtime.capsule.resolution import ResolvedRuntimeIdentity, with_obse
 from verify_runtime.families import BASELINE_SKILL, CANDIDATE_SKILL, FAMILY, TASKS
 from verify_runtime.model import TERMINAL_STATUSES, EvaluationReceipt, RunRecord, TerminalStatus, canonical_json_bytes, content_id, strict_json_loads
 from verify_runtime.protocol import lock_builtin_protocol
-from verify_runtime.receipts import emit_receipt
+from verify_runtime.receipts._store import _emit_receipt, _receipt_store_id
 
 from .executors import MAX_CAPTURE_BYTES, MAX_DETAIL_CHARACTERS, MAX_FACTS, MAX_FACT_CHARACTERS, MAX_RESULT_INTEGER, ExecutionResult, Executor, FixtureExecutor, artifact_record
 
@@ -258,6 +258,7 @@ def _run_one(
     capsule_id: str,
     side: str,
     task_id: str,
+    provenance: str,
     skill_bytes: bytes,
     timeout_seconds: int,
     max_spend_usd_cents: int,
@@ -294,14 +295,14 @@ def _run_one(
         )
         result = _enforce_matched_identity(result, executor=executor, identity=runtime_identity)
     artifacts = artifact_record(result)
-    identity = {"protocol_id": protocol_id, "capsule_id": capsule_id, "side": side, "task_id": task_id, "attempt": 1, "status": result.status, "artifacts": artifacts}
     run = RunRecord(
         schema_version=1,
-        run_id=content_id("run", identity),
+        run_id="",
         protocol_id=protocol_id,
         capsule_id=capsule_id,
         side=side,
         task_id=task_id,
+        provenance=provenance,  # type: ignore[arg-type]
         attempt=1,
         status=result.status,
         score_millis=result.score_millis,
@@ -311,7 +312,9 @@ def _run_one(
         wall_time_ms=result.wall_time_ms,
         executor=executor.name,
         process_exit_code=result.process_exit_code,
+        possible_contamination="possible-contamination" if provenance == "public_reference" else None,
     )
+    run = replace(run, run_id=run.expected_run_id())
     return RunRecord.from_dict(run.to_dict()), result
 
 
@@ -326,6 +329,7 @@ def _run_reserved(
     capsule_id: str,
     side: str,
     task_id: str,
+    provenance: str,
     skill_bytes: bytes,
     timeout_seconds: int,
     runtime_identity: ResolvedRuntimeIdentity,
@@ -340,6 +344,7 @@ def _run_reserved(
             capsule_id=capsule_id,
             side=side,
             task_id=task_id,
+            provenance=provenance,
             skill_bytes=skill_bytes,
             timeout_seconds=timeout_seconds,
             max_spend_usd_cents=0,
@@ -352,6 +357,7 @@ def _run_reserved(
         capsule_id=capsule_id,
         side=side,
         task_id=task_id,
+        provenance=provenance,
         skill_bytes=skill_bytes,
         timeout_seconds=timeout_seconds,
         max_spend_usd_cents=allowance,
@@ -419,6 +425,7 @@ def run_builtin_comparison(state_dir: Path, executor: Executor | None = None) ->
         identity=runtime_identity,
     )
     protocol = lock_builtin_protocol(baseline, candidate)
+    store_id = _receipt_store_id(state_dir)
     comparison_id = content_id("comparison", {"protocol_id": protocol.protocol_id, "executor": selected_executor.name})
     cap = protocol.policy.max_comparison_spend_usd_cents
     with _comparison_lock(state_dir, comparison_id) as comparison_directory:
@@ -430,13 +437,14 @@ def run_builtin_comparison(state_dir: Path, executor: Executor | None = None) ->
         receipt_results: list[str] = []
 
         for selection in protocol.selections:
-            baseline_run, baseline_result = _run_reserved(comparison_directory=comparison_directory, comparison_id=comparison_id, cap=cap, state_dir=state_dir, executor=selected_executor, protocol_id=protocol.protocol_id, capsule_id=baseline.capsule_id, side="baseline", task_id=selection.task_id, skill_bytes=BASELINE_SKILL, timeout_seconds=protocol.policy.max_task_wall_seconds, runtime_identity=runtime_identity)
-            candidate_run, candidate_result = _run_reserved(comparison_directory=comparison_directory, comparison_id=comparison_id, cap=cap, state_dir=state_dir, executor=selected_executor, protocol_id=protocol.protocol_id, capsule_id=candidate.capsule_id, side="candidate", task_id=selection.task_id, skill_bytes=CANDIDATE_SKILL, timeout_seconds=protocol.policy.max_task_wall_seconds, runtime_identity=runtime_identity)
+            baseline_run, baseline_result = _run_reserved(comparison_directory=comparison_directory, comparison_id=comparison_id, cap=cap, state_dir=state_dir, executor=selected_executor, protocol_id=protocol.protocol_id, capsule_id=baseline.capsule_id, side="baseline", task_id=selection.task_id, provenance=selection.provenance, skill_bytes=BASELINE_SKILL, timeout_seconds=protocol.policy.max_task_wall_seconds, runtime_identity=runtime_identity)
+            candidate_run, candidate_result = _run_reserved(comparison_directory=comparison_directory, comparison_id=comparison_id, cap=cap, state_dir=state_dir, executor=selected_executor, protocol_id=protocol.protocol_id, capsule_id=candidate.capsule_id, side="candidate", task_id=selection.task_id, provenance=selection.provenance, skill_bytes=CANDIDATE_SKILL, timeout_seconds=protocol.policy.max_task_wall_seconds, runtime_identity=runtime_identity)
 
             runs.extend((baseline_run, candidate_run))
             receipt_identity = {"protocol_id": protocol.protocol_id, "task_id": selection.task_id}
             receipt = EvaluationReceipt(
                 schema_version=1,
+                store_id=store_id,
                 receipt_id=content_id("receipt", receipt_identity),
                 task_id=selection.task_id,
                 protocol=protocol,
@@ -448,8 +456,10 @@ def run_builtin_comparison(state_dir: Path, executor: Executor | None = None) ->
                 baseline_score_millis=baseline_run.score_millis,
                 candidate_score_millis=candidate_run.score_millis,
                 total_cost_usd_cents=baseline_run.cost_usd_cents + candidate_run.cost_usd_cents,
+                baseline_run_digest=baseline_run.content_digest(),
+                candidate_run_digest=candidate_run.content_digest(),
             )
-            receipt_pointers.append(emit_receipt(state_dir, receipt))
+            receipt_pointers.append(_emit_receipt(state_dir, receipt))
             receipt_results.append(receipt.comparison_result)
             if baseline_result.spend_violation or candidate_result.spend_violation or _remaining_allowance(comparison_directory, comparison_id, cap) <= 0:
                 break

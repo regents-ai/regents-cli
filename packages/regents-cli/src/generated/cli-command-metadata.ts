@@ -190,6 +190,7 @@ export const CLI_COMMANDS = [
   "techtree forge family validate",
   "techtree notebooks init",
   "techtree notebooks pair",
+  "techtree uplift report",
   "techtree verify receipt show",
   "techtree verify run",
   "techtree verify status",
@@ -469,6 +470,7 @@ export const CLI_COMMANDS_BY_TOP_LEVEL_GROUP = {
     "techtree forge family validate",
     "techtree notebooks init",
     "techtree notebooks pair",
+    "techtree uplift report",
     "techtree verify receipt show",
     "techtree verify run",
     "techtree verify status"
@@ -8423,6 +8425,47 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "input_mode": "flags"
     },
     "summary": "Pair notebooks."
+  },
+  "techtree uplift report": {
+    "command": "techtree uplift report",
+    "owner": "shared-services",
+    "group": "techtree-uplift",
+    "interface": "runtime",
+    "auth_mode": "none",
+    "output_envelope": "strict-closed-json",
+    "flags": [
+      {
+        "name": "receipt-digest",
+        "type": "string",
+        "required": true,
+        "repeatable": true,
+        "description": "SHA-256 receipt digest; supply exactly two digests from one matched Verify comparison."
+      },
+      {
+        "name": "reproduction-tolerance-json",
+        "type": "string",
+        "required": false,
+        "description": "Nullable JSON object supplied by the founder and archived in the reproduction package; the package is never executed by this command."
+      }
+    ],
+    "examples": [
+      "regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --json",
+      "regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --reproduction-tolerance-json '{\"score_millis\":25}' --json"
+    ],
+    "agent_metadata": {
+      "category": "techtree-uplift",
+      "prompt_behavior": "never_prompt",
+      "json_support": "supported",
+      "mutation_class": "local-write",
+      "retry_behavior": "never_retry",
+      "pagination": "none",
+      "async_behavior": "synchronous",
+      "input_mode": "flags",
+      "summary": "Compare two receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.",
+      "next_step": "regents techtree verify run --builtin --fixture --json"
+    },
+    "summary": "Compare two receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.",
+    "next_step": "regents techtree verify run --builtin --fixture --json"
   },
   "techtree verify receipt show": {
     "command": "techtree verify receipt show",

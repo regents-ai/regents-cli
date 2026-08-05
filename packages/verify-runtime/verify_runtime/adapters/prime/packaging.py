@@ -56,7 +56,12 @@ def package_taskset(
         "format": PRIME_TASKSET_FORMAT,
         "sdk": {"distribution": PRIME_SDK_DISTRIBUTION, "version": PRIME_SDK_VERSION},
         "family_id": family.family_id,
-        "matched_selection": selection.to_dict() | {"side": side},
+        "matched_selection": {
+            "task_id": selection.task_id,
+            "partition": selection.partition,
+            "matched_order": selection.matched_order,
+            "side": side,
+        },
         "task": {
             "identity": {
                 "schema_version": task.schema_version,

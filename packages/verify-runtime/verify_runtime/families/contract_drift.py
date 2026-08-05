@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from verify_runtime.model import BenchmarkRole, BenchmarkSlice, EnvironmentFamily, TaskInstance, sha256_bytes
+from verify_runtime.model import BenchmarkRole, BenchmarkSlice, DecisionRule, EnvironmentFamily, SevereRegressionRule, TaskInstance, sha256_bytes
 
 FAMILY = EnvironmentFamily(
     schema_version=1,
@@ -19,6 +19,25 @@ FAMILY_CONTRACT = FAMILY.to_dict()
 
 BASELINE_SKILL = b"# Contract repair\n\nEdit every file that appears related to the failure.\n"
 CANDIDATE_SKILL = b"# Contract repair\n\nChange exactly the one declared SKILL.md and preserve every other file.\n"
+TASKSET_VERSION = "contract-drift-taskset-v1"
+TREATMENT_DIFF = (
+    "--- a/SKILL.md\n"
+    "+++ b/SKILL.md\n"
+    "@@\n"
+    "-Edit every file that appears related to the failure.\n"
+    "+Change exactly the one declared SKILL.md and preserve every other file.\n"
+)
+
+DECISION_RULE = DecisionRule(
+    primary_metric="score_millis",
+    minimum_valid_task_count=1,
+    positive_threshold_millis=100,
+    negative_threshold_millis=-100,
+    null_band_millis=0,
+    severe_regression_rule=SevereRegressionRule("delta_at_or_below", 100),
+    inconclusive_conditions=("valid_task_count_below_minimum", "delta_between_thresholds"),
+    invalid_conditions=("any_arm_not_completed", "missing_score"),
+)
 
 ROLES = (
     BenchmarkRole(1, "repair-agent", "repair the declared contract drift", "task-input-only"),
@@ -35,14 +54,14 @@ TASK_INPUTS = {
 _GRADER_DIGEST = sha256_bytes(GRADER_SOURCE)
 
 
-def _task(task_id: str, partition: str) -> TaskInstance:
-    return TaskInstance(1, task_id, _FAMILY_ID, f"{_FAMILY_ID}.{partition}", partition, "repair-agent", sha256_bytes(TASK_INPUTS[task_id]), _GRADER_DIGEST)  # type: ignore[arg-type]
+def _task(task_id: str, partition: str, provenance: str) -> TaskInstance:
+    return TaskInstance(1, task_id, _FAMILY_ID, f"{_FAMILY_ID}.{partition}", partition, "repair-agent", sha256_bytes(TASK_INPUTS[task_id]), _GRADER_DIGEST, provenance)  # type: ignore[arg-type]
 
 
 TASKS = (
-    _task("contract-drift-development-1", "development"),
-    _task("contract-drift-validation-1", "validation"),
-    _task("contract-drift-untouched-1", "untouched"),
+    _task("contract-drift-development-1", "development", "held_out"),
+    _task("contract-drift-validation-1", "validation", "held_out"),
+    _task("contract-drift-untouched-1", "untouched", "public_reference"),
 )
 
 SLICES = tuple(

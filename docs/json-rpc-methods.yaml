@@ -33,6 +33,7 @@ method_groups:
       - techtree.verify.run
       - techtree.verify.status
       - techtree.verify.receipt.show
+      - techtree.uplift.report
       - techtree.notebooks.init
       - techtree.notebooks.pair
   - name: x402
@@ -116,6 +117,17 @@ methods:
   - name: techtree.verify.receipt.show
     owner: techtree
     auth_mode: local-runtime
+  - name: techtree.uplift.report
+    owner: techtree
+    auth_mode: local-runtime
+    params:
+      receipt_digests:
+        type: array
+        items: string
+        min_items: 2
+        max_items: 2
+      tolerance:
+        type: object-or-null
   - name: techtree.notebooks.init
     owner: regents-cli
     auth_mode: local-runtime

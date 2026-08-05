@@ -37,6 +37,7 @@ This file is generated from the current runtime method registry.
 - `techtree.verify.run`
 - `techtree.verify.status`
 - `techtree.verify.receipt.show`
+- `techtree.uplift.report`
 - `techtree.notebooks.init`
 - `techtree.notebooks.pair`
 

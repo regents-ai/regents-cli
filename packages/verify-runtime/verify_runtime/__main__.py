@@ -13,6 +13,7 @@ from .forge_family import FAMILY_CONTRACT, ValidationError, validate_family
 from .receipts import show_receipt
 from .runner import ComparisonBusyError, ComparisonSpendExhaustedError, ComparisonStateError, Executor, FixtureExecutor, HermesExecutor, run_builtin_comparison, show_comparison_status
 from .runner.executors import RuntimeResolutionError
+from .uplift import UpliftInputError, UpliftReceiptNotFound, UpliftReportCollisionError, UpliftReportConflictError, generate_uplift_report
 
 
 METHOD_SHOW = "techtree.forge.family.show"
@@ -20,6 +21,7 @@ METHOD_VALIDATE = "techtree.forge.family.validate"
 METHOD_VERIFY_RUN = "techtree.verify.run"
 METHOD_VERIFY_STATUS = "techtree.verify.status"
 METHOD_RECEIPT_SHOW = "techtree.verify.receipt.show"
+METHOD_UPLIFT_REPORT = "techtree.uplift.report"
 PRIME_FACTORY_ENV = "REGENT_VERIFY_PRIME_FACTORY"
 
 
@@ -118,8 +120,26 @@ def _dispatch(request: Any) -> dict[str, Any]:
             if type(params["state_dir"]) is not str or type(params["digest"]) is not str:
                 raise ValidationError("state_dir and digest must be strings")
             result = show_receipt(Path(params["state_dir"]), params["digest"])
+        elif method == METHOD_UPLIFT_REPORT:
+            if type(params) is not dict or set(params) != {"state_dir", "receipt_digests", "tolerance"}:
+                raise ValidationError("uplift report params must contain only state_dir, receipt_digests, and tolerance")
+            if type(params["state_dir"]) is not str or not params["state_dir"]:
+                raise ValidationError("state_dir must be a non-empty string")
+            if type(params["receipt_digests"]) is not list or any(type(digest) is not str for digest in params["receipt_digests"]):
+                raise ValidationError("receipt_digests must be a string array")
+            if params["tolerance"] is not None and type(params["tolerance"]) is not dict:
+                raise ValidationError("tolerance must be an object or null")
+            result = generate_uplift_report(Path(params["state_dir"]), params["receipt_digests"], params["tolerance"])
         else:
             return _error(request_id, -32601, "method not found")
+    except UpliftReceiptNotFound as error:
+        return _error(request_id, -32007, str(error))
+    except UpliftReportCollisionError as error:
+        return _error(request_id, -32009, str(error))
+    except UpliftReportConflictError as error:
+        return _error(request_id, -32010, str(error))
+    except UpliftInputError as error:
+        return _error(request_id, -32008, str(error))
     except (ValidationError, ValueError) as error:
         return _error(request_id, -32602, str(error))
     except FileNotFoundError as error:

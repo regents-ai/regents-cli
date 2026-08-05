@@ -11,6 +11,7 @@ import {
   runTechtreeVerifyRun,
   runTechtreeVerifyStatus,
 } from "../commands/techtree-verify.js";
+import { runTechtreeUpliftReport } from "../commands/techtree-uplift.js";
 import type { CliHandlerRegistry } from "./shared.js";
 
 export const techtreeHandlers: CliHandlerRegistry = {
@@ -26,6 +27,9 @@ export const techtreeHandlers: CliHandlerRegistry = {
   },
   "techtree verify receipt show": {
     run: ({ parsedArgs, configPath }) => runTechtreeVerifyReceiptShow(parsedArgs, configPath),
+  },
+  "techtree uplift report": {
+    run: ({ parsedArgs, configPath }) => runTechtreeUpliftReport(parsedArgs, configPath),
   },
   "techtree notebooks init": {
     run: ({ parsedArgs, configPath }) => runTechtreeNotebooksInit(parsedArgs, configPath),

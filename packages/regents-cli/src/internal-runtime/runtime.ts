@@ -42,6 +42,7 @@ import {
   handleTechtreeVerifyRun,
   handleTechtreeVerifyStatus,
 } from "./handlers/techtree/verify.js";
+import { handleTechtreeUpliftReport } from "./handlers/techtree/uplift.js";
 import {
   handleX402Details,
   handleX402Fetch,
@@ -283,6 +284,11 @@ export class RegentKernel {
         return handleTechtreeVerifyReceiptShow(
           ctx.config.runtime.stateDir,
           params as Parameters<typeof handleTechtreeVerifyReceiptShow>[1],
+        );
+      case "techtree.uplift.report":
+        return handleTechtreeUpliftReport(
+          ctx.config.runtime.stateDir,
+          params as Parameters<typeof handleTechtreeUpliftReport>[1],
         );
       case "techtree.notebooks.init":
         return handleTechtreeNotebooksInit(

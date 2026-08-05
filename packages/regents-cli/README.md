@@ -30,6 +30,10 @@ Manual installs need `regents init`. Run `regents setup` when you want the guide
 
 The local `regents techtree forge family` commands require Python 3.12 or newer available as `python3`. Their bundled runtime has no third-party runtime dependencies and does not use UV, create a virtual environment, download packages, or access the network when a command runs.
 
+### Local Verify evidence
+
+`regents techtree verify run` emits receipts only as part of runner execution. Each receipt is bound to its non-symlinked local receipt store, and Uplift rejects receipts copied into another initialized store. Local receipts remain operator-trusted evidence: an operator who controls local files can fabricate them. Receipt digests and store binding are tamper-evident within the runner emission path and checkable by the report verifier. Cryptographic attestation is the planned post-v0.1 proof layer; receipt-store binding and the queued post-freeze independent report verifier are the v0.1 checkable layer.
+
 ## Important Commands
 
 | Command | Use it for |

@@ -815,7 +815,7 @@ command_groups:
     interface: runtime
     auth_mode: none
     output_envelope: strict-closed-json
-    note: Verify state and receipts stay local. The fixture path is deterministic, requires no credentials, and makes no network calls. Hosted Hermes execution requires an explicit local command configuration. Prime execution requires the optional adapter group and REGENT_VERIFY_PRIME_FACTORY configuration. Both live executors remain subject to the locked policy limits.
+    note: Verify state and receipts stay local. Receipts are operator-trusted evidence, and a local operator can fabricate local files. Receipt digests and store binding are tamper-evident within the runner emission path and checkable by the report verifier. Cryptographic attestation is the planned post-v0.1 proof layer. The fixture path is deterministic, requires no credentials, and makes no network calls. Hosted Hermes execution requires an explicit local command configuration. Prime execution requires the optional adapter group and REGENT_VERIFY_PRIME_FACTORY configuration. Both live executors remain subject to the locked policy limits.
     agent_metadata:
       category: techtree-verify
       prompt_behavior: never_prompt
@@ -874,6 +874,42 @@ command_groups:
           type: string
           required: true
           description: SHA-256 receipt digest returned by verify run.
+  - name: techtree-uplift
+    interface: runtime
+    auth_mode: none
+    output_envelope: strict-closed-json
+    note: Uplift consumes only two receipt-backed local receipt digests from their emitting store, archives a deterministic report and reproduction package, and never executes the package. Local receipts remain operator-trusted evidence; receipt-store binding and the post-freeze independent report verifier are the v0.1 checkable layer, while cryptographic attestation is the planned post-v0.1 proof layer. The optional reproduction tolerance is a nullable founder-supplied package field.
+    agent_metadata:
+      category: techtree-uplift
+      prompt_behavior: never_prompt
+      json_support: supported
+      mutation_class: local-write
+      retry_behavior: never_retry
+      pagination: none
+      async_behavior: synchronous
+      input_mode: flags
+      examples:
+        - regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --json
+        - regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --reproduction-tolerance-json '{"score_millis":25}' --json
+      commands:
+        techtree uplift report:
+          summary: Compare two receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.
+          mutation_class: local-write
+          retry_behavior: never_retry
+          next_step: regents techtree verify run --builtin --fixture --json
+    commands:
+      - techtree uplift report
+    command_flags:
+      techtree uplift report:
+        - name: receipt-digest
+          type: string
+          required: true
+          repeatable: true
+          description: SHA-256 receipt digest; supply exactly two digests from one matched Verify comparison.
+        - name: reproduction-tolerance-json
+          type: string
+          required: false
+          description: Nullable JSON object supplied by the founder and archived in the reproduction package; the package is never executed by this command.
   - name: notebooks
     interface: runtime
     auth_mode: none

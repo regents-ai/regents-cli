@@ -20,6 +20,7 @@ export const REGENT_RPC_METHODS = {
   techtreeVerifyRun: "techtree.verify.run",
   techtreeVerifyStatus: "techtree.verify.status",
   techtreeVerifyReceiptShow: "techtree.verify.receipt.show",
+  techtreeUpliftReport: "techtree.uplift.report",
   techtreeNotebooksInit: "techtree.notebooks.init",
   techtreeNotebooksPair: "techtree.notebooks.pair",
   x402Details: "x402.details",

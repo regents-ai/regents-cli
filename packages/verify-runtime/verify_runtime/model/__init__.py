@@ -16,10 +16,34 @@ from .base import (
 from .benchmark import BenchmarkRole, BenchmarkSlice, Partition
 from .capsule import Capsule, DeclaredCapsule, ObservedCapsule, ResolvedCapsule
 from .family import EnvironmentFamily
-from .protocol import EvaluationProtocol, MatchedSelection, VerifyPolicy
+from .protocol import DecisionRule, EvaluationProtocol, INCONCLUSIVE_CONDITIONS, INVALID_CONDITIONS, MatchedSelection, SevereRegressionRule, VerifyPolicy
 from .receipt import EvaluationReceipt
+from .reproduction import ReproductionPackage
 from .run import RunRecord, TERMINAL_STATUSES, TerminalStatus
-from .task import TaskInstance
+from .task import TASK_PROVENANCES, TaskInstance, TaskProvenance
+from .uplift import (
+    ActionReceipt,
+    ArmIdentity,
+    Distribution,
+    EVIDENCE_CLASS,
+    EvaluationSection,
+    FamilyDifference,
+    Freshness,
+    ModelIdentity,
+    Outcome,
+    POSSIBLE_CONTAMINATION,
+    PROVENANCE,
+    ReceiptTaskBinding,
+    REPRODUCTION_PACKAGE_STATUSES,
+    REPRODUCTION_STATUS,
+    RegressionSummary,
+    TaskDifference,
+    UpliftReport,
+    Uncertainty,
+    derive_outcome,
+    relative_error_reduction_millis,
+    render_decision_sentence,
+)
 
 __all__ = [
     "BenchmarkRole",
@@ -27,18 +51,46 @@ __all__ = [
     "Capsule",
     "DeclaredCapsule",
     "EnvironmentFamily",
+    "EvaluationSection",
     "EvaluationProtocol",
     "EvaluationReceipt",
+    "FamilyDifference",
+    "Freshness",
     "MatchedSelection",
+    "ModelIdentity",
     "MAX_RECORD_INTEGER",
     "ModelValidationError",
     "ObservedCapsule",
     "Partition",
+    "POSSIBLE_CONTAMINATION",
+    "EVIDENCE_CLASS",
+    "Outcome",
+    "PROVENANCE",
+    "REPRODUCTION_PACKAGE_STATUSES",
+    "REPRODUCTION_STATUS",
+    "RegressionSummary",
+    "ReproductionPackage",
     "ResolvedCapsule",
     "RunRecord",
     "TERMINAL_STATUSES",
     "TaskInstance",
+    "TaskProvenance",
+    "TASK_PROVENANCES",
+    "ReceiptTaskBinding",
+    "TaskDifference",
     "TerminalStatus",
+    "UpliftReport",
+    "Uncertainty",
+    "derive_outcome",
+    "relative_error_reduction_millis",
+    "render_decision_sentence",
+    "DecisionRule",
+    "INCONCLUSIVE_CONDITIONS",
+    "INVALID_CONDITIONS",
+    "SevereRegressionRule",
+    "ActionReceipt",
+    "ArmIdentity",
+    "Distribution",
     "VerifyPolicy",
     "canonical_json_bytes",
     "content_id",

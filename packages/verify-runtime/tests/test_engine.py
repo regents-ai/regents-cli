@@ -52,13 +52,14 @@ def test_status_reads_without_mutating_state(tmp_path: Path) -> None:
     assert path.read_bytes() == before
 
 
-def test_fixture_receipts_are_byte_stable_across_identical_runs(tmp_path: Path) -> None:
+def test_fixture_receipts_keep_deterministic_evidence_with_distinct_store_bindings(tmp_path: Path) -> None:
     first = run_builtin_comparison(tmp_path / "first", FixtureExecutor())
     second = run_builtin_comparison(tmp_path / "second", FixtureExecutor())
-    first_bytes = [(tmp_path / "first" / "verify" / "receipts" / "sha256" / f"{pointer['digest']}.json").read_bytes() for pointer in first["receipts"]]
-    second_bytes = [(tmp_path / "second" / "verify" / "receipts" / "sha256" / f"{pointer['digest']}.json").read_bytes() for pointer in second["receipts"]]
-    assert [pointer["digest"] for pointer in first["receipts"]] == [pointer["digest"] for pointer in second["receipts"]]
-    assert first_bytes == second_bytes
+    first_records = [json.loads(Path(pointer["path"]).read_bytes()) for pointer in first["receipts"]]
+    second_records = [json.loads(Path(pointer["path"]).read_bytes()) for pointer in second["receipts"]]
+    assert [pointer["digest"] for pointer in first["receipts"]] != [pointer["digest"] for pointer in second["receipts"]]
+    assert {record.pop("store_id") for record in first_records} != {record.pop("store_id") for record in second_records}
+    assert first_records == second_records
 
 
 @pytest.mark.parametrize("status", ["timeout", "invalid", "agent_failure", "infrastructure_failure"])

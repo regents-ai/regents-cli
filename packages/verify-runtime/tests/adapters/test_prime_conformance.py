@@ -542,8 +542,10 @@ def test_reproduction_fidelity(tmp_path: Path) -> None:
     first = _run_recorded(tmp_path / "first")
     second = _run_recorded(tmp_path / "second")
     assert first["summary"]["comparison_result"] == "positive"
-    assert [pointer["digest"] for pointer in first["receipts"]] == [pointer["digest"] for pointer in second["receipts"]]
-    assert [Path(pointer["path"]).read_bytes() for pointer in first["receipts"]] == [Path(pointer["path"]).read_bytes() for pointer in second["receipts"]]
+    first_receipts = [strict_json_loads(Path(pointer["path"]).read_bytes()) for pointer in first["receipts"]]
+    second_receipts = [strict_json_loads(Path(pointer["path"]).read_bytes()) for pointer in second["receipts"]]
+    assert {receipt.pop("store_id") for receipt in first_receipts} != {receipt.pop("store_id") for receipt in second_receipts}
+    assert first_receipts == second_receipts
     assert all(show_receipt(tmp_path / "first", pointer["digest"])["verified"] for pointer in first["receipts"])
 
 

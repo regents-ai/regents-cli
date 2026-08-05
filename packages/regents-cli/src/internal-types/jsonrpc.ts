@@ -136,6 +136,21 @@ export interface TechtreeVerifyReceiptShowResult {
   receipt: Record<string, unknown>;
 }
 
+export interface TechtreeUpliftReportParams {
+  receipt_digests: [string, string];
+  tolerance?: Record<string, unknown> | null;
+}
+
+export interface TechtreeUpliftReportResult {
+  schema_version: 1;
+  status: "completed";
+  report: Record<string, unknown>;
+  report_pointer: { algorithm: "sha256"; digest: string; path: string };
+  reproduction_package: { algorithm: "sha256"; digest: string; path: string } | null;
+  action_receipt: Record<string, unknown>;
+  next_steps: string[];
+}
+
 export type RegentRpcMethod =
   | "runtime.ping"
   | "runtime.status"
@@ -156,6 +171,7 @@ export type RegentRpcMethod =
   | "techtree.verify.run"
   | "techtree.verify.status"
   | "techtree.verify.receipt.show"
+  | "techtree.uplift.report"
   | "techtree.notebooks.init"
   | "techtree.notebooks.pair"
   | "x402.details"
@@ -198,6 +214,7 @@ export interface RegentRpcParamsMap {
   "techtree.verify.run": TechtreeVerifyRunParams;
   "techtree.verify.status": TechtreeVerifyStatusParams;
   "techtree.verify.receipt.show": { digest: string };
+  "techtree.uplift.report": TechtreeUpliftReportParams;
   "techtree.notebooks.init": {
     workspace_path: string;
     kind: "paper" | "freeform";
@@ -238,6 +255,7 @@ export interface RegentRpcResultMap {
   "techtree.verify.run": TechtreeVerifyRunResult;
   "techtree.verify.status": TechtreeVerifyRunResult;
   "techtree.verify.receipt.show": TechtreeVerifyReceiptShowResult;
+  "techtree.uplift.report": TechtreeUpliftReportResult;
   "techtree.notebooks.init": NotebookWorkspaceActionResult;
   "techtree.notebooks.pair": NotebookWorkspaceActionResult;
   "x402.details": X402DetailsResponse;
