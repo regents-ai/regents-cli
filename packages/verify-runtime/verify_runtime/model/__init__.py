@@ -7,6 +7,7 @@ from .base import (
     content_id,
     require_bounded_int,
     require_exact_keys,
+    require_json_value,
     require_record,
     require_string,
     require_type,
@@ -15,11 +16,26 @@ from .base import (
 )
 from .benchmark import BenchmarkRole, BenchmarkSlice, Partition
 from .capsule import Capsule, DeclaredCapsule, ObservedCapsule, ResolvedCapsule
+from .challenge import (
+    ACCEPTANCE_DECISIONS,
+    AuthoredQuestion,
+    BenchmarkFamily,
+    ChallengeContract,
+    ExternalSourceReference,
+    ReferenceQuestion,
+    SeasonManifest,
+    SeasonSplit,
+    VerifiersPin,
+    load_digest_pinned_source,
+    normalize_huggingface_dataset_revision,
+)
 from .family import EnvironmentFamily
 from .protocol import DecisionRule, EvaluationProtocol, INCONCLUSIVE_CONDITIONS, INVALID_CONDITIONS, MatchedSelection, SevereRegressionRule, VerifyPolicy
 from .receipt import EvaluationReceipt
 from .reproduction import ReproductionPackage
 from .run import RunRecord, TERMINAL_STATUSES, TerminalStatus
+from .sealed import SEALED_VERIFIER_PACKET_FORMAT, sealed_answer_key_commitment, sealed_verifier_material, sealed_verifier_packet
+from .taskset import TasksetPackageReference
 from .task import TASK_PROVENANCES, TaskInstance, TaskProvenance
 from .uplift import (
     ActionReceipt,
@@ -48,6 +64,18 @@ from .uplift import (
 __all__ = [
     "BenchmarkRole",
     "BenchmarkSlice",
+    "BenchmarkFamily",
+    "ChallengeContract",
+    "ExternalSourceReference",
+    "ReferenceQuestion",
+    "AuthoredQuestion",
+    "ACCEPTANCE_DECISIONS",
+    "SeasonManifest",
+    "SeasonSplit",
+    "TasksetPackageReference",
+    "VerifiersPin",
+    "load_digest_pinned_source",
+    "normalize_huggingface_dataset_revision",
     "Capsule",
     "DeclaredCapsule",
     "EnvironmentFamily",
@@ -96,9 +124,14 @@ __all__ = [
     "content_id",
     "require_bounded_int",
     "require_exact_keys",
+    "require_json_value",
     "require_record",
     "require_string",
     "require_type",
     "sha256_bytes",
     "strict_json_loads",
+    "SEALED_VERIFIER_PACKET_FORMAT",
+    "sealed_answer_key_commitment",
+    "sealed_verifier_material",
+    "sealed_verifier_packet",
 ]

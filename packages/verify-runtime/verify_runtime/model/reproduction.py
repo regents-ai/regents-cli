@@ -23,6 +23,7 @@ from .base import (
 )
 from .capsule import Capsule
 from .protocol import EvaluationProtocol
+from .taskset import TasksetPackageReference
 
 
 def _string_map(value: Any, expected: set[str], path: str) -> dict[str, str]:
@@ -62,7 +63,7 @@ class ReproductionPackage:
     receipt_digests: tuple[str, ...]
     protocol: EvaluationProtocol
     capsules: dict[str, Capsule]
-    taskset_version: str
+    taskset_version: TasksetPackageReference
     baseline_configuration: dict[str, Any]
     treatment_configuration: dict[str, Any]
     treatment_skill: str
@@ -88,7 +89,7 @@ class ReproductionPackage:
             "receipt_digests": list(self.receipt_digests),
             "protocol": self.protocol.to_dict(),
             "capsules": {arm: self.capsules[arm].to_dict() for arm in ("baseline", "candidate")},
-            "taskset_version": self.taskset_version,
+            "taskset_version": self.taskset_version.to_dict(),
             "baseline_configuration": self.baseline_configuration,
             "treatment_configuration": self.treatment_configuration,
             "treatment_skill": self.treatment_skill,
@@ -142,13 +143,16 @@ class ReproductionPackage:
         executed = require_bool(record["executed"], "reproduction_package.executed")
         if executed:
             raise ModelValidationError("reproduction_package.executed must be false")
+        taskset_version = TasksetPackageReference.from_dict(record["taskset_version"])
+        if taskset_version != protocol.taskset_version:
+            raise ModelValidationError("reproduction_package taskset version does not match the protocol")
         return cls(
             require_schema_version(record["schema_version"], "reproduction_package.schema_version"),
             require_identifier(record["package_id"], "reproduction_package.package_id"),
             receipt_digests,
             protocol,
             capsules,
-            require_identifier(record["taskset_version"], "reproduction_package.taskset_version"),
+            taskset_version,
             require_record(record["baseline_configuration"], "reproduction_package.baseline_configuration"),
             require_record(record["treatment_configuration"], "reproduction_package.treatment_configuration"),
             require_string(record["treatment_skill"], "reproduction_package.treatment_skill", allow_empty=True),

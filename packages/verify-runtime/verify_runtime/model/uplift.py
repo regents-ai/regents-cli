@@ -592,6 +592,7 @@ class UpliftReport:
     receipt_digests: tuple[str, ...]
     protocol_id: str
     family_id: str
+    challenge_revision_id: str
     arms: tuple[ArmIdentity, ...]
     receipt_bindings: tuple[ReceiptTaskBinding, ...]
     decision_rule: DecisionRule
@@ -621,6 +622,7 @@ class UpliftReport:
                 "receipt_digests": list(self.receipt_digests),
                 "protocol_id": self.protocol_id,
                 "family_id": self.family_id,
+                "challenge_revision_id": self.challenge_revision_id,
             },
             "arms": [arm.to_dict() for arm in self.arms],
             "receipt_bindings": [binding.to_dict() for binding in self.receipt_bindings],
@@ -676,7 +678,11 @@ class UpliftReport:
             raise ModelValidationError("uplift report receipt digests are not in canonical lexical order")
         if self.receipt_bindings != expected.receipt_bindings:
             raise ModelValidationError("uplift report receipt bindings are not in locked matched_order")
-        if self.protocol_id != expected.protocol.protocol_id or self.family_id != expected.protocol.family_id:
+        if (
+            self.protocol_id != expected.protocol.protocol_id
+            or self.family_id != expected.protocol.family_id
+            or self.challenge_revision_id != expected.protocol.challenge_revision_id
+        ):
             raise ModelValidationError("uplift report protocol identity does not match the receipts")
         expected_arms = {arm.arm_id: arm for arm in expected.arms}
         actual_arms = {arm.arm_id: arm for arm in self.arms}
@@ -730,7 +736,7 @@ class UpliftReport:
         if report_id != cls.expected_report_id(record):
             raise ModelValidationError("uplift_report.report_id does not match the canonical report content")
         comparison = require_record(record["comparison"], "uplift_report.comparison")
-        require_exact_keys(comparison, {"receipt_digests", "protocol_id", "family_id"}, "uplift_report.comparison")
+        require_exact_keys(comparison, {"receipt_digests", "protocol_id", "family_id", "challenge_revision_id"}, "uplift_report.comparison")
         digests = require_type(comparison["receipt_digests"], list, "uplift_report.comparison.receipt_digests")
         if not digests:
             raise ModelValidationError("uplift_report.comparison.receipt_digests must be non-empty")
@@ -851,6 +857,7 @@ class UpliftReport:
             receipt_digests,
             require_identifier(comparison["protocol_id"], "uplift_report.comparison.protocol_id"),
             require_identifier(comparison["family_id"], "uplift_report.comparison.family_id"),
+            require_identifier(comparison["challenge_revision_id"], "uplift_report.comparison.challenge_revision_id"),
             arms,
             receipt_bindings,
             decision_rule,

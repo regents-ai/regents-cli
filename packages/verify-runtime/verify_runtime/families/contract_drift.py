@@ -2,7 +2,19 @@
 
 from __future__ import annotations
 
-from verify_runtime.model import BenchmarkRole, BenchmarkSlice, DecisionRule, EnvironmentFamily, SevereRegressionRule, TaskInstance, sha256_bytes
+from dataclasses import replace
+
+from verify_runtime.model import (
+    BenchmarkRole,
+    BenchmarkSlice,
+    DecisionRule,
+    EnvironmentFamily,
+    SevereRegressionRule,
+    TaskInstance,
+    TasksetPackageReference,
+    sealed_answer_key_commitment,
+    sha256_bytes,
+)
 
 FAMILY = EnvironmentFamily(
     schema_version=1,
@@ -19,7 +31,13 @@ FAMILY_CONTRACT = FAMILY.to_dict()
 
 BASELINE_SKILL = b"# Contract repair\n\nEdit every file that appears related to the failure.\n"
 CANDIDATE_SKILL = b"# Contract repair\n\nChange exactly the one declared SKILL.md and preserve every other file.\n"
-TASKSET_VERSION = "contract-drift-taskset-v2"
+TASKSET_PACKAGE = TasksetPackageReference(
+    schema_version=1,
+    package="regent.contract-drift.v1",
+    version="2",
+    content_hash=sha256_bytes(b"contract-drift-taskset-package-v2\n"),
+)
+CHALLENGE_REVISION_ID = "contract-drift-challenge-v1"
 TREATMENT_DIFF = (
     "--- a/SKILL.md\n"
     "+++ b/SKILL.md\n"
@@ -58,7 +76,27 @@ _GRADER_DIGEST = sha256_bytes(GRADER_SOURCE)
 
 
 def _task(task_id: str, partition: str, provenance: str) -> TaskInstance:
-    return TaskInstance(1, task_id, _FAMILY_ID, f"{_FAMILY_ID}.{partition}", partition, "repair-agent", sha256_bytes(TASK_INPUTS[task_id]), _GRADER_DIGEST, provenance)  # type: ignore[arg-type]
+    task = TaskInstance(
+        1,
+        task_id,
+        _FAMILY_ID,
+        f"{_FAMILY_ID}.{partition}",
+        partition,
+        "repair-agent",
+        sha256_bytes(TASK_INPUTS[task_id]),
+        _GRADER_DIGEST,
+        provenance,
+        "0" * 64,
+    )  # type: ignore[arg-type]
+    return replace(
+        task,
+        answer_key_commitment=sealed_answer_key_commitment(
+            family=FAMILY.to_dict(),
+            task=task.to_dict(),
+            grader_source=GRADER_SOURCE,
+            answer_key=None,
+        ),
+    )
 
 
 TASKS = (

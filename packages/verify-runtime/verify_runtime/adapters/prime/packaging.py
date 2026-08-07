@@ -5,8 +5,18 @@ from __future__ import annotations
 import re
 import secrets
 from dataclasses import dataclass
+from typing import Any
 
-from verify_runtime.model import EnvironmentFamily, MatchedSelection, TaskInstance, canonical_json_bytes, sha256_bytes
+from verify_runtime.model import (
+    EnvironmentFamily,
+    MatchedSelection,
+    TaskInstance,
+    canonical_json_bytes,
+    sealed_answer_key_commitment,
+    sealed_verifier_packet,
+    sealed_verifier_material,
+    sha256_bytes,
+)
 
 PRIME_SDK_DISTRIBUTION = "verifiers"
 PRIME_SDK_VERSION = "0.2.1"
@@ -35,6 +45,7 @@ def package_taskset(
     task_input: bytes,
     grader_source: bytes,
     max_spend_usd_cents: int,
+    answer_key: Any = None,
 ) -> PrimeTasksetPackage:
     """Package one matched task without exposing verifier material to the agent."""
 
@@ -50,6 +61,22 @@ def package_taskset(
         raise ValueError("Prime grader does not match its canonical digest")
     if type(max_spend_usd_cents) is not int or max_spend_usd_cents < 0:
         raise ValueError("Prime taskset spend ceiling must be a non-negative integer")
+
+    sealed_packet = sealed_verifier_packet(
+        family=family.to_dict(),
+        task=task.to_dict(),
+        grader_source=grader_source,
+        answer_key=answer_key,
+    )
+    if selection.answer_key_commitment is not None:
+        expected_commitment = sealed_answer_key_commitment(
+            family=family.to_dict(),
+            task=task.to_dict(),
+            grader_source=grader_source,
+            answer_key=answer_key,
+        )
+        if selection.answer_key_commitment != expected_commitment:
+            raise ValueError("Prime taskset answer-key commitment does not match sealed verifier material")
 
     agent_taskset = {
         "schema_version": 1,
@@ -81,13 +108,6 @@ def package_taskset(
         },
         "budget": {"max_spend_usd_cents": max_spend_usd_cents},
     }
-    sealed_packet = canonical_json_bytes({
-        "schema_version": 1,
-        "format": PRIME_TASKSET_FORMAT,
-        "family": family.to_dict(),
-        "task": task.to_dict(),
-        "grader": {"content": grader_source.decode("utf-8"), "digest": task.grader_digest},
-    })
     return PrimeTasksetPackage(
         agent_taskset=agent_taskset,
         sealed_verifier_packet=sealed_packet,

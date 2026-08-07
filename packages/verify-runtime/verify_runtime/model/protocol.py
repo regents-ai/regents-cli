@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from .base import (
+    ModelValidationError,
+    content_id,
     require_bounded_int,
     require_exact_keys,
     require_identifier,
@@ -13,11 +15,13 @@ from .base import (
     require_int,
     require_record,
     require_schema_version,
+    require_sha256,
     require_string,
     require_string_list,
     require_type,
 )
 from .benchmark import PARTITIONS
+from .taskset import TasksetPackageReference
 from .task import TASK_PROVENANCES, TaskProvenance
 
 INCONCLUSIVE_CONDITIONS = {"valid_task_count_below_minimum", "delta_between_thresholds"}
@@ -152,6 +156,7 @@ class MatchedSelection:
     partition: str
     matched_order: int
     provenance: TaskProvenance = "held_out"
+    answer_key_commitment: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -159,19 +164,30 @@ class MatchedSelection:
             "partition": self.partition,
             "matched_order": self.matched_order,
             "provenance": self.provenance,
+            "answer_key_commitment": self.answer_key_commitment,
         }
 
     @classmethod
     def from_dict(cls, value: Any, path: str) -> "MatchedSelection":
         record = require_record(value, path)
-        require_exact_keys(record, {"task_id", "partition", "matched_order", "provenance"}, path)
+        require_exact_keys(
+            record,
+            {"task_id", "partition", "matched_order", "provenance", "answer_key_commitment"},
+            path,
+        )
         partition = require_string(record["partition"], f"{path}.partition")
         if partition not in PARTITIONS:
             raise ValueError(f"{path}.partition is invalid")
         provenance = require_string(record["provenance"], f"{path}.provenance")
         if provenance not in TASK_PROVENANCES:
             raise ValueError(f"{path}.provenance is invalid")
-        return cls(require_identifier(record["task_id"], f"{path}.task_id"), partition, require_int(record["matched_order"], f"{path}.matched_order", minimum=0), provenance)  # type: ignore[arg-type]
+        return cls(
+            require_identifier(record["task_id"], f"{path}.task_id"),
+            partition,
+            require_int(record["matched_order"], f"{path}.matched_order", minimum=0),
+            provenance,
+            require_sha256(record["answer_key_commitment"], f"{path}.answer_key_commitment"),
+        )  # type: ignore[arg-type]
 
 
 @dataclass(frozen=True)
@@ -193,7 +209,8 @@ class EvaluationProtocol:
     optimizer_candidate_count: int
     rejected_candidate_ids: tuple[str, ...]
     policy: VerifyPolicy
-    taskset_version: str
+    taskset_version: TasksetPackageReference
+    challenge_revision_id: str
     treatment_skill_source: str
     treatment_skill_content: str
     treatment_diff: str
@@ -215,7 +232,7 @@ class EvaluationProtocol:
             "partitions": {"development": list(self.development_task_ids), "validation": list(self.validation_task_ids), "untouched": list(self.untouched_task_ids)},
             "optimizer_disclosure": {"method": self.optimizer_method, "candidate_count": self.optimizer_candidate_count, "rejected_candidate_ids": list(self.rejected_candidate_ids)},
             "policy": self.policy.to_dict(),
-            "taskset": {"version": self.taskset_version},
+            "taskset": self.taskset_version.to_dict(),
             "treatment": {
                 "skill_source": self.treatment_skill_source,
                 "skill_content": self.treatment_skill_content,
@@ -228,18 +245,59 @@ class EvaluationProtocol:
                 "expected_output_schema": self.expected_output_schema,
             },
             "decision_rule": self.decision_rule.to_dict(),
+            "challenge_revision_id": self.challenge_revision_id,
         }
+
+    def expected_protocol_id(self) -> str:
+        identity = self.to_dict()
+        identity.pop("protocol_id")
+        return content_id("protocol", identity)
+
+    @property
+    def scored_task_ids(self) -> tuple[str, ...]:
+        """The lock-derived claim selection; provenance is the authority."""
+
+        return tuple(selection.task_id for selection in self.selections if selection.provenance == "held_out")
+
+    @property
+    def calibration_task_ids(self) -> tuple[str, ...]:
+        """The lock-derived reference/calibration selection."""
+
+        return tuple(selection.task_id for selection in self.selections if selection.provenance == "public_reference")
+
+    def validate_evaluation_partition(self) -> None:
+        partition_lists = (
+            self.development_task_ids,
+            self.validation_task_ids,
+            self.untouched_task_ids,
+        )
+        partition_ids = tuple(task_id for values in partition_lists for task_id in values)
+        if len(set(partition_ids)) != len(partition_ids):
+            raise ModelValidationError("protocol partitions must contain unique task ids")
+        selected_ids = tuple(selection.task_id for selection in self.selections)
+        if set(selected_ids) != set(self.validation_task_ids) | set(self.untouched_task_ids):
+            raise ModelValidationError("protocol matched selections must equal the locked non-development partitions")
+        if any(selection.partition == "development" for selection in self.selections):
+            raise ModelValidationError("protocol matched selections cannot include development tasks")
+        expected_validation = tuple(selection.task_id for selection in self.selections if selection.partition == "validation")
+        expected_untouched = tuple(selection.task_id for selection in self.selections if selection.partition == "untouched")
+        if expected_validation != self.validation_task_ids or expected_untouched != self.untouched_task_ids:
+            raise ModelValidationError("protocol partition lists do not match matched selections")
+        if set(self.scored_task_ids) & set(self.calibration_task_ids):
+            raise ModelValidationError("protocol scored and calibration selections overlap")
+        if any(selection.provenance == "public_reference" for selection in self.selections if selection.task_id in self.scored_task_ids):
+            raise ModelValidationError("public_reference task cannot enter scored evaluation")
 
     @classmethod
     def from_dict(cls, value: Any) -> "EvaluationProtocol":
         record = require_record(value, "protocol")
-        require_exact_keys(record, {"schema_version", "protocol_id", "family_id", "capsules", "intervention", "baseline", "matched_selections", "partitions", "optimizer_disclosure", "policy", "taskset", "treatment", "execution", "decision_rule"}, "protocol")
+        require_exact_keys(record, {"schema_version", "protocol_id", "family_id", "capsules", "intervention", "baseline", "matched_selections", "partitions", "optimizer_disclosure", "policy", "taskset", "treatment", "execution", "decision_rule", "challenge_revision_id"}, "protocol")
         capsules = require_record(record["capsules"], "protocol.capsules"); require_exact_keys(capsules, {"baseline", "candidate"}, "protocol.capsules")
         intervention = require_record(record["intervention"], "protocol.intervention"); require_exact_keys(intervention, {"class", "changed_files"}, "protocol.intervention")
         baseline = require_record(record["baseline"], "protocol.baseline"); require_exact_keys(baseline, {"class", "justification"}, "protocol.baseline")
         partitions = require_record(record["partitions"], "protocol.partitions"); require_exact_keys(partitions, {"development", "validation", "untouched"}, "protocol.partitions")
         optimizer = require_record(record["optimizer_disclosure"], "protocol.optimizer_disclosure"); require_exact_keys(optimizer, {"method", "candidate_count", "rejected_candidate_ids"}, "protocol.optimizer_disclosure")
-        taskset = require_record(record["taskset"], "protocol.taskset"); require_exact_keys(taskset, {"version"}, "protocol.taskset")
+        taskset = require_record(record["taskset"], "protocol.taskset"); require_exact_keys(taskset, {"schema_version", "package", "version", "content_hash"}, "protocol.taskset")
         treatment = require_record(record["treatment"], "protocol.treatment"); require_exact_keys(treatment, {"skill_source", "skill_content", "diff"}, "protocol.treatment")
         execution = require_record(record["execution"], "protocol.execution"); require_exact_keys(execution, {"exact_commands", "harness_settings", "seeds", "expected_output_schema"}, "protocol.execution")
         require_type(record["matched_selections"], list, "protocol.matched_selections")
@@ -250,7 +308,7 @@ class EvaluationProtocol:
             raise ValueError("protocol.matched_selections must contain unique task ids")
         if len(set(matched_orders)) != len(matched_orders) or set(matched_orders) != set(range(len(matched_orders))):
             raise ValueError("protocol.matched_selections matched_order positions must be canonical")
-        return cls(
+        protocol = cls(
             require_schema_version(record["schema_version"], "protocol.schema_version"), require_identifier(record["protocol_id"], "protocol.protocol_id"), require_identifier(record["family_id"], "protocol.family_id"),
             require_identifier(capsules["baseline"], "protocol.capsules.baseline"), require_identifier(capsules["candidate"], "protocol.capsules.candidate"),
             require_string(intervention["class"], "protocol.intervention.class"), tuple(require_string_list(intervention["changed_files"], "protocol.intervention.changed_files")),
@@ -258,7 +316,8 @@ class EvaluationProtocol:
             selections,
             tuple(require_identifier_list(partitions["development"], "protocol.partitions.development")), tuple(require_identifier_list(partitions["validation"], "protocol.partitions.validation")), tuple(require_identifier_list(partitions["untouched"], "protocol.partitions.untouched")),
             require_string(optimizer["method"], "protocol.optimizer_disclosure.method"), require_int(optimizer["candidate_count"], "protocol.optimizer_disclosure.candidate_count", minimum=1), tuple(require_identifier_list(optimizer["rejected_candidate_ids"], "protocol.optimizer_disclosure.rejected_candidate_ids")), VerifyPolicy.from_dict(record["policy"]),
-            require_identifier(taskset["version"], "protocol.taskset.version"),
+            TasksetPackageReference.from_dict(taskset),
+            require_identifier(record["challenge_revision_id"], "protocol.challenge_revision_id"),
             require_string(treatment["skill_source"], "protocol.treatment.skill_source"),
             require_string(treatment["skill_content"], "protocol.treatment.skill_content", allow_empty=True),
             require_string(treatment["diff"], "protocol.treatment.diff", allow_empty=True),
@@ -268,3 +327,7 @@ class EvaluationProtocol:
             require_identifier(execution["expected_output_schema"], "protocol.execution.expected_output_schema"),
             DecisionRule.from_dict(record["decision_rule"]),
         )
+        protocol.validate_evaluation_partition()
+        if protocol.protocol_id != protocol.expected_protocol_id():
+            raise ModelValidationError("protocol.protocol_id does not match the canonical protocol content")
+        return protocol

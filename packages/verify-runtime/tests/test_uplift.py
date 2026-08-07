@@ -77,10 +77,11 @@ def _receipt_set(
         selections = tuple(replace(selection, provenance=provenance) if provenance is not None else selection for selection in source_protocol.selections)
         protocol = replace(
             source_protocol,
-            protocol_id=content_id("protocol", {"base": source_protocol.to_dict(), "decision_rule": decision_rule.to_dict() if decision_rule is not None else source_protocol.decision_rule.to_dict(), "provenance": provenance}),
+            protocol_id="pending",
             selections=selections,
             decision_rule=decision_rule if decision_rule is not None else source_protocol.decision_rule,
         )
+        protocol = replace(protocol, protocol_id=protocol.expected_protocol_id())
     pointers = []
     for receipt in source:
         if receipt.task_id.endswith("validation-1"):

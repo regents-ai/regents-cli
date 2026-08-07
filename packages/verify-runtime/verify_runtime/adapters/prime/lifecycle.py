@@ -85,6 +85,7 @@ class PrimeExecutor:
         task_inputs: Mapping[str, bytes],
         verifier_payloads: Mapping[str, bytes],
         private_state_dir: Path,
+        answer_keys: Mapping[str, Any] | None = None,
         poll_interval_seconds: float = 0.05,
     ) -> None:
         if identity.executor != self.name:
@@ -93,12 +94,15 @@ class PrimeExecutor:
             raise ValueError("Prime tasks must belong to the supplied family")
         if set(task_inputs) != {task.task_id for task in tasks} or set(verifier_payloads) != {task.task_id for task in tasks}:
             raise ValueError("Prime inputs and verifier payloads must exactly cover the supplied taskset")
+        if answer_keys is not None and set(answer_keys) != {task.task_id for task in tasks}:
+            raise ValueError("Prime answer keys must exactly cover the supplied taskset")
         self.client = client
         self.identity = identity
         self.family = family
         self.tasks = tasks
         self.task_inputs = dict(task_inputs)
         self.verifier_payloads = dict(verifier_payloads)
+        self.answer_keys = dict(answer_keys or {})
         self.private_state_dir = private_state_dir
         self.poll_interval_seconds = poll_interval_seconds
 
@@ -115,13 +119,22 @@ class PrimeExecutor:
         max_spend_usd_cents: int,
     ):
         task = TaskInstance.from_dict(strict_json_loads((workspace / "task.json").read_bytes()))
-        if task.task_id != task_id:
+        canonical_task = next((value for value in self.tasks if value.task_id == task_id), None)
+        if task.task_id != task_id or canonical_task is None:
             raise ValueError("Prime workspace task does not match the engine task")
+        if task.to_dict() != canonical_task.to_dict():
+            raise ValueError("Prime workspace task does not match the locked task")
         matched_tasks = [value for value in self.tasks if value.partition != "development"]
         matched_order = next((index for index, value in enumerate(matched_tasks) if value.task_id == task_id), None)
         if matched_order is None:
             raise ValueError("Prime executor received a task outside the supplied matched selection")
-        selection = MatchedSelection(task.task_id, task.partition, matched_order)
+        selection = MatchedSelection(
+            task.task_id,
+            task.partition,
+            matched_order,
+            task.provenance,
+            canonical_task.answer_key_commitment,
+        )
         package = package_taskset(
             family=self.family,
             selection=selection,
@@ -131,6 +144,7 @@ class PrimeExecutor:
             task_input=self.task_inputs[task_id],
             grader_source=self.verifier_payloads[task_id],
             max_spend_usd_cents=max_spend_usd_cents,
+            answer_key=self.answer_keys.get(task_id),
         )
         verifier_handle = self.client.prepare_verifier(package.sealed_verifier_packet)
         rollout_config = hermes_rollout_config(

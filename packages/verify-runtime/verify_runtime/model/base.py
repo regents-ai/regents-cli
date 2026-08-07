@@ -128,6 +128,21 @@ def require_string_list(value: Any, path: str) -> list[str]:
     return [require_string(item, f"{path}[{index}]") for index, item in enumerate(value)]
 
 
+def require_json_value(value: Any, path: str) -> Any:
+    """Validate the closed JSON value shape used by sealed answer keys."""
+
+    if value is None or type(value) in {bool, int, str}:
+        return value
+    if type(value) is list:
+        return [require_json_value(item, f"{path}[{index}]") for index, item in enumerate(value)]
+    if type(value) is dict:
+        for key, item in value.items():
+            if type(key) is not str:
+                raise ModelValidationError(f"{path} object keys must be strings")
+        return {key: require_json_value(item, f"{path}.{key}") for key, item in value.items()}
+    raise ModelValidationError(f"{path} must be a JSON value without floating-point numbers")
+
+
 def canonical_json_bytes(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8") + b"\n"
 

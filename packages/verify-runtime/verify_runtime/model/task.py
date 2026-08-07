@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from .base import require_exact_keys, require_identifier, require_record, require_schema_version, require_sha256, require_string
@@ -24,6 +24,9 @@ class TaskInstance:
     input_digest: str
     grader_digest: str
     provenance: TaskProvenance = "held_out"
+    # Lock-only sealed-side evidence.  It is intentionally not part of the
+    # provider task wire record; the lock copies it into MatchedSelection.
+    answer_key_commitment: str | None = field(default=None, compare=False, repr=False)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -43,7 +46,17 @@ class TaskInstance:
         record = require_record(value, "task")
         require_exact_keys(
             record,
-            {"schema_version", "task_id", "family_id", "slice_id", "partition", "role_id", "input_digest", "grader_digest", "provenance"},
+            {
+                "schema_version",
+                "task_id",
+                "family_id",
+                "slice_id",
+                "partition",
+                "role_id",
+                "input_digest",
+                "grader_digest",
+                "provenance",
+            },
             "task",
         )
         partition = require_string(record["partition"], "task.partition")

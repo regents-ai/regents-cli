@@ -423,6 +423,7 @@ def make_report_without_package(data: ComparisonData, package_digest: str, *, to
         receipt_digests=data.receipt_digests,
         protocol_id=data.protocol.protocol_id,
         family_id=data.protocol.family_id,
+        challenge_revision_id=data.protocol.challenge_revision_id,
         arms=data.arms,
         receipt_bindings=data.receipt_bindings,
         decision_rule=data.protocol.decision_rule,
