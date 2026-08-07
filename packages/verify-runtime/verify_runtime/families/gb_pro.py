@@ -13,6 +13,7 @@ from verify_runtime.model import (
     SevereRegressionRule,
     TaskInstance,
     TasksetPackageReference,
+    new_answer_key_blinding_nonce,
     sealed_answer_key_commitment,
     sha256_bytes,
 )
@@ -57,9 +58,14 @@ GB_PRO_CHALLENGE_CONTRACT = ChallengeContract(
     decision_rule=GB_PRO_DECISION_RULE,
 )
 
+_REFERENCE_NONCES: dict[str, bytes] = {}
+
 
 def _reference_question(question_number: int) -> ReferenceQuestion:
     question_id = f"gb-pro-reference-{question_number:02d}"
+    input_digest = sha256_bytes(f"gb-pro-reference-input-{question_number}\n".encode())
+    blinding_nonce = new_answer_key_blinding_nonce()
+    _REFERENCE_NONCES[question_id] = blinding_nonce
     task = {
         "schema_version": 1,
         "task_id": question_id,
@@ -67,7 +73,7 @@ def _reference_question(question_number: int) -> ReferenceQuestion:
         "slice_id": "gb-pro.reference",
         "partition": "untouched",
         "role_id": "gb-pro-agent",
-        "input_digest": sha256_bytes(f"gb-pro-reference-input-{question_number}\n".encode()),
+        "input_digest": input_digest,
         "grader_digest": GB_PRO_GRADER_DIGEST,
         "provenance": "public_reference",
     }
@@ -83,8 +89,9 @@ def _reference_question(question_number: int) -> ReferenceQuestion:
         task=task,
         grader_source=GB_PRO_GRADER_SOURCE,
         answer_key={"reference_number": question_number, "fixture": True},
+        blinding_nonce=blinding_nonce,
     )
-    return ReferenceQuestion(1, question_id, commitment)
+    return ReferenceQuestion(1, question_id, input_digest, commitment)
 
 
 GB_PRO_REFERENCE_QUESTIONS = tuple(_reference_question(number) for number in range(1, 11))
@@ -96,6 +103,9 @@ GB_PRO_FAMILY = BenchmarkFamily.create(
     held_out_source=GB_PRO_HELD_OUT_SOURCE,
     reference_questions=GB_PRO_REFERENCE_QUESTIONS,
 )
+
+
+_HELD_OUT_NONCE = new_answer_key_blinding_nonce()
 
 
 def _task(task_id: str, partition: str, provenance: str, input_bytes: bytes, answer_key: object) -> TaskInstance:
@@ -110,6 +120,7 @@ def _task(task_id: str, partition: str, provenance: str, input_bytes: bytes, ans
         grader_digest=GB_PRO_GRADER_DIGEST,
         provenance=provenance,  # type: ignore[arg-type]
     )
+    blinding_nonce = _REFERENCE_NONCES.get(task_id, _HELD_OUT_NONCE)
     return replace(
         task,
         answer_key_commitment=sealed_answer_key_commitment(
@@ -117,7 +128,9 @@ def _task(task_id: str, partition: str, provenance: str, input_bytes: bytes, ans
             task=task.to_dict(),
             grader_source=GB_PRO_GRADER_SOURCE,
             answer_key=answer_key,
+            blinding_nonce=blinding_nonce,
         ),
+        answer_key_blinding_nonce=blinding_nonce,
     )
 
 

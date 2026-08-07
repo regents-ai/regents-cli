@@ -13,6 +13,7 @@ from .base import (
     require_identifier,
     require_identifier_list,
     require_int,
+    require_nullable_string,
     require_record,
     require_schema_version,
     require_sha256,
@@ -211,6 +212,7 @@ class EvaluationProtocol:
     policy: VerifyPolicy
     taskset_version: TasksetPackageReference
     challenge_revision_id: str
+    season_id: str | None
     treatment_skill_source: str
     treatment_skill_content: str
     treatment_diff: str
@@ -233,6 +235,7 @@ class EvaluationProtocol:
             "optimizer_disclosure": {"method": self.optimizer_method, "candidate_count": self.optimizer_candidate_count, "rejected_candidate_ids": list(self.rejected_candidate_ids)},
             "policy": self.policy.to_dict(),
             "taskset": self.taskset_version.to_dict(),
+            "season_id": self.season_id,
             "treatment": {
                 "skill_source": self.treatment_skill_source,
                 "skill_content": self.treatment_skill_content,
@@ -291,7 +294,7 @@ class EvaluationProtocol:
     @classmethod
     def from_dict(cls, value: Any) -> "EvaluationProtocol":
         record = require_record(value, "protocol")
-        require_exact_keys(record, {"schema_version", "protocol_id", "family_id", "capsules", "intervention", "baseline", "matched_selections", "partitions", "optimizer_disclosure", "policy", "taskset", "treatment", "execution", "decision_rule", "challenge_revision_id"}, "protocol")
+        require_exact_keys(record, {"schema_version", "protocol_id", "family_id", "capsules", "intervention", "baseline", "matched_selections", "partitions", "optimizer_disclosure", "policy", "taskset", "season_id", "treatment", "execution", "decision_rule", "challenge_revision_id"}, "protocol")
         capsules = require_record(record["capsules"], "protocol.capsules"); require_exact_keys(capsules, {"baseline", "candidate"}, "protocol.capsules")
         intervention = require_record(record["intervention"], "protocol.intervention"); require_exact_keys(intervention, {"class", "changed_files"}, "protocol.intervention")
         baseline = require_record(record["baseline"], "protocol.baseline"); require_exact_keys(baseline, {"class", "justification"}, "protocol.baseline")
@@ -318,6 +321,7 @@ class EvaluationProtocol:
             require_string(optimizer["method"], "protocol.optimizer_disclosure.method"), require_int(optimizer["candidate_count"], "protocol.optimizer_disclosure.candidate_count", minimum=1), tuple(require_identifier_list(optimizer["rejected_candidate_ids"], "protocol.optimizer_disclosure.rejected_candidate_ids")), VerifyPolicy.from_dict(record["policy"]),
             TasksetPackageReference.from_dict(taskset),
             require_identifier(record["challenge_revision_id"], "protocol.challenge_revision_id"),
+            require_nullable_string(record["season_id"], "protocol.season_id"),
             require_string(treatment["skill_source"], "protocol.treatment.skill_source"),
             require_string(treatment["skill_content"], "protocol.treatment.skill_content", allow_empty=True),
             require_string(treatment["diff"], "protocol.treatment.diff", allow_empty=True),

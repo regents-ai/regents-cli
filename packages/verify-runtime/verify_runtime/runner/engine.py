@@ -34,7 +34,7 @@ class ComparisonSpendExhaustedError(RuntimeError):
 
 
 class ComparisonStateError(RuntimeError):
-    """Persisted comparison accounting could not be trusted."""
+    """Persisted comparison accounting failed integrity validation."""
 
 
 def _task(task_id: str):

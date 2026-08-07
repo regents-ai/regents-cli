@@ -27,6 +27,9 @@ class TaskInstance:
     # Lock-only sealed-side evidence.  It is intentionally not part of the
     # provider task wire record; the lock copies it into MatchedSelection.
     answer_key_commitment: str | None = field(default=None, compare=False, repr=False)
+    # The nonce is sealed-side evidence used only when the verifier recomputes
+    # ``answer_key_commitment``.  It is never serialized by ``to_dict``.
+    answer_key_blinding_nonce: bytes | None = field(default=None, compare=False, repr=False)
 
     def to_dict(self) -> dict[str, Any]:
         return {

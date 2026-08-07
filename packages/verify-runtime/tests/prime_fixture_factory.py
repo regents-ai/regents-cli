@@ -8,6 +8,7 @@ from pathlib import Path
 from verify_runtime.adapters.prime import PrimeExecutor, new_verifier_handle
 from verify_runtime.capsule.resolution import ResolvedRuntimeIdentity
 from verify_runtime.families import FAMILY, GRADER_SOURCE, TASK_INPUTS, TASKS
+from verify_runtime.families.contract_drift import _BUILTIN_PUBLICATION_BINDINGS
 from verify_runtime.model import canonical_json_bytes, sha256_bytes, strict_json_loads
 
 FIXTURES = Path(__file__).parent / "fixtures" / "prime"
@@ -95,6 +96,7 @@ def create_executor(state_dir: Path) -> PrimeExecutor:
         tasks=TASKS,
         task_inputs=TASK_INPUTS,
         verifier_payloads={task.task_id: GRADER_SOURCE for task in TASKS},
+        publication_bindings=_BUILTIN_PUBLICATION_BINDINGS,
         private_state_dir=state_dir,
         poll_interval_seconds=0,
     )

@@ -361,7 +361,7 @@ def _compare_receipt_records(receipt_inputs: Sequence[tuple[str, EvaluationRecei
             "Every public_reference score is marked possible-contamination.",
             "No confidence interval is reported; uncertainty is declared as a point delta under the fixture decision rule.",
             "Freshness is not independently established from these receipts.",
-            "Local receipts are operator-trusted evidence; a local operator can fabricate local files.",
+            "Local receipt files are operator-controlled; a local operator can fabricate them.",
             "Receipt digests and store binding are tamper-evident within the runner emission path and checkable by the report verifier.",
             "Cryptographic attestation is the post-v0.1 proof layer; receipt-store binding and the queued post-freeze independent report verifier are the v0.1 checkable layer.",
         ),

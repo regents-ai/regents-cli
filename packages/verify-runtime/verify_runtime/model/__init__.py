@@ -34,7 +34,16 @@ from .protocol import DecisionRule, EvaluationProtocol, INCONCLUSIVE_CONDITIONS,
 from .receipt import EvaluationReceipt
 from .reproduction import ReproductionPackage
 from .run import RunRecord, TERMINAL_STATUSES, TerminalStatus
-from .sealed import SEALED_VERIFIER_PACKET_FORMAT, sealed_answer_key_commitment, sealed_verifier_material, sealed_verifier_packet
+from .sealed import (
+    MIN_BLINDING_NONCE_BYTES,
+    SEALED_VERIFIER_PACKET_FORMAT,
+    new_answer_key_blinding_nonce,
+    require_blinding_nonce,
+    sealed_answer_key_commitment,
+    sealed_verifier_material,
+    sealed_verifier_packet,
+    verify_sealed_answer_key_commitment,
+)
 from .taskset import TasksetPackageReference
 from .task import TASK_PROVENANCES, TaskInstance, TaskProvenance
 from .uplift import (
@@ -131,7 +140,11 @@ __all__ = [
     "sha256_bytes",
     "strict_json_loads",
     "SEALED_VERIFIER_PACKET_FORMAT",
+    "MIN_BLINDING_NONCE_BYTES",
+    "new_answer_key_blinding_nonce",
+    "require_blinding_nonce",
     "sealed_answer_key_commitment",
     "sealed_verifier_material",
     "sealed_verifier_packet",
+    "verify_sealed_answer_key_commitment",
 ]

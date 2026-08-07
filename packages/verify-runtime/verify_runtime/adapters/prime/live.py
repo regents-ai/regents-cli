@@ -1,11 +1,11 @@
 """Config-gated live Prime Verifiers boundary.
 
 This module is the only adapter module allowed to import the optional SDK. The
-configured rollout factory and verifier boundary are trusted adapter-side code, not
+configured rollout factory and verifier boundary run in the same process and are not
 an isolation boundary from each other. Sealed packets stay in this process's memory
 behind random handles and are destroyed when finalization ends. The rollout factory
-receives only ``(agent_taskset, opaque_handle, rollout_config)``: never sealed bytes,
-``state_dir``, or another filesystem root that the harness or agent could dereference.
+call receives only ``(agent_taskset, opaque_handle, rollout_config)``; the call does
+not include sealed bytes, ``state_dir``, or another filesystem root.
 This module does not spill verifier material to disk; an SDK integration that truly
 needs a transient file must use anonymous/unlinked storage and destroy it before
 finalization returns.
@@ -76,7 +76,7 @@ class _LiveRun:
 
 
 class LivePrimeClient:
-    """Drive trusted adapter-side Rollouts without exposing sealed packet bytes."""
+    """Drive adapter-side Rollouts through the configured opaque-handle interface."""
 
     def __init__(
         self,

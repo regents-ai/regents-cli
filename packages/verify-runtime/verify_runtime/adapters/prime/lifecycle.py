@@ -86,6 +86,7 @@ class PrimeExecutor:
         verifier_payloads: Mapping[str, bytes],
         private_state_dir: Path,
         answer_keys: Mapping[str, Any] | None = None,
+        publication_bindings: Mapping[str, Mapping[str, Any]] | None = None,
         poll_interval_seconds: float = 0.05,
     ) -> None:
         if identity.executor != self.name:
@@ -96,6 +97,15 @@ class PrimeExecutor:
             raise ValueError("Prime inputs and verifier payloads must exactly cover the supplied taskset")
         if answer_keys is not None and set(answer_keys) != {task.task_id for task in tasks}:
             raise ValueError("Prime answer keys must exactly cover the supplied taskset")
+        committed_held_out = {
+            task.task_id
+            for task in tasks
+            if task.provenance == "held_out" and task.answer_key_commitment is not None
+        }
+        if publication_bindings is not None and set(publication_bindings) != committed_held_out:
+            raise ValueError("Prime publication bindings must exactly cover committed held-out tasks")
+        if committed_held_out and publication_bindings is None:
+            raise ValueError("Prime committed held-out tasks require publication bindings")
         self.client = client
         self.identity = identity
         self.family = family
@@ -103,6 +113,10 @@ class PrimeExecutor:
         self.task_inputs = dict(task_inputs)
         self.verifier_payloads = dict(verifier_payloads)
         self.answer_keys = dict(answer_keys or {})
+        self.publication_bindings = {
+            task_id: dict(binding)
+            for task_id, binding in (publication_bindings or {}).items()
+        }
         self.private_state_dir = private_state_dir
         self.poll_interval_seconds = poll_interval_seconds
 
@@ -145,6 +159,8 @@ class PrimeExecutor:
             grader_source=self.verifier_payloads[task_id],
             max_spend_usd_cents=max_spend_usd_cents,
             answer_key=self.answer_keys.get(task_id),
+            blinding_nonce=canonical_task.answer_key_blinding_nonce,
+            publication_binding=self.publication_bindings.get(task_id),
         )
         verifier_handle = self.client.prepare_verifier(package.sealed_verifier_packet)
         rollout_config = hermes_rollout_config(

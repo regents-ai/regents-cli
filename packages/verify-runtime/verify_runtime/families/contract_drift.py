@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from verify_runtime.model import (
+    AuthoredQuestion,
     BenchmarkRole,
     BenchmarkSlice,
     DecisionRule,
@@ -12,6 +13,7 @@ from verify_runtime.model import (
     SevereRegressionRule,
     TaskInstance,
     TasksetPackageReference,
+    new_answer_key_blinding_nonce,
     sealed_answer_key_commitment,
     sha256_bytes,
 )
@@ -73,6 +75,7 @@ TASK_INPUTS = {
     },
 }
 _GRADER_DIGEST = sha256_bytes(GRADER_SOURCE)
+_SEALED_NONCES = {task_id: new_answer_key_blinding_nonce() for task_id in TASK_INPUTS}
 
 
 def _task(task_id: str, partition: str, provenance: str) -> TaskInstance:
@@ -95,7 +98,9 @@ def _task(task_id: str, partition: str, provenance: str) -> TaskInstance:
             task=task.to_dict(),
             grader_source=GRADER_SOURCE,
             answer_key=None,
+            blinding_nonce=_SEALED_NONCES[task_id],
         ),
+        answer_key_blinding_nonce=_SEALED_NONCES[task_id],
     )
 
 
@@ -104,6 +109,35 @@ TASKS = (
     _task("contract-drift-validation-1", "validation", "held_out"),
     *(_task(f"contract-drift-untouched-{index}", "untouched", "public_reference") for index in range(1, 11)),
 )
+
+_BUILTIN_PUBLISHER_IDENTITY = "regent://builtin/contract-drift-publisher-v1"
+_BUILTIN_AUTHORED_RECORDS = tuple(
+    replace(
+        AuthoredQuestion.create(
+            task_input_digest=task.input_digest,
+            author_identity=_BUILTIN_PUBLISHER_IDENTITY,
+            pinned_data_revision=f"huggingface://datasets/regent-contract-drift@{'c' * 40}",
+            deterministic_answer_key=None,
+        ),
+        acceptance_decision="accepted",
+    ).to_dict()
+    for task in TASKS
+    if task.provenance == "held_out"
+)
+_BUILTIN_PUBLICATION_BINDINGS = {
+    task.task_id: {
+        "publication_reference": f"local-development://publications/{record['question_id']}",
+        "question_id": record["question_id"],
+        "publisher_identity": record["author_identity"],
+        "dataset_revision": record["pinned_data_revision"],
+        "task_id": task.task_id,
+        "task_input_digest": task.input_digest,
+        "answer_key_commitment": task.answer_key_commitment,
+    }
+    for task in TASKS
+    for record in _BUILTIN_AUTHORED_RECORDS
+    if task.provenance == "held_out" and record["task_input_digest"] == task.input_digest
+}
 
 SLICES = tuple(
     BenchmarkSlice(1, f"{_FAMILY_ID}.{partition}", _FAMILY_ID, partition, ("repair-agent", "deterministic-grader"), tuple(task.task_id for task in TASKS if task.partition == partition))  # type: ignore[arg-type]

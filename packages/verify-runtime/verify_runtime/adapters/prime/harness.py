@@ -12,7 +12,7 @@ _ROLLOUT_CONFIG_FIELDS = {"provider", "model", "hermes_version", "hermes_digest"
 
 @dataclass(frozen=True)
 class RolloutConfig:
-    """The scalar-only configuration trusted rollout factories may receive."""
+    """The validated scalar-only configuration passed to rollout factories."""
 
     provider: str
     model: str

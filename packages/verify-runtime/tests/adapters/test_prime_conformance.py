@@ -33,6 +33,7 @@ from verify_runtime.adapters.prime import (
 )
 from verify_runtime.capsule.resolution import ResolvedRuntimeIdentity
 from verify_runtime.families import BASELINE_SKILL, CANDIDATE_SKILL, FAMILY, GRADER_SOURCE, TASK_INPUTS, TASKS
+from verify_runtime.families.contract_drift import _BUILTIN_PUBLICATION_BINDINGS
 from verify_runtime.model import MatchedSelection, canonical_json_bytes, sha256_bytes, strict_json_loads
 from verify_runtime.receipts import show_receipt
 from verify_runtime.runner import MAX_CAPTURE_BYTES, run_builtin_comparison
@@ -214,6 +215,7 @@ def _executor(state_dir: Path, client: RecordedPrimeClient | None = None) -> Pri
     return PrimeExecutor(
         recorded_client, _identity(), family=FAMILY, tasks=TASKS, task_inputs=TASK_INPUTS,
         verifier_payloads={task.task_id: GRADER_SOURCE for task in TASKS}, private_state_dir=state_dir,
+        publication_bindings=_BUILTIN_PUBLICATION_BINDINGS,
         poll_interval_seconds=0,
     )
 
