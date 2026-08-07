@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import tempfile
@@ -57,7 +58,7 @@ def _comparison_result(baseline_status: str, candidate_status: str, baseline_sco
     return "positive" if candidate_score > baseline_score else "negative" if candidate_score < baseline_score else "null"
 
 
-def _receipt_pair(
+def _receipt_set(
     state_dir: Path,
     *,
     validation_scores: tuple[int | None, int | None] = (0, 1_000),
@@ -66,7 +67,7 @@ def _receipt_pair(
     provenance: str | None = None,
     decision_rule: DecisionRule | None = None,
     archive: bool = True,
-) -> tuple[str, str]:
+) -> tuple[str, ...]:
     source = _source_receipts(state_dir)
     source_protocol = source[0].protocol
     protocol = source_protocol
@@ -125,8 +126,7 @@ def _receipt_pair(
             candidate_run_digest=candidate_run.content_digest(),
         )
         pointers.append(_emit_receipt(state_dir, rewritten)["digest"] if archive else rewritten.content_digest())
-    ordered = tuple(sorted(pointers))
-    return ordered[0], ordered[1]
+    return tuple(sorted(pointers))
 
 
 def _rekey_report(value: dict) -> dict:
@@ -137,6 +137,7 @@ def _rekey_report(value: dict) -> dict:
     package_digest = package["digest"] if package is not None else None
     action["resource_id"] = report["report_id"]
     action["action_id"] = content_id("action", {"report_id": report["report_id"], "package_digest": package_digest})
+    action["idempotency_key"] = content_id("uplift-action", {"receipt_digests": report["comparison"]["receipt_digests"]})
     report["action_receipt"] = action
     return report
 
@@ -153,24 +154,25 @@ def _rekey_report(value: dict) -> dict:
 )
 def test_outcome_matrix_is_partitioned_and_byte_stable(tmp_path: Path, name: str, scores, statuses, threshold, expected: str) -> None:
     first_state = tmp_path / f"{name}-first"
-    first_pair = _receipt_pair(first_state, validation_scores=scores, validation_statuses=statuses, threshold=threshold)
-    first = generate_uplift_report(first_state, first_pair)
+    first_set = _receipt_set(first_state, validation_scores=scores, validation_statuses=statuses, threshold=threshold)
+    first = generate_uplift_report(first_state, first_set)
     report = first["report"]
     assert report["outcome"] == expected
     assert report["evidence_class"] == "single_run"
-    assert report["reproduction_status"] == "not_run"
+    assert report["reproduction_status"] == "none"
     assert report["reproduction_package_status"] == "available"
     assert report["decision_sentence"].endswith(".")
     assert report["scored_evaluation"]["provenance"] == "held_out"
     assert report["scored_evaluation"]["task_count"] == 1
     assert report["calibration"]["provenance"] == "public_reference"
+    assert report["calibration"]["task_count"] == 10
     assert report["calibration"]["possible_contamination"] == "possible-contamination"
     assert report["calibration"]["claim_eligible"] is False
     assert report["calibration"]["task_scores"][0]["possible_contamination"] == "possible-contamination"
     assert report["scored_evaluation"]["task_scores"][0]["possible_contamination"] is None
     assert first["reproduction_package"]["digest"] == report["reproduction_package"]["digest"]
 
-    second = generate_uplift_report(first_state, first_pair)
+    second = generate_uplift_report(first_state, first_set)
     assert first["report_pointer"]["digest"] == second["report_pointer"]["digest"]
     assert first["reproduction_package"]["digest"] == second["reproduction_package"]["digest"]
     assert first["report"]["action_receipt"] == second["report"]["action_receipt"]
@@ -178,8 +180,8 @@ def test_outcome_matrix_is_partitioned_and_byte_stable(tmp_path: Path, name: str
 
 def test_zero_held_out_is_inconclusive_and_claim_path_excludes_reference(tmp_path: Path) -> None:
     state = tmp_path / "reference-only"
-    pair = _receipt_pair(state, provenance="public_reference")
-    result = generate_uplift_report(state, pair)
+    receipt_set = _receipt_set(state, provenance="public_reference")
+    result = generate_uplift_report(state, receipt_set)
     assert result["report"]["outcome"] == "inconclusive"
     assert result["report"]["scored_evaluation"] == {
         "baseline_mean_millis": None,
@@ -196,20 +198,20 @@ def test_zero_held_out_is_inconclusive_and_claim_path_excludes_reference(tmp_pat
         "task_count": 0,
         "task_scores": [],
     }
-    assert result["report"]["calibration"]["task_count"] == 2
+    assert result["report"]["calibration"]["task_count"] == 11
     assert all(score["possible_contamination"] == "possible-contamination" for score in result["report"]["calibration"]["task_scores"])
 
 
 def test_regressions_are_classified_per_task(tmp_path: Path) -> None:
     severe_state = tmp_path / "severe"
-    severe = generate_uplift_report(severe_state, _receipt_pair(severe_state, validation_scores=(1_000, 0)))
+    severe = generate_uplift_report(severe_state, _receipt_set(severe_state, validation_scores=(1_000, 0)))
     assert severe["report"]["regressions"]["severe"] == ["contract-drift-validation-1"]
     assert severe["report"]["regressions"]["non_severe"] == []
 
     non_severe_state = tmp_path / "non-severe"
     non_severe = generate_uplift_report(
         non_severe_state,
-        _receipt_pair(non_severe_state, validation_scores=(500, 450), threshold=100),
+        _receipt_set(non_severe_state, validation_scores=(500, 450), threshold=100),
     )
     assert non_severe["report"]["regressions"]["severe"] == []
     assert non_severe["report"]["regressions"]["non_severe"] == ["contract-drift-validation-1"]
@@ -225,7 +227,7 @@ def test_regressions_are_classified_per_task(tmp_path: Path) -> None:
     )
     declared_rule_result = generate_uplift_report(
         declared_rule_state,
-        _receipt_pair(declared_rule_state, validation_scores=(500, 450), decision_rule=declared_rule),
+        _receipt_set(declared_rule_state, validation_scores=(500, 450), decision_rule=declared_rule),
     )
     assert declared_rule_result["report"]["regressions"]["severe"] == []
     assert declared_rule_result["report"]["regressions"]["non_severe"] == ["contract-drift-validation-1"]
@@ -236,7 +238,7 @@ def test_declared_decision_rule_controls_minimum_and_null_band(tmp_path: Path) -
     source_rule = _source_receipts(minimum_state)[0].protocol.decision_rule
     minimum_result = generate_uplift_report(
         minimum_state,
-        _receipt_pair(minimum_state, decision_rule=replace(source_rule, minimum_valid_task_count=2, positive_threshold_millis=1, negative_threshold_millis=-1)),
+        _receipt_set(minimum_state, decision_rule=replace(source_rule, minimum_valid_task_count=2, positive_threshold_millis=1, negative_threshold_millis=-1)),
     )
     assert minimum_result["report"]["outcome"] == "inconclusive"
     assert minimum_result["report"]["decision_rule"]["minimum_valid_task_count"] == 2
@@ -245,40 +247,117 @@ def test_declared_decision_rule_controls_minimum_and_null_band(tmp_path: Path) -
     null_rule = replace(source_rule, positive_threshold_millis=1_000, negative_threshold_millis=-1_000, null_band_millis=100)
     null_band_result = generate_uplift_report(
         null_band_state,
-        _receipt_pair(null_band_state, validation_scores=(500, 550), decision_rule=null_rule),
+        _receipt_set(null_band_state, validation_scores=(500, 550), decision_rule=null_rule),
     )
     assert null_band_result["report"]["outcome"] == "null"
 
 
 def test_report_consumes_only_verified_receipts_and_does_not_write_on_missing_input(tmp_path: Path) -> None:
     state = tmp_path / "missing"
-    pair = _receipt_pair(state)
+    receipt_set = _receipt_set(state)
     missing = "f" * 64
     with pytest.raises(UpliftReceiptNotFound):
-        generate_uplift_report(state, (pair[0], missing))
+        generate_uplift_report(state, (*receipt_set[:-1], missing))
     assert not (state / "verify" / "uplift").exists()
     with pytest.raises(UpliftInputError):
-        generate_uplift_report(state, (pair[0], pair[0]))
+        generate_uplift_report(state, (receipt_set[0], receipt_set[0]))
 
 
 def test_report_truth_anchor_rejects_recomputed_unarchived_receipt_chains(tmp_path: Path) -> None:
     score_state = tmp_path / "unarchived-score-chain"
-    score_chain = _receipt_pair(score_state, validation_scores=(500, 900), archive=False)
+    score_chain = _receipt_set(score_state, validation_scores=(500, 900), archive=False)
     with pytest.raises(UpliftReceiptNotFound, match=score_chain[0]):
         compare_receipts(score_state, score_chain)
     with pytest.raises(UpliftReceiptNotFound, match=score_chain[0]):
         generate_uplift_report(score_state, score_chain)
 
     provenance_state = tmp_path / "unarchived-provenance-chain"
-    provenance_chain = _receipt_pair(provenance_state, provenance="public_reference", archive=False)
+    provenance_chain = _receipt_set(provenance_state, provenance="public_reference", archive=False)
     with pytest.raises(UpliftReceiptNotFound, match=provenance_chain[0]):
         generate_uplift_report(provenance_state, provenance_chain)
 
-    present_state = tmp_path / "archived-pair"
-    present_pair = _receipt_pair(present_state)
-    assert compare_receipts(present_state, present_pair).receipt_digests == present_pair
-    present = generate_uplift_report(present_state, present_pair)
-    assert present["report"]["comparison"]["receipt_digests"] == list(present_pair)
+    present_state = tmp_path / "archived-set"
+    present_set = _receipt_set(present_state)
+    assert compare_receipts(present_state, present_set).receipt_digests == present_set
+    present = generate_uplift_report(present_state, present_set)
+    assert present["report"]["comparison"]["receipt_digests"] == list(present_set)
+
+
+def test_receipt_set_permutations_are_byte_idempotent(tmp_path: Path) -> None:
+    state = tmp_path / "permutation"
+    receipt_set = _receipt_set(state)
+    first = generate_uplift_report(state, receipt_set)
+    second = generate_uplift_report(state, tuple(reversed(receipt_set)))
+
+    assert second == first
+    assert Path(first["report_pointer"]["path"]).read_bytes() == Path(second["report_pointer"]["path"]).read_bytes()
+    assert Path(first["reproduction_package"]["path"]).read_bytes() == Path(second["reproduction_package"]["path"]).read_bytes()
+    assert first["report"]["report_id"] == second["report"]["report_id"]
+    assert first["report"]["action_receipt"]["action_id"] == second["report"]["action_receipt"]["action_id"]
+    assert len(list((state / "verify" / "uplift" / "sets" / "sha256").glob("*.json"))) == 1
+
+
+def test_reordered_report_set_fields_are_rejected_after_rekeying(tmp_path: Path) -> None:
+    state = tmp_path / "reorder-attack"
+    receipt_set = _receipt_set(state)
+    result = generate_uplift_report(state, receipt_set)
+
+    reordered_comparison = dict(result["report"]["comparison"])
+    reordered_comparison["receipt_digests"] = list(reversed(reordered_comparison["receipt_digests"]))
+    reordered_digests = _rekey_report({**result["report"], "comparison": reordered_comparison})
+    with pytest.raises(ModelValidationError, match="canonical lexical order"):
+        UpliftReport.from_dict(reordered_digests)
+
+    reordered_bindings = _rekey_report({
+        **result["report"],
+        "receipt_bindings": list(reversed(result["report"]["receipt_bindings"])),
+    })
+    reordered_report = UpliftReport.from_dict(reordered_bindings)
+    receipts = tuple(EvaluationReceipt.from_dict(show_receipt(state, digest)["receipt"]) for digest in receipt_set)
+    with pytest.raises(ModelValidationError, match="bindings"):
+        reordered_report.validate_against_receipts(receipts)
+
+
+def test_partial_duplicate_missing_extra_and_tampered_sets_create_no_uplift_lineage(tmp_path: Path) -> None:
+    partial_state = tmp_path / "partial"
+    partial_set = _receipt_set(partial_state)
+    with pytest.raises(UpliftInputError, match="exactly cover"):
+        generate_uplift_report(partial_state, partial_set[:-1])
+    assert not (partial_state / "verify" / "uplift").exists()
+
+    duplicate_state = tmp_path / "duplicate"
+    duplicate_set = _receipt_set(duplicate_state)
+    with pytest.raises(UpliftInputError, match="distinct"):
+        generate_uplift_report(duplicate_state, (*duplicate_set[:-1], duplicate_set[0]))
+    assert not (duplicate_state / "verify" / "uplift").exists()
+
+    missing_state = tmp_path / "missing-set"
+    missing_set = _receipt_set(missing_state)
+    with pytest.raises(UpliftReceiptNotFound):
+        generate_uplift_report(missing_state, (*missing_set[:-1], "f" * 64))
+    assert not (missing_state / "verify" / "uplift").exists()
+
+    extra_state = tmp_path / "extra"
+    extra_set = _receipt_set(extra_state)
+    foreign_state = tmp_path / "foreign"
+    foreign_set = _receipt_set(foreign_state)
+    shutil.copyfile(
+        foreign_state / "verify" / "receipts" / "sha256" / f"{foreign_set[0]}.json",
+        extra_state / "verify" / "receipts" / "sha256" / f"{foreign_set[0]}.json",
+    )
+    with pytest.raises(UpliftInputError, match="receipt cannot be verified"):
+        generate_uplift_report(extra_state, (*extra_set, foreign_set[0]))
+    assert not (extra_state / "verify" / "uplift").exists()
+
+    tampered_state = tmp_path / "tampered"
+    tampered_set = _receipt_set(tampered_state)
+    tampered_path = tampered_state / "verify" / "receipts" / "sha256" / f"{tampered_set[0]}.json"
+    tampered_record = json.loads(tampered_path.read_bytes())
+    tampered_record["cost"]["total_usd_cents"] += 1
+    tampered_path.write_bytes(canonical_json_bytes(tampered_record))
+    with pytest.raises(UpliftInputError, match="receipt cannot be verified"):
+        generate_uplift_report(tampered_state, tampered_set)
+    assert not (tampered_state / "verify" / "uplift").exists()
 
 
 def test_receipt_emission_is_not_public_and_store_binding_rejects_copied_receipts(tmp_path: Path) -> None:
@@ -287,49 +366,49 @@ def test_receipt_emission_is_not_public_and_store_binding_rejects_copied_receipt
     assert not hasattr(public_receipt_store, "emit_receipt")
 
     source = tmp_path / "source"
-    source_pair = _receipt_pair(source)
+    source_set = _receipt_set(source)
     target = tmp_path / "target"
     run_builtin_comparison(target, FixtureExecutor())
     target_receipts = target / "verify" / "receipts" / "sha256"
-    for digest in source_pair:
+    for digest in source_set:
         shutil.copyfile(source / "verify" / "receipts" / "sha256" / f"{digest}.json", target_receipts / f"{digest}.json")
 
     with pytest.raises(ValueError, match="receipt store identity mismatch"):
-        show_receipt(target, source_pair[0])
+        show_receipt(target, source_set[0])
     with pytest.raises(UpliftInputError, match="receipt cannot be verified"):
-        generate_uplift_report(target, source_pair)
+        generate_uplift_report(target, source_set)
 
 
 def test_receipt_loading_rejects_symlinked_store_directories(tmp_path: Path) -> None:
     source = tmp_path / "source"
-    pair = _receipt_pair(source)
+    receipt_set = _receipt_set(source)
 
     linked_state = tmp_path / "linked-state"
     linked_state.symlink_to(source, target_is_directory=True)
     with pytest.raises(ValueError, match="must not be a symlink"):
-        show_receipt(linked_state, pair[0])
+        show_receipt(linked_state, receipt_set[0])
 
     linked_receipts_state = tmp_path / "linked-receipts-state"
     (linked_receipts_state / "verify").mkdir(parents=True)
     (linked_receipts_state / "verify" / "receipts").symlink_to(source / "verify" / "receipts", target_is_directory=True)
     with pytest.raises(ValueError, match="must not be a symlink"):
-        show_receipt(linked_receipts_state, pair[0])
+        show_receipt(linked_receipts_state, receipt_set[0])
 
 
 @pytest.mark.parametrize("boundary", ("reservation", "winner-link", "package", "report"))
-def test_pair_reservation_retries_complete_every_archive_boundary(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, boundary: str) -> None:
+def test_set_reservation_retries_complete_every_archive_boundary(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, boundary: str) -> None:
     state = tmp_path / f"recover-{boundary}"
-    pair = _receipt_pair(state)
+    receipt_set = _receipt_set(state)
     winner_bytes = None
     winner_temporary = None
     if boundary == "reservation":
-        original_reserve = uplift_store._reserve_pair_index
+        original_reserve = uplift_store._reserve_set_index
 
         def crash_after_reservation(*args, **kwargs):
             result = original_reserve(*args, **kwargs)
             raise RuntimeError("simulated reservation crash")
 
-        monkeypatch.setattr(uplift_store, "_reserve_pair_index", crash_after_reservation)
+        monkeypatch.setattr(uplift_store, "_reserve_set_index", crash_after_reservation)
     elif boundary == "winner-link":
         def crash_after_winner_link(path: Path, payload: bytes):
             nonlocal winner_temporary
@@ -343,7 +422,7 @@ def test_pair_reservation_retries_complete_every_archive_boundary(tmp_path: Path
             os.link(winner_temporary, path)
             raise RuntimeError("simulated winner crash after link")
 
-        monkeypatch.setattr(uplift_store, "_reserve_pair_index", crash_after_winner_link)
+        monkeypatch.setattr(uplift_store, "_reserve_set_index", crash_after_winner_link)
     else:
         original_emit = uplift_store._emit
         target_call = 1 if boundary == "package" else 2
@@ -360,33 +439,33 @@ def test_pair_reservation_retries_complete_every_archive_boundary(tmp_path: Path
         monkeypatch.setattr(uplift_store, "_emit", crash_after_archive)
 
     with pytest.raises(RuntimeError, match="simulated"):
-        generate_uplift_report(state, pair)
+        generate_uplift_report(state, receipt_set)
 
     if boundary == "winner-link":
-        index_path = next((state / "verify" / "uplift" / "pairs" / "sha256").glob("*.json"))
+        index_path = next((state / "verify" / "uplift" / "sets" / "sha256").glob("*.json"))
         winner_bytes = index_path.read_bytes()
         assert index_path.stat().st_nlink == 2
         assert winner_temporary is not None and winner_temporary.exists()
 
     monkeypatch.undo()
-    recovered = generate_uplift_report(state, pair)
-    repeated = generate_uplift_report(state, pair)
+    recovered = generate_uplift_report(state, receipt_set)
+    repeated = generate_uplift_report(state, receipt_set)
     assert repeated["report_pointer"] == recovered["report_pointer"]
     assert repeated["reproduction_package"] == recovered["reproduction_package"]
     assert len(list((state / "verify" / "uplift" / "reports" / "sha256").glob("*.json"))) == 1
     assert len(list((state / "verify" / "uplift" / "packages" / "sha256").glob("*.json"))) == 1
-    pair_directory = state / "verify" / "uplift" / "pairs" / "sha256"
-    index_path = next(pair_directory.glob("*.json"))
-    assert len(list(pair_directory.glob("*.json"))) == 1
-    assert not list(pair_directory.glob(".*.tmp"))
+    set_directory = state / "verify" / "uplift" / "sets" / "sha256"
+    index_path = next(set_directory.glob("*.json"))
+    assert len(list(set_directory.glob("*.json"))) == 1
+    assert not list(set_directory.glob(".*.tmp"))
     if boundary == "winner-link":
         assert index_path.read_bytes() == winner_bytes
         assert index_path.stat().st_nlink == 1
 
 
-def test_incomplete_pair_reservation_conflicts_on_different_tolerance(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_incomplete_set_reservation_conflicts_on_different_tolerance(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     state = tmp_path / "incomplete-tolerance"
-    pair = _receipt_pair(state)
+    receipt_set = _receipt_set(state)
     original_emit = uplift_store._emit
     calls = 0
 
@@ -400,31 +479,31 @@ def test_incomplete_pair_reservation_conflicts_on_different_tolerance(tmp_path: 
 
     monkeypatch.setattr(uplift_store, "_emit", crash_after_package)
     with pytest.raises(RuntimeError, match="simulated package archive crash"):
-        generate_uplift_report(state, pair)
+        generate_uplift_report(state, receipt_set)
     monkeypatch.undo()
 
-    index_path = next((state / "verify" / "uplift" / "pairs" / "sha256").glob("*.json"))
-    reserved_report_id = uplift_store._read_pair_index(index_path)["report"]["id"]
+    index_path = next((state / "verify" / "uplift" / "sets" / "sha256").glob("*.json"))
+    reserved_report_id = uplift_store._read_set_index(index_path)["report"]["id"]
     with pytest.raises(UpliftReportConflictError, match=reserved_report_id):
-        generate_uplift_report(state, pair, {"score_millis": 25})
+        generate_uplift_report(state, receipt_set, {"score_millis": 25})
 
 
 def test_concurrent_different_tolerance_writers_have_one_verified_winner(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     state = tmp_path / "concurrent-tolerance"
-    pair = _receipt_pair(state)
+    receipt_set = _receipt_set(state)
     barrier = Barrier(2)
-    original_reserve = uplift_store._reserve_pair_index
+    original_reserve = uplift_store._reserve_set_index
 
     def synchronized_reserve(*args, **kwargs):
         barrier.wait(timeout=5)
         return original_reserve(*args, **kwargs)
 
-    monkeypatch.setattr(uplift_store, "_reserve_pair_index", synchronized_reserve)
+    monkeypatch.setattr(uplift_store, "_reserve_set_index", synchronized_reserve)
     tolerances = ({"score_millis": 25}, {"score_millis": 50})
     successes = []
     failures = []
     with ThreadPoolExecutor(max_workers=2) as pool:
-        futures = [pool.submit(generate_uplift_report, state, pair, tolerance) for tolerance in tolerances]
+        futures = [pool.submit(generate_uplift_report, state, receipt_set, tolerance) for tolerance in tolerances]
         for future in futures:
             try:
                 successes.append(future.result())
@@ -435,10 +514,10 @@ def test_concurrent_different_tolerance_writers_have_one_verified_winner(tmp_pat
     assert len(failures) == 1
     assert isinstance(failures[0], UpliftReportConflictError)
     winner = successes[0]
-    index_path = next((state / "verify" / "uplift" / "pairs" / "sha256").glob("*.json"))
+    index_path = next((state / "verify" / "uplift" / "sets" / "sha256").glob("*.json"))
     expected_index = {
         "schema_version": 1,
-        "receipt_digests": list(pair),
+        "receipt_digests": list(receipt_set),
         "report": {"id": winner["report"]["report_id"], "digest": winner["report_pointer"]["digest"]},
         "package": {"digest": winner["reproduction_package"]["digest"]},
     }
@@ -449,13 +528,13 @@ def test_concurrent_different_tolerance_writers_have_one_verified_winner(tmp_pat
 
 def test_structural_honesty_and_evidence_only_arm_are_canonical(tmp_path: Path) -> None:
     state = tmp_path / "honesty"
-    result = generate_uplift_report(state, _receipt_pair(state))
+    result = generate_uplift_report(state, _receipt_set(state))
     report = UpliftReport.from_dict(result["report"])
     package = ReproductionPackage.from_dict(show_reproduction_package(state, result["reproduction_package"]["digest"])["package"])
     assert package.assembly_status == "assembled"
     assert package.executed is False
     assert report.evidence_class == "single_run"
-    assert report.reproduction_status == "not_run"
+    assert report.reproduction_status == "none"
     assert report.reproduction_package_status == "available"
     assert report.decision_sentence == "This skill improved held-out performance by 100 percentage points, ending at 100%, with no severe regressions."
     evidence_arm = ArmIdentity(
@@ -491,9 +570,18 @@ def test_structural_honesty_and_evidence_only_arm_are_canonical(tmp_path: Path) 
     assert UpliftReport.from_dict(absent).reproduction_package_digest is None
 
 
+@pytest.mark.parametrize("status", ["not_run", "attempted", "reproduced", "failed_to_reproduce"])
+def test_reproduction_status_hard_cut_rejects_unbound_vocabularies(tmp_path: Path, status: str) -> None:
+    state = tmp_path / status
+    result = generate_uplift_report(state, _receipt_set(state))
+    tampered = _rekey_report({**result["report"], "reproduction_status": status})
+    with pytest.raises(ModelValidationError, match="must be none"):
+        UpliftReport.from_dict(tampered)
+
+
 def test_reproduction_tolerance_is_nullable_package_data(tmp_path: Path) -> None:
     state = tmp_path / "tolerance"
-    result = generate_uplift_report(state, _receipt_pair(state), {"score_millis": 25})
+    result = generate_uplift_report(state, _receipt_set(state), {"score_millis": 25})
     package = show_reproduction_package(state, result["reproduction_package"]["digest"])["package"]
     assert package["reproduction_tolerance"] == {"score_millis": 25}
     assert all("No reproduction tolerance was supplied" not in limitation for limitation in result["report"]["limitations"])
@@ -501,8 +589,8 @@ def test_reproduction_tolerance_is_nullable_package_data(tmp_path: Path) -> None
 
 def test_run_identity_and_receipt_digest_reject_score_tampering(tmp_path: Path) -> None:
     state = tmp_path / "run-tamper"
-    pair = _receipt_pair(state, validation_scores=(500, 600))
-    raw = show_receipt(state, pair[0])["receipt"]
+    receipt_set = _receipt_set(state, validation_scores=(500, 600))
+    raw = show_receipt(state, receipt_set[0])["receipt"]
     raw["runs"]["baseline"]["outcome"]["score_millis"] = 900
     recomputed_receipt_digest = sha256_bytes(canonical_json_bytes(raw))
     assert len(recomputed_receipt_digest) == 64
@@ -512,10 +600,10 @@ def test_run_identity_and_receipt_digest_reject_score_tampering(tmp_path: Path) 
 
 def test_receipt_provenance_relabel_is_tamper_detected(tmp_path: Path) -> None:
     state = tmp_path / "provenance-tamper"
-    pair = _receipt_pair(state)
+    receipt_set = _receipt_set(state)
     raw = next(
         show_receipt(state, digest)["receipt"]
-        for digest in pair
+        for digest in receipt_set
         if show_receipt(state, digest)["receipt"]["runs"]["baseline"]["provenance"] == "held_out"
     )
     raw["runs"]["baseline"]["provenance"] = "public_reference"
@@ -526,12 +614,12 @@ def test_receipt_provenance_relabel_is_tamper_detected(tmp_path: Path) -> None:
 
 def test_calibration_presence_is_conditional_on_receipt_provenance(tmp_path: Path) -> None:
     zero_reference_state = tmp_path / "zero-reference"
-    zero_reference = generate_uplift_report(zero_reference_state, _receipt_pair(zero_reference_state, provenance="held_out"))
+    zero_reference = generate_uplift_report(zero_reference_state, _receipt_set(zero_reference_state, provenance="held_out"))
     zero_report = UpliftReport.from_dict(zero_reference["report"])
     assert zero_report.calibration is None
 
     reference_state = tmp_path / "has-reference"
-    reference = generate_uplift_report(reference_state, _receipt_pair(reference_state))
+    reference = generate_uplift_report(reference_state, _receipt_set(reference_state))
     absent = _rekey_report({**reference["report"], "calibration": None})
     with pytest.raises(ModelValidationError, match="calibration"):
         UpliftReport.from_dict(absent)
@@ -554,7 +642,7 @@ def test_calibration_presence_is_conditional_on_receipt_provenance(tmp_path: Pat
 
 def test_report_relationships_are_derived_and_forged_report_is_rejected(tmp_path: Path) -> None:
     state = tmp_path / "forged-report"
-    result = generate_uplift_report(state, _receipt_pair(state))
+    result = generate_uplift_report(state, _receipt_set(state))
     forged = _rekey_report({
         **result["report"],
         "outcome": "negative",
@@ -573,22 +661,25 @@ def test_protocol_lock_rejects_unknown_decision_rule_condition(tmp_path: Path) -
         EvaluationProtocol.from_dict(record)
 
 
-def test_report_generation_is_pair_idempotent_and_conflicts_on_auxiliary_changes(tmp_path: Path) -> None:
+def test_report_generation_is_set_idempotent_and_conflicts_on_auxiliary_changes(tmp_path: Path) -> None:
     state = tmp_path / "idempotent"
-    pair = _receipt_pair(state)
-    first = generate_uplift_report(state, pair)
-    second = generate_uplift_report(state, pair)
+    receipt_set = _receipt_set(state)
+    tolerance = {"score_millis": 10}
+    first = generate_uplift_report(state, receipt_set, tolerance)
+    second = generate_uplift_report(state, receipt_set, {"score_millis": 10})
     assert second["report_pointer"] == first["report_pointer"]
     assert second["reproduction_package"] == first["reproduction_package"]
     assert second["report"] == first["report"]
     with pytest.raises(UpliftReportConflictError, match=first["report"]["report_id"]):
-        generate_uplift_report(state, pair, {"score_millis": 25})
+        generate_uplift_report(state, receipt_set, {"score_millis": 25})
     assert len(list((state / "verify" / "uplift" / "reports" / "sha256").glob("*.json"))) == 1
+    assert len(list((state / "verify" / "uplift" / "packages" / "sha256").glob("*.json"))) == 1
+    assert len(list((state / "verify" / "uplift" / "sets" / "sha256").glob("*.json"))) == 1
 
 
 def test_relative_error_reduction_and_singular_decision_sentence_are_canonical(tmp_path: Path) -> None:
     state = tmp_path / "relative-error"
-    result = generate_uplift_report(state, _receipt_pair(state, validation_scores=(400, 500)))
+    result = generate_uplift_report(state, _receipt_set(state, validation_scores=(400, 500)))
     assert result["report"]["measured_change"]["relative_error_reduction_millis"] == 167
 
     source_rule = _source_receipts(tmp_path / "singular-rule")[0].protocol.decision_rule
@@ -596,7 +687,7 @@ def test_relative_error_reduction_and_singular_decision_sentence_are_canonical(t
     singular_state = tmp_path / "singular"
     singular = generate_uplift_report(
         singular_state,
-        _receipt_pair(singular_state, validation_scores=(500, 510), decision_rule=singular_rule),
+        _receipt_set(singular_state, validation_scores=(500, 510), decision_rule=singular_rule),
     )
     assert singular["report"]["decision_sentence"] == "This skill improved held-out performance by 1 percentage point, ending at 51%, with no severe regressions."
     assert "1 percentage points" not in singular["report"]["decision_sentence"]

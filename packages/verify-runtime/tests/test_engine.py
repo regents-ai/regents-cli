@@ -14,7 +14,7 @@ from verify_runtime.runner import ComparisonBusyError, ComparisonSpendExhaustedE
 from verify_runtime.runner.executors import ExecutionResult
 
 
-def test_offline_builtin_e2e_completes_with_two_verified_receipts_under_two_minutes(tmp_path: Path) -> None:
+def test_offline_builtin_e2e_completes_with_a_verified_receipt_set_under_two_minutes(tmp_path: Path) -> None:
     started = time.monotonic()
     result = run_builtin_comparison(tmp_path, FixtureExecutor())
     elapsed = time.monotonic() - started
@@ -23,12 +23,12 @@ def test_offline_builtin_e2e_completes_with_two_verified_receipts_under_two_minu
     assert result["status"] == "completed"
     assert result["summary"] == {
         "comparison_result": "positive",
-        "baseline_completed": 2,
-        "candidate_completed": 2,
-        "task_count": 2,
+        "baseline_completed": 11,
+        "candidate_completed": 11,
+        "task_count": 11,
         "total_cost_usd_cents": 0,
     }
-    assert len(result["receipts"]) == 2
+    assert len(result["receipts"]) == 11
     for pointer in result["receipts"]:
         shown = show_receipt(tmp_path, pointer["digest"])
         assert shown["verified"] is True

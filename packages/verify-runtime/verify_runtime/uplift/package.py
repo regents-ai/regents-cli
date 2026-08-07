@@ -24,7 +24,13 @@ def _exact_commands(data: ComparisonData) -> tuple[str, ...]:
     digests = data.receipt_digests
     commands = []
     for command in data.protocol.exact_commands:
-        commands.append(command.replace("<fixture|hermes|prime>", executor).replace("<sha256>", digests[0], 1).replace("<sha256>", digests[1], 1))
+        resolved = command.replace("<fixture|hermes|prime>", executor)
+        placeholders = resolved.count("<sha256>")
+        if placeholders not in (0, len(digests)):
+            raise UpliftInputError("locked reproduction command must contain one digest placeholder per receipt")
+        for digest in digests:
+            resolved = resolved.replace("<sha256>", digest, 1)
+        commands.append(resolved)
     return tuple(commands)
 
 

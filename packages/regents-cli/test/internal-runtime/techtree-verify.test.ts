@@ -19,7 +19,7 @@ describe("Techtree Verify runtime launcher", () => {
     }
   });
 
-  it("runs, reads status, and verifies both offline fixture receipts", async () => {
+  it("runs, reads status, and verifies the offline fixture receipt set", async () => {
     const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "regent-verify-handler-"));
     temporaryDirectories.push(stateDir);
     const started = performance.now();
@@ -31,10 +31,10 @@ describe("Techtree Verify runtime launcher", () => {
     expect(result).toMatchObject({
       schema_version: 1,
       status: "completed",
-      summary: { comparison_result: "positive", task_count: 2, total_cost_usd_cents: 0 },
+      summary: { comparison_result: "positive", task_count: 11, total_cost_usd_cents: 0 },
       policy: { attempts_per_task: 1, max_task_wall_seconds: 600, max_comparison_spend_usd_cents: 1000 },
     });
-    expect(result.receipts).toHaveLength(2);
+    expect(result.receipts).toHaveLength(11);
     await expect(handleTechtreeVerifyStatus(stateDir, {
       comparison_id: result.comparison_id,
     })).resolves.toEqual(result);

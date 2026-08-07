@@ -20,8 +20,9 @@ def _validate_digest(value: Any, path: str) -> str:
     return value
 
 
-def _next_action(digests: tuple[str, str]) -> str:
-    return f"regents techtree uplift report --receipt-digest {digests[0]} --receipt-digest {digests[1]} --json"
+def _next_action(digests: tuple[str, ...]) -> str:
+    flags = " ".join(f"--receipt-digest {digest}" for digest in digests)
+    return f"regents techtree uplift report {flags} --json"
 
 
 def generate_uplift_report(
@@ -29,13 +30,13 @@ def generate_uplift_report(
     receipt_digests: Sequence[str],
     tolerance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Verify two receipt files, assemble a package, and archive one report."""
+    """Verify a receipt set, assemble a package, and archive one report."""
 
-    if len(receipt_digests) != 2:
-        raise UpliftInputError("uplift report requires exactly two receipt digests")
+    if not receipt_digests:
+        raise UpliftInputError("uplift report requires a non-empty receipt set")
     digests = tuple(sorted(_validate_digest(value, f"receipt_digests[{index}]") for index, value in enumerate(receipt_digests)))
-    if digests[0] == digests[1]:
-        raise UpliftInputError("uplift report requires two distinct receipt digests")
+    if len(set(digests)) != len(digests):
+        raise UpliftInputError("uplift report requires distinct receipt digests")
     comparison = compare_receipts(state_dir, digests)
     package = assemble_reproduction_package(comparison, tolerance)
     package_digest = reproduction_package_digest(package)

@@ -155,16 +155,15 @@ const parseTolerance = (value: string | undefined): Record<string, unknown> | nu
 
 export async function runTechtreeUpliftReport(args: ParsedCliArgs, configPath?: string): Promise<void> {
   const receiptDigests = getFlags(args, "receipt-digest");
-  if (receiptDigests.length !== 2) {
+  if (receiptDigests.length === 0) {
     throw new CliUsageError({
       code: receiptDigests.length === 0 ? "missing_required_argument" : "invalid_flag_value",
-      message: "--receipt-digest must be supplied exactly twice.",
+      message: "--receipt-digest must be supplied at least once.",
       missing: receiptDigests.length === 0 ? ["--receipt-digest"] : [],
     });
   }
-  const pair: [string, string] = [receiptDigests[0]!, receiptDigests[1]!];
   const result = await daemonCall("techtree.uplift.report", {
-    receipt_digests: pair,
+    receipt_digests: receiptDigests,
     tolerance: parseTolerance(getFlag(args, "reproduction-tolerance-json")),
   }, configPath);
   if (getBooleanFlag(args, "json")) printJson(result);

@@ -45,8 +45,8 @@ def test_locks_founder_policy_and_partitioned_matched_selection() -> None:
     assert protocol.development_task_ids
     assert protocol.validation_task_ids
     assert protocol.untouched_task_ids
-    assert [selection.partition for selection in protocol.selections] == ["validation", "untouched"]
-    assert [selection.matched_order for selection in protocol.selections] == [0, 1]
+    assert [selection.partition for selection in protocol.selections] == ["validation", *(["untouched"] * 10)]
+    assert [selection.matched_order for selection in protocol.selections] == list(range(11))
     assert protocol.optimizer_method == "manual"
     assert protocol.optimizer_candidate_count == 1
 

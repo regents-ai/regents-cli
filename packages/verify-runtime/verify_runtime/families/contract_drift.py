@@ -19,7 +19,7 @@ FAMILY_CONTRACT = FAMILY.to_dict()
 
 BASELINE_SKILL = b"# Contract repair\n\nEdit every file that appears related to the failure.\n"
 CANDIDATE_SKILL = b"# Contract repair\n\nChange exactly the one declared SKILL.md and preserve every other file.\n"
-TASKSET_VERSION = "contract-drift-taskset-v1"
+TASKSET_VERSION = "contract-drift-taskset-v2"
 TREATMENT_DIFF = (
     "--- a/SKILL.md\n"
     "+++ b/SKILL.md\n"
@@ -49,7 +49,10 @@ GRADER_SOURCE = b"deterministic-contract-drift-grader-v1\n"
 TASK_INPUTS = {
     "contract-drift-development-1": b"development-visible-contract-drift\n",
     "contract-drift-validation-1": b"validation-contract-drift\n",
-    "contract-drift-untouched-1": b"sealed-untouched-contract-drift\n",
+    **{
+        f"contract-drift-untouched-{index}": f"sealed-untouched-contract-drift-{index}\n".encode()
+        for index in range(1, 11)
+    },
 }
 _GRADER_DIGEST = sha256_bytes(GRADER_SOURCE)
 
@@ -61,7 +64,7 @@ def _task(task_id: str, partition: str, provenance: str) -> TaskInstance:
 TASKS = (
     _task("contract-drift-development-1", "development", "held_out"),
     _task("contract-drift-validation-1", "validation", "held_out"),
-    _task("contract-drift-untouched-1", "untouched", "public_reference"),
+    *(_task(f"contract-drift-untouched-{index}", "untouched", "public_reference") for index in range(1, 11)),
 )
 
 SLICES = tuple(

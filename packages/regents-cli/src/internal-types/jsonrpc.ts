@@ -137,7 +137,7 @@ export interface TechtreeVerifyReceiptShowResult {
 }
 
 export interface TechtreeUpliftReportParams {
-  receipt_digests: [string, string];
+  receipt_digests: readonly string[];
   tolerance?: Record<string, unknown> | null;
 }
 

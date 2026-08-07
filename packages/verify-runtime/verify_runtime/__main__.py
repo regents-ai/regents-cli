@@ -125,8 +125,8 @@ def _dispatch(request: Any) -> dict[str, Any]:
                 raise ValidationError("uplift report params must contain only state_dir, receipt_digests, and tolerance")
             if type(params["state_dir"]) is not str or not params["state_dir"]:
                 raise ValidationError("state_dir must be a non-empty string")
-            if type(params["receipt_digests"]) is not list or any(type(digest) is not str for digest in params["receipt_digests"]):
-                raise ValidationError("receipt_digests must be a string array")
+            if type(params["receipt_digests"]) is not list or not params["receipt_digests"] or any(type(digest) is not str for digest in params["receipt_digests"]):
+                raise ValidationError("receipt_digests must be a non-empty string array")
             if params["tolerance"] is not None and type(params["tolerance"]) is not dict:
                 raise ValidationError("tolerance must be an object or null")
             result = generate_uplift_report(Path(params["state_dir"]), params["receipt_digests"], params["tolerance"])

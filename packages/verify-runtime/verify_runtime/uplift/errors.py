@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 class UpliftInputError(ValueError):
-    """The supplied receipt pair cannot support a truthful report."""
+    """The supplied receipt set cannot support a truthful report."""
 
 
 class UpliftReceiptNotFound(FileNotFoundError):
@@ -16,4 +16,4 @@ class UpliftReportCollisionError(RuntimeError):
 
 
 class UpliftReportConflictError(RuntimeError):
-    """A receipt pair already has a report with different auxiliary inputs."""
+    """A receipt set already has a report with different auxiliary inputs."""

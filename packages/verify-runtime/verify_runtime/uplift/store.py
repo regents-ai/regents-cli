@@ -22,11 +22,11 @@ def _package_directory(state_dir: Path) -> Path:
     return state_dir / "verify" / "uplift" / "packages" / "sha256"
 
 
-def _pair_index_directory(state_dir: Path) -> Path:
-    return state_dir / "verify" / "uplift" / "pairs" / "sha256"
+def _set_index_directory(state_dir: Path) -> Path:
+    return state_dir / "verify" / "uplift" / "sets" / "sha256"
 
 
-def _pair_key(receipt_digests: tuple[str, str]) -> str:
+def _set_key(receipt_digests: tuple[str, ...]) -> str:
     return sha256_bytes(canonical_json_bytes(list(sorted(receipt_digests))))
 
 
@@ -88,20 +88,20 @@ def show_reproduction_package(state_dir: Path, digest: str) -> dict[str, Any]:
     }
 
 
-def _pair_index_path(state_dir: Path, receipt_digests: tuple[str, str]) -> Path:
-    return _pair_index_directory(state_dir) / f"{_pair_key(receipt_digests)}.json"
+def _set_index_path(state_dir: Path, receipt_digests: tuple[str, ...]) -> Path:
+    return _set_index_directory(state_dir) / f"{_set_key(receipt_digests)}.json"
 
 
-def _read_pair_index(path: Path) -> dict[str, Any] | None:
+def _read_set_index(path: Path) -> dict[str, Any] | None:
     if not path.exists():
         return None
     record = strict_json_loads(path.read_bytes())
     if type(record) is not dict or set(record) != {"schema_version", "receipt_digests", "report", "package"} or record["schema_version"] != 1:
-        raise UpliftReportConflictError(f"uplift report pair index is malformed: {path}")
+        raise UpliftReportConflictError(f"uplift report set index is malformed: {path}")
     return record
 
 
-def _sweep_stale_pair_links(path: Path) -> None:
+def _sweep_stale_set_links(path: Path) -> None:
     try:
         final = os.stat(path, follow_symlinks=False)
     except FileNotFoundError:
@@ -115,8 +115,8 @@ def _sweep_stale_pair_links(path: Path) -> None:
             temporary.unlink(missing_ok=True)
 
 
-def _reserve_pair_index(path: Path, payload: bytes) -> tuple[dict[str, Any], bool]:
-    """Atomically create or recover the pair reservation.
+def _reserve_set_index(path: Path, payload: bytes) -> tuple[dict[str, Any], bool]:
+    """Atomically create or recover the receipt-set reservation.
 
     Each writer flushes a private temporary file, then links it into the final
     no-overwrite path.  The winner verifies the installed bytes before its
@@ -124,9 +124,9 @@ def _reserve_pair_index(path: Path, payload: bytes) -> tuple[dict[str, Any], boo
     """
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    existing = _read_pair_index(path)
+    existing = _read_set_index(path)
     if existing is not None:
-        _sweep_stale_pair_links(path)
+        _sweep_stale_set_links(path)
         return existing, False
 
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
@@ -139,30 +139,30 @@ def _reserve_pair_index(path: Path, payload: bytes) -> tuple[dict[str, Any], boo
         try:
             os.link(temporary, path)
         except FileExistsError:
-            existing = _read_pair_index(path)
+            existing = _read_set_index(path)
             if existing is None:
-                raise UpliftReportConflictError("uplift report pair reservation disappeared")
-            _sweep_stale_pair_links(path)
+                raise UpliftReportConflictError("uplift report set reservation disappeared")
+            _sweep_stale_set_links(path)
             return existing, False
         installed = path.read_bytes()
         if installed != payload:
-            raise UpliftReportConflictError("uplift report pair reservation finalize verification failed")
-        installed_record = _read_pair_index(path)
+            raise UpliftReportConflictError("uplift report set reservation finalize verification failed")
+        installed_record = _read_set_index(path)
         if installed_record is None:
-            raise UpliftReportConflictError("uplift report pair reservation disappeared after finalize")
+            raise UpliftReportConflictError("uplift report set reservation disappeared after finalize")
         return installed_record, True
     finally:
         temporary.unlink(missing_ok=True)
 
 
-def _validated_receipts(state_dir: Path, receipt_digests: tuple[str, str]) -> tuple[EvaluationReceipt, ...]:
+def _validated_receipts(state_dir: Path, receipt_digests: tuple[str, ...]) -> tuple[EvaluationReceipt, ...]:
     return tuple(
         EvaluationReceipt.from_dict(show_receipt(state_dir, digest)["receipt"])
         for digest in sorted(receipt_digests)
     )
 
 
-def _existing_pair_result(
+def _existing_set_result(
     state_dir: Path,
     index: dict[str, Any],
     report_payload: bytes,
@@ -174,25 +174,24 @@ def _existing_pair_result(
     indexed_receipt_digests = index.get("receipt_digests")
     if (
         type(indexed_receipt_digests) is not list
-        or len(indexed_receipt_digests) != 2
         or any(type(digest) is not str for digest in indexed_receipt_digests)
-        or tuple(sorted(indexed_receipt_digests)) != expected_receipt_digests
+        or tuple(indexed_receipt_digests) != expected_receipt_digests
     ):
-        raise UpliftReportConflictError("uplift report pair index is anchored to different receipts")
+        raise UpliftReportConflictError("uplift report set index is anchored to different receipts")
     report_record = index["report"]
     package_record = index["package"]
     if type(report_record) is not dict or type(package_record) is not dict:
-        raise UpliftReportConflictError("uplift report pair index is malformed")
+        raise UpliftReportConflictError("uplift report set index is malformed")
     existing_report_digest = report_record.get("digest")
     existing_package_digest = package_record.get("digest")
     existing_report_id = report_record.get("id")
     if type(existing_report_id) is not str or type(existing_report_digest) is not str or type(existing_package_digest) is not str:
-        raise UpliftReportConflictError("uplift report pair index is malformed")
+        raise UpliftReportConflictError("uplift report set index is malformed")
 
     expected_report_digest = sha256_bytes(report_payload)
     if existing_report_digest != expected_report_digest or existing_package_digest != package_digest:
         raise UpliftReportConflictError(
-            f"receipt pair already has report {existing_report_id} ({existing_report_digest}); supplied auxiliary inputs conflict"
+            f"receipt set already has report {existing_report_id} ({existing_report_digest}); supplied auxiliary inputs conflict"
         )
 
     # An index is a recoverable reservation, not a dead end.  Re-emitting the
@@ -204,8 +203,10 @@ def _existing_pair_result(
     package_shown = _show(_package_directory(state_dir), existing_package_digest, kind="reproduction package")
     existing_report = UpliftReport.from_dict(shown["payload"])
     if existing_report.report_id != existing_report_id:
-        raise UpliftReportConflictError("uplift report pair index does not name its stored report")
-    ReproductionPackage.from_dict(package_shown["payload"])
+        raise UpliftReportConflictError("uplift report set index does not name its stored report")
+    existing_package = ReproductionPackage.from_dict(package_shown["payload"])
+    if existing_package.receipt_digests != expected_receipt_digests:
+        raise UpliftReportConflictError("uplift report set index package is anchored to different receipts")
     existing_report.validate_against_receipts(receipts)
     if existing_package_digest == package_digest and canonical_json_bytes(existing_report.to_dict()) == report_payload:
         return {
@@ -215,7 +216,7 @@ def _existing_pair_result(
             "idempotent": True,
         }
     raise UpliftReportConflictError(
-        f"receipt pair already has report {existing_report.report_id} ({existing_report_digest}); supplied auxiliary inputs conflict"
+        f"receipt set already has report {existing_report.report_id} ({existing_report_digest}); supplied auxiliary inputs conflict"
     )
 
 
@@ -223,26 +224,32 @@ def emit_uplift_result(
     state_dir: Path,
     report: UpliftReport,
     package: ReproductionPackage,
-    receipt_digests: tuple[str, str],
+    receipt_digests: tuple[str, ...],
 ) -> dict[str, Any]:
     validated_report = UpliftReport.from_dict(report.to_dict())
-    if len(receipt_digests) != 2 or any(type(digest) is not str for digest in receipt_digests):
-        raise UpliftReportConflictError("uplift result requires two receipt digests from the immutable receipt store")
+    if not receipt_digests or any(type(digest) is not str for digest in receipt_digests):
+        raise UpliftReportConflictError("uplift result requires a non-empty receipt set from the immutable receipt store")
     normalized_receipt_digests = tuple(sorted(receipt_digests))
+    if len(set(normalized_receipt_digests)) != len(normalized_receipt_digests):
+        raise UpliftReportConflictError("uplift result requires distinct receipt digests")
     receipts = _validated_receipts(state_dir, normalized_receipt_digests)
+    if validated_report.receipt_digests != normalized_receipt_digests:
+        raise UpliftReportConflictError("uplift report is not keyed to the canonical receipt set")
     validated_report.validate_against_receipts(receipts)
     validated_package = validated_reproduction_package(package)
+    if validated_package.receipt_digests != normalized_receipt_digests:
+        raise UpliftReportConflictError("reproduction package is not keyed to the canonical receipt set")
     package_digest = reproduction_package_digest(validated_package)
     if validated_report.reproduction_package_digest != package_digest:
         raise UpliftReportConflictError("uplift report does not reference the assembled reproduction package")
     report_payload = canonical_json_bytes(validated_report.to_dict())
     package_payload = reproduction_package_bytes(validated_package)
     report_digest = sha256_bytes(report_payload)
-    index_path = _pair_index_path(state_dir, validated_report.receipt_digests)
-    existing = _read_pair_index(index_path)
+    index_path = _set_index_path(state_dir, validated_report.receipt_digests)
+    existing = _read_set_index(index_path)
     if existing is not None:
-        _sweep_stale_pair_links(index_path)
-        return _existing_pair_result(state_dir, existing, report_payload, package_payload, receipts, package_digest)
+        _sweep_stale_set_links(index_path)
+        return _existing_set_result(state_dir, existing, report_payload, package_payload, receipts, package_digest)
 
     index_record = {
         "schema_version": 1,
@@ -251,9 +258,9 @@ def emit_uplift_result(
         "package": {"digest": package_digest},
     }
     index_bytes = canonical_json_bytes(index_record)
-    reserved, created = _reserve_pair_index(index_path, index_bytes)
+    reserved, created = _reserve_set_index(index_path, index_bytes)
     if not created:
-        return _existing_pair_result(state_dir, reserved, report_payload, package_payload, receipts, package_digest)
+        return _existing_set_result(state_dir, reserved, report_payload, package_payload, receipts, package_digest)
     package_pointer = _emit(_package_directory(state_dir), package_payload, kind="reproduction package")
     report_pointer = _emit(_report_directory(state_dir), report_payload, kind="Uplift report")
     return {"report_pointer": report_pointer, "reproduction_package": package_pointer, "report": validated_report.to_dict(), "idempotent": False}
@@ -269,7 +276,9 @@ def show_uplift_report(state_dir: Path, digest: str) -> dict[str, Any]:
         if package_record is None:
             raise ValueError("Uplift report package status is available without a package digest")
         package = _show(_package_directory(state_dir), package_record, kind="reproduction package")
-        ReproductionPackage.from_dict(package["payload"])
+        archived_package = ReproductionPackage.from_dict(package["payload"])
+        if archived_package.receipt_digests != report.receipt_digests:
+            raise ValueError("Uplift report package is not keyed to the canonical receipt set")
     return {
         "schema_version": 1,
         "algorithm": shown["algorithm"],

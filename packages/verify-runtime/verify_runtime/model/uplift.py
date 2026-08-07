@@ -33,7 +33,7 @@ PROVENANCE = TaskProvenance
 OUTCOMES = {"positive", "null", "negative", "inconclusive", "invalid"}
 PROVENANCES = TASK_PROVENANCES
 EVIDENCE_CLASS = "single_run"
-REPRODUCTION_STATUS = "not_run"
+REPRODUCTION_STATUS = "none"
 REPRODUCTION_PACKAGE_STATUSES = {"available", "absent"}
 
 
@@ -589,7 +589,7 @@ class ActionReceipt:
 class UpliftReport:
     schema_version: int
     report_id: str
-    receipt_digests: tuple[str, str]
+    receipt_digests: tuple[str, ...]
     protocol_id: str
     family_id: str
     arms: tuple[ArmIdentity, ...]
@@ -660,32 +660,8 @@ class UpliftReport:
         return content_id("uplift-report", identity)
 
     def validate_against_receipts(self, receipts: Sequence["EvaluationReceipt"]) -> None:
-        if len(receipts) != 2:
-            raise ModelValidationError("uplift report must be anchored to two receipts")
-        actual_digests = tuple(sorted(receipt.content_digest() for receipt in receipts))
-        if actual_digests != tuple(sorted(self.receipt_digests)):
-            raise ModelValidationError("uplift report receipt digests do not match the embedded receipts")
-        actual_bindings = {
-            receipt.task_id: ReceiptTaskBinding(
-                receipt.task_id,
-                receipt.baseline_run.provenance,
-                receipt.baseline_run_digest,
-                receipt.candidate_run_digest,
-            )
-            for receipt in receipts
-        }
-        if {binding.task_id: binding for binding in self.receipt_bindings} != actual_bindings:
-            raise ModelValidationError("uplift report task provenance is not anchored to the receipt records")
-        if self.protocol_id != receipts[0].protocol.protocol_id or self.family_id != receipts[0].protocol.family_id:
-            raise ModelValidationError("uplift report protocol identity does not match the receipts")
-        if any(receipt.protocol.to_dict() != receipts[0].protocol.to_dict() for receipt in receipts[1:]):
-            raise ModelValidationError("uplift report receipts do not share one locked protocol")
-        for receipt in receipts:
-            binding = actual_bindings.get(receipt.task_id)
-            if binding is None or binding.provenance != receipt.baseline_run.provenance:
-                raise ModelValidationError("uplift report receipt provenance is unmatched")
-            if binding.baseline_run_digest != receipt.baseline_run_digest or binding.candidate_run_digest != receipt.candidate_run_digest:
-                raise ModelValidationError("uplift report run digests are unmatched")
+        if not receipts:
+            raise ModelValidationError("uplift report must be anchored to a non-empty receipt set")
 
         # Rebuild the comparison from the authoritative receipt records.  The
         # report may carry derived summaries and human-facing disclosures, but
@@ -696,6 +672,12 @@ class UpliftReport:
             expected = _compare_receipt_records(tuple((receipt.content_digest(), receipt) for receipt in receipts))
         except (TypeError, ValueError, KeyError) as error:
             raise ModelValidationError(f"receipt comparison is invalid: {error}") from error
+        if self.receipt_digests != expected.receipt_digests:
+            raise ModelValidationError("uplift report receipt digests are not in canonical lexical order")
+        if self.receipt_bindings != expected.receipt_bindings:
+            raise ModelValidationError("uplift report receipt bindings are not in locked matched_order")
+        if self.protocol_id != expected.protocol.protocol_id or self.family_id != expected.protocol.family_id:
+            raise ModelValidationError("uplift report protocol identity does not match the receipts")
         expected_arms = {arm.arm_id: arm for arm in expected.arms}
         actual_arms = {arm.arm_id: arm for arm in self.arms}
         if any(actual_arms.get(arm_id) != arm for arm_id, arm in expected_arms.items()):
@@ -750,9 +732,13 @@ class UpliftReport:
         comparison = require_record(record["comparison"], "uplift_report.comparison")
         require_exact_keys(comparison, {"receipt_digests", "protocol_id", "family_id"}, "uplift_report.comparison")
         digests = require_type(comparison["receipt_digests"], list, "uplift_report.comparison.receipt_digests")
-        if len(digests) != 2:
-            raise ModelValidationError("uplift_report.comparison.receipt_digests must contain two digests")
+        if not digests:
+            raise ModelValidationError("uplift_report.comparison.receipt_digests must be non-empty")
         receipt_digests = tuple(require_sha256(item, f"uplift_report.comparison.receipt_digests[{index}]") for index, item in enumerate(digests))
+        if len(set(receipt_digests)) != len(receipt_digests):
+            raise ModelValidationError("uplift_report.comparison.receipt_digests must be distinct")
+        if receipt_digests != tuple(sorted(receipt_digests)):
+            raise ModelValidationError("uplift_report.comparison.receipt_digests must use canonical lexical order")
         arms_raw = require_type(record["arms"], list, "uplift_report.arms")
         arms = tuple(ArmIdentity.from_dict(item, f"uplift_report.arms[{index}]") for index, item in enumerate(arms_raw))
         arm_ids = {arm.arm_id for arm in arms}
@@ -793,7 +779,7 @@ class UpliftReport:
             raise ModelValidationError("uplift_report.evidence_class must be single_run")
         reproduction_status = require_string(record["reproduction_status"], "uplift_report.reproduction_status")
         if reproduction_status != REPRODUCTION_STATUS:
-            raise ModelValidationError("uplift_report.reproduction_status must be not_run")
+            raise ModelValidationError("uplift_report.reproduction_status must be none")
         reproduction_package_status = require_string(record["reproduction_package_status"], "uplift_report.reproduction_package_status")
         if reproduction_package_status not in REPRODUCTION_PACKAGE_STATUSES:
             raise ModelValidationError("uplift_report.reproduction_package_status is invalid")
@@ -858,11 +844,11 @@ class UpliftReport:
         if action_receipt.action_id != content_id("action", {"report_id": report_id, "package_digest": package_digest}):
             raise ModelValidationError("uplift_report action receipt is not derived from the report")
         if action_receipt.idempotency_key != content_id("uplift-action", {"receipt_digests": list(receipt_digests)}):
-            raise ModelValidationError("uplift_report action receipt idempotency key is not pair-keyed")
+            raise ModelValidationError("uplift_report action receipt idempotency key is not keyed to the canonical receipt set")
         return cls(
             require_schema_version(record["schema_version"], "uplift_report.schema_version"),
             report_id,
-            receipt_digests,  # type: ignore[arg-type]
+            receipt_digests,
             require_identifier(comparison["protocol_id"], "uplift_report.comparison.protocol_id"),
             require_identifier(comparison["family_id"], "uplift_report.comparison.family_id"),
             arms,

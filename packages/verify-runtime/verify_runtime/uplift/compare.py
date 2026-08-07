@@ -43,7 +43,7 @@ from .errors import UpliftInputError, UpliftReceiptNotFound
 class ComparisonData:
     """The deterministic, non-persisted result used by report and package builders."""
 
-    receipt_digests: tuple[str, str]
+    receipt_digests: tuple[str, ...]
     receipts: tuple[EvaluationReceipt, ...]
     protocol: EvaluationProtocol
     baseline_capsule: Capsule
@@ -259,10 +259,10 @@ def _disclosures(protocol: EvaluationProtocol, baseline: Capsule, candidate: Cap
 
 
 def _compare_receipt_records(receipt_inputs: Sequence[tuple[str, EvaluationReceipt]]) -> ComparisonData:
-    """Compare exactly two records that were loaded and verified by a store."""
+    """Compare a non-empty set of records loaded and verified by one store."""
 
-    if len(receipt_inputs) != 2:
-        _fail("uplift comparison requires exactly two receipt digests")
+    if not receipt_inputs:
+        _fail("uplift comparison requires a non-empty receipt set")
     normalized: list[tuple[str, EvaluationReceipt]] = []
     for index, (digest_value, receipt) in enumerate(receipt_inputs):
         digest = _digest(digest_value, f"receipt_digests[{index}]")
@@ -276,23 +276,27 @@ def _compare_receipt_records(receipt_inputs: Sequence[tuple[str, EvaluationRecei
             _fail(f"receipt run identity does not match its embedded run content: {digest}")
         normalized.append((digest, receipt))
     normalized.sort(key=lambda item: item[0])
-    if normalized[0][0] == normalized[1][0]:
-        _fail("uplift comparison requires two distinct receipt digests")
+    normalized_digests = tuple(digest for digest, _ in normalized)
+    if len(set(normalized_digests)) != len(normalized_digests):
+        _fail("uplift comparison requires distinct receipt digests")
     protocol = normalized[0][1].protocol
-    if normalized[1][1].protocol.to_dict() != protocol.to_dict():
+    if any(receipt.protocol.to_dict() != protocol.to_dict() for _, receipt in normalized[1:]):
         _fail("receipt protocols are unmatched")
     selections = {selection.task_id: selection for selection in protocol.selections}
     if len(selections) != len(protocol.selections):
         _fail("locked protocol contains duplicate matched selections")
-    if len(protocol.selections) != 2:
-        _fail("uplift comparison requires a locked two-task receipt pair")
+    if not protocol.selections:
+        _fail("locked protocol contains no matched selections")
+    matched_orders = tuple(selection.matched_order for selection in protocol.selections)
+    if len(set(matched_orders)) != len(matched_orders) or set(matched_orders) != set(range(len(matched_orders))):
+        _fail("locked protocol matched_order positions are not canonical")
     seen_tasks: set[str] = set()
     baseline_static: dict[str, Any] | None = None
     candidate_static: dict[str, Any] | None = None
     for _, receipt in normalized:
         _validate_receipt(receipt, protocol)
         if receipt.task_id in seen_tasks:
-            _fail(f"receipt pair contains a duplicate task: {receipt.task_id}")
+            _fail(f"receipt set contains a duplicate task: {receipt.task_id}")
         seen_tasks.add(receipt.task_id)
         current_baseline = _static_capsule(receipt.baseline_capsule)
         current_candidate = _static_capsule(receipt.candidate_capsule)
@@ -300,9 +304,9 @@ def _compare_receipt_records(receipt_inputs: Sequence[tuple[str, EvaluationRecei
             baseline_static = current_baseline
             candidate_static = current_candidate
         elif current_baseline != baseline_static or current_candidate != candidate_static:
-            _fail("receipt capsules are unmatched across the pair")
+            _fail("receipt capsules are unmatched across the receipt set")
     if seen_tasks != set(selections):
-        _fail("receipt pair does not exactly cover the locked matched selections")
+        _fail("receipt set does not exactly cover the locked matched selections")
 
     ordered = tuple(sorted((receipt for _, receipt in normalized), key=lambda receipt: selections[receipt.task_id].matched_order))
     differences = tuple(_task_difference(receipt, selections[receipt.task_id], protocol) for receipt in ordered)
@@ -331,7 +335,7 @@ def _compare_receipt_records(receipt_inputs: Sequence[tuple[str, EvaluationRecei
     baseline_capsule = ordered[0].baseline_capsule
     candidate_capsule = ordered[0].candidate_capsule
     return ComparisonData(
-        receipt_digests=(normalized[0][0], normalized[1][0]),
+        receipt_digests=normalized_digests,
         receipts=ordered,
         protocol=protocol,
         baseline_capsule=baseline_capsule,
@@ -361,18 +365,18 @@ def _compare_receipt_records(receipt_inputs: Sequence[tuple[str, EvaluationRecei
             "Receipt digests and store binding are tamper-evident within the runner emission path and checkable by the report verifier.",
             "Cryptographic attestation is the post-v0.1 proof layer; receipt-store binding and the queued post-freeze independent report verifier are the v0.1 checkable layer.",
         ),
-        freshness=Freshness("freshness-not-rated", None, ("a new receipt pair supersedes this report", "the locked protocol or capsule identity changes")),
+        freshness=Freshness("freshness-not-rated", None, ("a new receipt set supersedes this report", "the locked protocol or capsule identity changes")),
     )
 
 
 def compare_receipts(state_dir: Path, receipt_digests: Sequence[str]) -> ComparisonData:
-    """Load exactly two archived receipts and compare their verified records."""
+    """Load a non-empty archived receipt set and compare its verified records."""
 
-    if len(receipt_digests) != 2:
-        _fail("uplift comparison requires exactly two receipt digests")
+    if not receipt_digests:
+        _fail("uplift comparison requires a non-empty receipt set")
     normalized_digests = tuple(sorted(_digest(value, f"receipt_digests[{index}]") for index, value in enumerate(receipt_digests)))
-    if normalized_digests[0] == normalized_digests[1]:
-        _fail("uplift comparison requires two distinct receipt digests")
+    if len(set(normalized_digests)) != len(normalized_digests):
+        _fail("uplift comparison requires distinct receipt digests")
     stored: list[tuple[str, EvaluationReceipt]] = []
     for digest in normalized_digests:
         try:
@@ -444,7 +448,7 @@ def make_report_without_package(data: ComparisonData, package_digest: str, *, to
         limitations=limitations,
         freshness=data.freshness,
         evidence_class="single_run",
-        reproduction_status="not_run",
+        reproduction_status="none",
         reproduction_package_status="available",
         decision_sentence=decision_sentence(data),
         reproduction_package_digest=package_digest,

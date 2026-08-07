@@ -283,7 +283,7 @@ Total commands: 220.
 - `regents techtree forge family validate` - Validate the closed family contract and a one-file SKILL.md change.
 - `regents techtree notebooks init` - Set up notebooks.
 - `regents techtree notebooks pair` - Pair notebooks.
-- `regents techtree uplift report` - Compare two receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.
+- `regents techtree uplift report` - Compare a non-empty set of receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.
 - `regents techtree verify receipt show` - Show and verify an immutable local evaluation receipt.
 - `regents techtree verify run` - Run the built-in matched Verify comparison and emit local receipts.
 - `regents techtree verify status` - Show a local Verify comparison without changing it.

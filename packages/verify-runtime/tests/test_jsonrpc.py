@@ -82,7 +82,7 @@ def test_verify_run_status_and_receipt_show(tmp_path: Path) -> None:
         },
     })["result"]
     assert run["status"] == "completed"
-    assert len(run["receipts"]) == 2
+    assert len(run["receipts"]) == 11
     status = call({
         "jsonrpc": "2.0",
         "id": "status",
@@ -99,6 +99,19 @@ def test_verify_run_status_and_receipt_show(tmp_path: Path) -> None:
         })["result"]
         assert shown["verified"] is True
         assert shown["receipt"]["capsules"].keys() == {"baseline", "candidate"}
+
+
+def test_uplift_rpc_rejects_an_empty_receipt_set(tmp_path: Path) -> None:
+    response = call({
+        "jsonrpc": "2.0",
+        "id": "uplift",
+        "method": "techtree.uplift.report",
+        "params": {"state_dir": str(tmp_path), "receipt_digests": [], "tolerance": None},
+    })
+    assert response["error"] == {
+        "code": -32602,
+        "message": "receipt_digests must be a non-empty string array",
+    }
 
 
 def test_hermes_runner_is_config_gated(tmp_path: Path) -> None:
@@ -142,7 +155,7 @@ def test_prime_runner_is_config_gated_and_reachable(tmp_path: Path, monkeypatch:
         env={"REGENT_VERIFY_PRIME_FACTORY": "prime_fixture_factory:create_executor", "PYTHONPATH": python_path},
     )
     assert configured["result"]["status"] == "completed"
-    assert len(configured["result"]["receipts"]) == 2
+    assert len(configured["result"]["receipts"]) == 11
 
 
 def test_hermes_resolution_failure_is_truthful_infrastructure_error(tmp_path: Path) -> None:

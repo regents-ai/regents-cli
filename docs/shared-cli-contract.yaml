@@ -878,7 +878,7 @@ command_groups:
     interface: runtime
     auth_mode: none
     output_envelope: strict-closed-json
-    note: Uplift consumes only two receipt-backed local receipt digests from their emitting store, archives a deterministic report and reproduction package, and never executes the package. Local receipts remain operator-trusted evidence; receipt-store binding and the post-freeze independent report verifier are the v0.1 checkable layer, while cryptographic attestation is the planned post-v0.1 proof layer. The optional reproduction tolerance is a nullable founder-supplied package field.
+    note: Uplift consumes a non-empty set of receipt-backed local receipt digests from their emitting store, archives a deterministic report and reproduction package, and never executes the package. Local receipts remain operator-trusted evidence; receipt-store binding and the post-freeze independent report verifier are the v0.1 checkable layer, while cryptographic attestation is the planned post-v0.1 proof layer. The optional reproduction tolerance is a nullable founder-supplied package field.
     agent_metadata:
       category: techtree-uplift
       prompt_behavior: never_prompt
@@ -889,11 +889,11 @@ command_groups:
       async_behavior: synchronous
       input_mode: flags
       examples:
-        - regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --json
-        - regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --reproduction-tolerance-json '{"score_millis":25}' --json
+        - regents techtree uplift report --receipt-digest <receipt-1> --receipt-digest <receipt-2> --receipt-digest <receipt-n> --json
+        - regents techtree uplift report --receipt-digest <receipt-1> --receipt-digest <receipt-2> --receipt-digest <receipt-n> --reproduction-tolerance-json '{"score_millis":25}' --json
       commands:
         techtree uplift report:
-          summary: Compare two receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.
+          summary: Compare a non-empty set of receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.
           mutation_class: local-write
           retry_behavior: never_retry
           next_step: regents techtree verify run --builtin --fixture --json
@@ -905,7 +905,7 @@ command_groups:
           type: string
           required: true
           repeatable: true
-          description: SHA-256 receipt digest; supply exactly two digests from one matched Verify comparison.
+          description: Supply at least one digest; all digests must come from the same locked comparison, exactly one per matched selection.
         - name: reproduction-tolerance-json
           type: string
           required: false

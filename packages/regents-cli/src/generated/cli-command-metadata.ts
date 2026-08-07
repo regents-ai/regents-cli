@@ -8439,7 +8439,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "string",
         "required": true,
         "repeatable": true,
-        "description": "SHA-256 receipt digest; supply exactly two digests from one matched Verify comparison."
+        "description": "Supply at least one digest; all digests must come from the same locked comparison, exactly one per matched selection."
       },
       {
         "name": "reproduction-tolerance-json",
@@ -8449,8 +8449,8 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       }
     ],
     "examples": [
-      "regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --json",
-      "regents techtree uplift report --receipt-digest <baseline-receipt> --receipt-digest <candidate-receipt> --reproduction-tolerance-json '{\"score_millis\":25}' --json"
+      "regents techtree uplift report --receipt-digest <receipt-1> --receipt-digest <receipt-2> --receipt-digest <receipt-n> --json",
+      "regents techtree uplift report --receipt-digest <receipt-1> --receipt-digest <receipt-2> --receipt-digest <receipt-n> --reproduction-tolerance-json '{\"score_millis\":25}' --json"
     ],
     "agent_metadata": {
       "category": "techtree-uplift",
@@ -8461,10 +8461,10 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "pagination": "none",
       "async_behavior": "synchronous",
       "input_mode": "flags",
-      "summary": "Compare two receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.",
+      "summary": "Compare a non-empty set of receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.",
       "next_step": "regents techtree verify run --builtin --fixture --json"
     },
-    "summary": "Compare two receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.",
+    "summary": "Compare a non-empty set of receipt-backed local receipts and archive the uplift report and never-executed reproduction package; human output leads with the measured result and evidence strength.",
     "next_step": "regents techtree verify run --builtin --fixture --json"
   },
   "techtree verify receipt show": {

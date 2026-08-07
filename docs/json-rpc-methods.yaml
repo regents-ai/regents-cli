@@ -124,8 +124,7 @@ methods:
       receipt_digests:
         type: array
         items: string
-        min_items: 2
-        max_items: 2
+        min_items: 1
       tolerance:
         type: object-or-null
   - name: techtree.notebooks.init

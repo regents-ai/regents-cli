@@ -93,3 +93,16 @@ def test_model_layer_imports_neither_runner_nor_adapters() -> None:
             elif isinstance(node, ast.ImportFrom) and node.module:
                 imports.append(node.module)
         assert not any(name.startswith(forbidden) for name in imports), source_path
+
+
+@pytest.mark.parametrize("orders", ([0, 0], [0, 2]))
+def test_protocol_rejects_duplicate_or_noncanonical_matched_order(orders: list[int]) -> None:
+    identity = FixtureExecutor().resolve_identity()
+    baseline = resolve_capsule(declared_capsule("builtin://baseline/SKILL.md", executor="fixture"), BASELINE_SKILL, identity=identity)
+    candidate = resolve_capsule(declared_capsule("builtin://candidate/SKILL.md", executor="fixture"), CANDIDATE_SKILL, identity=identity)
+    record = lock_builtin_protocol(baseline, candidate).to_dict()
+    record["matched_selections"] = [dict(selection) for selection in record["matched_selections"]]
+    record["matched_selections"][0]["matched_order"] = orders[0]
+    record["matched_selections"][1]["matched_order"] = orders[1]
+    with pytest.raises(ValueError, match="matched_order positions must be canonical"):
+        EvaluationProtocol.from_dict(record)

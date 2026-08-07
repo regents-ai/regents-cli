@@ -12,19 +12,21 @@ describe("techtree uplift report command", () => {
     daemonCallMock.mockResolvedValue({ schema_version: 1, status: "completed" });
   });
 
-  it("passes exactly two receipt digests and a nullable tolerance to the daemon", async () => {
+  it("passes a receipt set and a nullable tolerance to the daemon", async () => {
     const { runTechtreeUpliftReport } = await import("../../src/commands/techtree-uplift.js");
     const { parseCliArgs } = await import("../../src/parse.js");
     const first = "a".repeat(64);
     const second = "b".repeat(64);
+    const third = "c".repeat(64);
     const output = await captureOutput(() => runTechtreeUpliftReport(parseCliArgs([
       "--receipt-digest", first,
       "--receipt-digest", second,
+      "--receipt-digest", third,
       "--reproduction-tolerance-json", '{"score_millis":25}',
       "--json",
     ]), "/tmp/regent.config.json"));
     expect(daemonCallMock).toHaveBeenCalledWith("techtree.uplift.report", {
-      receipt_digests: [first, second],
+      receipt_digests: [first, second, third],
       tolerance: { score_millis: 25 },
     }, "/tmp/regent.config.json");
     expect(parsePrintedJson(output.stdout)).toEqual({ schema_version: 1, status: "completed" });
@@ -34,8 +36,7 @@ describe("techtree uplift report command", () => {
     const { runTechtreeUpliftReport } = await import("../../src/commands/techtree-uplift.js");
     const { parseCliArgs } = await import("../../src/parse.js");
     const digest = "a".repeat(64);
-    await expect(runTechtreeUpliftReport(parseCliArgs([]))).rejects.toThrow("supplied exactly twice");
-    await expect(runTechtreeUpliftReport(parseCliArgs(["--receipt-digest", digest]))).rejects.toThrow("supplied exactly twice");
+    await expect(runTechtreeUpliftReport(parseCliArgs([]))).rejects.toThrow("supplied at least once");
     await expect(runTechtreeUpliftReport(parseCliArgs([
       "--receipt-digest", digest,
       "--receipt-digest", digest,

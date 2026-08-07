@@ -33,11 +33,12 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
         partition: tuple(task.task_id for task in tasks if task.partition == partition)
         for partition in ("development", "validation", "untouched")
     }
+    selected_tasks = (("validation", partitions["validation"][0]),) + tuple(
+        ("untouched", task_id) for task_id in partitions["untouched"]
+    )
     selections = tuple(
         MatchedSelection(task_id, partition, order, next(task.provenance for task in tasks if task.task_id == task_id))
-        for order, (partition, task_id) in enumerate(
-            (("validation", partitions["validation"][0]), ("untouched", partitions["untouched"][0]))
-        )
+        for order, (partition, task_id) in enumerate(selected_tasks)
     )
     identity = {
         "family_id": family.family_id,
@@ -72,7 +73,7 @@ def lock_builtin_protocol(baseline: Capsule, candidate: Capsule) -> EvaluationPr
         treatment_diff=TREATMENT_DIFF,
         exact_commands=(
             "regents techtree verify run --builtin --executor <fixture|hermes|prime> --json",
-            "regents techtree uplift report --receipt-digest <sha256> --receipt-digest <sha256> --json",
+            "regents techtree uplift report " + " ".join("--receipt-digest <sha256>" for _ in selections) + " --json",
         ),
         harness_settings=(("profile", "default"),),
         seeds=(),

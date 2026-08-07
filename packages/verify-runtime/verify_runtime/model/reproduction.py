@@ -59,7 +59,7 @@ def _pairs(value: Any, path: str) -> tuple[tuple[str, str], ...]:
 class ReproductionPackage:
     schema_version: int
     package_id: str
-    receipt_digests: tuple[str, str]
+    receipt_digests: tuple[str, ...]
     protocol: EvaluationProtocol
     capsules: dict[str, Capsule]
     taskset_version: str
@@ -113,9 +113,13 @@ class ReproductionPackage:
         record = require_record(value, "reproduction_package")
         require_exact_keys(record, {"schema_version", "package_id", "receipt_digests", "protocol", "capsules", "taskset_version", "baseline_configuration", "treatment_configuration", "treatment_skill", "treatment_diff", "versions", "exact_commands", "permissions", "tool_policy", "search_budget", "seeds", "artifact_hashes", "expected_output_schema", "harness_settings", "harness_deviations", "reproduction_tolerance", "assembly_status", "executed"}, "reproduction_package")
         digests = require_type(record["receipt_digests"], list, "reproduction_package.receipt_digests")
-        if len(digests) != 2:
-            raise ModelValidationError("reproduction_package.receipt_digests must contain two digests")
+        if not digests:
+            raise ModelValidationError("reproduction_package.receipt_digests must be non-empty")
         receipt_digests = tuple(require_sha256(item, f"reproduction_package.receipt_digests[{index}]") for index, item in enumerate(digests))
+        if len(set(receipt_digests)) != len(receipt_digests):
+            raise ModelValidationError("reproduction_package.receipt_digests must be distinct")
+        if receipt_digests != tuple(sorted(receipt_digests)):
+            raise ModelValidationError("reproduction_package.receipt_digests must use canonical lexical order")
         protocol = EvaluationProtocol.from_dict(record["protocol"])
         capsules_record = require_record(record["capsules"], "reproduction_package.capsules")
         require_exact_keys(capsules_record, {"baseline", "candidate"}, "reproduction_package.capsules")
@@ -141,7 +145,7 @@ class ReproductionPackage:
         return cls(
             require_schema_version(record["schema_version"], "reproduction_package.schema_version"),
             require_identifier(record["package_id"], "reproduction_package.package_id"),
-            receipt_digests,  # type: ignore[arg-type]
+            receipt_digests,
             protocol,
             capsules,
             require_identifier(record["taskset_version"], "reproduction_package.taskset_version"),

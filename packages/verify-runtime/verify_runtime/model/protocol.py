@@ -243,12 +243,19 @@ class EvaluationProtocol:
         treatment = require_record(record["treatment"], "protocol.treatment"); require_exact_keys(treatment, {"skill_source", "skill_content", "diff"}, "protocol.treatment")
         execution = require_record(record["execution"], "protocol.execution"); require_exact_keys(execution, {"exact_commands", "harness_settings", "seeds", "expected_output_schema"}, "protocol.execution")
         require_type(record["matched_selections"], list, "protocol.matched_selections")
+        selections = tuple(MatchedSelection.from_dict(item, f"protocol.matched_selections[{index}]") for index, item in enumerate(record["matched_selections"]))
+        task_ids = tuple(selection.task_id for selection in selections)
+        matched_orders = tuple(selection.matched_order for selection in selections)
+        if len(set(task_ids)) != len(task_ids):
+            raise ValueError("protocol.matched_selections must contain unique task ids")
+        if len(set(matched_orders)) != len(matched_orders) or set(matched_orders) != set(range(len(matched_orders))):
+            raise ValueError("protocol.matched_selections matched_order positions must be canonical")
         return cls(
             require_schema_version(record["schema_version"], "protocol.schema_version"), require_identifier(record["protocol_id"], "protocol.protocol_id"), require_identifier(record["family_id"], "protocol.family_id"),
             require_identifier(capsules["baseline"], "protocol.capsules.baseline"), require_identifier(capsules["candidate"], "protocol.capsules.candidate"),
             require_string(intervention["class"], "protocol.intervention.class"), tuple(require_string_list(intervention["changed_files"], "protocol.intervention.changed_files")),
             require_string(baseline["class"], "protocol.baseline.class"), require_string(baseline["justification"], "protocol.baseline.justification"),
-            tuple(MatchedSelection.from_dict(item, f"protocol.matched_selections[{index}]") for index, item in enumerate(record["matched_selections"])),
+            selections,
             tuple(require_identifier_list(partitions["development"], "protocol.partitions.development")), tuple(require_identifier_list(partitions["validation"], "protocol.partitions.validation")), tuple(require_identifier_list(partitions["untouched"], "protocol.partitions.untouched")),
             require_string(optimizer["method"], "protocol.optimizer_disclosure.method"), require_int(optimizer["candidate_count"], "protocol.optimizer_disclosure.candidate_count", minimum=1), tuple(require_identifier_list(optimizer["rejected_candidate_ids"], "protocol.optimizer_disclosure.rejected_candidate_ids")), VerifyPolicy.from_dict(record["policy"]),
             require_identifier(taskset["version"], "protocol.taskset.version"),

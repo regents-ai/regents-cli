@@ -22,8 +22,8 @@ const UPLIFT_RPC_ERROR_CODES: Readonly<Record<number, string>> = {
 };
 
 const nextSteps = (code: number): readonly string[] => code === -32007
-  ? ["Run `regents techtree verify run --builtin --fixture --json` to produce two receipts."]
-  : ["Correct the receipt pair and retry `regents techtree uplift report --receipt-digest <digest> --receipt-digest <digest> --json`."];
+  ? ["Run `regents techtree verify run --builtin --fixture --json` to produce a receipt set."]
+  : ["Correct the receipt set and retry `regents techtree uplift report --receipt-digest <digest>... --json`."];
 
 const unavailable = (message: string, cause?: unknown): JsonRpcError => new JsonRpcError(message, {
   code: "verify_runtime_unavailable",
