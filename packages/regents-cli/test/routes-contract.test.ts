@@ -43,7 +43,6 @@ describe("contract command route matching", () => {
       "autolaunch chat tail [scope...]",
       "autolaunch chat unread [scope...]",
       "autolaunch jobs watch",
-      "autolaunch launch monitor",
       "doctor",
       "feynman",
       "regent-staking account",
@@ -66,6 +65,13 @@ describe("contract command route matching", () => {
     for (const route of variadicRoutes) {
       expect(routeMatches(route, [...positionalsForRoute(route), "tail"]), route.command).toBe(true);
     }
+  });
+
+  it("keeps flag-based Autolaunch polling commands exact", () => {
+    const launchMonitor = cliRoutes.find((candidate) => candidate.command === "autolaunch launch monitor");
+
+    expect(launchMonitor?.variadicTail).toBe(false);
+    expect(routeMatches(launchMonitor!, ["autolaunch", "launch", "monitor", "extra"])).toBe(false);
   });
 
   it("does not let value slots consume known command words", () => {

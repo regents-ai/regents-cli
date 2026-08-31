@@ -108,7 +108,7 @@ export const autolaunchHandlers: CliHandlerRegistry = {
   "autolaunch prelaunch validate": { run: ({ parsedArgs, configPath }) => runAutolaunchPrelaunchValidate(parsedArgs, configPath) },
   "autolaunch prelaunch publish": { run: ({ parsedArgs, configPath }) => runAutolaunchPrelaunchPublish(parsedArgs, configPath) },
   "autolaunch launch run": { run: ({ parsedArgs, configPath }) => runAutolaunchLaunchRun(parsedArgs, configPath) },
-  "autolaunch launch monitor": { run: ({ parsedArgs, configPath }) => runAutolaunchLaunchMonitor(parsedArgs, configPath), variadicTail: true },
+  "autolaunch launch monitor": { run: ({ parsedArgs, configPath }) => runAutolaunchLaunchMonitor(parsedArgs, configPath) },
   "autolaunch launch finalize": { run: ({ parsedArgs, configPath }) => runAutolaunchLaunchFinalize(parsedArgs, configPath) },
   "autolaunch jobs watch": { run: ({ parsedArgs, configPath }) => runAutolaunchJobsWatch(parsedArgs, configPath), variadicTail: true },
   // Subject commands match an extra `<subject-id>` value slot beyond the command name.

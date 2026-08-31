@@ -62,7 +62,7 @@ The CLI pairs with the current Autolaunch site:
 ## Environment
 
 - `AUTOLAUNCH_BASE_URL`
-  Default: `http://127.0.0.1:4000`
+  Default: `https://regents.sh`. Set this explicitly when using a local Autolaunch server.
 - `AUTOLAUNCH_WALLET_ADDRESS`
   Optional website wallet address used by Safe setup commands.
 
@@ -220,7 +220,7 @@ regents autolaunch vesting release --job <job-id> [--submit]
 
 `launch finalize` is the preferred post-auction path. It either returns the prepared next transaction or, with `--submit`, sends it through the configured signer and registers the resulting transaction hash.
 
-`vesting status` is the preferred read surface for the vesting wallet. `vesting release` is still available directly when the release path is ready.
+`vesting status` is the preferred read surface for the vesting wallet. `vesting release` is still available directly when the release path is ready. Without `--submit`, it only prepares and prints the wallet action. Passing `--submit` signs and broadcasts the vesting release transaction with the configured wallet, so review the prepared action before using that flag.
 
 ## Advanced command groups
 
@@ -292,12 +292,6 @@ Successful launch output now includes the live V2 stack fields:
 
 Autolaunch still does not route the launch fee lane automatically into REGENT rewards. The Regent-side launch fee lane is still a direct treasury payout. The separate Base `regent-staking` rail can be funded manually after bridging and also receives the fixed subject-revenue skim.
 
-`launch preview`, `launch create`, and `jobs watch` return a `reputation_prompt` object in the JSON payload. It is the CLI-safe version of the optional follow-up step shown in the web app:
-
-- It explains that linking ENS and connecting a human World ID are optional trust improvements.
-- It includes the warning that skipping those steps can leave the launch looking less trusted.
-- It carries the current instructions and, when available, direct links for the ENS and World follow-up pages.
-
 ### Auctions
 
 ```bash
@@ -343,14 +337,14 @@ regents autolaunch contracts subject --subject <subject-id> [--json]
 
 These commands expose the same read model that powers the `/contracts` page in the Phoenix app.
 
-### Prepare-only contract actions
+### Prepared contract actions
 
 ```bash
 regents autolaunch strategy migrate --job <job-id> [--json]
 regents autolaunch auction claim-unused-tokens --job <job-id> [--json]
 regents autolaunch strategy sweep-token --job <job-id> [--json]
 regents autolaunch strategy sweep-quote-token --job <job-id> [--json]
-regents autolaunch vesting release --job <job-id> [--json]
+regents autolaunch vesting release --job <job-id> [--submit] [--json]
 
 regents autolaunch fee-registry get --job <job-id> [--json]
 
@@ -385,7 +379,7 @@ regents autolaunch factory revenue-share set-authorized-creator --account <addre
 regents autolaunch factory revenue-ingress set-authorized-creator --account <address> --enabled true|false [--json]
 ```
 
-These commands do not sign or broadcast. They return prepared transaction payloads so operators can submit them through the right signer or multisig flow.
+These commands prepare transaction payloads by default. Commands that explicitly list `--submit` can sign and broadcast only when the operator passes that flag; commands without `--submit` leave submission to the appropriate signer or multisig flow.
 
 ## JSON contract
 

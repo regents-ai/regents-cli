@@ -76,7 +76,6 @@ const agentIdentityPrerequisites = [
 ];
 
 const autolaunchPrerequisites = [
-  "Run `regents run` in another terminal.",
   "Run `regents auth login --audience autolaunch`.",
   "Run `regents identity ensure`.",
 ];
@@ -800,6 +799,21 @@ Object.assign(commandHelpOverlay, {
     nextStep: "Run `regents autolaunch agent readiness <id>` for the agent you plan to launch.",
     ifItFails: autolaunchFailureChecks,
   },
+  "autolaunch chat list": {
+    prerequisites: [],
+    auth: "No saved sign-in is needed.",
+    ifItFails: [
+      "If the service cannot be reached, check the configured Autolaunch URL and try again.",
+    ],
+  },
+  "autolaunch chat read <scope>": {
+    prerequisites: [],
+    auth: "No saved sign-in is needed.",
+    ifItFails: [
+      "If the scope is missing or unknown, run `regents autolaunch chat list` and copy a current scope.",
+      "If the service cannot be reached, check the configured Autolaunch URL and try again.",
+    ],
+  },
   "autolaunch agent readiness <id>": {
     summary: "Check one agent before spending time on launch setup.",
     usage: "regents autolaunch agent readiness <id> [--json]",
@@ -814,12 +828,12 @@ Object.assign(commandHelpOverlay, {
   "autolaunch prelaunch wizard": {
     summary: "Create or update the saved prelaunch plan for one agent.",
     usage:
-      "regents autolaunch prelaunch wizard --agent <id> --name <token-name> --symbol <symbol> --minimum-raise-quote <amount> --agent-safe-address <safe> [--connect-profile]",
+      "regents autolaunch prelaunch wizard --agent <id> --name <token-name> --symbol <symbol> --agent-safe-address <safe> [--minimum-raise-quote <amount>] [--connect-profile]",
     flags: [
       "--agent <id> - Agent being launched.",
       "--name <text> - Token name.",
       "--symbol <text> - Token symbol.",
-      "--minimum-raise-quote <amount> - Minimum $REGENT raise target, up to 18 decimals.",
+      "--minimum-raise-quote <amount> - Optional minimum $REGENT raise target, up to 18 decimals. Defaults to 0.",
       "--agent-safe-address <address> - Agent Safe that will control launch ownership.",
       "--plan <id> - Update an existing plan.",
       "--connect-profile - Start a profile connection link during the wizard.",
@@ -833,7 +847,7 @@ Object.assign(commandHelpOverlay, {
     prerequisites: [
       ...autolaunchPrerequisites,
       "Run `regents autolaunch safe wizard` first if you do not already have an Agent Safe address.",
-      "Know the token name, token symbol, minimum raise, and public launch copy before starting.",
+      "Know the token name, token symbol, and public launch copy before starting.",
     ],
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
     output: "Saves a local plan, validates it remotely, and shows the plan id plus launchable status.",
@@ -975,7 +989,7 @@ Object.assign(commandHelpOverlay, {
     examples: ["regents autolaunch jobs watch job_123 --watch --interval 5"],
     prerequisites: [...autolaunchPrerequisites, "Start this after a command prints a launch job id."],
     auth: "Needs Autolaunch sign-in and a saved Agent account.",
-    output: "Shows the latest job status and stops when the job is ready, failed, or blocked unless asked to keep watching.",
+    output: "Without --watch, shows the latest job status once. With --watch, polls until the job is ready, failed, or blocked.",
     nextStep: "Run the next command shown in the job output, usually launch monitor or finalize.",
     ifItFails: autolaunchFailureChecks,
   },

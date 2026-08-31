@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { CLI_COMMANDS } from "../src/command-registry.js";
+import { CLI_COMMAND_DETAILS_BY_COMMAND } from "../src/generated/cli-command-metadata.js";
 import { renderScopedHelp } from "../src/help.js";
 import { runCliEntrypoint } from "../src/index.js";
 import { captureOutput } from "../../../test-support/test-helpers.js";
@@ -43,8 +44,58 @@ describe("scoped CLI help", () => {
     expect(output.stdout).toContain("AUTOLAUNCH LAUNCH RUN HELP");
     expect(output.stdout).toContain("BEFORE YOU RUN THIS");
     expect(output.stdout).toContain("regents auth login --audience autolaunch");
+    expect(output.stdout).not.toContain("regents run");
     expect(output.stdout).toContain("IF THIS FAILS");
     expect(output.stdout).toContain("regents autolaunch prelaunch validate --plan <plan-id>");
+  });
+
+  it("keeps public Autolaunch chat reads free of sign-in prerequisites", async () => {
+    const list = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "chat", "list", "--help"]),
+    );
+    const read = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "chat", "read", "system", "--help"]),
+    );
+    const send = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "chat", "send", "system", "--help"]),
+    );
+
+    expect(list.stdout).toContain("No saved sign-in is needed.");
+    expect(read.stdout).toContain("No saved sign-in is needed.");
+    expect(list.stdout).not.toContain("regents auth login");
+    expect(read.stdout).not.toContain("regents auth login");
+    expect(send.stdout).toContain("regents auth login --audience autolaunch");
+  });
+
+  it("documents the optional prelaunch minimum raise", async () => {
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "prelaunch", "wizard", "--help"]),
+    );
+
+    expect(output.stdout).toContain("[--minimum-raise-quote <amount>]");
+    expect(output.stdout).toContain("Defaults to 0.");
+  });
+
+  it("documents vesting release submission in the contract and generated help", async () => {
+    const detail = CLI_COMMAND_DETAILS_BY_COMMAND["autolaunch vesting release"];
+    const output = await captureOutput(() =>
+      runCliEntrypoint(["autolaunch", "vesting", "release", "--help"]),
+    );
+
+    expect(detail.flags).toContainEqual({
+      name: "--submit",
+      type: "boolean",
+      required: false,
+      description:
+        "Sign and broadcast the prepared vesting release transaction with the configured wallet. This changes onchain state.",
+    });
+    expect(output.result).toBe(0);
+    expect(output.stdout).toContain(
+      "regents autolaunch vesting release --job <job-id> [--submit]",
+    );
+    expect(output.stdout).toContain(
+      "Sign and broadcast the prepared vesting release transaction with the configured wallet.",
+    );
   });
 
   it("renders setup skills help", async () => {
@@ -194,11 +245,10 @@ describe("scoped CLI help", () => {
 
         usage regents autolaunch jobs watch <job-id> [--watch] [--interval <seconds>] [--json]
         auth Needs Autolaunch sign-in and a saved Agent account.
-        output Shows the latest job status and stops when the job is ready, failed, or blocked unless asked to keep watching.
+        output Without --watch, shows the latest job status once. With --watch, polls until the job is ready, failed, or blocked.
         next Run the next command shown in the job output, usually launch monitor or finalize.
 
         ◆ BEFORE YOU RUN THIS
-        Run \`regents run\` in another terminal.
         Run \`regents auth login --audience autolaunch\`.
         Run \`regents identity ensure\`.
         Start this after a command prints a launch job id.

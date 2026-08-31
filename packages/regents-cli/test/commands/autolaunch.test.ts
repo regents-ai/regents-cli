@@ -1871,28 +1871,83 @@ describe("autolaunch CLI command group", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("rejects non-positive interval values for autolaunch jobs watch", async () => {
-    const output = await captureOutput(() =>
-      runCliEntrypoint([
-        "autolaunch",
-        "jobs",
-        "watch",
-        "job_123",
-        "--interval",
-        "0",
-      ]),
-    );
+  it.each([
+    {
+      command: ["autolaunch", "jobs", "watch", "job_123", "--interval"],
+      code: "missing_required_argument",
+      message: "--interval requires a positive integer value.",
+    },
+    {
+      command: ["autolaunch", "launch", "monitor", "--job", "job_123", "--interval"],
+      code: "missing_required_argument",
+      message: "--interval requires a positive integer value.",
+    },
+    {
+      command: ["autolaunch", "jobs", "watch", "job_123", "--interval", "2seconds"],
+      code: "invalid_flag_value",
+      message: "--interval must be a positive integer",
+    },
+    {
+      command: ["autolaunch", "launch", "monitor", "--job", "job_123", "--interval", "2seconds"],
+      code: "invalid_flag_value",
+      message: "--interval must be a positive integer",
+    },
+    {
+      command: ["autolaunch", "jobs", "watch", "job_123", "--interval", "1.5"],
+      code: "invalid_flag_value",
+      message: "--interval must be a positive integer",
+    },
+    {
+      command: ["autolaunch", "launch", "monitor", "--job", "job_123", "--interval", "1.5"],
+      code: "invalid_flag_value",
+      message: "--interval must be a positive integer",
+    },
+    {
+      command: ["autolaunch", "jobs", "watch", "job_123", "--interval", "0"],
+      code: "invalid_flag_value",
+      message: "--interval must be a positive integer",
+    },
+    {
+      command: ["autolaunch", "launch", "monitor", "--job", "job_123", "--interval", "0"],
+      code: "invalid_flag_value",
+      message: "--interval must be a positive integer",
+    },
+    {
+      command: ["autolaunch", "jobs", "watch", "job_123", "--watch", "extra"],
+      code: "invalid_flag_value",
+      message: "--watch does not accept a value",
+    },
+    {
+      command: ["autolaunch", "launch", "monitor", "--job", "job_123", "--watch", "extra"],
+      code: "invalid_flag_value",
+      message: "--watch does not accept a value",
+    },
+  ])("rejects malformed Autolaunch polling flags: $command", async ({ command, code, message }) => {
+    const output = await captureOutput(() => runCliEntrypoint(command));
 
-    expect(output.result).toBe(1);
+    expect(output.result).toBe(2);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(
-      parsePrintedJson<{ error: { message: string } }>(output.stderr),
-    ).toEqual({
-      error: {
-        code: "command_failed",
-        message: "--interval must be a positive number",
-        next_steps: ["regents autolaunch --help"],
-      },
+      parsePrintedJson<{ error: { code: string; message: string } }>(output.stderr),
+    ).toMatchObject({ error: { code, message } });
+  });
+
+  it.each([
+    {
+      command: ["autolaunch", "jobs", "watch", "job_123", "extra"],
+      code: "unexpected_argument",
+    },
+    {
+      command: ["autolaunch", "launch", "monitor", "extra", "--job", "job_123"],
+      code: "unknown_command",
+    },
+  ])("rejects extra positional arguments for Autolaunch polling: $command", async ({ command, code }) => {
+    const output = await captureOutput(() => runCliEntrypoint(command));
+
+    expect(output.result).toBe(2);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(parsePrintedJson<{ error: { code: string } }>(output.stderr)).toMatchObject({
+      error: { code },
     });
   });
 

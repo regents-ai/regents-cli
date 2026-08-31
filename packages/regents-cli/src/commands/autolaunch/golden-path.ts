@@ -30,7 +30,9 @@ import {
 import { printAgentSafeExplainer } from "./safe-explainer.js";
 import {
   configuredSigner,
+  parseBooleanFlag,
   parsePollingIntervalSeconds,
+  parseStrictPollingIntervalSeconds,
   requestJson,
   submitPreparedTxRequest,
   txRequestFromWalletAction,
@@ -769,8 +771,8 @@ export async function runAutolaunchLaunchMonitor(
   configPath?: string,
 ): Promise<void> {
   const jobId = requireArg(getFlag(args, "job"), "job");
-  const watch = getBooleanFlag(args, "watch");
-  const intervalSeconds = parsePollingIntervalSeconds(args);
+  const watch = parseBooleanFlag(args, "watch");
+  const intervalSeconds = parseStrictPollingIntervalSeconds(args);
 
   for (;;) {
     const payload = await requestJson(

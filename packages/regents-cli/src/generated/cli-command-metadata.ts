@@ -4688,6 +4688,12 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
         "type": "string",
         "required": true,
         "description": "Launch job id."
+      },
+      {
+        "name": "--submit",
+        "type": "boolean",
+        "required": false,
+        "description": "Sign and broadcast the prepared vesting release transaction with the configured wallet. This changes onchain state."
       }
     ],
     "examples": [
@@ -4708,6 +4714,7 @@ export const CLI_COMMAND_DETAILS_BY_COMMAND = {
       "safety_notice": "Regents apps and the CLI are in ALPHA testing and funds are not guaranteed safe in any shape or form"
     },
     "summary": "Release vesting.",
+    "usage": "regents autolaunch vesting release --job <job-id> [--submit]",
     "next_step": "Use `regents autolaunch jobs watch <job-id>`."
   },
   "autolaunch vesting status": {

@@ -1,3 +1,4 @@
+import { CliUsageError } from "../../cli-usage-error.js";
 import { getBooleanFlag, requirePositional, type ParsedCliArgs } from "../../parse.js";
 import {
   CLI_PALETTE,
@@ -7,7 +8,8 @@ import {
   renderKeyValuePanel,
 } from "../../printer.js";
 import {
-  parsePollingIntervalSeconds,
+  parseBooleanFlag,
+  parseStrictPollingIntervalSeconds,
   requestJson,
 } from "./shared.js";
 
@@ -66,9 +68,16 @@ export async function runAutolaunchJobsWatch(
   args: ParsedCliArgs,
   configPath?: string,
 ): Promise<void> {
+  if (args.positionals.length > 4) {
+    throw new CliUsageError({
+      code: "unexpected_argument",
+      message: `Unexpected argument: ${args.positionals[4]}`,
+    });
+  }
+
   const jobId = requirePositional(args, 3, "job-id");
-  const intervalSeconds = parsePollingIntervalSeconds(args);
-  const shouldWatch = getBooleanFlag(args, "watch");
+  const intervalSeconds = parseStrictPollingIntervalSeconds(args);
+  const shouldWatch = parseBooleanFlag(args, "watch");
 
   for (;;) {
     const payload = await requestJson(

@@ -6,6 +6,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
+import { CliUsageError } from "../../cli-usage-error.js";
 import {
   submitValidatedTransaction,
   type SupportedTransactionChainId,
@@ -338,8 +339,68 @@ export const parsePollingIntervalSeconds = (
 
   const parsedValue = Number.parseFloat(rawValue);
   if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
-    throw new Error(`--${flagName} must be a positive number`);
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `--${flagName} must be a positive number`,
+    });
   }
 
   return parsedValue;
+};
+
+export const parseStrictPollingIntervalSeconds = (
+  args: ParsedCliArgs,
+  flagName = "interval",
+  fallbackSeconds = 2,
+): number => {
+  const flagValue = args.flags.get(flagName);
+  if (flagValue === undefined) {
+    return fallbackSeconds;
+  }
+
+  const rawValue = Array.isArray(flagValue) ? flagValue.at(-1) : flagValue;
+  if (rawValue === true || rawValue === undefined) {
+    throw new CliUsageError({
+      code: "missing_required_argument",
+      message: `--${flagName} requires a positive integer value.`,
+      missing: [`--${flagName}`],
+    });
+  }
+
+  if (!/^[1-9]\d*$/u.test(rawValue)) {
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `--${flagName} must be a positive integer`,
+    });
+  }
+
+  const parsedValue = Number(rawValue);
+  if (!Number.isSafeInteger(parsedValue)) {
+    throw new CliUsageError({
+      code: "invalid_flag_value",
+      message: `--${flagName} must be a positive integer`,
+    });
+  }
+
+  return parsedValue;
+};
+
+export const parseBooleanFlag = (
+  args: ParsedCliArgs,
+  flagName: string,
+): boolean => {
+  const flagValue = args.flags.get(flagName);
+  if (flagValue === undefined) {
+    return false;
+  }
+
+  const flagValues = Array.isArray(flagValue) ? flagValue : [flagValue];
+  if (flagValues.every((value) => value === true)) {
+    return true;
+  }
+
+  throw new CliUsageError({
+    code: "invalid_flag_value",
+    message: `--${flagName} does not accept a value`,
+  });
 };

@@ -41,7 +41,7 @@ x-regent-chat-room-contract:
   owner: regents-cli
   product_room_authority: Product room keys and membership rules stay in Platform and Autolaunch contracts.
   thread_identifier_boundary:
-    chat_commands: "Chat scopes: system, topic:<slug>, node:<node-id>, dm:<walletA>:<walletB>"
+    chat_commands: "Chat scopes: system, topic:<slug>, node:<node-id>, token:<subject-id>, dm:<walletA>:<walletB>"
     dm_scope_rule: >-
       DM scopes are dm:<walletA>:<walletB> with both wallet addresses lowercased,
       lexicographically sorted, and unequal.
