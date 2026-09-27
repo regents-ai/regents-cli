@@ -1622,7 +1622,7 @@ export interface operations {
                 };
             };
             429: components["responses"]["RateLimitError"];
-            /** @description SIWA HTTP verification is not configured */
+            /** @description SIWA HTTP verification is not configured, or the verified request could not be recorded */
             500: {
                 headers: {
                     [name: string]: unknown;

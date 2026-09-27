@@ -8,17 +8,11 @@
 
 Regents CLI, built by Regents Labs, publishes the `regents` command. It is the agent and operator control surface for Regent: install local agent tools, keep local Regent access open, check readiness, manage identity, and use Regents wallet and payment tools.
 
-Each product owns its CLI: `regents` (`@regentslabs/cli`), `autolaunch`
-(`@regentslabs/autolaunch-cli`), `patchbay` (`@regentslabs/patchbay-cli`), and
-Techtree's existing Python `techtree` package. New sibling packages are local
-release candidates until published. Techtree's Python CLI and Hermes plugin own
-its campaign, proof and publication interface. Older `regents techtree` local
-Verify/notebook commands have different contracts and remain pending migration;
-they are not aliases for the Python CLI.
-
-`regents` has no Autolaunch commands. Install the Autolaunch CLI for launches,
-auctions, bids and every other Autolaunch task.
-No release, installer pin or registry package is changed by this local candidate.
+It is becoming the one command line for every Regent platform, each under its own
+name: `regents patchbay …`, `regents autolaunch …`, `regents techtree …`. Today it holds
+the Regents commands and the first Techtree commands; the rest move in platform by
+platform. Each platform describes its commands in its own repository, and this
+repository pins those descriptions by commit in [`platforms.lock.json`](platforms.lock.json).
 
 For existing wallets, delegated funds, and provider choices, start with the
 [agent wallet guide](docs/agent-wallets.md). `regents wallet setup` only shows
@@ -31,7 +25,6 @@ registry publication are separate release checks; do not infer either from this 
 With Node 22+ and the package manager version declared in `package.json`:
 
 ```sh
-cd cli
 pnpm install --frozen-lockfile
 pnpm build
 node packages/regents-cli/dist/index.js --help
@@ -79,8 +72,8 @@ Repo instructions live in [`AGENTS.md`](AGENTS.md). Agent skills ship under [`pa
 
 ## Checks
 
-Choose the checks that exercise the changed behavior. Run the complete CLI gate for
-CLI releases and changes to its command contracts:
+Choose the checks that exercise the changed behavior. `make check` runs every gate,
+as CI does, for releases and changes to command contracts:
 
 | Command | What it does |
 | --- | --- |
@@ -90,10 +83,14 @@ CLI releases and changes to its command contracts:
 | `pnpm check:workspace` | Verifies the required contract and generated files are present and the generated command list is current. |
 | `pnpm check:openapi` | Verifies the generated API bindings still match their contracts. |
 | `pnpm check:cli-contract` | Verifies the command surface still matches the published CLI contract. |
+| `pnpm check:platforms` | Verifies each platform's copies under `platforms/` match their pinned commits. |
 
 ## Related products
 
-Use the [current product directory](../README.md#related-products).
+- [Regents](https://regents.sh) · [source](https://github.com/regents-ai/regents)
+- [Patchbay](https://patchbay.help) · [source](https://github.com/regents-ai/patchbay)
+- [Autolaunch](https://autolaunch.sh) · [source](https://github.com/regents-ai/autolaunch)
+- [Techtree](https://techtree.sh) · [source](https://github.com/regents-ai/techtree)
 
 ## License
 

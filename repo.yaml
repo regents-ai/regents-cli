@@ -1,7 +1,7 @@
 version: 1
-repo: regents
-owner: regents
-path: regents/cli
+repo: regents-cli
+owner: regents-cli
+path: regents-cli
 release_group: public_beta
 owns:
   - operator_control_surface
@@ -27,17 +27,17 @@ code_map:
     owns: contract_and_meta_checks
 local_path_dependencies: []
 acceptance_commands:
-  - cwd: cli
+  - cwd: .
     command: pnpm check:workspace
-  - cwd: cli
+  - cwd: .
     command: pnpm check:openapi
-  - cwd: cli
+  - cwd: .
     command: pnpm check:cli-contract
-  - cwd: cli
+  - cwd: .
     command: pnpm build
-  - cwd: cli
+  - cwd: .
     command: pnpm typecheck
-  - cwd: cli
+  - cwd: .
     command: pnpm test
-  - cwd: cli
+  - cwd: .
     command: pnpm test:pack-smoke

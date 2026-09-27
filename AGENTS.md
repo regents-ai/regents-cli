@@ -1,6 +1,6 @@
 # Regents CLI
 
-This component owns the `regents` command. It builds and tests from this monorepo: the OpenAPI checks read the profile contract from `../identity/contracts/`, and other product-owned API bindings arrive as reviewed, checked-in copies. Builds and tests must not require a checkout of another repository or upstream synchronization.
+This repository owns the `regents` command, published as `@regentslabs/cli`: one package with every Regent platform's commands. Each platform describes its own commands and contracts in its own repository; `platforms.lock.json` pins them by commit and `node scripts/sync-platforms.mjs` copies them into `platforms/`. Builds and tests read only those checked-in copies, never another checkout.
 
 ## Workspace workflow
 
@@ -11,6 +11,7 @@ below define verification; no central coordinator service is required.
 
 ## Repository contracts
 
+- A platform's files change in its own repository first; then move its pin in `platforms.lock.json` to a commit on that platform's GitHub main and run `node scripts/sync-platforms.mjs`.
 - Change the owning contract before code: `docs/shared-cli-contract.yaml` owns CLI behavior, `docs/regent-services-contract.openapiv3.yaml` owns shared HTTP behavior, and `docs/json-rpc-methods.yaml` owns runtime methods.
 - Generated artifacts, including `packages/regents-cli/src/generated/` and `docs/json-rpc-methods.md`, are regenerated and never hand-edited. `packages/regents-cli/src/contracts/api-ownership.ts` maps API-backed commands to the checked-in bindings.
 - Route registries under `packages/regents-cli/src/routes/` define the shipped command set.
@@ -25,4 +26,4 @@ below define verification; no central coordinator service is required.
 
 ## Required validation
 
-Run `make check-cli` from the repository root.
+Run `make check` from the repository root.

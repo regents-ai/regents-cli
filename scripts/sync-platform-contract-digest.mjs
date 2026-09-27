@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Regenerates the CLI's expected Platform contract identity from the contract
-// itself. Platform serves the same two values as response headers on
-// GET /api-contract.openapiv3.yaml, so both sides move together.
+// Regenerates the CLI's expected Regents Platform contract identity from the
+// pinned copy of the contract (platforms.lock.json). Platform serves the same
+// two values as response headers on GET /api-contract.openapiv3.yaml, so both
+// sides move together.
 //
-//   node cli/scripts/sync-platform-contract-digest.mjs          # write
-//   node cli/scripts/sync-platform-contract-digest.mjs --check  # verify
+//   node scripts/sync-platform-contract-digest.mjs          # write
+//   node scripts/sync-platform-contract-digest.mjs --check  # verify
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -17,12 +18,9 @@ if (arguments_.length > 0 && !check) {
   process.exit(2);
 }
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const contractPath = resolve(root, "platform/contracts/api-contract.openapiv3.yaml");
-const outputPath = resolve(
-  root,
-  "cli/packages/regents-cli/src/generated/platform-contract-digest.ts",
-);
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const contractPath = resolve(root, "platforms/regents/api-contract.openapiv3.yaml");
+const outputPath = resolve(root, "packages/regents-cli/src/generated/platform-contract-digest.ts");
 
 const contract = readFileSync(contractPath);
 const major = /^  version:\s*(\d+)\./m.exec(contract.toString("utf8"))?.[1];
@@ -32,8 +30,8 @@ if (!major) {
 const digest = `sha256:${createHash("sha256").update(contract).digest("hex")}`;
 
 const output = [
-  "// Generated from platform/contracts/api-contract.openapiv3.yaml by",
-  "// cli/scripts/sync-platform-contract-digest.mjs. Platform serves the same",
+  "// Generated from platforms/regents/api-contract.openapiv3.yaml by",
+  "// scripts/sync-platform-contract-digest.mjs. Platform serves the same",
   "// two values as response headers on GET /api-contract.openapiv3.yaml.",
   "",
   `export const SUPPORTED_PLATFORM_CONTRACT_MAJOR = "${major}";`,

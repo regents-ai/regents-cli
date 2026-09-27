@@ -6,7 +6,7 @@ const root = resolve(import.meta.dirname, "..");
 const contracts = [
   {
     label: "Shared profile",
-    input: "../identity/contracts/profile.openapi.json",
+    input: "platforms/regents/profile.openapi.json",
     output: "packages/regents-cli/src/generated/profile-openapi.ts",
   },
   {

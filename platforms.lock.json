@@ -1,0 +1,10 @@
+{
+  "regents": {
+    "repository": "regents-ai/regents",
+    "commit": "53baf90c7b6bed5640c60a4df722c22b36b5a666",
+    "files": {
+      "identity/contracts/profile.openapi.json": "platforms/regents/profile.openapi.json",
+      "platform/contracts/api-contract.openapiv3.yaml": "platforms/regents/api-contract.openapiv3.yaml"
+    }
+  }
+}

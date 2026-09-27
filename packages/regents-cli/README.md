@@ -17,7 +17,7 @@ No release, installer pin or registry package is changed by this local candidate
 ## Getting started
 
 This checkout contains a release candidate. Follow the
-[source checkout guide](https://github.com/regents-ai/regents/blob/main/cli/README.md#getting-started-from-this-checkout)
+[source checkout guide](https://github.com/regents-ai/regents-cli/blob/main/README.md#getting-started-from-this-checkout)
 for the current build and first `--help` command. Check the published package version
 before choosing a registry install; the version in this source tree does not establish
 that it has been released. Runtime setup and wallet actions are explicit later steps.

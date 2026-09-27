@@ -10,6 +10,7 @@
     "generate:openapi": "node scripts/generate-openapi-types.mjs",
     "generate:cli-command-metadata": "node scripts/generate-cli-command-metadata.mjs",
     "check:workspace": "node scripts/check-workspace.mjs",
+    "check:platforms": "node scripts/sync-platforms.mjs --check && node scripts/sync-platform-contract-digest.mjs --check",
     "check:shared-services-contract": "node scripts/check-shared-services-contract.mjs",
     "check:contract-inputs": "node scripts/check-contract-inputs.mjs",
     "check:openapi": "pnpm check:workspace && pnpm check:contract-inputs && pnpm check:shared-services-contract && node scripts/check-openapi-types.mjs",
