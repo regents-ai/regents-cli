@@ -29,7 +29,6 @@ const terminalLabel = (value) =>
     .replace(/\bmcp\b/giu, "MCP")
     .replace(/\bens\b/giu, "ENS")
     .replace(/\btechtree\b/giu, "Techtree")
-    .replace(/\bautolaunch\b/giu, "Autolaunch")
     .replace(/\bsiwa\b/giu, "SIWA")
     .replace(/\bbbh\b/giu, "BBH")
     .replace(/\btech\b/giu, "TECH")
@@ -90,10 +89,6 @@ const summaryOverrides = new Map([
   ["techtree chat subscribe add <scope>", "Add a scope to the saved Techtree chat subscriptions."],
   ["techtree chat subscribe remove <scope>", "Remove a scope from the saved Techtree chat subscriptions."],
   ["techtree chat subscribe list", "List the saved Techtree chat subscriptions."],
-  ["autolaunch chat unread [scope...]", "Show new chat messages since the saved cursors."],
-  ["autolaunch chat subscribe add <scope>", "Add a scope to the saved Autolaunch chat subscriptions."],
-  ["autolaunch chat subscribe remove <scope>", "Remove a scope from the saved Autolaunch chat subscriptions."],
-  ["autolaunch chat subscribe list", "List the saved Autolaunch chat subscriptions."],
   ["chat follows add <wallet|label>", "Add a wallet or label to the saved chat follow list."],
   ["chat follows remove <wallet|label>", "Remove a wallet or label from the saved chat follow list."],
   ["chat follows list", "List the saved chat follow list."],
@@ -615,11 +610,23 @@ export const buildCliCommandMetadata = () => {
     groups.flatMap((group) => group.commandDetails ?? []).map((detail) => [detail.command, detail]),
   );
   const previousDetails = existingCommandDetails();
-  const commandDetails = commands.map((command) => contractDetails.get(command) ?? previousDetails[command] ?? {
-    command,
-    owner: "regents-cli",
-    group: topLevelGroup(command),
-    summary: commandSummary(command),
+  const commandDetails = commands.map((command) => {
+    const detail = contractDetails.get(command) ?? previousDetails[command] ?? {
+      command,
+      owner: "regents-cli",
+      group: topLevelGroup(command),
+      summary: commandSummary(command),
+    };
+    // Retained product metadata can outlive its old routes. Do not keep showing
+    // removed Regent commands in examples after a product package cutover.
+    const examples = detail.examples?.filter((example) => {
+      if (!example.startsWith("regents ")) return true;
+      const words = example.slice("regents ".length).split(/\s+/u);
+      return commands.some((candidate) => candidate.split(" ").every((word, i) =>
+        word.startsWith("[") || (word.startsWith("<") ? Boolean(words[i]) : word === words[i]),
+      ));
+    });
+    return examples ? { ...detail, examples } : detail;
   });
   const commandDetailsByCommand = Object.fromEntries(
     commandDetails.map((detail) => [detail.command, detail]),

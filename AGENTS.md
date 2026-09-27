@@ -1,20 +1,21 @@
-# Regents CLI control bridge
+# Regents CLI
 
-This repository owns the standalone `regents` command and must remain independently buildable and testable. Product-owned API bindings arrive as reviewed, checked-in copies; builds and tests must not require another product checkout or upstream synchronization.
+This repository owns the `regents` command, published as `@regentslabs/cli`: one package with every Regent platform's commands. Each platform describes its own commands and contracts in its own repository; `platforms.lock.json` pins them by commit and `node scripts/sync-platforms.mjs` copies them into `platforms/`. Builds and tests read only those checked-in copies, never another checkout.
 
-## Private control
+## Workspace workflow
 
-- Before Regent work, load `/Users/sean/Documents/regent/control/.agents/skills/regent-workflow/SKILL.md`. Load a role skill only when a dispatch work order explicitly assigns that role.
-- `/Users/sean/Documents/regent/control/repos/regents-cli.yaml` is the authority for repository mechanics and proof.
-- Do ticket work only in its assigned isolated worktree. The original checkout is sterile and integration-only: never install, build, generate, serve, or run acceptance there.
-- Workers never read or mutate Beads.
+Follow `/Users/sean/Documents/regent/.agents/skills/regent-workflow/SKILL.md`.
+Hermes/Astra coordinates Claude/Fable assignments. Use isolated worktrees for
+concurrent writers and preserve unrelated work. Repository checks and contracts
+below define verification; no central coordinator service is required.
 
 ## Repository contracts
 
+- A platform's files change in its own repository first; then move its pin in `platforms.lock.json` to a commit on that platform's GitHub main and run `node scripts/sync-platforms.mjs`.
 - Change the owning contract before code: `docs/shared-cli-contract.yaml` owns CLI behavior, `docs/regent-services-contract.openapiv3.yaml` owns shared HTTP behavior, and `docs/json-rpc-methods.yaml` owns runtime methods.
 - Generated artifacts, including `packages/regents-cli/src/generated/` and `docs/json-rpc-methods.md`, are regenerated and never hand-edited. `packages/regents-cli/src/contracts/api-ownership.ts` maps API-backed commands to the checked-in bindings.
 - Route registries under `packages/regents-cli/src/routes/` define the shipped command set.
-- JSON output shapes are a public contract and may change only additively within a major version.
+- Command names, flags and JSON output shapes are a public contract. They change only through a deliberate release whose notes name every changed shape; there is no additive-only promise and no compatibility window.
 - Use a hard cut: do not add compatibility aliases, fallback paths, or dual sources unless explicitly requested.
 - Live transport flows are daemon-owned; do not add direct CLI-to-server socket paths.
 
@@ -25,11 +26,4 @@ This repository owns the standalone `regents` command and must remain independen
 
 ## Required validation
 
-```bash
-pnpm check:workspace
-pnpm check:openapi
-pnpm check:cli-contract
-pnpm build
-pnpm typecheck
-pnpm test
-```
+Run `make check` from the repository root.

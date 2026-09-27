@@ -2,7 +2,20 @@
 
 All notable changes to `@regentslabs/cli` should be recorded here.
 
-## Unreleased
+## Unreleased — 1.0.0 candidate
+
+### Breaking
+
+- Move the five public Autolaunch commands to the independently installed
+  `@regentslabs/autolaunch-cli` package (`autolaunch` binary). Drop the leading
+  `regents`, and read the former domain response at `body` in `{ok, status, body}`.
+  HTTP errors now use that same stdout envelope and exit 1. Configure the new
+  package with `AUTOLAUNCH_BASE_URL` or `--base-url`; it does not import Regents
+  config. Private/chain integrations remain pending individual disposition.
+- Clarify product ownership: Techtree's Python package is its native agent CLI;
+  the older Regents Verify/notebook operations are separate local contracts.
+
+This candidate does not update a published package or live installer pin.
 
 ### Added
 
@@ -29,6 +42,7 @@ All notable changes to `@regentslabs/cli` should be recorded here.
 - Plugin setup now has one install path: `regents plugin install --runtime auto`. Setup reports readiness and next steps instead of writing plugin files.
 - Kept the useful Hermes bridge lessons in the current plugin path: runtime agents do not choose wallet providers, identity or wallet changes require explicit approval, and agents call Regent through named tools rather than raw commands.
 - Updated the x402 package pin so packed installs use the exported payment client paths required by the CLI.
+- Dependency refresh (2026-09-21): MCP SDK 1.29.0 → 1.30.0; Vitest 3.2.4 → 4.1.11 with Vite pinned at 7.3.6; workspace floors for the SDK's HTTP-server packages (`hono`, `@hono/node-server`, `fast-uri`, `ip-address`, `qs`, `body-parser`, `ws`, `esbuild`), which the CLI never loads; pytest 8.4.2 → 9.1.1 in `verify-runtime`. `pnpm audit` is clean. No published package changed.
 
 ### Removed
 

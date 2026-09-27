@@ -85,7 +85,6 @@ const configSchema = z.object({
       defaultVoice: z.string().min(1),
       reasoningEffort: z.enum(["minimal", "low", "medium", "high", "xhigh"]),
       sessionTtlSeconds: z.number().int().positive(),
-      toolRegistryPath: z.string().min(1),
     }).strict(),
   }).strict(),
   wallet: z.object({
@@ -196,10 +195,7 @@ const normalizeConfig = (config: RegentConfig, configPath?: string): RegentConfi
       siwa: { ...config.services.siwa },
       platform: { ...config.services.platform },
       autolaunch: { ...config.services.autolaunch },
-      voice: {
-        ...config.services.voice,
-        toolRegistryPath: normalizePath(config.services.voice.toolRegistryPath, resolvedConfigRootDir),
-      },
+      voice: { ...config.services.voice },
     },
     wallet: {
       ...config.wallet,
@@ -293,7 +289,7 @@ export function defaultConfig(configPath?: string): RegentConfig {
         requestTimeoutMs: 10_000,
       },
       autolaunch: {
-        baseUrl: "https://regents.sh",
+        baseUrl: "https://autolaunch.sh",
         requestTimeoutMs: 10_000,
       },
       voice: {
@@ -304,7 +300,6 @@ export function defaultConfig(configPath?: string): RegentConfig {
         defaultVoice: "marin",
         reasoningEffort: "low",
         sessionTtlSeconds: 60,
-        toolRegistryPath: path.join(rootDir, "config", "voice-tools.json"),
       },
     },
     wallet: {

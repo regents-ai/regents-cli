@@ -3,7 +3,6 @@ repo: regents-cli
 owner: regents-cli
 path: regents-cli
 release_group: public_beta
-stack_contract: ../meta/stack.yaml
 owns:
   - operator_control_surface
   - generated_bindings
@@ -28,17 +27,17 @@ code_map:
     owns: contract_and_meta_checks
 local_path_dependencies: []
 acceptance_commands:
-  - cwd: regents-cli
+  - cwd: .
     command: pnpm check:workspace
-  - cwd: regents-cli
+  - cwd: .
     command: pnpm check:openapi
-  - cwd: regents-cli
+  - cwd: .
     command: pnpm check:cli-contract
-  - cwd: regents-cli
+  - cwd: .
     command: pnpm build
-  - cwd: regents-cli
+  - cwd: .
     command: pnpm typecheck
-  - cwd: regents-cli
+  - cwd: .
     command: pnpm test
-  - cwd: regents-cli
+  - cwd: .
     command: pnpm test:pack-smoke

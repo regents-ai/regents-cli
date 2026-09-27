@@ -164,6 +164,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/shared/siwa/wallet/nonce": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Issue a single-use ERC-4361 EOA wallet challenge for an enabled audience. Contract-wallet signatures are unsupported. No private key is accepted. */
+        post: operations["createSharedWalletSiwaNonce"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/siwa/wallet/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Verify wallet control without asserting human identity or agent registration. Contract-wallet signatures are unsupported. No private key is accepted. */
+        post: operations["verifySharedWalletSiwaSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/shared/siwa/nonce": {
         parameters: {
             query?: never;
@@ -206,6 +240,26 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["verifySharedSiwaHttpEnvelope"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shared/siwa/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read one wallet's recent verified requests across Regents sites
+         * @description Returns up to 50 of the most recent requests that /api/shared/siwa/http-verify verified for the wallet, newest first, over the last 30 days. Each entry names the audience, method, path without its query and the time of verification. Request bodies, headers, receipts and signatures are never kept.
+         */
+        post: operations["readSharedSiwaActivity"];
         delete?: never;
         options?: never;
         head?: never;
@@ -422,6 +476,85 @@ export interface components {
             };
             meta?: components["schemas"]["LooseObject"];
         };
+        WalletSiwaNonceRequest: {
+            wallet_address: components["schemas"]["Address"];
+            chain_id: components["schemas"]["BaseChainId"];
+            audience: string;
+        };
+        WalletSiwaVerifyRequest: {
+            wallet_address: components["schemas"]["Address"];
+            chain_id: components["schemas"]["BaseChainId"];
+            audience: string;
+            nonce: string;
+            /** @description Exact server-issued ERC-4361 message; do not reconstruct it from caller fields. */
+            message: string;
+            /** @description ERC-191 personal signature from the EOA address; never a private key. */
+            signature: string;
+        };
+        WalletSiwaNonceResponse: {
+            /** @enum {string} */
+            code: "nonce_issued";
+            data: {
+                /** @enum {string} */
+                principalType: "wallet";
+                walletAddress: components["schemas"]["Address"];
+                chainId: components["schemas"]["BaseChainId"];
+                audience: string;
+                nonce: string;
+                /** @description Canonical server-issued ERC-4361 message to review and sign. */
+                message: string;
+                /** Format: date-time */
+                issuedAt: string;
+                /** Format: date-time */
+                expiresAt: string;
+            };
+        };
+        WalletSiwaVerifyResponse: {
+            /** @enum {string} */
+            code: "wallet_verified";
+            data: {
+                /** @enum {boolean} */
+                verified: true;
+                /** @enum {string} */
+                principalType: "wallet";
+                walletAddress: components["schemas"]["Address"];
+                chainId: components["schemas"]["BaseChainId"];
+                audience: string;
+                keyId: string;
+                /** @enum {string} */
+                signatureScheme: "evm_personal_sign";
+                /** @enum {string} */
+                proof: "wallet_signature";
+                /** @description Short-lived siwa_wallet_receipt bound to address, chain and audience. It proves neither registry ownership nor human Privy identity. */
+                receipt: string;
+                /** Format: date-time */
+                receiptExpiresAt: string;
+            };
+        };
+        WalletPrincipal: {
+            /** @enum {string} */
+            kind: "wallet";
+            wallet_address: components["schemas"]["Address"];
+            chain_id: components["schemas"]["BaseChainId"];
+            audience: string;
+        };
+        WalletSiwaHttpVerifyResponse: {
+            /** @enum {string} */
+            code: "http_envelope_valid";
+            data: {
+                /** @enum {boolean} */
+                verified: true;
+                walletAddress: components["schemas"]["Address"];
+                chainId: components["schemas"]["BaseChainId"];
+                keyId: string;
+                principal: components["schemas"]["WalletPrincipal"];
+                /** Format: date-time */
+                receiptExpiresAt: string;
+                requiredHeaders: string[];
+                requiredCoveredComponents: string[];
+                coveredComponents: string[];
+            };
+        };
         IdentitySiwaNonceRequest: {
             network: components["schemas"]["IdentityNetwork"];
             address: components["schemas"]["Address"];
@@ -539,7 +672,9 @@ export interface components {
             };
             body?: string;
         };
-        SiwaHttpVerifyResponse: {
+        /** @description Legacy registered-agent result, or an explicit wallet principal only for server-enabled audiences. Missing registry claims never select wallet mode. Wallet signatures bind the exact method, path including query, receipt, chain, address, timestamp, nonce and body digest; callers must sign a fresh HTTP envelope when recovering an existing payment intent. */
+        SiwaHttpVerifyResponse: components["schemas"]["AgentSiwaHttpVerifyResponse"] | components["schemas"]["WalletSiwaHttpVerifyResponse"];
+        AgentSiwaHttpVerifyResponse: {
             /** @enum {string} */
             code: "http_envelope_valid";
             data: {
@@ -654,6 +789,26 @@ export interface components {
             message: string;
         } & {
             [key: string]: unknown;
+        };
+        SiwaActivityRequest: {
+            wallet_address: components["schemas"]["Address"];
+            /**
+             * Format: date-time
+             * @description Only requests verified at or after this time are returned.
+             */
+            since: string;
+        };
+        SiwaActivityResponse: {
+            data: {
+                activity: components["schemas"]["SiwaActivityEntry"][];
+            };
+        };
+        SiwaActivityEntry: {
+            audience: string;
+            method: string;
+            path: string;
+            /** Format: date-time */
+            occurred_at: string;
         };
         ErrorEnvelope: {
             error: components["schemas"]["ServiceError"];
@@ -1080,6 +1235,182 @@ export interface operations {
             429: components["responses"]["RateLimitError"];
         };
     };
+    createSharedWalletSiwaNonce: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WalletSiwaNonceRequest"];
+            };
+        };
+        responses: {
+            /** @description Issue a single-use ERC-4361 EOA wallet challenge for an enabled audience */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletSiwaNonceResponse"];
+                };
+            };
+            /** @description Malformed wallet request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Invalid signature, canonical message or expired challenge */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Wallet audience is not enabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Challenge absent or already consumed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Request body too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported content type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+            /** @description Wallet verification unavailable */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    verifySharedWalletSiwaSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WalletSiwaVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Verify wallet control without asserting human identity or agent registration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletSiwaVerifyResponse"];
+                };
+            };
+            /** @description Malformed wallet request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Invalid signature, canonical message or expired challenge */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Wallet audience is not enabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Challenge absent or already consumed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Request body too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported content type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
+            /** @description Wallet verification unavailable */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     createSharedAgentSiwaNonce: {
         parameters: {
             query?: never;
@@ -1291,7 +1622,7 @@ export interface operations {
                 };
             };
             429: components["responses"]["RateLimitError"];
-            /** @description SIWA HTTP verification is not configured */
+            /** @description SIWA HTTP verification is not configured, or the verified request could not be recorded */
             500: {
                 headers: {
                     [name: string]: unknown;
@@ -1300,6 +1631,67 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
+        };
+    };
+    readSharedSiwaActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SiwaActivityRequest"];
+            };
+        };
+        responses: {
+            /** @description The wallet's recent verified requests */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiwaActivityResponse"];
+                };
+            };
+            /** @description Invalid activity request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description The activity read token was absent or invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Activity request is too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Activity request content type is unsupported */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            429: components["responses"]["RateLimitError"];
         };
     };
     siwaKeyringHealth: {
