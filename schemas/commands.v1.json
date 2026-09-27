@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/regents-ai/regents-cli/main/schemas/commands.v1.json",
+  "title": "Regents site commands, version 1",
+  "description": "A site's cli/commands.json: every command `regents <platform> …` runs against that site, the route it calls, who may call it and what it changes. The site changes this file in the same commit as the route it describes; regents-cli pins it by commit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "platform",
+    "base_url",
+    "commands"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "regents.commands.v1"
+    },
+    "platform": {
+      "description": "The namespace: `regents <platform> …`.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "base_url": {
+      "description": "The site's address, used when neither --base-url nor <PLATFORM>_BASE_URL is set.",
+      "type": "string",
+      "pattern": "^https://[a-z0-9.-]+$"
+    },
+    "notes": {
+      "description": "Short facts every caller should know, printed under the namespace's help.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/command"
+      }
+    }
+  },
+  "$defs": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "description",
+        "operation_id",
+        "method",
+        "path",
+        "authority",
+        "effect"
+      ],
+      "properties": {
+        "command": {
+          "description": "The words after `regents <platform>`. A word in angle brackets is an argument, described under `arguments`.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*( ([a-z][a-z0-9-]*|<[a-z][a-z0-9-]*>))*$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "description": "The operation in the site's OpenAPI document that answers this command; it has the same method and path.",
+          "type": "string",
+          "minLength": 1
+        },
+        "webmcp": {
+          "description": "The WebMCP tool that does the same thing in the browser, when there is one.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]{1,128}$"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "description": "The route, with each path parameter in braces: /api/v1/auctions/{id}.",
+          "type": "string",
+          "pattern": "^/[A-Za-z0-9_./{}-]*$"
+        },
+        "authority": {
+          "description": "public: no sign-in. privy-proof-pair: the paired Privy proof arrives on stdin. wallet-proof: the two-phase signed request; --phase prepare prints the exact message to sign, --phase send reads the signed request from stdin.",
+          "enum": [
+            "public",
+            "privy-proof-pair",
+            "wallet-proof"
+          ]
+        },
+        "effect": {
+          "description": "read and quote change nothing; write changes records; prepare freezes terms for a later payment; payment moves money.",
+          "enum": [
+            "read",
+            "quote",
+            "write",
+            "prepare",
+            "payment"
+          ]
+        },
+        "arguments": {
+          "description": "One entry per angle-bracket word in `command`, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/argument"
+          }
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/flag"
+          }
+        },
+        "required_one_of": {
+          "description": "Flags of which the caller gives at least one.",
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/name"
+          }
+        },
+        "body": {
+          "description": "Fixed fields sent in every request body, beside the ones the inputs fill.",
+          "type": "object"
+        },
+        "stdin_fields": {
+          "description": "Body fields the caller pipes on stdin as a JSON object (wallet-proof commands, in the prepare phase).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "field",
+              "type",
+              "description"
+            ],
+            "properties": {
+              "field": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "enum": [
+                  "object",
+                  "string"
+                ]
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "pagination": {
+          "description": "How to read the next page: while the answer's `has_more` is true, pass its `cursor` back as --<flag>.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "has_more",
+            "cursor",
+            "flag"
+          ],
+          "properties": {
+            "has_more": {
+              "$ref": "#/$defs/answer_field"
+            },
+            "cursor": {
+              "$ref": "#/$defs/answer_field"
+            },
+            "flag": {
+              "$ref": "#/$defs/name"
+            }
+          }
+        }
+      }
+    },
+    "answer_field": {
+      "description": "A dotted path into the response body: pagination.next_cursor.",
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*(\\.[a-z_][a-z0-9_]*)*$"
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "in",
+        "field",
+        "description"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "type": {
+          "description": "string; integer; decimal (an exact decimal kept as text, 1.25); uuid; address (0x and 40 hex characters).",
+          "enum": [
+            "string",
+            "integer",
+            "decimal",
+            "uuid",
+            "address"
+          ]
+        },
+        "in": {
+          "enum": [
+            "path",
+            "query",
+            "body"
+          ]
+        },
+        "field": {
+          "description": "The path parameter, query key or body field the value fills.",
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "minimum": {
+          "type": "integer"
+        },
+        "maximum": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "argument": {
+      "type": "object",
+      "$ref": "#/$defs/input",
+      "unevaluatedProperties": false
+    },
+    "flag": {
+      "type": "object",
+      "$ref": "#/$defs/input",
+      "properties": {
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "unevaluatedProperties": false
+    }
+  }
+}

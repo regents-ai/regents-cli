@@ -8,6 +8,7 @@ Regents CLI is its own repository (`regents-ai/regents-cli`), cut from `cli/` of
 - `docs/regent-services-contract.openapiv3.yaml`: repository-owned shared-services HTTP contract
 - `docs/json-rpc-methods.yaml`: local runtime contract
 - `platforms.lock.json` and `platforms/<platform>/`: each platform's pinned files, copied by `scripts/sync-platforms.mjs` (Regents: the shared profile contract and the Platform API contract)
+- `schemas/commands.v1.json`: the format of a platform's `cli/commands.json`; `scripts/check-platform-commands.mjs` checks every pinned description against it and against the OpenAPI documents pinned beside it, or one site's files when given paths (the site's own `make check-cli` runs it that way)
 - `packages/regents-cli/src/contracts/api-ownership.ts`: command-to-API ownership map
 - `packages/regents-cli/src/generated/`: checked-in generated bindings and copied product API inputs
 - `packages/regents-cli/src/routes/`: shipped command handlers

@@ -11,8 +11,10 @@ Regents CLI, built by Regents Labs, publishes the `regents` command. It is the a
 It is becoming the one command line for every Regent platform, each under its own
 name: `regents patchbay …`, `regents autolaunch …`, `regents techtree …`. Today it holds
 the Regents commands and the first Techtree commands; the rest move in platform by
-platform. Each platform describes its commands in its own repository, and this
-repository pins those descriptions by commit in [`platforms.lock.json`](platforms.lock.json).
+platform. Each platform describes its commands in its own repository, in a
+`cli/commands.json` that follows [`schemas/commands.v1.json`](schemas/commands.v1.json),
+and this repository pins those descriptions by commit in
+[`platforms.lock.json`](platforms.lock.json).
 
 For existing wallets, delegated funds, and provider choices, start with the
 [agent wallet guide](docs/agent-wallets.md). `regents wallet setup` only shows
@@ -83,7 +85,7 @@ as CI does, for releases and changes to command contracts:
 | `pnpm check:workspace` | Verifies the required contract and generated files are present and the generated command list is current. |
 | `pnpm check:openapi` | Verifies the generated API bindings still match their contracts. |
 | `pnpm check:cli-contract` | Verifies the command surface still matches the published CLI contract. |
-| `pnpm check:platforms` | Verifies each platform's copies under `platforms/` match their pinned commits. |
+| `pnpm check:platforms` | Verifies each platform's copies under `platforms/` match their pinned commits, and that each pinned command description fits the format and names real operations in that platform's OpenAPI documents. |
 
 ## Related products
 
