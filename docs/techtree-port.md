@@ -18,7 +18,9 @@ it (founder, 2026-09-28), so the port picks up whatever Techtree ships from its 
 2. `forge build` (tasks from a code repository), Repo2RLEnv and its resources are dropped.
 3. The Climb stays only as the introductory run and the publishable run. `uplift` works on forge
    IDs only; the plugin demo's second run moves to forge IDs.
-4. `forge export` stays as a plain folder copy. `verify-export` and `import` are dropped.
+4. `forge export` stays as a plain folder copy. `verify-export` and `import` are dropped. The copy
+   keeps `export.json` (the collection record, its acceptance and its fingerprint); its README
+   names the fingerprints and lists no commands, since a receiver has none to run the tasks with.
 5. Collection version lines, part inheritance and the `retry_of` chains of plan and construct
    are dropped. `correct-proposal` and `correct-task` stay.
 6. Dropped: the fake executor, the `baseline_then_candidate` schedule, and the reserved
@@ -59,6 +61,10 @@ regents techtree forge inspect-skill | plan | plan-start | correct-proposal | co
                        construct-start | correct-task | collect | accept | verify | export
                        run | compare | status
 ```
+
+Not ported: 0.3.0's hidden `techtree profile get | sync | update`. It signed in with a Privy
+proof, which regents' site commands don't use (they sign in with a wallet, or not at all), and
+the plugin never called it. The website's own profile addresses are unchanged.
 
 Hidden, for Techtree's own use: `regents techtree _worker --run-id <id>` (the detached run) and
 `regents techtree _supervise …` (one evaluation's supervisor), both started as
