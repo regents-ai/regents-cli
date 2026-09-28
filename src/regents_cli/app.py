@@ -47,7 +47,7 @@ def root() -> click.Group:
     platforms = pinned_platforms()
     group.add_command(
         auth_group(
-            [p.name for p in platforms if any(c.authority == "wallet-proof" for c in p.commands)]
+            [p.site for p in platforms if any(c.authority == "wallet-proof" for c in p.commands)]
         )
     )
     for platform in platforms:

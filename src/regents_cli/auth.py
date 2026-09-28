@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import click
 
 from regents_cli import output, siwa
-from regents_cli.errors import UsageError
+from regents_cli.errors import CommandError, UsageError
+from regents_cli.http import Request, base_address, send
+from regents_cli.platforms import pinned_platforms
 from regents_cli.runner import read_stdin
 
 TIMEOUT = click.Option(
@@ -61,8 +64,10 @@ def auth_group(sites: list[str]) -> click.Group:
         click.Command(
             "status",
             callback=status,
-            params=[JSON],
-            help="Show the agent key's address and each site's sign-in.",
+            params=[JSON, TIMEOUT],
+            help="Show the agent key's address and each site's sign-in. Signed in to Regents, "
+            "it also shows the account the agent is paired with, and Regents counts that as "
+            "the agent checking in.",
         )
     )
     group.add_command(
@@ -115,24 +120,41 @@ def login(
     output.emit(answer, as_json=as_json)
 
 
-def status(as_json: bool) -> None:
+def status(as_json: bool, timeout_ms: int) -> None:
     key = siwa.load_key()
-    output.emit(
-        {
-            "agent_key": key.address if key is not None else None,
-            "sign_ins": [
-                {
-                    "site": site,
-                    "wallet_address": sign_in.wallet_address,
-                    "signed_in_until": sign_in.expires_at,
-                    "fresh": sign_in.fresh(),
-                    "signs": "this machine" if sign_in.local else "you",
-                }
-                for site, sign_in in siwa.sign_ins().items()
-            ],
-        },
-        as_json=as_json,
-    )
+    sign_ins = siwa.sign_ins()
+    answer: dict[str, Any] = {
+        "agent_key": key.address if key is not None else None,
+        "sign_ins": [
+            {
+                "site": site,
+                "wallet_address": sign_in.wallet_address,
+                "signed_in_until": sign_in.expires_at,
+                "fresh": sign_in.fresh(),
+                "signs": "this machine" if sign_in.local else "you",
+            }
+            for site, sign_in in sign_ins.items()
+        ],
+    }
+    if "regents" in sign_ins:
+        answer["paired_with"] = paired_account(timeout_ms)
+    output.emit(answer, as_json=as_json)
+
+
+def paired_account(timeout_ms: int) -> dict[str, Any] | None:
+    """The agent's pairing on Regents, as `regents protocol agents me` reads it; None unpaired."""
+    platform = next(p for p in pinned_platforms() if p.site == "regents")
+    me = next(c for c in platform.commands if c.words == ("agents", "me"))
+    request = Request(me.method, me.path, {}, None)
+    request = replace(request, headers=siwa.sign(request, siwa.current("regents", timeout_ms)))
+    try:
+        answer = send(base_address(None, platform.env_var, platform.base_url), request, timeout_ms)
+    except CommandError as error:
+        if error.code == "not_paired":
+            return None
+        raise
+    paired: dict[str, Any] = answer["data"]
+    return paired
 
 
 def logout(site: str, as_json: bool) -> None:

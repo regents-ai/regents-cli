@@ -9,10 +9,14 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from importlib.resources import files
-from typing import Any, Literal
+from typing import Any, Final, Literal
 
 type Authority = Literal["public", "wallet-proof"]
 type Effect = Literal["read", "quote", "write", "prepare", "payment"]
+
+#: The one command tree named apart from its site (founder, 2026-09-28): Regents' commands read
+#: `regents protocol …` rather than `regents regents …`, and sign in to the site `regents`.
+SIGN_IN_SITES: Final = {"protocol": "regents"}
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,6 +116,11 @@ class Platform:
     base_url: str
     notes: tuple[str, ...]
     commands: tuple[Command, ...]
+
+    @property
+    def site(self) -> str:
+        """The site this command tree signs in to."""
+        return SIGN_IN_SITES.get(self.name, self.name)
 
     @property
     def env_var(self) -> str:

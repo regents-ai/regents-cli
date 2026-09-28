@@ -25,6 +25,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   commands; the sign-in renews itself when that key made it. With your own key, `--phase
   prepare` prints the exact message or request to sign and `--phase send` reads it back signed.
   Payments are never signed by `regents`: the caller pipes its own x402 payment signature.
+- Regents' own commands are `regents protocol agents pair | me`, named apart from the site so
+  they don't read `regents regents`; they sign in with `regents auth login --site regents`.
+  `regents auth status` shows the account the agent is paired with, which Regents counts as a
+  check-in.
 - Patchbay's paid commands: `regents patchbay payments prepare | execute | get` and
   `regents patchbay assist request | get`.
 - The description format has no Privy proof sign-in; `authority` is `public` or `wallet-proof`.

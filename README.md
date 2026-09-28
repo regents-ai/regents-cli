@@ -1,7 +1,7 @@
 # regents
 
 One command line for every Regents Labs site: `regents patchbay …`, `regents autolaunch …`,
-`regents techtree …`, `regents keyfleet …`.
+`regents techtree …`, `regents keyfleet …`, and `regents protocol …` for regents.sh itself.
 
 ```bash
 uv tool install regents-cli
@@ -42,6 +42,11 @@ With a key of your own, sign the exact messages yourself: `regents auth login --
 --phase prepare --wallet-address 0x…` prints the sign-in message; pipe it back with its
 `signature` to `--phase send`. A command's `--phase prepare` prints the request and the message
 to sign, and `--phase send` reads `{"request": …, "signature": …}`.
+
+On regents.sh, a person pairs the agent with their account: they make a code on their Account
+page, and the agent runs `regents protocol agents pair --code … --name … --harness hermes`.
+Signed in to Regents, `regents auth status` also shows the account the agent is paired with,
+and Regents counts that as the agent checking in.
 
 `regents` never signs a payment. A paid command takes your own x402 payment signature on stdin.
 

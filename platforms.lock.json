@@ -7,5 +7,13 @@
       "platform/priv/public/openapi.json": "src/regents_cli/platforms/patchbay/openapi.json",
       "platform/priv/static/agent-payments.openapi.json": "src/regents_cli/platforms/patchbay/agent-payments.openapi.json"
     }
+  },
+  "protocol": {
+    "repository": "regents-ai/regents",
+    "commit": "cd9453592049c4b5032f81ad37b2fbc7ee8ea5dc",
+    "files": {
+      "cli/commands.json": "src/regents_cli/platforms/protocol/commands.json",
+      "platform/priv/public/openapi.json": "src/regents_cli/platforms/protocol/openapi.json"
+    }
   }
 }

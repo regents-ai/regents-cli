@@ -28,8 +28,8 @@ def doctor_command(platform: Platform) -> click.Command:
             if needs_nothing(c)
         ]
         if any(c.authority == "wallet-proof" for c in platform.commands):
-            checks.append(check("sign-in", lambda: sign_in_good(platform.name, timeout_ms)))
-        found: dict[str, Any] = {"site": platform.name, "base_url": base, "checks": checks}
+            checks.append(check("sign-in", lambda: sign_in_good(platform.site, timeout_ms)))
+        found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
         failed = sum(not c["ok"] for c in checks)
         if failed:
             raise CommandError(

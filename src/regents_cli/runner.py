@@ -113,7 +113,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
                 'sign; send reads {"request": …, "signature": …} on stdin.',
             )
         )
-        help_text += f"\n\nSign in first: regents auth login --site {platform.name}."
+        help_text += f"\n\nSign in first: regents auth login --site {platform.site}."
         if command.stdin_fields:
             optional = not any(f.required for f in command.stdin_fields)
             help_text += f"\n\nPipe {stdin_shape(command)} on stdin" + (
@@ -132,7 +132,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             request = signed_by_caller(command, base, request, timeout_ms)
         elif command.authority == "wallet-proof":
             request = with_stdin_fields(command, request, timeout_ms)
-            sign_in = siwa.current(platform.name, timeout_ms)
+            sign_in = siwa.current(platform.site, timeout_ms)
             if phase == "prepare":
                 output.emit(prepared(base, request, sign_in), as_json=as_json)
                 return
