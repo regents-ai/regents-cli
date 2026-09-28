@@ -27,6 +27,21 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Patchbay's paid commands: `regents patchbay payments prepare | execute | get` and
   `regents patchbay assist request | get`.
 - The description format has no Privy proof sign-in; `authority` is `public` or `wallet-proof`.
+- Techtree's command line moves in as `regents techtree`: `setup`, `doctor`,
+  `engine install | status | verify`, `skill starter`, `climb list | show | prepare | start`,
+  `run status | logs | cancel | result`, `proof verify`, `publish`, `withdraw`,
+  `release info | verify`, `forge …` (the Skill path) and `uplift …` (forge IDs only). The
+  separate `techtree` command stays at 0.3.0.
+  - Techtree's home is `~/.regents/techtree`; move the old folder there by hand.
+  - Dropped: `forge build` and everything built from a code repository, `forge verify-export`
+    and `forge import`, Climb uplift, the hidden `profile` command, v0.1 proofs, collection
+    version lines and retries, and the `--home`, `--no-input`, `--no-color` and `--debug`
+    options.
+  - One approval: `--yes` goes ahead, a person at a terminal is asked, and anything else gets
+    `approval_required` with the review and the exact command to run once the person agrees.
+  - Answers are plain JSON with a short Markdown `report`; exit codes are regents' own.
+  - Runs made by `techtree` 0.3.0 still verify, but publish them with `techtree` 0.3.0.
+  - `REGENTS_TECHTREE_PUBLICATION_ENDPOINT` points publishing at a test server.
 
 ## @regentslabs/cli on npm (TypeScript)
 

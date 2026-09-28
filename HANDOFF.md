@@ -4,7 +4,8 @@
 Python for it: PyPI `regents-cli`, installed with `uv tool install regents-cli`. The TypeScript
 package left `main` the same day; its history is in git and on npm as `@regentslabs/cli` 0.5.0.
 The founder also asked for the command set to be designed from how agents use the sites today,
-using the old 135 commands only as a reference.
+using the old 135 commands only as a reference. The command line follows the sites: it may lag
+behind a site, and never holds one up (founder, 2026-09-28).
 
 ## Layout
 
@@ -22,15 +23,27 @@ using the old 135 commands only as a reference.
   `platforms.lock.json`.
 - `src/regents_cli/schemas/commands.v1.json`: the description format.
 - `src/regents_cli/check_commands.py`: the description checker (also run by each site).
+- `src/regents_cli/techtree/`: `regents techtree`, ported from Techtree 0.3.0 under the
+  founder's decisions in `docs/techtree-port.md`. Its commands are in `commands/`, its one
+  approval in `approval.py`, and `resources/` is copied byte for byte from Techtree.
+- `scripts/stamp_provenance.py`: stamps the wheel with its source commit. The wheel build
+  refuses when a packaged file differs from `HEAD`, so run `make check` on a committed tree.
 
 ## Where the steps stand
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
-3. Patchbay and Autolaunch: all ten Patchbay commands work from its pinned description
-   (Patchbay `b89b9fe`), including sign-in and signed requests, checked end to end against
-   `siwa-server`'s own verifier on this machine. Autolaunch has no `cli/commands.json` yet.
-4. KeyFleet, 5. Techtree, 6. publishing 1.0.0 (founder go), 7. parking `repos/regents-cli-v2`
-   and `repos/monorepo-template`'s Python host: not started.
+3. Patchbay: all ten commands work from its pinned description (Patchbay `6f63087`), including
+   sign-in and signed requests, checked end to end against `siwa-server`'s own verifier.
+   Autolaunch will send its `cli/commands.json` (public repository) when it's ready.
+4. KeyFleet: its `cli/commands.json` is at `79d6cbe` in a private repository; pinning it here
+   would publish it, so it waits for the founder's call.
+5. Techtree: slices T0–T4 are on `main`. `climb start`, `forge plan-start` and every other
+   paid step stop at their approval; nothing paid has run through `regents` yet. T5 (verifiers
+   0.3.2, a new ReleaseCore, then three paid re-certification runs, each announced with its
+   model and cost first) is next. Until T5, `release verify` reports the cli_version check as
+   failed, truthfully.
+6. Publishing 1.0.0 (founder go), 7. parking `repos/regents-cli-v2` and
+   `repos/monorepo-template`'s Python host: not started.
 
 ## Checks
 

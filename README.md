@@ -63,6 +63,33 @@ uv run --no-project \
   python -m regents_cli.check_commands cli/commands.json <openapi.json>
 ```
 
+## Techtree
+
+`regents techtree` runs Techtree on this machine: it tests a Skill on a Climb, builds tasks from
+a Skill and compares runs on them, and checks, publishes and withdraws proofs.
+
+```bash
+regents techtree setup
+regents techtree skill starter
+regents techtree climb prepare hello-world-climb@1 --skill <path to SKILL.md> --label my-skill
+regents techtree climb start <draft id>
+regents techtree run status <run id>
+regents techtree forge inspect-skill <Skill folder>
+```
+
+- Everything Techtree keeps lives in `~/.regents/techtree`. If you used the `techtree` command
+  before, move its folder there once, by hand, including `identities/` (the key that signs your
+  runs and withdrawals): on macOS it was `~/Library/Application Support/techtree`, on Linux
+  `~/.local/share/techtree`. Publish any finished run you made with `techtree` 0.3.0 before
+  moving, using `techtree` 0.3.0: `regents` checks those runs but doesn't publish them.
+- Real runs call the model through your Prime sign-in, `~/.prime/config.json`. The provider
+  bills those calls to your own account.
+- Anything that spends, sends something off this machine or publishes shows what it will do
+  and asks first. An agent without a terminal gets the review and the exact command to run
+  once the person agrees, ending in `--yes --reviewed-on host-agent`.
+- `regents techtree doctor` checks this machine: Python, platform, uv, Docker, Hermes and the
+  pinned engine.
+
 ## Development
 
 ```bash
