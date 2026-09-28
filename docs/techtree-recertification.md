@@ -67,6 +67,10 @@ If a run fails, or scores outside the band, stop. Report it before running the n
   baseline and 3 candidate episodes never ran. The rest: candidate 21 of 33, baseline 0 of 29.
   About $0.13 (3.89 million input and 81,000 output tokens). The founder chose to put Hermes in
   the subject image ("1 a"); that is the Campaign above, and run 1 starts again on it.
+- 2026-09-28, run 1 (`run_eb031b6c07ba4b31a741d4cca777a8be`), on the Campaign above: all 72
+  episodes completed, none failed. Candidate 23 of 36, baseline 0 of 36: 23 wins, 13 ties, no
+  losses. About $0.17 (5.31 million input and 89,000 output tokens, 2.2 million of the input from
+  the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
 
 ## What is not known
 
