@@ -96,20 +96,21 @@ Hidden, for Techtree's own use: `regents techtree _worker --run-id <id>` (the de
 |---|---|---|---|
 | T0 | chief | Dependencies; the package skeleton; resources (minus the Repo2RLEnv files, the harness JSON and the forge README); paths; canonical, crypto, fs, ids and pointers; errors; `approve()`; the `regents techtree` group; pytest for the kept tests | `make check` is clean; canonical digests and signatures match Techtree's on the same inputs |
 | T1a | writer, reviewed by the chief | constants, models (V2), identity, manifests, receipts | a 0.3.0 proof made by `techtree` verifies with the ported verifier |
-| T1b | writer | verifiers, engines, runs, the worker and supervisor, and the setup, doctor, engine, skill, climb and run commands | `setup`, `engine install/verify`, `doctor` and `climb prepare` work; a real run needs the founder's go |
-| T2 | writer | publication, release, and the publish, withdraw, proof and release commands | `proof verify` accepts a real 0.3.0 proof; `release verify` against the pinned ReleaseCore; publish is checked against a local server only |
-| T3 | writer | forge (Skill path), the one Skill intake, drafts, catalog, forge-only uplift, `membership_digest`, the compact report, and the forge, uplift and skill commands | `forge inspect-skill → plan → … → accept → verify → export` works up to the first model call (paid calls need the founder's go) |
+| T1b | writer | verifiers, engines, runs, the worker and supervisor, drafts, the one Skill intake, catalog, `membership_digest`, presentation (one compact report), doctor, and the setup, doctor, engine, skill, climb and run commands | `setup`, `engine install/verify`, `doctor` and `climb prepare` work; `climb start` stops at its approval (a real run needs the founder's go) |
+| T2 | writer | publication, release, and the publish, withdraw, proof and release commands | `proof verify` accepts a real 0.3.0 proof; `release verify` against the pinned ReleaseCore; publish is checked against a local stand-in only |
+| T3 | writer | forge (Skill path), forge-only uplift, and the forge and uplift commands | `forge inspect-skill → plan → … → accept → verify → export` works up to the first model call (paid calls need the founder's go) |
 | T4 | chief | Integration; the kept tests and the banned-claims list; README, CHANGELOG and HANDOFF; the exact commands and answer shapes for the plugin, sent to the Techtree lane | Every slice's done line is checked on the integrated main |
 
-T1b, T2 and T3 run in parallel on their own branches and worktrees of regents-cli, after T1a.
-The chief integrates them.
+T1b and T2 run in parallel on their own branches and worktrees of regents-cli, after T1a. T3
+follows T1b, whose Skill intake and runs it builds on. The chief integrates each branch.
 
 ## Tests kept
 
 About 30 named tests from the glue audit, each protecting one costly failure:
 - publishing without consent, or sending data off the machine;
 - trusting a forged withdrawal answer;
-- spending more than was approved;
+- spending more than was approved: checked on the real path, where a Campaign that could outspend
+  its declared maximum is refused. 0.3.0's execution-approval tests covered a module nothing ships;
 - hidden benchmark material leaking;
 - a `--yes` that means no being run as yes;
 - an agent hanging on a prompt;
