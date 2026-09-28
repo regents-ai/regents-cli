@@ -15,6 +15,7 @@ using the old 135 commands only as a reference.
 - `src/regents_cli/siwa.py`: the agent key, each site's sign-in, and signed requests, matching
   what `siwa-server` checks (`elixir-utils/siwa/.../request_auth.ex`).
 - `src/regents_cli/auth.py`: `regents auth login | status | logout`.
+- `src/regents_cli/doctor.py`: `regents <site> doctor`, the same checks for every site.
 - `src/regents_cli/output.py`: readable output, `--json`, and the shared error shape.
 - `src/regents_cli/errors.py`: the exit codes.
 - `src/regents_cli/platforms/`: each site's pinned files, copied by `make sync` from

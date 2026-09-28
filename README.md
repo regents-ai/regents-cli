@@ -16,6 +16,16 @@ Every command answers the same way:
 - the same exit codes everywhere (`regents --help` lists them);
 - the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address.
 
+## Checking a site
+
+`regents <site> doctor` runs the same checks for every site: the site answers, each public read
+that needs no input answers, and, for a site with wallet-proof commands, the sign-in server
+accepts a request signed with your sign-in, as the site would. It exits 1 when any check fails.
+
+```bash
+regents patchbay doctor
+```
+
 ## Signing in
 
 A site's wallet-proof commands need a wallet sign-in (SIWA). One agent key lives on this

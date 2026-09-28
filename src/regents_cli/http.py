@@ -74,12 +74,17 @@ class Request:
 
 def send(base: str, request: Request, timeout_ms: int) -> Any:
     """Send once, never follow a redirect, and return the JSON answer or raise its error."""
+    return answer(respond(base, request, timeout_ms))
+
+
+def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
+    """Send once and never follow a redirect."""
     content = request.content
     headers = {"accept": "application/json", **request.headers}
     if content is not None:
         headers["content-type"] = "application/json"
     try:
-        response = httpx.request(
+        return httpx.request(
             request.method,
             base + request.target,
             content=content,
@@ -99,7 +104,6 @@ def send(base: str, request: Request, timeout_ms: int) -> Any:
             f"{base} could not be reached. The request was not retried.",
             exit_code=EXIT_UNREACHABLE,
         ) from None
-    return answer(response)
 
 
 def answer(response: httpx.Response) -> Any:

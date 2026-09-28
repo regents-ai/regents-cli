@@ -17,6 +17,7 @@ from urllib.parse import quote
 import click
 
 from regents_cli import output, siwa
+from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
 from regents_cli.http import Request, base_address, send
 from regents_cli.platforms import Command, Input, Platform
@@ -71,6 +72,7 @@ def platform_group(platform: Platform) -> click.Group:
                 parent.add_command(child)
             parent = child
         parent.add_command(build_command(platform, command))
+    group.add_command(doctor_command(platform))
     return group
 
 

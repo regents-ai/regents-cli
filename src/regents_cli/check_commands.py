@@ -73,6 +73,8 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str]]) -> lis
         for name, n in Counter(i["name"] for i in inputs).items():
             if n > 1:
                 say(f"input {name} is listed twice")
+        if entry["command"].split(" ")[0] == "doctor":
+            say("doctor is regents' own command for every site")
         for name in flag_names:
             if name in SHARED_FLAGS:
                 say(f"--{name} is a shared flag")

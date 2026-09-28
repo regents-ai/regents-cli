@@ -143,10 +143,20 @@ def personal_sign(key: Key, message: str) -> str:
     return "0x" + bytes(signed.signature).hex()
 
 
-def _broker(broker: str, path: str, body: dict[str, Any], timeout_ms: int) -> Any:
+def _broker(
+    broker: str,
+    path: str,
+    body: dict[str, Any],
+    timeout_ms: int,
+    headers: dict[str, str] | None = None,
+) -> Any:
     try:
         response = httpx.post(
-            broker + path, json=body, timeout=timeout_ms / 1000, follow_redirects=False
+            broker + path,
+            json=body,
+            headers=headers,
+            timeout=timeout_ms / 1000,
+            follow_redirects=False,
         )
     except httpx.HTTPError:
         raise CommandError(
@@ -312,3 +322,21 @@ def sign(request: Request, sign_in: SignIn) -> dict[str, str]:
         )
     headers, message = prepare(request, sign_in)
     return {**headers, "signature": signature_header(personal_sign(key, message))}
+
+
+def confirm(site: str, sign_in: SignIn, timeout_ms: int) -> None:
+    """Have the sign-in server check a request signed with this sign-in, as the site does."""
+    request = Request("GET", "/")
+    checked = _broker(
+        sign_in.broker,
+        "/api/shared/siwa/http-verify",
+        {"method": request.method, "path": request.target, "headers": sign(request, sign_in)},
+        timeout_ms,
+        headers={"x-siwa-audience": site},
+    )
+    if not isinstance(checked, dict) or checked.get("code") != "http_envelope_valid":
+        raise CommandError(
+            "sign_in_refused",
+            f"The sign-in server did not accept a request signed for {site}.",
+            exit_code=EXIT_AUTH,
+        )

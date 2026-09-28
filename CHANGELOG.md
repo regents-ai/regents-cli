@@ -17,6 +17,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Errors are `{"error": {"code", "message", …}}` on stdout under `--json`, and readable on
   stderr otherwise. Exit codes: 0 success, 1 failed, 2 usage, 3 sign-in or proof, 4 not found,
   5 unreachable, 130 interrupted.
+- `regents <site> doctor` runs the same checks for every site: the site answers, each public
+  read that needs no input answers, and the sign-in server accepts the sign-in.
 - `regents auth login | status | logout --site <name>` signs in with a wallet (SIWA). One agent
   key lives in `~/.regents/agent-key.json` and signs every request to a site's wallet-proof
   commands; the sign-in renews itself when that key made it. With your own key, `--phase
