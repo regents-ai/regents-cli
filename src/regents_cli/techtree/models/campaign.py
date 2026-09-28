@@ -233,9 +233,8 @@ class MutationContract(ProtocolModel):
 
 
 class VariantSchedule(StrEnum):
-    """Whether the two variants run one after the other or side by side."""
+    """The two variants run side by side; max_concurrent is divided between them."""
 
-    SEQUENTIAL = "baseline_then_candidate"
     PARALLEL = "parallel_variants"
 
 

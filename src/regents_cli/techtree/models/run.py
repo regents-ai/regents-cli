@@ -30,8 +30,6 @@ class RunPhase(StrEnum):
 
     CREATED = "created"
     VALIDATING_TASKSET = "validating_taskset"
-    RUNNING_BASELINE = "running_baseline"
-    RUNNING_CANDIDATE = "running_candidate"
     RUNNING_VARIANTS = "running_variants"
     BUILDING_RECEIPTS = "building_receipts"
     VERIFYING_COMPARISON = "verifying_comparison"

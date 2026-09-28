@@ -35,11 +35,11 @@ GOLDEN = Path(__file__).parent / "fixtures" / "golden"
 CASES: dict[str, tuple[type[BaseModel], str]] = {
     "campaign-v2.json": (
         CampaignSpecV2,
-        "sha256:6c3032e1d63ee66c5d95b4030ead1b45d692c98277ac5916c1069e9b0d03c533",
+        "sha256:a5339efff09a8a5221ea5ea5761dc7ef9c12e6fd45cfa796d65e990cac239224",
     ),
     "campaign-parity-candidate.json": (
         CampaignSpecV2,
-        "sha256:d5ce5c10ceea63d28ed5c2218f80485eac517b1c2227e4e2b36e7b73cf472513",
+        "sha256:7d3be292dc9ef00537c0a9e770aee2c964cf578402ba669b2f2c0e53e0831e95",
     ),
     "climb-v2.json": (
         ClimbManifest,
@@ -75,11 +75,11 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "experiment-baseline-v2.json": (
         ExperimentManifestV2,
-        "sha256:26ea14d44fae660caf948e0659115865f1c17bd850a5100dd04a39a3e3ab0d30",
+        "sha256:37933aa201b3ef2cc29714ced552530e28ee20a09a75977fad179ca9b6d1ed3e",
     ),
     "experiment-candidate-v2.json": (
         ExperimentManifestV2,
-        "sha256:566d3b07ea3ecb99f961fb34a6e3e63f82edb3a912f630b2b93484f315f93170",
+        "sha256:0b3b2b7235d5b433921b71efe4a594ac7f9efb5c4ef77c8c5795b14414b8048e",
     ),
     "run-request-v2.json": (
         RunRequestV2,

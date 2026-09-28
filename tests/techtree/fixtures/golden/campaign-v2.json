@@ -52,7 +52,7 @@
   },
   "execution": {
     "max_concurrent": 1,
-    "order": "baseline_then_candidate",
+    "order": "parallel_variants",
     "retry_limit": 0,
     "timeout_seconds": 1800
   },

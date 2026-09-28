@@ -1,5 +1,5 @@
 {
-  "campaign_spec_digest": "sha256:6c3032e1d63ee66c5d95b4030ead1b45d692c98277ac5916c1069e9b0d03c533",
+  "campaign_spec_digest": "sha256:a5339efff09a8a5221ea5ea5761dc7ef9c12e6fd45cfa796d65e990cac239224",
   "configuration": {
     "agents": {
       "subject": {
@@ -50,7 +50,7 @@
     },
     "execution": {
       "max_concurrent": 1,
-      "order": "baseline_then_candidate",
+      "order": "parallel_variants",
       "retry_limit": 0,
       "timeout_seconds": 1800
     },
@@ -119,7 +119,7 @@
       "validation_receipt_digest": "sha256:b0ff34a2b54a35ea85856babdf86b4a93c6ef86c9a7fc33d2c7fa230490e3c94"
     }
   },
-  "configuration_digest": "sha256:ae165f7cc674cdbeabd9bad7bc003e0d49bebb912b4506d7affc6d2df30c3f0f",
+  "configuration_digest": "sha256:d9a3ce62d96dc4440020cd49962a061021b5c2530739805d294a5f16b144886b",
   "created_at": "2026-01-01T00:00:00Z",
   "id": "receipt_7e9a39ca1c737a47bf5db67648ec15ad",
   "program_ref": null,
