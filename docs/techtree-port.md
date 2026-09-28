@@ -7,7 +7,8 @@ three audit reports are in `/Users/sean/Documents/regent/artifacts/regents-cli/t
 Port base: Techtree `origin/main` a226cd0 plus 36db5c4 (Harbor 0.23.0 and task schema 1.4, on
 local branch `tt/v040` in `/Users/sean/Documents/regent/worktrees/techtree/t13-template`).
 Branch `tt/p4a-boundary` 2cbe89e is never ported: ADR 0036 stands, with no credential check.
-While the port runs, Techtree's own `cli/` is frozen and changes come to regents-cli as notes.
+Techtree's own `cli/` is not frozen: the command line follows the web platform and never blocks
+it (founder, 2026-09-28), so the port picks up whatever Techtree ships from its pushed commits.
 `techtree/cli` stays until `regents techtree` ships.
 
 ## The 15 decisions
