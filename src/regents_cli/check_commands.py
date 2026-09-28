@@ -9,7 +9,7 @@ A site runs it at a pinned regents-cli commit, with nothing checked out:
 
     uv run --no-project \\
         --with "regents-cli[check] @ git+https://github.com/regents-ai/regents-cli@<commit>" \\
-        python -m regents_cli.check_commands cli/commands.json platform/priv/static/openapi.json
+        python -m regents_cli.check_commands cli/commands.json <openapi.json>
 """
 
 from __future__ import annotations

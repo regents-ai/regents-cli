@@ -1,10 +1,10 @@
 {
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "b89b9fec2d6b5f16c9fd7f7830474b33d98a3aea",
+    "commit": "6f63087f998afe6fb4dba7cd3ac24818b66134b0",
     "files": {
       "cli/commands.json": "src/regents_cli/platforms/patchbay/commands.json",
-      "platform/priv/static/openapi.json": "src/regents_cli/platforms/patchbay/openapi.json",
+      "platform/priv/public/openapi.json": "src/regents_cli/platforms/patchbay/openapi.json",
       "platform/priv/static/agent-payments.openapi.json": "src/regents_cli/platforms/patchbay/agent-payments.openapi.json"
     }
   }
