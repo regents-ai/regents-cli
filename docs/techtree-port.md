@@ -137,3 +137,6 @@ Nothing else, and no tests that police old shapes.
    and cost, and needs the founder's yes first.
 3. The tdd example is rebuilt and its comparison re-run after `regents techtree` ships
    (founder, 2026-09-28, "3 a").
+4. A run made by Techtree 0.3.0 and moved into `~/.regents/techtree` can be verified with
+   `proof verify`, but `regents techtree publish` can't publish it: its draft still names the
+   Skill archive that the port dropped. Publish such runs with `techtree` 0.3.0 before moving.
