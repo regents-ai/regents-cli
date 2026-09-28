@@ -36,7 +36,9 @@ While the port runs, Techtree's own `cli/` is frozen and changes come to regents
 12. The byte-identical ReleaseCore shared by the command line, the plugin and the website stays
     for 0.3.x. The bootstrap and generate tooling moves out of the command line.
 13. The 3,217 lines of copy-guard tests become one short list of banned claims.
-14. The plugin keeps its 17 typed tools, pointed at `regents techtree … --json`.
+14. The plugin keeps its typed tools, pointed at `regents techtree … --json`. On 2026-09-28 the
+    founder dropped its four Climb uplift tools and Hello World's second comparison ("4 a"),
+    leaving 13 tools. The port drops Climb uplift entirely.
 15. The publication endpoint override stays as one setting,
     `REGENTS_TECHTREE_PUBLICATION_ENDPOINT`, for testing against a local server.
 
@@ -100,9 +102,11 @@ Hidden, for Techtree's own use: `regents techtree _worker --run-id <id>` (the de
 | T2 | writer | publication, release, and the publish, withdraw, proof and release commands | `proof verify` accepts a real 0.3.0 proof; `release verify` against the pinned ReleaseCore; publish is checked against a local stand-in only |
 | T3 | writer | forge (Skill path), forge-only uplift, and the forge and uplift commands | `forge inspect-skill → plan → … → accept → verify → export` works up to the first model call (paid calls need the founder's go) |
 | T4 | chief | Integration; the kept tests and the banned-claims list; README, CHANGELOG and HANDOFF; the exact commands and answer shapes for the plugin, sent to the Techtree lane | Every slice's done line is checked on the integrated main |
+| T5 | writer, after T4 | Verifiers 0.3.2 (main e66ec52): the engine pin, and the three known breaks in `normalize_eval_output.py` (the `read_episodes` import moved to `verifiers.v1.utils.trace_store`; a timeout is now ok=true with `is_timeout`; error types now name their boundary). Techtree's regeneration tools (engine bundle, fixture catalog with the publisher's taskset check, goldens, schemas, release core) move to `scripts/techtree/`, outside the wheel. They cut a ReleaseCore naming the regents-cli version, which settles open item 1 | the engine installs and a regenerated release verifies; then a run plan (models, cost) goes to the founder before the three paid re-certification runs |
 
 T1b and T2 run in parallel on their own branches and worktrees of regents-cli, after T1a. T3
-follows T1b, whose Skill intake and runs it builds on. The chief integrates each branch.
+follows T1b, whose Skill intake and runs it builds on. T1b–T4 keep the 0.3.0 engine byte for
+byte; T5 changes it. The chief integrates each branch.
 
 ## Tests kept
 
@@ -123,9 +127,12 @@ Nothing else, and no tests that police old shapes.
 ## Open items
 
 1. ReleaseCore names `cli_version` 0.3.0, and `release verify` compares it with the installed
-   package, which will be regents-cli. So a ReleaseCore naming the regents-cli version has to
-   be cut when regents-cli 1.0 is released, and the plugin and website need to take the new
-   copy. That's release work for the Techtree lane, and it needs the founder's go.
-2. Verifiers 0.3.2: the founder ordered it, and the Techtree lane is asking whether it happens
-   in `techtree/cli` first or in this port. An engine change counts as a scoring change. The
-   engine is ported unchanged until that answer arrives.
+   package, regents-cli. Until T5 cuts a ReleaseCore naming the regents-cli version, that one
+   check fails, truthfully. The plugin and website then take the new copy; publishing it
+   needs the founder's go.
+2. Verifiers 0.3.2 (founder, 2026-09-28, "1 a" and "2 a"): the upgrade happens here, in
+   slice T5, and there is no Techtree 0.4.0. Re-certification takes three paid runs. The
+   founder agreed to them in principle, but each real model call is announced with its model
+   and cost, and needs the founder's yes first.
+3. The tdd example is rebuilt and its comparison re-run after `regents techtree` ships
+   (founder, 2026-09-28, "3 a").
