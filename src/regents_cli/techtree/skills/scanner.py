@@ -1,26 +1,29 @@
-"""What exactly a Skill directory would snapshot, and what in it must be refused.
+"""What exactly a Skill directory holds, and which of its entries Techtree can carry.
 
-It refuses rather than repairs: a symlink is not resolved, a hidden file is not skipped, an
-oversized file is not truncated. Every refusal is about a file's shape, never its words.
+One walk, one rule set. Every entry is listed and given a reason when it cannot be carried:
+a hidden path is recorded and never opened (a hidden directory is one entry), a link is not
+followed, anything that is not a regular file or readable directory is recorded as what it is,
+and a regular file is carried only when it is UTF-8 text of a kind an instruction Skill is made
+of, within the per-file limit. `scan_skill` refuses a Skill with any such entry; the forge's
+`inspect-skill` records them and refuses only what the instructions need.
 """
 
 from __future__ import annotations
 
+import hashlib
 import os
 import stat
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Final
+from typing import Final, Literal
 
 from regents_cli.techtree.canonical import sha256_digest_bytes
 from regents_cli.techtree.constants import (
-    ALLOWED_SKILL_SUFFIXES,
     MAX_SKILL_FILE_BYTES,
     MAX_SKILL_FILES,
     MAX_SKILL_TOTAL_BYTES,
 )
 from regents_cli.techtree.errors import NotFoundError, ValidationError
-from regents_cli.techtree.fs import realpath_within
 from regents_cli.techtree.models.base import Digest
 from regents_cli.techtree.models.skill import SKILL_ENTRY_FILE
 
@@ -31,6 +34,52 @@ MEDIA_TYPES: Final[dict[str, str]] = {
     ".yaml": "application/yaml",
     ".yml": "application/yaml",
 }
+
+#: A directory holding more entries than this is not a Skill.
+MAX_ENTRIES: Final = 4096
+
+type EntryKind = Literal["file", "symlink", "directory", "special"]
+
+#: Why one entry cannot be carried.
+type UnsupportedReason = Literal[
+    "hidden",
+    "symlink",
+    "special",
+    "unreadable",
+    "file_type",
+    "not_text",
+    "too_large",
+    "case_collision",
+]
+
+#: What each reason says, completing "<path> …".
+UNSUPPORTED_WORDS: Final[dict[UnsupportedReason, str]] = {
+    "hidden": "is hidden, and Techtree never opens hidden files",
+    "symlink": "is a link, and what a link points to depends on the machine",
+    "special": "is not a regular file",
+    "unreadable": "cannot be read",
+    "file_type": (
+        "is a kind of file Techtree does not carry; only "
+        + ", ".join(sorted(MEDIA_TYPES))
+        + " text is"
+    ),
+    "not_text": "is not UTF-8 text",
+    "too_large": f"is larger than the {MAX_SKILL_FILE_BYTES} byte limit for one file",
+    "case_collision": "differs from another path only by letter case",
+}
+
+
+@dataclass
+class SkillEntry:
+    """One entry under a Skill's root; `data` is kept exactly when it can be carried."""
+
+    path: str
+    kind: EntryKind
+    size: int | None = None
+    digest: Digest | None = None
+    media_type: str | None = None
+    data: bytes | None = None
+    reason: UnsupportedReason | None = None
 
 
 @dataclass
@@ -53,7 +102,7 @@ class SkillScanResult:
 
 
 def resolve_skill_root(path: Path) -> Path:
-    """Accept SKILL.md or its containing directory; symlinks are left for `scan_skill` to refuse."""
+    """Accept SKILL.md or its directory; a linked root is refused."""
     if not path.exists() and not path.is_symlink():
         raise NotFoundError(f"no such skill path: {path}", details={"path": str(path)})
     if path.is_dir():
@@ -71,8 +120,12 @@ def resolve_skill_root(path: Path) -> Path:
             f"skill path is neither a directory nor a regular file: {path}",
             details={"path": str(path)},
         )
-    entrypoint = root / SKILL_ENTRY_FILE
-    if not entrypoint.is_file():
+    if root.is_symlink():
+        raise ValidationError(
+            f"skill root is a symlink, which is never followed: {root}",
+            details={"root": str(root)},
+        )
+    if not (root / SKILL_ENTRY_FILE).is_file():
         raise ValidationError(
             f"skill directory has no {SKILL_ENTRY_FILE} entrypoint: {root}",
             details={"root": str(root), "entrypoint": SKILL_ENTRY_FILE},
@@ -80,188 +133,145 @@ def resolve_skill_root(path: Path) -> Path:
     return root
 
 
-def enumerate_files(root: Path) -> list[Path]:
-    """Every entry under the root without following symlinks, so validation can report them."""
-    found: list[Path] = []
-    _walk(root, found)
-    return sorted(found, key=lambda item: _relative_key(item, root))
-
-
-def _walk(directory: Path, found: list[Path]) -> None:
-    with os.scandir(directory) as entries:
-        for entry in entries:
-            child = Path(entry.path)
-            if entry.is_symlink():
-                found.append(child)
-            elif entry.is_dir(follow_symlinks=False):
-                _walk(child, found)
-            else:
-                found.append(child)
-
-
-def _relative_key(path: Path, root: Path) -> str:
-    try:
-        return path.relative_to(root).as_posix()
-    except ValueError:
-        return str(path)
-
-
-def _relative_path(path: Path, root: Path) -> PurePosixPath:
-    try:
-        return PurePosixPath(path.relative_to(root).as_posix())
-    except ValueError as error:
+def inventory(root: Path) -> list[SkillEntry]:
+    """Every entry under `root`, in path order, each with its reason when it can't be carried."""
+    listing = _listing(root)
+    if listing is None:
         raise ValidationError(
-            f"file is outside the skill root: {path}",
-            details={"path": str(path), "root": str(root)},
-        ) from error
-
-
-def validate_file(path: Path, root: Path) -> None:
-    """Validate containment, type, suffix, size, and hidden status."""
-    relative = _relative_path(path, root)
-    hidden = next((part for part in relative.parts if part.startswith(".")), None)
-    if hidden is not None:
-        raise ValidationError(
-            f"skill contains a hidden path, which is never submitted: {relative}",
-            details={"path": relative.as_posix(), "hidden_component": hidden},
+            f"the Skill's directory cannot be read: {root}", details={"path": str(root)}
         )
-    if path.is_symlink():
-        raise ValidationError(
-            "skill contains a symlink, and a snapshot must mean the same thing on every "
-            f"machine: {relative}",
-            details={"path": relative.as_posix()},
-        )
-    try:
-        status = path.stat(follow_symlinks=False)
-    except OSError as error:
-        raise ValidationError(
-            f"skill file cannot be read: {relative}", details={"path": relative.as_posix()}
-        ) from error
-    if not stat.S_ISREG(status.st_mode):
-        raise ValidationError(
-            f"skill contains {_describe_type(status.st_mode)}, which cannot be snapshotted: "
-            f"{relative}",
-            details={"path": relative.as_posix(), "kind": _describe_type(status.st_mode)},
-        )
-    suffix = path.suffix.lower()
-    if suffix not in ALLOWED_SKILL_SUFFIXES:
-        raise ValidationError(
-            f"skill file has an unsupported suffix: {relative}",
-            details={
-                "path": relative.as_posix(),
-                "suffix": suffix,
-                "allowed_suffixes": sorted(ALLOWED_SKILL_SUFFIXES),
-            },
-        )
-    if status.st_size > MAX_SKILL_FILE_BYTES:
-        raise ValidationError(
-            f"skill file is larger than {MAX_SKILL_FILE_BYTES} bytes: {relative}",
-            details={
-                "path": relative.as_posix(),
-                "size": status.st_size,
-                "maximum_file_bytes": MAX_SKILL_FILE_BYTES,
-            },
-        )
-    if not realpath_within(path, root):
-        raise ValidationError(
-            f"skill file resolves outside the skill root: {relative}",
-            details={"path": relative.as_posix(), "root": str(root)},
-        )
-
-
-def _describe_type(mode: int) -> str:
-    if stat.S_ISDIR(mode):
-        return "a directory"
-    if stat.S_ISFIFO(mode):
-        return "a FIFO"
-    if stat.S_ISSOCK(mode):
-        return "a socket"
-    if stat.S_ISBLK(mode) or stat.S_ISCHR(mode):
-        return "a device"
-    return "something that is not a regular file"
-
-
-def media_type_for(path: Path) -> str:
-    media_type = MEDIA_TYPES.get(path.suffix.lower())
-    if media_type is None:
-        raise ValidationError(
-            f"no media type is defined for this suffix: {path.name}",
-            details={"suffix": path.suffix.lower()},
-        )
-    return media_type
-
-
-def _decode_text(data: bytes, reported_path: str) -> str:
-    if b"\x00" in data:
-        raise ValidationError(
-            f"skill file is binary, and an instruction skill is text: {reported_path}",
-            details={"path": reported_path},
-        )
-    try:
-        return data.decode("utf-8")
-    except UnicodeDecodeError as error:
-        raise ValidationError(
-            f"skill file is not valid UTF-8 text: {reported_path}", details={"path": reported_path}
-        ) from error
+    entries: list[SkillEntry] = []
+    _walk(root, listing, entries)
+    folded: dict[str, list[SkillEntry]] = {}
+    for entry in entries:
+        folded.setdefault(entry.path.casefold(), []).append(entry)
+    for group in folded.values():
+        if len(group) > 1:
+            for entry in group:
+                if entry.reason is None:
+                    entry.reason, entry.data = "case_collision", None
+    return entries
 
 
 def scan_skill(path: Path) -> SkillScanResult:
-    """Complete validation and scanning; a ValidationError names the first thing refused."""
+    """The Skill's files when every entry can be carried; otherwise the first refusal."""
     root = resolve_skill_root(path)
-    if root.is_symlink():
-        raise ValidationError(
-            f"skill root is a symlink, which is never snapshotted: {root}",
-            details={"root": str(root)},
-        )
-    candidates = enumerate_files(root)
-    if len(candidates) > MAX_SKILL_FILES:
-        raise ValidationError(
-            f"skill contains {len(candidates)} files, more than the {MAX_SKILL_FILES} allowed",
-            details={"count": len(candidates), "maximum_files": MAX_SKILL_FILES},
-        )
-    files: list[ScannedFile] = []
-    total = 0
-    for candidate in candidates:
-        validate_file(candidate, root)
-        relative = _relative_path(candidate, root)
-        data = candidate.read_bytes()
-        total += len(data)
-        if total > MAX_SKILL_TOTAL_BYTES:
+    entries = inventory(root)
+    for entry in entries:
+        if entry.reason is not None:
             raise ValidationError(
-                f"skill is larger than the {MAX_SKILL_TOTAL_BYTES} byte total limit",
-                details={"total_bytes": total, "maximum_total_bytes": MAX_SKILL_TOTAL_BYTES},
+                f"skill entry {entry.path} {UNSUPPORTED_WORDS[entry.reason]}",
+                details={"path": entry.path, "reason": entry.reason},
             )
-        _decode_text(data, relative.as_posix())
-        files.append(
-            ScannedFile(
-                source_path=candidate,
-                relative_path=relative,
-                size=len(data),
-                media_type=media_type_for(candidate),
-                digest=sha256_digest_bytes(data),
-            )
-        )
-    if not any(item.relative_path == PurePosixPath(SKILL_ENTRY_FILE) for item in files):
+    if len(entries) > MAX_SKILL_FILES:
         raise ValidationError(
-            f"skill directory has no {SKILL_ENTRY_FILE} entrypoint: {root}",
-            details={"root": str(root), "entrypoint": SKILL_ENTRY_FILE},
+            f"skill contains {len(entries)} files, more than the {MAX_SKILL_FILES} allowed",
+            details={"count": len(entries), "maximum_files": MAX_SKILL_FILES},
         )
-    _reject_case_collisions(files)
+    total = sum(entry.size or 0 for entry in entries)
+    if total > MAX_SKILL_TOTAL_BYTES:
+        raise ValidationError(
+            f"skill is larger than the {MAX_SKILL_TOTAL_BYTES} byte total limit",
+            details={"total_bytes": total, "maximum_total_bytes": MAX_SKILL_TOTAL_BYTES},
+        )
     return SkillScanResult(
-        root=root, files=sorted(files, key=lambda item: item.relative_path.as_posix())
+        root=root,
+        files=[
+            ScannedFile(
+                source_path=root / entry.path,
+                relative_path=PurePosixPath(entry.path),
+                size=len(entry.data or b""),
+                media_type=str(entry.media_type),
+                digest=str(entry.digest),
+            )
+            for entry in entries
+        ],
     )
 
 
-def _reject_case_collisions(files: list[ScannedFile]) -> None:
-    """Two files here are one file on a case-insensitive filesystem."""
-    seen: dict[str, str] = {}
-    for item in files:
-        posix = item.relative_path.as_posix()
-        existing = seen.get(posix.casefold())
-        if existing is not None:
+def _listing(directory: Path) -> list[os.DirEntry[str]] | None:
+    try:
+        with os.scandir(directory) as found:
+            return sorted(found, key=lambda child: child.name)
+    except OSError:
+        return None
+
+
+def _walk(root: Path, listing: list[os.DirEntry[str]], entries: list[SkillEntry]) -> None:
+    for child in listing:
+        if len(entries) >= MAX_ENTRIES:
             raise ValidationError(
-                "skill contains paths that differ only by case, which collide on a "
-                f"case-insensitive filesystem: {existing} and {posix}",
-                details={"paths": [existing, posix]},
+                f"the Skill's directory holds more than {MAX_ENTRIES} entries, "
+                "which is more than a Skill is",
+                details={"path": str(root), "maximum_entries": MAX_ENTRIES},
             )
-        seen[posix.casefold()] = posix
+        path = Path(child.path)
+        relative = path.relative_to(root).as_posix()
+        if child.name.startswith("."):
+            entries.append(SkillEntry(relative, _kind(child), reason="hidden"))
+        elif child.is_symlink():
+            entries.append(SkillEntry(relative, "symlink", reason="symlink"))
+        elif child.is_dir(follow_symlinks=False):
+            nested = _listing(path)
+            if nested is None:
+                entries.append(SkillEntry(relative, "directory", reason="unreadable"))
+            else:
+                _walk(root, nested, entries)
+        elif child.is_file(follow_symlinks=False):
+            entries.append(_file(path, relative))
+        else:
+            entries.append(SkillEntry(relative, "special", reason="special"))
+
+
+def _kind(child: os.DirEntry[str]) -> EntryKind:
+    if child.is_symlink():
+        return "symlink"
+    if child.is_dir(follow_symlinks=False):
+        return "directory"
+    if child.is_file(follow_symlinks=False):
+        return "file"
+    return "special"
+
+
+def _file(path: Path, relative: str) -> SkillEntry:
+    """Hash one regular file, opened without following a link, and keep its bytes when it can
+    be carried."""
+    try:
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    except OSError:
+        return SkillEntry(relative, "file", reason="unreadable")
+    with os.fdopen(descriptor, "rb") as handle:
+        status = os.fstat(handle.fileno())
+        if not stat.S_ISREG(status.st_mode):
+            return SkillEntry(relative, "special", reason="special")
+        media_type = MEDIA_TYPES.get(path.suffix.lower())
+        if media_type is None or status.st_size > MAX_SKILL_FILE_BYTES:
+            digest = hashlib.file_digest(handle, "sha256").hexdigest()
+            return SkillEntry(
+                relative,
+                "file",
+                size=status.st_size,
+                digest=f"sha256:{digest}",
+                reason="file_type" if media_type is None else "too_large",
+            )
+        data = handle.read(MAX_SKILL_FILE_BYTES + 1)
+    entry = SkillEntry(
+        relative, "file", size=len(data), digest=sha256_digest_bytes(data), media_type=media_type
+    )
+    if len(data) > MAX_SKILL_FILE_BYTES:
+        entry.reason = "too_large"
+    elif not _is_text(data):
+        entry.reason = "not_text"
+    else:
+        entry.data = data
+    return entry
+
+
+def _is_text(data: bytes) -> bool:
+    if b"\x00" in data:
+        return False
+    try:
+        data.decode("utf-8")
+    except UnicodeDecodeError:
+        return False
+    return True

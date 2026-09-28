@@ -67,6 +67,9 @@ class TechtreePaths:
     def _forge(self, kind: str, record_id: str, prefix: str) -> Path:
         return self.forge_dir / kind / validate_id(record_id, prefix)
 
+    def forge_build_dir(self, build_id: str) -> Path:
+        return self._forge("builds", build_id, "build")
+
     def forge_run_dir(self, run_id: str) -> Path:
         return self._forge("runs", run_id, "forgerun")
 

@@ -7,6 +7,7 @@ import click
 from regents_cli.techtree.commands.climb import CLIMB
 from regents_cli.techtree.commands.doctor import DOCTOR
 from regents_cli.techtree.commands.engine import ENGINE
+from regents_cli.techtree.commands.forge import FORGE
 from regents_cli.techtree.commands.internal import SUPERVISE, WORKER
 from regents_cli.techtree.commands.proof import PROOF
 from regents_cli.techtree.commands.publish import PUBLISH
@@ -14,6 +15,7 @@ from regents_cli.techtree.commands.release import RELEASE
 from regents_cli.techtree.commands.run import RUN
 from regents_cli.techtree.commands.setup import SETUP
 from regents_cli.techtree.commands.skill import SKILL
+from regents_cli.techtree.commands.uplift import UPLIFT
 from regents_cli.techtree.commands.withdraw import WITHDRAW
 
 
@@ -30,6 +32,8 @@ def techtree_group() -> click.Group:
         ENGINE,
         SKILL,
         CLIMB,
+        FORGE,
+        UPLIFT,
         RUN,
         PROOF,
         PUBLISH,
