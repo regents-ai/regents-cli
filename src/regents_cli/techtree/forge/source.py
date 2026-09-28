@@ -8,22 +8,21 @@ that is not there, or outside the Skill, is a refusal. A required file that cann
 refuses the whole Skill; an unsupported file nothing names is left out and listed. An admitted
 source keeps exactly the bytes that were hashed under `skill/`.
 
-SKILL.md's header is read with a deliberately small reader: top-level `key: value` lines with
-plain or quoted values, and `metadata` as one level of indented `key: value` lines. Any other
-YAML is refused with its line number. What the header declares, `allowed-tools` included,
-grants nothing.
+SKILL.md's header is read as YAML with the safe reader, so Hermes headers with lists and nested
+`metadata` are kept as written. Dates stay text and aliases are refused. What the header
+declares, `allowed-tools` included, grants nothing.
 """
 
 from __future__ import annotations
 
-import json
 import posixpath
 import re
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
-from typing import Final
+from typing import Final, Protocol
 from urllib.parse import unquote
 
+import yaml
 from pydantic import ValidationError as ModelValidationError
 
 from regents_cli.techtree.constants import MAX_SKILL_FILES, MAX_SKILL_TOTAL_BYTES
@@ -57,8 +56,6 @@ _TOKEN = re.compile(r"(?<![\w./-])(?:\./)?([\w.-]+(?:/[\w.-]+)*/?)")
 _INLINE_LINK = re.compile(r"\]\(\s*<?([^)>\s]+)")
 _REFERENCE_LINK = re.compile(r"^\s*\[[^\]]+\]:\s*<?(\S+?)>?\s*$", re.MULTILINE)
 _SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
-_TOP_LEVEL = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):(?:[ \t]+(.*))?$")
-_NESTED = re.compile(r"^[ \t]+([A-Za-z0-9_.-]+):(?:[ \t]+(.*))?$")
 
 
 def inspect_source_skill(paths: TechtreePaths, skill_path: Path) -> ForgeSourceStatus:
@@ -270,19 +267,30 @@ def _declaration(
 ) -> tuple[ForgeSkillDeclaration | None, list[ForgeSourceRefusal]]:
     """Read the header the Agent Skills specification defines, or say why not."""
     try:
-        fields, metadata = _header(text)
+        fields = _header(text)
     except _HeaderError as error:
         return None, [_refusal(SKILL_ENTRY_FILE, "declaration", str(error))]
     allowed_tools = fields.pop("allowed-tools", "")
+    if not isinstance(allowed_tools, str):
+        return None, [
+            _refusal(
+                SKILL_ENTRY_FILE,
+                "declaration",
+                "SKILL.md's allowed-tools is not one line of tool names separated by spaces, "
+                "as the Agent Skills specification asks",
+            )
+        ]
     try:
-        declaration = ForgeSkillDeclaration(
-            name=fields.pop("name", ""),
-            description=fields.pop("description", ""),
-            license=fields.pop("license", None),
-            compatibility=fields.pop("compatibility", None),
-            metadata=metadata,
-            allowed_tools=allowed_tools.split(),
-            other_fields=fields,
+        declaration = ForgeSkillDeclaration.model_validate(
+            {
+                "name": fields.pop("name", ""),
+                "description": fields.pop("description", ""),
+                "license": fields.pop("license", None),
+                "compatibility": fields.pop("compatibility", None),
+                "metadata": fields.pop("metadata", {}),
+                "allowed_tools": allowed_tools.split(),
+                "other_fields": fields,
+            }
         )
     except ModelValidationError as error:
         issue = error.errors(include_input=False, include_url=False)[0]
@@ -310,10 +318,22 @@ def _declaration(
 
 
 class _HeaderError(Exception):
-    """A header line Techtree does not read, said in words."""
+    """A header Techtree cannot read, said in words."""
 
 
-def _header(text: str) -> tuple[dict[str, str], dict[str, str]]:
+class _HeaderLoader(yaml.SafeLoader):
+    """YAML's safe reader, keeping dates as the text they were written as."""
+
+
+def _as_text(loader: _HeaderLoader, node: yaml.Node) -> str:
+    assert isinstance(node, yaml.ScalarNode)
+    return loader.construct_scalar(node)
+
+
+_HeaderLoader.add_constructor("tag:yaml.org,2002:timestamp", _as_text)
+
+
+def _header(text: str) -> dict[str, object]:
     lines = [line.removesuffix("\r") for line in text.split("\n")]
     if lines[0] != "---":
         raise _HeaderError("SKILL.md does not begin with a --- header")
@@ -321,81 +341,31 @@ def _header(text: str) -> tuple[dict[str, str], dict[str, str]]:
         end = lines.index("---", 1)
     except ValueError as error:
         raise _HeaderError("SKILL.md's header has no closing ---") from error
-    fields: dict[str, str] = {}
-    metadata: dict[str, str] = {}
-    in_metadata = False
-    for number, line in enumerate(lines[1:end], start=2):
-        if not line.strip() or line.lstrip().startswith("#"):
-            continue
-        nested = _NESTED.match(line)
-        if nested is not None:
-            key, value = nested.group(1), nested.group(2)
-            if not in_metadata:
+    header = "\n".join(lines[1:end])
+    try:
+        for event in yaml.parse(header, Loader=yaml.SafeLoader):
+            if isinstance(event, yaml.AliasEvent):
                 raise _HeaderError(
-                    f"SKILL.md line {number} is indented outside metadata, YAML "
-                    "Techtree does not read"
+                    f"SKILL.md {_where(event.start_mark)} repeats a value by alias, which could "
+                    "make a few lines very large; write the value out"
                 )
-            if value is None:
-                raise _HeaderError(
-                    f"SKILL.md line {number} nests another level under metadata; "
-                    "each metadata entry is one key: value line"
-                )
-            _put(metadata, key, _scalar(value, number), number)
-            continue
-        top = _TOP_LEVEL.match(line)
-        if top is None:
-            raise _HeaderError(f"SKILL.md line {number} is not a key: value line Techtree reads")
-        key, value = top.group(1), top.group(2)
-        in_metadata = key == "metadata" and value is None
-        if in_metadata:
-            if "metadata" in fields:
-                raise _HeaderError(f"SKILL.md line {number} repeats metadata")
-            fields["metadata"] = ""
-            continue
-        if value is None:
-            raise _HeaderError(
-                f"SKILL.md line {number} gives {key} no value, or nested YAML "
-                "Techtree does not read"
-            )
-        _put(fields, key, _scalar(value, number), number)
-    fields.pop("metadata", None)
-    return fields, metadata
-
-
-def _put(target: dict[str, str], key: str, value: str, number: int) -> None:
-    if key in target:
-        raise _HeaderError(f"SKILL.md line {number} repeats {key}")
-    target[key] = value
-
-
-def _scalar(raw: str, number: int) -> str:
-    value = raw.strip()
-    if value.startswith('"'):
-        try:
-            parsed = json.loads(value)
-        except ValueError:
-            parsed = None
-        if not isinstance(parsed, str):
-            raise _HeaderError(
-                f"SKILL.md line {number} has a double-quoted value Techtree cannot read"
-            )
-        return parsed
-    if value.startswith("'"):
-        inner = value[1:-1] if len(value) > 1 and value.endswith("'") else None
-        if inner is None or "'" in inner.replace("''", ""):
-            raise _HeaderError(
-                f"SKILL.md line {number} has a single-quoted value Techtree cannot read"
-            )
-        return inner.replace("''", "'")
-    if (
-        value[:1] in set("&*!|>{[%@`,?:#")
-        or value.startswith("- ")
-        or ": " in value
-        or " #" in value
-        or value.endswith(":")
-    ):
+        loaded = yaml.load(header, Loader=_HeaderLoader)
+    except yaml.MarkedYAMLError as error:
         raise _HeaderError(
-            f"SKILL.md line {number} uses YAML Techtree does not read; quote the "
-            "value to keep it as plain text"
-        )
-    return value
+            f"SKILL.md {_where(error.problem_mark or error.context_mark)} is not YAML "
+            f"Techtree can read: {error.problem}"
+        ) from error
+    if loaded is None:
+        return {}
+    if not isinstance(loaded, dict):
+        raise _HeaderError("SKILL.md's header is not a set of key: value lines")
+    return loaded
+
+
+class _Mark(Protocol):
+    line: int
+
+
+def _where(mark: _Mark | None) -> str:
+    """A header position as SKILL.md's own line number; the header starts on line 2."""
+    return "header" if mark is None else f"line {mark.line + 2}"

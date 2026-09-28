@@ -3,8 +3,9 @@
 The release names the Skill by its `starter_skill_digest` and where to fetch it by
 `starter_skill_object_url`. What arrives is checked twice: the bytes against the digest the
 address itself ends in, and then, scanned like any other Skill, the content-tree digest against
-the pin. The cache lives under the Techtree home and is re-scanned before it is reused, so an
-edited cache entry is not a shortcut past the check.
+the pin. The cache lives under the Techtree home, in a folder named after the Skill as the Agent
+Skills specification asks, and is re-scanned before it is reused, so an edited cache entry is not
+a shortcut past the check.
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from typing import Final, Literal
 from filelock import FileLock, Timeout
 
 from regents_cli.techtree.canonical import sha256_digest_bytes
-from regents_cli.techtree.constants import MAX_SKILL_TOTAL_BYTES
+from regents_cli.techtree.constants import MAX_SKILL_TOTAL_BYTES, STARTER_SKILL_NAME
 from regents_cli.techtree.errors import (
     NotFoundError,
     PrerequisiteError,
@@ -68,7 +69,8 @@ class StarterSkillService:
         pinned = release.starter_skill_digest
         ensure_private_directory(self._paths.cache_dir)
         ensure_private_directory(self._paths.skills_cache_dir())
-        destination = self._paths.skill_cache_dir(pinned)
+        ensure_private_directory(self._paths.skill_cache_dir(pinned))
+        destination = self._paths.skill_cache_dir(pinned) / STARTER_SKILL_NAME
         with self._cache_lock():
             cached = _verified_cache_entry(destination, pinned)
             if cached is not None:

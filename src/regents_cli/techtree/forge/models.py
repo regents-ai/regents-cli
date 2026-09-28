@@ -947,15 +947,19 @@ class ForgeSourceEntry(ProtocolModel):
 
 
 class ForgeSkillDeclaration(ProtocolModel):
-    """What SKILL.md's header declares; `allowed_tools` asks for tools and grants none."""
+    """What SKILL.md's header declares; `allowed_tools` asks for tools and grants none.
+
+    `metadata` and `other_fields` keep whatever the header gives them, nested or not, the way
+    Hermes Skills write `metadata.hermes` and `platforms`.
+    """
 
     name: AgentSkillName
     description: Annotated[str, StringConstraints(min_length=1, max_length=1024)]
     license: NonEmptyString | None
     compatibility: Annotated[str, StringConstraints(min_length=1, max_length=500)] | None
-    metadata: dict[NonEmptyString, str]
+    metadata: dict[NonEmptyString, JsonValue]
     allowed_tools: list[NonEmptyString]
-    other_fields: dict[NonEmptyString, str]
+    other_fields: dict[NonEmptyString, JsonValue]
 
 
 class ForgeSourceRefusal(ProtocolModel):
