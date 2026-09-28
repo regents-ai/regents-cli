@@ -26,7 +26,7 @@ using the old 135 commands only as a reference.
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
 3. Patchbay and Autolaunch: all ten Patchbay commands work from its pinned description
-   (Patchbay `29336bb`), including sign-in and signed requests, checked end to end against
+   (Patchbay `2bd83fa`), including sign-in and signed requests, checked end to end against
    `siwa-server`'s own verifier on this machine. Autolaunch has no `cli/commands.json` yet.
 4. KeyFleet, 5. Techtree, 6. publishing 1.0.0 (founder go), 7. parking `repos/regents-cli-v2`
    and `repos/monorepo-template`'s Python host: not started.
