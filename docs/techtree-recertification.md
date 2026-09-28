@@ -71,6 +71,10 @@ If a run fails, or scores outside the band, stop. Report it before running the n
   episodes completed, none failed. Candidate 23 of 36, baseline 0 of 36: 23 wins, 13 ties, no
   losses. About $0.17 (5.31 million input and 89,000 output tokens, 2.2 million of the input from
   the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
+- 2026-09-28, run 2 (`run_5d91bc6dfdcf4815a99d34369edc11a8`), a fresh draft on the same Campaign:
+  all 72 episodes completed, none failed. Candidate 22 of 36, baseline 0 of 36: 22 wins, 14 ties,
+  no losses. About $0.17 (5.32 million input and 92,000 output tokens, 2.0 million of the input
+  from the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
 
 ## What is not known
 
