@@ -1,7 +1,8 @@
-"""Build the wheel and fail when it lacks a pinned description or the format it follows.
+"""Build the wheel and fail when it lacks a pinned description, the format it follows, or
+any of Techtree's resource files.
 
-A wheel without them installs a `regents` with no site commands, so this runs before
-any release.
+A wheel without them installs a `regents` with no site commands, or a Techtree whose engine,
+catalog or release digests no longer match, so this runs before any release.
 """
 
 from __future__ import annotations
@@ -16,8 +17,12 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def main() -> int:
+    package = ROOT / "src/regents_cli"
+    resources = package / "techtree/resources"
     wanted = {
-        str(path.relative_to(ROOT / "src")) for path in (ROOT / "src/regents_cli").rglob("*.json")
+        str(path.relative_to(ROOT / "src"))
+        for path in [*package.rglob("*.json"), *resources.rglob("*")]
+        if path.is_file() and "__pycache__" not in path.parts
     }
     with tempfile.TemporaryDirectory() as out:
         subprocess.run(["uv", "build", "--wheel", "--out-dir", out, "-q"], cwd=ROOT, check=True)
@@ -26,7 +31,7 @@ def main() -> int:
     if missing:
         print(f"the wheel lacks: {', '.join(missing)}", file=sys.stderr)
         return 1
-    print(f"the wheel carries all {len(wanted)} pinned files")
+    print(f"the wheel carries all {len(wanted)} pinned and resource files")
     return 0
 
 

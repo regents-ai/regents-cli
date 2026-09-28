@@ -10,8 +10,12 @@ authors = [{ name = "Regents Labs" }]
 keywords = ["regents", "cli", "agents"]
 dependencies = [
   "click>=8.2,<9",
+  "cryptography>=50.0.1,<51",
   "eth-account>=0.13,<1",
+  "filelock>=3.18,<4",
   "httpx>=0.28,<1",
+  "pydantic>=2.12,<3",
+  "rfc8785>=0.1,<1",
   "rich>=14,<16",
 ]
 
@@ -32,6 +36,7 @@ Issues = "https://github.com/regents-ai/regents-cli/issues"
 [dependency-groups]
 dev = [
   "mypy>=1.17,<2",
+  "pytest>=9.1.1,<10",
   "ruff>=0.12,<1",
   "types-pyyaml>=6,<7",
   "types-jsonschema>=4.25,<5",
@@ -50,7 +55,9 @@ default-groups = ["dev"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["src", "scripts"]
+src = ["src", "scripts", "tests"]
+# Techtree's engine bundle is hashed byte for byte into every run; it is never reformatted.
+extend-exclude = ["src/regents_cli/techtree/resources"]
 
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "N", "RUF", "SIM", "UP", "W"]
@@ -58,5 +65,11 @@ select = ["B", "E", "F", "I", "N", "RUF", "SIM", "UP", "W"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src", "scripts"]
+files = ["src", "scripts", "tests"]
 mypy_path = ["src"]
+# The engine bundle imports Verifiers, which lives only in the engine's own environment.
+exclude = ["^src/regents_cli/techtree/resources/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-config", "--strict-markers"]

@@ -24,7 +24,7 @@ def emit(value: Any, *, as_json: bool, hint: str | None = None) -> None:
     if as_json:
         sys.stdout.write(json.dumps(value, ensure_ascii=False) + "\n")
         return
-    _render(value, indent=0)
+    _render(value, indent=0, console=stdout)
     if hint:
         stdout.print(Text(hint, style="dim"))
 
@@ -34,11 +34,11 @@ def emit_error(error: CommandError, *, as_json: bool) -> None:
         sys.stdout.write(json.dumps(error.as_json(), ensure_ascii=False) + "\n")
         return
     stderr.print(Text.assemble(("error ", "bold red"), (error.code, "red"), f"  {error.message}"))
-    for key, value in error.fields.items():
-        stderr.print(Text(f"  {key}  {_scalar(value)}", style="dim"))
+    if error.fields:
+        _render(error.fields, indent=2, console=stderr)
 
 
-def _render(value: Any, *, indent: int) -> None:
+def _render(value: Any, *, indent: int, console: Console) -> None:
     pad = " " * indent
     if isinstance(value, dict):
         inline = [k for k, v in value.items() if _is_inline(v)]
@@ -46,12 +46,12 @@ def _render(value: Any, *, indent: int) -> None:
         for key, item in value.items():
             if key in inline:
                 lines = _inline(item).split("\n")
-                stdout.print(Text.assemble(pad, (key.ljust(width), "bold"), "  ", lines[0]))
+                console.print(Text.assemble(pad, (key.ljust(width), "bold"), "  ", lines[0]))
                 for line in lines[1:]:
-                    stdout.print(Text(" " * (indent + width + 2) + line))
+                    console.print(Text(" " * (indent + width + 2) + line))
             else:
-                stdout.print(Text.assemble(pad, (key, "bold cyan")))
-                _render(item, indent=indent + 2)
+                console.print(Text.assemble(pad, (key, "bold cyan")))
+                _render(item, indent=indent + 2, console=console)
     elif _is_table(value):
         columns = list(value[0])
         table = Table(box=None, pad_edge=False, padding=(0, 2, 0, 0))
@@ -59,14 +59,14 @@ def _render(value: Any, *, indent: int) -> None:
             table.add_column(column, style="bold" if column == columns[0] else None)
         for row in value:
             table.add_row(*(_scalar(row.get(c)) for c in columns))
-        stdout.print(Padding(table, (0, 0, 0, indent)))
+        console.print(Padding(table, (0, 0, 0, indent)))
     elif isinstance(value, list):
         for index, item in enumerate(value):
-            if index:
-                stdout.print()
-            _render(item, indent=indent)
+            if index and not _is_scalar(item):
+                console.print()
+            _render(item, indent=indent, console=console)
     else:
-        stdout.print(Text(pad + _scalar(value)))
+        console.print(Text(pad + _scalar(value)))
 
 
 def _is_scalar(value: Any) -> bool:
@@ -74,10 +74,11 @@ def _is_scalar(value: Any) -> bool:
 
 
 def _is_inline(value: Any) -> bool:
+    """Scalars, and lists of scalars with no spaces in them; sentences get a line each."""
     return (
         _is_scalar(value)
         or value == {}
-        or (isinstance(value, list) and all(_is_scalar(v) for v in value))
+        or (isinstance(value, list) and all(_is_scalar(v) and " " not in _scalar(v) for v in value))
     )
 
 

@@ -20,6 +20,7 @@ from regents_cli.errors import (
 )
 from regents_cli.platforms import pinned_platforms
 from regents_cli.runner import platform_group
+from regents_cli.techtree.cli import techtree_group
 
 EPILOG = "Add --json to any command for machine output.\n\nExit codes:\n\n" + "\n\n".join(
     f"  {code}  {meaning}" for code, meaning in EXIT_CODES.items()
@@ -51,6 +52,7 @@ def root() -> click.Group:
     )
     for platform in platforms:
         group.add_command(platform_group(platform))
+    group.add_command(techtree_group())
     return group
 
 

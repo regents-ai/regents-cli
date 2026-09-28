@@ -1,0 +1,16 @@
+{
+  "upstream_url": "https://github.com/NVlabs/Skill2Env.git",
+  "upstream_revision": "9beb0b64a70290f862c8374bbef21f2ac88992ab",
+  "producer_version": "0.3.0",
+  "harbor_version": "0.23.0",
+  "task_schema": "1.4",
+  "license": "Apache-2.0",
+  "harbor_sdist_sha256": "a8b87e98db59877228bb36d2c24757cc422a3144ffaf31a1f88955c65c911e4d",
+  "required_files": ["instruction.md", "task.toml", "environment/Dockerfile", "tests/rubric.md", "tests/test.sh", "solution/solve.sh", "solution/alternative.sh", "solution/wrong.sh"],
+  "fixed_sections": {
+    "agent": {"network_mode": "no-network", "allowed_hosts": [], "timeout_sec": 1800.0},
+    "verifier": {"network_mode": "no-network", "allowed_hosts": [], "timeout_sec": 600.0, "env": {}, "collect": []},
+    "environment": {"network_mode": "no-network", "allowed_hosts": [], "build_timeout_sec": 1200.0, "os": "linux", "cpus": 2, "memory_mb": 4096, "storage_mb": 4096, "mcp_servers": [], "env": {}},
+    "solution": {"env": {}}
+  }
+}
