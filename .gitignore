@@ -19,3 +19,5 @@ __pycache__/
 build/
 .mypy_cache/
 .ruff_cache/
+# Written into the package only while a wheel is built; a wheel carries it, git never does.
+src/regents_cli/techtree/resources/release/build-provenance.json

@@ -1,5 +1,5 @@
 """Build the wheel and fail when it lacks a pinned description, the format it follows, or
-any of Techtree's resource files.
+any of Techtree's resource files, or the source-commit stamp the build hook writes.
 
 A wheel without them installs a `regents` with no site commands, or a Techtree whose engine,
 catalog or release digests no longer match, so this runs before any release.
@@ -24,6 +24,8 @@ def main() -> int:
         for path in [*package.rglob("*.json"), *resources.rglob("*")]
         if path.is_file() and "__pycache__" not in path.parts
     }
+    # Stamped by scripts/stamp_provenance.py while the wheel is built; never in the tree.
+    wanted.add("regents_cli/techtree/resources/release/build-provenance.json")
     with tempfile.TemporaryDirectory() as out:
         subprocess.run(["uv", "build", "--wheel", "--out-dir", out, "-q"], cwd=ROOT, check=True)
         [wheel] = Path(out).glob("*.whl")
