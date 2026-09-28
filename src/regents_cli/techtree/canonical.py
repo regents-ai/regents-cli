@@ -109,10 +109,6 @@ def canonical_json_bytes(value: object) -> bytes:
         raise ValidationError(f"value cannot be canonicalized: {error}") from error
 
 
-def canonical_json_text(value: object) -> str:
-    return canonical_json_bytes(value).decode("utf-8")
-
-
 def sha256_digest_bytes(data: bytes) -> Digest:
     """`sha256:<hex>` of raw bytes."""
     return f"{DIGEST_PREFIX}{hashlib.sha256(data).hexdigest()}"
@@ -141,30 +137,6 @@ def validate_digest(value: str) -> Digest:
     return value
 
 
-def verify_bytes_digest(data: bytes, expected: Digest) -> bool:
-    """Constant-time check of raw bytes against a digest."""
-    return hmac.compare_digest(sha256_digest_bytes(data), validate_digest(expected))
-
-
 def verify_object_digest(value: object, expected: Digest) -> bool:
     """Constant-time check of a value's canonical JSON against a digest."""
     return hmac.compare_digest(digest_object(value), validate_digest(expected))
-
-
-def normalize_verifiers_task_hash(raw: str) -> Digest:
-    """Turn a Verifiers task hash (exactly 64 lowercase hex, no prefix) into a digest."""
-    if raw.startswith(DIGEST_PREFIX):
-        raise ValidationError(
-            "Verifiers task hashes are unprefixed; use validate_digest for Techtree digests",
-            details={"value": raw},
-        )
-    if len(raw) != VERIFIERS_TASK_HASH_LENGTH:
-        raise ValidationError(
-            f"Verifiers task hash must be exactly {VERIFIERS_TASK_HASH_LENGTH} characters",
-            details={"length": len(raw)},
-        )
-    if _RAW_TASK_HASH_RE.fullmatch(raw) is None:
-        raise ValidationError(
-            "Verifiers task hash must be lowercase hexadecimal", details={"value": raw}
-        )
-    return f"{DIGEST_PREFIX}{raw}"

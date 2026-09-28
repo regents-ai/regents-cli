@@ -16,8 +16,6 @@ from regents_cli.techtree.models.base import (
     Digest,
     NonEmptyString,
     ProtocolModel,
-    StateModel,
-    UtcDateTime,
 )
 from regents_cli.techtree.models.campaign import TasksetRef
 
@@ -179,32 +177,3 @@ class TasksetValidationReceipt(ProtocolModel):
         if self.status == "valid" and any(check.status == "failed" for check in self.checks):
             raise ValueError("a receipt with a failed check is not valid")
         return self
-
-
-class ValidationExecutionRecord(StateModel):
-    """Local operational provenance for one validation execution; never in the Campaign graph."""
-
-    schema_version: Literal["techtree.validation-execution.v1alpha1"]
-    id: NonEmptyString
-    receipt_digest: Digest
-    started_at: UtcDateTime
-    finished_at: UtcDateTime
-    command: list[NonEmptyString]
-    command_digest: Digest
-    host_platform: NonEmptyString
-    worker_pid: int | None
-    raw_artifacts: list[ArtifactRef]
-
-    @model_validator(mode="after")
-    def _check_execution_window(self) -> Self:
-        if self.finished_at < self.started_at:
-            raise ValueError("finished_at cannot precede started_at")
-        if not self.command:
-            raise ValueError("a validation execution records the command it ran")
-        return self
-
-
-def validation_display_id(receipt_digest: Digest) -> str:
-    """The human-facing identifier derived from a receipt digest; for display, never stored."""
-    _, _, hexadecimal = receipt_digest.partition(":")
-    return f"validation_{hexadecimal[:_DISPLAY_ID_HEX_LENGTH]}"

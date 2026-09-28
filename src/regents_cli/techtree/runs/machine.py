@@ -149,11 +149,6 @@ def is_terminal(phase: RunPhase) -> bool:
     return not ALLOWED_TRANSITIONS[phase]
 
 
-def can_cancel(phase: RunPhase) -> bool:
-    """Return whether a run in this phase may be asked to stop."""
-    return RunPhase.CANCEL_REQUESTED in ALLOWED_TRANSITIONS[phase]
-
-
 def phase_progress_allowed(phase: RunPhase) -> bool:
     """Return whether a phase measures work a run can be part-way through."""
     return not is_terminal(phase) and phase is not RunPhase.CREATED

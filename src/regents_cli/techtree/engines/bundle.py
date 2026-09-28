@@ -96,14 +96,6 @@ def engine_bundle_digest(root: Traversable) -> Digest:
     return digest_object(content_manifest(BUNDLE_MANIFEST_SCHEMA, enumerate_bundle_files(root)))
 
 
-def package_source_digest(package_root: Traversable) -> Digest:
-    """The source-tree digest of one shipped package: the Campaign's, the descriptor's and the
-    TasksetLock's package digests are all this value."""
-    return digest_object(
-        content_manifest(PACKAGE_MANIFEST_SCHEMA, enumerate_bundle_files(package_root))
-    )
-
-
 def read_engine_descriptor(root: Traversable) -> EngineDescriptor:
     """Load and validate `engine.json` from a bundle."""
     descriptor = root / DESCRIPTOR_FILENAME
@@ -138,11 +130,6 @@ def copy_engine_bundle(root: Traversable, destination: Path) -> None:
         for segment in entry.relative_path.split("/"):
             source = source / segment
         target.write_bytes(source.read_bytes())
-
-
-def default_engine_descriptor() -> EngineDescriptor:
-    """The descriptor of the engine this build ships."""
-    return read_engine_descriptor(embedded_engine_root())
 
 
 def default_engine_digest() -> Digest:

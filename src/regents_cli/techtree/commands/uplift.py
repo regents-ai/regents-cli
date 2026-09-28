@@ -48,13 +48,6 @@ def _plural(count: int, one: str, many: str) -> str:
     return one if count == 1 else many
 
 
-def _prepare_words(comparison_id: str) -> str:
-    return (
-        f"regents techtree uplift prepare --from-run {comparison_id} --candidate-skill "
-        f"NEW_PATH, once the revised Skill is written. {NO_REVISION_YET}"
-    )
-
-
 # ---------------------------------------------------------------------------
 # context
 # ---------------------------------------------------------------------------

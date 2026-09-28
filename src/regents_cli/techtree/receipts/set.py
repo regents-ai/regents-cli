@@ -74,13 +74,6 @@ class ReceiptSetManifest(ProtocolModel):
         return self
 
 
-def seal_receipt(receipt: EpisodeReceiptV2) -> ObjectEnvelope[EpisodeReceiptV2]:
-    """Wrap one receipt with the digest of its own canonical bytes, unsigned."""
-    return ObjectEnvelope[EpisodeReceiptV2](
-        payload=receipt, payload_digest=digest_object(receipt), signature=None
-    )
-
-
 def build_receipt_set(
     *,
     run_id: str,

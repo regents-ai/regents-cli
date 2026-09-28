@@ -16,7 +16,7 @@ from typing import Final
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
-from regents_cli.techtree.canonical import canonical_json_bytes, digest_object, sha256_digest_bytes
+from regents_cli.techtree.canonical import digest_object
 from regents_cli.techtree.errors import NotFoundError, ValidationError, VerificationError
 from regents_cli.techtree.fs import realpath_within
 from regents_cli.techtree.models.base import Digest, JsonValue
@@ -112,16 +112,6 @@ class EmbeddedCatalogRepository:
 
     def load_climb(self, reference: str) -> ClimbManifest:
         return self._load_climb_entry(self.climb_entry(reference))
-
-    def load_object(self, digest: Digest) -> JsonValue:
-        """The JSON document filed under one digest, verified over its canonical form."""
-        location = self._object_location(digest)
-        raw = self._read_bytes(location.path, self._resolve(location.path))
-        document = _parse_json(raw, location.path)
-        recomputed = sha256_digest_bytes(canonical_json_bytes(document))
-        if recomputed != digest:
-            raise _digest_mismatch(digest, recomputed, location.path)
-        return document
 
     def load_campaign(self, digest: Digest) -> CampaignSpecV2:
         return self._load_model(digest, CampaignSpecV2)

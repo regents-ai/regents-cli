@@ -16,7 +16,6 @@ from typing import Final
 from pydantic import BaseModel
 
 from regents_cli.techtree.errors import ValidationError
-from regents_cli.techtree.verifiers.models import NormalizedExecutionError
 
 PRESENTATION_REDACTION_FAILED: Final = "presentation_redaction_failed"
 
@@ -37,12 +36,6 @@ def sanitize_label(value: str, maximum: int = 120) -> str:
     if len(label) <= maximum:
         return label
     return label[: maximum - 1].rstrip() + _ELLIPSIS
-
-
-def sanitize_error_summary(error: NormalizedExecutionError, maximum: int = 200) -> str:
-    """One recorded failure in one line; the traceback is dropped, not shortened."""
-    summary = f"{error.type}: {error.message}" if error.message else error.type
-    return sanitize_label(summary, maximum)
 
 
 def carries_control(value: str) -> bool:

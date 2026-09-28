@@ -6,15 +6,13 @@ and says so rather than naming a commit nobody stamped.
 
 from __future__ import annotations
 
-import zipfile
-from pathlib import Path
 from typing import Annotated, Final, Literal
 
 from pydantic import StringConstraints
 
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.models.base import ProtocolModel
-from regents_cli.techtree.release.document import packaged_release_root, render_document
+from regents_cli.techtree.release.document import packaged_release_root
 
 BUILD_PROVENANCE_SCHEMA_VERSION: Final = "techtree.build-provenance.v1"
 BUILD_PROVENANCE_FILENAME: Final = "build-provenance.json"
@@ -34,10 +32,6 @@ class BuildProvenance(ProtocolModel):
     source_commit: Commit
 
 
-def render_build_provenance(provenance: BuildProvenance) -> bytes:
-    return render_document(provenance.model_dump(mode="json"))
-
-
 def parse_build_provenance(raw: bytes) -> BuildProvenance:
     try:
         return BuildProvenance.model_validate_json(raw)
@@ -53,13 +47,3 @@ def packaged_build_provenance() -> BuildProvenance | None:
     if not stamp.is_file():
         return None
     return parse_build_provenance(stamp.read_bytes())
-
-
-def wheel_build_provenance(wheel: Path) -> BuildProvenance | None:
-    """What a wheel on disk was stamped with, without installing it."""
-    with zipfile.ZipFile(wheel) as archive:
-        try:
-            raw = archive.read(_WHEEL_MEMBER)
-        except KeyError:
-            return None
-    return parse_build_provenance(raw)
