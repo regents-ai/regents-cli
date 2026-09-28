@@ -66,7 +66,5 @@ MAX_SKILL_FILE_BYTES: Final = 256 * 1024
 MAX_SKILL_TOTAL_BYTES: Final = 2 * 1024 * 1024
 MAX_SKILL_FILES: Final = 64
 
-ALLOWED_SKILL_SUFFIXES: Final[frozenset[str]] = frozenset({".md", ".txt", ".json", ".yaml", ".yml"})
-
 #: Never a branch, a tag, or an unpinned PyPI range; changing it reruns the engine preflight.
 PINNED_VERIFIERS_REVISION: Final = "b2e4e8157783b2c0dffc7821044c87f29f1c3ccf"

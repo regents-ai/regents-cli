@@ -17,6 +17,7 @@ ID_PREFIXES: Final[frozenset[str]] = frozenset(
         "receipt",
         "uplift",
         "policy",
+        "build",
         "forgerun",
         "forgecmp",
         "forgerev",
