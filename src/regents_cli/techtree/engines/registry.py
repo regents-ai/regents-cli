@@ -70,7 +70,7 @@ class EngineRegistry:
     def executable(self, digest: Digest, name: str) -> Path:
         """One console script inside the engine environment, by absolute path, never via PATH.
 
-        The pinned Verifiers build installs its scripts under generic names such as `eval`.
+        The pinned Verifiers build installs its scripts under generic names such as `vf-eval`.
         """
         return self.path(digest) / VENV_DIRECTORY / _BIN_DIRECTORY / _plain(name)
 

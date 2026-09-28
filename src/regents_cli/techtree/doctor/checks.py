@@ -479,7 +479,7 @@ def check_engine(paths: TechtreePaths) -> DoctorCheck:
 
 
 def check_engine_eval(paths: TechtreePaths) -> DoctorCheck:
-    """The verified engine's own `eval` is where a real run will look for it."""
+    """The verified engine's own `vf-eval` is where a real run will look for it."""
     digest = default_engine_digest()
     registry = EngineRegistry(paths)
     status = registry.status(digest)

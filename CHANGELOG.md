@@ -42,6 +42,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   - Answers are plain JSON with a short Markdown `report`; exit codes are regents' own.
   - Runs made by `techtree` 0.3.0 still verify, but publish them with `techtree` 0.3.0.
   - `REGENTS_TECHTREE_PUBLICATION_ENDPOINT` points publishing at a test server.
+  - The evaluation engine uses Verifiers 0.3.2, and the release is `climb-v0.3.1`. Verifiers
+    0.3.2 gives every task a new identity, so Hello World is a new Campaign: runs made with
+    `techtree` 0.3.0 still verify, but they belong to the old one.
 
 ## @regentslabs/cli on npm (TypeScript)
 

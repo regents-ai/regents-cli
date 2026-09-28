@@ -34,15 +34,15 @@ GOLDEN = Path(__file__).parent / "fixtures" / "golden"
 CASES: dict[str, tuple[type[BaseModel], str]] = {
     "campaign-v2.json": (
         CampaignSpecV2,
-        "sha256:a5339efff09a8a5221ea5ea5761dc7ef9c12e6fd45cfa796d65e990cac239224",
+        "sha256:6c2120a1e571fef9bfedd8b2bae282d1233016d42fdde8a82f9925d78c2d838a",
     ),
     "campaign-parity-candidate.json": (
         CampaignSpecV2,
-        "sha256:7d3be292dc9ef00537c0a9e770aee2c964cf578402ba669b2f2c0e53e0831e95",
+        "sha256:18cf196010e2135f5367cfae477ab13122a471ba9b25bc4290b4d0acfa409617",
     ),
     "climb-v2.json": (
         ClimbManifest,
-        "sha256:5b9a4949ed7ab1202187435e59165f3f07bac8b438fad858729dcdad21c47bfd",
+        "sha256:95950b244eb2f8035be3c2c5c43acc98f5ee5352fc1d71ce69f09ab8031f1e2a",
     ),
     "climb.json": (
         ClimbManifest,
@@ -50,11 +50,11 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "climb-summary-v2.json": (
         ClimbSummaryV2,
-        "sha256:48f6ed43c270ffa63450eb36cae4315b8ffc3c9e68fd4f0a1dedcb3fab82eb5c",
+        "sha256:f175a87dbee883c7358a32620ad2409539f80e83e7f655cae16d2f989bc99949",
     ),
     "comparison-execution.json": (
         ComparisonExecutionRecord,
-        "sha256:1b6ee9f2ec389ccc3fa09f3d08db4d9d610da4f2ca1af0b4bc9c98985c890ef7",
+        "sha256:9b25006e88f7bec19318ae6b4074d1005d747d699959fb45dc2998bf4d46834c",
     ),
     "data-policy.json": (
         DataPolicy,
@@ -62,11 +62,11 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "episode-receipt-v2.json": (
         ObjectEnvelope[EpisodeReceiptV2],
-        "sha256:0b3e62efc593c3359d215ed9accbaa485e8b62e81b6fbfccfb92d6e3051c97bc",
+        "sha256:37972a531cf983e8d0d5114c478a7c03053c36712f5f059a96c67a14304ebec9",
     ),
     "execution-plan.json": (
         ResolvedExecutionPlan,
-        "sha256:50c38344ecac5aae0fa2a5ab46320871e8e1268a9e033e7446d561576414c030",
+        "sha256:01cb3af651c0c4c61686554c762a58d00734e5feeae7d9bc8cc09b197ea90d3b",
     ),
     "executor-identity.json": (
         ExecutorIdentity,
@@ -74,15 +74,15 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "experiment-baseline-v2.json": (
         ExperimentManifestV2,
-        "sha256:37933aa201b3ef2cc29714ced552530e28ee20a09a75977fad179ca9b6d1ed3e",
+        "sha256:ac01bcd2e2e7aa9d59561cd9f2db3689573dd32710eeb3c5ba51b4a632d30bf8",
     ),
     "experiment-candidate-v2.json": (
         ExperimentManifestV2,
-        "sha256:0b3b2b7235d5b433921b71efe4a594ac7f9efb5c4ef77c8c5795b14414b8048e",
+        "sha256:6d195c91cc43f92e2bdd0d30446db1b6c3bd9fe1632e07040e26a2566f6063a6",
     ),
     "run-request-v2.json": (
         RunRequestV2,
-        "sha256:12fc14514a4990b3a791c7b93d8d50488b3f65f196cdd65197ed279376424f0c",
+        "sha256:da22d6d48f582db69212ca841f717ac4169a51d54626cbd979889d309f92f98d",
     ),
     "taskset-lock.json": (
         TasksetLock,
@@ -90,11 +90,11 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "taskset-validation-receipt.json": (
         TasksetValidationReceipt,
-        "sha256:b0ff34a2b54a35ea85856babdf86b4a93c6ef86c9a7fc33d2c7fa230490e3c94",
+        "sha256:8ccab5ac9e48a25ea26d621551b578ae4e210b61f950700477ae75252af27504",
     ),
     "uplift-report-v2.json": (
         ObjectEnvelope[UpliftReportV2],
-        "sha256:f86ddb858626d2548615bb3bd1fa8d1f4811f528af82c586934d5bcf174ae063",
+        "sha256:134eed19e4d6c9e8237e9b0112557a5f79b674a5a714046a6dda6f72297700c0",
     ),
 }
 

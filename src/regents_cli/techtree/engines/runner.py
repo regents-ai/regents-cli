@@ -1,7 +1,7 @@
 """Running one command inside the managed engine.
 
 Executables are addressed by absolute path, never through PATH: the pinned Verifiers build
-installs console scripts under names as generic as `eval`. The child gets `PATH`, `HOME` and
+installs console scripts under generic names such as `vf-eval`. The child gets `PATH`, `HOME` and
 `TMPDIR` plus whatever the caller passes by name; every other parent variable (API keys, tokens,
 cloud credentials) is dropped, so a model-free engine command cannot leak one.
 """

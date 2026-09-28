@@ -8,7 +8,7 @@
         "size": 65536
       }
     ],
-    "campaign_spec_digest": "sha256:6c3032e1d63ee66c5d95b4030ead1b45d692c98277ac5916c1069e9b0d03c533",
+    "campaign_spec_digest": "sha256:6c2120a1e571fef9bfedd8b2bae282d1233016d42fdde8a82f9925d78c2d838a",
     "data_policy_digest": "sha256:f61fff0ff5941205fca8fc044c81e7a56aed9017539f6927ab9df0e81f70f88b",
     "episode_digest": "sha256:60017f691db8746f0d841c3f0093e31f976f82c2158b76b009901890c2c96aed",
     "episode_id": "episode_df97c7a992e666cbb8e957b98893a2be",
@@ -16,9 +16,9 @@
     "execution_location": {
       "kind": "local"
     },
-    "execution_plan_digest": "sha256:50c38344ecac5aae0fa2a5ab46320871e8e1268a9e033e7446d561576414c030",
+    "execution_plan_digest": "sha256:01cb3af651c0c4c61686554c762a58d00734e5feeae7d9bc8cc09b197ea90d3b",
     "executor_kind": "verifiers",
-    "experiment_manifest_digest": "sha256:566d3b07ea3ecb99f961fb34a6e3e63f82edb3a912f630b2b93484f315f93170",
+    "experiment_manifest_digest": "sha256:6d195c91cc43f92e2bdd0d30446db1b6c3bd9fe1632e07040e26a2566f6063a6",
     "id": "receipt_ebab4a3197b84718000b5a1f9abb6a60",
     "named_traces": {
       "subject": [
@@ -38,7 +38,7 @@
     "outcome_contract_digest": null,
     "program_ref": null,
     "public_context": {
-      "climb_digest": "sha256:5b9a4949ed7ab1202187435e59165f3f07bac8b438fad858729dcdad21c47bfd",
+      "climb_digest": "sha256:95950b244eb2f8035be3c2c5c43acc98f5ee5352fc1d71ce69f09ab8031f1e2a",
       "kind": "climb"
     },
     "run_id": "run_bc5e01438ad71b7de1078aa4a307785a",
@@ -52,10 +52,10 @@
     "task_hash": "sha256:de3897e782c16d166dbef41c2e4d7c923a8f62694b6f12bc7159f26147caf7ef",
     "variant": "candidate"
   },
-  "payload_digest": "sha256:dd55fe9371f83e6187aa10972219146d22cc406506f300c1773e367ca5674f76",
+  "payload_digest": "sha256:45a857ca27b338a3d86f262a292d140871c5e94adc1b0eb191d022e07eb310fc",
   "signature": {
     "algorithm": "ed25519",
     "key_id": "sha256:cb1636de7059dc2a939fb3e53590a8373911d5613540d1c00eeaf7d37a10d38f",
-    "signature": "NrWFqrxZW5CVw+7a1XnEK6ME54srUHC87RCrzLvHX/nQDvx5wbOeLmatccNdhQwxADrIkWWFy3gMevziyAP3Cw=="
+    "signature": "YQKgeoGRf4iW4ePh4teDmQ+gwli8+cIpV01JG4Hew72klC1fOuQXSdpwGy6OqTM76tssdYY8dN+fZ0isP4vQCw=="
   }
 }

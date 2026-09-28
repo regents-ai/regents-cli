@@ -1,36 +1,36 @@
 {
   "climbs": [
     {
-      "digest": "sha256:93f08948f3495bff9f9557973f99080f6a965c61c3638fbacc3cd347ac232ac0",
+      "digest": "sha256:deee3dacfa61e279fb1a4cd9605af195384f412504a65ef7c40ebd02372f700e",
       "path": "climbs/hello-world-climb.json",
       "reference": "hello-world-climb@1"
     }
   ],
   "objects": {
+    "sha256:2ba3d41f114d0d601686a887d923d7b74547806a54ac07fcf13409643d865acb": {
+      "kind": "taskset_validation",
+      "media_type": "application/json",
+      "path": "taskset-validations/hello-world-climb.json"
+    },
     "sha256:6c532a43d595286a08260481890bbbffa16d1b4dd89465d1cc8395099d9ebcf9": {
       "kind": "data_policy",
       "media_type": "application/json",
       "path": "data-policies/hello-world-climb.json"
     },
-    "sha256:a6b44318c76c006e0a317ea26426cd62993a9e5c8cf5030fd0c0cfc127c50522": {
+    "sha256:7f3b74085e0d9ab8d04c857dcf702f5189afc5f266c28af01a6cf86500a570e5": {
       "kind": "execution_plan",
       "media_type": "application/json",
       "path": "execution-plans/hello-world-climb.json"
     },
-    "sha256:b5b113503af9bf24abf674678e2a3bdb7ed6514cc70f962f08d3411e0ac12f3f": {
-      "kind": "taskset_validation",
-      "media_type": "application/json",
-      "path": "taskset-validations/hello-world-climb.json"
-    },
-    "sha256:c6d33b2e25fa164634d0e98aeb7a34c7bed3c3703b36b8e62bb1d04a058dcbac": {
-      "kind": "campaign",
-      "media_type": "application/json",
-      "path": "campaigns/hello-world-climb.json"
-    },
-    "sha256:fb0f218684107f324d007fadb2f43aeb7a712284779afd2d4fbb35c8b0de4688": {
+    "sha256:d2e6e609d3ad1465e36f52a52758c343383a0441d3328331e82ff2d2b9f2225f": {
       "kind": "validation_evidence",
       "media_type": "application/json",
       "path": "validation-evidence/hello-world-climb.json"
+    },
+    "sha256:f95fd132af01ddb3e4c97d1041885c0e4186ff13875b054bc5f1f63c87c711f2": {
+      "kind": "campaign",
+      "media_type": "application/json",
+      "path": "campaigns/hello-world-climb.json"
     }
   },
   "schema_version": "techtree.catalog.v2"

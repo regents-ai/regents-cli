@@ -42,5 +42,5 @@ Where the plugin reads 0.3.0's `phase`, `terminal`, `result_available` and `work
 names are unchanged. The plugin's own doctor answer can keep `can_prepare_demo` as "no blocking
 failures"; `regents techtree doctor` doesn't compute it.
 
-`release verify` reports `cli_version` as failed until slice T5 cuts a ReleaseCore naming the
-regents-cli version; the other checks report their true results.
+The ReleaseCore is `techtree.release-core.v2`: `skill_improver_digest` is gone, and
+`subject_hermes_version` is a Hermes release tag (`v2026.7.20`) rather than a version number.

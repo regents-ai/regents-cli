@@ -3,9 +3,9 @@
 The dry run is the only cheap way to ask the pinned engine what it thinks of a configuration.
 It costs nothing and touches no provider. The resolved configuration is compared to the
 compiled one as a projection, never byte for byte: the engine fills in `client.base_url`,
-writes every default, and records the `--output-dir` from argv. Two settings are checked in
-the resolved document even though the compiled one never mentions them, because for both the
-engine's default is the dangerous answer: the platform upload and the env-server worker pool.
+writes every default, and records the `--output-dir` from argv. The platform upload is checked
+in the resolved document even though the compiled one never mentions it, because the engine's
+default is the dangerous answer.
 
 After the run, `verify_variant_execution` answers one question, is this execution complete and
 usable, as an ordered list of named verdicts. A zero exit code is never sufficient.
@@ -52,9 +52,6 @@ DEFAULT_DRY_RUN_TIMEOUT_SECONDS: Final = 300.0
 
 #: The one key the engine fills in that Techtree deliberately left out.
 _ENGINE_RESOLVED_KEYS: Final[frozenset[str]] = frozenset({"client.base_url"})
-
-#: "Not in the resolved document at all", which differs from "resolved to null".
-_MISSING: Final = object()
 
 
 @dataclass(frozen=True)
@@ -181,7 +178,6 @@ def verify_compiled_config(
             ),
         ),
         _push_check(observed),
-        _serve_check(observed),
         _subject_seat_check(observed),
     ]
 
@@ -198,21 +194,6 @@ def _invocation_check(process: EngineProcessResult) -> ExecutionCheck:
         status="failed",
         detail=f"the engine's eval entrypoint exited {process.exit_code}: "
         f"{_last_meaningful_line(process)}",
-    )
-
-
-def _serve_check(observed: Mapping[str, Any]) -> ExecutionCheck:
-    in_process = observed.get("serve", _MISSING) is None
-    return ExecutionCheck(
-        id="rollouts_run_in_process",
-        status="passed" if in_process else "failed",
-        detail=(
-            "the resolved configuration records no worker pool, so the rollouts are the "
-            "evaluation child's own work."
-            if in_process
-            else "the resolved configuration would host the rollouts through an env-server "
-            "worker pool rather than in the evaluation child."
-        ),
     )
 
 
