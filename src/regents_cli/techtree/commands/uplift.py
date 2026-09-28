@@ -12,6 +12,7 @@ from typing import Final
 
 import click
 
+from regents_cli import output
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import canonical_json_bytes
@@ -125,7 +126,7 @@ def skill_source(run_id: str, as_json: bool) -> None:
             details={"run_id": run_id},
         )
     skill = read_owned_skill(run.spec.skill, Path(run.path) / SKILL_DIRNAME, owner_id=run_id)
-    report = [
+    heading = [
         f"This is run {run_id}'s own copy of {skill.entrypoint_path}, re-verified against the "
         "Skill the run measured as it was read.",
         "",
@@ -137,13 +138,13 @@ def skill_source(run_id: str, as_json: bool) -> None:
         f"- Files in this Skill: {skill.file_count}",
         "",
         f"{skill.entrypoint_path} ({skill.entrypoint_size} bytes)",
-        "",
-        skill.entrypoint_text,
-        "",
+    ]
+    next_line = (
         "Next: write the revised Skill in a new folder, then "
         "regents techtree uplift prepare --from-run COMPARISON_ID --candidate-skill NEW_PATH, "
-        f"with the comparison that measured this run. {NO_REVISION_YET}",
-    ]
+        f"with the comparison that measured this run. {NO_REVISION_YET}"
+    )
+    report = [*heading, "", skill.entrypoint_text, "", next_line]
     answer: Answer = {
         "source_run_id": run_id,
         "skill_name": skill.name,
@@ -155,7 +156,15 @@ def skill_source(run_id: str, as_json: bool) -> None:
         "file_count": skill.file_count,
         "report": "\n".join(report),
     }
-    emit(answer, as_json=as_json)
+    emit(
+        answer,
+        as_json=as_json,
+        shown=[
+            output.report("\n".join(heading)),
+            output.verbatim(skill.entrypoint_text),
+            output.report(next_line),
+        ],
+    )
 
 
 # ---------------------------------------------------------------------------

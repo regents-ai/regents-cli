@@ -6,16 +6,23 @@ from typing import Final
 
 import click
 
+from regents_cli import output
 from regents_cli.techtree import paths
 from regents_cli.techtree.catalog.service import CatalogService
 from regents_cli.techtree.commands.answers import JSON, emit
-from regents_cli.techtree.doctor.checks import DoctorCheck
+from regents_cli.techtree.doctor.checks import CheckStatus, DoctorCheck
 from regents_cli.techtree.doctor.service import DoctorReport, DoctorService
 from regents_cli.techtree.errors import PrerequisiteError
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.models.campaign import CampaignSpecV2
 
 ENVIRONMENT_NOT_READY: Final = "environment_not_ready"
+_MARK: Final[dict[CheckStatus, output.CheckStatus]] = {
+    CheckStatus.PASS: "pass",
+    CheckStatus.WARN: "warn",
+    CheckStatus.FAIL: "fail",
+    CheckStatus.SKIP: "skip",
+}
 
 
 def doctor(for_evaluation: bool, climb: str | None, as_json: bool) -> None:
@@ -41,8 +48,19 @@ def doctor(for_evaluation: bool, climb: str | None, as_json: bool) -> None:
     warnings = service.warning_checks(checks)
     if warnings:
         answer["warnings"] = [{"id": check.id, "text": check.detail} for check in warnings]
-    answer["report"] = _report(report)
-    emit(answer, as_json=as_json)
+    facts = _facts(report)
+    answer["report"] = "\n".join([*facts, "", *(_check_line(check) for check in report.checks)])
+    emit(
+        answer,
+        as_json=as_json,
+        shown=[
+            output.report("\n".join(facts)),
+            output.checks(
+                output.Check(check.label, _MARK[check.status], check.detail)
+                for check in report.checks
+            ),
+        ],
+    )
 
 
 def _campaign_for(home: paths.TechtreePaths, reference: str | None) -> CampaignSpecV2 | None:
@@ -52,7 +70,7 @@ def _campaign_for(home: paths.TechtreePaths, reference: str | None) -> CampaignS
     return CatalogService(home).get_climb(reference).campaign
 
 
-def _report(report: DoctorReport) -> str:
+def _facts(report: DoctorReport) -> list[str]:
     lines = [
         f"All {len(report.checks)} checks ran and none of them block Techtree.",
         "",
@@ -62,9 +80,7 @@ def _report(report: DoctorReport) -> str:
     ]
     if report.docker_platform is not None:
         lines.append(f"- Docker platform: {report.docker_platform}")
-    lines.append("")
-    lines.extend(_check_line(check) for check in report.checks)
-    return "\n".join(lines)
+    return lines
 
 
 def _check_line(check: DoctorCheck) -> str:

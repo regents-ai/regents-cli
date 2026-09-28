@@ -12,11 +12,16 @@ from typing import Final
 
 import click
 
+from regents_cli import output
 from regents_cli.techtree.canonical import validate_digest
 from regents_cli.techtree.commands.answers import JSON, emit
 from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.release.checks import local_release_facts, verify_release_core
+from regents_cli.techtree.release.checks import (
+    ReleaseCheckStatus,
+    local_release_facts,
+    verify_release_core,
+)
 from regents_cli.techtree.release.document import (
     document_digest,
     packaged_release_core_bytes,
@@ -25,6 +30,11 @@ from regents_cli.techtree.release.document import (
 from regents_cli.techtree.release.provenance import BuildProvenance, packaged_build_provenance
 
 RELEASE_NOT_VERIFIED: Final = "release_not_verified"
+_MARK: Final[dict[ReleaseCheckStatus, output.CheckStatus]] = {
+    "passed": "pass",
+    "failed": "fail",
+    "skipped": "skip",
+}
 
 
 def info(as_json: bool) -> None:
@@ -82,17 +92,27 @@ def verify(expected: str | None, as_json: bool) -> None:
         "checks": checks,
     }
     _warn_if_unstamped(answer, packaged_build_provenance())
+    facts = [
+        f"This release verifies: {len(result.checks)} checks, {len(result.skipped)} of them "
+        "not applicable to an installed CLI, with nothing fetched.",
+        "",
+        f"ReleaseCore: {answer['release_core_digest']}",
+    ]
     answer["report"] = "\n".join(
-        [
-            f"This release verifies: {len(result.checks)} checks, {len(result.skipped)} of them "
-            "not applicable to an installed CLI, with nothing fetched.",
-            "",
-            f"ReleaseCore: {answer['release_core_digest']}",
-            "",
-            *(f"- **{c.status.upper()}** {c.id}: {c.detail}" for c in result.checks),
-        ]
+        [*facts, "", *(f"- **{c.status.upper()}** {c.id}: {c.detail}" for c in result.checks)]
     )
-    emit(answer, as_json=as_json)
+
+    emit(
+        answer,
+        as_json=as_json,
+        shown=[
+            output.report("\n".join(facts)),
+            output.checks(
+                output.Check(c.id.replace("_", " "), _MARK[c.status], c.detail)
+                for c in result.checks
+            ),
+        ],
+    )
 
 
 def _warn_if_unstamped(answer: dict[str, JsonValue], stamp: BuildProvenance | None) -> None:

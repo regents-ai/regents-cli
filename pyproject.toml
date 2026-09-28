@@ -14,6 +14,7 @@ dependencies = [
   "eth-account>=0.13,<1",
   "filelock>=3.18,<4",
   "httpx>=0.28,<1",
+  "markdown-it-py>=4,<5",
   "pydantic>=2.12,<3",
   "pyyaml>=6,<7",
   "rfc8785>=0.1,<1",

@@ -84,8 +84,7 @@ def approve(
                     ["regents", "techtree", *command, "--yes", "--reviewed-on", "host-agent"]
                 ),
             )
-        for line in review:
-            output.stdout.print(line, markup=False)
+        output.show(output.review(review))
         if not asked(question):
             raise NotApprovedError("Nothing was done: the answer was not yes.")
     return reviewed_on
