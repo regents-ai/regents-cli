@@ -17,11 +17,15 @@ from regents_cli.techtree.constants import DIGEST_PREFIX
 from regents_cli.techtree.crypto import ED25519_PUBLIC_KEY_BYTES
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel, PublicKeyRef
 
-RELEASE_CORE_SCHEMA_VERSION: Final = "techtree.release-core.v1"
+RELEASE_CORE_SCHEMA_VERSION: Final = "techtree.release-core.v2"
 
 #: Three numbers; nothing merely proposed has a version.
 VERSION_PATTERN: Final = r"^[0-9]+(?:\.[0-9]+){2}$"
 type Version = Annotated[str, StringConstraints(pattern=VERSION_PATTERN)]
+
+#: A Hermes release tag, which is how the engine installs the subject harness: `v2026.7.20`.
+HERMES_TAG_PATTERN: Final = r"^v[0-9]+(?:\.[0-9]+){2,3}$"
+type HermesTag = Annotated[str, StringConstraints(pattern=HERMES_TAG_PATTERN)]
 
 RELEASE_ID_PATTERN: Final = r"^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
 type ReleaseId = Annotated[str, StringConstraints(pattern=RELEASE_ID_PATTERN)]
@@ -114,7 +118,7 @@ class PublicationCoordinates(ProtocolModel):
 class ReleaseCore(ProtocolModel):
     """The frozen coordinates of one Climb release."""
 
-    schema_version: Literal["techtree.release-core.v1"]
+    schema_version: Literal["techtree.release-core.v2"]
     release_id: ReleaseId
     cli_version: Version
     protocol_version: NonEmptyString
@@ -123,8 +127,7 @@ class ReleaseCore(ProtocolModel):
     intro_climb_reference: NonEmptyString
     starter_skill_digest: ConcreteDigest
     starter_skill_object_url: ObjectUrl
-    skill_improver_digest: ConcreteDigest
     minimum_host_hermes_version: Version
     maximum_tested_host_hermes_version: Version
-    subject_hermes_version: Version
+    subject_hermes_version: HermesTag
     publication: PublicationCoordinates

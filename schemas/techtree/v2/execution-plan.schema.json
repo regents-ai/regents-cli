@@ -1,0 +1,185 @@
+{
+  "$defs": {
+    "Digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "EvaluationEngineRef": {
+      "additionalProperties": false,
+      "description": "Which Verifiers build supplies task identity, task results, and reward.",
+      "properties": {
+        "api_generation": {
+          "const": "v1",
+          "title": "Api Generation",
+          "type": "string"
+        },
+        "engine_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "verifiers",
+          "title": "Kind",
+          "type": "string"
+        },
+        "package_version": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "source_commit": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "kind",
+        "api_generation",
+        "package_version",
+        "source_commit",
+        "engine_digest"
+      ],
+      "title": "EvaluationEngineRef",
+      "type": "object"
+    },
+    "EvidenceBackendSpec": {
+      "additionalProperties": false,
+      "description": "Which evidence the run must produce; coverage is a request, never an outcome.",
+      "properties": {
+        "coverage_profile_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "native_evidence": {
+          "const": "required",
+          "title": "Native Evidence",
+          "type": "string"
+        },
+        "trace_coverage": {
+          "enum": [
+            "not_requested",
+            "requested"
+          ],
+          "title": "Trace Coverage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "native_evidence",
+        "trace_coverage",
+        "coverage_profile_digest"
+      ],
+      "title": "EvidenceBackendSpec",
+      "type": "object"
+    },
+    "ExecutionBackendSpec": {
+      "additionalProperties": false,
+      "description": "Who runs the comparison: the participant's own machine, with no provider.",
+      "properties": {
+        "kind": {
+          "const": "local",
+          "title": "Kind",
+          "type": "string"
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "null"
+        },
+        "provider_environment_coordinate": {
+          "title": "Provider Environment Coordinate",
+          "type": "null"
+        }
+      },
+      "required": [
+        "kind",
+        "provider",
+        "provider_environment_coordinate"
+      ],
+      "title": "ExecutionBackendSpec",
+      "type": "object"
+    },
+    "NonEmptyString": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "SubjectBackendSpec": {
+      "additionalProperties": false,
+      "description": "The harness that is measured, reached directly, with no adapter in front of it.",
+      "properties": {
+        "adapter_contract_version": {
+          "title": "Adapter Contract Version",
+          "type": "null"
+        },
+        "adapter_id": {
+          "title": "Adapter Id",
+          "type": "null"
+        },
+        "adapter_version": {
+          "title": "Adapter Version",
+          "type": "null"
+        },
+        "harness_id": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "harness_version": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "kind": {
+          "const": "direct",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "harness_id",
+        "harness_version",
+        "adapter_id",
+        "adapter_version",
+        "adapter_contract_version"
+      ],
+      "title": "SubjectBackendSpec",
+      "type": "object"
+    }
+  },
+  "$id": "https://schemas.techtree.dev/v2/execution-plan.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "All four planes, resolved, immutable, and digestible as one object.",
+  "properties": {
+    "evaluation": {
+      "$ref": "#/$defs/EvaluationEngineRef"
+    },
+    "evidence": {
+      "$ref": "#/$defs/EvidenceBackendSpec"
+    },
+    "execution": {
+      "$ref": "#/$defs/ExecutionBackendSpec"
+    },
+    "kind": {
+      "const": "ResolvedExecutionPlan",
+      "title": "Kind",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "techtree.execution-plan.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "subject": {
+      "$ref": "#/$defs/SubjectBackendSpec"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kind",
+    "evaluation",
+    "execution",
+    "subject",
+    "evidence"
+  ],
+  "title": "ResolvedExecutionPlan",
+  "type": "object"
+}

@@ -28,7 +28,7 @@ SKILL_OBJECT_URL = f"https://techtree.sh/api/v1/objects/sha256:{'4d' * 32}"
 
 def bound_core(**overrides: Any) -> ReleaseCore:
     fields: dict[str, Any] = {
-        "schema_version": "techtree.release-core.v1",
+        "schema_version": "techtree.release-core.v2",
         "release_id": "climb-v0.1.0",
         "cli_version": "0.1.0",
         "protocol_version": "v1alpha1",
@@ -37,10 +37,9 @@ def bound_core(**overrides: Any) -> ReleaseCore:
         "intro_climb_reference": INTRO_CLIMB,
         "starter_skill_digest": SKILL_DIGEST,
         "starter_skill_object_url": SKILL_OBJECT_URL,
-        "skill_improver_digest": SKILL_DIGEST,
         "minimum_host_hermes_version": "0.19.0",
         "maximum_tested_host_hermes_version": "0.19.3",
-        "subject_hermes_version": "0.19.0",
+        "subject_hermes_version": "v2026.7.20",
         "publication": COORDINATES,
     }
     return ReleaseCore(**{**fields, **overrides})
@@ -53,7 +52,7 @@ def agreeing_facts() -> ReleaseFacts:
         engine_digest=ENGINE_DIGEST,
         catalog_digest=CATALOG_DIGEST,
         climb_references=(INTRO_CLIMB,),
-        subject_hermes_versions={INTRO_CLIMB: "0.19.0"},
+        subject_hermes_versions={INTRO_CLIMB: "v2026.7.20"},
     )
 
 
@@ -85,6 +84,5 @@ def test_a_check_that_could_not_run_is_never_reported_as_a_pass() -> None:
         "release_core_digest",
         "starter_skill_digest",
         "starter_skill_object_url",
-        "skill_improver_digest",
     }
     assert all(check.status != "passed" for check in result.skipped)

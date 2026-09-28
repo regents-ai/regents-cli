@@ -1,9 +1,9 @@
 """Whether one release still agrees with itself: each ReleaseCore claim against the thing it names.
 
 A check is passed, failed or skipped, and a verification is verified when nothing failed. A
-check that could not run is never reported as a pass: the two founder Skill digests and the
-starter Skill's address cannot be settled from inside an installed CLI that contacts nothing,
-so they are skipped with their values in the detail.
+check that could not run is never reported as a pass: the starter Skill's digest and its
+address cannot be settled from inside an installed CLI that contacts nothing, so they are
+skipped with their values in the detail.
 """
 
 from __future__ import annotations
@@ -158,7 +158,7 @@ def verify_release_core(
             ),
             _intro_climb_check(core, facts),
             _subject_hermes_check(core, facts),
-            *_founder_skill_checks(core),
+            _starter_skill_digest_check(core),
             _starter_skill_source_check(core),
         ]
     )
@@ -250,17 +250,14 @@ def _subject_hermes_check(core: ReleaseCore, facts: ReleaseFacts) -> ReleaseChec
     )
 
 
-def _founder_skill_checks(core: ReleaseCore) -> list[ReleaseCheck]:
-    """The CLI ships no Skill bytes, so each founder Skill digest is checked where they are."""
-    return [
-        _skipped(
-            field,
-            f"this release binds {field.removesuffix('_digest')} to {getattr(core, field)}; the "
-            "CLI package carries no Skill bytes, so the plugin and the website verify it against "
-            "the Skill they serve.",
-        )
-        for field in ("starter_skill_digest", "skill_improver_digest")
-    ]
+def _starter_skill_digest_check(core: ReleaseCore) -> ReleaseCheck:
+    """The CLI ships no Skill bytes, so the starter Skill digest is checked where they are."""
+    return _skipped(
+        "starter_skill_digest",
+        f"this release binds starter_skill to {core.starter_skill_digest}; the CLI package "
+        "carries no Skill bytes, so the plugin and the website verify it against the Skill "
+        "they serve.",
+    )
 
 
 def _starter_skill_source_check(core: ReleaseCore) -> ReleaseCheck:

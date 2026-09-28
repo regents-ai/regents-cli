@@ -45,8 +45,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-from verifiers.v1.cli.output import read_episodes
 from verifiers.v1.trace import WireTrace
+from verifiers.v1.utils.trace_store import read_episodes
 
 #: The one role v0.1 evaluates. A trace seated anywhere else is a different
 #: experiment (spec 6.5).
@@ -291,7 +291,13 @@ def normalize_usage(trace: Any) -> dict[str, Any] | None:
 
 
 def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
-    """Project one subject rollout."""
+    """Project one subject rollout.
+
+    Verifiers stops a rollout whose stage deadline expired as a clean stop, and
+    still scores it. A Campaign's timeouts are part of the experiment, so a
+    rollout that ran out of time did not complete it: it is projected as not
+    ok, and its score is never counted as a result.
+    """
     if trace.agent.name != SUBJECT_ROLE:
         raise SystemExit(
             f"trace {trace.id} was produced by the {trace.agent.name!r} role; "
@@ -313,7 +319,7 @@ def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
         "trace_id": trace.id,
         "agent_role": SUBJECT_ROLE,
         "task_hash": normalize_task_hash(trace.task.hash),
-        "ok": bool(trace.ok),
+        "ok": bool(trace.ok) and not trace.is_timeout,
         "verifiers_version": trace.verifiers.version,
         "verifiers_revision": revision,
         "model_id": trace.agent.config.model or "",
@@ -360,7 +366,7 @@ def normalize_episode(episode: Any, experiment: dict[str, Any]) -> dict[str, Any
         "env_id": episode.env.id,
         "task_hash": trace["task_hash"],
         "task_position": -1,
-        "ok": bool(episode.ok),
+        "ok": bool(episode.ok) and trace["ok"],
         "traces": [trace],
         "errors": [normalize_error(error) for error in episode.errors],
         "raw_episode_digest": digest_json(episode.model_dump(mode="json")),

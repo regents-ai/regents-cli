@@ -1,7 +1,7 @@
 """One live evaluation child process.
 
-The engine's `eval` is addressed by absolute path: the pinned build installs it under that
-bare name, and a PATH lookup would let the shell builtin answer for the engine. Standard output
+The engine's `vf-eval` is addressed by absolute path, so the engine's own copy answers and
+never another one on PATH. The pinned build runs the rollouts in this process. Standard output
 goes to a run-owned file and is never streamed: with the dashboard off the pinned CLI prints
 every trace, the subject's full transcripts, to stdout when the run finishes. Cancellation goes
 to the whole process group, SIGTERM first so the engine's own handler tears its containers
@@ -32,9 +32,9 @@ from regents_cli.techtree.models.base import ArtifactRef, Digest
 from regents_cli.techtree.verifiers.models import ChildProcessOutcome, VariantName
 from regents_cli.techtree.verifiers.paths import EVAL_RUN_NAME
 
-EVAL_EXECUTABLE: Final = "eval"
+EVAL_EXECUTABLE: Final = "vf-eval"
 
-#: `eval` takes its configuration as `@` followed by the path, as two argv entries.
+#: `vf-eval` takes its configuration as `@` followed by the path, as two argv entries.
 CONFIG_ARGUMENT_MARKER: Final = "@"
 DRY_RUN_FLAG: Final = "--dry-run"
 OUTPUT_DIR_FLAG: Final = "--output-dir"
@@ -44,9 +44,6 @@ DRY_RUN_NAME: Final = "dry-run"
 #: Belt and braces beside `push = false` in the file: upstream defaults to uploading the
 #: participant's episodes, and a flag on argv overrides whatever the file says.
 PUSH_DISABLED_FLAG: Final = "--no-push"
-#: Runs the rollouts in this child rather than through the engine's env-server worker pool;
-#: one child, one process group, one cancellation path.
-SERVE_DISABLED_FLAG: Final = "--no-serve"
 
 #: The Ctrl-C code the pinned CLI exits on after tearing its containers down.
 CANCELLATION_EXIT_CODE: Final = 130
@@ -74,7 +71,6 @@ def eval_argv(*, eval_executable: Path, input_config_path: Path) -> list[str]:
         CONFIG_ARGUMENT_MARKER,
         str(input_config_path),
         PUSH_DISABLED_FLAG,
-        SERVE_DISABLED_FLAG,
         RUN_NAME_FLAG,
         EVAL_RUN_NAME,
     ]
@@ -87,7 +83,6 @@ def dry_run_argv(*, input_config_path: Path, dry_run_dir: Path) -> list[str]:
         str(input_config_path),
         DRY_RUN_FLAG,
         PUSH_DISABLED_FLAG,
-        SERVE_DISABLED_FLAG,
         RUN_NAME_FLAG,
         DRY_RUN_NAME,
         OUTPUT_DIR_FLAG,
@@ -169,7 +164,7 @@ def write_command_log(
 
 
 class VerifiersChild:
-    """One `eval` process, its capture files, and its outcome. Construct, `start`, observe
+    """One `vf-eval` process, its capture files, and its outcome. Construct, `start`, observe
     through `poll` or `wait`, then `outcome`."""
 
     def __init__(
