@@ -2,18 +2,18 @@
 
 Verifiers 0.3.2 gave every Hello World task a new identity, so the Campaign this release ships is
 a new one and has never been run against a real model. Three paid runs certify it. The founder
-approves each run before it starts; nothing on this page has been run.
+approves each run before it starts.
 
 ## What every run shares
 
 | Item | Value |
 | --- | --- |
-| Release | `climb-v0.3.1`, ReleaseCore `sha256:c8d9f8a91b1680e81bb79b88c67bc8ae0d77eadec7b55b1ece0a766e54326cd3` |
+| Release | `climb-v0.3.1`, ReleaseCore `sha256:49032d54cdeae3fcc11b89272b4860736eba4c596c789ff1405587c3d7d94434` |
 | Engine | `sha256:cf358eae94a1922906247063a39abff4bfb941bf032ae6e9d1ca7e999b07af5b` (Verifiers `fc73e02`) |
-| Climb | `hello-world-climb@1`, Campaign `sha256:f95fd132af01ddb3e4c97d1041885c0e4186ff13875b054bc5f1f63c87c711f2` |
+| Climb | `hello-world-climb@1`, Campaign `sha256:68cfdff4d8e528a88ea12ce01d3607cc3fdf8a056b4e63889a1312a124efe979` |
 | Provider and model | `prime`, `qwen/qwen3.7-flash`, temperature 0, at most 4,096 tokens per call |
 | Credential | the Prime CLI sign-in at `~/.prime/config.json` (`PRIME_API_KEY`); Techtree checks the file is there and never opens it |
-| Evaluated agent | Hermes Agent `v2026.7.20` (0.19.0) in Docker |
+| Evaluated agent | Hermes Agent `v2026.7.20` (0.19.0), already installed in the subject image `ghcr.io/regents-ai/techtree-subject@sha256:70ea3144…`, so no episode downloads anything (`scripts/techtree/subject-image`) |
 | Candidate | the starter Skill, `sha256:596d1368ac157975accce7ceff835eed6bfb789eaf68528a0aefa25a68793b0b`, labelled `hello-world-v1` |
 | Episodes | 72 per run: 36 tasks, once without the Skill and once with it |
 | Declared maximum spend | $2.50 per run, $7.50 for all three |
@@ -58,6 +58,15 @@ is not part of re-certification.
 | 3 | The band holds a third time, so the three scores together certify the Campaign the way 0.3.0's three runs did (23, 23 and 24 out of 36, each from a baseline of 0). |
 
 If a run fails, or scores outside the band, stop. Report it before running the next one.
+
+## What has run
+
+- 2026-09-28, first run 1 (`run_866efcbf104b4fc19b1c573045d006be`), on the previous Campaign
+  `sha256:f95fd132…`: failed as not usable. Each episode then installed Hermes from GitHub at
+  its start; GitHub refused 10 of the 72 downloads (HTTP 429, one dropped connection), so 7
+  baseline and 3 candidate episodes never ran. The rest: candidate 21 of 33, baseline 0 of 29.
+  About $0.13 (3.89 million input and 81,000 output tokens). The founder chose to put Hermes in
+  the subject image ("1 a"); that is the Campaign above, and run 1 starts again on it.
 
 ## What is not known
 

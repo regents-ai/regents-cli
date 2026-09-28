@@ -43,9 +43,11 @@ behind a site, and never holds one up (founder, 2026-09-28).
    would publish it, so it waits for the founder's call.
 5. Techtree: slices T0–T5 are done. `climb start`, `forge plan-start` and every other paid
    step stop at their approval; nothing paid has run through `regents` yet. T5 moved the engine
-   to Verifiers 0.3.2 and cut ReleaseCore `climb-v0.3.1`. Next: the three paid
-   re-certification runs in `docs/techtree-recertification.md`, each approved by the founder
-   first.
+   to Verifiers 0.3.2 and cut ReleaseCore `climb-v0.3.1`. The first run 1 failed on GitHub
+   refusing Hermes downloads, so the subject image (`scripts/techtree/subject-image`, published
+   by the hand-run workflow `techtree-subject-image.yml`) now carries Hermes, and the Campaign
+   pins it. Next: the three paid re-certification runs in `docs/techtree-recertification.md`,
+   each approved by the founder first.
 6. Publishing 1.0.0 (founder go), 7. parking `repos/regents-cli-v2` and
    `repos/monorepo-template`'s Python host: not started.
 

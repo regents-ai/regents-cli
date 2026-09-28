@@ -98,9 +98,9 @@ REFERENCE_PACKAGE: Final = "procedure-transfer-v1"
 TASK_COUNT: Final = 36
 PRIMARY_REWARD: Final = "exact_match"
 
-#: The pinned Hermes release the subject runs. Verifiers installs Hermes from the GitHub
-#: release tag's source archive, so the plan names the tag; v2026.7.20 is Hermes 0.19.0,
-#: the harness 0.3.0 was certified with.
+#: The pinned Hermes release the subject runs, named by its tag; v2026.7.20 is Hermes 0.19.0,
+#: the harness 0.3.0 was certified with. The subject image already holds it, so no episode
+#: downloads it (scripts/techtree/subject-image).
 HARNESS_ID: Final = "hermes-agent"
 HARNESS_VERSION: Final = "v2026.7.20"
 
@@ -109,11 +109,12 @@ SUBJECT_MODEL_ID: Final = "qwen/qwen3.7-flash"
 SUBJECT_CREDENTIAL_ENV: Final = "PRIME_API_KEY"
 SUBJECT_MAX_OUTPUT_TOKENS: Final = 4096
 SUBJECT_IMAGE: Final = (
-    "python@sha256:90744cff8f32887f075c47d747a173ff333e9e98801667af93c357fa9f5e28ff"
+    "ghcr.io/regents-ai/techtree-subject"
+    "@sha256:70ea31444c344daa2fb708deeb5683f792450c6976e5397bd1e303d13d242b2e"
 )
 SUBJECT_IMAGE_PLATFORM_DIGESTS: Final = {
-    "linux/amd64": "sha256:78b39ef14d8e2b4d71f8dc304f1328c37df95fe0ef99477c2ae6bd3d03784553",
-    "linux/arm64": "sha256:20eadabc42589e6543b24a64ab305b9895e9fcf6dbb2cadb14812f394ecdbadf",
+    "linux/amd64": "sha256:52bbce804d16b9b34857c6f42acfaa6f7318bdf4511967ab0e464e0efb2f0908",
+    "linux/arm64": "sha256:8b562e47315e04fb094d4ebaa98ee57d1e65a81d42f98a23cd7a0b5c9d077ae0",
 }
 
 #: A ceiling, never a price: the enforced token limits below can amount to $2.42.

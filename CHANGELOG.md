@@ -50,6 +50,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   - The evaluation engine uses Verifiers 0.3.2, and the release is `climb-v0.3.1`. Verifiers
     0.3.2 gives every task a new identity, so Hello World is a new Campaign: runs made with
     `techtree` 0.3.0 still verify, but they belong to the old one.
+  - Hello World's agent runs in `ghcr.io/regents-ai/techtree-subject`, which already holds
+    Hermes, so an episode downloads nothing before it starts. Pull it once:
+    `regents techtree doctor` prints the command.
 
 ## @regentslabs/cli on npm (TypeScript)
 
