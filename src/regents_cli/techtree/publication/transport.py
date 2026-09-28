@@ -8,6 +8,7 @@ be JSON and must end, so the body is read in chunks against a cap.
 
 from __future__ import annotations
 
+import json
 import os
 from typing import Final
 from urllib.parse import urlsplit
@@ -88,13 +89,15 @@ def _response_bytes(response: httpx.Response) -> bytes:
             code=PUBLICATION_TRANSPORT_REDIRECTED,
             details={"status": response.status_code},
         )
-    if not response.is_success:
-        raise TechtreeError(
-            f"the run log refused this submission: HTTP {response.status_code}",
-            code=PUBLICATION_TRANSPORT_FAILED,
-            details={"status": response.status_code},
-        )
     media_type = response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+    if not response.is_success:
+        refusal = _refusal(_capped_bytes(response)) if media_type == _MEDIA_TYPE else {}
+        raise TechtreeError(
+            f"the run log refused this submission: HTTP {response.status_code}"
+            + (f": {refusal['message']}" if "message" in refusal else ""),
+            code=PUBLICATION_TRANSPORT_FAILED,
+            details={"status": response.status_code, **refusal},
+        )
     if media_type != _MEDIA_TYPE:
         raise TechtreeError(
             f"the run log answered with {media_type or 'no content type'} rather than "
@@ -102,6 +105,27 @@ def _response_bytes(response: httpx.Response) -> bytes:
             code=PUBLICATION_RESPONSE_NOT_JSON,
             details={"content_type": media_type},
         )
+    return _capped_bytes(response)
+
+
+def _refusal(body: bytes) -> dict[str, str]:
+    """The site's own `{"error": {code, message, hint}}`, as far as it is there."""
+    try:
+        error = json.loads(body).get("error")
+    except (ValueError, AttributeError):
+        return {}
+    if not isinstance(error, dict):
+        return {}
+    said = {
+        "site_code": error.get("code"),
+        "message": error.get("message"),
+        "hint": error.get("hint"),
+    }
+    return {key: value for key, value in said.items() if isinstance(value, str)}
+
+
+def _capped_bytes(response: httpx.Response) -> bytes:
+    """The whole body, read in chunks against the cap."""
     chunks: list[bytes] = []
     received = 0
     for chunk in response.iter_bytes():
