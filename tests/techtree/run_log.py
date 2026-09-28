@@ -163,7 +163,10 @@ def _draft() -> dict[str, object]:
             "sha256:7f63a863edde50688c1e6549f5e73777df821d5db93089f03a4803e5bb0880f3"
         ),
         "program_ref": None,
-        "public_context": None,
+        "public_context": {
+            "kind": "climb",
+            "climb_digest": "sha256:" + "4" * 64,
+        },
         "data_policy_digest": (
             "sha256:88ad47c15e31ace586490770e2266e40c80f7c7be37099a49e37a12052094822"
         ),
@@ -174,7 +177,6 @@ def _draft() -> dict[str, object]:
             "root_digest": (
                 "sha256:6dbe12ff25c184c1075235548e3c505a1a79c1d6b42492a59f8a0c3f93781e99"
             ),
-            "archive_digest": "sha256:" + "5" * 64,
             "files": [
                 {
                     "path": "SKILL.md",

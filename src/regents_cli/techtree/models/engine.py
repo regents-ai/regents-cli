@@ -98,7 +98,6 @@ class EngineStatus(ProtocolModel):
 
     digest: Digest
     installed: bool
-    active: bool
     verified: bool
     path: NonEmptyString
     python_executable: NonEmptyString | None
@@ -106,6 +105,6 @@ class EngineStatus(ProtocolModel):
 
     @model_validator(mode="after")
     def _check_status_is_coherent(self) -> Self:
-        if not self.installed and (self.verified or self.active):
-            raise ValueError("an engine that is not installed cannot be active or verified")
+        if not self.installed and self.verified:
+            raise ValueError("an engine that is not installed cannot be verified")
         return self

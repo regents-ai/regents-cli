@@ -72,7 +72,7 @@ def verify(target: str, as_json: bool) -> None:
     # offering a command that would refuse is worse than offering nothing.
     run_id = _run_of(path, runs_dir) if kind == "bundle" else None
     if run_id is not None and publication_service().publication_eligible(run_id):
-        answer["offer"] = dict(publication_offer(run_id))
+        answer["publication_offer"] = dict(publication_offer(run_id))
     answer["report"] = _report(answer, summary, result)
     emit(answer, as_json=as_json)
 
@@ -161,7 +161,7 @@ def _report(
     ]
     if result.warnings:
         lines += ["", "Warnings", *(f"- {message.detail}" for message in result.warnings)]
-    offer = answer.get("offer")
+    offer = answer.get("publication_offer")
     if isinstance(offer, dict):
         lines += ["", f"To publish it: `{offer['command']}`", str(offer["reason"])]
     return "\n".join(lines)

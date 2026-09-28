@@ -25,7 +25,6 @@ from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import ExperimentManifestV2
 from regents_cli.techtree.models.run import RunRequestV2
-from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.models.uplift_report import UpliftReportV2
 from regents_cli.techtree.models.validation import TasksetLock, TasksetValidationReceipt
 from regents_cli.techtree.receipts.execution import ComparisonExecutionRecord
@@ -84,10 +83,6 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     "run-request-v2.json": (
         RunRequestV2,
         "sha256:12fc14514a4990b3a791c7b93d8d50488b3f65f196cdd65197ed279376424f0c",
-    ),
-    "skill-artifact.json": (
-        SkillArtifact,
-        "sha256:d7c564b2bf0c5fd51417ca1dae8e5ea49997338a9eb281372622fb0cb674a4c0",
     ),
     "taskset-lock.json": (
         TasksetLock,

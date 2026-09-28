@@ -8,18 +8,17 @@ so they are skipped with their values in the detail.
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 from importlib.metadata import version
-from importlib.resources.abc import Traversable
 from typing import Final, Literal, Self
 
 from pydantic import model_validator
 
-from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes
+from regents_cli.techtree.engines.bundle import engine_bundle_digest
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.execution_facts import bound_execution_plan_digest
-from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, ProtocolModel
+from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel
 from regents_cli.techtree.models.campaign import CampaignSpecV2
 from regents_cli.techtree.models.catalog import CatalogIndexV2
 from regents_cli.techtree.models.climb import ClimbManifest
@@ -40,16 +39,6 @@ RELEASE_CORE_DIGEST_MISMATCH: Final = "release_core_digest_mismatch"
 RELEASE_COORDINATE_MISMATCH: Final = "release_coordinate_mismatch"
 #: Why a check could not be run. Never a failure and never a pass.
 RELEASE_CHECK_NOT_APPLICABLE: Final = "release_check_not_applicable"
-
-#: The engine bundle digest is taken over this manifest of the packaged engine tree, excluding
-#: what exists because an engine was built or used rather than authored. Byte-identical with
-#: Techtree 0.3.0's `engines/bundle.py`.
-ENGINE_BUNDLE_MANIFEST_SCHEMA: Final = "techtree.engine-bundle.v1"
-_EXCLUDED_DIRECTORIES: Final[frozenset[str]] = frozenset(
-    {".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".venv", "__pycache__"}
-)
-_EXCLUDED_FILENAMES: Final[frozenset[str]] = frozenset({".DS_Store", "installed.json"})
-_EXCLUDED_SUFFIXES: Final[tuple[str, ...]] = (".pyc", ".pyo", ".tmp")
 
 type ReleaseCheckStatus = Literal["passed", "failed", "skipped"]
 
@@ -124,29 +113,6 @@ def local_release_facts() -> ReleaseFacts:
         climb_references=tuple(entry.reference for entry in index.climbs),
         subject_hermes_versions=harnesses,
     )
-
-
-def engine_bundle_digest(root: Traversable) -> Digest:
-    """The digest of one engine bundle's static contents."""
-    files: list[JsonValue] = [
-        {"path": path, "size": size, "digest": digest}
-        for path, size, digest in sorted(_walk(root, prefix=""))
-    ]
-    return digest_object({"schema_version": ENGINE_BUNDLE_MANIFEST_SCHEMA, "files": files})
-
-
-def _walk(root: Traversable, *, prefix: str) -> Iterator[tuple[str, int, Digest]]:
-    for entry in root.iterdir():
-        name = entry.name
-        relative = f"{prefix}{name}"
-        if entry.is_dir():
-            if name not in _EXCLUDED_DIRECTORIES:
-                yield from _walk(entry, prefix=f"{relative}/")
-            continue
-        if name in _EXCLUDED_FILENAMES or name.endswith(_EXCLUDED_SUFFIXES):
-            continue
-        content = entry.read_bytes()
-        yield relative, len(content), sha256_digest_bytes(content)
 
 
 def _object_path(index: CatalogIndexV2, digest: Digest) -> str:

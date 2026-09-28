@@ -50,11 +50,14 @@ class PublicRunState(StrEnum):
     CANCELLED = "cancelled"
 
 
+type AcknowledgementMethod = Literal["explicit_cli_review", "host_agent_confirmation"]
+
+
 class PolicyAcknowledgement(ProtocolModel):
     """That a specific rights policy was accepted, how, and when."""
 
     data_policy_digest: Digest
-    method: Literal["explicit_cli_review", "host_agent_confirmation"]
+    method: AcknowledgementMethod
     acknowledged_at: UtcDateTime
 
 
