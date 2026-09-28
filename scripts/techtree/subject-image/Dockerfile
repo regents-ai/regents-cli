@@ -3,7 +3,7 @@
 #
 # Verifiers fc73e02 skips each download when it finds the result: uv on PATH, Hermes under
 # /var/tmp/vf-hermes-agent-<tag> with its `.ready` marker, and the ACP runner's environment at
-# /tmp/vf-scripts/<sha256 of runner.py>.py. Every input is pinned by digest or checksum.
+# /tmp/vf-scripts/<sha256 of runner.py>.py, locked. Every input is pinned by digest or checksum.
 # .github/workflows/techtree-subject-image.yml publishes it; build_fixture_catalog.py pins it.
 
 FROM python@sha256:90744cff8f32887f075c47d747a173ff333e9e98801667af93c357fa9f5e28ff
@@ -25,4 +25,7 @@ RUN mkdir -p "$HERMES_DIR" \
 ADD --checksum=sha256:ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73 \
     https://raw.githubusercontent.com/PrimeIntellect-ai/verifiers/fc73e02ea99594407bf7579c53f7711f7434635a/verifiers/v1/acp/runner.py \
     /tmp/vf-scripts/ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73.py
-RUN uv sync --script /tmp/vf-scripts/ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73.py -q --no-config
+# The lock beside the script lets uv check the environment without asking the package index,
+# which it otherwise does once its cached index answers are ten minutes old.
+RUN uv lock --script /tmp/vf-scripts/ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73.py -q \
+    && uv sync --script /tmp/vf-scripts/ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73.py -q --no-config
