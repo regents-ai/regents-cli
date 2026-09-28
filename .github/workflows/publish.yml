@@ -1,0 +1,36 @@
+name: Publish to PyPI
+
+# Publishes the wheel for the version in pyproject.toml. Run by hand, on main, with the founder's
+# go. PyPI trusts this workflow and the `pypi` environment directly, so no token is stored.
+# Wheel only: the build stamps its source commit from git, which a source archive would lack.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --all-extras
+      - run: make check
+      - run: uv build --wheel --out-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheel
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
