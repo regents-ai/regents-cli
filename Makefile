@@ -1,12 +1,14 @@
-.PHONY: check
+.PHONY: check sync
 
 # Every gate, in the order CI runs them.
 check:
-	pnpm check:platforms
-	pnpm check:openapi
-	pnpm check:cli-contract
-	pnpm build
-	pnpm typecheck
-	pnpm test
-	pnpm check:pack-cli-contents
-	pnpm test:pack-smoke
+	uv run ruff format --check
+	uv run ruff check
+	uv run mypy
+	uv run scripts/sync_platforms.py --check
+	uv run python -m regents_cli.check_commands
+	uv run scripts/check_wheel.py
+
+# Copy the files platforms.lock.json pins into src/regents_cli/platforms/.
+sync:
+	uv run scripts/sync_platforms.py

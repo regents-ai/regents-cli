@@ -1,27 +1,31 @@
 # Regents CLI
 
-This repository owns the `regents` command, published as `@regentslabs/cli`: one package with every Regent platform's commands. Each platform describes its own commands and contracts in its own repository; `platforms.lock.json` pins them by commit and `node scripts/sync-platforms.mjs` copies them into `platforms/`. Builds and tests read only those checked-in copies, never another checkout.
+This repository owns the `regents` command, published to PyPI as `regents-cli`: one Python
+package with every Regent site's commands, each site a namespace (`regents <site> …`).
 
 ## Workspace workflow
 
-Follow `/Users/sean/Documents/regent/.agents/skills/regent-workflow/SKILL.md`.
-Hermes/Astra coordinates Claude/Fable assignments. Use isolated worktrees for
-concurrent writers and preserve unrelated work. Repository checks and contracts
-below define verification; no central coordinator service is required.
+Follow `/Users/sean/Documents/regent/.agents/skills/regent-workflow/SKILL.md`. One writer owns
+this repository: the regents-cli chief engineer. Sites never write here; they change their own
+`cli/commands.json` and the owner moves the pin.
 
 ## Repository contracts
 
-- A platform's files change in its own repository first; then move its pin in `platforms.lock.json` to a commit on that platform's GitHub main and run `node scripts/sync-platforms.mjs`.
-- Change the owning contract before code: `docs/shared-cli-contract.yaml` owns CLI behavior, `docs/regent-services-contract.openapiv3.yaml` owns shared HTTP behavior, and `docs/json-rpc-methods.yaml` owns runtime methods.
-- Generated artifacts, including `packages/regents-cli/src/generated/` and `docs/json-rpc-methods.md`, are regenerated and never hand-edited. `packages/regents-cli/src/contracts/api-ownership.ts` maps API-backed commands to the checked-in bindings.
-- Route registries under `packages/regents-cli/src/routes/` define the shipped command set.
-- Command names, flags and JSON output shapes are a public contract. They change only through a deliberate release whose notes name every changed shape; there is no additive-only promise and no compatibility window.
-- Use a hard cut: do not add compatibility aliases, fallback paths, or dual sources unless explicitly requested.
-- Live transport flows are daemon-owned; do not add direct CLI-to-server socket paths.
+- A site's command description changes in its own repository first. Then move its pin in
+  `platforms.lock.json` to a commit on that site's GitHub main and run `make sync`.
+- `src/regents_cli/schemas/commands.v1.json` is the description format. Change it here, and
+  tell each site's lane in the same change.
+- Every described command runs from its description through `src/regents_cli/runner.py`; do not
+  add code for one site's command when the description can say it.
+- Command names, flags and answers are a public contract. They change only through a release
+  whose notes name every changed shape.
+- Hard cutover: no aliases, fallbacks, old command names or dual shapes.
+- Automated tests stay few; each names the costly failure it protects against. No smoke tests.
 
 ## Protected actions
 
-- Never push, deploy, publish, sign, read secrets, or move value without explicit founder authority.
+- Never publish to PyPI or npm, deploy, sign, read secrets, or move value without the founder's
+  explicit go.
 - Never read `.env`, `.env.local`, or `.envrc`; `.env.example` is allowed.
 
 ## Required validation
