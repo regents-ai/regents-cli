@@ -33,7 +33,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
 ## Where the steps stand
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
-3. Patchbay: all ten commands work from its pinned description (Patchbay `6f63087`), including
+3. Patchbay: all ten commands work from its pinned description (Patchbay `d4691a5`), including
    sign-in and signed requests, checked end to end against `siwa-server`'s own verifier.
    Autolaunch will send its `cli/commands.json` (public repository) when it's ready.
 4. KeyFleet: its `cli/commands.json` is at `79d6cbe` in a private repository; pinning it here

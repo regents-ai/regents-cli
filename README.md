@@ -34,7 +34,7 @@ machine, in `~/.regents/agent-key.json`, and signs every request:
 ```bash
 regents auth login --site patchbay
 regents auth status
-echo '{"args": {"goal": "…", "site_url": "https://…", "expected_result": "…", "sign_in": "none"}}' \
+echo '{"args": {"goal": "…", "site_url": "https://…", "sign_in": "none"}}' \
   | regents patchbay assist request
 ```
 
