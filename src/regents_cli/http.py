@@ -129,11 +129,12 @@ def _error_for(response: httpx.Response, body: Any) -> CommandError:
     error = body.get("error") if isinstance(body, dict) else None
     if isinstance(error, dict) and isinstance(error.get("code"), str):
         message = error.get("message")
+        said = {key: value for key, value in error.items() if key not in ("code", "message")}
         return CommandError(
             error["code"],
             message if isinstance(message, str) else f"The site refused the request ({status}).",
             exit_code=exit_code,
-            **fields,
+            **{**said, **fields},
         )
     if response.is_redirect:
         return CommandError(

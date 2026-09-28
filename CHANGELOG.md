@@ -16,7 +16,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `regents patchbay health | threads search | threads get | tools history | agents get`.
 - Errors are `{"error": {"code", "message", …}}` on stdout under `--json`, and readable on
   stderr otherwise. Exit codes: 0 success, 1 failed, 2 usage, 3 sign-in or proof, 4 not found,
-  5 unreachable, 130 interrupted.
+  5 unreachable, 130 interrupted. A site's own error keeps what else it says, such as `hint`
+  and `details`, next to its `code` and `message`.
 - `regents <site> doctor` runs the same checks for every site: the site answers, each public
   read that needs no input answers, and the sign-in server accepts the sign-in.
 - `regents auth login | status | logout --site <name>` signs in with a wallet (SIWA). One agent
