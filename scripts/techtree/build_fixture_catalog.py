@@ -110,11 +110,11 @@ SUBJECT_CREDENTIAL_ENV: Final = "PRIME_API_KEY"
 SUBJECT_MAX_OUTPUT_TOKENS: Final = 4096
 SUBJECT_IMAGE: Final = (
     "ghcr.io/regents-ai/techtree-subject"
-    "@sha256:70ea31444c344daa2fb708deeb5683f792450c6976e5397bd1e303d13d242b2e"
+    "@sha256:0acde5ee96ca0798253a12e4102de2ed5b8cb9e18ff111e462312137e299b0e4"
 )
 SUBJECT_IMAGE_PLATFORM_DIGESTS: Final = {
-    "linux/amd64": "sha256:52bbce804d16b9b34857c6f42acfaa6f7318bdf4511967ab0e464e0efb2f0908",
-    "linux/arm64": "sha256:8b562e47315e04fb094d4ebaa98ee57d1e65a81d42f98a23cd7a0b5c9d077ae0",
+    "linux/amd64": "sha256:258f2db32d8b97fa63aac2c67e7e7e19e0849aa9460d6dcd6c8ca2216daf2609",
+    "linux/arm64": "sha256:320054f0c3bd6e3ca44f15afb461f09ffa2928f1adf032860a6a1d6776d5dbc6",
 }
 
 #: A ceiling, never a price: the enforced token limits below can amount to $2.42.
