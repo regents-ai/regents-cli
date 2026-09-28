@@ -160,8 +160,7 @@ def review_lines(
 
 def _asked_for_address() -> str | None:
     """Ask a person once, defaulting to nothing; what they type is checked before it travels."""
-    output.stdout.print()
-    output.stdout.print(ADDRESS_QUESTION, markup=False)
+    output.show(output.report(ADDRESS_QUESTION))
     if not asked(_ADDRESS_PROMPT):
         return None
     return canonical_contributor_address(click.prompt("Address"))

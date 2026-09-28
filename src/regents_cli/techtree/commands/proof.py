@@ -12,12 +12,18 @@ from pathlib import Path
 from typing import Final, Literal
 
 import click
+from rich.console import RenderableType
 
+from regents_cli import output
 from regents_cli.techtree import paths
 from regents_cli.techtree.commands.answers import JSON, emit, warnings
 from regents_cli.techtree.commands.publish import publication_service
 from regents_cli.techtree.errors import NotFoundError, ValidationError, VerificationError
-from regents_cli.techtree.identity.models import VerificationMessage, VerificationResult
+from regents_cli.techtree.identity.models import (
+    VerificationMessage,
+    VerificationResult,
+    VerificationStatus,
+)
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.publication.downloaded import (
@@ -34,6 +40,11 @@ from regents_cli.techtree.receipts.verify import LocalProofVerifier
 
 #: Nothing at that name to verify; distinct from a proof that exists and does not hold.
 PROOF_TARGET_NOT_FOUND: Final = "proof_target_not_found"
+_MARK: Final[dict[VerificationStatus, output.CheckStatus]] = {
+    "passed": "pass",
+    "warning": "warn",
+    "failed": "fail",
+}
 
 type ProofTargetKind = Literal["bundle", "report", "published"]
 
@@ -74,7 +85,7 @@ def verify(target: str, as_json: bool) -> None:
     if run_id is not None and publication_service().publication_eligible(run_id):
         answer["publication_offer"] = dict(publication_offer(run_id))
     answer["report"] = _report(answer, summary, result)
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, shown=_shown(answer, summary, result))
 
 
 def resolve_proof_target(target: str, *, runs_dir: Path) -> tuple[Path, ProofTargetKind]:
@@ -149,22 +160,69 @@ def _report(
 ) -> str:
     checks = result.messages
     lines = [
+        *_opening(answer, checks),
+        "",
+        *(f"- **{message.status.upper()}** {message.detail}" for message in summary),
+        "",
+        _what_was_checked(checks),
+        *(f"- {heading}: {_tally(group)}" for heading, group in _grouped(checks)),
+        *_closing(answer, result),
+    ]
+    return "\n".join(lines)
+
+
+def _shown(
+    answer: dict[str, JsonValue], summary: Sequence[VerificationMessage], result: VerificationResult
+) -> list[RenderableType]:
+    """The same report for a person at a terminal, its checks as check lists."""
+    checks = result.messages
+    closing = _closing(answer, result)
+    return [
+        output.report("\n".join(_opening(answer, checks))),
+        output.checks(
+            output.Check(message.id.replace("_", " "), _MARK[message.status], message.detail)
+            for message in summary
+        ),
+        output.report(_what_was_checked(checks)),
+        output.checks(
+            output.Check(heading, _MARK[_worst(group)], _tally(group))
+            for heading, group in _grouped(checks)
+        ),
+        *([output.report("\n".join(closing))] if closing else []),
+    ]
+
+
+def _opening(answer: dict[str, JsonValue], checks: Sequence[VerificationMessage]) -> list[str]:
+    return [
         f"This proof verifies: {len(checks)} checks, all from the stored bytes, with nothing "
         "fetched.",
         "",
         f"Proof: {answer['target']}",
-        "",
-        *(f"- **{message.status.upper()}** {message.detail}" for message in summary),
-        "",
-        f"What was checked, {len(checks)} checks in all",
-        *(f"- {heading}: {_tally(group)}" for heading, group in _grouped(checks)),
     ]
+
+
+def _what_was_checked(checks: Sequence[VerificationMessage]) -> str:
+    return f"What was checked, {len(checks)} checks in all"
+
+
+def _closing(answer: dict[str, JsonValue], result: VerificationResult) -> list[str]:
+    lines: list[str] = []
     if result.warnings:
         lines += ["", "Warnings", *(f"- {message.detail}" for message in result.warnings)]
     offer = answer.get("publication_offer")
     if isinstance(offer, dict):
         lines += ["", f"To publish it: `{offer['command']}`", str(offer["reason"])]
-    return "\n".join(lines)
+    return lines
+
+
+def _worst(checks: Sequence[VerificationMessage]) -> VerificationStatus:
+    """How one heading came out as one word: a failure, else a warning, else passed."""
+    statuses = {message.status for message in checks}
+    if "failed" in statuses:
+        return "failed"
+    if "warning" in statuses:
+        return "warning"
+    return "passed"
 
 
 def _grouped(

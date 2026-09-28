@@ -7,6 +7,7 @@ from typing import Final
 
 import click
 
+from regents_cli import output
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import to_json_value, validate_digest
@@ -107,7 +108,7 @@ def logs(run_id: str, tail: int, variant: str | None, as_json: bool) -> None:
         "truncated": window.truncated,
         "report": "\n".join(window.lines) if window.lines else "(no log lines yet)",
     }
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, shown=[output.verbatim(str(answer["report"]))])
 
 
 def cancel(run_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> None:
