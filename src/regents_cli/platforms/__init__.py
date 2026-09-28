@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from importlib.resources import files
 from typing import Any, Literal
 
-type Authority = Literal["public", "privy-proof-pair", "wallet-proof"]
+type Authority = Literal["public", "wallet-proof"]
 type Effect = Literal["read", "quote", "write", "prepare", "payment"]
 
 

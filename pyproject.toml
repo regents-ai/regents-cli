@@ -10,6 +10,7 @@ authors = [{ name = "Regents Labs" }]
 keywords = ["regents", "cli", "agents"]
 dependencies = [
   "click>=8.2,<9",
+  "eth-account>=0.13,<1",
   "httpx>=0.28,<1",
   "rich>=14,<16",
 ]

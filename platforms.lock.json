@@ -1,12 +1,4 @@
 {
-  "regents": {
-    "repository": "regents-ai/regents",
-    "commit": "53baf90c7b6bed5640c60a4df722c22b36b5a666",
-    "files": {
-      "identity/contracts/profile.openapi.json": "src/regents_cli/platforms/regents/profile.openapi.json",
-      "platform/contracts/api-contract.openapiv3.yaml": "src/regents_cli/platforms/regents/api-contract.openapiv3.yaml"
-    }
-  },
   "patchbay": {
     "repository": "regents-ai/patchbay",
     "commit": "29336bb4022afa756b2e2b7486b45d4f65629c5f",

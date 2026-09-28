@@ -9,6 +9,7 @@ from importlib.metadata import version
 import click
 
 from regents_cli import output
+from regents_cli.auth import auth_group
 from regents_cli.errors import (
     EXIT_CANCELLED,
     EXIT_CODES,
@@ -42,7 +43,13 @@ def root() -> click.Group:
             )
         ],
     )
-    for platform in pinned_platforms():
+    platforms = pinned_platforms()
+    group.add_command(
+        auth_group(
+            [p.name for p in platforms if any(c.authority == "wallet-proof" for c in p.commands)]
+        )
+    )
+    for platform in platforms:
         group.add_command(platform_group(platform))
     return group
 

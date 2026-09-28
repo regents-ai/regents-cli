@@ -17,6 +17,14 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Errors are `{"error": {"code", "message", …}}` on stdout under `--json`, and readable on
   stderr otherwise. Exit codes: 0 success, 1 failed, 2 usage, 3 sign-in or proof, 4 not found,
   5 unreachable, 130 interrupted.
+- `regents auth login | status | logout --site <name>` signs in with a wallet (SIWA). One agent
+  key lives in `~/.regents/agent-key.json` and signs every request to a site's wallet-proof
+  commands; the sign-in renews itself when that key made it. With your own key, `--phase
+  prepare` prints the exact message or request to sign and `--phase send` reads it back signed.
+  Payments are never signed by `regents`: the caller pipes its own x402 payment signature.
+- Patchbay's paid commands: `regents patchbay payments prepare | execute | get` and
+  `regents patchbay assist request | get`.
+- The description format has no Privy proof sign-in; `authority` is `public` or `wallet-proof`.
 
 ## @regentslabs/cli on npm (TypeScript)
 

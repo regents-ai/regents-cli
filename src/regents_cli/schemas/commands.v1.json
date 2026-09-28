@@ -96,10 +96,9 @@
           "pattern": "^/[A-Za-z0-9_./{}-]*$"
         },
         "authority": {
-          "description": "public: no sign-in. privy-proof-pair: the paired Privy proof arrives on stdin. wallet-proof: the two-phase signed request; --phase prepare prints the exact message to sign, --phase send reads the signed request from stdin.",
+          "description": "public: no sign-in. wallet-proof: a wallet signs in once with regents auth login --site <name> and every request is signed; the agent key on the caller's machine signs, or with --phase prepare the caller gets the exact request and message for their own key and --phase send reads {request, signature} on stdin.",
           "enum": [
             "public",
-            "privy-proof-pair",
             "wallet-proof"
           ]
         },
@@ -140,7 +139,7 @@
           "type": "object"
         },
         "stdin_fields": {
-          "description": "Body fields the caller pipes on stdin as a JSON object (wallet-proof commands, in the prepare phase).",
+          "description": "Body fields the caller pipes on stdin as one JSON object (wallet-proof commands only).",
           "type": "array",
           "items": {
             "type": "object",

@@ -16,6 +16,25 @@ Every command answers the same way:
 - the same exit codes everywhere (`regents --help` lists them);
 - the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address.
 
+## Signing in
+
+A site's wallet-proof commands need a wallet sign-in (SIWA). One agent key lives on this
+machine, in `~/.regents/agent-key.json`, and signs every request:
+
+```bash
+regents auth login --site patchbay
+regents auth status
+echo '{"args": {"goal": "…", "site_url": "https://…", "expected_result": "…", "sign_in": "none"}}' \
+  | regents patchbay assist request
+```
+
+With a key of your own, sign the exact messages yourself: `regents auth login --site patchbay
+--phase prepare --wallet-address 0x…` prints the sign-in message; pipe it back with its
+`signature` to `--phase send`. A command's `--phase prepare` prints the request and the message
+to sign, and `--phase send` reads `{"request": …, "signature": …}`.
+
+`regents` never signs a payment. A paid command takes your own x402 payment signature on stdin.
+
 ## How a site's commands get here
 
 Each site describes its commands in its own repository, in `cli/commands.json`

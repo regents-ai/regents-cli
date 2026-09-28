@@ -12,6 +12,9 @@ using the old 135 commands only as a reference.
 - `src/regents_cli/runner.py`: builds a site's commands from its description and runs them.
 - `src/regents_cli/http.py`: the base-address rule, one request, and how an answer or error
   is read.
+- `src/regents_cli/siwa.py`: the agent key, each site's sign-in, and signed requests, matching
+  what `siwa-server` checks (`elixir-utils/siwa/.../request_auth.ex`).
+- `src/regents_cli/auth.py`: `regents auth login | status | logout`.
 - `src/regents_cli/output.py`: readable output, `--json`, and the shared error shape.
 - `src/regents_cli/errors.py`: the exit codes.
 - `src/regents_cli/platforms/`: each site's pinned files, copied by `make sync` from
@@ -22,9 +25,9 @@ using the old 135 commands only as a reference.
 ## Where the steps stand
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
-3. Patchbay and Autolaunch: Patchbay's public reads work from its pinned description
-   (Patchbay `29336bb`). Its wallet-proof commands wait for the shared wallet sign-in.
-   Autolaunch has no `cli/commands.json` yet.
+3. Patchbay and Autolaunch: all ten Patchbay commands work from its pinned description
+   (Patchbay `29336bb`), including sign-in and signed requests, checked end to end against
+   `siwa-server`'s own verifier on this machine. Autolaunch has no `cli/commands.json` yet.
 4. KeyFleet, 5. Techtree, 6. publishing 1.0.0 (founder go), 7. parking `repos/regents-cli-v2`
    and `repos/monorepo-template`'s Python host: not started.
 

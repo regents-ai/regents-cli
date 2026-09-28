@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import urlencode, urlsplit
 
 import httpx
 
@@ -58,20 +59,31 @@ class Request:
     body: dict[str, Any] | None = None
     headers: dict[str, str] = field(default_factory=dict)
 
+    @property
+    def target(self) -> str:
+        """The path and query exactly as sent, which is also what a signature covers."""
+        return self.path + ("?" + urlencode(self.query) if self.query else "")
 
-def send(base: str, request: Request, timeout_ms: int, *, secrets: tuple[str, ...] = ()) -> Any:
-    """Send once, never follow a redirect, and return the JSON answer or raise its error.
+    @property
+    def content(self) -> bytes | None:
+        """The body's bytes exactly as sent, which is also what a content digest covers."""
+        if self.body is None:
+            return None
+        return json.dumps(self.body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
-    An answer that repeats one of `secrets` is refused unread, so a proof sent with the
-    request never reaches the output.
-    """
+
+def send(base: str, request: Request, timeout_ms: int) -> Any:
+    """Send once, never follow a redirect, and return the JSON answer or raise its error."""
+    content = request.content
+    headers = {"accept": "application/json", **request.headers}
+    if content is not None:
+        headers["content-type"] = "application/json"
     try:
         response = httpx.request(
             request.method,
-            base + request.path,
-            params=request.query or None,
-            json=request.body,
-            headers={"accept": "application/json", **request.headers},
+            base + request.target,
+            content=content,
+            headers=headers,
             timeout=timeout_ms / 1000,
             follow_redirects=False,
         )
@@ -87,12 +99,6 @@ def send(base: str, request: Request, timeout_ms: int, *, secrets: tuple[str, ..
             f"{base} could not be reached. The request was not retried.",
             exit_code=EXIT_UNREACHABLE,
         ) from None
-    if any(secret in response.text for secret in secrets):
-        raise CommandError(
-            "reflected_proof",
-            "The site's answer repeated the proof sent with the request, so it is not shown.",
-            status=response.status_code,
-        )
     return answer(response)
 
 
