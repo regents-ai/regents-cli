@@ -49,6 +49,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/regents_cli"]
+# The source-commit stamp is gitignored, so hatchling only packages it when named here.
+artifacts = ["src/regents_cli/techtree/resources/release/build-provenance.json"]
 
 # Stamps the source commit into the wheel; refuses a tree that differs from it.
 [tool.hatch.build.targets.wheel.hooks.custom]
