@@ -95,7 +95,7 @@ Hidden, for Techtree's own use: `regents techtree _worker --run-id <id>` (the de
 | Slice | Who | What | Done when |
 |---|---|---|---|
 | T0 | chief | Dependencies; the package skeleton; resources (minus the Repo2RLEnv files, the harness JSON and the forge README); paths; canonical, crypto, fs, ids and pointers; errors; `approve()`; the `regents techtree` group; pytest for the kept tests | `make check` is clean; canonical digests and signatures match Techtree's on the same inputs |
-| T1a | chief | constants, models (V2), identity, manifests, receipts | a 0.3.0 proof made by `techtree` verifies with the ported verifier |
+| T1a | writer, reviewed by the chief | constants, models (V2), identity, manifests, receipts | a 0.3.0 proof made by `techtree` verifies with the ported verifier |
 | T1b | writer | verifiers, engines, runs, the worker and supervisor, and the setup, doctor, engine, skill, climb and run commands | `setup`, `engine install/verify`, `doctor` and `climb prepare` work; a real run needs the founder's go |
 | T2 | writer | publication, release, and the publish, withdraw, proof and release commands | `proof verify` accepts a real 0.3.0 proof; `release verify` against the pinned ReleaseCore; publish is checked against a local server only |
 | T3 | writer | forge (Skill path), the one Skill intake, drafts, catalog, forge-only uplift, `membership_digest`, the compact report, and the forge, uplift and skill commands | `forge inspect-skill → plan → … → accept → verify → export` works up to the first model call (paid calls need the founder's go) |
