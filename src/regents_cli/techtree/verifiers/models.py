@@ -232,3 +232,24 @@ class RealExecutionResult(ProtocolModel):
         if self.candidate.variant is not VariantName.CANDIDATE:
             raise ValueError("the candidate slot holds the candidate variant")
         return self
+
+
+class VariantExecutionPlan(ProtocolModel):
+    """Everything one variant's child process needs, resolved."""
+
+    variant: VariantName
+    experiment_manifest_digest: Digest
+    experiment_manifest_path: NonEmptyString
+    verifiers_input_config_path: NonEmptyString
+    verifiers_output_dir: NonEmptyString
+    skill_paths: list[NonEmptyString]
+    task_count: int = Field(ge=1)
+    max_concurrent: int = Field(ge=1)
+
+
+class ExecutionCheck(ProtocolModel):
+    """One named question about an execution, and its answer."""
+
+    id: NonEmptyString
+    status: Literal["passed", "failed", "warning", "not_run"]
+    detail: NonEmptyString

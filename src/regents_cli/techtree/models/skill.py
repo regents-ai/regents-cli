@@ -50,7 +50,6 @@ class SkillArtifact(ProtocolModel):
     schema_version: Literal["techtree.skill.v1alpha1"]
     name: NonEmptyString
     root_digest: Digest
-    archive_digest: Digest
     files: list[SkillFile]
     source_kind: Literal["manual"]
     parent_skill_digest: Digest | None
@@ -83,7 +82,7 @@ class SubmissionDraft(ProtocolModel):
     id: NonEmptyString
     campaign_spec_digest: Digest
     program_ref: ProgramRef | None
-    public_context: PublicContext | None
+    public_context: PublicContext
     data_policy_digest: Digest
     outcome_contract_digest: Digest | None
     skill_artifact: SkillArtifact
