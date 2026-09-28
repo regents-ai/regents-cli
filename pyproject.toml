@@ -40,6 +40,7 @@ dev = [
   "ruff>=0.12,<1",
   "types-pyyaml>=6,<7",
   "types-jsonschema>=4.25,<5",
+  "hatchling>=1.27,<2",
 ]
 
 [build-system]
@@ -48,6 +49,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/regents_cli"]
+
+# Stamps the source commit into the wheel; refuses a tree that differs from it.
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "scripts/stamp_provenance.py"
 
 [tool.uv]
 default-groups = ["dev"]
