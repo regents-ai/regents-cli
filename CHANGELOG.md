@@ -7,6 +7,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 - A result's "Changed" line names the Skills themselves, such as `No tested Skill →
   frontier-cs-v2`, instead of the fixed `Skill v1` and `Skill v2`.
+- `regents patchbay payments execute <id>` can pay. When Patchbay asks for payment, the
+  error `payment_required` now carries the whole answer: `payment_terms` for your wallet to
+  sign, the intent's id, what to do next and the x402 `payment-required` header. Pipe
+  `{"payment_signature": "…"}` on stdin to pay. Before, only a bare `http_402` came back.
 
 ## 1.2.0 — 2026-09-29
 
