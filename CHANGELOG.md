@@ -8,8 +8,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - A run's result describes its own Climb. The warning about what the tasks can and cannot show
   is now the Climb's own summary, so a Frontier-CS result no longer calls itself a toy
   introductory Climb; a Hello World result still does. The warning's code is `climb_scope`.
-- Techtree's release `climb-v0.4.0` now names regents-cli 1.1.1. The Climbs, their Campaigns
-  and the engines are unchanged.
+- Frontier-CS's starter Skill is now `frontier-cs-starter-v2`, and results show it as
+  `frontier-cs-v2`. It tells the agent its output budget up front and has it write the
+  problem's own baseline answer first, then improve it in small steps.
+- Techtree's release `climb-v0.4.0` now names regents-cli 1.1.1 and the new starter Skill. The
+  Climbs, their Campaigns and the engines are unchanged.
 
 ## 1.1.0 — 2026-09-29
 

@@ -64,8 +64,8 @@ STARTER_SKILLS: Final[dict[str, StarterSkill]] = {
         purpose="intentionally incomplete introductory Skill",
     ),
     "frontier-cs-open-ended-climb@1": StarterSkill(
-        name="frontier-cs-starter-v1",
-        candidate_label="frontier-cs-v1",
+        name="frontier-cs-starter-v2",
+        candidate_label="frontier-cs-v2",
         purpose="a plain first approach to improve on",
     ),
 }
