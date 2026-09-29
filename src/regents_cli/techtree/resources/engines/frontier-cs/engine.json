@@ -1,0 +1,20 @@
+{
+  "name": "frontier-cs",
+  "packages": [
+    {
+      "name": "frontier-cs-open-ended-v1",
+      "source_digest": "sha256:a27f224fb7484e220071cd53f740ba840b73abeaec0786299230119390d320cd",
+      "version": "0.1.0"
+    }
+  ],
+  "python_version": "3.12",
+  "schema_version": "techtree.engine.v1alpha1",
+  "supported_hosts": [
+    "darwin/amd64",
+    "darwin/arm64",
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "verifiers_revision": "fc73e02ea99594407bf7579c53f7711f7434635a",
+  "verifiers_version": "0.3.2.dev147"
+}

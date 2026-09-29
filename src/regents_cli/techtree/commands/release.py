@@ -48,8 +48,10 @@ def info(as_json: bool) -> None:
         "source_commit": None if stamp is None else stamp.source_commit,
         "protocol_version": core.protocol_version,
         "release_core_digest": document_digest(raw),
-        "engine_digest": core.engine_digest,
         "catalog_digest": core.catalog_digest,
+        "climbs": {
+            reference: climb.model_dump(mode="json") for reference, climb in core.climbs.items()
+        },
         "intro_climb_reference": core.intro_climb_reference,
     }
     _warn_if_unstamped(answer, stamp)
@@ -62,9 +64,12 @@ def info(as_json: bool) -> None:
             f"- Source commit: {commit}",
             f"- Protocol: {core.protocol_version}",
             f"- ReleaseCore: {answer['release_core_digest']}",
-            f"- Engine: {core.engine_digest}",
             f"- Catalog: {core.catalog_digest}",
             f"- Introductory Climb: {core.intro_climb_reference}",
+            *(
+                f"- Climb: {reference}, engine {climb.engine_digest}"
+                for reference, climb in sorted(core.climbs.items())
+            ),
         ]
     )
     emit(answer, as_json=as_json)

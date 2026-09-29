@@ -10,6 +10,7 @@ from regents_cli.techtree import paths
 from regents_cli.techtree.commands.answers import JSON, emit
 from regents_cli.techtree.commands.engine import engine_lines
 from regents_cli.techtree.doctor.service import DoctorService
+from regents_cli.techtree.engines.bundle import shipped_engines
 from regents_cli.techtree.engines.installer import EngineInstaller, find_uv
 from regents_cli.techtree.engines.registry import EngineRegistry
 from regents_cli.techtree.errors import PrerequisiteError
@@ -43,17 +44,17 @@ def setup(as_json: bool) -> None:
             },
         )
     installer = EngineInstaller(home, EngineRegistry(home), find_uv())
-    status = installer.verify(installer.install().digest)
+    engines = [installer.verify(installer.install(digest).digest) for digest in shipped_engines()]
     identity = IdentityService(IdentityStore(home)).ensure()
     answer: dict[str, JsonValue] = {
-        "engine": status.model_dump(mode="json"),
+        "engines": [engine.model_dump(mode="json") for engine in engines],
         "key_id": identity.key_id,
     }
     answer["report"] = "\n".join(
         [
-            f"This machine is ready. Evaluation engine {status.digest} is installed and verified.",
-            "",
-            *engine_lines(status),
+            f"This machine is ready. All {len(engines)} evaluation engines, one per Climb, are "
+            "installed and verified.",
+            *[line for engine in engines for line in ["", *engine_lines(engine)]],
             "",
             LOCAL_SIGNING_KEY_NOTICE,
             f"- Key: {identity.key_id}",
@@ -66,6 +67,6 @@ SETUP = click.Command(
     "setup",
     callback=setup,
     help="Prepare this machine to run a Climb: check prerequisites, install and verify the "
-    "evaluation engine, and settle the local signing key.",
+    "evaluation engines, and settle the local signing key.",
     params=[JSON],
 )

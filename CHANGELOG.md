@@ -3,6 +3,23 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.1.0 — 2026-09-29
+
+- A second Techtree Climb, `frontier-cs-open-ended-climb@1` ("Frontier-CS Open-Ended"): ten
+  open-ended C++ optimisation problems from Frontier-CS, made with FrontierSmith. The subject
+  writes one program per problem; each problem's own checker scores it from 0 to 1 on ten
+  hidden tests, the way Frontier-CS's judge does. Each run costs at most $1.00.
+- Each Climb has its own evaluation engine. `regents techtree setup`, `engine install`,
+  `engine status` and `engine verify` handle every engine, or the one digest you name; their
+  answers list `engines`.
+- `regents techtree skill starter --climb <ref>` fetches that Climb's starter Skill; without
+  `--climb`, the introductory Climb's.
+- Techtree release `climb-v0.4.0` (ReleaseCore `sha256:85741bed…`, schema
+  `techtree.release-core.v3`): each Climb's engine and starter Skill sit under
+  `climbs`. `release info` shows them.
+- Result titles read "<Climb title> — Uplift Receipt" for every Climb.
+- Hello World's Climb, Campaign and engine are unchanged.
+
 ## 1.0.1 — 2026-09-29
 
 - `regents` on its own, and `regents --help`, open with a "Start here" list: read Patchbay,

@@ -91,7 +91,8 @@ class ValidationMethod(ProtocolModel):
 
     kind: Literal["verifiers_validate"]
     mode: Literal["all"]
-    runtime: Literal["subprocess"]
+    #: `docker` validates in the Campaign's own pinned subject image.
+    runtime: Literal["subprocess", "docker"]
     validator_revision: NonEmptyString
 
 

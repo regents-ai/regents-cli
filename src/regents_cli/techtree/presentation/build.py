@@ -47,9 +47,10 @@ from regents_cli.techtree.verifiers.budget import price_profile_for
 #: What a Skill-insertion comparison measures against: a role, not an absent value.
 BASELINE_SKILL_LABEL: Final = "No tested Skill"
 
-FIRST_RESULT_LABEL: Final = "Hello World Uplift Receipt"
-SECOND_RESULT_LABEL: Final = "Hello World — Iteration 2"
-LATER_RESULT_LABEL: Final = "Hello World — A Later Iteration"
+#: Shown after the Climb's title, which names the Climb.
+FIRST_RESULT_LABEL: Final = "Uplift Receipt"
+SECOND_RESULT_LABEL: Final = "Iteration 2"
+LATER_RESULT_LABEL: Final = "A Later Iteration"
 
 HELD_FIXED_LINE: Final = (
     "Everything else was the same on both sides: the same model sampled the same way, the "

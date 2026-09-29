@@ -1,4 +1,4 @@
-"""What a ReleaseCore is: the frozen coordinates of one Climb release, every one concrete.
+"""What a ReleaseCore is: the frozen coordinates of one release, every one concrete.
 
 It says nothing about the artifact built from it: the source commit is stamped onto the wheel
 at build time (`release/provenance.py`), because an artifact never describes its own identity.
@@ -15,9 +15,10 @@ from pydantic import AfterValidator, StringConstraints, model_validator
 from regents_cli.techtree.canonical import sha256_digest_bytes
 from regents_cli.techtree.constants import DIGEST_PREFIX
 from regents_cli.techtree.crypto import ED25519_PUBLIC_KEY_BYTES
+from regents_cli.techtree.errors import NotFoundError
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel, PublicKeyRef
 
-RELEASE_CORE_SCHEMA_VERSION: Final = "techtree.release-core.v2"
+RELEASE_CORE_SCHEMA_VERSION: Final = "techtree.release-core.v3"
 
 #: Three numbers; nothing merely proposed has a version.
 VERSION_PATTERN: Final = r"^[0-9]+(?:\.[0-9]+){2}$"
@@ -115,19 +116,47 @@ class PublicationCoordinates(ProtocolModel):
     network_key: PinnedNetworkKey
 
 
-class ReleaseCore(ProtocolModel):
-    """The frozen coordinates of one Climb release."""
+class ClimbCoordinates(ProtocolModel):
+    """What one shipped Climb runs on and the starter Skill it offers."""
 
-    schema_version: Literal["techtree.release-core.v2"]
+    engine_digest: ConcreteDigest
+    starter_skill_digest: ConcreteDigest
+    starter_skill_object_url: ObjectUrl
+
+
+class ReleaseCore(ProtocolModel):
+    """The frozen coordinates of one release and every Climb it ships."""
+
+    schema_version: Literal["techtree.release-core.v3"]
     release_id: ReleaseId
     cli_version: Version
     protocol_version: NonEmptyString
-    engine_digest: ConcreteDigest
     catalog_digest: ConcreteDigest
+    #: Keyed by Climb reference, one entry per Climb in the catalog.
+    climbs: dict[NonEmptyString, ClimbCoordinates]
     intro_climb_reference: NonEmptyString
-    starter_skill_digest: ConcreteDigest
-    starter_skill_object_url: ObjectUrl
     minimum_host_hermes_version: Version
     maximum_tested_host_hermes_version: Version
     subject_hermes_version: HermesTag
     publication: PublicationCoordinates
+
+    @model_validator(mode="after")
+    def _check_the_intro_climb_is_one_of_the_climbs(self) -> Self:
+        if self.intro_climb_reference not in self.climbs:
+            raise ValueError(
+                f"the introductory Climb {self.intro_climb_reference} is not one of this "
+                f"release's Climbs: {sorted(self.climbs)}"
+            )
+        return self
+
+    def climb(self, reference: str) -> ClimbCoordinates:
+        """One shipped Climb's coordinates; a Climb this release does not ship is refused."""
+        coordinates = self.climbs.get(reference)
+        if coordinates is None:
+            raise NotFoundError(
+                f"this release ships no Climb called {reference}; it ships "
+                f"{', '.join(sorted(self.climbs))}",
+                code="climb_not_in_release",
+                details={"climb": reference, "climbs": sorted(self.climbs)},
+            )
+        return coordinates

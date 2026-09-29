@@ -23,10 +23,10 @@ from typing import Final, Self
 
 from pydantic import Field, model_validator
 
-from regents_cli.techtree.engines.bundle import default_engine_digest, read_engine_descriptor
+from regents_cli.techtree.engines.bundle import read_engine_descriptor, shipped_engines
 from regents_cli.techtree.engines.registry import EngineRegistry
 from regents_cli.techtree.errors import PrerequisiteError, ValidationError
-from regents_cli.techtree.models.base import JsonValue, NonEmptyString, ProtocolModel
+from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, ProtocolModel
 from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
     CampaignSpecV2,
@@ -448,40 +448,57 @@ def _plugin_states(probe: _Probe) -> dict[str, str] | None:
 
 
 def check_engine(paths: TechtreePaths) -> DoctorCheck:
-    """Whether the engine this build ships is installed and verified here."""
-    digest = default_engine_digest()
-    status = EngineRegistry(paths).status(digest)
-    metadata: dict[str, JsonValue] = {"engine_digest": digest}
-    if not status.installed:
+    """Whether every engine this build ships is installed and verified here."""
+    registry = EngineRegistry(paths)
+    digests = list(shipped_engines())
+    metadata: dict[str, JsonValue] = {"engine_digests": list(digests)}
+    statuses = [registry.status(digest) for digest in digests]
+    missing = [status.digest for status in statuses if not status.installed]
+    if missing:
         return DoctorCheck(
             id="engine",
-            label="Evaluation engine",
+            label="Evaluation engines",
             status=CheckStatus.WARN,
-            detail="The evaluation engine is not installed yet; run regents techtree setup",
+            detail=f"{len(missing)} of the {len(digests)} evaluation engines are not installed "
+            "yet; run regents techtree setup",
             metadata=metadata,
         )
-    if not status.verified:
+    unverified = [status.digest for status in statuses if not status.verified]
+    if unverified:
         return DoctorCheck(
             id="engine",
-            label="Evaluation engine",
+            label="Evaluation engines",
             status=CheckStatus.WARN,
-            detail=f"engine {digest} is installed but not verified; run `regents techtree engine "
-            "verify`",
+            detail=f"engine {unverified[0]} is installed but not verified; run `regents techtree "
+            "engine verify`",
             metadata=metadata,
         )
     return DoctorCheck(
         id="engine",
-        label="Evaluation engine",
+        label="Evaluation engines",
         status=CheckStatus.PASS,
-        detail=f"engine {digest} is installed and verified",
+        detail=f"all {len(digests)} evaluation engines are installed and verified",
         metadata=metadata,
     )
 
 
 def check_engine_eval(paths: TechtreePaths) -> DoctorCheck:
-    """The verified engine's own `vf-eval` is where a real run will look for it."""
-    digest = default_engine_digest()
+    """Each verified engine's own `vf-eval` is where a real run will look for it."""
     registry = EngineRegistry(paths)
+    checks = [_check_one_engine_eval(registry, digest) for digest in shipped_engines()]
+    failed = [check for check in checks if check.status is not CheckStatus.PASS]
+    if failed:
+        return failed[0]
+    return DoctorCheck(
+        id="execution_engine_eval",
+        label="Engine eval entrypoint",
+        status=CheckStatus.PASS,
+        detail="; ".join(check.detail for check in checks),
+        metadata={"engine_digests": [check.metadata["engine_digest"] for check in checks]},
+    )
+
+
+def _check_one_engine_eval(registry: EngineRegistry, digest: Digest) -> DoctorCheck:
     status = registry.status(digest)
     metadata: dict[str, JsonValue] = {"engine_digest": digest}
     if not status.installed:

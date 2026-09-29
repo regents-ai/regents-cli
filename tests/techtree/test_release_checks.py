@@ -1,7 +1,8 @@
 """Each release check fails on its own, and a check that could not run is never a pass.
 
 The costly failures: a drifted engine or catalog is reported under the wrong check and goes
-unfixed, or a Skill digest the CLI cannot settle is reported as verified.
+unfixed, a Skill digest the CLI cannot settle is reported as verified, or a shipped Climb has no
+starter Skill to fetch.
 """
 
 from __future__ import annotations
@@ -10,13 +11,20 @@ from typing import Any
 
 from regents_cli.techtree.release.checks import (
     RELEASE_CORE_DIGEST_MISMATCH,
+    ClimbFacts,
     ReleaseCheck,
     ReleaseFacts,
     ReleaseVerification,
     verify_release_core,
 )
-from regents_cli.techtree.release.document import document_digest, render_release_core
+from regents_cli.techtree.release.document import (
+    document_digest,
+    packaged_release_core_bytes,
+    parse_release_core,
+    render_release_core,
+)
 from regents_cli.techtree.release.models import ReleaseCore
+from regents_cli.techtree.skills.starter import STARTER_SKILLS
 from tests.techtree.run_log import COORDINATES
 
 ENGINE_DIGEST = "sha256:" + "1a" * 32
@@ -28,15 +36,19 @@ SKILL_OBJECT_URL = f"https://techtree.sh/api/v1/objects/sha256:{'4d' * 32}"
 
 def bound_core(**overrides: Any) -> ReleaseCore:
     fields: dict[str, Any] = {
-        "schema_version": "techtree.release-core.v2",
+        "schema_version": "techtree.release-core.v3",
         "release_id": "climb-v0.1.0",
         "cli_version": "0.1.0",
         "protocol_version": "v1alpha1",
-        "engine_digest": ENGINE_DIGEST,
         "catalog_digest": CATALOG_DIGEST,
+        "climbs": {
+            INTRO_CLIMB: {
+                "engine_digest": ENGINE_DIGEST,
+                "starter_skill_digest": SKILL_DIGEST,
+                "starter_skill_object_url": SKILL_OBJECT_URL,
+            }
+        },
         "intro_climb_reference": INTRO_CLIMB,
-        "starter_skill_digest": SKILL_DIGEST,
-        "starter_skill_object_url": SKILL_OBJECT_URL,
         "minimum_host_hermes_version": "0.19.0",
         "maximum_tested_host_hermes_version": "0.19.3",
         "subject_hermes_version": "v2026.7.20",
@@ -49,10 +61,13 @@ def agreeing_facts() -> ReleaseFacts:
     return ReleaseFacts(
         package_version="0.1.0",
         protocol_version="v1alpha1",
-        engine_digest=ENGINE_DIGEST,
         catalog_digest=CATALOG_DIGEST,
-        climb_references=(INTRO_CLIMB,),
-        subject_hermes_versions={INTRO_CLIMB: "v2026.7.20"},
+        climbs={
+            INTRO_CLIMB: ClimbFacts(
+                engine_digest=ENGINE_DIGEST, subject_hermes_version="v2026.7.20"
+            )
+        },
+        shipped_engine_digests=frozenset({ENGINE_DIGEST}),
     )
 
 
@@ -82,7 +97,12 @@ def test_a_check_that_could_not_run_is_never_reported_as_a_pass() -> None:
     result = verify_release_core(render_release_core(bound_core()), agreeing_facts())
     assert {check.id for check in result.skipped} == {
         "release_core_digest",
-        "starter_skill_digest",
-        "starter_skill_object_url",
+        f"starter_skill:{INTRO_CLIMB}",
     }
     assert all(check.status != "passed" for check in result.skipped)
+
+
+def test_every_climb_the_release_ships_has_a_starter_skill_name() -> None:
+    """Without one, `skill starter --climb` fails for a Climb the release ships."""
+    release = parse_release_core(packaged_release_core_bytes())
+    assert set(STARTER_SKILLS) == set(release.climbs)

@@ -2,7 +2,7 @@
 
 The Hermes plugin (Techtree 0f922af, 13 tools) runs `techtree … --json --no-input`. Pointed at
 `regents`, each call becomes `regents techtree … --json`. This lists the calls it makes and the
-answers they give on regents-cli `main`, checked on 2026-09-28.
+answers they give on regents-cli 1.1.0, checked on 2026-09-29.
 
 ## How every answer reads
 
@@ -25,11 +25,11 @@ answers they give on regents-cli `main`, checked on 2026-09-28.
 
 | Tool use | Command | Answer fields |
 |---|---|---|
-| release check | `release info` | `release_id`, `release_core_digest`, `cli_version`, `package_version`, `protocol_version`, `engine_digest`, `catalog_digest`, `intro_climb_reference`, `source_commit` |
+| release check | `release info` | `release_id`, `release_core_digest`, `cli_version`, `package_version`, `protocol_version`, `catalog_digest`, `climbs` (by Climb reference: `engine_digest`, `starter_skill_digest`, `starter_skill_object_url`), `intro_climb_reference`, `source_commit` |
 | doctor | `doctor` | `checks` (each `id`, `label`, `status`, `blocking`, `detail`, `metadata`), `blocking_failures`, `warnings`, `versions`, `host_platform`, `docker_platform`, `techtree_home` |
 | catalog | `climb list` | `climbs`, `count` |
 | catalog, demo | `climb show <ref>` | `climb`, `subject_model`, `subject_runtime`, `primary_reward`, `data_policy_digest`, `candidate_skill_ownership` |
-| demo | `skill starter` | `skill_path`, `skill_name`, `skill_root_digest`, `candidate_label`, `release_id`, `prepare_command` |
+| demo | `skill starter [--climb <ref>]` | `climb_reference`, `skill_path`, `skill_name`, `skill_root_digest`, `candidate_label`, `release_id`, `prepare_command`. Without `--climb`, the introductory Climb |
 | demo | `climb prepare <ref> --skill <path> [--label <label>]` | `draft_id`, `draft_digest`, `data_policy_digest`, `campaign_spec_digest`, `skill_root_digest`, `estimated_episodes`, `campaign_maximum_usd`, `start_command`, and the policy fields |
 | demo | `climb start <draft id>` | without `--yes`: `approval_required`. With `--yes --reviewed-on host-agent`: the started run |
 | run | `run status <run id>` | `phase`, `public_state`, `terminal`, `result_available`, `worker_alive`, `heartbeat_stale`, `progress`, `state_digest`, `error` |
@@ -42,5 +42,8 @@ Where the plugin reads 0.3.0's `phase`, `terminal`, `result_available` and `work
 names are unchanged. The plugin's own doctor answer can keep `can_prepare_demo` as "no blocking
 failures"; `regents techtree doctor` doesn't compute it.
 
-The ReleaseCore is `techtree.release-core.v2`: `skill_improver_digest` is gone, and
-`subject_hermes_version` is a Hermes release tag (`v2026.7.20`) rather than a version number.
+The ReleaseCore is `techtree.release-core.v3`. Each Climb it ships has its own engine and
+starter Skill, under `climbs` by Climb reference (`engine_digest`, `starter_skill_digest`,
+`starter_skill_object_url`); the top-level `engine_digest`, `starter_skill_digest` and
+`starter_skill_object_url` are gone. `intro_climb_reference` is one of the keys of `climbs`.
+`subject_hermes_version` is the Hermes release tag (`v2026.7.20`) every Campaign pins.

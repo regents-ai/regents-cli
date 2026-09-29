@@ -72,12 +72,15 @@ uv run --no-project \
 ## Techtree
 
 `regents techtree` runs Techtree on this machine: it tests a Skill on a Climb, builds tasks from
-a Skill and compares runs on them, and checks, publishes and withdraws proofs.
+a Skill and compares runs on them, and checks, publishes and withdraws proofs. Two Climbs ship
+with it: `hello-world-climb@1`, a short introduction, and `frontier-cs-open-ended-climb@1`, ten
+open-ended C++ optimisation problems from [Frontier-CS](https://github.com/FrontierCS/Frontier-CS),
+made with FrontierSmith.
 
 ```bash
 regents techtree setup
-regents techtree skill starter
-regents techtree climb prepare hello-world-climb@1 --skill <path to SKILL.md> --label my-skill
+regents techtree skill starter --climb frontier-cs-open-ended-climb@1
+regents techtree climb prepare frontier-cs-open-ended-climb@1 --skill <path to SKILL.md> --label my-skill
 regents techtree climb start <draft id>
 regents techtree run status <run id>
 regents techtree forge inspect-skill <Skill folder>
@@ -94,7 +97,7 @@ regents techtree forge inspect-skill <Skill folder>
   and asks first. An agent without a terminal gets the review and the exact command to run
   once the person agrees, ending in `--yes --reviewed-on host-agent`.
 - `regents techtree doctor` checks this machine: Python, platform, uv, Docker, Hermes and the
-  pinned engine.
+  pinned engines, one per Climb.
 
 ## Development
 

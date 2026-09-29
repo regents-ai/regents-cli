@@ -805,7 +805,7 @@ def climb_summary(
 
 def golden_objects() -> dict[str, BaseModel]:
     """Every golden, by file stem."""
-    descriptor = read_engine_descriptor(embedded_engine_root())
+    descriptor = read_engine_descriptor(embedded_engine_root("default"))
     policy = data_policy()
     lock = taskset_lock()
     receipt = validation_receipt(digest_object(lock), descriptor.verifiers_revision)

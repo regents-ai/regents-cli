@@ -1,9 +1,9 @@
 """Whether one release still agrees with itself: each ReleaseCore claim against the thing it names.
 
 A check is passed, failed or skipped, and a verification is verified when nothing failed. A
-check that could not run is never reported as a pass: the starter Skill's digest and its
-address cannot be settled from inside an installed CLI that contacts nothing, so they are
-skipped with their values in the detail.
+check that could not run is never reported as a pass: a starter Skill's digest and its address
+cannot be settled from inside an installed CLI that contacts nothing, so each Climb's is skipped
+with its values in the detail.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import Final, Literal, Self
 
 from pydantic import model_validator
 
-from regents_cli.techtree.engines.bundle import engine_bundle_digest
+from regents_cli.techtree.engines.bundle import shipped_engines
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.execution_facts import bound_execution_plan_digest
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel
@@ -77,15 +77,23 @@ class ReleaseVerification(ProtocolModel):
 
 
 @dataclass(frozen=True)
+class ClimbFacts:
+    """What one shipped Climb's Campaign actually binds."""
+
+    engine_digest: Digest
+    subject_hermes_version: str
+
+
+@dataclass(frozen=True)
 class ReleaseFacts:
     """What this package actually contains, as plain values, so a check is a pure comparison."""
 
     package_version: str
     protocol_version: str
-    engine_digest: Digest
     catalog_digest: Digest
-    climb_references: tuple[str, ...]
-    subject_hermes_versions: Mapping[str, str]
+    #: Keyed by Climb reference, in catalog order.
+    climbs: Mapping[str, ClimbFacts]
+    shipped_engine_digests: frozenset[Digest]
 
 
 def local_release_facts() -> ReleaseFacts:
@@ -94,7 +102,7 @@ def local_release_facts() -> ReleaseFacts:
     catalog_root = resources / "catalog"
     index_bytes = (catalog_root / "catalog.json").read_bytes()
     index = CatalogIndexV2.model_validate_json(index_bytes)
-    harnesses: dict[str, str] = {}
+    climbs: dict[str, ClimbFacts] = {}
     for entry in index.climbs:
         climb = ClimbManifest.model_validate_json((catalog_root / entry.path).read_bytes())
         campaign = CampaignSpecV2.model_validate_json(
@@ -104,14 +112,16 @@ def local_release_facts() -> ReleaseFacts:
             (catalog_root / _object_path(index, campaign.execution_plan_digest)).read_bytes()
         )
         bound_execution_plan_digest(campaign, plan)
-        harnesses[entry.reference] = plan.subject.harness_version
+        climbs[entry.reference] = ClimbFacts(
+            engine_digest=plan.evaluation.engine_digest,
+            subject_hermes_version=plan.subject.harness_version,
+        )
     return ReleaseFacts(
         package_version=version("regents-cli"),
         protocol_version=PROTOCOL_VERSION,
-        engine_digest=engine_bundle_digest(resources / "engines" / "default"),
         catalog_digest=document_digest(index_bytes),
-        climb_references=tuple(entry.reference for entry in index.climbs),
-        subject_hermes_versions=harnesses,
+        climbs=climbs,
+        shipped_engine_digests=frozenset(shipped_engines()),
     )
 
 
@@ -145,23 +155,22 @@ def verify_release_core(
                 subject="the protocol version",
             ),
             _equality(
-                "engine_digest",
-                claimed=core.engine_digest,
-                actual=facts.engine_digest,
-                subject="the managed engine bundle",
-            ),
-            _equality(
                 "catalog_digest",
                 claimed=core.catalog_digest,
                 actual=facts.catalog_digest,
                 subject="the catalog index",
             ),
-            _intro_climb_check(core, facts),
+            _climbs_check(core, facts),
             _subject_hermes_check(core, facts),
-            _starter_skill_digest_check(core),
-            _starter_skill_source_check(core),
         ]
     )
+    for reference in sorted(core.climbs.keys() & facts.climbs.keys()):
+        checks.extend(
+            [
+                _engine_check(reference, core, facts),
+                _starter_skill_check(reference, core),
+            ]
+        )
     return _verification(checks)
 
 
@@ -218,54 +227,73 @@ def _cli_version_check(core: ReleaseCore, facts: ReleaseFacts) -> ReleaseCheck:
     )
 
 
-def _intro_climb_check(core: ReleaseCore, facts: ReleaseFacts) -> ReleaseCheck:
-    if core.intro_climb_reference in facts.climb_references:
+def _climbs_check(core: ReleaseCore, facts: ReleaseFacts) -> ReleaseCheck:
+    claimed, shipped = sorted(core.climbs), sorted(facts.climbs)
+    if claimed == shipped:
         return _passed(
-            "intro_climb_reference",
-            f"this build ships {core.intro_climb_reference}, the introductory Climb the release "
-            "names.",
+            "climbs",
+            f"this build ships {', '.join(shipped)}, the Climbs this release names, led by "
+            f"{core.intro_climb_reference}.",
         )
     return _failed(
-        "intro_climb_reference",
+        "climbs",
         RELEASE_COORDINATE_MISMATCH,
-        f"this release leads with {core.intro_climb_reference}, which this build does not ship; "
-        f"it ships {list(facts.climb_references)}.",
+        f"this release names the Climbs {claimed}, but this build ships {shipped}.",
     )
 
 
 def _subject_hermes_check(core: ReleaseCore, facts: ReleaseFacts) -> ReleaseCheck:
-    pinned = facts.subject_hermes_versions.get(core.intro_climb_reference)
-    if pinned is None:
-        return _failed(
+    others = sorted(
+        f"{reference} pins {climb.subject_hermes_version}"
+        for reference, climb in facts.climbs.items()
+        if climb.subject_hermes_version != core.subject_hermes_version
+    )
+    if not others:
+        return _passed(
             "subject_hermes_version",
-            RELEASE_COORDINATE_MISMATCH,
-            "the subject harness version cannot be compared because this build ships no Climb "
-            f"called {core.intro_climb_reference}.",
+            f"every Campaign pins the subject harness {core.subject_hermes_version}, as the "
+            "release says.",
         )
-    return _equality(
+    return _failed(
         "subject_hermes_version",
-        claimed=core.subject_hermes_version,
-        actual=pinned,
-        subject="the subject harness the introductory Campaign pins",
+        RELEASE_COORDINATE_MISMATCH,
+        f"the release says every Campaign pins the subject harness "
+        f"{core.subject_hermes_version}, but {'; '.join(others)}.",
     )
 
 
-def _starter_skill_digest_check(core: ReleaseCore) -> ReleaseCheck:
-    """The CLI ships no Skill bytes, so the starter Skill digest is checked where they are."""
-    return _skipped(
-        "starter_skill_digest",
-        f"this release binds starter_skill to {core.starter_skill_digest}; the CLI package "
-        "carries no Skill bytes, so the plugin and the website verify it against the Skill "
-        "they serve.",
+def _engine_check(reference: str, core: ReleaseCore, facts: ReleaseFacts) -> ReleaseCheck:
+    """The engine a Climb names is the one its Campaign binds, and this build ships it."""
+    identifier = f"engine_digest:{reference}"
+    claimed = core.climbs[reference].engine_digest
+    bound = facts.climbs[reference].engine_digest
+    if claimed != bound:
+        return _failed(
+            identifier,
+            RELEASE_COORDINATE_MISMATCH,
+            f"the release says {reference} runs on engine {claimed}; its Campaign binds {bound}.",
+        )
+    if bound not in facts.shipped_engine_digests:
+        return _failed(
+            identifier,
+            RELEASE_COORDINATE_MISMATCH,
+            f"{reference} runs on engine {bound}, which this build does not ship.",
+        )
+    return _passed(
+        identifier,
+        f"{reference} runs on engine {bound}, which this build ships, as the release says.",
     )
 
 
-def _starter_skill_source_check(core: ReleaseCore) -> ReleaseCheck:
-    """Reported rather than fetched: `release verify` contacts nothing."""
+def _starter_skill_check(reference: str, core: ReleaseCore) -> ReleaseCheck:
+    """Reported rather than checked: the CLI ships no Skill bytes and `release verify` contacts
+    nothing. What is served is checked against the digest when it is obtained."""
+    climb = core.climbs[reference]
     return _skipped(
-        "starter_skill_object_url",
-        f"this release publishes the starter Skill at {core.starter_skill_object_url}; nothing "
-        "is fetched here, and what is served is checked against the digest when it is obtained.",
+        f"starter_skill:{reference}",
+        f"this release binds {reference}'s starter Skill to {climb.starter_skill_digest}, "
+        f"published at {climb.starter_skill_object_url}; the CLI package carries no Skill "
+        "bytes, so the plugin and the website verify it against the Skill they serve.",
     )
 
 

@@ -1,6 +1,6 @@
-"""Obtaining the release's starter Skill from the address the release pins.
+"""Obtaining a Climb's starter Skill from the address the release pins.
 
-The release names the Skill by its `starter_skill_digest` and where to fetch it by
+The release names each Climb's Skill by its `starter_skill_digest` and where to fetch it by
 `starter_skill_object_url`. What arrives is checked twice: the bytes against the digest the
 address itself ends in, and then, scanned like any other Skill, the content-tree digest against
 the pin. The cache lives under the Techtree home, in a folder named after the Skill as the Agent
@@ -21,7 +21,7 @@ from typing import Final, Literal
 from filelock import FileLock, Timeout
 
 from regents_cli.techtree.canonical import sha256_digest_bytes
-from regents_cli.techtree.constants import MAX_SKILL_TOTAL_BYTES, STARTER_SKILL_NAME
+from regents_cli.techtree.constants import MAX_SKILL_TOTAL_BYTES
 from regents_cli.techtree.errors import (
     NotFoundError,
     PrerequisiteError,
@@ -33,7 +33,7 @@ from regents_cli.techtree.manifests.builder import skill_content_digest
 from regents_cli.techtree.models.base import Digest
 from regents_cli.techtree.models.skill import SKILL_ENTRY_FILE, SkillFile
 from regents_cli.techtree.paths import TechtreePaths
-from regents_cli.techtree.release.models import ReleaseCore, object_url_digest
+from regents_cli.techtree.release.models import ClimbCoordinates, object_url_digest
 from regents_cli.techtree.skills.scanner import SkillScanResult, scan_skill
 
 STARTER_SKILL_UNAVAILABLE: Final = "starter_skill_unavailable"
@@ -44,6 +44,31 @@ DOWNLOAD_TIMEOUT_SECONDS: Final = 60.0
 _CACHE_LOCK_FILENAME: Final = ".skills.lock"
 _CACHE_LOCK_TIMEOUT_SECONDS: Final = 120.0
 _STAGING_PREFIX: Final = ".materializing-"
+
+
+@dataclass(frozen=True)
+class StarterSkill:
+    """How one Climb's starter Skill is named and described. `name` is the one its SKILL.md
+    declares, so the cached folder carries it as the Agent Skills specification asks."""
+
+    name: str
+    candidate_label: str
+    purpose: str
+
+
+#: Keyed by Climb reference, one per Climb the catalog ships.
+STARTER_SKILLS: Final[dict[str, StarterSkill]] = {
+    "hello-world-climb@1": StarterSkill(
+        name="hello-world-starter-v1",
+        candidate_label="hello-world-v1",
+        purpose="intentionally incomplete introductory Skill",
+    ),
+    "frontier-cs-open-ended-climb@1": StarterSkill(
+        name="frontier-cs-starter-v1",
+        candidate_label="frontier-cs-v1",
+        purpose="a plain first approach to improve on",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -59,23 +84,23 @@ class MaterializedStarterSkill:
 
 
 class StarterSkillService:
-    """Materializes the release's starter Skill into the Techtree home."""
+    """Materializes a Climb's starter Skill into the Techtree home."""
 
     def __init__(self, paths: TechtreePaths) -> None:
         self._paths = paths
 
-    def materialize(self, release: ReleaseCore) -> MaterializedStarterSkill:
+    def materialize(self, climb: ClimbCoordinates, skill: StarterSkill) -> MaterializedStarterSkill:
         """The pinned starter Skill, fetched from the release's address if this home lacks it."""
-        pinned = release.starter_skill_digest
+        pinned = climb.starter_skill_digest
         ensure_private_directory(self._paths.cache_dir)
         ensure_private_directory(self._paths.skills_cache_dir())
         ensure_private_directory(self._paths.skill_cache_dir(pinned))
-        destination = self._paths.skill_cache_dir(pinned) / STARTER_SKILL_NAME
+        destination = self._paths.skill_cache_dir(pinned) / skill.name
         with self._cache_lock():
             cached = _verified_cache_entry(destination, pinned)
             if cached is not None:
                 return _describe(cached, origin="cache")
-            source = release.starter_skill_object_url
+            source = climb.starter_skill_object_url
             staging = destination.parent / f"{_STAGING_PREFIX}{destination.name}"
             remove_tree(staging)
             try:

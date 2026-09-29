@@ -253,7 +253,7 @@ def _proving_inputs_for(campaign: CampaignSpecV2) -> tuple[str, ...]:
         return tuple(cached.PROVING_INPUTS)
     # Loaded by path: the package's __init__ imports Verifiers, which lives in the engine's
     # own environment; only the pure input list is wanted.
-    package = embedded_engine_root() / "packages" / _REFERENCE_TASKSET / package_name
+    package = embedded_engine_root("default") / "packages" / _REFERENCE_TASKSET / package_name
     for name, filename in (
         (f"{package_name}.algorithm", "algorithm.py"),
         (module_name, "dataset.py"),

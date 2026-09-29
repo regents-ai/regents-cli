@@ -1,0 +1,13 @@
+[project]
+name = "frontier-cs-open-ended-v1"
+version = "0.1.0"
+description = "Ten Frontier-CS open-ended C++ optimisation problems, scored by Frontier-CS's own checkers"
+requires-python = ">=3.12"
+dependencies = ["pyyaml"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["frontier_cs_open_ended_v1"]

@@ -20,9 +20,6 @@ PUBLICATION_JOURNAL_SCHEMA_VERSION: Final = "techtree.publication-journal.v1alph
 
 #: The starter Skill's name, the label the guided first run files it under, and the release
 #: disclosure printed beside it. None of the three is ever derived from a path.
-STARTER_SKILL_NAME: Final = "hello-world-starter-v1"
-STARTER_SKILL_CANDIDATE_LABEL: Final = "hello-world-v1"
-STARTER_SKILL_PURPOSE: Final = "intentionally incomplete introductory Skill"
 
 DEFAULT_WORKER_HEARTBEAT_SECONDS: Final = 2
 DEFAULT_STALE_HEARTBEAT_SECONDS: Final = 15

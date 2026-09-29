@@ -26,11 +26,10 @@ from filelock import FileLock, Timeout
 
 from regents_cli.techtree.canonical import digest_object
 from regents_cli.techtree.engines.bundle import (
-    DEFAULT_ENGINE_NAME,
     copy_engine_bundle,
-    embedded_engine_root,
     engine_bundle_digest,
     read_engine_descriptor,
+    shipped_engine_root,
 )
 from regents_cli.techtree.engines.registry import EngineRegistry
 from regents_cli.techtree.errors import EngineError, PrerequisiteError, VerificationError
@@ -96,25 +95,18 @@ class EngineInstaller:
         self._registry = registry
         self._uv = uv_executable
 
-    def install(self, digest: Digest | None = None) -> EngineStatus:
-        """Copy, frozen-sync, verify and record; reuse an install that still answers."""
-        root = embedded_engine_root(DEFAULT_ENGINE_NAME)
+    def install(self, digest: Digest) -> EngineStatus:
+        """Copy, frozen-sync, verify and record one shipped engine; reuse one that answers."""
+        root = shipped_engine_root(digest)
         descriptor = read_engine_descriptor(root)
-        bundle_digest = engine_bundle_digest(root)
-        if digest is not None and digest != bundle_digest:
-            raise EngineError(
-                f"this build ships engine {bundle_digest}, not {digest}",
-                code="engine_digest_unknown",
-                details={"requested": digest, "available": bundle_digest},
-            )
         _require_supported_host(descriptor)
         ensure_private_directory(self._paths.engines_dir)
         with self._install_lock():
-            if self._registry.installation(bundle_digest) is not None:
-                verified = self._verified_status(bundle_digest, descriptor)
+            if self._registry.installation(digest) is not None:
+                verified = self._verified_status(digest, descriptor)
                 if verified is not None:
                     return verified
-            return self._install_fresh(root, descriptor, bundle_digest)
+            return self._install_fresh(root, descriptor, digest)
 
     def verify(self, digest: Digest) -> EngineStatus:
         """Verify the installed bundle's bytes and the live environment."""

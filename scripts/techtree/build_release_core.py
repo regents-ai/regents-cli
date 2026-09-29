@@ -1,9 +1,10 @@
 """Cut the ReleaseCore the package ships, or with `--check` say whether the shipped one is current.
 
 Founder decisions come from release-inputs.json beside this file, edited by hand once per
-release. Everything else is read out of this source tree: the CLI version from pyproject.toml,
-and the protocol version, engine digest, catalog digest and subject harness from the packaged
-resources. The same tree and inputs give the same bytes anywhere.
+release, including each Climb's starter Skill. Everything else is read out of this source tree:
+the CLI version from pyproject.toml, and the protocol version, catalog digest, each Climb's
+engine digest and the subject harness from the packaged resources. The same tree and inputs
+give the same bytes anywhere.
 """
 
 from __future__ import annotations
@@ -43,11 +44,14 @@ def release_core_bytes() -> bytes:
             "schema_version": RELEASE_CORE_SCHEMA_VERSION,
             "cli_version": pyproject_version(),
             "protocol_version": facts.protocol_version,
-            "engine_digest": facts.engine_digest,
             "catalog_digest": facts.catalog_digest,
-            "subject_hermes_version": facts.subject_hermes_versions[
+            "climbs": {
+                reference: {**skill, "engine_digest": facts.climbs[reference].engine_digest}
+                for reference, skill in inputs["climbs"].items()
+            },
+            "subject_hermes_version": facts.climbs[
                 inputs["intro_climb_reference"]
-            ],
+            ].subject_hermes_version,
         }
     )
     return render_release_core(core)

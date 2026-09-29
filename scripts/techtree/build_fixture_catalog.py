@@ -1,9 +1,9 @@
-"""Regenerate the packaged catalog: the one Climb this build ships and every object under it.
+"""Regenerate the packaged catalog: every Climb this build ships and every object under each.
 
-The pipeline installs the packaged engine into a throwaway home, locks the reference taskset,
-validates it for real, and builds the DataPolicy, execution plan, Campaign and Climb around the
-digests that produced. Identifiers derive from fixed labels, so every byte is a function of the
-constants below and the engine bundle.
+For each Climb, the pipeline installs that Climb's packaged engine into a throwaway home, locks
+its taskset, validates it for real, and builds the DataPolicy, execution plan, Campaign and Climb
+around the digests that produced. Identifiers derive from fixed labels, so every byte is a
+function of the definitions below and the engine bundles.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ import hashlib
 import json
 import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal
 
@@ -20,8 +21,8 @@ from tasksets import TasksetValidation, lock_taskset, validate_taskset
 
 from regents_cli.techtree.canonical import canonical_json_bytes, digest_object
 from regents_cli.techtree.engines.bundle import (
-    default_engine_digest,
     embedded_engine_root,
+    engine_bundle_digest,
     read_engine_descriptor,
 )
 from regents_cli.techtree.engines.installer import EngineInstaller, find_uv
@@ -80,26 +81,15 @@ from regents_cli.techtree.models.execution_plan import (
     ResolvedExecutionPlan,
     SubjectBackendSpec,
 )
-from regents_cli.techtree.models.validation import TasksetLock
+from regents_cli.techtree.models.validation import TasksetLock, TasksetValidationReceipt
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.release.document import document_digest
 
 ROOT: Final = Path(__file__).resolve().parents[2]
 CATALOG_ROOT: Final = ROOT / "src/regents_cli/techtree/resources/catalog"
 
-CLIMB_SLUG: Final = "hello-world-climb"
-CLIMB_VERSION: Final = 1
-#: Fixed labels the Campaign and DataPolicy identifiers derive from; nothing shows them.
-CAMPAIGN_LABEL: Final = "hello-world-campaign@1"
-DATA_POLICY_LABEL: Final = "hello-world-policy@1"
-
-#: The reference taskset; its distribution name is also its Verifiers taskset id.
-REFERENCE_PACKAGE: Final = "procedure-transfer-v1"
-TASK_COUNT: Final = 36
-PRIMARY_REWARD: Final = "exact_match"
-
 #: The pinned Hermes release the subject runs, named by its tag; v2026.7.20 is Hermes 0.19.0,
-#: the harness 0.3.0 was certified with. The subject image already holds it, so no episode
+#: the harness 0.3.0 was certified with. Both subject images already hold it, so no episode
 #: downloads it (scripts/techtree/subject-image).
 HARNESS_ID: Final = "hermes-agent"
 HARNESS_VERSION: Final = "v2026.7.20"
@@ -107,27 +97,123 @@ HARNESS_VERSION: Final = "v2026.7.20"
 SUBJECT_MODEL_PROVIDER: Final = "prime"
 SUBJECT_MODEL_ID: Final = "qwen/qwen3.7-flash"
 SUBJECT_CREDENTIAL_ENV: Final = "PRIME_API_KEY"
-SUBJECT_MAX_OUTPUT_TOKENS: Final = 4096
-SUBJECT_IMAGE: Final = (
-    "ghcr.io/regents-ai/techtree-subject"
-    "@sha256:0acde5ee96ca0798253a12e4102de2ed5b8cb9e18ff111e462312137e299b0e4"
-)
-SUBJECT_IMAGE_PLATFORM_DIGESTS: Final = {
-    "linux/amd64": "sha256:258f2db32d8b97fa63aac2c67e7e7e19e0849aa9460d6dcd6c8ca2216daf2609",
-    "linux/arm64": "sha256:320054f0c3bd6e3ca44f15afb461f09ffa2928f1adf032860a6a1d6776d5dbc6",
-}
 
-#: A ceiling, never a price: the enforced token limits below can amount to $2.42.
-CAMPAIGN_BUDGET_USD: Final = 2.50
-CAMPAIGN_MAXIMUM_OUTPUT_TOKENS: Final = 16000
-CAMPAIGN_MAXIMUM_INPUT_TOKENS: Final = 900000
-CAMPAIGN_MAXIMUM_MODEL_CALLS: Final = 44
 CAMPAIGN_MAX_CONCURRENT: Final = 4
-CAMPAIGN_TIMEOUT_SECONDS: Final = 600
 CAMPAIGN_RETRY_LIMIT: Final = 0
 
-CLIMB_PATH: Final = f"climbs/{CLIMB_SLUG}.json"
 INDEX_FILENAME: Final = "catalog.json"
+
+
+@dataclass(frozen=True)
+class ClimbDefinition:
+    """Everything that differs between two Climbs this build ships."""
+
+    slug: str
+    version: int
+    title: str
+    summary: str
+    #: Fixed labels the Campaign and DataPolicy identifiers derive from; nothing shows them.
+    campaign_label: str
+    data_policy_label: str
+    #: The packaged engine, and the taskset package in it; the package name is also its
+    #: Verifiers taskset id.
+    engine: str
+    package: str
+    task_count: int
+    primary_reward: str
+    subject_image: str
+    subject_image_platform_digests: dict[str, str]
+    subject_max_output_tokens: int
+    #: A ceiling, never a price: `verifiers/budget.py` bounds what the token limits can cost.
+    budget_usd: float
+    maximum_input_tokens: int
+    maximum_output_tokens: int
+    maximum_model_calls: int
+    timeout_seconds: int
+    #: Tasks that need a container are validated in the subject image rather than in the engine.
+    validate_in_subject_image: bool
+
+    @property
+    def reference(self) -> str:
+        return f"{self.slug}@{self.version}"
+
+    def path(self, directory: str) -> str:
+        """Where this Climb's object of one kind lives in the catalog."""
+        return f"{directory}/{self.slug}.json"
+
+
+HELLO_WORLD: Final = ClimbDefinition(
+    slug="hello-world-climb",
+    version=1,
+    title="Techtree Hello World",
+    summary=(
+        "A toy Skill-uplift Climb. It runs the synthetic BranchCode v1 task family "
+        "twice — once without a Skill, once with one — so you can see what writing a "
+        "procedure down changes. This is an introductory demonstration of the "
+        "mechanism, not a measure of broad capability."
+    ),
+    campaign_label="hello-world-campaign@1",
+    data_policy_label="hello-world-policy@1",
+    engine="default",
+    package="procedure-transfer-v1",
+    task_count=36,
+    primary_reward="exact_match",
+    subject_image=(
+        "ghcr.io/regents-ai/techtree-subject"
+        "@sha256:0acde5ee96ca0798253a12e4102de2ed5b8cb9e18ff111e462312137e299b0e4"
+    ),
+    subject_image_platform_digests={
+        "linux/amd64": "sha256:258f2db32d8b97fa63aac2c67e7e7e19e0849aa9460d6dcd6c8ca2216daf2609",
+        "linux/arm64": "sha256:320054f0c3bd6e3ca44f15afb461f09ffa2928f1adf032860a6a1d6776d5dbc6",
+    },
+    subject_max_output_tokens=4096,
+    # The enforced token limits below can amount to $2.42.
+    budget_usd=2.50,
+    maximum_input_tokens=900000,
+    maximum_output_tokens=16000,
+    maximum_model_calls=44,
+    timeout_seconds=600,
+    validate_in_subject_image=False,
+)
+
+FRONTIER_CS: Final = ClimbDefinition(
+    slug="frontier-cs-open-ended-climb",
+    version=1,
+    title="Frontier-CS Open-Ended",
+    summary=(
+        "Ten open-ended optimisation problems from Frontier-CS, created with FrontierSmith, "
+        "where no perfect answer is known. The subject writes one C++ program per problem, "
+        "and the problem's own checker scores it from 0 to 1 on hidden tests. Every problem "
+        "runs twice — once without a Skill, once with one — to show what a written approach "
+        "changes. A development Climb, not a measure of broad capability."
+    ),
+    campaign_label="frontier-cs-open-ended-campaign@1",
+    data_policy_label="frontier-cs-open-ended-policy@1",
+    engine="frontier-cs",
+    package="frontier-cs-open-ended-v1",
+    task_count=10,
+    primary_reward="case_score_mean",
+    # Hello World's image with g++ added (scripts/techtree/subject-image-cpp).
+    subject_image=(
+        "ghcr.io/regents-ai/techtree-subject"
+        "@sha256:c21aa0394fe5a00003e5186f33870e72fa6345c87a347f63f5cfb8b2b3fc7cf1"
+    ),
+    subject_image_platform_digests={
+        "linux/amd64": "sha256:a3f57bda73c6df5da1080466c5adb1ac699eb4a34185984d2a52719e8df29b86",
+        "linux/arm64": "sha256:924f9b785524247e8d07b65d98dceb94959ebd20fa2644f02b138b53bed9c48d",
+    },
+    subject_max_output_tokens=8192,
+    # The enforced token limits below can amount to $0.97.
+    budget_usd=1.00,
+    maximum_input_tokens=1300000,
+    maximum_output_tokens=32000,
+    maximum_model_calls=60,
+    timeout_seconds=1800,
+    validate_in_subject_image=True,
+)
+
+#: In catalog order; the first is the introductory Climb.
+CLIMBS: Final = (HELLO_WORLD, FRONTIER_CS)
 
 type ObjectKind = Literal[
     "campaign", "data_policy", "execution_plan", "taskset_validation", "validation_evidence"
@@ -139,19 +225,19 @@ def derived_id(prefix: str, label: str) -> str:
     return f"{prefix}_{hashlib.sha256(label.encode('utf-8')).hexdigest()[:32]}"
 
 
-def reference_taskset_ref() -> TasksetRef:
-    """The reference taskset, read from the packaged engine's own descriptor."""
+def taskset_ref(definition: ClimbDefinition) -> TasksetRef:
+    """The Climb's taskset, read from its packaged engine's own descriptor."""
     package = next(
         entry
-        for entry in read_engine_descriptor(embedded_engine_root()).packages
-        if entry.name == REFERENCE_PACKAGE
+        for entry in read_engine_descriptor(embedded_engine_root(definition.engine)).packages
+        if entry.name == definition.package
     )
     return TasksetRef(
         kind="verifiers",
-        id=REFERENCE_PACKAGE,
+        id=definition.package,
         package=PackageRef(
             kind="embedded",
-            name=REFERENCE_PACKAGE,
+            name=definition.package,
             revision=package.version,
             digest=package.source_digest,
         ),
@@ -159,25 +245,38 @@ def reference_taskset_ref() -> TasksetRef:
     )
 
 
-def task_selection() -> TaskSelection:
+def task_selection(definition: ClimbDefinition) -> TaskSelection:
     """The selection the Campaign commits to, never shuffled."""
-    return TaskSelection(num_tasks=TASK_COUNT, num_rollouts=1, shuffle=False)
+    return TaskSelection(num_tasks=definition.task_count, num_rollouts=1, shuffle=False)
 
 
-def publish_validation(build_root: Path) -> TasksetValidation:
-    """Install the packaged engine in a throwaway home, lock the taskset and validate it."""
+def engine_digest(definition: ClimbDefinition) -> Digest:
+    """The digest of the engine bundle the Climb runs."""
+    return engine_bundle_digest(embedded_engine_root(definition.engine))
+
+
+def publish_validation(build_root: Path, definition: ClimbDefinition) -> TasksetValidation:
+    """Install the Climb's engine in a throwaway home, lock its taskset and validate it."""
     paths = TechtreePaths(root=build_root / "home")
     registry = EngineRegistry(paths)
-    engine = EngineInstaller(paths, registry, find_uv()).install()
-    lock = lock_taskset(registry, engine.digest, reference_taskset_ref(), task_selection())
-    return validate_taskset(registry, engine.digest, lock, build_root)
+    engine = EngineInstaller(paths, registry, find_uv()).install(engine_digest(definition))
+    lock = lock_taskset(
+        registry, engine.digest, taskset_ref(definition), task_selection(definition)
+    )
+    return validate_taskset(
+        registry,
+        engine.digest,
+        lock,
+        build_root / definition.slug,
+        docker_image=definition.subject_image if definition.validate_in_subject_image else None,
+    )
 
 
-def data_policy() -> DataPolicy:
+def data_policy(definition: ClimbDefinition) -> DataPolicy:
     """The development rights policy."""
     return DataPolicy(
         schema_version="techtree.data-policy.v1alpha1",
-        id=derived_id("policy", DATA_POLICY_LABEL),
+        id=derived_id("policy", definition.data_policy_label),
         version=1,
         owner=DataOwner(kind="participant", account_ref=None),
         raw_episodes=RawEpisodePolicy(
@@ -205,9 +304,9 @@ def data_policy() -> DataPolicy:
     )
 
 
-def execution_plan() -> ResolvedExecutionPlan:
-    """The plan the Campaign binds, naming the packaged engine by content."""
-    descriptor = read_engine_descriptor(embedded_engine_root())
+def execution_plan(definition: ClimbDefinition) -> ResolvedExecutionPlan:
+    """The plan the Campaign binds, naming the Climb's packaged engine by content."""
+    descriptor = read_engine_descriptor(embedded_engine_root(definition.engine))
     return ResolvedExecutionPlan(
         schema_version="techtree.execution-plan.v1",
         kind="ResolvedExecutionPlan",
@@ -216,7 +315,7 @@ def execution_plan() -> ResolvedExecutionPlan:
             api_generation="v1",
             package_version=descriptor.verifiers_version,
             source_commit=descriptor.verifiers_revision,
-            engine_digest=default_engine_digest(),
+            engine_digest=engine_digest(definition),
         ),
         execution=ExecutionBackendSpec(
             kind="local", provider=None, provider_environment_coordinate=None
@@ -238,6 +337,7 @@ def execution_plan() -> ResolvedExecutionPlan:
 
 
 def campaign(
+    definition: ClimbDefinition,
     lock: TasksetLock,
     receipt_digest: Digest,
     data_policy_digest: Digest,
@@ -248,12 +348,14 @@ def campaign(
         schema_version="techtree.campaign.v2",
         kind="Campaign",
         metadata=CampaignMetadata(
-            id=derived_id("campaign", CAMPAIGN_LABEL), version=1, purpose="component_uplift"
+            id=derived_id("campaign", definition.campaign_label),
+            version=1,
+            purpose="component_uplift",
         ),
         context=CampaignContext(program_ref=None, outcome_contract_digest=None),
         taskset=CampaignTaskset(
             ref=lock.taskset_ref,
-            selection=task_selection(),
+            selection=task_selection(definition),
             membership=TaskMembershipCommitment(
                 mode="committed",
                 ordered_task_hashes=list(lock.ordered_task_hashes),
@@ -270,13 +372,15 @@ def campaign(
                     revision=None,
                     credential_env=SUBJECT_CREDENTIAL_ENV,
                 ),
-                sampling=SamplingSpec(temperature=0.0, max_tokens=SUBJECT_MAX_OUTPUT_TOKENS),
+                sampling=SamplingSpec(
+                    temperature=0.0, max_tokens=definition.subject_max_output_tokens
+                ),
                 harness=HarnessSpecV2(use_bundled_skill=False, skills=[]),
                 runtime=RuntimeSpec(
                     type="docker",
-                    image=SUBJECT_IMAGE,
-                    supported_platforms=sorted(SUBJECT_IMAGE_PLATFORM_DIGESTS),
-                    image_platform_digests=dict(SUBJECT_IMAGE_PLATFORM_DIGESTS),
+                    image=definition.subject_image,
+                    supported_platforms=sorted(definition.subject_image_platform_digests),
+                    image_platform_digests=dict(definition.subject_image_platform_digests),
                     cpu=2.0,
                     memory_gb=4.0,
                     network_policy="restricted",
@@ -294,43 +398,38 @@ def campaign(
         execution=ExecutionSpec(
             order=VariantSchedule.PARALLEL,
             max_concurrent=CAMPAIGN_MAX_CONCURRENT,
-            timeout_seconds=CAMPAIGN_TIMEOUT_SECONDS,
+            timeout_seconds=definition.timeout_seconds,
             retry_limit=CAMPAIGN_RETRY_LIMIT,
         ),
         scoring=ScoringSpec(
-            primary_reward=PRIMARY_REWARD,
+            primary_reward=definition.primary_reward,
             aggregation="mean",
             require_candidate_above_baseline=True,
             minimum_absolute_delta=0.0,
         ),
         evidence=EvidenceRequirementsV2(runtime_evidence="not_required"),
         budgets=BudgetSpec(
-            maximum_input_tokens=CAMPAIGN_MAXIMUM_INPUT_TOKENS,
-            maximum_output_tokens=CAMPAIGN_MAXIMUM_OUTPUT_TOKENS,
-            maximum_model_calls=CAMPAIGN_MAXIMUM_MODEL_CALLS,
-            maximum_usd=CAMPAIGN_BUDGET_USD,
+            maximum_input_tokens=definition.maximum_input_tokens,
+            maximum_output_tokens=definition.maximum_output_tokens,
+            maximum_model_calls=definition.maximum_model_calls,
+            maximum_usd=definition.budget_usd,
         ),
         data_policy_digest=data_policy_digest,
         execution_plan_digest=execution_plan_digest,
     )
 
 
-def climb(campaign_digest: Digest) -> ClimbManifest:
+def climb(definition: ClimbDefinition, campaign_digest: Digest) -> ClimbManifest:
     """The public wrapper, with no schedule: a development Climb is open while the build exists."""
     return ClimbManifest(
         schema_version="techtree.climb.v1alpha1",
         kind="Climb",
         metadata=ClimbMetadata(
-            id=derived_id("climb", f"{CLIMB_SLUG}@{CLIMB_VERSION}"),
-            slug=CLIMB_SLUG,
-            version=CLIMB_VERSION,
-            title="Techtree Hello World",
-            summary=(
-                "A toy Skill-uplift Climb. It runs the synthetic BranchCode v1 task family "
-                "twice — once without a Skill, once with one — so you can see what writing a "
-                "procedure down changes. This is an introductory demonstration of the "
-                "mechanism, not a measure of broad capability."
-            ),
+            id=derived_id("climb", definition.reference),
+            slug=definition.slug,
+            version=definition.version,
+            title=definition.title,
+            summary=definition.summary,
             status="development",
             opens_at=None,
             closes_at=None,
@@ -353,40 +452,79 @@ def climb(campaign_digest: Digest) -> ClimbManifest:
     )
 
 
-def write_catalog(
-    destination: Path, climb_manifest: ClimbManifest, objects: dict[ObjectKind, BaseModel]
-) -> None:
+#: The catalog directory each kind of object is written under.
+OBJECT_DIRECTORIES: Final[dict[ObjectKind, str]] = {
+    "campaign": "campaigns",
+    "data_policy": "data-policies",
+    "execution_plan": "execution-plans",
+    "taskset_validation": "taskset-validations",
+    "validation_evidence": "validation-evidence",
+}
+
+
+@dataclass(frozen=True)
+class BuiltClimb:
+    """One Climb's manifest and the objects under it."""
+
+    definition: ClimbDefinition
+    manifest: ClimbManifest
+    objects: dict[ObjectKind, BaseModel]
+
+
+def build_climb(build_root: Path, definition: ClimbDefinition) -> BuiltClimb:
+    """Validate one Climb's taskset and build every object around what that produced."""
+    validation = publish_validation(build_root, definition)
+    policy = data_policy(definition)
+    plan = execution_plan(definition)
+    campaign_spec = campaign(
+        definition,
+        validation.lock,
+        digest_object(validation.receipt),
+        digest_object(policy),
+        digest_object(plan),
+    )
+    return BuiltClimb(
+        definition=definition,
+        manifest=climb(definition, digest_object(campaign_spec)),
+        objects={
+            "campaign": campaign_spec,
+            "data_policy": policy,
+            "execution_plan": plan,
+            "taskset_validation": validation.receipt,
+            "validation_evidence": validation.evidence,
+        },
+    )
+
+
+def write_catalog(destination: Path, climbs: list[BuiltClimb]) -> None:
     """Write each object as the canonical bytes its digest covers, then the readable index."""
-    paths: dict[ObjectKind, str] = {
-        "campaign": "campaigns",
-        "data_policy": "data-policies",
-        "execution_plan": "execution-plans",
-        "taskset_validation": "taskset-validations",
-        "validation_evidence": "validation-evidence",
-    }
-    written = {CLIMB_PATH: climb_manifest} | {
-        f"{paths[kind]}/{CLIMB_SLUG}.json": model for kind, model in objects.items()
-    }
-    for relative, model in written.items():
-        target = destination / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(canonical_json_bytes(model))
+    for built in climbs:
+        written = {built.definition.path("climbs"): built.manifest} | {
+            built.definition.path(OBJECT_DIRECTORIES[kind]): model
+            for kind, model in built.objects.items()
+        }
+        for relative, model in written.items():
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(canonical_json_bytes(model))
     index = CatalogIndexV2(
         schema_version="techtree.catalog.v2",
         climbs=[
             CatalogClimbEntry(
-                reference=f"{CLIMB_SLUG}@{CLIMB_VERSION}",
-                digest=digest_object(climb_manifest),
-                path=CLIMB_PATH,
+                reference=built.definition.reference,
+                digest=digest_object(built.manifest),
+                path=built.definition.path("climbs"),
             )
+            for built in climbs
         ],
         objects={
             digest_object(model): CatalogObjectLocationV2(
                 kind=kind,
-                path=f"{paths[kind]}/{CLIMB_SLUG}.json",
+                path=built.definition.path(OBJECT_DIRECTORIES[kind]),
                 media_type="application/json",
             )
-            for kind, model in objects.items()
+            for built in climbs
+            for kind, model in built.objects.items()
         },
     )
     document = json.loads(canonical_json_bytes(index))
@@ -395,33 +533,19 @@ def write_catalog(
 
 
 def main() -> None:
-    """Regenerate the catalog and print what the Campaign's receipt says."""
+    """Regenerate the catalog and print what each Campaign's receipt says."""
     with tempfile.TemporaryDirectory(prefix="techtree-fixture-catalog-") as directory:
-        validation = publish_validation(Path(directory))
-    policy = data_policy()
-    plan = execution_plan()
-    campaign_spec = campaign(
-        validation.lock,
-        digest_object(validation.receipt),
-        digest_object(policy),
-        digest_object(plan),
-    )
-    write_catalog(
-        CATALOG_ROOT,
-        climb(digest_object(campaign_spec)),
-        {
-            "campaign": campaign_spec,
-            "data_policy": policy,
-            "execution_plan": plan,
-            "taskset_validation": validation.receipt,
-            "validation_evidence": validation.evidence,
-        },
-    )
-    sys.stdout.write(
-        f"{CLIMB_SLUG}@{CLIMB_VERSION}: {TASK_COUNT} tasks, validation "
-        f"{validation.receipt.status}, receipt {digest_object(validation.receipt)}, "
-        f"catalog {document_digest((CATALOG_ROOT / INDEX_FILENAME).read_bytes())}\n"
-    )
+        climbs = [build_climb(Path(directory), definition) for definition in CLIMBS]
+    write_catalog(CATALOG_ROOT, climbs)
+    for built in climbs:
+        receipt = built.objects["taskset_validation"]
+        assert isinstance(receipt, TasksetValidationReceipt)
+        sys.stdout.write(
+            f"{built.definition.reference}: {built.definition.task_count} tasks, validation "
+            f"{receipt.status}, receipt {digest_object(receipt)}\n"
+        )
+    catalog = document_digest((CATALOG_ROOT / INDEX_FILENAME).read_bytes())
+    sys.stdout.write(f"catalog {catalog}\n")
 
 
 if __name__ == "__main__":

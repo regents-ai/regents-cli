@@ -82,20 +82,32 @@ def lock_taskset(
 
 
 def validate_taskset(
-    registry: EngineRegistry, engine_digest: Digest, lock: TasksetLock, work_dir: Path
+    registry: EngineRegistry,
+    engine_digest: Digest,
+    lock: TasksetLock,
+    work_dir: Path,
+    *,
+    docker_image: str | None,
 ) -> TasksetValidation:
-    """Run the pinned model-free validation over every locked task and issue the receipt."""
+    """Run the pinned model-free validation over every locked task and issue the receipt.
+
+    With `docker_image`, each task is validated in a fresh container of that image, the
+    Campaign's own subject image; without it, in the engine's own process.
+    """
     runner = EngineRunner(registry, engine_digest)
     output_dir = work_dir / "validation"
     run_dir = output_dir / VALIDATION_RUN_NAME
+    runtime: Literal["subprocess", "docker"] = "subprocess" if docker_image is None else "docker"
+    runtime_arguments = ["--runtime.type", runtime]
+    if docker_image is not None:
+        runtime_arguments += ["--runtime.image", docker_image]
     process = runner.run(
         VALIDATE_EXECUTABLE,
         [
             lock.taskset_ref.id,
             "--num-tasks",
             str(lock.task_count),
-            "--runtime.type",
-            "subprocess",
+            *runtime_arguments,
             "--output-dir",
             str(output_dir),
             "--run.name",
@@ -128,6 +140,13 @@ def validate_taskset(
     )
     lock_digest = digest_object(lock)
     evidence = _normalize(registry, runner, engine_digest, run_dir, lock_digest)
+    if evidence.method.runtime != runtime:
+        raise VerificationError(
+            f"validation ran on the {runtime} runtime, but this engine's evidence names "
+            f"{evidence.method.runtime}",
+            code="validation_runtime_mismatch",
+            details={"runtime": runtime, "evidence_runtime": evidence.method.runtime},
+        )
     checks = [
         _upstream_check("upstream_gold", document["checks"]["gold"]),
         _upstream_check("upstream_setup", document["checks"]["setup"]),
@@ -161,7 +180,7 @@ def validate_taskset(
         method=ValidationMethod(
             kind="verifiers_validate",
             mode="all",
-            runtime="subprocess",
+            runtime=runtime,
             validator_revision=evidence.method.validator_revision,
         ),
         status=_receipt_status(summary, checks),

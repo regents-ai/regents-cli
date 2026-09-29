@@ -18,7 +18,7 @@ from typing import Final
 
 from regents_cli.techtree.canonical import sha256_digest_bytes, to_json_value
 from regents_cli.techtree.doctor.checks import CheckStatus, check_live_campaign
-from regents_cli.techtree.engines.bundle import default_engine_digest, read_engine_descriptor
+from regents_cli.techtree.engines.bundle import read_engine_descriptor
 from regents_cli.techtree.engines.registry import EngineRegistry
 from regents_cli.techtree.engines.runner import EngineRunner
 from regents_cli.techtree.errors import (
@@ -173,7 +173,6 @@ class RealVerifiersExecutor:
         self._paths = paths
         self._registry = engine_registry
         self._child_registry = child_registry
-        self._engine_digest = default_engine_digest()
         self._poll_interval = poll_interval_seconds
         self._grace = grace_seconds
         self._dry_run_timeout = dry_run_timeout_seconds
@@ -196,8 +195,7 @@ class RealVerifiersExecutor:
 
         # 4-5. The engine, then the credential the subject's calls are paid with, then
         # whether the Campaign's limits can be held to. All three refusals are free.
-        engine = self._resolve_engine()
-        self._require_engine_is_the_plans(plan, engine)
+        engine = self._resolve_engine(plan.evaluation.engine_digest)
         require_credentials(subject.model)
         require_bounded_campaign(campaign)
 
@@ -260,20 +258,6 @@ class RealVerifiersExecutor:
             },
         )
 
-    def _require_engine_is_the_plans(
-        self, plan: ResolvedExecutionPlan, engine: _ResolvedEngine
-    ) -> None:
-        if plan.evaluation.engine_digest == engine.digest:
-            return
-        raise ValidationError(
-            "the engine this build would run is not the one the Campaign's execution plan names",
-            code=REAL_EXECUTION_UNSUPPORTED,
-            details={
-                "plan_engine_digest": plan.evaluation.engine_digest,
-                "engine_digest": engine.digest,
-            },
-        )
-
     def _subject(self, campaign: CampaignSpecV2) -> AgentSpecV2:
         subject = campaign.agents.get(SUBJECT_AGENT)
         if subject is None:
@@ -284,24 +268,26 @@ class RealVerifiersExecutor:
             )
         return subject
 
-    def _resolve_engine(self) -> _ResolvedEngine:
-        status = self._registry.status(self._engine_digest)
-        installation = self._registry.installation(self._engine_digest)
+    def _resolve_engine(self, digest: Digest) -> _ResolvedEngine:
+        """The engine the Campaign's execution plan names, installed and verified here."""
+        status = self._registry.status(digest)
+        installation = self._registry.installation(digest)
         if not status.installed or not status.verified or installation is None:
             raise EngineError(
-                "the pinned evaluation engine is not installed and verified on this machine",
+                "the evaluation engine this Climb names is not installed and verified on this "
+                "machine; run regents techtree setup",
                 code="engine_not_verified",
                 details={
-                    "engine_digest": self._engine_digest,
+                    "engine_digest": digest,
                     "installed": status.installed,
                     "verified": status.verified,
                 },
             )
         return _ResolvedEngine(
-            digest=self._engine_digest,
+            digest=digest,
             installation=installation,
-            descriptor=read_engine_descriptor(self._registry.path(self._engine_digest)),
-            runner=EngineRunner(self._registry, self._engine_digest),
+            descriptor=read_engine_descriptor(self._registry.path(digest)),
+            runner=EngineRunner(self._registry, digest),
         )
 
     def _validate_taskset(

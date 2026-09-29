@@ -12,6 +12,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
+from functools import cache
 from importlib.resources import files as resource_files
 from importlib.resources.abc import Traversable
 from pathlib import Path
@@ -23,7 +24,8 @@ from regents_cli.techtree.fs import ensure_private_directory
 from regents_cli.techtree.models.base import Digest, JsonValue
 from regents_cli.techtree.models.engine import EngineDescriptor
 
-DEFAULT_ENGINE_NAME: Final = "default"
+#: Every engine this build ships, by resource directory: one per Climb, each pinned whole.
+SHIPPED_ENGINES: Final[tuple[str, ...]] = ("default", "frontier-cs")
 DESCRIPTOR_FILENAME: Final = "engine.json"
 #: Written by the installer when an installation is complete; never part of the digest.
 INSTALLATION_FILENAME: Final = "installed.json"
@@ -61,7 +63,7 @@ class BundleFile:
     digest: Digest
 
 
-def embedded_engine_root(name: str = DEFAULT_ENGINE_NAME) -> Traversable:
+def embedded_engine_root(name: str) -> Traversable:
     """Locate one packaged engine bundle inside the installed distribution."""
     if _ENGINE_NAME_RE.fullmatch(name) is None:
         raise ValidationError(f"{name!r} is not a valid engine name", details={"name": name})
@@ -132,9 +134,22 @@ def copy_engine_bundle(root: Traversable, destination: Path) -> None:
         target.write_bytes(source.read_bytes())
 
 
-def default_engine_digest() -> Digest:
-    """The digest of the engine bundle this build ships."""
-    return engine_bundle_digest(embedded_engine_root())
+@cache
+def shipped_engines() -> dict[Digest, str]:
+    """Every engine bundle this build ships, digest to name, in `SHIPPED_ENGINES` order."""
+    return {engine_bundle_digest(embedded_engine_root(name)): name for name in SHIPPED_ENGINES}
+
+
+def shipped_engine_root(digest: Digest) -> Traversable:
+    """The packaged bundle that hashes to `digest`."""
+    name = shipped_engines().get(digest)
+    if name is None:
+        raise EngineError(
+            f"this build does not ship engine {digest}",
+            code="engine_digest_unknown",
+            details={"requested": digest, "available": list(shipped_engines())},
+        )
+    return embedded_engine_root(name)
 
 
 def _walk(root: Traversable, *, prefix: str) -> Iterator[BundleFile]:
