@@ -13,7 +13,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `~/.regents/agent-key.json` and `~/.regents/sign-ins.json` are no longer read. To keep that
   identity, move `agent-key.json` to `~/.siwa-agent/key.json` by hand, then sign in again.
 - `regents auth login` no longer takes `--siwa-url`; set `SIWA_BROKER` instead.
-- Techtree's release `climb-v0.4.0` now names regents-cli 1.2.0.
+- Hello World and Frontier-CS are now open Climbs whose results carry the P1 proof grade,
+  instead of development Climbs whose results were marked development-only. Their Campaigns
+  are unchanged, so earlier runs keep their results.
+- Techtree's release `climb-v0.4.0` now names regents-cli 1.2.0 and the reissued Climbs.
 
 ## 1.1.1 — 2026-09-29
 

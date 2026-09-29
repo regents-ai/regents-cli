@@ -185,7 +185,7 @@ FRONTIER_CS: Final = ClimbDefinition(
         "where no perfect answer is known. The subject writes one C++ program per problem, "
         "and the problem's own checker scores it from 0 to 1 on hidden tests. Every problem "
         "runs twice — once without a Skill, once with one — to show what a written approach "
-        "changes. A development Climb, not a measure of broad capability."
+        "changes. Not a measure of broad capability."
     ),
     campaign_label="frontier-cs-open-ended-campaign@1",
     data_policy_label="frontier-cs-open-ended-policy@1",
@@ -420,7 +420,7 @@ def campaign(
 
 
 def climb(definition: ClimbDefinition, campaign_digest: Digest) -> ClimbManifest:
-    """The public wrapper, with no schedule: a development Climb is open while the build exists."""
+    """The public wrapper, with no schedule: the Climb is open while the build exists."""
     return ClimbManifest(
         schema_version="techtree.climb.v1alpha1",
         kind="Climb",
@@ -430,7 +430,7 @@ def climb(definition: ClimbDefinition, campaign_digest: Digest) -> ClimbManifest
             version=definition.version,
             title=definition.title,
             summary=definition.summary,
-            status="development",
+            status="open",
             opens_at=None,
             closes_at=None,
         ),
@@ -446,7 +446,7 @@ def climb(definition: ClimbDefinition, campaign_digest: Digest) -> ClimbManifest
             report_visibility="public",
             raw_episode_visibility="prohibited",
             public_trace_projection="redacted",
-            proof_grade="development_only",
+            proof_grade="P1",
         ),
         leaderboard=LeaderboardPolicy(enabled=False, evidence_required="not_required"),
     )
