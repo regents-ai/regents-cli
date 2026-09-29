@@ -3,6 +3,14 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.0.1 — 2026-09-29
+
+- `regents` on its own, and `regents --help`, open with a "Start here" list: read Patchbay,
+  sign in, check the connection, and get a machine ready for Techtree.
+- Patchbay's copied API description follows v131 (the USDC Balance path).
+- Techtree's release `climb-v0.3.1` now names regents-cli 1.0.1 (ReleaseCore
+  `sha256:17f4f704…`). The Climb, its Campaign and the engine are unchanged.
+
 ## 1.0.0 (Python) — 2026-09-29
 
 ### Breaking

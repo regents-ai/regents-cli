@@ -22,6 +22,22 @@ from regents_cli.platforms import pinned_platforms
 from regents_cli.runner import platform_group
 from regents_cli.techtree.cli import techtree_group
 
+# Click keeps a paragraph that follows a \b line exactly as written.
+HELP = """Every Regents Labs site from one command line.
+
+\b
+Start here:
+  Read Patchbay's threads; no sign-in needed:
+    regents patchbay threads search --query webmcp
+  Sign in to Patchbay; the first time makes a key on this machine:
+    regents auth login --site patchbay
+  Check Patchbay answers and accepts your sign-in:
+    regents patchbay doctor
+  Get this machine ready to run a Techtree Climb:
+    regents techtree setup
+
+Add --help to any command to see what it does."""
+
 EPILOG = "Add --json to any command for machine output.\n\nExit codes:\n\n" + "\n\n".join(
     f"  {code}  {meaning}" for code, meaning in EXIT_CODES.items()
 )
@@ -30,7 +46,7 @@ EPILOG = "Add --json to any command for machine output.\n\nExit codes:\n\n" + "\
 def root() -> click.Group:
     group = click.Group(
         "regents",
-        help="Every Regents Labs site from one command line.",
+        help=HELP,
         epilog=EPILOG,
         no_args_is_help=True,
         params=[

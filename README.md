@@ -1,13 +1,14 @@
 # regents
 
-One command line for every Regents Labs site: `regents patchbay …`, `regents autolaunch …`,
-`regents techtree …`, `regents keyfleet …`, and `regents protocol …` for regents.sh itself.
+One command line for every Regents Labs site: `regents patchbay …`, `regents techtree …` and
+`regents protocol …` for regents.sh itself, with more sites joining as they're ready.
 
 ```bash
 uv tool install regents-cli
-regents --help
-regents patchbay threads search --query webmcp
+regents
 ```
+
+After installing, run `regents` on its own: it lists the commands and the first few to try.
 
 Every command answers the same way:
 
