@@ -3,6 +3,14 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.1.1 — 2026-09-29
+
+- A run's result describes its own Climb. The warning about what the tasks can and cannot show
+  is now the Climb's own summary, so a Frontier-CS result no longer calls itself a toy
+  introductory Climb; a Hello World result still does. The warning's code is `climb_scope`.
+- Techtree's release `climb-v0.4.0` now names regents-cli 1.1.1. The Climbs, their Campaigns
+  and the engines are unchanged.
+
 ## 1.1.0 — 2026-09-29
 
 - A second Techtree Climb, `frontier-cs-open-ended-climb@1` ("Frontier-CS Open-Ended"): ten

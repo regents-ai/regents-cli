@@ -14,6 +14,7 @@ from typing import Final
 from regents_cli.techtree.errors import PrerequisiteError
 from regents_cli.techtree.identity.models import VerificationResult
 from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.climb import ClimbMetadata
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2
 from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.models.uplift_report import (
@@ -76,6 +77,9 @@ DECISION_HEADLINE: Final[dict[str, str]] = {
 #: Stops any headline being read as a claim about what the Skill can do in general.
 NOT_BROAD_CAPABILITY_LINE: Final = "Not broad-capability evidence"
 
+#: Room for a Climb's whole summary, which says what its task family is and is not.
+CLIMB_SCOPE_MAXIMUM: Final = 600
+
 #: A graded report reaches a rendering only after its proof verified; a development-only report
 #: has no proof and is never checked.
 VERIFICATION_VERIFIED: Final = "verified_offline"
@@ -92,7 +96,7 @@ def build_uplift_presentation(
     campaign: CampaignSpecV2,
     baseline_receipts: Sequence[EpisodeReceiptV2],
     candidate_receipts: Sequence[EpisodeReceiptV2],
-    campaign_title: str,
+    climb: ClimbMetadata,
     baseline_skill: SkillArtifact | None,
     candidate_skill: SkillArtifact,
     verification: VerificationResult | None,
@@ -112,7 +116,7 @@ def build_uplift_presentation(
     payload = UpliftPresentationPayload(
         schema_version=PRESENTATION_SCHEMA_VERSION,
         run_id=report.run_id,
-        campaign_title=sanitize_label(campaign_title),
+        campaign_title=sanitize_label(climb.title),
         comparison_label=_comparison_label(generation),
         change_label=_change_label(generation, baseline_skill, candidate_skill),
         baseline_skill=_skill_summary(baseline_skill, _baseline_label(baseline_skill)),
@@ -151,6 +155,7 @@ def build_uplift_presentation(
         caveats=_caveats(
             report=report,
             campaign=campaign,
+            climb=climb,
             economics=economics,
             recorded_evidence=recorded_evidence,
             derived=derived,
@@ -477,6 +482,7 @@ def _caveats(
     *,
     report: UpliftReportV2,
     campaign: CampaignSpecV2,
+    climb: ClimbMetadata,
     economics: _Economics,
     recorded_evidence: RecordedEvidence | None,
     derived: DerivedCost | None,
@@ -519,10 +525,9 @@ def _caveats(
     )
     caveats.append(
         PresentationCaveat(
-            code="introductory_task_family",
+            code="climb_scope",
             severity="warning",
-            text="This is a toy introductory Climb. Its task family is synthetic and "
-            "demonstrates the mechanism; it measures no broad capability.",
+            text=sanitize_label(climb.summary, CLIMB_SCOPE_MAXIMUM),
         )
     )
     caveats.append(

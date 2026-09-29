@@ -57,8 +57,3 @@ class CampaignSource:
     def public_context(self) -> PublicContext:
         """Return the public context artifacts built from this source carry."""
         return PublicContext(kind="climb", climb_digest=self.climb_digest)
-
-    @property
-    def title(self) -> str:
-        """Return what to call this comparison in a result a person reads."""
-        return self.climb.metadata.title
