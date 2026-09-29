@@ -33,7 +33,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
 ## Where the steps stand
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
-3. Patchbay: all ten commands work from its pinned description (Patchbay `5d4edac`, v130), including
+3. Patchbay: all ten commands work from its pinned description (Patchbay `56a2db1`, v131), including
    sign-in and signed requests, checked end to end against `siwa-server`'s own verifier.
    Autolaunch will send its `cli/commands.json` (public repository) when it's ready.
 3b. Regents: `regents protocol agents pair | me` from Regents `cd94535`. `protocol` is the one
