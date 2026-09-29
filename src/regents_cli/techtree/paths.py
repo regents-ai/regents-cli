@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from regents_cli import siwa
 from regents_cli.techtree.canonical import validate_digest
 from regents_cli.techtree.errors import PrerequisiteError
 from regents_cli.techtree.fs import ensure_private_directory
@@ -102,7 +101,7 @@ def _digest_dirname(digest: Digest) -> str:
 
 def home() -> TechtreePaths:
     """This machine's Techtree home, with its top-level directories made private."""
-    paths = TechtreePaths(root=siwa.home() / "techtree")
+    paths = TechtreePaths(root=Path.home() / ".regents" / "techtree")
     try:
         for directory in (
             paths.root,

@@ -132,11 +132,11 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             request = signed_by_caller(command, base, request, timeout_ms)
         elif command.authority == "wallet-proof":
             request = with_stdin_fields(command, request, timeout_ms)
-            sign_in = siwa.current(platform.site, timeout_ms)
+            receipt = siwa.current(platform.site, timeout_ms)
             if phase == "prepare":
-                output.emit(prepared(base, request, sign_in), as_json=as_json)
+                output.emit(prepared(base, request, receipt), as_json=as_json)
                 return
-            request = replace(request, headers=siwa.sign(request, sign_in))
+            request = replace(request, headers=siwa.sign(request, receipt))
         answer = send(base, request, timeout_ms)
         output.emit(answer, as_json=as_json, hint=next_page_hint(command, answer))
 
@@ -209,9 +209,9 @@ def with_stdin_fields(command: Command, request: Request, timeout_ms: int) -> Re
     return replace(request, body={**(request.body or {}), **piped})
 
 
-def prepared(base: str, request: Request, sign_in: siwa.SignIn) -> dict[str, Any]:
+def prepared(base: str, request: Request, receipt: siwa.Receipt) -> dict[str, Any]:
     """The exact request to sign and the message the caller personal_signs for it."""
-    headers, message = siwa.prepare(request, sign_in)
+    headers, message = siwa.prepare(request, receipt)
     content = request.content
     body = {} if content is None else {"body": content.decode("utf-8")}
     return {

@@ -18,7 +18,6 @@ import httpx
 import pytest
 from pydantic import BaseModel
 
-from regents_cli import siwa
 from regents_cli.techtree.canonical import canonical_json_bytes, digest_object, sha256_digest_bytes
 from regents_cli.techtree.commands import publish as publish_module
 from regents_cli.techtree.commands import withdraw as withdraw_module
@@ -139,7 +138,7 @@ class RunLog:
 
 def install(monkeypatch: pytest.MonkeyPatch, home: Path, log: RunLog) -> None:
     """Point the commands at a throwaway home, the stand-in's key and its transport."""
-    monkeypatch.setattr(siwa, "home", lambda: home)
+    monkeypatch.setenv("HOME", str(home))
     for module in (publish_module, withdraw_module):
         monkeypatch.setattr(module, "packaged_publication_coordinates", lambda: COORDINATES)
         monkeypatch.setattr(module, "HttpsPublicationTransport", log.transport)
@@ -147,7 +146,7 @@ def install(monkeypatch: pytest.MonkeyPatch, home: Path, log: RunLog) -> None:
 
 def install_run(home: Path) -> Path:
     """The 0.3.0 proof fixture as a run in this home, with the draft that names its Skill."""
-    run_dir = home / "techtree" / "runs" / RUN_ID
+    run_dir = home / ".regents" / "techtree" / "runs" / RUN_ID
     shutil.copytree(PROOF, run_dir / "proof")
     inputs = run_dir / "inputs"
     inputs.mkdir()

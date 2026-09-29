@@ -1,8 +1,11 @@
 """Wallet sign-in (SIWA) and signed requests, the way the SIWA server checks them.
 
-One agent key lives on this machine. `regents auth login --site <name>` signs in to that
-site's audience and keeps the receipt; every wallet-proof request is then signed with the
-key. Someone who keeps their own key instead signs the exact messages printed here.
+The agent key and each site's receipt live where the SIWA agent client keeps them:
+`$SIWA_AGENT_HOME` (default `~/.siwa-agent`) holds `key.json` and `receipts/<site>.json`, so
+the client and `regents` share one identity. The key either holds a private key or names a
+shell command that signs. `regents auth login --site <name>` signs in to that site's
+audience and keeps the receipt; every wallet-proof request is then signed with the key.
+Someone who keeps their own key instead signs the exact messages printed here.
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ import json
 import os
 import re
 import secrets
+import subprocess
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -30,6 +34,7 @@ CHAIN_ID = 8453
 BROKER = "https://siwa.regents.sh"
 SIGNATURE_LIFETIME_SECONDS = 120
 RENEW_MARGIN_SECONDS = 60
+SIGNER_TIMEOUT_SECONDS = 300
 COMPONENTS = (
     "@method",
     "@path",
@@ -40,7 +45,8 @@ COMPONENTS = (
     "x-agent-chain-id",
 )
 ADDRESS = re.compile(r"0x[0-9a-fA-F]{40}")
-SIGNATURE = re.compile(r"0x[0-9a-fA-F]{130}")
+SIGNATURE = re.compile(r"0x(?:[0-9a-fA-F]{2}){65,}")
+SIGNER_OUTPUT = re.compile(r"0x[0-9a-fA-F]{130,}")
 SIGNATURE_INPUT = re.compile(
     r"sig1=\((?P<components>[^)]*)\);created=(?P<created>[1-9][0-9]*)"
     r';expires=(?P<expires>[1-9][0-9]*);nonce="(?P<nonce>sig-nonce-[0-9a-f]{32})"'
@@ -49,41 +55,55 @@ SIGNATURE_INPUT = re.compile(
 
 
 def home() -> Path:
-    return Path.home() / ".regents"
+    return Path(os.environ.get("SIWA_AGENT_HOME", "~/.siwa-agent")).expanduser()
+
+
+def broker() -> str:
+    return origin(os.environ.get("SIWA_BROKER", BROKER).strip().rstrip("/"), "SIWA_BROKER")
 
 
 def key_file() -> Path:
-    return home() / "agent-key.json"
+    return home() / "key.json"
 
 
-def sign_ins_file() -> Path:
-    return home() / "sign-ins.json"
+def receipts_dir() -> Path:
+    return home() / "receipts"
+
+
+def receipt_file(site: str) -> Path:
+    return receipts_dir() / f"{site}.json"
 
 
 @dataclass(frozen=True, slots=True)
 class Key:
+    """The agent key: a private key, or the shell command that signs for `address`."""
+
     address: str
-    private_key: str
+    private_key: str | None = None
+    signer: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
-class SignIn:
-    """A site's receipt. `local` is true when the key on this machine signed in."""
+class Receipt:
+    """A site's sign-in, as `receipts/<site>.json` holds it."""
 
-    wallet_address: str
-    key_id: str
+    address: str
+    audience: str
     receipt: str
-    expires_at: str
-    broker: str
-    local: bool
+    receipt_expires_at: str
+    key_id: str
 
     def fresh(self, margin: int = 0) -> bool:
-        expires = datetime.fromisoformat(self.expires_at.replace("Z", "+00:00"))
+        expires = datetime.fromisoformat(self.receipt_expires_at.replace("Z", "+00:00"))
         return expires.timestamp() - time.time() > margin
+
+    def signed_by(self, key: Key) -> bool:
+        """Whether `key` is the one this receipt was issued to."""
+        return key.address == self.address
 
 
 def _write_private(path: Path, value: Any) -> None:
-    path.parent.mkdir(mode=0o700, exist_ok=True)
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     path.parent.chmod(0o700)
     temporary = path.with_suffix(".tmp")
     fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
@@ -106,53 +126,101 @@ def _read_private(path: Path) -> Any:
 
 def load_key() -> Key | None:
     stored = _read_private(key_file())
-    return Key(**stored) if stored is not None else None
+    if stored is None:
+        return None
+    if not isinstance(stored, dict) or set(stored) not in (
+        {"address", "private_key"},
+        {"address", "signer"},
+    ):
+        raise CommandError(
+            "bad_key_file",
+            f"{key_file()} must hold an address and either a private_key or a signer.",
+            exit_code=EXIT_AUTH,
+        )
+    return Key(**stored)
 
 
 def create_key() -> Key:
     account = Account.create()
     key = Key(address=account.address.lower(), private_key="0x" + bytes(account.key).hex())
-    _write_private(key_file(), asdict(key))
+    _write_private(key_file(), {"address": key.address, "private_key": key.private_key})
     return key
 
 
-def sign_ins() -> dict[str, SignIn]:
-    stored = _read_private(sign_ins_file()) or {}
-    return {site: SignIn(**record) for site, record in stored.items()}
+def load_receipt(site: str) -> Receipt | None:
+    stored = _read_private(receipt_file(site))
+    return Receipt(**stored) if stored is not None else None
 
 
-def save_sign_in(site: str, sign_in: SignIn) -> None:
-    _write_private(sign_ins_file(), {**_stored(), site: asdict(sign_in)})
+def receipts() -> dict[str, Receipt]:
+    """Every site's receipt, by site."""
+    if not receipts_dir().is_dir():
+        return {}
+    found = (load_receipt(path.stem) for path in sorted(receipts_dir().glob("*.json")))
+    return {receipt.audience: receipt for receipt in found if receipt is not None}
 
 
-def remove_sign_in(site: str) -> bool:
-    stored = _stored()
-    if site not in stored:
+def remove_receipt(site: str) -> bool:
+    path = receipt_file(site)
+    if not path.is_file():
         return False
-    del stored[site]
-    _write_private(sign_ins_file(), stored)
+    path.unlink()
     return True
 
 
-def _stored() -> dict[str, Any]:
-    return {site: asdict(record) for site, record in sign_ins().items()}
-
-
 def personal_sign(key: Key, message: str) -> str:
+    if key.signer is not None:
+        return _run_signer(key.signer, message)
     signed = Account.sign_message(encode_defunct(text=message), private_key=key.private_key)
     return "0x" + bytes(signed.signature).hex()
 
 
-def _broker(
-    broker: str,
+def _run_signer(command: str, message: str) -> str:
+    """Hand the exact message to the key's signing command and read back its signature."""
+    try:
+        result = subprocess.run(
+            command,
+            shell=True,
+            input=message,
+            env={**os.environ, "SIWA_MESSAGE": message},
+            capture_output=True,
+            text=True,
+            timeout=SIGNER_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        raise CommandError(
+            "signer_failed",
+            f"The signing command did not answer within {SIGNER_TIMEOUT_SECONDS} seconds.",
+            exit_code=EXIT_AUTH,
+        ) from None
+    if result.returncode != 0:
+        said = result.stderr.strip() or result.stdout.strip()
+        raise CommandError(
+            "signer_failed",
+            f"The signing command exited {result.returncode}" + (f": {said}" if said else "."),
+            exit_code=EXIT_AUTH,
+        )
+    found: set[str] = set(SIGNER_OUTPUT.findall(result.stdout))
+    if len(found) != 1:
+        raise CommandError(
+            "signer_failed",
+            "The signing command must print exactly one 0x signature; it printed: "
+            f"{result.stdout.strip()}",
+            exit_code=EXIT_AUTH,
+        )
+    return found.pop()
+
+
+def _post(
     path: str,
     body: dict[str, Any],
     timeout_ms: int,
     headers: dict[str, str] | None = None,
 ) -> Any:
+    address = broker()
     try:
         response = httpx.post(
-            broker + path,
+            address + path,
             json=body,
             headers=headers,
             timeout=timeout_ms / 1000,
@@ -161,18 +229,17 @@ def _broker(
     except httpx.HTTPError:
         raise CommandError(
             "unreachable",
-            f"The sign-in server {broker} could not be reached, or did not answer in time.",
+            f"The sign-in server {address} could not be reached, or did not answer in time.",
             exit_code=EXIT_UNREACHABLE,
         ) from None
     return answer(response)
 
 
-def challenge(site: str, wallet_address: str, broker: str, timeout_ms: int) -> dict[str, str]:
+def challenge(site: str, wallet_address: str, timeout_ms: int) -> dict[str, str]:
     """Ask the sign-in server for the message this wallet signs to sign in to `site`."""
     if not ADDRESS.fullmatch(wallet_address):
         raise UsageError(f"{wallet_address!r} is not an address.")
-    issued = _broker(
-        origin(broker, "--siwa-url"),
+    issued = _post(
         "/api/shared/siwa/wallet/nonce",
         {"wallet_address": wallet_address, "chain_id": CHAIN_ID, "audience": site},
         timeout_ms,
@@ -185,50 +252,45 @@ def challenge(site: str, wallet_address: str, broker: str, timeout_ms: int) -> d
     }
 
 
-def verify(
-    site: str, signed: dict[str, str], broker: str, timeout_ms: int, *, local: bool
-) -> SignIn:
+def verify(site: str, signed: dict[str, str], timeout_ms: int) -> Receipt:
     """Hand the signed challenge back and keep the receipt for `site`."""
-    broker = origin(broker, "--siwa-url")
-    verified = _broker(
-        broker,
+    verified = _post(
         "/api/shared/siwa/wallet/verify",
         {"chain_id": CHAIN_ID, "audience": site, **signed},
         timeout_ms,
     )
     data = verified["data"]
-    sign_in = SignIn(
-        wallet_address=data["walletAddress"],
-        key_id=data["keyId"],
+    receipt = Receipt(
+        address=data["walletAddress"],
+        audience=site,
         receipt=data["receipt"],
-        expires_at=data["receiptExpiresAt"],
-        broker=broker,
-        local=local,
+        receipt_expires_at=data["receiptExpiresAt"],
+        key_id=data["keyId"],
     )
-    save_sign_in(site, sign_in)
-    return sign_in
+    _write_private(receipt_file(site), asdict(receipt))
+    return receipt
 
 
-def sign_in_with_key(site: str, key: Key, broker: str, timeout_ms: int) -> SignIn:
-    issued = challenge(site, key.address, broker, timeout_ms)
+def sign_in_with_key(site: str, key: Key, timeout_ms: int) -> Receipt:
+    issued = challenge(site, key.address, timeout_ms)
     signed = {**issued, "signature": personal_sign(key, issued["message"])}
-    return verify(site, signed, broker, timeout_ms, local=True)
+    return verify(site, signed, timeout_ms)
 
 
-def current(site: str, timeout_ms: int) -> SignIn:
+def current(site: str, timeout_ms: int) -> Receipt:
     """This site's receipt, renewed first when the key on this machine signed in."""
-    sign_in = sign_ins().get(site)
-    if sign_in is None:
+    receipt = load_receipt(site)
+    if receipt is None:
         raise CommandError(
             "not_signed_in",
             f"Sign in first: regents auth login --site {site}.",
             exit_code=EXIT_AUTH,
         )
-    if sign_in.fresh(RENEW_MARGIN_SECONDS):
-        return sign_in
+    if receipt.fresh(RENEW_MARGIN_SECONDS):
+        return receipt
     key = load_key()
-    if sign_in.local and key is not None and key.address == sign_in.wallet_address:
-        return sign_in_with_key(site, key, sign_in.broker, timeout_ms)
+    if key is not None and receipt.signed_by(key):
+        return sign_in_with_key(site, key, timeout_ms)
     raise CommandError(
         "sign_in_expired",
         f"The sign-in to {site} has expired. Sign in again with regents auth login --site {site}.",
@@ -269,13 +331,13 @@ def unsigned(
     return headers, "\n".join([*lines, f'"@signature-params": {params}'])
 
 
-def prepare(request: Request, sign_in: SignIn) -> tuple[dict[str, str], str]:
+def prepare(request: Request, receipt: Receipt) -> tuple[dict[str, str], str]:
     created = int(time.time())
     return unsigned(
         request,
-        receipt=sign_in.receipt,
-        wallet_address=sign_in.wallet_address,
-        key_id=sign_in.key_id,
+        receipt=receipt.receipt,
+        wallet_address=receipt.address,
+        key_id=receipt.key_id,
         created=created,
         expires=created + SIGNATURE_LIFETIME_SECONDS,
         nonce="sig-nonce-" + secrets.token_hex(16),
@@ -306,31 +368,30 @@ def rebuild(request: Request, headers: dict[str, str]) -> tuple[dict[str, str], 
 
 def signature_header(signature: str) -> str:
     if not SIGNATURE.fullmatch(signature):
-        raise UsageError("The signature must be 0x followed by 130 hex characters.")
+        raise UsageError("The signature must be 0x followed by 130 or more hex characters.")
     return "sig1=:" + base64.b64encode(bytes.fromhex(signature[2:])).decode("ascii") + ":"
 
 
-def sign(request: Request, sign_in: SignIn) -> dict[str, str]:
+def sign(request: Request, receipt: Receipt) -> dict[str, str]:
     """Signed headers for `request`, signed with the key on this machine."""
     key = load_key()
-    if not sign_in.local or key is None or key.address != sign_in.wallet_address:
+    if key is None or not receipt.signed_by(key):
         raise CommandError(
             "outside_key",
             "This site's sign-in belongs to a key that is not on this machine. "
             "Sign with it yourself: --phase prepare, then --phase send.",
             exit_code=EXIT_AUTH,
         )
-    headers, message = prepare(request, sign_in)
+    headers, message = prepare(request, receipt)
     return {**headers, "signature": signature_header(personal_sign(key, message))}
 
 
-def confirm(site: str, sign_in: SignIn, timeout_ms: int) -> None:
+def confirm(site: str, receipt: Receipt, timeout_ms: int) -> None:
     """Have the sign-in server check a request signed with this sign-in, as the site does."""
     request = Request("GET", "/")
-    checked = _broker(
-        sign_in.broker,
+    checked = _post(
         "/api/shared/siwa/http-verify",
-        {"method": request.method, "path": request.target, "headers": sign(request, sign_in)},
+        {"method": request.method, "path": request.target, "headers": sign(request, receipt)},
         timeout_ms,
         headers={"x-siwa-audience": site},
     )

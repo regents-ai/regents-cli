@@ -3,6 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.2.0 — 2026-09-29
+
+- The agent key and sign-ins now live where the SIWA agent client keeps them:
+  `~/.siwa-agent/key.json` and `~/.siwa-agent/receipts/<site>.json`, or under
+  `SIWA_AGENT_HOME`. `regents` and the client share one identity and each other's sign-ins.
+- A key can name your own wallet's signing command instead of holding a private key, as the
+  client's `use-wallet` sets up. `regents` runs that command whenever it signs.
+- `~/.regents/agent-key.json` and `~/.regents/sign-ins.json` are no longer read. To keep that
+  identity, move `agent-key.json` to `~/.siwa-agent/key.json` by hand, then sign in again.
+- `regents auth login` no longer takes `--siwa-url`; set `SIWA_BROKER` instead.
+- Techtree's release `climb-v0.4.0` now names regents-cli 1.2.0.
+
 ## 1.1.1 — 2026-09-29
 
 - Signing in goes to `https://siwa.regents.sh`. A sign-in made before this renews at the

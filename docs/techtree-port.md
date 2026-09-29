@@ -88,8 +88,7 @@ Hidden, for Techtree's own use: `regents techtree _worker --run-id <id>` (the de
   `approval.command`: the exact command with `--yes --reviewed-on host-agent`, as shell text
   quoted by `shlex.join`, so `shlex.split` gives back the arguments. It never waits for input it
   can't get.
-- **Home.** `~/.regents/techtree` (from `siwa.home()`), with no flag to move it. The worker
-  finds it the same way.
+- **Home.** `~/.regents/techtree`, with no flag to move it. The worker finds it the same way.
 - **Models.** V2 shapes only. Enums in signed records keep only the values actually written.
   One-line docstrings; comments only where a reader would otherwise go wrong.
 - **Byte-identical parts** (checked against Techtree's own output before each slice is done):

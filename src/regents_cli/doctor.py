@@ -85,11 +85,12 @@ def read_answers(base: str, command: Command, timeout_ms: int) -> str:
 
 
 def sign_in_good(site: str, timeout_ms: int) -> str:
-    sign_in = siwa.current(site, timeout_ms)
-    if not sign_in.local:
+    receipt = siwa.current(site, timeout_ms)
+    key = siwa.load_key()
+    if key is None or not receipt.signed_by(key):
         return (
-            f"Signed in with your own key as {sign_in.wallet_address} until "
-            f"{sign_in.expires_at}; only that key can sign a request to check it further."
+            f"Signed in with your own key as {receipt.address} until "
+            f"{receipt.receipt_expires_at}; only that key can sign a request to check it further."
         )
-    siwa.confirm(site, sign_in, timeout_ms)
-    return f"The sign-in server accepts {sign_in.wallet_address} until {sign_in.expires_at}."
+    siwa.confirm(site, receipt, timeout_ms)
+    return f"The sign-in server accepts {receipt.address} until {receipt.receipt_expires_at}."

@@ -30,7 +30,8 @@ def auth_group(sites: list[str]) -> click.Group:
     group = click.Group(
         "auth",
         help="Sign in to a site with a wallet. One agent key on this machine signs every "
-        f"request; it lives in {siwa.key_file()}.",
+        f"request; it lives in {siwa.key_file()}, shared with the SIWA agent client. "
+        "SIWA_AGENT_HOME moves that folder and SIWA_BROKER names another sign-in server.",
         no_args_is_help=True,
     )
     group.add_command(
@@ -47,12 +48,6 @@ def auth_group(sites: list[str]) -> click.Group:
                 ),
                 click.Option(
                     ["--wallet-address"], help="Your own wallet's address, with --phase prepare."
-                ),
-                click.Option(
-                    ["--siwa-url"],
-                    default=siwa.BROKER,
-                    show_default=True,
-                    help="The sign-in server.",
                 ),
                 JSON,
                 TIMEOUT,
@@ -85,14 +80,13 @@ def login(
     site: str,
     phase: str | None,
     wallet_address: str | None,
-    siwa_url: str,
     as_json: bool,
     timeout_ms: int,
 ) -> None:
     if (phase == "prepare") != (wallet_address is not None):
         raise UsageError("--wallet-address goes with --phase prepare, and only with it.")
     if phase == "prepare" and wallet_address is not None:
-        output.emit(siwa.challenge(site, wallet_address, siwa_url, timeout_ms), as_json=as_json)
+        output.emit(siwa.challenge(site, wallet_address, timeout_ms), as_json=as_json)
         return
     created = False
     if phase == "send":
@@ -103,17 +97,17 @@ def login(
                 'stdin must hold {"wallet_address", "nonce", "message", "signature"}: the '
                 "answer of --phase prepare with the message's signature added."
             )
-        sign_in = siwa.verify(site, signed, siwa_url, timeout_ms, local=False)
+        receipt = siwa.verify(site, signed, timeout_ms)
     else:
         key = siwa.load_key()
         if key is None:
             key, created = siwa.create_key(), True
-        sign_in = siwa.sign_in_with_key(site, key, siwa_url, timeout_ms)
+        receipt = siwa.sign_in_with_key(site, key, timeout_ms)
     answer: dict[str, Any] = {
         "site": site,
-        "wallet_address": sign_in.wallet_address,
-        "signed_in_until": sign_in.expires_at,
-        "signs": "this machine" if sign_in.local else "you",
+        "wallet_address": receipt.address,
+        "signed_in_until": receipt.receipt_expires_at,
+        "signs": signs(receipt, siwa.load_key()),
     }
     if created:
         answer["key_created"] = str(siwa.key_file())
@@ -122,23 +116,27 @@ def login(
 
 def status(as_json: bool, timeout_ms: int) -> None:
     key = siwa.load_key()
-    sign_ins = siwa.sign_ins()
+    receipts = siwa.receipts()
     answer: dict[str, Any] = {
         "agent_key": key.address if key is not None else None,
         "sign_ins": [
             {
                 "site": site,
-                "wallet_address": sign_in.wallet_address,
-                "signed_in_until": sign_in.expires_at,
-                "fresh": sign_in.fresh(),
-                "signs": "this machine" if sign_in.local else "you",
+                "wallet_address": receipt.address,
+                "signed_in_until": receipt.receipt_expires_at,
+                "fresh": receipt.fresh(),
+                "signs": signs(receipt, key),
             }
-            for site, sign_in in sign_ins.items()
+            for site, receipt in receipts.items()
         ],
     }
-    if "regents" in sign_ins:
+    if "regents" in receipts:
         answer["paired_with"] = paired_account(timeout_ms)
     output.emit(answer, as_json=as_json)
+
+
+def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
+    return "this machine" if key is not None and receipt.signed_by(key) else "you"
 
 
 def paired_account(timeout_ms: int) -> dict[str, Any] | None:
@@ -158,4 +156,4 @@ def paired_account(timeout_ms: int) -> dict[str, Any] | None:
 
 
 def logout(site: str, as_json: bool) -> None:
-    output.emit({"site": site, "signed_out": siwa.remove_sign_in(site)}, as_json=as_json)
+    output.emit({"site": site, "signed_out": siwa.remove_receipt(site)}, as_json=as_json)

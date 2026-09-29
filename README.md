@@ -30,7 +30,12 @@ regents patchbay doctor
 ## Signing in
 
 A site's wallet-proof commands need a wallet sign-in (SIWA). One agent key lives on this
-machine, in `~/.regents/agent-key.json`, and signs every request:
+machine and signs every request. It is the same key the SIWA agent client
+(`https://siwa.regents.sh/skill.md`) uses: `~/.siwa-agent/key.json`, with each site's sign-in
+in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
+or your own wallet's signing command set up with the client's `use-wallet`. Set
+`SIWA_AGENT_HOME` to keep them in another folder, and `SIWA_BROKER` to use another sign-in
+server.
 
 ```bash
 regents auth login --site patchbay
