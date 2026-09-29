@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.2.1 — 2026-09-29
 
 - A result's "Changed" line names the Skills themselves, such as `No tested Skill →
   frontier-cs-v2`, instead of the fixed `Skill v1` and `Skill v2`.
@@ -11,6 +11,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   error `payment_required` now carries the whole answer: `payment_terms` for your wallet to
   sign, the intent's id, what to do next and the x402 `payment-required` header. Pipe
   `{"payment_signature": "…"}` on stdin to pay. Before, only a bare `http_402` came back.
+- Techtree's release `climb-v0.4.0` now names regents-cli 1.2.1 (ReleaseCore
+  `sha256:b136f675…`). The Climbs, Campaigns and engines are unchanged.
 
 ## 1.2.0 — 2026-09-29
 
