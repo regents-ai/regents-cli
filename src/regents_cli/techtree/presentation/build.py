@@ -59,8 +59,6 @@ HELD_FIXED_LINE: Final = (
     "same reward, and the same declared limits."
 )
 
-FIRST_CHANGE_LABEL: Final = "No tested Skill → Skill v1"
-SECOND_CHANGE_LABEL: Final = "Skill v1 → Skill v2"
 
 #: The only words this build explains ``P1`` with.
 P1_MEANING: Final = "integrity-bound, participant-attested local execution"
@@ -118,7 +116,7 @@ def build_uplift_presentation(
         run_id=report.run_id,
         campaign_title=sanitize_label(climb.title),
         comparison_label=_comparison_label(generation),
-        change_label=_change_label(generation, baseline_skill, candidate_skill),
+        change_label=_change_label(baseline_skill, candidate_skill),
         baseline_skill=_skill_summary(baseline_skill, _baseline_label(baseline_skill)),
         candidate_skill=_skill_summary(candidate_skill, candidate_skill.name),
         baseline_score=primary.baseline_mean,
@@ -313,15 +311,9 @@ def _comparison_label(generation: int | None) -> str:
     return LATER_RESULT_LABEL
 
 
-def _change_label(
-    generation: int | None, baseline_skill: SkillArtifact | None, candidate_skill: SkillArtifact
-) -> str:
-    if generation == 1:
-        return FIRST_CHANGE_LABEL
-    if generation == 2:
-        return SECOND_CHANGE_LABEL
-    assert baseline_skill is not None
-    return f"{sanitize_label(baseline_skill.name)} → {sanitize_label(candidate_skill.name)}"
+def _change_label(baseline_skill: SkillArtifact | None, candidate_skill: SkillArtifact) -> str:
+    baseline = sanitize_label(_baseline_label(baseline_skill))
+    return f"{baseline} → {sanitize_label(candidate_skill.name)}"
 
 
 def _baseline_label(baseline_skill: SkillArtifact | None) -> str:

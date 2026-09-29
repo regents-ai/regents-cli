@@ -3,6 +3,11 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- A result's "Changed" line names the Skills themselves, such as `No tested Skill →
+  frontier-cs-v2`, instead of the fixed `Skill v1` and `Skill v2`.
+
 ## 1.2.0 — 2026-09-29
 
 - The agent key and sign-ins now live where the SIWA agent client keeps them:
