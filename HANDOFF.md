@@ -48,9 +48,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
    by the hand-run workflow `techtree-subject-image.yml`) now carries Hermes, and the Campaign
    pins it. The three paid re-certification runs in `docs/techtree-recertification.md` scored
    23, 22 and 24 of 36 (2026-09-28/29): the Campaign is certified.
-6. Publishing 1.0.0: founder go 2026-09-28. `.github/workflows/publish.yml`, run by hand,
-   runs `make check`, builds the wheel and publishes it through PyPI trusted publishing
-   (environment `pypi`); the founder registers it on pypi.org first.
+6. 1.0.0 is on PyPI (2026-09-29, tag `v1.0.0` = `fdddd9f`, wheel sha256 `64630b1b…`).
+   `.github/workflows/publish.yml`, run by hand with the founder's go, runs `make check`,
+   builds the wheel and publishes it through PyPI trusted publishing (environment `pypi`).
 7. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Checks

@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased — 1.0.0 (Python)
+## 1.0.0 (Python) — 2026-09-29
 
 ### Breaking
 
