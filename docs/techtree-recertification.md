@@ -75,6 +75,13 @@ If a run fails, or scores outside the band, stop. Report it before running the n
   all 72 episodes completed, none failed. Candidate 22 of 36, baseline 0 of 36: 22 wins, 14 ties,
   no losses. About $0.17 (5.32 million input and 92,000 output tokens, 2.0 million of the input
   from the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
+- 2026-09-29, run 3 (`run_f41f69151d834f46a1029f1607d201d5`), a fresh draft on the same Campaign:
+  all 72 episodes completed, none failed. Candidate 24 of 36, baseline 0 of 36: 24 wins, 12 ties,
+  no losses. About $0.16 (4.97 million input and 88,000 output tokens, 2.1 million of the input
+  from the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
+
+All three runs landed in the band, 23, 22 and 24 of 36 from a baseline of 0, against 0.3.0's
+23, 23 and 24. The Campaign `sha256:93ee4627…` is certified. Together they cost about $0.50.
 
 ## What is not known
 

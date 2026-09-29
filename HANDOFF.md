@@ -42,12 +42,12 @@ behind a site, and never holds one up (founder, 2026-09-28).
 4. KeyFleet: its `cli/commands.json` is at `79d6cbe` in a private repository; pinning it here
    would publish it, so it waits for the founder's call.
 5. Techtree: slices T0–T5 are done. `climb start`, `forge plan-start` and every other paid
-   step stop at their approval; nothing paid has run through `regents` yet. T5 moved the engine
+   step stop at their approval. T5 moved the engine
    to Verifiers 0.3.2 and cut ReleaseCore `climb-v0.3.1`. The first run 1 failed on GitHub
    refusing Hermes downloads, so the subject image (`scripts/techtree/subject-image`, published
    by the hand-run workflow `techtree-subject-image.yml`) now carries Hermes, and the Campaign
-   pins it. Next: the three paid re-certification runs in `docs/techtree-recertification.md`,
-   each approved by the founder first.
+   pins it. The three paid re-certification runs in `docs/techtree-recertification.md` scored
+   23, 22 and 24 of 36 (2026-09-28/29): the Campaign is certified.
 6. Publishing 1.0.0: founder go 2026-09-28. `.github/workflows/publish.yml`, run by hand,
    runs `make check`, builds the wheel and publishes it through PyPI trusted publishing
    (environment `pypi`); the founder registers it on pypi.org first.
