@@ -1,6 +1,6 @@
 .PHONY: check sync
 
-# Every gate, in the order CI runs them.
+# Every gate, run here before each commit and by the publish workflow before it builds.
 check:
 	uv run ruff format --check
 	uv run ruff check
