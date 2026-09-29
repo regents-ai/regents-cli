@@ -27,7 +27,7 @@ from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError, UsageE
 from regents_cli.http import Request, answer, origin
 
 CHAIN_ID = 8453
-BROKER = "https://siwa-server.fly.dev"
+BROKER = "https://siwa.regents.sh"
 SIGNATURE_LIFETIME_SECONDS = 120
 RENEW_MARGIN_SECONDS = 60
 COMPONENTS = (

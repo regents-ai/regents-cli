@@ -5,6 +5,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.1.1 — 2026-09-29
 
+- Signing in goes to `https://siwa.regents.sh`. A sign-in made before this renews at the
+  address it was made with; sign in again to move it.
 - A run's result describes its own Climb. The warning about what the tasks can and cannot show
   is now the Climb's own summary, so a Frontier-CS result no longer calls itself a toy
   introductory Climb; a Hello World result still does. The warning's code is `climb_scope`.
