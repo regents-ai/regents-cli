@@ -67,7 +67,7 @@ P1_MEANING: Final = "integrity-bound, participant-attested local execution"
 
 #: What each decision established, said as what was measured rather than as a verdict won.
 DECISION_HEADLINE: Final[dict[str, str]] = {
-    "accepted": "Improved on this development task family",
+    "accepted": "Improved on this task family",
     "rejected": "Did not clear the bar this Climb declared",
     "inconclusive": "Not decided: this Climb declared no rule that could decide it",
     "invalid": "Not valid: this comparison cannot carry a result",

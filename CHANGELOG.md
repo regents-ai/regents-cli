@@ -15,7 +15,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `regents auth login` no longer takes `--siwa-url`; set `SIWA_BROKER` instead.
 - Hello World and Frontier-CS are now open Climbs whose results carry the P1 proof grade,
   instead of development Climbs whose results were marked development-only. Their Campaigns
-  are unchanged, so earlier runs keep their results.
+  are unchanged, so earlier runs keep their results. A result whose Skill helped now reads
+  "Improved on this task family".
 - Techtree's release `climb-v0.4.0` now names regents-cli 1.2.0 and the reissued Climbs.
 
 ## 1.1.1 — 2026-09-29
