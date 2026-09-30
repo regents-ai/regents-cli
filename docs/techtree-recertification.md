@@ -93,6 +93,17 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
   techtree.sh did not serve starter v3 until Techtree's switch, so the run used Techtree's
   committed copy, whose digest matches the one the release pins.
 
+- 2026-09-30, the Frontier-CS starter hill-climb (founder's 2a): three runs of new starter
+  Skills against the same Campaign. Round 1 (`run_adb9777de28649f78a91ea71e77e90a2`) scored
+  0.494 without the Skill and 0.551 with it, about $1.62. Round 2
+  (`run_fe36f4fabb6a47b383881b2eb1940703`), a stricter version, scored 0.497 and 0.528 with 3
+  losses, about $2.70, and was dropped. Round 1's Skill run again unchanged
+  (`run_fb2a75504ca24b31b7acce2c4bd7f133`) scored 0.457 and 0.534, about $1.55. Across both of
+  its runs against all four runs without a Skill, round 1's Skill scores 0.542 against 0.508,
+  higher on 7 of the 9 problems that can be scored. It is starter v4 in regents-cli 1.3.1
+  (`climb-v0.5.1`). Every proof verifies offline. The model provider refuses problem 01 on
+  both sides in every run.
+
 Hello World scored 24, 24 and 24 out of 36 from a baseline of 0 or 1, so its band on Luna is
 about 24. The Hello World Campaign `sha256:dedfeb92…` is certified, and Frontier-CS runs end to
 end. All four runs together cost about $2.17. The costs are worked out at full price; the

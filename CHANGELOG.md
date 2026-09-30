@@ -3,6 +3,15 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.3.1 — 2026-09-30
+
+- Frontier-CS's starter Skill is now `frontier-cs-starter-v4`, shown as `frontier-cs-v4`. It
+  asks the agent to compare two or three methods before coding, test its program on inputs it
+  makes itself, and keep improving the answer until the time limit is nearly used. On Luna it
+  scored 0.542 against 0.508 without a Skill, higher on 7 of the 9 problems that can be scored.
+- Techtree's release is now `climb-v0.5.1` (ReleaseCore `sha256:4cac17bd…`). Only the
+  Frontier-CS starter Skill changes; the Campaigns are the same, so results compare with 1.3.0's.
+
 ## 1.3.0 — 2026-09-30
 
 - Techtree's Climbs now test agents on `openai/gpt-6-luna`, asked to reason at "high". Luna
