@@ -26,8 +26,8 @@ jobs:
           RECIPE: ${{ inputs.recipe }}
         run: |
           case "$RECIPE" in
-            subject-image) echo "tag=hermes-v2026.7.20" >> "$GITHUB_OUTPUT" ;;
-            subject-image-cpp) echo "tag=hermes-v2026.7.20-gcc" >> "$GITHUB_OUTPUT" ;;
+            subject-image) echo "tag=hermes-v2026.9.24" >> "$GITHUB_OUTPUT" ;;
+            subject-image-cpp) echo "tag=hermes-v2026.9.24-gcc" >> "$GITHUB_OUTPUT" ;;
           esac
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3

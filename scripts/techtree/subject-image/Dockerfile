@@ -12,9 +12,9 @@ LABEL org.opencontainers.image.source=https://github.com/regents-ai/regents-cli
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 /uv /uvx /usr/local/bin/
 
-ARG HERMES_VERSION=v2026.7.20
+ARG HERMES_VERSION=v2026.9.24
 ARG HERMES_DIR=/var/tmp/vf-hermes-agent-${HERMES_VERSION}
-ADD --checksum=sha256:285f3fc134ff466a90065e1517801a68993733b807158ee8f32aa01613786990 \
+ADD --checksum=sha256:15b15ce4e6ec8ea424a081823709d1e17f0943e7b42b59597d24ebb94cbd1742 \
     https://github.com/NousResearch/hermes-agent/archive/refs/tags/${HERMES_VERSION}.tar.gz /tmp/hermes.tar.gz
 RUN mkdir -p "$HERMES_DIR" \
     && tar -xzf /tmp/hermes.tar.gz --strip-components=1 -C "$HERMES_DIR" \
