@@ -28,6 +28,7 @@
       },
       "sampling": {
         "max_tokens": 512,
+        "reasoning_effort": null,
         "temperature": 0.0
       },
       "trainable": false

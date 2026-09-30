@@ -88,15 +88,18 @@ from regents_cli.techtree.release.document import document_digest
 ROOT: Final = Path(__file__).resolve().parents[2]
 CATALOG_ROOT: Final = ROOT / "src/regents_cli/techtree/resources/catalog"
 
-#: The pinned Hermes release the subject runs, named by its tag; v2026.7.20 is Hermes 0.19.0,
-#: the harness 0.3.0 was certified with. Both subject images already hold it, so no episode
-#: downloads it (scripts/techtree/subject-image).
+#: The pinned Hermes release the subject runs, named by its tag; v2026.9.24 is Hermes 0.21.5.
+#: Both subject images already hold it, so no episode downloads it
+#: (scripts/techtree/subject-image).
 HARNESS_ID: Final = "hermes-agent"
-HARNESS_VERSION: Final = "v2026.7.20"
+HARNESS_VERSION: Final = "v2026.9.24"
 
 SUBJECT_MODEL_PROVIDER: Final = "prime"
-SUBJECT_MODEL_ID: Final = "qwen/qwen3.7-flash"
+SUBJECT_MODEL_ID: Final = "openai/gpt-6-luna"
 SUBJECT_CREDENTIAL_ENV: Final = "PRIME_API_KEY"
+#: GPT-6 Luna takes a reasoning effort and has no temperature setting, so none is sent.
+SUBJECT_TEMPERATURE: Final = None
+SUBJECT_REASONING_EFFORT: Final = "high"
 
 CAMPAIGN_MAX_CONCURRENT: Final = 4
 CAMPAIGN_RETRY_LIMIT: Final = 0
@@ -160,19 +163,19 @@ HELLO_WORLD: Final = ClimbDefinition(
     primary_reward="exact_match",
     subject_image=(
         "ghcr.io/regents-ai/techtree-subject"
-        "@sha256:0acde5ee96ca0798253a12e4102de2ed5b8cb9e18ff111e462312137e299b0e4"
+        "@sha256:76ebb4a9390b80bfd5a6584d4229512fea1c858d4a0b73153a25cf1495cca155"
     ),
     subject_image_platform_digests={
-        "linux/amd64": "sha256:258f2db32d8b97fa63aac2c67e7e7e19e0849aa9460d6dcd6c8ca2216daf2609",
-        "linux/arm64": "sha256:320054f0c3bd6e3ca44f15afb461f09ffa2928f1adf032860a6a1d6776d5dbc6",
+        "linux/amd64": "sha256:0ee8a49c691251f31533972d6bb15079208c74089b231c4d9d7a215f2efb1fc5",
+        "linux/arm64": "sha256:a41b2e5c0675a0d0706cc8ae41bc3e2c974d8d693d450c604a73cbfbf69c3320",
     },
-    subject_max_output_tokens=4096,
-    # The enforced token limits below can amount to $2.42.
-    budget_usd=2.50,
-    maximum_input_tokens=900000,
-    maximum_output_tokens=16000,
+    subject_max_output_tokens=16000,
+    # The enforced token limits below can amount to $6.28.
+    budget_usd=6.50,
+    maximum_input_tokens=500000,
+    maximum_output_tokens=32000,
     maximum_model_calls=44,
-    timeout_seconds=600,
+    timeout_seconds=1200,
     validate_in_subject_image=False,
 )
 
@@ -196,19 +199,19 @@ FRONTIER_CS: Final = ClimbDefinition(
     # Hello World's image with g++ added (scripts/techtree/subject-image-cpp).
     subject_image=(
         "ghcr.io/regents-ai/techtree-subject"
-        "@sha256:c21aa0394fe5a00003e5186f33870e72fa6345c87a347f63f5cfb8b2b3fc7cf1"
+        "@sha256:27d04c85a88cb52eae8f6f9ed379769ed9ed3b8d7b12d9e1b33b12f5ac95dab8"
     ),
     subject_image_platform_digests={
-        "linux/amd64": "sha256:a3f57bda73c6df5da1080466c5adb1ac699eb4a34185984d2a52719e8df29b86",
-        "linux/arm64": "sha256:924f9b785524247e8d07b65d98dceb94959ebd20fa2644f02b138b53bed9c48d",
+        "linux/amd64": "sha256:38a69ff50f77768339b929ad9c47238bef72dacd5985e7d64ee094a7b6c6fe10",
+        "linux/arm64": "sha256:fa56b14ceeebe858a6a39e591fb810766f41004019bfa6b0a5ff6548805e21ae",
     },
-    subject_max_output_tokens=8192,
-    # The enforced token limits below can amount to $0.97.
-    budget_usd=1.00,
-    maximum_input_tokens=1300000,
-    maximum_output_tokens=32000,
+    subject_max_output_tokens=32000,
+    # The enforced token limits below can amount to $2.35.
+    budget_usd=2.50,
+    maximum_input_tokens=400000,
+    maximum_output_tokens=96000,
     maximum_model_calls=60,
-    timeout_seconds=1800,
+    timeout_seconds=3600,
     validate_in_subject_image=True,
 )
 
@@ -373,7 +376,9 @@ def campaign(
                     credential_env=SUBJECT_CREDENTIAL_ENV,
                 ),
                 sampling=SamplingSpec(
-                    temperature=0.0, max_tokens=definition.subject_max_output_tokens
+                    temperature=SUBJECT_TEMPERATURE,
+                    max_tokens=definition.subject_max_output_tokens,
+                    reasoning_effort=SUBJECT_REASONING_EFFORT,
                 ),
                 harness=HarnessSpecV2(use_bundled_skill=False, skills=[]),
                 runtime=RuntimeSpec(

@@ -38,10 +38,10 @@ from regents_cli.techtree.publication.models import (
 from regents_cli.techtree.publication.transport import HttpsPublicationTransport
 from regents_cli.techtree.release.models import PinnedNetworkKey, PublicationCoordinates
 
-PROOF: Final = Path(__file__).parent / "fixtures" / "proof-0.3.0"
-RUN_ID: Final = "run_257d9c3743de2c0739c844614ec894ed"
-BUNDLE_DIGEST: Final = "sha256:fa1c84f66780c5b87449dfed545968fc02f24aeab4f1e33e5c56ed95e587966b"
-SKILL_NAME: Final = "hello-notes"
+RUN: Final = Path(__file__).parent / "fixtures" / "run"
+RUN_ID: Final = "run_636f016b694542dda5fbf49cdd14482f"
+BUNDLE_DIGEST: Final = "sha256:93491b78d3421658075219230d922489f4b6179a51394bd97b56cbc9d6f406b2"
+SKILL_NAME: Final = "hello-world-v1"
 
 PINNED_ENDPOINT: Final = "https://run-log.techtree.example/api/v1/publications"
 PUBLIC_LOG_URL: Final = "https://run-log.techtree.example/runs"
@@ -145,62 +145,10 @@ def install(monkeypatch: pytest.MonkeyPatch, home: Path, log: RunLog) -> None:
 
 
 def install_run(home: Path) -> Path:
-    """The 0.3.0 proof fixture as a run in this home, with the draft that names its Skill."""
+    """The fixture run's proof and draft, installed as a run in this home."""
     run_dir = home / ".regents" / "techtree" / "runs" / RUN_ID
-    shutil.copytree(PROOF, run_dir / "proof")
-    inputs = run_dir / "inputs"
-    inputs.mkdir()
-    (inputs / "draft.json").write_bytes(canonical_json_bytes(_draft()))
+    shutil.copytree(RUN, run_dir)
     return run_dir
-
-
-def _draft() -> dict[str, object]:
-    return {
-        "schema_version": "techtree.submission-draft.v1alpha1",
-        "id": "draft_" + "2" * 32,
-        "campaign_spec_digest": (
-            "sha256:7f63a863edde50688c1e6549f5e73777df821d5db93089f03a4803e5bb0880f3"
-        ),
-        "program_ref": None,
-        "public_context": {
-            "kind": "climb",
-            "climb_digest": "sha256:" + "4" * 64,
-        },
-        "data_policy_digest": (
-            "sha256:88ad47c15e31ace586490770e2266e40c80f7c7be37099a49e37a12052094822"
-        ),
-        "outcome_contract_digest": None,
-        "skill_artifact": {
-            "schema_version": "techtree.skill.v1alpha1",
-            "name": SKILL_NAME,
-            "root_digest": (
-                "sha256:6dbe12ff25c184c1075235548e3c505a1a79c1d6b42492a59f8a0c3f93781e99"
-            ),
-            "files": [
-                {
-                    "path": "SKILL.md",
-                    "media_type": "text/markdown",
-                    "size": 1024,
-                    "digest": "sha256:" + "6" * 64,
-                }
-            ],
-            "source_kind": "manual",
-            "parent_skill_digest": None,
-        },
-        "baseline_manifest_digest": "sha256:" + "8" * 64,
-        "candidate_manifest_digest": "sha256:" + "9" * 64,
-        "included_files": ["SKILL.md"],
-        "estimated_episodes": 4,
-        "policy_acceptance": {
-            "data_policy_digest": (
-                "sha256:88ad47c15e31ace586490770e2266e40c80f7c7be37099a49e37a12052094822"
-            ),
-            "required": True,
-            "summary": "the data policy",
-        },
-        "warnings": [],
-        "created_at": "2026-09-28T03:51:00Z",
-    }
 
 
 class Terminal(io.StringIO):

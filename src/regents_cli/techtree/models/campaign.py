@@ -134,11 +134,17 @@ class ModelSpec(ProtocolModel):
         return self
 
 
-class SamplingSpec(ProtocolModel):
-    """How the subject model is sampled."""
+#: The reasoning efforts a subject model can be asked for, as Prime names them.
+ReasoningEffort = Literal["none", "low", "medium", "high", "xhigh", "max"]
 
-    temperature: float = Field(ge=0.0, le=2.0)
+
+class SamplingSpec(ProtocolModel):
+    """How the subject model is sampled. A null setting is never sent, so the provider's own
+    default applies: a model with no temperature setting has a null temperature."""
+
+    temperature: float | None = Field(ge=0.0, le=2.0)
     max_tokens: int = Field(ge=1)
+    reasoning_effort: ReasoningEffort | None
 
 
 class RuntimeSpec(ProtocolModel):

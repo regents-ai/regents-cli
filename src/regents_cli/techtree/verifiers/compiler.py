@@ -109,6 +109,7 @@ def compile_variant_config(
         sampling=SamplingToml(
             temperature=subject.sampling.temperature,
             max_tokens=subject.sampling.max_tokens,
+            reasoning_effort=subject.sampling.reasoning_effort,
         ),
         env=EnvToml(
             taskset=TasksetToml(id=taskset.ref.id),

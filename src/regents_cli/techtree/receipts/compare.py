@@ -519,9 +519,9 @@ def _declared_to_observed(
     """One variant's execution against its manifest; the harness is held to the plan."""
     subject = _subject(manifest)
     configuration = observed.configuration
+    # A null setting is never sent, so it is not among the ones the engine records.
     declared_sampling: dict[str, JsonValue] = {
-        "max_tokens": subject.sampling.max_tokens,
-        "temperature": subject.sampling.temperature,
+        key: value for key, value in subject.sampling.model_dump().items() if value is not None
     }
     mismatches = [
         label

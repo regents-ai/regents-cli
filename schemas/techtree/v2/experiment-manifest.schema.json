@@ -594,23 +594,50 @@
     },
     "SamplingSpec": {
       "additionalProperties": false,
-      "description": "How the subject model is sampled.",
+      "description": "How the subject model is sampled. A null setting is never sent, so the provider's own\ndefault applies: a model with no temperature setting has a null temperature.",
       "properties": {
         "max_tokens": {
           "minimum": 1,
           "title": "Max Tokens",
           "type": "integer"
         },
+        "reasoning_effort": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reasoning Effort"
+        },
         "temperature": {
-          "maximum": 2.0,
-          "minimum": 0.0,
-          "title": "Temperature",
-          "type": "number"
+          "anyOf": [
+            {
+              "maximum": 2.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Temperature"
         }
       },
       "required": [
         "temperature",
-        "max_tokens"
+        "max_tokens",
+        "reasoning_effort"
       ],
       "title": "SamplingSpec",
       "type": "object"

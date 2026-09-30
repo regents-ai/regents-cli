@@ -335,7 +335,7 @@ def subject_agent(skills: list[ArtifactRef]) -> AgentSpecV2:
             revision=None,
             credential_env="TECHTREE_MODEL_API_KEY",
         ),
-        sampling=SamplingSpec(temperature=0.0, max_tokens=512),
+        sampling=SamplingSpec(temperature=0.0, max_tokens=512, reasoning_effort=None),
         harness=HarnessSpecV2(use_bundled_skill=False, skills=skills),
         runtime=RuntimeSpec(
             type="docker",

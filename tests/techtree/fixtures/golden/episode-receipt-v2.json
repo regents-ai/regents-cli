@@ -8,7 +8,7 @@
         "size": 65536
       }
     ],
-    "campaign_spec_digest": "sha256:6c2120a1e571fef9bfedd8b2bae282d1233016d42fdde8a82f9925d78c2d838a",
+    "campaign_spec_digest": "sha256:f98deac51576f45213e3f857a5a551a480ae7a26cff6bd6aab24a4058922477d",
     "data_policy_digest": "sha256:f61fff0ff5941205fca8fc044c81e7a56aed9017539f6927ab9df0e81f70f88b",
     "episode_digest": "sha256:60017f691db8746f0d841c3f0093e31f976f82c2158b76b009901890c2c96aed",
     "episode_id": "episode_df97c7a992e666cbb8e957b98893a2be",
@@ -18,7 +18,7 @@
     },
     "execution_plan_digest": "sha256:01cb3af651c0c4c61686554c762a58d00734e5feeae7d9bc8cc09b197ea90d3b",
     "executor_kind": "verifiers",
-    "experiment_manifest_digest": "sha256:6d195c91cc43f92e2bdd0d30446db1b6c3bd9fe1632e07040e26a2566f6063a6",
+    "experiment_manifest_digest": "sha256:b0c3a9018566c84e3cc2cabc8dd2d40fc53e2eabc07ce42df988f212f4c5d545",
     "id": "receipt_ebab4a3197b84718000b5a1f9abb6a60",
     "named_traces": {
       "subject": [
@@ -38,7 +38,7 @@
     "outcome_contract_digest": null,
     "program_ref": null,
     "public_context": {
-      "climb_digest": "sha256:95950b244eb2f8035be3c2c5c43acc98f5ee5352fc1d71ce69f09ab8031f1e2a",
+      "climb_digest": "sha256:6871e49083e0315ce309b9bbe7e26d3e7f89fe32ee98efbaa8bbceb08c8214c7",
       "kind": "climb"
     },
     "run_id": "run_bc5e01438ad71b7de1078aa4a307785a",
@@ -52,10 +52,10 @@
     "task_hash": "sha256:de3897e782c16d166dbef41c2e4d7c923a8f62694b6f12bc7159f26147caf7ef",
     "variant": "candidate"
   },
-  "payload_digest": "sha256:45a857ca27b338a3d86f262a292d140871c5e94adc1b0eb191d022e07eb310fc",
+  "payload_digest": "sha256:6d7f1ba3c66fe844005e1df9f8fde9ffacc2fe84f84106c2165e7191ac7f96df",
   "signature": {
     "algorithm": "ed25519",
     "key_id": "sha256:cb1636de7059dc2a939fb3e53590a8373911d5613540d1c00eeaf7d37a10d38f",
-    "signature": "YQKgeoGRf4iW4ePh4teDmQ+gwli8+cIpV01JG4Hew72klC1fOuQXSdpwGy6OqTM76tssdYY8dN+fZ0isP4vQCw=="
+    "signature": "QfzAPSRW7cCksFZ9I1fLzq5O8rZ8f3uwWthfFr/cABBg/W4iKFtXjguT5cCLR9cbeyia6XYY0icqXbw9X2QMCQ=="
   }
 }

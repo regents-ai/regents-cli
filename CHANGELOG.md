@@ -3,6 +3,25 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.3.0 — 2026-09-30
+
+- Techtree's Climbs now test agents on `openai/gpt-6-luna`, asked to reason at "high". Luna
+  has no temperature setting, so a Campaign's temperature can now be empty, and nothing is sent
+  for it. Campaigns name a reasoning effort: `none`, `low`, `medium`, `high`, `xhigh`, `max`,
+  or empty.
+- The evaluated agent is Hermes `v2026.9.24` (0.21.5), in new subject images.
+- Roomier limits. Hello World: 16,000 tokens per reply, 32,000 per task, 500,000 input, at most
+  $6.50 a run. Frontier-CS: 32,000 per reply, 96,000 per task, 400,000 input, an hour per task,
+  at most $2.50 a run.
+- `hello-world-climb@1` and `frontier-cs-open-ended-climb@1` keep their names and get new
+  Campaigns, so runs from earlier versions can't be compared with new ones.
+- This version verifies only proofs made by this version. Results from 1.2.1 and earlier stay
+  verified on techtree.sh, and `regents-cli` 1.2.1 still verifies them.
+- Frontier-CS's starter Skill is now `frontier-cs-starter-v3`, shown as `frontier-cs-v3`. It
+  tells the agent the new limits and to keep its first thinking short.
+- Techtree's release is now `climb-v0.5.0` (ReleaseCore `sha256:9a2d6eae…`), naming
+  regents-cli 1.3.0, the new Campaigns, Hermes `v2026.9.24` and the new starter Skill.
+
 ## 1.2.1 — 2026-09-29
 
 - A result's "Changed" line names the Skills themselves, such as `No tested Skill →

@@ -1,24 +1,33 @@
-# Techtree re-certification runs for `climb-v0.3.1`
+# Techtree re-certification runs for `climb-v0.5.0`
 
-Verifiers 0.3.2 gave every Hello World task a new identity, so the Campaign this release ships is
-a new one and has never been run against a real model. Three paid runs certify it. The founder
-approves each run before it starts.
+The Climbs now test agents on `openai/gpt-6-luna` instead of `qwen/qwen3.7-flash`, with Hermes
+0.21.5 and roomier limits, so both Campaigns are new and have never been run against a real
+model. Paid runs certify them. The founder approves each run, with its expected cost, before it
+starts.
 
 ## What every run shares
 
 | Item | Value |
 | --- | --- |
-| Release | `climb-v0.3.1`, ReleaseCore `sha256:a8942d23ade4f2174fc2b77bf9c20b14cdfeaec94b73a343f87a81b28a8d2e80` |
-| Engine | `sha256:cf358eae94a1922906247063a39abff4bfb941bf032ae6e9d1ca7e999b07af5b` (Verifiers `fc73e02`) |
-| Climb | `hello-world-climb@1`, Campaign `sha256:93ee4627a7885aa90550d2bdccb1ebdce24f4a9232afd56fc5b8a8fc189187a1` |
-| Provider and model | `prime`, `qwen/qwen3.7-flash`, temperature 0, at most 4,096 tokens per call |
+| Release | `climb-v0.5.0`, regents-cli 1.3.0 |
+| Provider and model | `prime`, `openai/gpt-6-luna`, reasoning effort "high", no temperature (Luna has none) |
+| Prices | $0.10 per million input tokens and $0.50 per million output tokens, Prime's published rates on 2026-09-30 |
 | Credential | the Prime CLI sign-in at `~/.prime/config.json` (`PRIME_API_KEY`); Techtree checks the file is there and never opens it |
-| Evaluated agent | Hermes Agent `v2026.7.20` (0.19.0), already installed in the subject image `ghcr.io/regents-ai/techtree-subject@sha256:0acde5ee…`, so no episode downloads anything (`scripts/techtree/subject-image`) |
-| Candidate | the starter Skill, `sha256:596d1368ac157975accce7ceff835eed6bfb789eaf68528a0aefa25a68793b0b`, labelled `hello-world-v1` |
-| Episodes | 72 per run: 36 tasks, once without the Skill and once with it |
-| Declared maximum spend | $2.50 per run, $7.50 for all three |
-| Enforced bound | $2.42 per run: Techtree refuses to start if the Campaign's per-episode limits could add up past $2.50, at Prime's recorded prices of $0.03 and $0.13 per million input and output tokens |
-| Expected spend | about $0.10 to $0.20 per run, going by the 0.3.0 runs ($0.11 to $0.14) |
+| Evaluated agent | Hermes Agent `v2026.9.24` (0.21.5), already installed in the subject images, so no episode downloads anything (`scripts/techtree/subject-image`, `scripts/techtree/subject-image-cpp`) |
+
+## The two Climbs
+
+| | Hello World | Frontier-CS |
+| --- | --- | --- |
+| Climb | `hello-world-climb@1` | `frontier-cs-open-ended-climb@1` |
+| Campaign | `sha256:dedfeb9257f7bd270503e210bb23dcfea210fc6b7b2e7589777b980c6d1aabbc` | `sha256:06d0ee0694a2d885518b13a2e840a75070e9cd01ce6f3918e02d715d9d3186eb` |
+| Engine | `sha256:cf358eae…` | `sha256:b744c6ec…` |
+| Candidate | starter Skill `sha256:596d1368…`, labelled `hello-world-v1` | starter Skill v3 `sha256:38cca019…`, labelled `frontier-cs-v3` |
+| Episodes | 72: 36 tasks, once without the Skill and once with it | 20: 10 problems, once without the Skill and once with it |
+| Limits per episode | 16,000 tokens per reply, 32,000 output, 500,000 input, 20 minutes | 32,000 tokens per reply, 96,000 output, 400,000 input, one hour |
+| Declared maximum per run | $6.50 | $2.50 |
+| Enforced bound | $6.28: Techtree refuses to start if the limits could add up past $6.50 | $2.35: the same check against $2.50 |
+| Expected spend per run | about $0.40 to $0.70, going by the qwen runs' token counts at Luna's prices; thinking at "high" adds output | about $1 |
 
 Each run needs Docker running, the Prime sign-in in place, and regents-cli at the release commit.
 Every command runs from the repository root in the founder's own home, because that is where
@@ -26,15 +35,16 @@ the Prime sign-in lives.
 
 ## The commands
 
-These are the same for all three runs. Each run gets its own draft, so step 3 is repeated.
+The same for every run; `<climb>` is one of the two Climb references above. Each run gets its
+own draft, so step 3 is repeated.
 
-1. `uv run regents techtree doctor --climb hello-world-climb@1 --json`: checks Docker, Hermes,
-   the engine, the Prime sign-in and the container image. Nothing may be missing.
-2. `uv run regents techtree skill starter --json`: puts the starter Skill on the machine and prints
-   its `skill_path`.
-3. `uv run regents techtree climb prepare hello-world-climb@1 --skill <skill_path> --label hello-world-v1 --json`:
-   check that it reports 72 episodes, a declared maximum of $2.50 and a controlled comparison,
-   and note its `draft_id`.
+1. `uv run regents techtree doctor --climb <climb> --json`: checks Docker, Hermes, the engine,
+   the Prime sign-in and the container image. Nothing may be missing.
+2. `uv run regents techtree skill starter --climb <climb> --json`: puts the starter Skill on the
+   machine and prints its `skill_path`.
+3. `uv run regents techtree climb prepare <climb> --skill <skill_path> --label <label> --json`:
+   check the episode count, the declared maximum and a controlled comparison, and note its
+   `draft_id`.
 4. The founder reads the review and approves this run. Then start it, either way:
    - In the founder's own terminal: `uv run regents techtree climb start <draft_id>`. This shows
      the review and asks "Start this run?"; answering yes starts it.
@@ -46,46 +56,24 @@ These are the same for all three runs. Each run gets its own draft, so step 3 is
 7. `uv run regents techtree proof verify <run_id> --json`: must report verified, with no failed
    check.
 
-Nothing is published. Publishing a finished run is a separate step with its own approval, and it
-is not part of re-certification.
+Nothing is published. Publishing a finished run is a separate step with its own approval.
 
-## What each run proves
+## What the runs prove
 
 | Run | Proves |
 | --- | --- |
-| 1 | The new engine and the new Campaign work end to end against a real model. All 72 episodes finish, both sides are scored, the comparison is controlled, the cost stays under $2.50, and the proof verifies offline. The candidate's score must fall in the calibrated band of 20 to 27 out of 36, with the baseline at or near 0. |
-| 2 | The result repeats. A fresh draft of the same Skill scores within the same 20 to 27 band and its proof verifies. |
-| 3 | The band holds a third time, so the three scores together certify the Campaign the way 0.3.0's three runs did (23, 23 and 24 out of 36, each from a baseline of 0). |
+| Hello World 1 | The new model, Hermes and Campaign work end to end. All 72 episodes finish, both sides are scored, the comparison is controlled, the cost stays under $6.50, and the proof verifies offline. Its scores set the expected band for Luna; the qwen band of 20 to 27 out of 36 no longer applies. |
+| Hello World 2 and 3 | The result repeats: fresh drafts of the same Skill land near run 1 and their proofs verify. |
+| Frontier-CS 1 | The C++ image, the hour-long episodes and the larger limits work end to end: all 20 episodes finish, the cost stays under $2.50 and the proof verifies. The Skill may or may not help; either result is a valid run. |
 
-If a run fails, or scores outside the band, stop. Report it before running the next one.
+If a run fails, or its cost or proof is wrong, stop. Report it before running the next one.
 
 ## What has run
 
-- 2026-09-28, first run 1 (`run_866efcbf104b4fc19b1c573045d006be`), on the previous Campaign
-  `sha256:f95fd132…`: failed as not usable. Each episode then installed Hermes from GitHub at
-  its start; GitHub refused 10 of the 72 downloads (HTTP 429, one dropped connection), so 7
-  baseline and 3 candidate episodes never ran. The rest: candidate 21 of 33, baseline 0 of 29.
-  About $0.13 (3.89 million input and 81,000 output tokens). The founder chose to put Hermes in
-  the subject image ("1 a"); that is the Campaign above, and run 1 starts again on it.
-- 2026-09-28, run 1 (`run_eb031b6c07ba4b31a741d4cca777a8be`), on the Campaign above: all 72
-  episodes completed, none failed. Candidate 23 of 36, baseline 0 of 36: 23 wins, 13 ties, no
-  losses. About $0.17 (5.31 million input and 89,000 output tokens, 2.2 million of the input from
-  the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
-- 2026-09-28, run 2 (`run_5d91bc6dfdcf4815a99d34369edc11a8`), a fresh draft on the same Campaign:
-  all 72 episodes completed, none failed. Candidate 22 of 36, baseline 0 of 36: 22 wins, 14 ties,
-  no losses. About $0.17 (5.32 million input and 92,000 output tokens, 2.0 million of the input
-  from the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
-- 2026-09-29, run 3 (`run_f41f69151d834f46a1029f1607d201d5`), a fresh draft on the same Campaign:
-  all 72 episodes completed, none failed. Candidate 24 of 36, baseline 0 of 36: 24 wins, 12 ties,
-  no losses. About $0.16 (4.97 million input and 88,000 output tokens, 2.1 million of the input
-  from the provider's cache). The proof verifies offline: 351 checks, grade P1. Not published.
+- 2026-09-30, a free run against a local stand-in model on the Hello World Campaign above: all 72
+  episodes finished and the proof verifies offline (351 checks). The stand-in's log shows every
+  model request going to Luna with reasoning effort "high", no temperature and a 16,000-token
+  cap per reply. That run's proof is the test fixture in `tests/techtree/fixtures/run`.
 
-All three runs landed in the band, 23, 22 and 24 of 36 from a baseline of 0, against 0.3.0's
-23, 23 and 24. The Campaign `sha256:93ee4627…` is certified. Together they cost about $0.50.
-
-## What is not known
-
-The 0.3.0 re-certification (26–27 August 2026) recorded its provider, model, budgets, scores and
-costs, but not the exact commands. The commands above are the regents-cli form of the path that
-release documented, written from the command definitions. They have not been run against a
-real model.
+No paid run on these Campaigns yet. The previous Hello World Campaign, on qwen, was certified on
+2026-09-28 and 29 with 23, 22 and 24 out of 36 from a baseline of 0.

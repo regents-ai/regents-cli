@@ -1,9 +1,10 @@
-"""Every V2 document Techtree 0.3.0 writes still round-trips to the same bytes and digest.
+"""Every V2 golden document round-trips to the same bytes and the digest this build pins.
 
-The costly failure: a renamed field, a narrowed enum or a changed default makes this build
-compute a different digest for a document 0.3.0 signed, so every existing proof, catalog entry
-and published climb stops verifying. The expected digests were computed by Techtree 0.3.0's
-own models from these same golden files.
+The costly failure: a renamed field, a narrowed enum or a changed default silently changes
+the digest this build computes for a document it signs, so proofs, catalog entries and
+published Climbs stop agreeing with the documents they name. A deliberate change to a
+document's shape regenerates the goldens (scripts/techtree/build_goldens.py) and re-pins
+these digests with it.
 """
 
 from __future__ import annotations
@@ -34,15 +35,15 @@ GOLDEN = Path(__file__).parent / "fixtures" / "golden"
 CASES: dict[str, tuple[type[BaseModel], str]] = {
     "campaign-v2.json": (
         CampaignSpecV2,
-        "sha256:6c2120a1e571fef9bfedd8b2bae282d1233016d42fdde8a82f9925d78c2d838a",
+        "sha256:f98deac51576f45213e3f857a5a551a480ae7a26cff6bd6aab24a4058922477d",
     ),
     "campaign-parity-candidate.json": (
         CampaignSpecV2,
-        "sha256:18cf196010e2135f5367cfae477ab13122a471ba9b25bc4290b4d0acfa409617",
+        "sha256:e11a9c320e6237dcc9d79508d684205448f1b9463af97d4ce9eb5e45fd149eb5",
     ),
     "climb-v2.json": (
         ClimbManifest,
-        "sha256:95950b244eb2f8035be3c2c5c43acc98f5ee5352fc1d71ce69f09ab8031f1e2a",
+        "sha256:6871e49083e0315ce309b9bbe7e26d3e7f89fe32ee98efbaa8bbceb08c8214c7",
     ),
     "climb.json": (
         ClimbManifest,
@@ -50,11 +51,11 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "climb-summary-v2.json": (
         ClimbSummaryV2,
-        "sha256:f175a87dbee883c7358a32620ad2409539f80e83e7f655cae16d2f989bc99949",
+        "sha256:85ae90cab8f3e7f074ed7fb2f3b64fb7b1cb8e633f11cb1cc5ea626fb152ffbc",
     ),
     "comparison-execution.json": (
         ComparisonExecutionRecord,
-        "sha256:9b25006e88f7bec19318ae6b4074d1005d747d699959fb45dc2998bf4d46834c",
+        "sha256:aeac6dc40c9690e6e5a96429a39df4863348a008e6ad3ab8bdb4d78c71998c7e",
     ),
     "data-policy.json": (
         DataPolicy,
@@ -62,7 +63,7 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "episode-receipt-v2.json": (
         ObjectEnvelope[EpisodeReceiptV2],
-        "sha256:37972a531cf983e8d0d5114c478a7c03053c36712f5f059a96c67a14304ebec9",
+        "sha256:d5abde920e2562ec36ea8573b4c82d4e241f2186ba7ae0ddbea1b605d4608c34",
     ),
     "execution-plan.json": (
         ResolvedExecutionPlan,
@@ -74,15 +75,15 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "experiment-baseline-v2.json": (
         ExperimentManifestV2,
-        "sha256:ac01bcd2e2e7aa9d59561cd9f2db3689573dd32710eeb3c5ba51b4a632d30bf8",
+        "sha256:448044c74d0e9f861d9cf1d52d80de43a0b83e3d95aadf2c7595ffeadc057e9c",
     ),
     "experiment-candidate-v2.json": (
         ExperimentManifestV2,
-        "sha256:6d195c91cc43f92e2bdd0d30446db1b6c3bd9fe1632e07040e26a2566f6063a6",
+        "sha256:b0c3a9018566c84e3cc2cabc8dd2d40fc53e2eabc07ce42df988f212f4c5d545",
     ),
     "run-request-v2.json": (
         RunRequestV2,
-        "sha256:da22d6d48f582db69212ca841f717ac4169a51d54626cbd979889d309f92f98d",
+        "sha256:f8cef4bd0c2ec84c6511403366791964fba226e29714bda2427816bd6dd5ad08",
     ),
     "taskset-lock.json": (
         TasksetLock,
@@ -94,13 +95,13 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "uplift-report-v2.json": (
         ObjectEnvelope[UpliftReportV2],
-        "sha256:134eed19e4d6c9e8237e9b0112557a5f79b674a5a714046a6dda6f72297700c0",
+        "sha256:ae9b2a0186da8a09c16a56c7fd367ac610a24688373cdd6bc6ae75f527c045f7",
     ),
 }
 
 
 @pytest.mark.parametrize("name", sorted(CASES))
-def test_golden_round_trips_to_the_bytes_and_digest_0_3_0_computed(name: str) -> None:
+def test_golden_round_trips_to_its_bytes_and_pinned_digest(name: str) -> None:
     model, expected_digest = CASES[name]
     raw = (GOLDEN / name).read_bytes()
     parsed = model.model_validate_json(raw)

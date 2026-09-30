@@ -1,8 +1,8 @@
 {
   "payload": {
-    "baseline_manifest_digest": "sha256:ac01bcd2e2e7aa9d59561cd9f2db3689573dd32710eeb3c5ba51b4a632d30bf8",
-    "campaign_spec_digest": "sha256:6c2120a1e571fef9bfedd8b2bae282d1233016d42fdde8a82f9925d78c2d838a",
-    "candidate_manifest_digest": "sha256:6d195c91cc43f92e2bdd0d30446db1b6c3bd9fe1632e07040e26a2566f6063a6",
+    "baseline_manifest_digest": "sha256:448044c74d0e9f861d9cf1d52d80de43a0b83e3d95aadf2c7595ffeadc057e9c",
+    "campaign_spec_digest": "sha256:f98deac51576f45213e3f857a5a551a480ae7a26cff6bd6aab24a4058922477d",
+    "candidate_manifest_digest": "sha256:b0c3a9018566c84e3cc2cabc8dd2d40fc53e2eabc07ce42df988f212f4c5d545",
     "created_at": "2026-01-01T00:00:00Z",
     "data_policy_digest": "sha256:f61fff0ff5941205fca8fc044c81e7a56aed9017539f6927ab9df0e81f70f88b",
     "decision": "accepted",
@@ -15,8 +15,8 @@
       "allowed_differences": [
         "/agents/subject/harness/skills"
       ],
-      "baseline_configuration_digest": "sha256:3951305f36532d4198569bdfe813dd7d68b824d20b88410db0b6f12fb43ae5cf",
-      "candidate_configuration_digest": "sha256:2120f141862dad2962ad726098b04cf909590e586ff92226425cf5dadcf4d2c0",
+      "baseline_configuration_digest": "sha256:be3ddf9434f35ab6c44e0664c33e3261d4096d295dd2d171a3caa54f1dc4c2b6",
+      "candidate_configuration_digest": "sha256:f7ef617f10e1481550286bd460c4216fe644ac5d621de2fc96ccd711c57c974b",
       "controlled": true,
       "differences": [
         {
@@ -41,7 +41,7 @@
     "program_ref": null,
     "proof_grade": "P1",
     "public_context": {
-      "climb_digest": "sha256:95950b244eb2f8035be3c2c5c43acc98f5ee5352fc1d71ce69f09ab8031f1e2a",
+      "climb_digest": "sha256:6871e49083e0315ce309b9bbe7e26d3e7f89fe32ee98efbaa8bbceb08c8214c7",
       "kind": "climb"
     },
     "publication_eligible": true,
@@ -178,10 +178,10 @@
     ],
     "taskset_validation_receipt_digest": "sha256:8ccab5ac9e48a25ea26d621551b578ae4e210b61f950700477ae75252af27504"
   },
-  "payload_digest": "sha256:db00f907b24ee37425ae9ff1d16409063c1bb59d99dfd4fa4111ec9dcb8c03de",
+  "payload_digest": "sha256:08758f9a721751beeee82ffd28669501853ca74658f8a8c4ad9b488bf4b1f879",
   "signature": {
     "algorithm": "ed25519",
     "key_id": "sha256:cb1636de7059dc2a939fb3e53590a8373911d5613540d1c00eeaf7d37a10d38f",
-    "signature": "GYN0qlUbtfe5ckiCOS4K8ytOfbcOWIlURapIkKVXrx6+dkmQYeg76ucDtc1QKobjdTflfs/EKJ5tzXfLvicVAQ=="
+    "signature": "TC6LVK9D/gLAeLyS0lL2RkPy11xAFSCcWlyee+SRmQ/Vo1OopXgOhBAsRPwynufx4HAxBUY+rnrVJT+Hrv/tAQ=="
   }
 }

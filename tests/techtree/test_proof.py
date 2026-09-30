@@ -1,9 +1,8 @@
-"""A proof bundle Techtree 0.3.0 wrote verifies here, and one changed byte makes it fail.
+"""A proof bundle this build wrote verifies, and one changed byte makes it fail.
 
-The costly failures: the ported verifier rejects every proof people already hold, or it
-accepts a proof whose receipts or signatures were altered after signing. The fixture was made
-by Techtree 0.3.0's own bundle writer (`tests/fixtures/receipts/proof.py`) in a throwaway home;
-it carries the public key only.
+The costly failures: the verifier rejects the proofs this build writes, or it accepts a proof
+whose receipts or signatures were altered after signing. The fixture is a whole Hello World run
+made in a throwaway home against a local stand-in model; it carries the public key only.
 """
 
 from __future__ import annotations
@@ -15,10 +14,10 @@ from pathlib import Path
 from regents_cli.techtree.canonical import canonical_json_bytes
 from regents_cli.techtree.receipts.verify import verify_local_bundle
 
-PROOF = Path(__file__).parent / "fixtures" / "proof-0.3.0"
+PROOF = Path(__file__).parent / "fixtures" / "run" / "proof"
 
 
-def test_a_0_3_0_proof_verifies() -> None:
+def test_a_proof_this_build_wrote_verifies() -> None:
     result = verify_local_bundle(PROOF)
     assert result.verified, [message.detail for message in result.failures]
 

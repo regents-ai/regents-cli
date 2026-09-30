@@ -46,4 +46,5 @@ The ReleaseCore is `techtree.release-core.v3`. Each Climb it ships has its own e
 starter Skill, under `climbs` by Climb reference (`engine_digest`, `starter_skill_digest`,
 `starter_skill_object_url`); the top-level `engine_digest`, `starter_skill_digest` and
 `starter_skill_object_url` are gone. `intro_climb_reference` is one of the keys of `climbs`.
-`subject_hermes_version` is the Hermes release tag (`v2026.7.20`) every Campaign pins.
+`subject_hermes_version` is the Hermes release tag (`v2026.9.24`, Hermes 0.21.5) every Campaign
+pins.

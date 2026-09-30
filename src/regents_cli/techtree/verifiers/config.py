@@ -26,7 +26,7 @@ from typing import Any, Final, Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from regents_cli.techtree.errors import ValidationError
-from regents_cli.techtree.models.campaign import CREDENTIAL_ENV_PATTERN
+from regents_cli.techtree.models.campaign import CREDENTIAL_ENV_PATTERN, ReasoningEffort
 
 EVAL_CONFIG_INVALID: Final = "eval_config_invalid"
 
@@ -77,8 +77,9 @@ class EvalClientToml(TomlModel):
 
 
 class SamplingToml(TomlModel):
-    temperature: float = Field(ge=0.0, le=2.0)
+    temperature: float | None = Field(ge=0.0, le=2.0)
     max_tokens: int = Field(ge=1)
+    reasoning_effort: ReasoningEffort | None
 
 
 class HermesHarnessToml(TomlModel):

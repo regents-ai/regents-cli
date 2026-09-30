@@ -1,5 +1,5 @@
 {
-  "campaign_spec_digest": "sha256:6c2120a1e571fef9bfedd8b2bae282d1233016d42fdde8a82f9925d78c2d838a",
+  "campaign_spec_digest": "sha256:f98deac51576f45213e3f857a5a551a480ae7a26cff6bd6aab24a4058922477d",
   "configuration": {
     "agents": {
       "subject": {
@@ -30,6 +30,7 @@
         },
         "sampling": {
           "max_tokens": 512,
+          "reasoning_effort": null,
           "temperature": 0.0
         },
         "trainable": false
@@ -119,12 +120,12 @@
       "validation_receipt_digest": "sha256:8ccab5ac9e48a25ea26d621551b578ae4e210b61f950700477ae75252af27504"
     }
   },
-  "configuration_digest": "sha256:3951305f36532d4198569bdfe813dd7d68b824d20b88410db0b6f12fb43ae5cf",
+  "configuration_digest": "sha256:be3ddf9434f35ab6c44e0664c33e3261d4096d295dd2d171a3caa54f1dc4c2b6",
   "created_at": "2026-01-01T00:00:00Z",
   "id": "receipt_7e9a39ca1c737a47bf5db67648ec15ad",
   "program_ref": null,
   "public_context": {
-    "climb_digest": "sha256:95950b244eb2f8035be3c2c5c43acc98f5ee5352fc1d71ce69f09ab8031f1e2a",
+    "climb_digest": "sha256:6871e49083e0315ce309b9bbe7e26d3e7f89fe32ee98efbaa8bbceb08c8214c7",
     "kind": "climb"
   },
   "schema_version": "techtree.experiment.v2",

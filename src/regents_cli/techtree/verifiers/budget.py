@@ -47,12 +47,12 @@ class PriceProfile(ProtocolModel):
 RELEASE_PRICE_PROFILES: Final[tuple[PriceProfile, ...]] = (
     PriceProfile(
         schema_version=PRICE_PROFILE_SCHEMA_VERSION,
-        model_id="qwen/qwen3.7-flash",
-        input_usd_per_mtok=0.03,
-        output_usd_per_mtok=0.13,
+        model_id="openai/gpt-6-luna",
+        input_usd_per_mtok=0.10,
+        output_usd_per_mtok=0.50,
         context_window_tokens=131072,
-        source="Prime Intellect published rate card for qwen/qwen3.7-flash",
-        recorded_on="2026-08-20",
+        source="Prime Intellect published rate card for openai/gpt-6-luna",
+        recorded_on="2026-09-30",
     ),
 )
 
