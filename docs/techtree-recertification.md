@@ -75,5 +75,26 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
   model request going to Luna with reasoning effort "high", no temperature and a 16,000-token
   cap per reply. That run's proof is the test fixture in `tests/techtree/fixtures/run`.
 
-No paid run on these Campaigns yet. The previous Hello World Campaign, on qwen, was certified on
-2026-09-28 and 29 with 23, 22 and 24 out of 36 from a baseline of 0.
+- 2026-09-30, Hello World run 1 (`run_f5cb27c98a9e4b78ab152d77cc8a889a`): all 72 episodes
+  completed, none failed. Candidate 24 of 36, baseline 1 of 36: 23 wins, no losses. About $0.35
+  (3.31 million input and 40,000 output tokens, 2.5 million of the input from the provider's
+  cache). The proof verifies offline: 351 checks, grade P1.
+- 2026-09-30, Hello World run 2 (`run_8e48bb957acf4f6691be85fe585832f4`), a fresh draft: all 72
+  episodes completed. Candidate 24 of 36, baseline 1 of 36, no losses. About $0.36. The proof
+  verifies offline: 351 checks.
+- 2026-09-30, Hello World run 3 (`run_5f49476ae32c435bb01060e8a60babc9`), a fresh draft: all 72
+  episodes completed. Candidate 24 of 36, baseline 0 of 36, no losses. About $0.38. The proof
+  verifies offline: 351 checks.
+- 2026-09-30, Frontier-CS run 1 (`run_58462b74a3f947d8889f35ea954d0e24`), starter Skill v3: all 20
+  episodes completed in 31 minutes. Mean score 0.521 without the Skill, 0.518 with it: 3 wins, 2
+  losses, so the Skill did not clear the bar. About $1.08 (8.76 million input and 414,000 output
+  tokens, 8.1 million of the input from the provider's cache). The proof verifies offline: 143
+  checks. Luna alone scores 0.521 where qwen scored 0.128, so the starter Skill has little to add.
+  techtree.sh did not serve starter v3 until Techtree's switch, so the run used Techtree's
+  committed copy, whose digest matches the one the release pins.
+
+Hello World scored 24, 24 and 24 out of 36 from a baseline of 0 or 1, so its band on Luna is
+about 24. The Hello World Campaign `sha256:dedfeb92…` is certified, and Frontier-CS runs end to
+end. All four runs together cost about $2.17. The costs are worked out at full price; the
+provider's cache makes the actual bill lower. The previous Hello World Campaign, on qwen, was
+certified on 2026-09-28 and 29 with 23, 22 and 24 out of 36 from a baseline of 0.
