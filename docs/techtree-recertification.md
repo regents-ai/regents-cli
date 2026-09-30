@@ -86,8 +86,8 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
   episodes completed. Candidate 24 of 36, baseline 0 of 36, no losses. About $0.38. The proof
   verifies offline: 351 checks.
 - 2026-09-30, Frontier-CS run 1 (`run_58462b74a3f947d8889f35ea954d0e24`), starter Skill v3: all 20
-  episodes completed in 31 minutes. Mean score 0.521 without the Skill, 0.518 with it: 3 wins, 2
-  losses, so the Skill did not clear the bar. About $1.08 (8.76 million input and 414,000 output
+  episodes completed in 31 minutes. Mean score 0.521 without the Skill, 0.518 with it: 6 wins, 2
+  losses and 2 ties, and the two losses outweighed the wins, so the Skill did not clear the bar. About $1.08 (8.76 million input and 414,000 output
   tokens, 8.1 million of the input from the provider's cache). The proof verifies offline: 143
   checks. Luna alone scores 0.521 where qwen scored 0.128, so the starter Skill has little to add.
   techtree.sh did not serve starter v3 until Techtree's switch, so the run used Techtree's
