@@ -135,13 +135,12 @@ from regents_cli.techtree.models.validation import (
 )
 from regents_cli.techtree.receipts.execution import (
     COMPARISON_EXECUTION_SCHEMA_VERSION,
-    NO_COST_SOURCE,
     ComparisonExecutionRecord,
     PairOutcome,
     UsageProvenance,
+    VariantCost,
     VariantExecutionSummary,
     VariantUsage,
-    unavailable_cost,
 )
 from regents_cli.techtree.receipts.uplift import aggregate_primary_result, publication_eligible_for
 from regents_cli.techtree.tasksets.membership import membership_digest
@@ -687,6 +686,7 @@ def variant_execution(
     input_tokens: int,
     output_tokens: int,
     model_calls: int,
+    cost_usd: float,
 ) -> VariantExecutionSummary:
     """One side of the comparison's operational record."""
     variant = manifest.variant
@@ -709,7 +709,11 @@ def variant_execution(
             traces_total=TASK_COUNT,
             traces_with_usage=TASK_COUNT,
         ),
-        cost=unavailable_cost(NO_COST_SOURCE),
+        cost=VariantCost(
+            provenance="provider_reported",
+            cost_usd=cost_usd,
+            detail="the sum of what the provider reported for every model call this side made",
+        ),
         experiment_manifest_digest=digest_object(manifest),
         argv_digest=fixture_digest(f"{variant.value}-argv"),
         normalized_episodes_digest=fixture_digest(f"{variant.value}-normalized"),
@@ -721,7 +725,7 @@ def variant_execution(
 def comparison_execution(
     report: UpliftReportV2, baseline: ExperimentManifestV2, candidate: ExperimentManifestV2
 ) -> ComparisonExecutionRecord:
-    """One comparison's operational record: summed trace tokens and no cost."""
+    """One comparison's operational record: summed trace tokens and the provider's costs."""
     baseline_finished = FIXED_TIME + timedelta(seconds=612)
     return ComparisonExecutionRecord(
         schema_version=COMPARISON_EXECUTION_SCHEMA_VERSION,
@@ -738,9 +742,9 @@ def comparison_execution(
         overlap_seconds=598.0,
         campaign_max_concurrent=4,
         outcome=PairOutcome.COMPLETED,
-        baseline=variant_execution(baseline, baseline_finished, 1_186_432, 24_918, 163),
+        baseline=variant_execution(baseline, baseline_finished, 1_186_432, 24_918, 163, 0.0412),
         candidate=variant_execution(
-            candidate, FIXED_TIME + timedelta(seconds=598), 1_204_771, 26_004, 171
+            candidate, FIXED_TIME + timedelta(seconds=598), 1_204_771, 26_004, 171, 0.0437
         ),
     )
 

@@ -55,7 +55,7 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "comparison-execution.json": (
         ComparisonExecutionRecord,
-        "sha256:aeac6dc40c9690e6e5a96429a39df4863348a008e6ad3ab8bdb4d78c71998c7e",
+        "sha256:3875776f31cf6564df49b0b83329abfa346d8b7e863caad1bc8ec397bc5a3bb2",
     ),
     "data-policy.json": (
         DataPolicy,

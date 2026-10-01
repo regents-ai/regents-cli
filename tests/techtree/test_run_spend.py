@@ -1,7 +1,8 @@
 """A run's spend is added up from exactly what the provider reported, as tasks finish.
 
-The costly failure: the total a run is stopped at reads low, so the run keeps spending past the
-maximum its Campaign declares, or a call whose cost the provider left out is counted as free.
+The costly failures: the total a run is stopped at reads low, so the run keeps spending past the
+maximum its Campaign declares, or a call whose cost the provider left out is counted as free,
+either while the run is under way or in the cost its finished result shows.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from regents_cli.techtree.errors import RunError
-from regents_cli.techtree.runs.spend import RUN_SPEND_UNREPORTED, SpendMeter
+from regents_cli.techtree.runs.spend import RUN_SPEND_UNREPORTED, SpendMeter, reported_cost
 
 
 def _task(*calls: dict[str, object]) -> bytes:
@@ -49,3 +50,11 @@ def test_a_call_the_provider_reported_no_cost_for_stops_the_count(tmp_path: Path
         SpendMeter([traces]).read()
 
     assert caught.value.code == RUN_SPEND_UNREPORTED
+
+
+def test_a_finished_side_shows_its_reported_total_or_none_when_a_call_has_no_cost() -> None:
+    error: dict[str, object] = {"model": "m", "error": {"type": "ProviderError"}}
+    assert reported_cost(_task(_billed(0.25), error) + _task(_billed(0.5))) == pytest.approx(0.75)
+    assert (
+        reported_cost(_task(_billed(0.25), {"model": "m", "usage": {"prompt_tokens": 1}})) is None
+    )

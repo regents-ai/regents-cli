@@ -11,7 +11,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Final
 
-from regents_cli.techtree.errors import PrerequisiteError
 from regents_cli.techtree.identity.models import VerificationResult
 from regents_cli.techtree.models.campaign import CampaignSpecV2
 from regents_cli.techtree.models.climb import ClimbMetadata
@@ -26,7 +25,6 @@ from regents_cli.techtree.models.uplift_report import (
 from regents_cli.techtree.presentation.evidence import RecordedEvidence
 from regents_cli.techtree.presentation.models import (
     PRESENTATION_SCHEMA_VERSION,
-    DerivedCost,
     EconomicsSource,
     PresentationCaveat,
     SkillSummary,
@@ -42,8 +40,7 @@ from regents_cli.techtree.receipts.compare import (
     MODEL_REVISION_UNDISCOVERABLE,
     weaker_claim_warnings,
 )
-from regents_cli.techtree.receipts.execution import ComparisonExecutionRecord, VariantUsage
-from regents_cli.techtree.verifiers.budget import price_profile_for
+from regents_cli.techtree.receipts.execution import ComparisonExecutionRecord
 
 #: What a Skill-insertion comparison measures against: a role, not an absent value.
 BASELINE_SKILL_LABEL: Final = "No tested Skill"
@@ -85,7 +82,6 @@ VERIFICATION_NOT_VERIFIED: Final = "not_verified"
 
 #: A headline count is only offered for an all-or-nothing reward.
 _FULL_SCORE: Final = 1.0
-_TOKENS_PER_MILLION: Final = 1_000_000.0
 
 
 def build_uplift_presentation(
@@ -108,7 +104,7 @@ def build_uplift_presentation(
     seen = recorded_evidence
     baseline_seen = None if seen is None else seen.baseline
     candidate_seen = None if seen is None else seen.candidate
-    derived = _derived_cost(campaign, execution_record)
+    cost_usd, cost_unavailable_reason = _cost(execution_record)
     generation = _generation(baseline_skill)
     primary = report.primary_result
     payload = UpliftPresentationPayload(
@@ -143,10 +139,9 @@ def build_uplift_presentation(
         ),
         every_rollout_completed=None if seen is None else seen.every_rollout_completed,
         economics_source=economics.source,
-        derived_cost=derived,
-        cost_unavailable_reason=(
-            None if derived is not None else _cost_unavailable_reason(campaign, execution_record)
-        ),
+        cost_usd=cost_usd,
+        cost_provenance="unavailable" if cost_usd is None else "provider_reported",
+        cost_unavailable_reason=cost_unavailable_reason,
         decision=report.decision.value,
         proof_grade=report.proof_grade,
         verification_status=_verification_status(verification),
@@ -156,7 +151,7 @@ def build_uplift_presentation(
             climb=climb,
             economics=economics,
             recorded_evidence=recorded_evidence,
-            derived=derived,
+            cost_reported=cost_usd is not None,
         ),
     )
     ensure_no_hidden_task_material(payload)
@@ -266,31 +261,21 @@ def _calls(count: int) -> str:
 
 
 def cost_summary(payload: UpliftPresentationPayload) -> str:
-    """The figure and, in the same breath, that it was worked out rather than billed."""
-    if payload.derived_cost is not None:
-        return f"about ${payload.derived_cost.usd:.2f}, worked out here, not billed"
+    """The figure and, in the same breath, where it came from."""
+    if payload.cost_usd is not None:
+        return f"${payload.cost_usd:.2f}, reported by the provider"
     return "unavailable"
 
 
 def cost_explanation(payload: UpliftPresentationPayload) -> list[str]:
     """What a reader needs in order to judge the figure above it."""
-    derived = payload.derived_cost
-    if derived is None:
-        assert payload.cost_unavailable_reason is not None
-        return [payload.cost_unavailable_reason]
-    lines = [
-        f"Computed from {derived.input_tokens:,} input and {derived.output_tokens:,} output "
-        "tokens at the prices this release recorded. Your provider's bill is what you "
-        "actually pay."
-    ]
-    cached = derived.cached_input_tokens
-    if cached and not derived.prices_name_a_cached_rate:
-        lines.append(
-            f"{cached:,} of those input tokens came back from the provider's cache. The "
-            "recorded prices name no separate rate for those, so every token is priced at the "
-            "full rate and the figure above is on the high side."
-        )
-    return lines
+    if payload.cost_usd is not None:
+        return [
+            "The sum of what the provider reported for every model call on both sides of "
+            "this comparison."
+        ]
+    assert payload.cost_unavailable_reason is not None
+    return [payload.cost_unavailable_reason]
 
 
 def _generation(baseline_skill: SkillArtifact | None) -> int | None:
@@ -411,46 +396,18 @@ def _economics(
     )
 
 
-def _derived_cost(
-    campaign: CampaignSpecV2, record: ComparisonExecutionRecord | None
-) -> DerivedCost | None:
-    """Multiplication over the record's token counts and this release's prices, never written."""
+def _cost(record: ComparisonExecutionRecord | None) -> tuple[float | None, str | None]:
+    """Both sides' provider-reported costs summed, or the sentence saying which is missing."""
     if record is None:
-        return None
-    usage = (record.baseline.usage, record.candidate.usage)
-    input_tokens = _summed(usage, "input_tokens")
-    output_tokens = _summed(usage, "output_tokens")
-    if input_tokens is None or output_tokens is None:
-        return None
-    try:
-        prices = price_profile_for(campaign.subject.model.model_id)
-    except PrerequisiteError:
-        return None
-    cached = _summed(usage, "cached_input_tokens")
-    return DerivedCost(
-        usd=(input_tokens * prices.input_usd_per_mtok + output_tokens * prices.output_usd_per_mtok)
-        / _TOKENS_PER_MILLION,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        # More cached input than input describes no cache this can price around.
-        cached_input_tokens=None if cached is None or cached > input_tokens else cached,
-        # The recorded profile quotes one rate per direction, the highest uncached one.
-        prices_name_a_cached_rate=False,
-        model_id=sanitize_label(prices.model_id),
-        input_usd_per_mtok=prices.input_usd_per_mtok,
-        output_usd_per_mtok=prices.output_usd_per_mtok,
-        prices_recorded_on=sanitize_label(prices.recorded_on),
-    )
-
-
-def _summed(usage: tuple[VariantUsage, VariantUsage], field: str) -> int | None:
-    total = 0
-    for side in usage:
-        recorded = getattr(side, field)
-        if recorded is None:
-            return None
-        total += int(recorded)
-    return total
+        return None, (
+            "This run wrote no signed execution record, so there is no reported cost to show."
+        )
+    baseline, candidate = record.baseline.cost, record.candidate.cost
+    if baseline.cost_usd is None or candidate.cost_usd is None:
+        missing = baseline if baseline.cost_usd is None else candidate
+        side = "baseline" if missing is baseline else "candidate"
+        return None, f"No cost can be shown: for the {side}, {missing.detail}."
+    return baseline.cost_usd + candidate.cost_usd, None
 
 
 def _tokens(receipts: Sequence[EpisodeReceiptV2]) -> int | None:
@@ -477,7 +434,7 @@ def _caveats(
     climb: ClimbMetadata,
     economics: _Economics,
     recorded_evidence: RecordedEvidence | None,
-    derived: DerivedCost | None,
+    cost_reported: bool,
 ) -> list[PresentationCaveat]:
     """What would invalidate the result first, then what bounds it, then the standing facts."""
     caveats: list[PresentationCaveat] = []
@@ -543,7 +500,7 @@ def _caveats(
     throttling = _throttling_caveat(recorded_evidence)
     if throttling is not None:
         caveats.append(throttling)
-    caveats.append(_economics_caveat(economics, derived))
+    caveats.append(_economics_caveat(economics, cost_reported=cost_reported))
     if report.decision is UpliftDecision.REJECTED:
         caveats.append(
             PresentationCaveat(
@@ -599,48 +556,22 @@ def _throttling_caveat(recorded_evidence: RecordedEvidence | None) -> Presentati
     )
 
 
-def _cost_unavailable_reason(
-    campaign: CampaignSpecV2, record: ComparisonExecutionRecord | None
-) -> str:
-    """Name whichever of the two things a cost needs this run is missing."""
-    if record is None:
-        return (
-            "This run wrote no signed execution record, so there is no signed token total to "
-            "work a cost out from."
-        )
-    model_id = campaign.subject.model.model_id
-    try:
-        price_profile_for(model_id)
-    except PrerequisiteError:
-        return (
-            f"This release recorded no provider prices for {sanitize_label(model_id)}, so the "
-            "tokens this run recorded cannot be turned into a cost."
-        )
-    return (
-        "Neither side of this comparison reported how many tokens it used, and the provider "
-        "reported no cost of its own."
-    )
-
-
-def _economics_caveat(economics: _Economics, derived: DerivedCost | None) -> PresentationCaveat:
+def _economics_caveat(economics: _Economics, *, cost_reported: bool) -> PresentationCaveat:
     """Missing economics is a warning about what is unknown, never a finding about the result."""
     if economics.source == "comparison_execution_record":
-        if derived is not None:
+        if cost_reported:
             return PresentationCaveat(
-                code="cost_derived_while_rendering",
+                code="cost_provider_reported",
                 severity="info",
-                text="Timing and token counts come from this run's signed execution record. "
-                "The provider reported no figure for what it charged, so the one shown was "
-                "worked out from those token counts and the prices this release recorded. It "
-                "was not written into anything this run signed, and what the comparison "
-                "measured is unaffected.",
+                text="Timing, token counts and cost come from this run's signed execution "
+                "record; the cost is what the provider reported for each model call.",
             )
         return PresentationCaveat(
             code="cost_unavailable",
             severity="warning",
-            text="Timing and token counts come from this run's signed execution record. No "
-            "cost was reported for it and none could be worked out from what it recorded. "
-            "What the comparison measured is unaffected.",
+            text="Timing and token counts come from this run's signed execution record. The "
+            "provider did not report a cost for every model call, so no total is shown. What "
+            "the comparison measured is unaffected.",
         )
     if economics.source == "episode_receipts":
         return PresentationCaveat(

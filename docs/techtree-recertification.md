@@ -11,7 +11,7 @@ starts.
 | --- | --- |
 | Release | `climb-v0.5.0`, regents-cli 1.3.0 |
 | Provider and model | `prime`, `openai/gpt-6-luna`, reasoning effort "high", no temperature (Luna has none) |
-| Prices | $0.10 per million input tokens and $0.50 per million output tokens, Prime's published rates on 2026-09-30 |
+| Cost shown in a result (from regents-cli 1.3.3) | what the provider reported for every model call, added up over both sides; a run where any call came back without a cost shows none |
 | Credential | the Prime CLI sign-in at `~/.prime/config.json` (`PRIME_API_KEY`); Techtree checks the file is there and never opens it |
 | Evaluated agent | Hermes Agent `v2026.9.24` (0.21.5), already installed in the subject images, so no episode downloads anything (`scripts/techtree/subject-image`, `scripts/techtree/subject-image-cpp`) |
 
@@ -27,7 +27,7 @@ starts.
 | Limits per episode | 16,000 tokens per reply, 32,000 output, 500,000 input, 20 minutes | 32,000 tokens per reply, 96,000 output, 400,000 input, one hour |
 | Declared maximum per run | $6.50 | $2.50 |
 | Spend stop (from regents-cli 1.3.2) | Techtree adds up the cost the provider reports for each finished task and stops the run once it reaches $6.50 | the same, at $2.50 |
-| Expected spend per run | about $0.40 to $0.70, going by the qwen runs' token counts at Luna's prices; thinking at "high" adds output | about $1 |
+| Expected spend per run | about $0.13 to $0.14, as the provider reported it for the three certification runs | about $0.40 to $0.70, as reported for the four runs so far |
 
 Each run needs Docker running, the Prime sign-in in place, and regents-cli at the release commit.
 Every command runs from the repository root in the founder's own home, because that is where
@@ -106,8 +106,8 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 Hello World scored 24, 24 and 24 out of 36 from a baseline of 0 or 1, so its band on Luna is
 about 24. The Hello World Campaign `sha256:dedfeb92…` is certified, and Frontier-CS runs end to
-end. All four runs together cost about $2.17. The costs are worked out at full price; the
-provider's cache makes the actual bill lower. The provider's own reported costs, added up from
-each run's records, were $0.13, $0.13 and $0.14 for the three Hello World runs and $0.38 for
+end. Results from regents-cli 1.3.2 and earlier showed a cost worked out at full price, which
+put all four runs at about $2.17; the provider's cache makes the actual bill lower. The
+provider's own reported costs, added up from each run's records, were $0.13, $0.13 and $0.14 for the three Hello World runs and $0.38 for
 Frontier-CS run 1. For the hill-climb, they were $0.49, $0.68 and $0.49. The previous Hello World Campaign, on qwen, was
 certified on 2026-09-28 and 29 with 23, 22 and 24 out of 36 from a baseline of 0.

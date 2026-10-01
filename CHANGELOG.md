@@ -3,6 +3,17 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.3.3 — 2026-10-01
+
+- A result's cost is now what the provider reported for every model call, added up over both
+  sides and shown as "reported by the provider". It used to be worked out from token counts at
+  full price, which ran about three times the real bill because the provider's cache charges
+  far less for input it has already seen.
+- Each side of a run's signed execution record now carries that reported total. When any task
+  came back without a cost, the side's cost is unavailable and the result says so; nothing is
+  priced from a list any more.
+- Techtree's release is now `climb-v0.5.3`. The Campaigns and the starter Skills are unchanged.
+
 ## 1.3.2 — 2026-09-30
 
 - A run now stops once its spend reaches the maximum its Campaign declares. While it runs,

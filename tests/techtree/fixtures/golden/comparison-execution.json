@@ -3,9 +3,9 @@
     "argv_digest": "sha256:1b61ddbf499276d34d752a48882ae55a46ec78f78d0a9d416f306d68d75536a9",
     "cancelled": false,
     "cost": {
-      "cost_usd": null,
-      "detail": "no cost figure was reported for this variant, and this build pins no price to compute one from",
-      "provenance": "unavailable"
+      "cost_usd": 0.0412,
+      "detail": "the sum of what the provider reported for every model call this side made",
+      "provenance": "provider_reported"
     },
     "elapsed_seconds": 612.0,
     "episode_count": 20,
@@ -35,9 +35,9 @@
     "argv_digest": "sha256:bb7c5a050f3c02f847398a8678250801fcf48c7b728d2c0da276a675c6bebebd",
     "cancelled": false,
     "cost": {
-      "cost_usd": null,
-      "detail": "no cost figure was reported for this variant, and this build pins no price to compute one from",
-      "provenance": "unavailable"
+      "cost_usd": 0.0437,
+      "detail": "the sum of what the provider reported for every model call this side made",
+      "provenance": "provider_reported"
     },
     "elapsed_seconds": 598.0,
     "episode_count": 20,

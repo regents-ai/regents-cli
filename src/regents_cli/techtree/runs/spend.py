@@ -4,13 +4,15 @@ Each finished task appends one record to its variant's `traces.jsonl`. Every mod
 record carries either the provider's `usage.cost` for that call or the error that ended it, and
 a call that ended in an error has no usage to bill. The meter reads only the lines added since
 its last reading, so watching a run costs about one read of its traces. A task still under way
-is counted once it finishes.
+is counted once it finishes. A finished run's execution record sums the same figures with the
+same rule (`reported_cost`), so what stopped a run and what its result shows never disagree.
 """
 
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable, Mapping
+import math
+from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
 from typing import Final
 
@@ -55,22 +57,42 @@ class SpendMeter:
 def record_cost(record: Mapping[str, object], *, source: Path) -> float:
     """What the provider reported for every model call in one finished task."""
     total = 0.0
+    for model, cost in _call_costs(record):
+        if cost is None:
+            raise RunError(
+                "the provider did not report what one of this run's model calls cost, so "
+                "its spend cannot be added up against the Campaign's maximum; Techtree "
+                "stopped the run",
+                code=RUN_SPEND_UNREPORTED,
+                details={"traces": str(source), "model": model},
+            )
+        total += cost
+    return total
+
+
+def reported_cost(traces: bytes) -> float | None:
+    """What the provider reported for every model call in one side's traces, or None when any
+    call carries no figure."""
+    costs: list[float] = []
+    for line in traces.splitlines():
+        if not line.strip():
+            continue
+        for _, cost in _call_costs(json.loads(line)):
+            if cost is None:
+                return None
+            costs.append(cost)
+    return math.fsum(costs)
+
+
+def _call_costs(record: Mapping[str, object]) -> Iterator[tuple[str, float | None]]:
+    """Each billed call's model and reported cost; a call that ended in an error bills nothing."""
     for trace in _mappings(record.get("traces")):
         for call in _mappings(trace.get("calls")):
             usage = call.get("usage")
             if usage is None and call.get("error") is not None:
                 continue
             cost = usage.get("cost") if isinstance(usage, Mapping) else None
-            if not isinstance(cost, int | float):
-                raise RunError(
-                    "the provider did not report what one of this run's model calls cost, so "
-                    "its spend cannot be added up against the Campaign's maximum; Techtree "
-                    "stopped the run",
-                    code=RUN_SPEND_UNREPORTED,
-                    details={"traces": str(source), "model": str(call.get("model"))},
-                )
-            total += float(cost)
-    return total
+            yield str(call.get("model")), float(cost) if isinstance(cost, int | float) else None
 
 
 def _mappings(value: object) -> list[Mapping[str, object]]:

@@ -3,9 +3,11 @@
 Operational evidence, orthogonal to reward truth: nothing here feeds a score, a decision or
 a comparison status, and a missing record leaves the measurement as it was. Usage is summed
 from the engine's normalized per-trace usage, and traces that report none are counted rather
-than read as zero, so a partial record is visible as partial. No cost figure is ever known:
-this build pins no price, and every variant's cost is recorded as unavailable. No wall clock
-is read here, so building the record twice from one run produces identical bytes.
+than read as zero, so a partial record is visible as partial. A side's cost is the sum of what
+the provider reported for each of its model calls, counted from its raw traces by the rule the
+spend stop uses, and is recorded as unavailable when any call carries no figure: nothing here
+prices tokens. No wall clock is read here, so building the record twice from one run produces
+identical bytes.
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ from regents_cli.techtree.models.base import (
 )
 from regents_cli.techtree.models.campaign import VariantSchedule
 from regents_cli.techtree.models.experiment import ExperimentVariant
+from regents_cli.techtree.runs.spend import reported_cost
 from regents_cli.techtree.verifiers.models import (
     RealExecutionResult,
     VariantExecutionResult,
@@ -38,10 +41,6 @@ COMPARISON_EXECUTION_SCHEMA_VERSION: Final = "techtree.comparison-execution.v1al
 COMPARISON_EXECUTION_RECORD_INVALID: Final = "comparison_execution_record_invalid"
 OPERATIONAL_EVIDENCE_UNAVAILABLE: Final = "operational_evidence_unavailable"
 EXECUTION_RECORD_FILENAME: Final = "comparison-execution.json"
-
-NO_COST_SOURCE: Final = (
-    "no cost figure was reported for this variant, and this build pins no price to compute one from"
-)
 
 
 class UsageProvenance(StrEnum):
@@ -60,11 +59,20 @@ class PairOutcome(StrEnum):
 
 
 class VariantCost(ProtocolModel):
-    """One side's cost: never a figure, and the sentence saying why."""
+    """One side's cost as the provider reported it, or the sentence saying why there is none."""
 
-    cost_usd: None = None
-    provenance: Literal["unavailable"]
+    provenance: Literal["provider_reported", "unavailable"]
+    cost_usd: float | None = Field(default=None, ge=0.0)
     detail: NonEmptyString
+
+    @model_validator(mode="after")
+    def _check_a_figure_is_exactly_a_reported_one(self) -> Self:
+        if (self.cost_usd is not None) != (self.provenance == "provider_reported"):
+            raise ValueError(
+                f"a cost figure is present exactly when the provider reported one; got "
+                f"{self.cost_usd!r} as {self.provenance}"
+            )
+        return self
 
 
 class VariantUsage(ProtocolModel):
@@ -157,10 +165,6 @@ class ComparisonExecutionRecord(ProtocolModel):
         return self.baseline if variant is ExperimentVariant.BASELINE else self.candidate
 
 
-def unavailable_cost(detail: str) -> VariantCost:
-    return VariantCost(cost_usd=None, provenance="unavailable", detail=detail)
-
-
 def build_comparison_execution_record(
     *,
     run_id: str,
@@ -169,16 +173,21 @@ def build_comparison_execution_record(
     execution: RealExecutionResult,
     launch: tuple[float, ExperimentVariant] | None,
     concurrency: tuple[int, int],
+    raw_traces: tuple[bytes, bytes],
 ) -> ComparisonExecutionRecord:
     """Assemble the record from what the run already recorded.
 
     `launch` is the skew and first-launched side the scheduler observed (see
     `read_children_record`), or None when the schedule recorded none. `concurrency` is the
-    (baseline, candidate) permit split the scheduler ran under.
+    (baseline, candidate) permit split the scheduler ran under, and `raw_traces` the (baseline,
+    candidate) bytes of each side's raw traces, which carry the provider's cost for every call.
     """
     baseline_permits, candidate_permits = concurrency
-    baseline = _summary(execution.baseline, max_concurrent=baseline_permits)
-    candidate = _summary(execution.candidate, max_concurrent=candidate_permits)
+    baseline_traces, candidate_traces = raw_traces
+    baseline = _summary(execution.baseline, max_concurrent=baseline_permits, traces=baseline_traces)
+    candidate = _summary(
+        execution.candidate, max_concurrent=candidate_permits, traces=candidate_traces
+    )
     started_at = min(baseline.started_at, candidate.started_at)
     finished_at = max(baseline.finished_at, candidate.finished_at)
     return ComparisonExecutionRecord(
@@ -242,7 +251,9 @@ def read_children_record(path: Path) -> tuple[float, ExperimentVariant] | None:
     return float(skew), first
 
 
-def _summary(result: VariantExecutionResult, *, max_concurrent: int) -> VariantExecutionSummary:
+def _summary(
+    result: VariantExecutionResult, *, max_concurrent: int, traces: bytes
+) -> VariantExecutionSummary:
     outcome = result.child_outcome
     return VariantExecutionSummary(
         variant=ExperimentVariant(result.variant.value),
@@ -254,12 +265,28 @@ def _summary(result: VariantExecutionResult, *, max_concurrent: int) -> VariantE
         episode_count=len(result.episodes),
         max_concurrent=max_concurrent,
         usage=_usage(result),
-        cost=unavailable_cost(NO_COST_SOURCE),
+        cost=_cost(traces),
         experiment_manifest_digest=result.experiment_manifest_digest,
         argv_digest=outcome.argv_digest,
         normalized_episodes_digest=result.normalized_episodes.digest,
         raw_traces_digest=result.raw_traces.digest,
         resolved_config_digest=result.resolved_verifiers_config.digest,
+    )
+
+
+def _cost(traces: bytes) -> VariantCost:
+    """The provider's figures summed over every model call, or unavailable when any has none."""
+    cost_usd = reported_cost(traces)
+    if cost_usd is None:
+        return VariantCost(
+            provenance="unavailable",
+            detail="the provider did not report what at least one of this side's model calls "
+            "cost, so its total is unknown",
+        )
+    return VariantCost(
+        provenance="provider_reported",
+        cost_usd=cost_usd,
+        detail="the sum of what the provider reported for every model call this side made",
     )
 
 

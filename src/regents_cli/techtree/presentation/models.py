@@ -52,26 +52,6 @@ class SkillSummary(ProtocolModel):
     total_bytes: int = Field(ge=0)
 
 
-class DerivedCost(ProtocolModel):
-    """A dollar figure worked out while rendering, from what the run recorded.
-
-    It is not a bill and is never drawn as one, so everything it rests on travels with it. When
-    the recorded prices name no cached rate, every input token is priced at the full rate and
-    the figure can only be on the high side; `cached_input_tokens` is None when the run recorded
-    no usable cache split, which is not the same as a run that cached nothing.
-    """
-
-    usd: float = Field(ge=0.0)
-    input_tokens: int = Field(ge=0)
-    output_tokens: int = Field(ge=0)
-    cached_input_tokens: int | None = Field(default=None, ge=0)
-    prices_name_a_cached_rate: bool
-    model_id: NonEmptyString
-    input_usd_per_mtok: float = Field(gt=0.0)
-    output_usd_per_mtok: float = Field(gt=0.0)
-    prices_recorded_on: NonEmptyString
-
-
 class PresentationCaveat(ProtocolModel):
     """One thing a reader must know before believing what they just read."""
 
@@ -114,7 +94,8 @@ class UpliftPresentationPayload(ProtocolModel):
     candidate_rate_limited_calls: int | None
     every_rollout_completed: bool | None
     economics_source: EconomicsSource
-    derived_cost: DerivedCost | None = None
+    cost_usd: float | None = Field(default=None, ge=0.0)
+    cost_provenance: Literal["provider_reported", "unavailable"]
     cost_unavailable_reason: NonEmptyString | None = None
     decision: NonEmptyString
     proof_grade: NonEmptyString
@@ -142,13 +123,16 @@ class UpliftPresentationPayload(ProtocolModel):
 
     @model_validator(mode="after")
     def _check_a_missing_cost_says_what_is_missing(self) -> Self:
-        if (self.derived_cost is not None) == (self.cost_unavailable_reason is not None):
+        reported = self.cost_provenance == "provider_reported"
+        if (self.cost_usd is not None) != reported:
+            raise ValueError("a cost figure is present exactly when the provider reported one")
+        if reported == (self.cost_unavailable_reason is not None):
             raise ValueError(
                 "a payload with no cost figure says what is missing, and one with a figure "
                 "has nothing to explain away"
             )
-        if self.derived_cost is not None and self.economics_source != "comparison_execution_record":
-            raise ValueError("a cost is derived from the signed execution record and nothing else")
+        if reported and self.economics_source != "comparison_execution_record":
+            raise ValueError("a cost is read from the signed execution record and nothing else")
         return self
 
     @model_validator(mode="after")

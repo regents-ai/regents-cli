@@ -77,7 +77,7 @@ from regents_cli.techtree.verifiers.models import (
     VariantExecutionResult,
     VariantName,
 )
-from regents_cli.techtree.verifiers.outputs import RESOLVED_CONFIG_PATH
+from regents_cli.techtree.verifiers.outputs import RESOLVED_CONFIG_PATH, TRACES_FILENAME
 from regents_cli.techtree.verifiers.paths import RunPaths
 
 REPORT_STAGE_FAILED: Final = "real_report_stage_failed"
@@ -172,6 +172,12 @@ class RunReportService:
             execution=execution,
             launch=read_children_record(children_record_path(run_root)),
             concurrency=divide_concurrency(inputs.campaign.execution.max_concurrent),
+            raw_traces=(
+                (run_paths.variant_output_dir(VariantName.BASELINE) / TRACES_FILENAME).read_bytes(),
+                (
+                    run_paths.variant_output_dir(VariantName.CANDIDATE) / TRACES_FILENAME
+                ).read_bytes(),
+            ),
         )
         self._prove(
             request=request,
