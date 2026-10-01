@@ -3,7 +3,7 @@
 Every input either variant needs is checked before either child starts; nothing is written
 between the two launches, so the recorded skew measures two forks and nothing else; and one
 variant's failure ends the other, with both children's partial evidence left where they wrote
-it.
+it. A run whose provider-reported spend reaches its Campaign's maximum is stopped the same way.
 """
 
 from __future__ import annotations
@@ -37,6 +37,7 @@ from regents_cli.techtree.runs.events import (
     VARIANT_STARTED,
 )
 from regents_cli.techtree.runs.executor import raise_if_cancel_requested
+from regents_cli.techtree.runs.spend import SpendMeter
 from regents_cli.techtree.runs.store import RunStore
 from regents_cli.techtree.verifiers.child import DEFAULT_GRACE_SECONDS, VerifiersChild
 from regents_cli.techtree.verifiers.models import (
@@ -51,6 +52,7 @@ VARIANT_INPUTS_MISSING: Final = "variant_inputs_missing"
 VARIANT_CHILD_START_FAILED: Final = "variant_child_start_failed"
 VARIANT_EXECUTION_FAILED: Final = "variant_execution_failed"
 VARIANT_CONCURRENCY_EXCEEDED: Final = "variant_concurrency_exceeded"
+RUN_SPEND_LIMIT_REACHED: Final = "run_spend_limit_reached"
 DEFAULT_POLL_INTERVAL_SECONDS: Final = 0.25
 
 _VARIANT_ORDER: Final[tuple[VariantName, ...]] = (VariantName.BASELINE, VariantName.CANDIDATE)
@@ -161,8 +163,10 @@ class VariantScheduler:
         pair: VariantPair,
         baseline_child: VerifiersChild,
         candidate_child: VerifiersChild,
+        maximum_usd: float | None,
     ) -> VariantPairOutcome:
-        """Run both variants side by side under one ``running_variants`` phase."""
+        """Run both variants side by side under one ``running_variants`` phase, stopping both
+        once their provider-reported spend reaches `maximum_usd` when the Campaign declares one."""
         children = {VariantName.BASELINE: baseline_child, VariantName.CANDIDATE: candidate_child}
         self._require_inputs(pair, children)
         raise_if_cancel_requested(self._run_store, run_id)
@@ -174,7 +178,7 @@ class VariantScheduler:
                 run_id, VARIANT_STARTED, pending_progress(variant, pair.plan(variant).task_count)
             )
 
-        outcomes = self._watch_both(run_id, pair, children)
+        outcomes = self._watch_both(run_id, pair, children, maximum_usd)
         return VariantPairOutcome(
             baseline=outcomes[VariantName.BASELINE],
             candidate=outcomes[VariantName.CANDIDATE],
@@ -270,14 +274,21 @@ class VariantScheduler:
         )
 
     def _watch_both(
-        self, run_id: str, pair: VariantPair, children: dict[VariantName, VerifiersChild]
+        self,
+        run_id: str,
+        pair: VariantPair,
+        children: dict[VariantName, VerifiersChild],
+        maximum_usd: float | None,
     ) -> dict[VariantName, ChildProcessOutcome]:
         reported: dict[VariantName, VariantProgress | None] = dict.fromkeys(_VARIANT_ORDER)
         exits: dict[VariantName, int] = {}
         outcomes: dict[VariantName, ChildProcessOutcome] = {}
+        meter = SpendMeter(_traces_path(pair.plan(variant)) for variant in _VARIANT_ORDER)
         try:
             while len(outcomes) < len(_VARIANT_ORDER):
                 raise_if_cancel_requested(self._run_store, run_id)
+                if maximum_usd is not None:
+                    _require_under_maximum(run_id, meter.read(), maximum_usd)
                 for variant in _VARIANT_ORDER:
                     if variant in outcomes:
                         continue
@@ -298,7 +309,7 @@ class VariantScheduler:
                         self._stop_sibling(run_id, variant, children, outcomes)
                 if len(outcomes) < len(_VARIANT_ORDER):
                     time.sleep(self._poll_interval)
-        except CancellationError:
+        except (CancellationError, RunError):
             self._children.terminate_all(run_id, self._grace)
             for variant in _VARIANT_ORDER:
                 if variant not in outcomes:
@@ -368,6 +379,18 @@ class VariantScheduler:
         except TechtreeError:
             raise_if_cancel_requested(self._run_store, run_id)
             raise
+
+
+def _require_under_maximum(run_id: str, spent_usd: float, maximum_usd: float) -> None:
+    if spent_usd < maximum_usd:
+        return
+    raise RunError(
+        f"this run's model calls cost ${spent_usd:.2f}, as the provider reported them, which "
+        f"reached the ${maximum_usd:.2f} maximum its Campaign declares, so Techtree stopped both "
+        "sides; a stopped run has no score, and the partial evidence was kept",
+        code=RUN_SPEND_LIMIT_REACHED,
+        details={"run_id": run_id, "spent_usd": spent_usd, "maximum_usd": maximum_usd},
+    )
 
 
 def _traces_path(plan: VariantExecutionPlan) -> Path:

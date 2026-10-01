@@ -26,7 +26,7 @@ starts.
 | Episodes | 72: 36 tasks, once without the Skill and once with it | 20: 10 problems, once without the Skill and once with it |
 | Limits per episode | 16,000 tokens per reply, 32,000 output, 500,000 input, 20 minutes | 32,000 tokens per reply, 96,000 output, 400,000 input, one hour |
 | Declared maximum per run | $6.50 | $2.50 |
-| Enforced bound | $6.28: Techtree refuses to start if the limits could add up past $6.50 | $2.35: the same check against $2.50 |
+| Spend stop (from regents-cli 1.3.2) | Techtree adds up the cost the provider reports for each finished task and stops the run once it reaches $6.50 | the same, at $2.50 |
 | Expected spend per run | about $0.40 to $0.70, going by the qwen runs' token counts at Luna's prices; thinking at "high" adds output | about $1 |
 
 Each run needs Docker running, the Prime sign-in in place, and regents-cli at the release commit.
@@ -107,5 +107,7 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 Hello World scored 24, 24 and 24 out of 36 from a baseline of 0 or 1, so its band on Luna is
 about 24. The Hello World Campaign `sha256:dedfeb92…` is certified, and Frontier-CS runs end to
 end. All four runs together cost about $2.17. The costs are worked out at full price; the
-provider's cache makes the actual bill lower. The previous Hello World Campaign, on qwen, was
+provider's cache makes the actual bill lower. The provider's own reported costs, added up from
+each run's records, were $0.13, $0.13 and $0.14 for the three Hello World runs and $0.38 for
+Frontier-CS run 1. For the hill-climb, they were $0.49, $0.68 and $0.49. The previous Hello World Campaign, on qwen, was
 certified on 2026-09-28 and 29 with 23, 22 and 24 out of 36 from a baseline of 0.

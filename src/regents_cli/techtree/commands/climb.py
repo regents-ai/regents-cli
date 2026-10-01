@@ -215,28 +215,23 @@ def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV2) -> list[st
 
 
 def _cost_line(campaign: CampaignSpecV2) -> str:
-    """What is checked about the spend before the run starts, and what is not.
-
-    There is a bound check before the run and no meter during it, and the wording must not
-    leave a reader expecting a running total or a mid-run cut-off.
-    """
+    """What holds the spend while the run is under way, and what does not."""
     ceiling = campaign.budgets.maximum_usd
     if ceiling is None:
         return (
             "This run spends model tokens on inference. This Campaign declares no maximum, so "
-            "there is no figure for Techtree to hold it to. Each episode still has enforced "
-            "turn, token, and time limits. Nothing keeps a running total while the run is "
-            "under way and nothing ends it part-way through: a provider that charges for "
-            "tokens bills the episodes above to your own account, and a model you run "
-            "yourself sends no bill."
+            "Techtree does not stop the run for what it spends. Each episode still has enforced "
+            "turn, token, and time limits. A provider that charges for tokens bills the episodes "
+            "above to your own account, and a model you run yourself sends no bill."
         )
     return (
-        "This run spends model tokens on inference. Before anything starts, Techtree checks "
-        f"that this Campaign's enforced per-episode limits cannot add up past the ${ceiling:.2f} "
-        "maximum it declares, and refuses to run it if they could. Each episode has enforced "
-        "turn, token, and time limits. Nothing keeps a running total while the run is under "
-        "way and nothing ends it part-way through: a provider that charges for tokens bills "
-        "the episodes above to your own account, and a model you run yourself sends no bill."
+        "This run spends model tokens on inference. While it runs, Techtree adds up the cost "
+        "the provider reports for each finished task, and once the total reaches the "
+        f"${ceiling:.2f} maximum this Campaign declares, it stops both sides; a stopped run has "
+        "no score. Tasks still under way when it stops can add a little to the total. Each "
+        "episode also has enforced turn, token, and time limits. A provider that charges for "
+        "tokens bills the episodes above to your own account, and a model you run yourself "
+        "sends no bill."
     )
 
 

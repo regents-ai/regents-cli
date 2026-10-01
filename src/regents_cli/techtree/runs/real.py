@@ -48,11 +48,7 @@ from regents_cli.techtree.runs.variants import (
     VariantScheduler,
     require_concurrency_budget,
 )
-from regents_cli.techtree.verifiers.budget import (
-    price_profile_for,
-    require_cost_bound,
-    require_executable_budget,
-)
+from regents_cli.techtree.verifiers.budget import require_executable_budget
 from regents_cli.techtree.verifiers.child import (
     DEFAULT_GRACE_SECONDS,
     EVAL_EXECUTABLE,
@@ -117,12 +113,6 @@ def require_live_campaign(campaign: CampaignSpecV2) -> None:
         code=REAL_EXECUTION_UNSUPPORTED,
         details={"campaign_id": campaign.metadata.id},
     )
-
-
-def require_bounded_campaign(campaign: CampaignSpecV2) -> None:
-    """Refuse to spend anything for a Campaign whose limits are not limits."""
-    require_executable_budget(campaign)
-    require_cost_bound(campaign, price_profile_for(campaign.subject.model.model_id))
 
 
 def real_execution_result_path(run_root: Path) -> Path:
@@ -194,10 +184,10 @@ class RealVerifiersExecutor:
         subject = self._subject(campaign)
 
         # 4-5. The engine, then the credential the subject's calls are paid with, then
-        # whether the Campaign's limits can be held to. All three refusals are free.
+        # whether every limit the engine enforces is set. All three refusals are free.
         engine = self._resolve_engine(plan.evaluation.engine_digest)
         require_credentials(subject.model)
-        require_bounded_campaign(campaign)
+        require_executable_budget(campaign)
 
         # 6-7. The publisher's validation, re-checked, and the membership it commits to.
         validation = self._validate_taskset(context, inputs)
@@ -213,7 +203,9 @@ class RealVerifiersExecutor:
 
         try:
             # 12-15. Both children, started and watched.
-            outcome = self._run_children(context, pair=pair, engine=engine, subject=subject)
+            outcome = self._run_children(
+                context, pair=pair, engine=engine, maximum_usd=campaign.budgets.maximum_usd
+            )
             # 16-18. The engine's own reading of what each child left behind.
             results = self._normalize(
                 pair=pair,
@@ -419,7 +411,7 @@ class RealVerifiersExecutor:
         *,
         pair: VariantPair,
         engine: _ResolvedEngine,
-        subject: AgentSpecV2,
+        maximum_usd: float | None,
     ) -> VariantPairOutcome:
         run_id = context.request.run_id
         run_paths = RunPaths.for_run(self._paths, run_id)
@@ -447,6 +439,7 @@ class RealVerifiersExecutor:
             pair=pair,
             baseline_child=children[VariantName.BASELINE],
             candidate_child=children[VariantName.CANDIDATE],
+            maximum_usd=maximum_usd,
         )
 
     def _build_child(

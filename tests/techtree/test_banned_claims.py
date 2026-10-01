@@ -1,9 +1,9 @@
 """What Techtree's copy may never claim, however reassuring it would sound.
 
 The costly failure: a person believes a protection or a promise that does not exist. A run's
-model calls go to a provider, nobody but the participant attests a run, nothing meters spending
-while a run is under way, nothing publishes a finishing time, and an address left at publish
-time buys nothing. Each claim is banned in the affirmative only, so the honest sentences that
+model calls go to a provider, nobody but the participant attests a run, nothing promises what
+a run will cost, nothing publishes a finishing time, and an address left at publish time buys
+nothing. Each claim is banned in the affirmative only, so the honest sentences that
 say what does not happen stay allowed.
 
 What is scanned is what a person or a host agent reads: every string in the Techtree modules
@@ -44,10 +44,6 @@ BANNED: Final[tuple[tuple[str, re.Pattern[str]], ...]] = tuple(
         ),
         ("a cost bound", r"\bcost\s+(bound|ceiling|cap)s?\b"),
         ("a price worked out in advance", r"\b(estimated|budget|cost|price)\s+(cost|estimate)s?\b"),
-        (
-            "a run that stops itself over money",
-            r"\b(aborts?|halts?|stops?|cuts?\s+off)\b[^.]{0,50}\b(over\s+budget|spending\s+(limit|cap)|cost\s+limit)\b",
-        ),
         (
             "a promise about the bill",
             r"\b(won'?t|will\s+not|never)\s+(cost|exceed|charge)\b|\b(at\s+most|no\s+more\s+than|up\s+to)\s+\$\s?\d",

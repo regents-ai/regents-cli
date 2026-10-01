@@ -3,6 +3,20 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.3.2 — 2026-09-30
+
+- A run now stops once its spend reaches the maximum its Campaign declares. While it runs,
+  Techtree adds up the cost the provider reports for each finished task; at the maximum it
+  stops both sides, and the run ends as failed with `run_spend_limit_reached`, without a score.
+  Tasks still under way when it stops can add a little to the total.
+- The check before a run that its per-episode limits could not add up past the maximum is
+  gone. It counted each episode's new input once, while the provider bills the whole
+  conversation again on every call, so it was not a real limit.
+- A model call whose cost the provider did not report stops the run with
+  `run_spend_unreported`, since its spend can no longer be added up.
+- Techtree's release is now `climb-v0.5.2` (ReleaseCore `sha256:1b805abe…`). The Campaigns and
+  the starter Skills are unchanged.
+
 ## 1.3.1 — 2026-09-30
 
 - Frontier-CS's starter Skill is now `frontier-cs-starter-v4`, shown as `frontier-cs-v4`. It
