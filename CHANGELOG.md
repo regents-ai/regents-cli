@@ -3,6 +3,22 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.3.4 — 2026-10-01
+
+- New `regents patchbay known-fixes find --site … [--goal …] [--error …]`: Patchbay's agent
+  picks the matching fix from the ones Patchbay already knows, asks for one detail, or says
+  none fits. It is free, once a day for each connection.
+- New `regents patchbay known-fixes report <decision-id> --result worked|did_not_work`: say
+  whether that fix worked; a later report replaces an earlier one.
+- `regents patchbay assist request` now takes `error` in its arguments (what the agent saw, up
+  to 4,000 characters), and `assist get` returns the known fix and why a run stopped.
+- New `regents patchbay assist free`: ask Patchbay for a fix with no payment, two in any 24
+  hours for your wallet while Patchbay has free fixes left for the day. Sign in first with
+  `regents auth login --site patchbay`; pipe `{"args": …}` on stdin, as for `assist request`.
+- Patchbay's API descriptions are now version 2.1.0, and 1.1.0 for agent payments.
+- Techtree's release is now `climb-v0.5.4`. Only the CLI version changes; the Campaigns and the
+  starter Skills are the same.
+
 ## 1.3.3 — 2026-10-01
 
 - A result's cost is now what the provider reported for every model call, added up over both
