@@ -1,0 +1,570 @@
+schema_version = "1.3"
+
+[task]
+name = "repo2rlenv/tasksmith-0df9b3cd6191"
+
+[metadata.repo2env]
+recipe = "tasksmith"
+recipe_version = "1"
+source_url = "https://github.com/huggingface/trl/pull/6001"
+source_head = "0512050e8623069b58d50381f6c1929321340dd0"
+source_base = "61b9ba0868f6289a22992fdbcfd29742eec0a2ef"
+workspace_strategy = "head_minus_source_patch"
+source_diff_sha256 = "8ccf27cb095289b9af0e2a2d921f9f772ec6f0053ade05ad357a7a8ec9bc843e"
+acceptance_profile = "practical-generation-v1"
+upstream_test_policy = "retain"
+reward_kinds = [
+    "test_execution",
+]
+quality_status = "exported"
+fail_to_pass_count = 3
+pass_to_pass_count = 7
+bundle_hash = "sha256:87c6175dafe85271b471d0a29bb1d674e215a71fdee197321fd070ae1549147b"
+
+[metadata.repo2env.evaluation]
+schema_version = "1"
+status = "verified"
+stage = "complete"
+reason_codes = [
+    "quality_verified",
+]
+detail = "Reviewed controls, semantic probes and blind rollout passed the quality profile."
+checked_at = "2026-09-14T05:38:57.242298Z"
+provenance = "assisted"
+subject_bundle_hash = "sha256:87c6175dafe85271b471d0a29bb1d674e215a71fdee197321fd070ae1549147b"
+profile = "practical-generation-v1"
+source_task_path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v11/candidates/a09675f9ea10/candidates/0df9b3cd6191/quality/revisions/r0/tasksmith-0df9b3cd6191"
+source_task_toml_sha256 = "a8be26a94ddf5dec6529adf9b71b1d81d402f2fa78f7eaaf044ea9f6aaf176b2"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "quality_result"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/quality-reevaluations/trl-6001-v11-output-focus/result.json"
+sha256 = "2e1517593b03bece9c2b5f02f455b5abd28bf6edca0416c61bf5cc673b2a80b9"
+subject_bundle_hash = "sha256:87c6175dafe85271b471d0a29bb1d674e215a71fdee197321fd070ae1549147b"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "baseline"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v11/candidates/a09675f9ea10/candidates/0df9b3cd6191/quality/trials/r0-baseline/tsbatch-a656d3485519-a09675f9ea10-q-0df9b3cd-r0-baseline/tasksmith-0df9b3cd6191__g78d9kJ/result.json"
+sha256 = "d63a547e5549314c0d932bb003a5aa0f3a9f7552e184c2f9f098bf4c736a089d"
+subject_bundle_hash = "sha256:87c6175dafe85271b471d0a29bb1d674e215a71fdee197321fd070ae1549147b"
+harbor_task_checksum = "1fe956e2d97fd69861ea30fd505cf0580605bf4e1a02482bbe7546a788098ec8"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "oracle"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v11/candidates/a09675f9ea10/candidates/0df9b3cd6191/quality/trials/r0-oracle/tsbatch-a656d3485519-a09675f9ea10-q-0df9b3cd-r0-oracle/tasksmith-0df9b3cd6191__ZeNRK5C/result.json"
+sha256 = "8b1886c1eea1279b77ee525b504f93461ae21a63ea5e561334c6253cfcd92b60"
+subject_bundle_hash = "sha256:87c6175dafe85271b471d0a29bb1d674e215a71fdee197321fd070ae1549147b"
+harbor_task_checksum = "1fe956e2d97fd69861ea30fd505cf0580605bf4e1a02482bbe7546a788098ec8"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v11/candidates/a09675f9ea10/candidates/0df9b3cd6191/quality/trials/r0-probe0/tsbatch-a656d3485519-a09675f9ea10-q-0df9b3cd-r0-probe0/tasksmith-0df9b3cd6191__abCC5un/result.json"
+sha256 = "53e4084ac076ca54445265e01cf57beaac66eeb2f81219a4de7296af302a07c5"
+subject_bundle_hash = "sha256:0f4caa92167ec5c71605482f31ecddd609490ada0aadbbf4fbbb77dd44fadc21"
+harbor_task_checksum = "c2d02ac219cf0a8737a0c84db168a02be6cf88c2ae9e306c7eafeb9c1913d6bf"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v11/candidates/a09675f9ea10/candidates/0df9b3cd6191/quality/trials/r0-probe1/tsbatch-a656d3485519-a09675f9ea10-q-0df9b3cd-r0-probe1/tasksmith-0df9b3cd6191__mqQFA2j/result.json"
+sha256 = "58d25ebddcb66cd16949d468b93c729f07c42517f7209b89926210bec4136d40"
+subject_bundle_hash = "sha256:4621899aa313267977c2c0c1b879eeb483406a18c8a3a513eeba4d4bb8f3046e"
+harbor_task_checksum = "1ea236f77dd3649f98a145f69b444b429bc0b54f7f62c8aedf445826e753ab3c"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "rollout"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v11/candidates/a09675f9ea10/candidates/0df9b3cd6191/quality/trials/r0-rollout/tsbatch-a656d3485519-a09675f9ea10-q-0df9b3cd-r0-rollout/tasksmith-0df9b3cd6191__Do9Z2VZ/result.json"
+sha256 = "46f63349422c15726945172a75d3f874afe3191852eae23d0ea1ee178e3cc601"
+subject_bundle_hash = "sha256:87c6175dafe85271b471d0a29bb1d674e215a71fdee197321fd070ae1549147b"
+harbor_task_checksum = "1fe956e2d97fd69861ea30fd505cf0580605bf4e1a02482bbe7546a788098ec8"
+
+[environment]
+cpus = 1
+memory_mb = 2048
+build_timeout_sec = 600
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 600
+user = "learner"
+network_mode = "no-network"
+
+[verifier]
+timeout_sec = 120
+network_mode = "no-network"
+environment_mode = "separate"
+
+[verifier.environment]
+network_mode = "no-network"
+cpus = 1
+memory_mb = 2048
+
+[[artifacts]]
+source = "/workspace/trl/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/_compat.py"
+
+[[artifacts]]
+source = "/workspace/trl/_lazy_module.py"
+
+[[artifacts]]
+source = "/workspace/trl/chat_template_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/accelerate_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/accelerate_launcher.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/base.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/env.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/skills.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/training.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/vllm_serve.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/main.py"
+
+[[artifacts]]
+source = "/workspace/trl/data_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/distributed.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/a2po/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/a2po/a2po_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/a2po/a2po_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/async_grpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/async_grpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/async_rollout_worker.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/weight_transfer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bco/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bco/bco_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bco/bco_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bema_for_ref_model/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bema_for_ref_model/callback.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bema_for_ref_model/dpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/cpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/cpo/cpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/cpo/cpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/distillation/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/distillation/distillation_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/distillation/distillation_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/dppo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/dppo/dppo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/dppo/dppo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gfpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gfpo/gfpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gfpo/gfpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gkd/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gkd/gkd_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gkd/gkd_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gmpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gmpo/gmpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gmpo/gmpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gold/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gold/gold_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gold/gold_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/grpo_with_replay_buffer/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/grpo_with_replay_buffer/grpo_with_replay_buffer_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/grpo_with_replay_buffer/grpo_with_replay_buffer_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gspo_token/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gspo_token/grpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/harbor/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/harbor/_env.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/harbor/_spec.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/kto/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/kto/kto_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/kto/kto_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/merge_model_callback.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/minillm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/minillm/minillm_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/minillm/minillm_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/nash_md/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/nash_md/nash_md_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/nash_md/nash_md_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/online_dpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/online_dpo/online_dpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/online_dpo/online_dpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/openenv/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/openenv/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/openreward/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/openreward/_spec.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/openreward/environment.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/orpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/orpo/orpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/orpo/orpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/papo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/papo/papo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/papo/papo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/modeling_value_head.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/ppo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/ppo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/prm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/prm/prm_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/prm/prm_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/loss_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/sdft_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/sdft_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/teacher_sync.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/loss_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/sdpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/sdpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/teacher_sync.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ssd/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ssd/ssd_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ssd/ssd_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/tpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/tpo/tpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/tpo/tpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/xpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/xpo/xpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/xpo/xpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/extras/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/extras/dataset_formatting.py"
+
+[[artifacts]]
+source = "/workspace/trl/extras/profiling.py"
+
+[[artifacts]]
+source = "/workspace/trl/generation/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/generation/vllm_client.py"
+
+[[artifacts]]
+source = "/workspace/trl/generation/vllm_generation.py"
+
+[[artifacts]]
+source = "/workspace/trl/import_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/models/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/models/activation_offloading.py"
+
+[[artifacts]]
+source = "/workspace/trl/models/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/accuracy_rewards.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/format_rewards.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/other_rewards.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/_hf_argparser.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/dpo.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/env.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/grpo.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/kto.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/reward.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/rloo.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/sft.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/vllm_serve.py"
+
+[[artifacts]]
+source = "/workspace/trl/skills/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/skills/cli.py"
+
+[[artifacts]]
+source = "/workspace/trl/skills/skills.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/base_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/base_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/callbacks.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/dpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/dpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/grpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/grpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/kto_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/kto_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/model_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/reward_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/reward_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/rloo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/rloo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/sft_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/sft_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/utils.py"

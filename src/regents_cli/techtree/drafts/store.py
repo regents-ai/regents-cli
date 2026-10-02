@@ -42,11 +42,11 @@ from regents_cli.techtree.fs import (
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.manifests.builder import skill_content_digest
 from regents_cli.techtree.models.base import JsonValue, StateModel, UtcDateTime
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.climb import ClimbManifest, ResolvedClimb
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV2, ManifestComparison
+from regents_cli.techtree.models.experiment import ExperimentManifestV3, ManifestComparison
 from regents_cli.techtree.models.skill import SkillArtifact, SubmissionDraft
 from regents_cli.techtree.models.validation import TasksetValidationReceipt, ValidationEvidence
 from regents_cli.techtree.paths import TechtreePaths
@@ -120,8 +120,8 @@ class DraftSnapshot:
     draft: SubmissionDraft
     source: CampaignSource
     validation_evidence: ValidationEvidence
-    baseline: ExperimentManifestV2
-    candidate: ExperimentManifestV2
+    baseline: ExperimentManifestV3
+    candidate: ExperimentManifestV3
     comparison: ManifestComparison
     candidate_skill: StagedSkill
 
@@ -140,8 +140,8 @@ class DraftStore:
         self,
         *,
         draft: SubmissionDraft,
-        baseline: ExperimentManifestV2,
-        candidate: ExperimentManifestV2,
+        baseline: ExperimentManifestV3,
+        candidate: ExperimentManifestV3,
         comparison: ManifestComparison,
         source: CampaignSource,
         validation_evidence: ValidationEvidence,
@@ -199,8 +199,8 @@ class DraftStore:
         staging: Path,
         *,
         draft: SubmissionDraft,
-        baseline: ExperimentManifestV2,
-        candidate: ExperimentManifestV2,
+        baseline: ExperimentManifestV3,
+        candidate: ExperimentManifestV3,
         comparison: ManifestComparison,
         source: CampaignSource,
         validation_evidence: ValidationEvidence,
@@ -256,7 +256,7 @@ class DraftStore:
     def get_source(self, draft_id: str) -> CampaignSource:
         """Reassemble the snapshotted Climb graph, so its own validator runs on these bytes."""
         public = f"{_PUBLIC_DIR}/"
-        campaign = self._load(draft_id, public + _CAMPAIGN_FILE, CampaignSpecV2)
+        campaign = self._load(draft_id, public + _CAMPAIGN_FILE, CampaignSpecV3)
         data_policy = self._load(draft_id, public + _DATA_POLICY_FILE, DataPolicy)
         receipt = self._load(draft_id, public + _VALIDATION_FILE, TasksetValidationReceipt)
         plan = self._load(draft_id, public + _EXECUTION_PLAN_FILE, ResolvedExecutionPlan)
@@ -292,10 +292,10 @@ class DraftStore:
                 draft_id, f"{_PUBLIC_DIR}/{_EVIDENCE_FILE}", ValidationEvidence
             ),
             baseline=self._load(
-                draft_id, f"{_MANIFESTS_DIR}/{_BASELINE_FILE}", ExperimentManifestV2
+                draft_id, f"{_MANIFESTS_DIR}/{_BASELINE_FILE}", ExperimentManifestV3
             ),
             candidate=self._load(
-                draft_id, f"{_MANIFESTS_DIR}/{_CANDIDATE_FILE}", ExperimentManifestV2
+                draft_id, f"{_MANIFESTS_DIR}/{_CANDIDATE_FILE}", ExperimentManifestV3
             ),
             comparison=self._load(draft_id, _COMPARISON_FILE, ManifestComparison),
             candidate_skill=StagedSkill(
@@ -323,7 +323,8 @@ class DraftStore:
         )
         campaign_digest = digest_object(campaign)
         _require(
-            campaign_digest == draft.campaign_spec_digest == source.climb.campaign_spec_digest,
+            campaign_digest == draft.campaign_spec_digest
+            and campaign_digest in source.climb.campaign_digests,
             "this draft was prepared against a different Campaign than the one it snapshotted",
             _CAMPAIGN_DIGEST_MISMATCH,
             expected=draft.campaign_spec_digest,

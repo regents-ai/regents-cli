@@ -14,7 +14,7 @@ from regents_cli.techtree.doctor.checks import CheckStatus, DoctorCheck
 from regents_cli.techtree.doctor.service import DoctorReport, DoctorService
 from regents_cli.techtree.errors import PrerequisiteError
 from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 
 ENVIRONMENT_NOT_READY: Final = "environment_not_ready"
 _MARK: Final[dict[CheckStatus, output.CheckStatus]] = {
@@ -63,7 +63,7 @@ def doctor(for_evaluation: bool, climb: str | None, as_json: bool) -> None:
     )
 
 
-def _campaign_for(home: paths.TechtreePaths, reference: str | None) -> CampaignSpecV2 | None:
+def _campaign_for(home: paths.TechtreePaths, reference: str | None) -> CampaignSpecV3 | None:
     """Which model a subject authenticates as and which image it runs in belong to a Climb."""
     if reference is None:
         return None

@@ -30,10 +30,10 @@ from regents_cli.techtree.errors import (
 from regents_cli.techtree.execution_facts import require_executable_execution_plan
 from regents_cli.techtree.fs import atomic_write_json, ensure_private_directory, open_exclusive
 from regents_cli.techtree.models.base import Digest, JsonValue
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, AgentSpecV2, CampaignSpecV2
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, AgentSpecV2, CampaignSpecV3
 from regents_cli.techtree.models.engine import EngineDescriptor, EngineInstallation
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV2
+from regents_cli.techtree.models.experiment import ExperimentManifestV3
 from regents_cli.techtree.models.run import RunPhase, RunRequestV2
 from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.paths import TechtreePaths
@@ -65,11 +65,11 @@ from regents_cli.techtree.verifiers.credentials import (
     require_credentials,
     scrubbed_child_environment,
 )
-from regents_cli.techtree.verifiers.image import resolve_subject_image
+from regents_cli.techtree.verifiers.image import resolve_images
 from regents_cli.techtree.verifiers.models import (
     ChildProcessOutcome,
+    ImageResolution,
     RealExecutionResult,
-    SubjectImageResolution,
     VariantExecutionPlan,
     VariantExecutionResult,
     VariantName,
@@ -103,7 +103,7 @@ class _ResolvedEngine:
     runner: EngineRunner
 
 
-def require_live_campaign(campaign: CampaignSpecV2) -> None:
+def require_live_campaign(campaign: CampaignSpecV3) -> None:
     """Refuse a Campaign whose coordinates are development placeholders."""
     check = check_live_campaign(campaign)
     if check.status is CheckStatus.PASS:
@@ -193,12 +193,13 @@ class RealVerifiersExecutor:
         validation = self._validate_taskset(context, inputs)
         lock_path = self._write_taskset_lock(run_paths, validation)
 
-        # 8-11. Both configurations compiled and dry-run, and both images resolved, before
+        # 8-11. Both configurations compiled and dry-run, and every image resolved, before
         # either child is launched, so a missing image costs nothing rather than half a run.
         self._materialize_skill_mount(inputs, run_paths)
         pair = self._compile_pair(campaign, plan, inputs, run_paths, engine, subject)
         images = {
-            variant: resolve_subject_image(subject.runtime, variant) for variant in _VARIANT_ORDER
+            variant: resolve_images(subject.runtime, campaign.taskset, variant)
+            for variant in _VARIANT_ORDER
         }
 
         try:
@@ -220,7 +221,7 @@ class RealVerifiersExecutor:
         finally:
             keep_evaluation_private(run_paths)
 
-    def _require_acknowledged_policy(self, request: RunRequestV2, campaign: CampaignSpecV2) -> None:
+    def _require_acknowledged_policy(self, request: RunRequestV2, campaign: CampaignSpecV3) -> None:
         acknowledged = request.policy_acknowledgement.data_policy_digest
         if acknowledged == campaign.data_policy_digest:
             return
@@ -235,7 +236,7 @@ class RealVerifiersExecutor:
         )
 
     def _require_executable_plan(
-        self, request: RunRequestV2, campaign: CampaignSpecV2, plan: ResolvedExecutionPlan
+        self, request: RunRequestV2, campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
     ) -> None:
         digest = require_executable_execution_plan(campaign, plan)
         if digest == request.execution_plan_digest:
@@ -250,7 +251,7 @@ class RealVerifiersExecutor:
             },
         )
 
-    def _subject(self, campaign: CampaignSpecV2) -> AgentSpecV2:
+    def _subject(self, campaign: CampaignSpecV3) -> AgentSpecV2:
         subject = campaign.agents.get(SUBJECT_AGENT)
         if subject is None:
             raise ValidationError(
@@ -356,7 +357,7 @@ class RealVerifiersExecutor:
 
     def _compile_pair(
         self,
-        campaign: CampaignSpecV2,
+        campaign: CampaignSpecV3,
         plan: ResolvedExecutionPlan,
         inputs: RunInputBundle,
         run_paths: RunPaths,
@@ -469,7 +470,7 @@ class RealVerifiersExecutor:
         *,
         pair: VariantPair,
         outcome: VariantPairOutcome,
-        images: Mapping[VariantName, SubjectImageResolution],
+        images: Mapping[VariantName, ImageResolution],
         inputs: RunInputBundle,
         validation: TasksetValidationOutcome,
         engine: _ResolvedEngine,
@@ -480,7 +481,7 @@ class RealVerifiersExecutor:
             VariantName.BASELINE: outcome.baseline,
             VariantName.CANDIDATE: outcome.candidate,
         }
-        manifests: dict[VariantName, ExperimentManifestV2] = {
+        manifests: dict[VariantName, ExperimentManifestV3] = {
             VariantName.BASELINE: inputs.baseline,
             VariantName.CANDIDATE: inputs.candidate,
         }

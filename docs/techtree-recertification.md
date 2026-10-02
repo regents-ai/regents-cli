@@ -70,10 +70,14 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-10-02, a free run against a local stand-in model on `hello-world-climb@2`
+  (`climb-v0.6.0`, regents-cli 1.4.0): all 72 episodes finished and the proof verifies offline
+  (351 checks). That run's proof is the test fixture in `tests/techtree/fixtures/run`.
+
 - 2026-09-30, a free run against a local stand-in model on the Hello World Campaign above: all 72
   episodes finished and the proof verifies offline (351 checks). The stand-in's log shows every
   model request going to Luna with reasoning effort "high", no temperature and a 16,000-token
-  cap per reply. That run's proof is the test fixture in `tests/techtree/fixtures/run`.
+  cap per reply.
 
 - 2026-09-30, Hello World run 1 (`run_f5cb27c98a9e4b78ab152d77cc8a889a`): all 72 episodes
   completed, none failed. Candidate 24 of 36, baseline 1 of 36: 23 wins, no losses. About $0.35

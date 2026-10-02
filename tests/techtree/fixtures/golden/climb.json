@@ -9,6 +9,7 @@
     "required_mutation": "skill_insertion",
     "skill_visibility": "public"
   },
+  "held_out_campaign_spec_digest": null,
   "kind": "Climb",
   "leaderboard": {
     "enabled": false,
@@ -30,5 +31,5 @@
     "raw_episode_visibility": "prohibited",
     "report_visibility": "public"
   },
-  "schema_version": "techtree.climb.v1alpha1"
+  "schema_version": "techtree.climb.v1alpha2"
 }

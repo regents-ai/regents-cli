@@ -20,7 +20,7 @@ from regents_cli.techtree.canonical import digest_object
 from regents_cli.techtree.errors import NotFoundError, ValidationError, VerificationError
 from regents_cli.techtree.fs import realpath_within
 from regents_cli.techtree.models.base import Digest, JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.catalog import (
     CatalogClimbEntry,
     CatalogIndexV2,
@@ -34,7 +34,7 @@ from regents_cli.techtree.models.validation import TasksetValidationReceipt, Val
 CATALOG_INDEX_FILENAME: Final = "catalog.json"
 
 _KIND_FOR_MODEL: Final[dict[type[BaseModel], str]] = {
-    CampaignSpecV2: "campaign",
+    CampaignSpecV3: "campaign",
     DataPolicy: "data_policy",
     ResolvedExecutionPlan: "execution_plan",
     TasksetValidationReceipt: "taskset_validation",
@@ -113,8 +113,8 @@ class EmbeddedCatalogRepository:
     def load_climb(self, reference: str) -> ClimbManifest:
         return self._load_climb_entry(self.climb_entry(reference))
 
-    def load_campaign(self, digest: Digest) -> CampaignSpecV2:
-        return self._load_model(digest, CampaignSpecV2)
+    def load_campaign(self, digest: Digest) -> CampaignSpecV3:
+        return self._load_model(digest, CampaignSpecV3)
 
     def load_data_policy(self, digest: Digest) -> DataPolicy:
         return self._load_model(digest, DataPolicy)

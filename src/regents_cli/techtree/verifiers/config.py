@@ -101,16 +101,15 @@ class HermesHarnessToml(TomlModel):
 
 
 class DockerRuntimeToml(TomlModel):
+    """`image` is unset when each task brings its own: the engine then runs every task in the
+    image its task data names."""
+
     type: Literal["docker"] = "docker"
-    image: str = Field(min_length=1)
+    image: str | None = Field(default=None, min_length=1)
     allow: list[str] = Field(default_factory=list)
     block: list[str] = Field(default_factory=list)
     cpu: float | None = Field(default=None, gt=0.0)
     memory: float | None = Field(default=None, gt=0.0)
-
-    @property
-    def image_is_digest_pinned(self) -> bool:
-        return _IMAGE_DIGEST_RE.search(self.image) is not None
 
     @property
     def network_is_restricted(self) -> bool:
@@ -142,17 +141,76 @@ class SubjectAgentToml(TomlModel):
     timeout: TimeoutToml = Field(default_factory=TimeoutToml)
 
 
+class TaskImagesToml(TomlModel):
+    """The two digest-pinned images one task runs on."""
+
+    agent: str = Field(min_length=1)
+    grader: str = Field(min_length=1)
+
+
 class TasksetToml(TomlModel):
+    """`images` is the Tasksmith taskset's own configuration: task id to its pinned images."""
+
     id: str = Field(min_length=1)
+    images: dict[str, TaskImagesToml] | None = None
 
 
-class EnvToml(TomlModel):
+class SingleAgentEnvToml(TomlModel):
     """The seat is spelled `subject` because the reference package's Env declares that field,
     and Verifiers stamps the field name onto every trace as `agent.name`."""
 
     taskset: TasksetToml
     subject: SubjectAgentToml
     max_concurrent_agents: int = Field(default=1, ge=1)
+
+    @property
+    def seat(self) -> SubjectAgentToml:
+        return self.subject
+
+    @model_validator(mode="after")
+    def _check_one_campaign_image(self) -> Self:
+        if self.subject.runtime.image is None:
+            raise ValueError("a single-agent run names one image for every task")
+        if self.taskset.images is not None:
+            raise ValueError("a single-agent run takes no per-task images")
+        return self
+
+
+class HarborEnvToml(TomlModel):
+    """The engine's Harbor environment names its one seat `agent`, and stamps that onto every
+    trace as `agent.name`. Each task runs in its own images, given to the taskset."""
+
+    taskset: TasksetToml
+    agent: SubjectAgentToml
+    max_concurrent_agents: int = Field(default=1, ge=1)
+
+    @property
+    def seat(self) -> SubjectAgentToml:
+        return self.agent
+
+    @model_validator(mode="after")
+    def _check_per_task_images(self) -> Self:
+        if self.agent.runtime.image is not None:
+            raise ValueError("a Harbor run takes each task's image from the task, not the seat")
+        if not self.taskset.images:
+            raise ValueError("a Harbor run names every task's agent and grader images")
+        return self
+
+
+EnvToml = SingleAgentEnvToml | HarborEnvToml
+
+
+def image_is_digest_pinned(image: str) -> bool:
+    return _IMAGE_DIGEST_RE.search(image) is not None
+
+
+def runtime_images(env: EnvToml) -> list[str]:
+    """Every image the run may start: the seat's own, or each task's agent and grader."""
+    if isinstance(env, SingleAgentEnvToml):
+        assert env.subject.runtime.image is not None  # the env's validator guarantees it
+        return [env.subject.runtime.image]
+    assert env.taskset.images is not None  # the env's validator guarantees it
+    return [image for pins in env.taskset.images.values() for image in (pins.agent, pins.grader)]
 
 
 class EvalToml(TomlModel):

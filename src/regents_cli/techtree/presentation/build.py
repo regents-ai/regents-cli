@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from typing import Final
 
 from regents_cli.techtree.identity.models import VerificationResult
-from regents_cli.techtree.models.campaign import CampaignSpecV2
-from regents_cli.techtree.models.climb import ClimbMetadata
-from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.climb import ClimbManifest
+from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
@@ -52,8 +52,8 @@ LATER_RESULT_LABEL: Final = "A Later Iteration"
 
 HELD_FIXED_LINE: Final = (
     "Everything else was the same on both sides: the same model sampled the same way, the "
-    "same harness and tools, the same runtime image, the same tasks in the same order, the "
-    "same reward, and the same declared limits."
+    "same harness and tools, the same images, the same tasks in the same order, the same "
+    "reward, and the same declared limits."
 )
 
 
@@ -71,6 +71,10 @@ DECISION_HEADLINE: Final[dict[str, str]] = {
 
 #: Stops any headline being read as a claim about what the Skill can do in general.
 NOT_BROAD_CAPABILITY_LINE: Final = "Not broad-capability evidence"
+HELD_OUT_LINE: Final = (
+    "These are the tasks this Climb keeps apart. A run on them is reported beside the winning "
+    "Skill's result and never decides the winner."
+)
 
 #: Room for a Climb's whole summary, which says what its task family is and is not.
 CLIMB_SCOPE_MAXIMUM: Final = 600
@@ -87,10 +91,10 @@ _FULL_SCORE: Final = 1.0
 def build_uplift_presentation(
     *,
     report: UpliftReportV2,
-    campaign: CampaignSpecV2,
-    baseline_receipts: Sequence[EpisodeReceiptV2],
-    candidate_receipts: Sequence[EpisodeReceiptV2],
-    climb: ClimbMetadata,
+    campaign: CampaignSpecV3,
+    baseline_receipts: Sequence[EpisodeReceiptV3],
+    candidate_receipts: Sequence[EpisodeReceiptV3],
+    climb: ClimbManifest,
     baseline_skill: SkillArtifact | None,
     candidate_skill: SkillArtifact,
     verification: VerificationResult | None,
@@ -110,7 +114,7 @@ def build_uplift_presentation(
     payload = UpliftPresentationPayload(
         schema_version=PRESENTATION_SCHEMA_VERSION,
         run_id=report.run_id,
-        campaign_title=sanitize_label(climb.title),
+        campaign_title=sanitize_label(climb.metadata.title),
         comparison_label=_comparison_label(generation),
         change_label=_change_label(baseline_skill, candidate_skill),
         baseline_skill=_skill_summary(baseline_skill, _baseline_label(baseline_skill)),
@@ -372,8 +376,8 @@ class _Economics:
 
 def _economics(
     record: ComparisonExecutionRecord | None,
-    baseline_receipts: Sequence[EpisodeReceiptV2],
-    candidate_receipts: Sequence[EpisodeReceiptV2],
+    baseline_receipts: Sequence[EpisodeReceiptV3],
+    candidate_receipts: Sequence[EpisodeReceiptV3],
 ) -> _Economics:
     """The signed execution record when there is one; otherwise only what the receipts carry."""
     if record is not None:
@@ -410,7 +414,7 @@ def _cost(record: ComparisonExecutionRecord | None) -> tuple[float | None, str |
     return baseline.cost_usd + candidate.cost_usd, None
 
 
-def _tokens(receipts: Sequence[EpisodeReceiptV2]) -> int | None:
+def _tokens(receipts: Sequence[EpisodeReceiptV3]) -> int | None:
     """One side's token total when the receipts carry one as a metric; this build's do not."""
     totals: list[float] = []
     for receipt in receipts:
@@ -430,8 +434,8 @@ def _verification_status(verification: VerificationResult | None) -> str:
 def _caveats(
     *,
     report: UpliftReportV2,
-    campaign: CampaignSpecV2,
-    climb: ClimbMetadata,
+    campaign: CampaignSpecV3,
+    climb: ClimbManifest,
     economics: _Economics,
     recorded_evidence: RecordedEvidence | None,
     cost_reported: bool,
@@ -445,6 +449,14 @@ def _caveats(
                 severity="error",
                 text="This report is development-only. Its numbers are not evidence and it "
                 "withholds a verdict.",
+            )
+        )
+    if report.campaign_spec_digest == climb.held_out_campaign_spec_digest:
+        caveats.append(
+            PresentationCaveat(
+                code="held_out_tasks",
+                severity="warning",
+                text=HELD_OUT_LINE,
             )
         )
     if report.statuses.comparison is ComparisonStatus.CONTROLLED_WITH_WARNINGS:
@@ -476,7 +488,7 @@ def _caveats(
         PresentationCaveat(
             code="climb_scope",
             severity="warning",
-            text=sanitize_label(climb.summary, CLIMB_SCOPE_MAXIMUM),
+            text=sanitize_label(climb.metadata.summary, CLIMB_SCOPE_MAXIMUM),
         )
     )
     caveats.append(
@@ -513,7 +525,7 @@ def _caveats(
     return caveats
 
 
-def _weak_attestation_text(campaign: CampaignSpecV2) -> str:
+def _weak_attestation_text(campaign: CampaignSpecV3) -> str:
     """Name the coordinate the run could not confirm, asking the same check the comparison used."""
     coordinates = {check.id for check in weaker_claim_warnings(campaign)}
     if coordinates == {MODEL_REVISION_UNDISCOVERABLE}:

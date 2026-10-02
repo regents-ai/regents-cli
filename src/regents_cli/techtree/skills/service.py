@@ -42,7 +42,7 @@ from regents_cli.techtree.manifests.builder import (
 )
 from regents_cli.techtree.manifests.compare import assert_controlled_comparison, compare_manifests
 from regents_cli.techtree.models.base import Digest, JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.climb import ResolvedClimb
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.experiment import ManifestComparison
@@ -93,11 +93,17 @@ class SkillPreparationService:
         self._drafts = DraftStore(paths)
 
     def prepare(
-        self, *, climb_reference: str, skill_path: Path, candidate_label: str | None = None
+        self,
+        *,
+        climb_reference: str,
+        skill_path: Path,
+        candidate_label: str | None = None,
+        held_out: bool = False,
     ) -> PreparedDraft:
-        """Resolve, snapshot, derive, compare, and persist one draft."""
+        """Resolve, snapshot, derive, compare, and persist one draft, against the Climb's
+        Campaign or, with `held_out`, its held-out one."""
         created_at = utc_now()
-        resolved = self._catalog.get_climb(climb_reference)
+        resolved = self._catalog.get_climb(climb_reference, held_out=held_out)
         if resolved.publisher_validation.normalized_evidence is None:
             raise VerificationError(
                 "this Climb's publisher validation names no normalized evidence, so a draft "
@@ -217,7 +223,7 @@ def _validate_candidate_policy(resolved: ResolvedClimb, scan: SkillScanResult) -
         )
 
 
-def _require_no_proving_inputs(campaign: CampaignSpecV2, scan: SkillScanResult) -> None:
+def _require_no_proving_inputs(campaign: CampaignSpecV3, scan: SkillScanResult) -> None:
     """Refuse a Skill naming the cases the Campaign scores it on: a lookup table, not a rule."""
     inputs = _proving_inputs_for(campaign)
     if not inputs:
@@ -241,7 +247,7 @@ def _require_no_proving_inputs(campaign: CampaignSpecV2, scan: SkillScanResult) 
     )
 
 
-def _proving_inputs_for(campaign: CampaignSpecV2) -> tuple[str, ...]:
+def _proving_inputs_for(campaign: CampaignSpecV3) -> tuple[str, ...]:
     """The reference taskset's frozen public inputs, and nothing for a taskset without a policy."""
     reference = campaign.taskset.ref
     if reference.id != _REFERENCE_TASKSET or reference.package.name != _REFERENCE_TASKSET:
@@ -337,7 +343,7 @@ def _copy_one(item: ScannedFile, files_dir: Path) -> ScannedFile:
     )
 
 
-def _estimate_episodes(campaign: CampaignSpecV2) -> int:
+def _estimate_episodes(campaign: CampaignSpecV3) -> int:
     selection = campaign.taskset.selection
     return selection.num_tasks * selection.num_rollouts * _VARIANTS
 

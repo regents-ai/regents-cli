@@ -19,7 +19,7 @@ from regents_cli.techtree.drafts.source import CampaignSource
 from regents_cli.techtree.drafts.store import DraftStore
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.catalog import ClimbSummaryV2, CompatibilityResultV2
 from regents_cli.techtree.models.run import AcknowledgementMethod, PolicyAcknowledgement
 from regents_cli.techtree.models.skill import SubmissionDraft
@@ -75,6 +75,7 @@ def show(reference: str, as_json: bool) -> None:
         "subject_runtime": to_json_value(campaign.subject.runtime),
         "primary_reward": campaign.scoring.primary_reward,
         "candidate_skill_ownership": resolved.data_policy.candidate_skill.ownership,
+        "held_out_campaign_spec_digest": resolved.climb.held_out_campaign_spec_digest,
     }
     warnings = _development_warnings([summary]) + _compatibility_warnings(summary.compatibility)
     if warnings:
@@ -84,13 +85,14 @@ def show(reference: str, as_json: bool) -> None:
         campaign,
         resolved.data_policy_digest,
         resolved.data_policy.candidate_skill.ownership,
+        held_out=resolved.climb.held_out_campaign_spec_digest is not None,
     )
     emit(answer, as_json=as_json)
 
 
-def prepare(reference: str, skill: Path, label: str | None, as_json: bool) -> None:
+def prepare(reference: str, skill: Path, label: str | None, held_out: bool, as_json: bool) -> None:
     prepared = SkillPreparationService(paths.home()).prepare(
-        climb_reference=reference, skill_path=skill, candidate_label=label
+        climb_reference=reference, skill_path=skill, candidate_label=label, held_out=held_out
     )
     draft = prepared.draft
     source = prepared.source
@@ -103,6 +105,7 @@ def prepare(reference: str, skill: Path, label: str | None, as_json: bool) -> No
         "climb_reference": climb_reference(source.climb),
         "climb_digest": source.climb_digest,
         "campaign_spec_digest": draft.campaign_spec_digest,
+        "held_out": held_out,
         "data_policy_digest": draft.data_policy_digest,
         "candidate_label": draft.skill_artifact.name,
         "skill_root_digest": draft.skill_artifact.root_digest,
@@ -202,7 +205,7 @@ def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> N
     emit(answer, as_json=as_json)
 
 
-def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV2) -> list[str]:
+def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV3) -> list[str]:
     """The five things a person weighs before a run starts, read off this draft and Campaign."""
     return [
         f"This runs {draft.estimated_episodes} episodes: the same tasks once for each side of "
@@ -214,7 +217,7 @@ def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV2) -> list[st
     ]
 
 
-def _cost_line(campaign: CampaignSpecV2) -> str:
+def _cost_line(campaign: CampaignSpecV3) -> str:
     """What holds the spend while the run is under way, and what does not."""
     ceiling = campaign.budgets.maximum_usd
     if ceiling is None:
@@ -291,7 +294,12 @@ def _list_report(summaries: list[ClimbSummaryV2]) -> str:
 
 
 def _show_report(
-    summary: ClimbSummaryV2, campaign: CampaignSpecV2, policy_digest: str, ownership: str
+    summary: ClimbSummaryV2,
+    campaign: CampaignSpecV3,
+    policy_digest: str,
+    ownership: str,
+    *,
+    held_out: bool,
 ) -> str:
     compatibility = summary.compatibility
     lines = [
@@ -301,6 +309,14 @@ def _show_report(
         "",
         f"- Status: {summary.status}; purpose: {summary.purpose}",
         f"- Tasks: {summary.task_count} from {summary.taskset_id}",
+        *(
+            [
+                "- Held-out tasks: kept apart and run once, on the winning Skill against no "
+                "Skill; they never decide the winner (prepare with --held-out)"
+            ]
+            if held_out
+            else []
+        ),
         f"- Subject: {campaign.subject.model.provider} {campaign.subject.model.model_id} in "
         f"{summary.subject_harness} {summary.subject_harness_version}",
         f"- Scored on: {campaign.scoring.primary_reward}",
@@ -328,8 +344,10 @@ def _prepare_report(prepared: PreparedDraft, start_command: str) -> str:
     draft = prepared.draft
     campaign = prepared.source.campaign
     ceiling = campaign.budgets.maximum_usd
+    held_out = prepared.source.campaign_digest != prepared.source.climb.campaign_spec_digest
     lines = [
-        f"Draft {draft.id} is prepared against {climb_reference(prepared.source.climb)}.",
+        f"Draft {draft.id} is prepared against {climb_reference(prepared.source.climb)}"
+        + (", on the tasks it keeps apart." if held_out else "."),
         "",
         f"- Candidate: {draft.skill_artifact.name} ({draft.skill_artifact.root_digest})",
         f"- Files: {', '.join(draft.included_files)}",
@@ -392,6 +410,11 @@ CLIMB.add_command(
             ),
             click.Option(
                 ["--label"], help="What to call the candidate; its directory name otherwise."
+            ),
+            click.Option(
+                ["--held-out"],
+                is_flag=True,
+                help="Against the tasks the Climb keeps apart: run once, on the winning Skill.",
             ),
             JSON,
         ],

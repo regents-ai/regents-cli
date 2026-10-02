@@ -18,6 +18,13 @@ from pathlib import Path
 from typing import Final
 
 ROOT: Final = Path(__file__).resolve().parents[2]
+#: Task folders copied as published (scripts/techtree/package_tasksmith.py): their text is the
+#: upstream repositories', not this build's copy.
+PUBLISHED_TASKS: Final = (
+    ROOT
+    / "src/regents_cli/techtree/resources/engines/tasksmith/packages/hf-tasksmith-v1"
+    / "hf_tasksmith_v1/tasks"
+)
 
 BANNED: Final[tuple[tuple[str, re.Pattern[str]], ...]] = tuple(
     (claim, re.compile(pattern, re.I))
@@ -75,6 +82,8 @@ BANNED: Final[tuple[tuple[str, re.Pattern[str]], ...]] = tuple(
 def _texts() -> list[tuple[str, str]]:
     found = [("README.md", (ROOT / "README.md").read_text("utf-8"))]
     for module in sorted((ROOT / "src" / "regents_cli" / "techtree").rglob("*.py")):
+        if module.is_relative_to(PUBLISHED_TASKS):
+            continue
         tree = ast.parse(module.read_text("utf-8"))
         notes = {
             id(node.body[0].value)

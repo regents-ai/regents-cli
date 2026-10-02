@@ -20,9 +20,12 @@ reachable from this file.
 Usage, from the host side::
 
     <engine-python> <engine-root>/tools/inspect_taskset.py \\
-        --taskset-id procedure-transfer-v1 \\
+        --taskset-config <taskset.json> \\
         --num-tasks 20 \\
         --output <path>
+
+The taskset configuration is a JSON object holding the taskset's ``id`` and
+whatever its own configuration type takes, such as the image each task pins.
 """
 
 from __future__ import annotations
@@ -33,6 +36,7 @@ import re
 from pathlib import Path
 
 import verifiers.v1 as vf
+from verifiers.v1.utils.loaders import taskset_config_type
 
 SCHEMA_VERSION = "techtree.taskset-inspection.v1"
 """The shape host-side Techtree parses. Adding a field is safe; changing the
@@ -48,18 +52,21 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Report the identity of a taskset's first N tasks.",
     )
-    parser.add_argument("--taskset-id", required=True)
+    parser.add_argument("--taskset-config", required=True, type=Path)
     parser.add_argument("--num-tasks", required=True, type=int)
     parser.add_argument("--output", required=True, type=Path)
     return parser.parse_args()
 
 
-def load_tasks(taskset_id: str, *, num_tasks: int) -> tuple[vf.Taskset, list[vf.Task]]:
+def load_tasks(
+    document: dict[str, object], *, num_tasks: int
+) -> tuple[vf.Taskset, list[vf.Task]]:
     """Load the taskset and take the first ``num_tasks`` tasks in load order."""
     if num_tasks < 1:
         raise SystemExit("--num-tasks must be at least 1")
 
-    taskset = vf.load_taskset(vf.TasksetConfig(id=taskset_id))
+    taskset_id = str(document["id"])
+    taskset = vf.load_taskset(taskset_config_type(taskset_id).model_validate(document))
     tasks = list(taskset.head(num_tasks))
 
     if len(tasks) != num_tasks:
@@ -87,9 +94,10 @@ def task_record(position: int, task: vf.Task) -> dict[str, object]:
     }
 
 
-def inspect_taskset(taskset_id: str, *, num_tasks: int) -> dict[str, object]:
+def inspect_taskset(document: dict[str, object], *, num_tasks: int) -> dict[str, object]:
     """Return the taskset's metadata and its ordered task records."""
-    taskset, tasks = load_tasks(taskset_id, num_tasks=num_tasks)
+    taskset_id = str(document["id"])
+    taskset, tasks = load_tasks(document, num_tasks=num_tasks)
     records = [task_record(position, task) for position, task in enumerate(tasks)]
 
     hashes = [str(record["task_hash"]) for record in records]
@@ -112,7 +120,8 @@ def inspect_taskset(taskset_id: str, *, num_tasks: int) -> dict[str, object]:
 def main() -> None:
     """Write one JSON object to the output path."""
     arguments = parse_args()
-    document = inspect_taskset(arguments.taskset_id, num_tasks=arguments.num_tasks)
+    taskset = json.loads(Path(arguments.taskset_config).read_text(encoding="utf-8"))
+    document = inspect_taskset(taskset, num_tasks=arguments.num_tasks)
     rendered = json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False)
 
     output = Path(arguments.output)

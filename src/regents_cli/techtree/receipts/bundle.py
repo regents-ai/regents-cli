@@ -10,7 +10,7 @@
     ├── taskset-validation-receipt.json
     ├── baseline-experiment.json / candidate-experiment.json
     ├── baseline-receipt-set.json / candidate-receipt-set.json
-    ├── receipts/{baseline,candidate}/NNNN.json    signed EpisodeReceiptV2 envelopes
+    ├── receipts/{baseline,candidate}/NNNN.json    signed EpisodeReceiptV3 envelopes
     ├── comparison-execution.json          signed ComparisonExecutionRecord, when recorded
     └── uplift-report.json                 the signed UpliftReportV2 envelope
 
@@ -46,11 +46,11 @@ from regents_cli.techtree.models.base import (
     ObjectEnvelope,
     ProtocolModel,
 )
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.data_policy import DataPolicy
-from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2, ScoreStatus
+from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3, ScoreStatus
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV2, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
 from regents_cli.techtree.models.uplift_report import ComparisonStatus, UpliftReportV2
 from regents_cli.techtree.models.validation import TasksetLock, TasksetValidationReceipt
 from regents_cli.techtree.receipts.execution import (
@@ -164,14 +164,14 @@ class LocalProofBundleContents:
     """The objects one bundle is written from; receipts and report arrive already signed."""
 
     identity: ExecutorIdentity
-    campaign: CampaignSpecV2
+    campaign: CampaignSpecV3
     execution_plan: ResolvedExecutionPlan
     data_policy: DataPolicy
     taskset_lock: TasksetLock
     validation_receipt: TasksetValidationReceipt
-    experiments: Mapping[ExperimentVariant, ExperimentManifestV2]
+    experiments: Mapping[ExperimentVariant, ExperimentManifestV3]
     receipt_sets: Mapping[ExperimentVariant, ReceiptSetManifest]
-    receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV2]]]
+    receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV3]]]
     report: ObjectEnvelope[UpliftReportV2]
     execution_record: ObjectEnvelope[ComparisonExecutionRecord] | None = None
 
@@ -261,7 +261,7 @@ def assess_local_attestation(
     identity: ExecutorIdentity | None,
     identity_self_check: bool,
     referenced_objects: Sequence[ReferencedObject],
-    signed_receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV2]]],
+    signed_receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV3]]],
     comparison: ComparisonStatus,
     score: ScoreStatus,
 ) -> AttestationAssessment:
@@ -315,7 +315,7 @@ def _artifact_digests_condition(referenced: Sequence[ReferencedObject]) -> Proof
 
 def _receipts_signed_condition(
     identity: ExecutorIdentity | None,
-    signed_receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV2]]],
+    signed_receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV3]]],
 ) -> ProofCondition:
     if identity is None:
         return _condition(

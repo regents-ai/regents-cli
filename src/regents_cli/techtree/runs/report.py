@@ -25,7 +25,7 @@ from regents_cli.techtree.execution_facts import (
 from regents_cli.techtree.identity.models import ExecutorIdentity
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.models.base import ObjectEnvelope
-from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2
+from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.experiment import ExperimentVariant
 from regents_cli.techtree.models.run import RunPhase, RunRequestV2
 from regents_cli.techtree.models.uplift_report import UpliftReportV2
@@ -89,8 +89,8 @@ _VARIANT_ORDER: Final[tuple[VariantName, ...]] = (VariantName.BASELINE, VariantN
 class VariantReceipts:
     """One variant's signed receipts, its commitment over them, and what it ran."""
 
-    receipts: list[EpisodeReceiptV2]
-    signed_receipts: list[ObjectEnvelope[EpisodeReceiptV2]]
+    receipts: list[EpisodeReceiptV3]
+    signed_receipts: list[ObjectEnvelope[EpisodeReceiptV3]]
     receipt_set: ReceiptSetManifest
     observed: ObservedVariant
 
@@ -247,7 +247,7 @@ class RunReportService:
                 resolved_config=read_resolved_config(
                     run_paths.variant_output_dir(variant) / RESOLVED_CONFIG_PATH
                 ),
-                runtime=campaign.subject.runtime,
+                campaign=campaign,
             ),
         )
 

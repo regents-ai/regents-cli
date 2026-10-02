@@ -30,7 +30,7 @@ from regents_cli.techtree.models.base import (
     ObjectEnvelope,
     ProtocolModel,
 )
-from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2
+from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.experiment import ExperimentVariant
 from regents_cli.techtree.receipts.episode import (
     EPISODE_COUNT_MISMATCH,
@@ -79,7 +79,7 @@ def build_receipt_set(
     run_id: str,
     variant: ExperimentVariant,
     experiment_manifest_digest: Digest,
-    signed_receipts: Sequence[ObjectEnvelope[EpisodeReceiptV2]],
+    signed_receipts: Sequence[ObjectEnvelope[EpisodeReceiptV3]],
     ordered_task_hashes: Sequence[Digest],
 ) -> ReceiptSetManifest:
     """Order receipts by TasksetLock membership and build the commitment."""
@@ -105,7 +105,7 @@ def build_receipt_set(
 def verify_receipt_set(
     *,
     manifest: ReceiptSetManifest,
-    signed_receipts: Sequence[ObjectEnvelope[EpisodeReceiptV2]],
+    signed_receipts: Sequence[ObjectEnvelope[EpisodeReceiptV3]],
     ordered_task_hashes: Sequence[Digest],
 ) -> None:
     """Rebuild the commitment from the receipts and refuse if it differs."""
@@ -149,13 +149,13 @@ def write_receipt_set(manifest: ReceiptSetManifest, path: Path) -> ArtifactRef:
 
 
 def _envelopes_by_task(
-    signed_receipts: Sequence[ObjectEnvelope[EpisodeReceiptV2]],
+    signed_receipts: Sequence[ObjectEnvelope[EpisodeReceiptV3]],
     *,
     committed: Sequence[Digest],
     run_id: str,
     variant: ExperimentVariant,
     experiment_manifest_digest: Digest,
-) -> dict[Digest, ObjectEnvelope[EpisodeReceiptV2]]:
+) -> dict[Digest, ObjectEnvelope[EpisodeReceiptV3]]:
     if len(signed_receipts) != len(committed):
         raise VerificationError(
             f"the {variant.value} receipt set was given {len(signed_receipts)} receipts for "
@@ -167,7 +167,7 @@ def _envelopes_by_task(
                 "committed": len(committed),
             },
         )
-    by_task: dict[Digest, ObjectEnvelope[EpisodeReceiptV2]] = {}
+    by_task: dict[Digest, ObjectEnvelope[EpisodeReceiptV3]] = {}
     for envelope in signed_receipts:
         receipt = envelope.payload
         _require_sealed(envelope)
@@ -196,7 +196,7 @@ def _envelopes_by_task(
     return by_task
 
 
-def _require_sealed(envelope: ObjectEnvelope[EpisodeReceiptV2]) -> None:
+def _require_sealed(envelope: ObjectEnvelope[EpisodeReceiptV3]) -> None:
     computed = digest_object(envelope.payload)
     if computed == envelope.payload_digest:
         return
@@ -213,7 +213,7 @@ def _require_sealed(envelope: ObjectEnvelope[EpisodeReceiptV2]) -> None:
 
 
 def _require_belongs(
-    receipt: EpisodeReceiptV2,
+    receipt: EpisodeReceiptV3,
     *,
     run_id: str,
     variant: ExperimentVariant,

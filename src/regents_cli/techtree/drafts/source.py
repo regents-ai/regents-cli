@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from regents_cli.techtree.models.base import Digest
-from regents_cli.techtree.models.campaign import CampaignSpecV2, PublicContext
+from regents_cli.techtree.models.campaign import CampaignSpecV3, PublicContext
 from regents_cli.techtree.models.climb import ClimbManifest, ResolvedClimb
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
@@ -28,7 +28,7 @@ class CampaignSource:
 
     climb: ClimbManifest
     climb_digest: Digest
-    campaign: CampaignSpecV2
+    campaign: CampaignSpecV3
     campaign_digest: Digest
     data_policy: DataPolicy
     data_policy_digest: Digest

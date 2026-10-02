@@ -23,7 +23,7 @@ and pinning the interpretation exactly as tightly as the library is the whole
 point of decisions document 0003 A3.
 
 It refuses rather than guesses. A run missing a task, scoring one twice,
-seating a role other than ``subject``, or executing somewhere other than Docker
+seating a role other than the subject's, or executing somewhere other than Docker
 is not the run the Campaign described, and normalizing it anyway would produce
 a tidy document making a false claim.
 
@@ -51,6 +51,10 @@ from verifiers.v1.utils.trace_store import read_episodes
 #: The one role v0.1 evaluates. A trace seated anywhere else is a different
 #: experiment (spec 6.5).
 SUBJECT_ROLE = "subject"
+
+#: The engine's seat for the subject in each Campaign environment. The Harbor
+#: environment names its one seat "agent"; the projection records the role.
+ENGINE_SEATS = {"single-agent": "subject", "harbor-separate-grader": "agent"}
 
 #: The only subject runtime WP6 executes.
 DOCKER_RUNTIME = "docker"
@@ -228,6 +232,20 @@ def normalize_runtime(trace: Any) -> dict[str, Any]:
     }
 
 
+def normalize_grader_image(trace: Any) -> str | None:
+    """The image a separate grader box was started from, or None when the
+    task was graded in the agent's own box. Pinned by content, like the agent's."""
+    image = (trace.task.data.model_extra or {}).get("verifier_image")
+    if image is None:
+        return None
+    if not isinstance(image, str) or IMAGE_INDEX_DIGEST.search(image) is None:
+        raise SystemExit(
+            f"trace {trace.id} was graded in {image!r}, which names a tag rather "
+            "than content; a controlled comparison grades in a digest-pinned image"
+        )
+    return image
+
+
 def normalize_sampling(trace: Any) -> dict[str, Any]:
     """Project the settings the subject was actually sampled under.
 
@@ -298,10 +316,11 @@ def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
     rollout that ran out of time did not complete it: it is projected as not
     ok, and its score is never counted as a result.
     """
-    if trace.agent.name != SUBJECT_ROLE:
+    seat = ENGINE_SEATS[experiment["configuration"]["environment"]["id"]]
+    if trace.agent.name != seat:
         raise SystemExit(
-            f"trace {trace.id} was produced by the {trace.agent.name!r} role; "
-            f"v0.1 evaluates {SUBJECT_ROLE!r} and nothing else"
+            f"trace {trace.id} was produced by the {trace.agent.name!r} seat; "
+            f"this Campaign seats its subject at {seat!r} and nothing else"
         )
 
     harness = trace.agent.config.harness
@@ -329,6 +348,7 @@ def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
         "use_bundled_skill": bool(getattr(harness, "use_bundled_skill", False)),
         "skill_root_digests": skill_root_digests(experiment),
         "runtime": normalize_runtime(trace),
+        "grader_image": normalize_grader_image(trace),
         "tools": sorted(
             (normalize_tool(tool) for tool in trace.tools),
             key=lambda entry: entry["name"],
@@ -358,7 +378,7 @@ def normalize_episode(episode: Any, experiment: dict[str, Any]) -> dict[str, Any
     if len(episode.traces) != 1:
         raise SystemExit(
             f"episode {episode.id} carries {len(episode.traces)} traces; a "
-            "single-agent Campaign produces exactly one per episode"
+            "Campaign produces exactly one per episode"
         )
     trace = normalize_trace(episode.traces[0], experiment)
     return {

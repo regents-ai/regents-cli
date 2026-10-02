@@ -23,8 +23,8 @@ from regents_cli.techtree.canonical import (
     to_json_value,
 )
 from regents_cli.techtree.constants import (
-    EPISODE_RECEIPT_V2_SCHEMA_VERSION,
-    EXPERIMENT_V2_SCHEMA_VERSION,
+    EPISODE_RECEIPT_V3_SCHEMA_VERSION,
+    EXPERIMENT_V3_SCHEMA_VERSION,
     RUN_REQUEST_V2_SCHEMA_VERSION,
     TASKSET_LOCK_SCHEMA_VERSION,
     UPLIFT_V2_SCHEMA_VERSION,
@@ -52,8 +52,9 @@ from regents_cli.techtree.models.campaign import (
     AgentSpecV2,
     BudgetSpec,
     CampaignContext,
+    CampaignImageRuntime,
     CampaignMetadata,
-    CampaignSpecV2,
+    CampaignSpecV3,
     CampaignTaskset,
     EnvironmentSpec,
     EvidenceRequirementsV2,
@@ -64,7 +65,6 @@ from regents_cli.techtree.models.campaign import (
     MutationKind,
     PackageRef,
     PublicContext,
-    RuntimeSpec,
     SamplingSpec,
     ScoringSpec,
     TaskMembershipCommitment,
@@ -96,7 +96,7 @@ from regents_cli.techtree.models.data_policy import (
     RevocationPolicy,
 )
 from regents_cli.techtree.models.episode_receipt import (
-    EpisodeReceiptV2,
+    EpisodeReceiptV3,
     EvidenceStatus,
     NamedTraceReceipt,
     ScoreStatus,
@@ -110,8 +110,8 @@ from regents_cli.techtree.models.execution_plan import (
     SubjectBackendSpec,
 )
 from regents_cli.techtree.models.experiment import (
-    ExperimentConfigurationV2,
-    ExperimentManifestV2,
+    ExperimentConfigurationV3,
+    ExperimentManifestV3,
     ExperimentVariant,
     JsonDifference,
     ManifestComparison,
@@ -336,8 +336,9 @@ def subject_agent(skills: list[ArtifactRef]) -> AgentSpecV2:
         ),
         sampling=SamplingSpec(temperature=0.0, max_tokens=512, reasoning_effort=None),
         harness=HarnessSpecV2(use_bundled_skill=False, skills=skills),
-        runtime=RuntimeSpec(
+        runtime=CampaignImageRuntime(
             type="docker",
+            image_source="campaign",
             image=SUBJECT_IMAGE,
             supported_platforms=sorted(SUBJECT_IMAGE_PLATFORM_DIGESTS),
             image_platform_digests=dict(SUBJECT_IMAGE_PLATFORM_DIGESTS),
@@ -351,11 +352,11 @@ def subject_agent(skills: list[ArtifactRef]) -> AgentSpecV2:
 
 def campaign(
     data_policy_digest: Digest, receipt_digest: Digest, plan_digest: Digest
-) -> CampaignSpecV2:
+) -> CampaignSpecV3:
     """The development Campaign, bound to one plan."""
     hashes = ordered_task_hashes()
-    return CampaignSpecV2(
-        schema_version="techtree.campaign.v2",
+    return CampaignSpecV3(
+        schema_version="techtree.campaign.v3",
         kind="Campaign",
         metadata=CampaignMetadata(
             id=fixture_id("campaign", "campaign"), version=1, purpose="component_uplift"
@@ -370,6 +371,7 @@ def campaign(
                 membership_digest=membership_digest(hashes),
             ),
             validation_receipt_digest=receipt_digest,
+            task_images=None,
         ),
         environment=EnvironmentSpec(id="single-agent"),
         agents={SUBJECT_AGENT: subject_agent([])},
@@ -402,8 +404,8 @@ def campaign(
 
 
 def parity_candidate_campaign(
-    source: CampaignSpecV2, plan: ResolvedExecutionPlan
-) -> CampaignSpecV2:
+    source: CampaignSpecV3, plan: ResolvedExecutionPlan
+) -> CampaignSpecV3:
     """The same experiment bound to the Fabric-hosted plan of the parity pair."""
     parity_plan = to_json_value(plan)
     assert isinstance(parity_plan, dict)
@@ -416,13 +418,13 @@ def parity_candidate_campaign(
         "purpose": source.metadata.purpose,
     }
     document["execution_plan_digest"] = digest_object(parity_plan)
-    return CampaignSpecV2.model_validate(document)
+    return CampaignSpecV3.model_validate(document)
 
 
 def climb(campaign_digest: Digest, *, version: int, label: str) -> ClimbManifest:
     """One edition of the development Climb."""
     return ClimbManifest(
-        schema_version="techtree.climb.v1alpha1",
+        schema_version="techtree.climb.v1alpha2",
         kind="Climb",
         metadata=ClimbMetadata(
             id=fixture_id("climb", label),
@@ -438,6 +440,7 @@ def climb(campaign_digest: Digest, *, version: int, label: str) -> ClimbManifest
             closes_at=None,
         ),
         campaign_spec_digest=campaign_digest,
+        held_out_campaign_spec_digest=None,
         candidate_policy=CandidatePolicy(
             required_mutation="skill_insertion",
             skill_visibility="public",
@@ -457,13 +460,13 @@ def climb(campaign_digest: Digest, *, version: int, label: str) -> ClimbManifest
 
 def experiment(
     variant: ExperimentVariant,
-    spec: CampaignSpecV2,
+    spec: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
     climb_digest: Digest,
     skills: list[ArtifactRef],
-) -> ExperimentManifestV2:
+) -> ExperimentManifestV3:
     """One fully resolved experiment manifest, differing between variants only in Skills."""
-    configuration = ExperimentConfigurationV2(
+    configuration = ExperimentConfigurationV3(
         taskset=spec.taskset,
         environment=spec.environment,
         agents={SUBJECT_AGENT: subject_agent(skills)},
@@ -476,9 +479,9 @@ def experiment(
         data_policy_digest=spec.data_policy_digest,
         outcome_contract_digest=spec.context.outcome_contract_digest,
     )
-    return ExperimentManifestV2(
-        schema_version=EXPERIMENT_V2_SCHEMA_VERSION,
-        id=fixture_id("receipt", f"experiment/v2/{variant.value}"),
+    return ExperimentManifestV3(
+        schema_version=EXPERIMENT_V3_SCHEMA_VERSION,
+        id=fixture_id("receipt", f"experiment/v3/{variant.value}"),
         campaign_spec_digest=digest_object(spec),
         program_ref=None,
         public_context=PublicContext(kind="climb", climb_digest=climb_digest),
@@ -517,12 +520,12 @@ def sign_fixture[T: BaseModel](value: T) -> ObjectEnvelope[T]:
 
 
 def run_request(
-    spec: CampaignSpecV2,
+    spec: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
     climb_digest: Digest,
     lock_digest: Digest,
-    baseline: ExperimentManifestV2,
-    candidate: ExperimentManifestV2,
+    baseline: ExperimentManifestV3,
+    candidate: ExperimentManifestV3,
 ) -> RunRequestV2:
     """What the fixture run was created to do."""
     return RunRequestV2(
@@ -550,17 +553,17 @@ def run_request(
 
 
 def episode_receipt(
-    spec: CampaignSpecV2,
+    spec: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
     climb_digest: Digest,
-    candidate: ExperimentManifestV2,
-) -> EpisodeReceiptV2:
+    candidate: ExperimentManifestV3,
+) -> EpisodeReceiptV3:
     """One receipt of the shape a real Verifiers episode produces."""
     facts = episode_receipt_execution_facts(spec, plan)
     task_hash = ordered_task_hashes()[0]
-    return EpisodeReceiptV2(
-        schema_version=EPISODE_RECEIPT_V2_SCHEMA_VERSION,
-        id=fixture_id("receipt", "v2-episode-receipt"),
+    return EpisodeReceiptV3(
+        schema_version=EPISODE_RECEIPT_V3_SCHEMA_VERSION,
+        id=fixture_id("receipt", "v3-episode-receipt"),
         run_id=fixture_id("run", "v2-run"),
         campaign_spec_digest=digest_object(spec),
         program_ref=None,
@@ -624,12 +627,12 @@ def task_deltas() -> list[TaskDelta]:
 
 
 def uplift_report(
-    spec: CampaignSpecV2,
+    spec: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
     climb_digest: Digest,
     receipt_digest: Digest,
-    baseline: ExperimentManifestV2,
-    candidate: ExperimentManifestV2,
+    baseline: ExperimentManifestV3,
+    candidate: ExperimentManifestV3,
 ) -> UpliftReportV2:
     """The shape a report of a real comparison takes."""
     facts = uplift_report_execution_facts(spec, plan)
@@ -681,7 +684,7 @@ def uplift_report(
 
 
 def variant_execution(
-    manifest: ExperimentManifestV2,
+    manifest: ExperimentManifestV3,
     finished_at: datetime,
     input_tokens: int,
     output_tokens: int,
@@ -723,7 +726,7 @@ def variant_execution(
 
 
 def comparison_execution(
-    report: UpliftReportV2, baseline: ExperimentManifestV2, candidate: ExperimentManifestV2
+    report: UpliftReportV2, baseline: ExperimentManifestV3, candidate: ExperimentManifestV3
 ) -> ComparisonExecutionRecord:
     """One comparison's operational record: summed trace tokens and the provider's costs."""
     baseline_finished = FIXED_TIME + timedelta(seconds=612)
@@ -750,7 +753,7 @@ def comparison_execution(
 
 
 def climb_summary(
-    spec: CampaignSpecV2,
+    spec: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
     climb_manifest: ClimbManifest,
     policy: DataPolicy,
@@ -831,17 +834,17 @@ def golden_objects() -> dict[str, BaseModel]:
     report = uplift_report(spec, plan, climb_v2_digest, receipt_digest, baseline, candidate)
     return {
         "campaign-parity-candidate": parity_candidate_campaign(spec, plan),
-        "campaign-v2": spec,
+        "campaign-v3": spec,
         "climb": climb(V1_CAMPAIGN_DIGEST, version=1, label="climb"),
         "climb-summary-v2": climb_summary(spec, plan, climb_v2, policy),
         "climb-v2": climb_v2,
         "comparison-execution": comparison_execution(report, baseline, candidate),
         "data-policy": policy,
-        "episode-receipt-v2": sign_fixture(episode_receipt(spec, plan, climb_v2_digest, candidate)),
+        "episode-receipt-v3": sign_fixture(episode_receipt(spec, plan, climb_v2_digest, candidate)),
         "execution-plan": plan,
         "executor-identity": executor_identity(),
-        "experiment-baseline-v2": baseline,
-        "experiment-candidate-v2": candidate,
+        "experiment-baseline-v3": baseline,
+        "experiment-candidate-v3": candidate,
         "run-request-v2": run_request(
             spec, plan, climb_v2_digest, digest_object(lock), baseline, candidate
         ),

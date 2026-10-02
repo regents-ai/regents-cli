@@ -18,6 +18,7 @@
           "linux/amd64": "sha256:78b39ef14d8e2b4d71f8dc304f1328c37df95fe0ef99477c2ae6bd3d03784553",
           "linux/arm64": "sha256:20eadabc42589e6543b24a64ab305b9895e9fcf6dbb2cadb14812f394ecdbadf"
         },
+        "image_source": "campaign",
         "memory_gb": 4.0,
         "network_policy": "restricted",
         "supported_platforms": [
@@ -73,7 +74,7 @@
     "minimum_skills": 1,
     "target_agent": "subject"
   },
-  "schema_version": "techtree.campaign.v2",
+  "schema_version": "techtree.campaign.v3",
   "scoring": {
     "aggregation": "mean",
     "minimum_absolute_delta": 0.05,
@@ -125,6 +126,7 @@
       "num_tasks": 20,
       "shuffle": false
     },
+    "task_images": null,
     "validation_receipt_digest": "sha256:8ccab5ac9e48a25ea26d621551b578ae4e210b61f950700477ae75252af27504"
   }
 }

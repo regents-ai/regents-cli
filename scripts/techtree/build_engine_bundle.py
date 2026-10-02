@@ -44,6 +44,16 @@ class Engine:
     name: str
     package: str
     description: str
+    #: Verifiers extras the taskset needs, such as `harbor` for tasks graded in their own box.
+    verifiers_extras: tuple[str, ...] = ()
+
+    @property
+    def verifiers_requirement(self) -> str:
+        return (
+            f"verifiers[{','.join(self.verifiers_extras)}]"
+            if self.verifiers_extras
+            else "verifiers"
+        )
 
 
 ENGINES: Final = (
@@ -57,6 +67,12 @@ ENGINES: Final = (
         package="frontier-cs-open-ended-v1",
         description="Pinned Verifiers environment and the Frontier-CS Open-Ended taskset for "
         "Techtree.",
+    ),
+    Engine(
+        name="tasksmith",
+        package="hf-tasksmith-v1",
+        description="Pinned Verifiers environment and the HF Tasksmith taskset for Techtree.",
+        verifiers_extras=("harbor",),
     ),
 )
 
@@ -76,7 +92,7 @@ description = "{engine.description}"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "{engine.package}",
-  "verifiers",
+  "{engine.verifiers_requirement}",
 ]
 
 [tool.uv]

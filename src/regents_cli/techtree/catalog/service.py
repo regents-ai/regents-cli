@@ -60,16 +60,26 @@ class CatalogService:
                 summaries.append(self.climb_summary(resolved))
         return summaries
 
-    def get_climb(self, reference: str) -> ResolvedClimb:
-        """Resolve one Climb into its complete, cross-checked object graph."""
+    def get_climb(self, reference: str, *, held_out: bool = False) -> ResolvedClimb:
+        """Resolve one Climb, with the Campaign every round runs or its held-out one, into its
+        complete, cross-checked object graph."""
         entry = self._repository.climb_entry(reference)
         climb = self._repository.load_climb(entry.reference)
-        campaign = self._repository.load_campaign(climb.campaign_spec_digest)
+        campaign_digest = climb.campaign_spec_digest
+        if held_out:
+            if climb.held_out_campaign_spec_digest is None:
+                raise UsageError(
+                    f"{entry.reference} keeps no tasks apart, so it has no held-out Campaign",
+                    code="climb_has_no_held_out_campaign",
+                    details={"reference": entry.reference},
+                )
+            campaign_digest = climb.held_out_campaign_spec_digest
+        campaign = self._repository.load_campaign(campaign_digest)
         resolved = ResolvedClimb(
             climb=climb,
             climb_digest=entry.digest,
             campaign=campaign,
-            campaign_digest=climb.campaign_spec_digest,
+            campaign_digest=campaign_digest,
             data_policy=self._repository.load_data_policy(campaign.data_policy_digest),
             data_policy_digest=campaign.data_policy_digest,
             publisher_validation=self._repository.load_validation_receipt(

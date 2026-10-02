@@ -29,15 +29,14 @@ from regents_cli.techtree.errors import PrerequisiteError, ValidationError
 from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, ProtocolModel
 from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
-    CampaignSpecV2,
+    CampaignSpecV3,
     ModelSpec,
-    RuntimeSpec,
 )
 from regents_cli.techtree.models.engine import normalize_host_platform
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.verifiers.child import EVAL_EXECUTABLE
 from regents_cli.techtree.verifiers.credentials import credential_status
-from regents_cli.techtree.verifiers.image import resolve_subject_image
+from regents_cli.techtree.verifiers.image import pinned_images, resolve_images
 from regents_cli.techtree.verifiers.models import VariantName
 
 VERSION_TIMEOUT_SECONDS: Final = 10.0
@@ -569,35 +568,37 @@ def check_model_credential(model: ModelSpec) -> DoctorCheck:
     )
 
 
-def check_subject_image(runtime: RuntimeSpec) -> DoctorCheck:
-    """Whether the pinned subject image is on this machine, as pinned; nothing is pulled."""
-    metadata: dict[str, JsonValue] = {"image": runtime.image}
+def check_subject_images(campaign: CampaignSpecV3) -> DoctorCheck:
+    """Whether every image the Campaign pins is on this machine, as pinned; nothing is pulled."""
+    runtime = campaign.subject.runtime
+    pins = pinned_images(runtime, campaign.taskset)
+    metadata: dict[str, JsonValue] = {"images": len(pins)}
     try:
-        resolution = resolve_subject_image(runtime, VariantName.BASELINE)
+        resolution = resolve_images(runtime, campaign.taskset, VariantName.BASELINE)
     except ValidationError as refusal:
+        image = str(refusal.details.get("image", pins[0].image))
         return DoctorCheck(
             id="execution_subject_image",
-            label="Subject runtime image",
+            label="Runtime images",
             status=CheckStatus.FAIL,
             detail=refusal.message,
             blocking=True,
-            metadata={**metadata, "pull": f"docker pull {runtime.image}"},
+            metadata={**metadata, "image": image, "pull": f"docker pull {image}"},
         )
     metadata["image_platform"] = resolution.platform
-    metadata["image_platform_digest"] = runtime.image_platform_digests[resolution.platform]
     return DoctorCheck(
         id="execution_subject_image",
-        label="Subject runtime image",
+        label="Runtime images",
         status=CheckStatus.PASS,
         detail=(
-            f"the daemon holds the pinned subject image and serves it as {resolution.platform}, "
-            "which the Campaign pins a manifest digest for"
+            f"the daemon holds all {len(pins)} pinned image(s) and serves them as "
+            f"{resolution.platform}, which the Campaign pins manifest digests for"
         ),
         metadata=metadata,
     )
 
 
-def check_live_campaign(campaign: CampaignSpecV2) -> DoctorCheck:
+def check_live_campaign(campaign: CampaignSpecV3) -> DoctorCheck:
     """Refuse a Campaign whose coordinates are development placeholders."""
     subject = campaign.agents.get(SUBJECT_AGENT)
     metadata: dict[str, JsonValue] = {"campaign_id": campaign.metadata.id}
@@ -612,14 +613,15 @@ def check_live_campaign(campaign: CampaignSpecV2) -> DoctorCheck:
         )
     metadata["model_id"] = subject.model.model_id
     metadata["provider"] = subject.model.provider
-    metadata["image"] = subject.runtime.image
+    images = [pinned.image for pinned in pinned_images(subject.runtime, campaign.taskset)]
+    metadata["images"] = len(images)
     placeholders = sorted(
         {
             f"{field}={value}"
             for field, value in (
                 ("provider", subject.model.provider),
                 ("model_id", subject.model.model_id),
-                ("image", subject.runtime.image),
+                *(("image", image) for image in images),
             )
             for marker in DEVELOPMENT_PLACEHOLDER_MARKERS
             if marker in value
@@ -642,6 +644,6 @@ def check_live_campaign(campaign: CampaignSpecV2) -> DoctorCheck:
         label="Campaign is executable",
         status=CheckStatus.PASS,
         detail=f"the Campaign names a real subject: {subject.model.model_id} on "
-        f"{subject.runtime.image}",
+        f"{images[0] if len(images) == 1 else f'{len(images)} pinned images'}",
         metadata=metadata,
     )

@@ -1,0 +1,120 @@
+{
+  "dataset": "FineEnvs/HF_ML_Tasksmith",
+  "left_out": [
+    "environment/",
+    "tests/Dockerfile",
+    "tests/source/"
+  ],
+  "left_out_reason": "build inputs of each task's agent and grader images, which carry them",
+  "revision": "3c63c8b059d734fe74f932101f44dd0b16e7ee26",
+  "tasks": [
+    {
+      "changes": [
+        "task.toml: line 334, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:3aa3d7a5a555529aeff23fc8e3c25300f54aa562178bc5ad398668df72737de9",
+      "published_bundle_hash": "sha256:3049cc9813052fd21529d84c43525097d64de3379f7a9ab5891092d3e6963b7e",
+      "published_task_toml_sha256": "sha256:0b26c8d3e79ce6fc1b713dd8127db6332a8eeade478b5f91ac4c588dc1870ff1",
+      "task_id": "tasksmith-0d2d1e298e86"
+    },
+    {
+      "changes": [
+        "task.toml: line 317, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:02bd64bbbd641e7b3908f4cf04932c0a15d53fe6030c7cc9901421c72965fa81",
+      "published_bundle_hash": "sha256:8f9968f8d647775e489e4eb3c081a34a2bce0507fdce2f525c766e703fd6c7bc",
+      "published_task_toml_sha256": "sha256:4a95f7d2b09fe2f460e8ed23d419d3d2580b3da28036723fc2393bce1bea5fe2",
+      "task_id": "tasksmith-35c1a487454c"
+    },
+    {
+      "changes": [
+        "task.toml: line 98, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:b105e027683461a6fb054e9a5097bc66d087714a2cd538131eae03ae9a689b96",
+      "published_bundle_hash": "sha256:26af76c13830eae1525461935131dae4de4d97ab8cf2746f35e0a3a1d39f818f",
+      "published_task_toml_sha256": "sha256:6dc0e2b487e9f5affb503a798b2c4a35b5730bed789526d452d647ee31a4ff4b",
+      "task_id": "tasksmith-7bc616ce49d7"
+    },
+    {
+      "changes": [
+        "task.toml: line 100, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:8d2b6a0349a1f52ad86887beffb771eb019296730d59bb715cff9acf7f2cdf44",
+      "published_bundle_hash": "sha256:e15e3bfc6b920bb97c2a24d31aa0b76e985af74a21f603581a58092ed0a231c4",
+      "published_task_toml_sha256": "sha256:dce3249b28a64bb6a86ecbd553588fb43940b517a132f9524299741fc3f7ff08",
+      "task_id": "tasksmith-9f3fb07e5766"
+    },
+    {
+      "changes": [
+        "task.toml: line 98, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:20ae6ca798a0c6c7189009ad5c7162c4fbf09ded3ae8a81529cc89c29ef5467f",
+      "published_bundle_hash": "sha256:482813ed142f60615d3ab0956efc98e01ba3890c93ed7a7581338eb1a84d105d",
+      "published_task_toml_sha256": "sha256:fdaab99b9c4411a8c98218787cecdcb6f488d7bbe60ec8c402916d56c35f9e95",
+      "task_id": "tasksmith-c488fc138ba1"
+    },
+    {
+      "changes": [
+        "task.toml: line 98, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:081c027c5269256c54b339f00a893a30c3065ac9f4d74f1ecf4c99cfe3ca8d67",
+      "published_bundle_hash": "sha256:71f180cce7083f532ddf464271fd14a5f2a8c47f65b7b9046d99cae32f6a7977",
+      "published_task_toml_sha256": "sha256:1d5a3906d6ac8f6240e0f4f052221f863d8e498409d42ff0a23f7f1d33a331e2",
+      "task_id": "tasksmith-ecb1931929df"
+    },
+    {
+      "changes": [
+        "task.toml: line 93, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:be894e437410ab25497691ac83544862344d5e73ff1e1ab2e635fca4a7848ca8",
+      "published_bundle_hash": "sha256:87c6175dafe85271b471d0a29bb1d674e215a71fdee197321fd070ae1549147b",
+      "published_task_toml_sha256": "sha256:0b5b4c32c698b9860fe818a80e9f3e91808da6dc726989618f1b09964078804a",
+      "task_id": "tasksmith-0df9b3cd6191"
+    },
+    {
+      "changes": [
+        "task.toml: line 100, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:0295092ecf81733730ce5596f07b4f77175942b5ebd4f402810e14a684570c59",
+      "published_bundle_hash": "sha256:01ebcfd509b48ca2d67e1398b1672f1a18666c304656147edfb2c7a62fa5649c",
+      "published_task_toml_sha256": "sha256:1044551784e041ee249a0e2f5dc7b7b8cb355618c406bf018b72fe49129e5cb8",
+      "task_id": "tasksmith-0ea2241cceeb"
+    },
+    {
+      "changes": [
+        "task.toml: line 105, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:616963631015eeb962a542557a257ea87ffa4ec6775878e522e4b9c8ca4f8bfb",
+      "published_bundle_hash": "sha256:b3f83f7803d33a1306f1f2412673efb8579517b67ff7c7c9c0703f5ce9e14365",
+      "published_task_toml_sha256": "sha256:1c227bfadf3c3e2aef4b737404e9da9b31633bf1cf225092f66f39d417bf082e",
+      "task_id": "tasksmith-1c5704b1f07f"
+    },
+    {
+      "changes": [
+        "task.toml: line 98, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:0377daff485cd9461ed2526f638f6b33d8e1130780dfbc1965cc515c192e0859",
+      "published_bundle_hash": "sha256:eee71252df9059daa96d3e77fe442b9587662da8365312ad32311960561c82dc",
+      "published_task_toml_sha256": "sha256:d8f30d0d4e0992ac73e5a3c0ef15c0a6a4bde9643c3ff51790bb20e4a3e99758",
+      "task_id": "tasksmith-5dd11b34cce1"
+    },
+    {
+      "changes": [
+        "task.toml: line 98, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:a64059d9da65ca5437c9693e0ba5e352de73427d6b39fd3263b38f55bc37f8c6",
+      "published_bundle_hash": "sha256:5b521219fe3c08d76c1906bc805dc59b1604c6828b806eb07634ebbb09520673",
+      "published_task_toml_sha256": "sha256:0bbc2ec6a82fae7d06800b78ebb208778f4f2cae28b037c772cb50fe33a6c9e5",
+      "task_id": "tasksmith-9aea936e30e4"
+    },
+    {
+      "changes": [
+        "task.toml: line 98, 'user = \"root\"' in [verifier], dropped"
+      ],
+      "packaged_digest": "sha256:38a2a376b37a40714289e08054f6036572f6930da6ed45f9f9714bd044ad86b0",
+      "published_bundle_hash": "sha256:b74517f77fc69cfa4424c3c299b3187027e0ca9d4cea0c7f321e5005e8c42f21",
+      "published_task_toml_sha256": "sha256:34cf64d564af6008b26b20bbc22ea256b152bfce6431fd37a57a544eb7d02837",
+      "task_id": "tasksmith-c98f3a4a299d"
+    }
+  ]
+}

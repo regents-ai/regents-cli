@@ -18,17 +18,26 @@ from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.execution_facts import bound_execution_plan_digest
 from regents_cli.techtree.fs import ensure_private_directory, fsync_directory, open_exclusive
 from regents_cli.techtree.models.base import ArtifactRef, Digest
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, AgentSpecV2, CampaignSpecV2
+from regents_cli.techtree.models.campaign import (
+    SUBJECT_AGENT,
+    AgentSpecV2,
+    CampaignImageRuntime,
+    CampaignSpecV3,
+    CampaignTaskset,
+)
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV2, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
 from regents_cli.techtree.verifiers.config import (
     DockerRuntimeToml,
     EnvToml,
     EvalClientToml,
     EvalToml,
+    HarborEnvToml,
     HermesHarnessToml,
     SamplingToml,
+    SingleAgentEnvToml,
     SubjectAgentToml,
+    TaskImagesToml,
     TasksetToml,
     TimeoutToml,
     config_to_json_bytes,
@@ -62,9 +71,9 @@ def skill_directory_name(digest: Digest) -> str:
 
 def compile_variant_config(
     *,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
-    experiment: ExperimentManifestV2,
+    experiment: ExperimentManifestV3,
     run_paths: RunPaths,
     variant: VariantName,
     variant_max_concurrent: int,
@@ -103,6 +112,33 @@ def compile_variant_config(
             variant_max_concurrent=variant_max_concurrent,
         )
 
+    seat = SubjectAgentToml(
+        harness=HermesHarnessToml(version=plan.subject.harness_version, skills=skill_paths),
+        runtime=DockerRuntimeToml(
+            image=subject.runtime.image
+            if isinstance(subject.runtime, CampaignImageRuntime)
+            else None,
+            allow=allow,
+            block=block,
+            cpu=subject.runtime.cpu,
+            memory=subject.runtime.memory_gb,
+        ),
+        max_turns=maximum_turns,
+        max_input_tokens=maximum_input,
+        max_output_tokens=maximum_output,
+        max_total_tokens=maximum_total,
+        # timeout_seconds bounds one subject rollout; the variant's own bound is the
+        # supervisor's hard deadline.
+        timeout=TimeoutToml(rollout=float(campaign.execution.timeout_seconds)),
+    )
+    env: EnvToml
+    if experiment.configuration.environment.id == "single-agent":
+        env = SingleAgentEnvToml(
+            taskset=taskset_toml(taskset), subject=seat, max_concurrent_agents=1
+        )
+    else:
+        env = HarborEnvToml(taskset=taskset_toml(taskset), agent=seat, max_concurrent_agents=1)
+
     return EvalToml(
         model=subject.model.model_id,
         client=EvalClientToml(api_key_var=subject.model.credential_env),
@@ -111,34 +147,27 @@ def compile_variant_config(
             max_tokens=subject.sampling.max_tokens,
             reasoning_effort=subject.sampling.reasoning_effort,
         ),
-        env=EnvToml(
-            taskset=TasksetToml(id=taskset.ref.id),
-            subject=SubjectAgentToml(
-                harness=HermesHarnessToml(version=plan.subject.harness_version, skills=skill_paths),
-                runtime=DockerRuntimeToml(
-                    image=subject.runtime.image,
-                    allow=allow,
-                    block=block,
-                    cpu=subject.runtime.cpu,
-                    memory=subject.runtime.memory_gb,
-                ),
-                max_turns=maximum_turns,
-                max_input_tokens=maximum_input,
-                max_output_tokens=maximum_output,
-                max_total_tokens=maximum_total,
-                # timeout_seconds bounds one subject rollout; the variant's own bound is the
-                # supervisor's hard deadline.
-                timeout=TimeoutToml(rollout=float(campaign.execution.timeout_seconds)),
-            ),
-            max_concurrent_agents=1,
-        ),
+        env=env,
         num_tasks=taskset.selection.num_tasks,
         max_concurrent=variant_max_concurrent,
         output_dir=str(output_dir),
     )
 
 
-def _subject_of(experiment: ExperimentManifestV2) -> AgentSpecV2:
+def taskset_toml(taskset: CampaignTaskset) -> TasksetToml:
+    """The taskset as the engine loads it: its id, and the task images the Campaign pins."""
+    if taskset.task_images is None:
+        return TasksetToml(id=taskset.ref.id)
+    return TasksetToml(
+        id=taskset.ref.id,
+        images={
+            entry.task_id: TaskImagesToml(agent=entry.agent.image, grader=entry.grader.image)
+            for entry in taskset.task_images
+        },
+    )
+
+
+def _subject_of(experiment: ExperimentManifestV3) -> AgentSpecV2:
     subject = experiment.configuration.agents.get(SUBJECT_AGENT)
     if subject is None:
         _refuse(
@@ -149,7 +178,7 @@ def _subject_of(experiment: ExperimentManifestV2) -> AgentSpecV2:
 
 
 def _check_manifest_derives_from(
-    experiment: ExperimentManifestV2, campaign: CampaignSpecV2, campaign_digest: Digest
+    experiment: ExperimentManifestV3, campaign: CampaignSpecV3, campaign_digest: Digest
 ) -> None:
     if experiment.campaign_spec_digest != campaign_digest:
         _refuse(
@@ -194,7 +223,7 @@ def _check_manifest_derives_from(
         )
 
 
-def _check_variant_matches(experiment: ExperimentManifestV2, variant: VariantName) -> None:
+def _check_variant_matches(experiment: ExperimentManifestV3, variant: VariantName) -> None:
     if _VARIANTS[experiment.variant] is not variant:
         _refuse(
             "the experiment manifest describes the other variant",
@@ -261,15 +290,15 @@ def divide_concurrency(max_concurrent: int) -> tuple[int, int]:
 
 def compile_plans(
     *,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
-    baseline: ExperimentManifestV2,
-    candidate: ExperimentManifestV2,
+    baseline: ExperimentManifestV3,
+    candidate: ExperimentManifestV3,
     run_paths: RunPaths,
 ) -> tuple[VariantExecutionPlan, VariantExecutionPlan]:
     """Both variants' plans, with the Campaign's concurrency divided between them."""
     baseline_permits, candidate_permits = divide_concurrency(campaign.execution.max_concurrent)
-    manifests: Mapping[VariantName, tuple[ExperimentManifestV2, int]] = {
+    manifests: Mapping[VariantName, tuple[ExperimentManifestV3, int]] = {
         VariantName.BASELINE: (baseline, baseline_permits),
         VariantName.CANDIDATE: (candidate, candidate_permits),
     }
@@ -289,7 +318,7 @@ def compile_plans(
             experiment_manifest_path=str(run_paths.manifest_path(variant)),
             verifiers_input_config_path=str(run_paths.variant_input_config(variant)),
             verifiers_output_dir=str(Path(config.output_dir) / EVAL_RUN_NAME),
-            skill_paths=list(config.env.subject.harness.skills),
+            skill_paths=list(config.env.seat.harness.skills),
             task_count=config.num_tasks,
             max_concurrent=config.max_concurrent,
         )

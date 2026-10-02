@@ -1,0 +1,62 @@
+{
+  "payload": {
+    "artifacts": [
+      {
+        "digest": "sha256:01aae4fb42e1dc83897a73d6d39a8220e1fe412e0e8609226e943f4acf0c788a",
+        "media_type": "application/x-ndjson",
+        "relative_path": null,
+        "size": 65536
+      }
+    ],
+    "campaign_spec_digest": "sha256:c72a742310795b4bf846b34e33c59e3ecd8e0eda9c7323e832d1dac408e9acee",
+    "data_policy_digest": "sha256:f61fff0ff5941205fca8fc044c81e7a56aed9017539f6927ab9df0e81f70f88b",
+    "episode_digest": "sha256:60017f691db8746f0d841c3f0093e31f976f82c2158b76b009901890c2c96aed",
+    "episode_id": "episode_df97c7a992e666cbb8e957b98893a2be",
+    "evidence_status": "complete",
+    "execution_location": {
+      "kind": "local"
+    },
+    "execution_plan_digest": "sha256:01cb3af651c0c4c61686554c762a58d00734e5feeae7d9bc8cc09b197ea90d3b",
+    "executor_kind": "verifiers",
+    "experiment_manifest_digest": "sha256:0eb81dbd2ce81eabe29615a4ecd4bca33a1e689e3c6f705f794699ce7b0858a4",
+    "id": "receipt_d0dfda4e13ed824a7555927add5ab48f",
+    "named_traces": {
+      "subject": [
+        {
+          "metrics": {},
+          "ok": true,
+          "rewards": {
+            "exact_match": 1.0
+          },
+          "role": "subject",
+          "task_hash": "sha256:de3897e782c16d166dbef41c2e4d7c923a8f62694b6f12bc7159f26147caf7ef",
+          "trace_digest": "sha256:3170b35f5a8672f54e408b7dc922afcd33389a12c845f16f3fba9e920d0c3c33",
+          "trace_id": "trace_7dd74c49d62d7228652cd911c2ee9651"
+        }
+      ]
+    },
+    "outcome_contract_digest": null,
+    "program_ref": null,
+    "public_context": {
+      "climb_digest": "sha256:19b894d5c3d5dfbeac479c6fadbc6a702eb7064c7cdb6098c473371363e111c7",
+      "kind": "climb"
+    },
+    "run_id": "run_bc5e01438ad71b7de1078aa4a307785a",
+    "schema_version": "techtree.episode-receipt.v3",
+    "score_status": "valid",
+    "subject_runtime": {
+      "grader_image_digest": null,
+      "kind": "docker",
+      "platform": "linux/arm64",
+      "resolved_image_digest": "sha256:9c058d4e72697f0f11074e22709c6d6a4b0292ad7dded77c793a7be717e460ab"
+    },
+    "task_hash": "sha256:de3897e782c16d166dbef41c2e4d7c923a8f62694b6f12bc7159f26147caf7ef",
+    "variant": "candidate"
+  },
+  "payload_digest": "sha256:199a3c8a611da5dea1d7d90a228d0afe1685b15b655efa09cd92919c0b5ffbb6",
+  "signature": {
+    "algorithm": "ed25519",
+    "key_id": "sha256:cb1636de7059dc2a939fb3e53590a8373911d5613540d1c00eeaf7d37a10d38f",
+    "signature": "xYZI+Wh/UuJcmDSunuEiGr9I8lwHLZaPY2lbMbBudKhql5gpoNxZGtxOP+MAWFElRulKjX+9McYNC2BHLFiwDQ=="
+  }
+}

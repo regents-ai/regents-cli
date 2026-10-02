@@ -13,19 +13,19 @@ from datetime import UTC, datetime
 from typing import Final
 
 from regents_cli.techtree.canonical import digest_object
-from regents_cli.techtree.constants import EXPERIMENT_V2_SCHEMA_VERSION
+from regents_cli.techtree.constants import EXPERIMENT_V3_SCHEMA_VERSION
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.models.base import ArtifactRef, Digest
 from regents_cli.techtree.models.campaign import (
     AgentSpecV2,
-    CampaignSpecV2,
+    CampaignSpecV3,
     HarnessSpecV2,
     MutationKind,
     PublicContext,
 )
 from regents_cli.techtree.models.experiment import (
-    ExperimentConfigurationV2,
-    ExperimentManifestV2,
+    ExperimentConfigurationV3,
+    ExperimentManifestV3,
     ExperimentVariant,
 )
 from regents_cli.techtree.models.skill import SkillArtifact, SkillFile
@@ -40,9 +40,9 @@ MANIFEST_BUILD_FAILED: Final = "manifest_build_failed"
 _ID_HEX_LENGTH: Final = 24
 
 
-def build_experiment_configuration(campaign: CampaignSpecV2) -> ExperimentConfigurationV2:
+def build_experiment_configuration(campaign: CampaignSpecV3) -> ExperimentConfigurationV3:
     """Copy the Campaign's scientific fields; this is the baseline configuration."""
-    return ExperimentConfigurationV2(
+    return ExperimentConfigurationV3(
         taskset=campaign.taskset.model_copy(deep=True),
         environment=campaign.environment.model_copy(deep=True),
         agents={name: agent.model_copy(deep=True) for name, agent in campaign.agents.items()},
@@ -86,12 +86,12 @@ def build_skill_reference(skill: SkillArtifact) -> ArtifactRef:
 
 def build_baseline_manifest(
     *,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     campaign_digest: Digest,
     public_context: PublicContext | None,
     created_at: datetime | None = None,
     manifest_id: str | None = None,
-) -> ExperimentManifestV2:
+) -> ExperimentManifestV3:
     configuration = build_experiment_configuration(campaign)
     _require_campaign_baseline(configuration, campaign)
     return finalize_manifest(
@@ -107,13 +107,13 @@ def build_baseline_manifest(
 
 def build_candidate_manifest(
     *,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     campaign_digest: Digest,
     skill: SkillArtifact,
     public_context: PublicContext | None,
     created_at: datetime | None = None,
     manifest_id: str | None = None,
-) -> ExperimentManifestV2:
+) -> ExperimentManifestV3:
     """The baseline configuration with the subject harness's Skill list replaced."""
     configuration = build_experiment_configuration(campaign)
     baseline_subject = _require_campaign_baseline(configuration, campaign)
@@ -167,14 +167,14 @@ def build_candidate_manifest(
 
 def finalize_manifest(
     *,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     campaign_digest: Digest,
     public_context: PublicContext | None,
     variant: ExperimentVariant,
-    configuration: ExperimentConfigurationV2,
+    configuration: ExperimentConfigurationV3,
     created_at: datetime | None,
     manifest_id: str | None,
-) -> ExperimentManifestV2:
+) -> ExperimentManifestV3:
     """Check lineage, compute `configuration_digest`, and construct the manifest."""
     if digest_object(campaign) != campaign_digest:
         raise ValidationError(
@@ -187,8 +187,8 @@ def finalize_manifest(
             },
         )
     configuration_digest = digest_object(configuration)
-    manifest = ExperimentManifestV2(
-        schema_version=EXPERIMENT_V2_SCHEMA_VERSION,
+    manifest = ExperimentManifestV3(
+        schema_version=EXPERIMENT_V3_SCHEMA_VERSION,
         id=manifest_id or manifest_id_for(configuration_digest),
         campaign_spec_digest=campaign_digest,
         program_ref=(
@@ -207,7 +207,7 @@ def finalize_manifest(
 
 
 def assert_manifest_matches_campaign(
-    manifest: ExperimentManifestV2, campaign: CampaignSpecV2, campaign_digest: Digest
+    manifest: ExperimentManifestV3, campaign: CampaignSpecV3, campaign_digest: Digest
 ) -> None:
     """Check, after the fact, that a manifest is the Campaign it claims to be.
 
@@ -277,7 +277,7 @@ def manifest_id_for(configuration_digest: Digest) -> str:
 
 
 def _require_campaign_baseline(
-    configuration: ExperimentConfigurationV2, campaign: CampaignSpecV2
+    configuration: ExperimentConfigurationV3, campaign: CampaignSpecV3
 ) -> AgentSpecV2:
     """Refuse a Campaign whose subject is not the baseline its mutation kind needs."""
     target = campaign.mutation_contract.target_agent

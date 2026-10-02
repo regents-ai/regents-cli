@@ -23,10 +23,15 @@ from regents_cli.techtree.canonical import digest_object
 from regents_cli.techtree.engines.runner import EngineProcessResult, EngineRunner
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.fs import ensure_private_directory
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, AgentSpecV2, ModelSpec
+from regents_cli.techtree.models.campaign import (
+    SUBJECT_AGENT,
+    AgentSpecV2,
+    ModelSpec,
+    pinned_task_images,
+)
 from regents_cli.techtree.models.engine import EngineDescriptor
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV2
+from regents_cli.techtree.models.experiment import ExperimentManifestV3
 from regents_cli.techtree.models.validation import TasksetLock
 from regents_cli.techtree.verifiers.child import (
     CANCELLATION_EXIT_CODE,
@@ -35,7 +40,13 @@ from regents_cli.techtree.verifiers.child import (
     dry_run_argv,
     write_command_log,
 )
-from regents_cli.techtree.verifiers.config import EvalToml, emitted_document
+from regents_cli.techtree.verifiers.config import (
+    EvalToml,
+    SingleAgentEnvToml,
+    emitted_document,
+    image_is_digest_pinned,
+    runtime_images,
+)
 from regents_cli.techtree.verifiers.credentials import credential_status
 from regents_cli.techtree.verifiers.models import (
     ExecutionCheck,
@@ -178,7 +189,9 @@ def verify_compiled_config(
             ),
         ),
         _push_check(observed),
-        _subject_seat_check(observed),
+        _subject_seat_check(
+            observed, "subject" if isinstance(compiled.env, SingleAgentEnvToml) else "agent"
+        ),
     ]
 
 
@@ -211,21 +224,22 @@ def _push_check(observed: Mapping[str, Any]) -> ExecutionCheck:
     )
 
 
-def _subject_seat_check(observed: Mapping[str, Any]) -> ExecutionCheck:
-    seat_keys = [key for key in observed if key.startswith("env.subject.")]
-    agent_keys = [key for key in observed if key.startswith("env.agent.")]
-    if seat_keys and not agent_keys:
+def _subject_seat_check(observed: Mapping[str, Any], seat: str) -> ExecutionCheck:
+    seats = {
+        key.split(".")[1] for key in observed if key.startswith(("env.subject.", "env.agent."))
+    }
+    if seats == {seat}:
         return ExecutionCheck(
             id="named_subject_seat_resolved",
             status="passed",
-            detail="the resolved environment declares a subject seat, so every trace will "
-            "record agent.name == 'subject'.",
+            detail=f"the resolved environment declares the {seat!r} seat, so every trace will "
+            f"record agent.name == {seat!r}.",
         )
     return ExecutionCheck(
         id="named_subject_seat_resolved",
         status="failed",
-        detail="the resolved environment does not declare a subject seat; the reference "
-        "package must export the named-subject environment.",
+        detail=f"the resolved environment does not declare exactly the {seat!r} seat; the "
+        "taskset package must export the environment this Campaign names.",
     )
 
 
@@ -246,17 +260,19 @@ def _output_directory_check(compiled: EvalToml) -> ExecutionCheck:
 
 
 def _image_pinning_check(compiled: EvalToml) -> ExecutionCheck:
-    runtime = compiled.env.subject.runtime
-    if runtime.image_is_digest_pinned:
+    unpinned = [
+        image for image in runtime_images(compiled.env) if not image_is_digest_pinned(image)
+    ]
+    if not unpinned:
         return ExecutionCheck(
             id="runtime_image_digest_pinned",
             status="passed",
-            detail="the subject runtime image is pinned by content digest.",
+            detail="every runtime image is pinned by content digest.",
         )
     return ExecutionCheck(
         id="runtime_image_digest_pinned",
         status="warning",
-        detail=f"the subject runtime image {runtime.image!r} is not pinned by content digest, "
+        detail=f"the runtime image {unpinned[0]!r} is not pinned by content digest, "
         "so what runs could change without the Campaign changing.",
     )
 
@@ -310,7 +326,7 @@ def _last_meaningful_line(process: EngineProcessResult) -> str:
 def verify_variant_execution(
     *,
     result: VariantExecutionResult,
-    experiment: ExperimentManifestV2,
+    experiment: ExperimentManifestV3,
     plan: ResolvedExecutionPlan,
     taskset_lock: TasksetLock,
     primary_reward: str,
@@ -342,10 +358,34 @@ def verify_variant_execution(
     checks = [_completion_check(result)]
     checks.extend(_membership_checks(result, taskset_lock))
     checks.extend(_trace_checks(result, subject, plan, primary_reward))
+    checks.append(_task_image_check(result, experiment, subject))
     checks.append(_manifest_check(result, experiment))
     if engine is not None:
         checks.append(_pin_check(result, engine))
     return checks
+
+
+def _task_image_check(
+    result: VariantExecutionResult, experiment: ExperimentManifestV3, subject: AgentSpecV2
+) -> ExecutionCheck:
+    """Every trace ran its own task's pinned agent image and was graded in its grader image."""
+    pins = {
+        pin.task_hash: (pin.agent.image, None if pin.grader is None else pin.grader.image)
+        for pin in pinned_task_images(subject.runtime, experiment.configuration.taskset)
+    }
+    wrong = [
+        trace.task_hash
+        for episode in result.episodes
+        for trace in episode.traces
+        if pins.get(trace.task_hash) != (trace.runtime.image, trace.grader_image)
+    ]
+    return _verdict(
+        "runtime_images_match",
+        not wrong,
+        "every trace ran its task's pinned images.",
+        f"{len(wrong)} trace(s) ran images their task does not pin, starting with task "
+        f"{wrong[0] if wrong else ''}.",
+    )
 
 
 def _completion_check(result: VariantExecutionResult) -> ExecutionCheck:
@@ -447,12 +487,6 @@ def _trace_checks(
             plan.subject.harness_version,
             {t.harness_version for t in traces},
         ),
-        (
-            "runtime_image_matches",
-            "runtime image",
-            subject.runtime.image,
-            {t.runtime.image for t in traces},
-        ),
     ]
     for identifier, label, expected, seen in expectations:
         checks.append(
@@ -538,7 +572,7 @@ def _tool_inventory_check(traces: list[NormalizedTrace]) -> ExecutionCheck:
 
 
 def _manifest_check(
-    result: VariantExecutionResult, experiment: ExperimentManifestV2
+    result: VariantExecutionResult, experiment: ExperimentManifestV3
 ) -> ExecutionCheck:
     return _verdict(
         "result_matches_experiment",

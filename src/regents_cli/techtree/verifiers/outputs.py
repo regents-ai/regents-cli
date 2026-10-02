@@ -21,8 +21,8 @@ from regents_cli.techtree.errors import EngineError, ValidationError
 from regents_cli.techtree.models.base import ArtifactRef, Digest
 from regents_cli.techtree.verifiers.models import (
     ChildProcessOutcome,
+    ImageResolution,
     NormalizedEpisode,
-    SubjectImageResolution,
     VariantExecutionPlan,
     VariantExecutionResult,
 )
@@ -197,7 +197,7 @@ def build_variant_result(
     *,
     plan: VariantExecutionPlan,
     outcome: ChildProcessOutcome,
-    image_resolution: SubjectImageResolution,
+    image_resolution: ImageResolution,
     engine_registry: EngineRegistry,
     engine_digest: Digest,
     engine_runner: EngineRunner,

@@ -23,15 +23,15 @@ from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, 
 from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
     AgentSpecV2,
-    CampaignSpecV2,
+    CampaignSpecV3,
     MutationKind,
-    RuntimeSpec,
     VariantSchedule,
+    pinned_task_images,
 )
-from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2
+from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import (
-    ExperimentManifestV2,
+    ExperimentManifestV3,
     ExperimentVariant,
     ManifestComparison,
 )
@@ -141,14 +141,19 @@ class ObservedVariant:
 
 
 def observe_variant(
-    *, result: VariantExecutionResult, resolved_config: Mapping[str, Any], runtime: RuntimeSpec
+    *,
+    result: VariantExecutionResult,
+    resolved_config: Mapping[str, Any],
+    campaign: CampaignSpecV3,
 ) -> ObservedVariant:
     """Fingerprint one executed variant from its own evidence."""
     configuration = observed_from_episodes(
         result.episodes,
         resolved_config=resolved_config,
         image_resolution=result.image_resolution,
-        runtime=runtime,
+        runtime=campaign.subject.runtime,
+        taskset=campaign.taskset,
+        seat=campaign.environment.engine_seat,
     )
     # Every rollout has already been required to agree, so the first describes all of them.
     reference = next(trace for episode in result.episodes for trace in episode.traces)
@@ -165,13 +170,13 @@ def observe_variant(
 
 def compare_real_variants(
     *,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
-    baseline_manifest: ExperimentManifestV2,
-    candidate_manifest: ExperimentManifestV2,
+    baseline_manifest: ExperimentManifestV3,
+    candidate_manifest: ExperimentManifestV3,
     prepared_manifest_comparison: ManifestComparison,
-    baseline_receipts: Sequence[EpisodeReceiptV2],
-    candidate_receipts: Sequence[EpisodeReceiptV2],
+    baseline_receipts: Sequence[EpisodeReceiptV3],
+    candidate_receipts: Sequence[EpisodeReceiptV3],
     taskset_lock: TasksetLock,
     baseline_observed: ObservedVariant,
     candidate_observed: ObservedVariant,
@@ -235,7 +240,7 @@ def compare_real_variants(
     )
 
 
-def weaker_claim_warnings(campaign: CampaignSpecV2) -> list[ComparisonCheck]:
+def weaker_claim_warnings(campaign: CampaignSpecV3) -> list[ComparisonCheck]:
     """A model with no published revision is known by identifier, not by build."""
     if campaign.subject.model.revision is not None:
         return []
@@ -252,9 +257,9 @@ def weaker_claim_warnings(campaign: CampaignSpecV2) -> list[ComparisonCheck]:
 
 def _declared_checks(
     *,
-    campaign: CampaignSpecV2,
-    baseline: ExperimentManifestV2,
-    candidate: ExperimentManifestV2,
+    campaign: CampaignSpecV3,
+    baseline: ExperimentManifestV3,
+    candidate: ExperimentManifestV3,
     prepared: ManifestComparison,
     recomputed: ManifestComparison,
     taskset_lock: TasksetLock,
@@ -333,9 +338,9 @@ def _declared_checks(
 
 
 def _taskset_checks(
-    campaign: CampaignSpecV2,
-    baseline: ExperimentManifestV2,
-    candidate: ExperimentManifestV2,
+    campaign: CampaignSpecV3,
+    baseline: ExperimentManifestV3,
+    candidate: ExperimentManifestV3,
     lock: TasksetLock,
 ) -> list[ComparisonCheck]:
     committed = list(campaign.taskset.membership.ordered_task_hashes)
@@ -362,7 +367,7 @@ def _taskset_checks(
 
 
 def _mutation_check(
-    campaign: CampaignSpecV2, baseline: AgentSpecV2, candidate: AgentSpecV2
+    campaign: CampaignSpecV3, baseline: AgentSpecV2, candidate: AgentSpecV2
 ) -> ComparisonCheck:
     kind = campaign.mutation_contract.kind
     left = [reference.digest for reference in baseline.harness.skills]
@@ -384,10 +389,10 @@ def _mutation_check(
 
 def _observed_checks(
     *,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     plan: ResolvedExecutionPlan,
-    baseline_manifest: ExperimentManifestV2,
-    candidate_manifest: ExperimentManifestV2,
+    baseline_manifest: ExperimentManifestV3,
+    candidate_manifest: ExperimentManifestV3,
     baseline: ObservedVariant,
     candidate: ObservedVariant,
     committed: Sequence[Digest],
@@ -427,15 +432,15 @@ def _observed_checks(
         ),
         _same(
             "observed_runtime_image",
-            "subject runtime or image",
-            (left.runtime_kind, left.runtime_image, left.runtime_image_index_digest),
-            (right.runtime_kind, right.runtime_image, right.runtime_image_index_digest),
+            "runtime or task images",
+            (left.runtime_kind, left.images),
+            (right.runtime_kind, right.images),
         ),
         _same(
             "observed_runtime_platform_digest",
-            "resolved platform-specific image digest",
-            (left.runtime_platform, left.runtime_image_platform_digest),
-            (right.runtime_platform, right.runtime_image_platform_digest),
+            "platform the images were served on",
+            left.runtime_platform,
+            right.runtime_platform,
         ),
         *_runtime_pin_checks(campaign, baseline, candidate),
         _tool_surface_check(baseline, candidate),
@@ -514,7 +519,7 @@ def _tool_surface_check(baseline: ObservedVariant, candidate: ObservedVariant) -
 
 
 def _declared_to_observed(
-    manifest: ExperimentManifestV2, observed: ObservedVariant, plan: ResolvedExecutionPlan
+    manifest: ExperimentManifestV3, observed: ObservedVariant, plan: ResolvedExecutionPlan
 ) -> ComparisonCheck:
     """One variant's execution against its manifest; the harness is held to the plan."""
     subject = _subject(manifest)
@@ -535,7 +540,17 @@ def _declared_to_observed(
                 configuration.use_bundled_skill,
             ),
             ("runtime", subject.runtime.type, configuration.runtime_kind),
-            ("runtime image", subject.runtime.image, configuration.runtime_image),
+            (
+                "runtime images",
+                [
+                    (pin.task_hash, pin.agent.image, pin.grader and pin.grader.image)
+                    for pin in pinned_task_images(subject.runtime, manifest.configuration.taskset)
+                ],
+                [
+                    (row.task_hash, row.agent.image, row.grader and row.grader.image)
+                    for row in configuration.images
+                ],
+            ),
             (
                 "Skill list",
                 [reference.digest for reference in subject.harness.skills],
@@ -557,31 +572,43 @@ def _declared_to_observed(
 
 
 def _runtime_pin_checks(
-    campaign: CampaignSpecV2, baseline: ObservedVariant, candidate: ObservedVariant
+    campaign: CampaignSpecV3, baseline: ObservedVariant, candidate: ObservedVariant
 ) -> list[ComparisonCheck]:
-    """Both executions are held to the container the Campaign pinned, per platform."""
-    runtime = campaign.subject.runtime
-    pinned = runtime.image_index_digest
+    """Both executions are held to the images the Campaign pinned, per platform."""
+    pins = pinned_task_images(campaign.subject.runtime, campaign.taskset)
+    expected = [
+        (pin.task_hash, pin.agent.index_digest, pin.grader and pin.grader.index_digest)
+        for pin in pins
+    ]
     both = all(
-        observed.configuration.runtime_image_index_digest == pinned
+        [
+            (row.task_hash, row.agent.index_digest, row.grader and row.grader.index_digest)
+            for row in observed.configuration.images
+        ]
+        == expected
         for observed in (baseline, candidate)
     )
     platforms = sorted(
         {observed.configuration.runtime_platform for observed in (baseline, candidate)}
     )
-    pinned_platform = len(platforms) == 1 and platforms[0] in runtime.image_platform_digests
+    pinned_platform = len(platforms) == 1 and all(
+        platforms[0] in image.platform_digests
+        for pin in pins
+        for image in (pin.agent, pin.grader)
+        if image is not None
+    )
     return [
         _verdict(
             "observed_runtime_image_pinned",
             both,
             "the daemon confirmed both variants ran the image content the Campaign pinned",
-            "the container the daemon holds is not the one the Campaign pinned",
+            "the images the daemon holds are not the ones the Campaign pinned",
         ),
         _verdict(
             "observed_runtime_platform_pinned",
             pinned_platform,
-            f"both variants were served on {platforms[0]}, a platform the Campaign pins a "
-            "manifest digest for",
+            f"both variants were served on {platforms[0]}, a platform the Campaign pins "
+            "manifest digests for",
             "the variants were served on platforms the Campaign does not pin one manifest "
             "digest for",
         ),
@@ -590,8 +617,8 @@ def _runtime_pin_checks(
 
 def _pair_receipts(
     *,
-    baseline_receipts: Sequence[EpisodeReceiptV2],
-    candidate_receipts: Sequence[EpisodeReceiptV2],
+    baseline_receipts: Sequence[EpisodeReceiptV3],
+    candidate_receipts: Sequence[EpisodeReceiptV3],
     committed: Sequence[Digest],
 ) -> tuple[list[PairedReceiptRow], ComparisonCheck]:
     """Join the two sides task by task, in committed order; faults are findings, not raises."""
@@ -619,9 +646,9 @@ def _pair_receipts(
 
 
 def _by_task(
-    receipts: Sequence[EpisodeReceiptV2], committed: Sequence[Digest], label: str
-) -> tuple[dict[Digest, EpisodeReceiptV2], list[str]]:
-    by_task: dict[Digest, EpisodeReceiptV2] = {}
+    receipts: Sequence[EpisodeReceiptV3], committed: Sequence[Digest], label: str
+) -> tuple[dict[Digest, EpisodeReceiptV3], list[str]]:
+    by_task: dict[Digest, EpisodeReceiptV3] = {}
     faults: list[str] = []
     for receipt in receipts:
         if receipt.task_hash in by_task:
@@ -682,5 +709,5 @@ def _same(identifier: str, label: str, left: object, right: object) -> Compariso
     )
 
 
-def _subject(manifest: ExperimentManifestV2) -> AgentSpecV2:
+def _subject(manifest: ExperimentManifestV3) -> AgentSpecV2:
     return manifest.configuration.agents[SUBJECT_AGENT]

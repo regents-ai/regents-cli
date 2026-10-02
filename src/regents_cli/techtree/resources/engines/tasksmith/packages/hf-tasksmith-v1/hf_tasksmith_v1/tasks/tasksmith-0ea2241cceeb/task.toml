@@ -1,0 +1,547 @@
+schema_version = "1.3"
+
+[task]
+name = "repo2rlenv/tasksmith-0ea2241cceeb"
+
+[metadata.repo2env]
+recipe = "tasksmith"
+recipe_version = "1"
+source_url = "https://github.com/huggingface/trl/pull/5501"
+source_head = "e294047ca750a3267a0f93caba817c0115d1bc4c"
+source_base = "6f6440b41d4a16d19213ef21164a619467801635"
+workspace_strategy = "head_minus_source_patch"
+source_diff_sha256 = "8c0898a8f8cf606aa0e3a790be6ae967834b12deb78b9e062964feb8bde43526"
+acceptance_profile = "practical-generation-v1"
+upstream_test_policy = "replace"
+reward_kinds = [
+    "test_execution",
+]
+quality_status = "exported"
+fail_to_pass_count = 7
+pass_to_pass_count = 5
+bundle_hash = "sha256:01ebcfd509b48ca2d67e1398b1672f1a18666c304656147edfb2c7a62fa5649c"
+
+[metadata.repo2env.evaluation]
+schema_version = "1"
+status = "verified"
+stage = "complete"
+reason_codes = [
+    "quality_verified",
+]
+detail = "Reviewed controls, semantic probes and blind rollout passed the quality profile."
+checked_at = "2026-09-14T05:24:43.664164Z"
+provenance = "unknown"
+subject_bundle_hash = "sha256:01ebcfd509b48ca2d67e1398b1672f1a18666c304656147edfb2c7a62fa5649c"
+profile = "practical-generation-v1"
+source_task_path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v3/quality/revisions/r0/tasksmith-0ea2241cceeb"
+source_task_toml_sha256 = "f43b1a6953caa4a3885fcbbccf0d345b8a3980dafa75ff0f8426dddd8c3e8e38"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "quality_result"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v3/quality/result.json"
+sha256 = "3e2051fd6130f1e63b41eb2c3ddf8830629a0099e74c1fa5b722cf07f2a9a7c3"
+subject_bundle_hash = "sha256:01ebcfd509b48ca2d67e1398b1672f1a18666c304656147edfb2c7a62fa5649c"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "baseline"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v1/quality/trials/r0-baseline/scale30-recover-logging-fixture-v1-quality-r0-baseline/tasksmith-0ea2241cceeb__wnvFnXb/result.json"
+sha256 = "5b5c6453aec6ada0a360cdc8c278569e2c4194892b2149a4da61d7c99b6c08c6"
+subject_bundle_hash = "sha256:01ebcfd509b48ca2d67e1398b1672f1a18666c304656147edfb2c7a62fa5649c"
+harbor_task_checksum = "89a05c44055d38f68e2483c597774d4e97d0bd859f1511d463cc5c5d9db9dbad"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "oracle"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v1/quality/trials/r0-oracle/scale30-recover-logging-fixture-v1-quality-r0-oracle/tasksmith-0ea2241cceeb__dgvx56z/result.json"
+sha256 = "3ed5229590b7e9d84941c136d8d15934187bd82293461326b12e9d4b4f2f01d1"
+subject_bundle_hash = "sha256:01ebcfd509b48ca2d67e1398b1672f1a18666c304656147edfb2c7a62fa5649c"
+harbor_task_checksum = "89a05c44055d38f68e2483c597774d4e97d0bd859f1511d463cc5c5d9db9dbad"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v1/quality/trials/r0-probe0/scale30-recover-logging-fixture-v1-quality-r0-probe0/tasksmith-0ea2241cceeb__hMEbVUU/result.json"
+sha256 = "05ad7ab67869f9d9b195e2e52692292b30353cc1a737e1ee3f1e627b9272a560"
+subject_bundle_hash = "sha256:32c24d64f046c1c93b41341698612307de591af33e074368ea55e50d7dd2b3d3"
+harbor_task_checksum = "9c52472c957aac8aace736b51eefee72e5e1581689bbc1713bb857ff0c6b73bc"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v1/quality/trials/r0-probe1/scale30-recover-logging-fixture-v1-quality-r0-probe1/tasksmith-0ea2241cceeb__cUA6Mzf/result.json"
+sha256 = "0a4a5c61d176a5b16a7aa3d6662491c96ea50631964ed3b19eb200a12a92c632"
+subject_bundle_hash = "sha256:fe3b7f737568a70e869d2b9e6ccfc32ade4c3375170b98eab213f9778cb1a0e3"
+harbor_task_checksum = "e49a22f51ee50bb3bd3a95d1e84dc3eb17ad99adc54d6b605fc92654c4a826a0"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v2/quality/trials/r0-probe2/scale30-recover-logging-fixture-v2-quality-r0-probe2/tasksmith-0ea2241cceeb__9NH5xK5/result.json"
+sha256 = "09558f6dfab1f5389bc4ce7793357d4603ddcb7636d7e3684b2acba5253eee1b"
+subject_bundle_hash = "sha256:3432a8b0b37fb04b8455cc724401c6b4ff03ad246ccca7bb32e18ec848a74232"
+harbor_task_checksum = "ddb7bdf4c93fd09081ef8b5add114c190917c0818b4fc435e514f20874c6a3c7"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "rollout"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale30/logging-fixture-repair-v2/quality/trials/r0-rollout/scale30-recover-logging-fixture-v2-quality-r0-rollout/tasksmith-0ea2241cceeb__QV3kgtn/result.json"
+sha256 = "33deef348bd3bef45837a03d13aa769147a36f2af5657d4fc7daf33c7d7e5dbe"
+subject_bundle_hash = "sha256:01ebcfd509b48ca2d67e1398b1672f1a18666c304656147edfb2c7a62fa5649c"
+harbor_task_checksum = "89a05c44055d38f68e2483c597774d4e97d0bd859f1511d463cc5c5d9db9dbad"
+
+[environment]
+cpus = 1
+memory_mb = 2048
+build_timeout_sec = 600
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 600
+user = "learner"
+network_mode = "no-network"
+
+[verifier]
+timeout_sec = 150
+network_mode = "no-network"
+environment_mode = "separate"
+
+[verifier.environment]
+network_mode = "no-network"
+cpus = 1
+memory_mb = 2048
+
+[[artifacts]]
+source = "/workspace/trl/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/_compat.py"
+
+[[artifacts]]
+source = "/workspace/trl/_lazy_module.py"
+
+[[artifacts]]
+source = "/workspace/trl/chat_template_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/accelerate_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/accelerate_launcher.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/base.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/env.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/skills.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/training.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/commands/vllm_serve.py"
+
+[[artifacts]]
+source = "/workspace/trl/cli/main.py"
+
+[[artifacts]]
+source = "/workspace/trl/data_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/async_grpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/async_grpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/async_grpo/async_rollout_worker.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bco/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bco/bco_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bco/bco_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bema_for_ref_model/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bema_for_ref_model/callback.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/bema_for_ref_model/dpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/cpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/cpo/cpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/cpo/cpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/distillation/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/distillation/distillation.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/distillation/distillation_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/distillation/distillation_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/dppo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/dppo/dppo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/dppo/dppo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gfpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gfpo/gfpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gfpo/gfpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gkd/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gkd/gkd_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gkd/gkd_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gold/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gold/gold.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gold/gold_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gold/gold_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/grpo_with_replay_buffer/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/grpo_with_replay_buffer/grpo_with_replay_buffer_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/grpo_with_replay_buffer/grpo_with_replay_buffer_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gspo_token/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/gspo_token/grpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/judges/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/judges/judges.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/kto/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/kto/kto_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/kto/kto_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/merge_model_callback.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/minillm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/minillm/minillm_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/minillm/minillm_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/nash_md/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/nash_md/nash_md_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/nash_md/nash_md_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/online_dpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/online_dpo/online_dpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/online_dpo/online_dpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/openenv/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/openenv/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/orpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/orpo/orpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/orpo/orpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/papo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/papo/papo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/papo/papo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/modeling_value_head.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/ppo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/ppo/ppo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/prm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/prm/prm_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/prm/prm_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/sdft.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/sdft_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdft/sdft_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/sdpo.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/sdpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/sdpo/sdpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/self_distillation/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/self_distillation/base_self_distillation_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/self_distillation/online_rollout_mixin.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/self_distillation/peft_adapter_ema_callback.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/self_distillation/self_distillation_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/self_distillation/self_distillation_mixin.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/self_distillation/teacher_context.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/winrate_callback.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/xpo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/xpo/xpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/experimental/xpo/xpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/extras/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/extras/dataset_formatting.py"
+
+[[artifacts]]
+source = "/workspace/trl/extras/profiling.py"
+
+[[artifacts]]
+source = "/workspace/trl/generation/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/generation/vllm_client.py"
+
+[[artifacts]]
+source = "/workspace/trl/generation/vllm_generation.py"
+
+[[artifacts]]
+source = "/workspace/trl/import_utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/models/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/models/activation_offloading.py"
+
+[[artifacts]]
+source = "/workspace/trl/models/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/accuracy_rewards.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/format_rewards.py"
+
+[[artifacts]]
+source = "/workspace/trl/rewards/other_rewards.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/_hf_argparser.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/dpo.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/env.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/grpo.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/kto.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/reward.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/rloo.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/sft.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/utils.py"
+
+[[artifacts]]
+source = "/workspace/trl/scripts/vllm_serve.py"
+
+[[artifacts]]
+source = "/workspace/trl/skills/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/skills/cli.py"
+
+[[artifacts]]
+source = "/workspace/trl/skills/skills.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/__init__.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/base_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/base_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/callbacks.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/dpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/dpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/grpo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/grpo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/kto_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/kto_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/model_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/reward_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/reward_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/rloo_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/rloo_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/sft_config.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/sft_trainer.py"
+
+[[artifacts]]
+source = "/workspace/trl/trainer/utils.py"

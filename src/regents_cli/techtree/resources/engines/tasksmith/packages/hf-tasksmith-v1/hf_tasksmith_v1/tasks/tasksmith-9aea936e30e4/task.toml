@@ -1,0 +1,120 @@
+schema_version = "1.3"
+
+[task]
+name = "repo2rlenv/tasksmith-9aea936e30e4"
+
+[metadata.repo2env]
+recipe = "tasksmith"
+recipe_version = "1"
+source_url = "https://github.com/huggingface/peft/pull/2952"
+source_head = "fe2e63c6fddd21fe8e33c1a2f047de1ae6c1a63a"
+source_base = "8695f0f2e2560cc5d1de87c6bbe78d1313535201"
+workspace_strategy = "head_minus_source_patch"
+source_diff_sha256 = "7eeb0be94af97b5ffab7c02798889247c11724a69076f801a21020134cc764e1"
+acceptance_profile = "practical-generation-v1"
+upstream_test_policy = "replace"
+reward_kinds = [
+    "test_execution",
+]
+quality_status = "exported"
+fail_to_pass_count = 14
+pass_to_pass_count = 1
+bundle_hash = "sha256:5b521219fe3c08d76c1906bc805dc59b1604c6828b806eb07634ebbb09520673"
+
+[metadata.repo2env.evaluation]
+schema_version = "1"
+status = "verified"
+stage = "complete"
+reason_codes = [
+    "quality_verified",
+]
+detail = "Reviewed controls, semantic probes and blind rollout passed the quality profile."
+checked_at = "2026-09-14T05:16:56.506386Z"
+provenance = "assisted"
+subject_bundle_hash = "sha256:5b521219fe3c08d76c1906bc805dc59b1604c6828b806eb07634ebbb09520673"
+profile = "practical-generation-v1"
+source_task_path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v8/candidates/77fc7ee507e5/candidates/9aea936e30e4/quality/revisions/r0/tasksmith-9aea936e30e4"
+source_task_toml_sha256 = "4a74800415434adb00fad4ef277637b40e5f200576f3546155fe358d9609c2f0"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "quality_result"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v8/candidates/77fc7ee507e5/candidates/9aea936e30e4/quality/result.json"
+sha256 = "2cc30006ac75ccac35b28b08b29006b5aa8158cb0824f8acb16d7a0a2b25fa80"
+subject_bundle_hash = "sha256:5b521219fe3c08d76c1906bc805dc59b1604c6828b806eb07634ebbb09520673"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "baseline"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v8/candidates/77fc7ee507e5/candidates/9aea936e30e4/quality/trials/r0-baseline/tsbatch-63b11d77dad4-77fc7ee507e5-q-9aea936e-r0-baseline/tasksmith-9aea936e30e4__hmhDq7Q/result.json"
+sha256 = "9bfabd14119f3c921ae17d7fdaa3e6968978cae6c60c083743b8320f76e4c039"
+subject_bundle_hash = "sha256:5b521219fe3c08d76c1906bc805dc59b1604c6828b806eb07634ebbb09520673"
+harbor_task_checksum = "638433183560ecb44b753ce83b77eef06a838ccbe8be179a47c1ed788db589f8"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "oracle"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v8/candidates/77fc7ee507e5/candidates/9aea936e30e4/quality/trials/r0-oracle/tsbatch-63b11d77dad4-77fc7ee507e5-q-9aea936e-r0-oracle/tasksmith-9aea936e30e4__Kdx3uPN/result.json"
+sha256 = "fdd179761e64b0578dfa8d630e3398cbd3a7a1ff6868e0893f3232156bc86e12"
+subject_bundle_hash = "sha256:5b521219fe3c08d76c1906bc805dc59b1604c6828b806eb07634ebbb09520673"
+harbor_task_checksum = "638433183560ecb44b753ce83b77eef06a838ccbe8be179a47c1ed788db589f8"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v8/candidates/77fc7ee507e5/candidates/9aea936e30e4/quality/trials/r0-probe0/tsbatch-63b11d77dad4-77fc7ee507e5-q-9aea936e-r0-probe0/tasksmith-9aea936e30e4__pgb3cxm/result.json"
+sha256 = "d33a0b787165b1aed9f665ff0d5462aa8e61f8a990684005246191d4e0400073"
+subject_bundle_hash = "sha256:b8ce2c39e192a75ff9aadd312ca494cff67a43a81ead8b81ec67d2c51202a48b"
+harbor_task_checksum = "76f35a98f0808c248f5e7532b93a05cfa1bca59b3333f6c818e609cd22605f5e"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v8/candidates/77fc7ee507e5/candidates/9aea936e30e4/quality/trials/r0-probe1/tsbatch-63b11d77dad4-77fc7ee507e5-q-9aea936e-r0-probe1/tasksmith-9aea936e30e4__zup3h2w/result.json"
+sha256 = "7e45b65efbcecb52625ac0b9a04202f804c6fd3e66a8f6503da82ea192275185"
+subject_bundle_hash = "sha256:8f81fab93b4e94ab61d4263d65893cc373023bb7e599da004c5838dbbdcca1eb"
+harbor_task_checksum = "c44c4f5c8d62f3c00a9528d0ecbcaf5b0a776d443edccd18ec074ec35d213f8c"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "rollout"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v8/candidates/77fc7ee507e5/candidates/9aea936e30e4/quality/trials/r0-rollout/tsbatch-63b11d77dad4-77fc7ee507e5-q-9aea936e-r0-rollout/tasksmith-9aea936e30e4__5aZd3Wr/result.json"
+sha256 = "c3b0f9d29b52e0f484c82bfc6685d7ff4b0b07c3bb80c482976b1beac4900d2d"
+subject_bundle_hash = "sha256:5b521219fe3c08d76c1906bc805dc59b1604c6828b806eb07634ebbb09520673"
+harbor_task_checksum = "638433183560ecb44b753ce83b77eef06a838ccbe8be179a47c1ed788db589f8"
+
+[metadata.repo2env.quality_requirements]
+probe_focus = [
+    "model_behavior",
+]
+
+[environment]
+cpus = 1
+memory_mb = 2048
+build_timeout_sec = 600
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 600
+user = "learner"
+network_mode = "no-network"
+
+[verifier]
+timeout_sec = 120
+network_mode = "no-network"
+environment_mode = "separate"
+
+[verifier.environment]
+network_mode = "no-network"
+cpus = 1
+memory_mb = 2048
+
+[[artifacts]]
+source = "/workspace/src/peft"
+exclude = [
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+]
+
+[[artifacts]]
+source = "/workspace/examples/pvera"
+exclude = [
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+]

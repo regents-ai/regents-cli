@@ -183,7 +183,7 @@ def result(run_id: str, as_json: bool) -> None:
         campaign=inputs.campaign,
         baseline_receipts=artifacts.episode_receipts(run_id, ExperimentVariant.BASELINE),
         candidate_receipts=artifacts.episode_receipts(run_id, ExperimentVariant.CANDIDATE),
-        climb=inputs.source.climb.metadata,
+        climb=inputs.source.climb,
         baseline_skill=None,
         candidate_skill=inputs.candidate_skill.artifact,
         verification=verification,

@@ -31,6 +31,7 @@ from regents_cli.techtree.models.campaign import (
     ProgramRef,
     PublicContext,
     ScoringSpec,
+    check_images,
 )
 
 
@@ -41,7 +42,7 @@ class ExperimentVariant(StrEnum):
     CANDIDATE = "candidate"
 
 
-class ExperimentConfigurationV2(ProtocolModel):
+class ExperimentConfigurationV3(ProtocolModel):
     """The part of a manifest that is compared: the Campaign's science with the choices made."""
 
     taskset: CampaignTaskset
@@ -56,17 +57,25 @@ class ExperimentConfigurationV2(ProtocolModel):
     data_policy_digest: Digest
     outcome_contract_digest: Digest | None
 
+    @model_validator(mode="after")
+    def _check_images(self) -> Self:
+        subject = self.agents.get(SUBJECT_AGENT)
+        if subject is None:
+            raise ValueError("an experiment configuration defines a subject agent")
+        check_images(self.environment, subject.runtime, self.taskset)
+        return self
 
-class ExperimentManifestV2(ProtocolModel):
+
+class ExperimentManifestV3(ProtocolModel):
     """One fully resolved variant derived from a Campaign."""
 
-    schema_version: Literal["techtree.experiment.v2"]
+    schema_version: Literal["techtree.experiment.v3"]
     id: NonEmptyString
     campaign_spec_digest: Digest
     program_ref: ProgramRef | None
     public_context: PublicContext | None
     variant: ExperimentVariant
-    configuration: ExperimentConfigurationV2
+    configuration: ExperimentConfigurationV3
     configuration_digest: Digest
     created_at: UtcDateTime
 

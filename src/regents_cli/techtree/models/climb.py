@@ -12,7 +12,7 @@ from pydantic import Field, model_validator
 
 from regents_cli.techtree.errors import PolicyError
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel, UtcDateTime
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.validation import TasksetValidationReceipt
@@ -80,12 +80,18 @@ class ClimbMetadata(ProtocolModel):
 
 
 class ClimbManifest(ProtocolModel):
-    """A public invitation to run one Campaign."""
+    """A public invitation to run one Campaign.
 
-    schema_version: Literal["techtree.climb.v1alpha1"]
+    A Climb may name a held-out Campaign: tasks kept apart from the ones every round runs. It is
+    run once, on the winning Skill against no Skill, and reported beside the result; it never
+    decides the winner.
+    """
+
+    schema_version: Literal["techtree.climb.v1alpha2"]
     kind: Literal["Climb"]
     metadata: ClimbMetadata
     campaign_spec_digest: Digest
+    held_out_campaign_spec_digest: Digest | None
     candidate_policy: CandidatePolicy
     publication: PublicationPolicy
     leaderboard: LeaderboardPolicy
@@ -95,6 +101,23 @@ class ClimbManifest(ProtocolModel):
         if self.publication.proof_grade == "development_only" and self.leaderboard.enabled:
             raise ValueError("a development_only Climb cannot enable a leaderboard")
         return self
+
+    @property
+    def campaign_digests(self) -> tuple[Digest, ...]:
+        """Every Campaign the Climb names: the one every round runs, then the held-out one."""
+        if self.held_out_campaign_spec_digest is None:
+            return (self.campaign_spec_digest,)
+        return (self.campaign_spec_digest, self.held_out_campaign_spec_digest)
+
+    @model_validator(mode="after")
+    def _check_held_out_is_another_campaign(self) -> Self:
+        if self.held_out_campaign_spec_digest == self.campaign_spec_digest:
+            raise ValueError("the held-out Campaign must be a different Campaign")
+        return self
+
+
+#: Which of a Climb's Campaigns a resolved graph carries.
+CampaignRole = Literal["main", "held_out"]
 
 
 def check_climb_policy_consistency(climb: ClimbManifest, data_policy: DataPolicy) -> None:
@@ -156,11 +179,12 @@ def check_climb_policy_consistency(climb: ClimbManifest, data_policy: DataPolicy
 
 
 class ResolvedClimb(ProtocolModel):
-    """A Climb with every object it points at, loaded and cross-checked."""
+    """A Climb with one of its Campaigns and every object that Campaign points at, loaded and
+    cross-checked."""
 
     climb: ClimbManifest
     climb_digest: Digest
-    campaign: CampaignSpecV2
+    campaign: CampaignSpecV3
     campaign_digest: Digest
     data_policy: DataPolicy
     data_policy_digest: Digest
@@ -169,11 +193,18 @@ class ResolvedClimb(ProtocolModel):
     execution_plan: ResolvedExecutionPlan
     execution_plan_digest: Digest
 
+    @property
+    def campaign_role(self) -> CampaignRole:
+        """Whether the resolved Campaign is the one every round runs, or the held-out one."""
+        return "main" if self.campaign_digest == self.climb.campaign_spec_digest else "held_out"
+
     @model_validator(mode="after")
     def _check_graph(self) -> Self:
         """Reject a graph whose edges do not point where its objects say."""
-        if self.climb.campaign_spec_digest != self.campaign_digest:
-            raise ValueError("the Climb references a different Campaign than the one resolved")
+        if self.campaign_digest not in self.climb.campaign_digests:
+            raise ValueError(
+                "the Campaign resolved is neither the Climb's main nor its held-out Campaign"
+            )
         if self.campaign.data_policy_digest != self.data_policy_digest:
             raise ValueError("the Campaign references a different DataPolicy than the one resolved")
         if self.campaign.taskset.validation_receipt_digest != self.publisher_validation_digest:

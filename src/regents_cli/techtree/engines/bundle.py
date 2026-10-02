@@ -25,7 +25,7 @@ from regents_cli.techtree.models.base import Digest, JsonValue
 from regents_cli.techtree.models.engine import EngineDescriptor
 
 #: Every engine this build ships, by resource directory: one per Climb, each pinned whole.
-SHIPPED_ENGINES: Final[tuple[str, ...]] = ("default", "frontier-cs")
+SHIPPED_ENGINES: Final[tuple[str, ...]] = ("default", "frontier-cs", "tasksmith")
 DESCRIPTOR_FILENAME: Final = "engine.json"
 #: Written by the installer when an installation is complete; never part of the digest.
 INSTALLATION_FILENAME: Final = "installed.json"

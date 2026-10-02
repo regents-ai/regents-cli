@@ -58,14 +58,19 @@ class StarterSkill:
 
 #: Keyed by Climb reference, one per Climb the catalog ships.
 STARTER_SKILLS: Final[dict[str, StarterSkill]] = {
-    "hello-world-climb@1": StarterSkill(
+    "hello-world-climb@2": StarterSkill(
         name="hello-world-starter-v1",
         candidate_label="hello-world-v1",
         purpose="intentionally incomplete introductory Skill",
     ),
-    "frontier-cs-open-ended-climb@1": StarterSkill(
+    "frontier-cs-open-ended-climb@2": StarterSkill(
         name="frontier-cs-starter-v4",
         candidate_label="frontier-cs-v4",
+        purpose="a plain first approach to improve on",
+    ),
+    "tasksmith-climb@1": StarterSkill(
+        name="tasksmith-starter-v1",
+        candidate_label="tasksmith-v1",
         purpose="a plain first approach to improve on",
     ),
 }

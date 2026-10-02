@@ -2,10 +2,10 @@
 
 The traces say what the runtime did, the resolved configuration says what the engine
 understood it was asked for, and the daemon's answer says which image content was really on
-this machine. They are required to agree; a disagreement is exactly the drift a controlled
-comparison exists to detect, so it is a refusal rather than a weaker result. Mounted skill
-digests are read back from the mount directory names, which Techtree names after the skill's
-root digest.
+this machine, for every task's agent image and grader image. They are required to agree; a
+disagreement is exactly the drift a controlled comparison exists to detect, so it is a refusal
+rather than a weaker result. Mounted skill digests are read back from the mount directory names,
+which Techtree names after the skill's root digest.
 """
 
 from __future__ import annotations
@@ -18,11 +18,17 @@ from typing import Any, Final
 from regents_cli.techtree.canonical import digest_object, validate_digest
 from regents_cli.techtree.errors import ValidationError, VerificationError
 from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, ProtocolModel
-from regents_cli.techtree.models.campaign import RuntimeSpec
+from regents_cli.techtree.models.campaign import (
+    CampaignImageRuntime,
+    CampaignTaskset,
+    PinnedImage,
+    RuntimeSpec,
+    pinned_task_images,
+)
 from regents_cli.techtree.verifiers.models import (
+    ImageResolution,
     NormalizedEpisode,
     NormalizedTrace,
-    SubjectImageResolution,
 )
 
 OBSERVED_CONFIGURATION_MISMATCH: Final = "observed_configuration_mismatch"
@@ -30,6 +36,22 @@ OBSERVED_CONFIGURATION_MISMATCH: Final = "observed_configuration_mismatch"
 #: The directory-name spelling of a digest, which is how a mounted skill's content address
 #: survives into a filesystem path.
 _DIGEST_DIRECTORY_PREFIX: Final = "sha256-"
+
+
+class ObservedImage(ProtocolModel):
+    """One image that ran: the reference asked for, the content held, the platform's bytes."""
+
+    image: NonEmptyString
+    index_digest: Digest
+    platform_digest: Digest
+
+
+class ObservedTaskImages(ProtocolModel):
+    """The images one task ran on; no grader when it was graded in the agent's own box."""
+
+    task_hash: Digest
+    agent: ObservedImage
+    grader: ObservedImage | None
 
 
 class ObservedSubjectConfiguration(ProtocolModel):
@@ -42,10 +64,8 @@ class ObservedSubjectConfiguration(ProtocolModel):
     use_bundled_skill: bool
     skill_root_digests: list[Digest]
     runtime_kind: NonEmptyString
-    runtime_image: NonEmptyString
-    runtime_image_index_digest: Digest
     runtime_platform: NonEmptyString
-    runtime_image_platform_digest: Digest
+    images: list[ObservedTaskImages]
     tool_inventory_digest: Digest
     reward_contract_digest: Digest
     verifiers_version: NonEmptyString
@@ -70,10 +90,15 @@ def observed_from_episodes(
     episodes: Sequence[NormalizedEpisode],
     *,
     resolved_config: Mapping[str, Any],
-    image_resolution: SubjectImageResolution,
+    image_resolution: ImageResolution,
     runtime: RuntimeSpec,
+    taskset: CampaignTaskset,
+    seat: str,
 ) -> ObservedSubjectConfiguration:
-    """Fingerprint one variant, requiring every episode to agree."""
+    """Fingerprint one variant, requiring every episode to agree.
+
+    `seat` is the engine's name for the subject's seat in the Campaign's environment.
+    """
     traces = [trace for episode in episodes for trace in episode.traces]
     if not traces:
         raise VerificationError(
@@ -84,7 +109,7 @@ def observed_from_episodes(
         )
     reference = traces[0]
     _require_no_drift(traces)
-    mounted = _mounted_skill_digests(resolved_config)
+    mounted = _mounted_skill_digests(resolved_config, seat)
     declared = [validate_digest(value) for value in reference.skill_root_digests]
     if mounted != declared:
         raise VerificationError(
@@ -93,8 +118,8 @@ def observed_from_episodes(
             code=OBSERVED_CONFIGURATION_MISMATCH,
             details={"mounted": mounted, "recorded": declared},
         )
-    _require_config_agrees_with_traces(reference, resolved_config)
-    platform_digest = _resolved_platform_digest(reference, image_resolution, runtime)
+    _require_config_agrees_with_traces(reference, resolved_config, runtime, seat)
+    images = _observed_images(episodes, image_resolution, runtime, taskset)
     return ObservedSubjectConfiguration(
         model_id=reference.model_id,
         sampling_digest=digest_object(reference.sampling),
@@ -103,10 +128,8 @@ def observed_from_episodes(
         use_bundled_skill=reference.use_bundled_skill,
         skill_root_digests=mounted,
         runtime_kind=reference.runtime.kind,
-        runtime_image=reference.runtime.image,
-        runtime_image_index_digest=image_resolution.index_digest,
         runtime_platform=image_resolution.platform,
-        runtime_image_platform_digest=platform_digest,
+        images=images,
         tool_inventory_digest=digest_object(
             [
                 {
@@ -137,8 +160,6 @@ def _require_no_drift(traces: Sequence[NormalizedTrace]) -> None:
         ("bundled-skill setting", {trace.use_bundled_skill for trace in traces}),
         ("sampling", {digest_object(trace.sampling) for trace in traces}),
         ("runtime kind", {trace.runtime.kind for trace in traces}),
-        ("runtime image", {trace.runtime.image for trace in traces}),
-        ("runtime image digest", {trace.runtime.image_index_digest for trace in traces}),
         ("skill list", {tuple(trace.skill_root_digests) for trace in traces}),
         (
             "tool inventory",
@@ -166,19 +187,22 @@ def _require_no_drift(traces: Sequence[NormalizedTrace]) -> None:
 
 
 def _require_config_agrees_with_traces(
-    trace: NormalizedTrace, resolved_config: Mapping[str, Any]
+    trace: NormalizedTrace, resolved_config: Mapping[str, Any], runtime: RuntimeSpec, seat: str
 ) -> None:
-    subject = _subject_of(resolved_config)
+    subject = _subject_of(resolved_config, seat)
     harness = _table(subject, "harness")
-    runtime = _table(subject, "runtime")
-    for label, resolved, recorded in (
+    resolved_runtime = _table(subject, "runtime")
+    pairs = [
         ("model", resolved_config.get("model"), trace.model_id),
         ("harness", harness.get("id"), trace.harness_id),
         ("harness version", harness.get("version"), trace.harness_version),
-        ("runtime kind", runtime.get("type"), trace.runtime.kind),
-        ("runtime image", runtime.get("image"), trace.runtime.image),
+        ("runtime kind", resolved_runtime.get("type"), trace.runtime.kind),
         ("bundled-skill setting", harness.get("use_bundled_skill"), trace.use_bundled_skill),
-    ):
+    ]
+    # A task-image run gives the seat no image; each task's own image is checked against its pin.
+    if isinstance(runtime, CampaignImageRuntime):
+        pairs.append(("runtime image", resolved_runtime.get("image"), trace.runtime.image))
+    for label, resolved, recorded in pairs:
         if resolved == recorded:
             continue
         raise VerificationError(
@@ -198,59 +222,109 @@ def _require_config_agrees_with_traces(
         )
 
 
-def _resolved_platform_digest(
-    trace: NormalizedTrace, image_resolution: SubjectImageResolution, runtime: RuntimeSpec
-) -> Digest:
-    """The image digest that ran: the evaluation, the daemon and the Campaign must agree."""
-    if image_resolution.image != trace.runtime.image:
+def _observed_images(
+    episodes: Sequence[NormalizedEpisode],
+    image_resolution: ImageResolution,
+    runtime: RuntimeSpec,
+    taskset: CampaignTaskset,
+) -> list[ObservedTaskImages]:
+    """Each task's images as they ran: the evaluation, the daemon and the Campaign must agree."""
+    pins = {pin.task_hash: pin for pin in pinned_task_images(runtime, taskset)}
+    observed: list[ObservedTaskImages] = []
+    for episode in episodes:
+        pin = pins.get(validate_digest(episode.task_hash))
+        if pin is None:
+            raise VerificationError(
+                "this variant scored a task the Campaign pins no images for",
+                code=OBSERVED_CONFIGURATION_MISMATCH,
+                details={"task_hash": episode.task_hash},
+            )
+        for trace in episode.traces:
+            agent = _observed_image(
+                "agent",
+                trace.runtime.image,
+                trace.runtime.image_index_digest,
+                pin.agent,
+                image_resolution,
+            )
+            grader = None
+            if pin.grader is not None or trace.grader_image is not None:
+                if pin.grader is None or trace.grader_image is None:
+                    raise VerificationError(
+                        "this task was graded somewhere other than the Campaign says",
+                        code=OBSERVED_CONFIGURATION_MISMATCH,
+                        details={
+                            "task_hash": episode.task_hash,
+                            "recorded": str(trace.grader_image),
+                            "pinned": None if pin.grader is None else pin.grader.image,
+                        },
+                    )
+                grader = _observed_image(
+                    "grader",
+                    trace.grader_image,
+                    pin.grader.index_digest,
+                    pin.grader,
+                    image_resolution,
+                )
+            observed.append(
+                ObservedTaskImages(task_hash=episode.task_hash, agent=agent, grader=grader)
+            )
+    return observed
+
+
+def _observed_image(
+    role: str,
+    recorded: str,
+    recorded_index_digest: str,
+    pinned: PinnedImage,
+    image_resolution: ImageResolution,
+) -> ObservedImage:
+    if recorded != pinned.image:
         raise VerificationError(
-            "the image the daemon was asked about is not the image this variant's rollouts ran",
+            f"a rollout ran a different {role} image than its task pins",
             code=OBSERVED_CONFIGURATION_MISMATCH,
-            details={"resolved": image_resolution.image, "recorded": trace.runtime.image},
+            details={"recorded": recorded, "pinned": pinned.image},
         )
-    if image_resolution.index_digest != trace.runtime.image_index_digest:
+    held = image_resolution.index_digest(pinned.image)
+    if held is None or held != recorded_index_digest or held != pinned.index_digest:
         raise VerificationError(
-            "the content the daemon holds for the subject image is not the content this "
-            "variant's rollouts name",
+            f"the content the daemon holds for the {role} image is not the content the "
+            "rollout names and the Campaign pins",
             code=OBSERVED_CONFIGURATION_MISMATCH,
             details={
-                "resolved": image_resolution.index_digest,
-                "recorded": trace.runtime.image_index_digest,
+                "image": pinned.image,
+                "resolved": str(held),
+                "recorded": recorded_index_digest,
+                "pinned": pinned.index_digest,
             },
         )
-    if image_resolution.index_digest != runtime.image_index_digest:
+    platform_digest = pinned.platform_digests.get(image_resolution.platform)
+    if platform_digest is None:
         raise VerificationError(
-            "the content the daemon holds for the subject image is not the content the "
-            "Campaign pinned",
-            code=OBSERVED_CONFIGURATION_MISMATCH,
-            details={
-                "resolved": image_resolution.index_digest,
-                "pinned": runtime.image_index_digest,
-            },
-        )
-    pinned = runtime.image_platform_digests.get(image_resolution.platform)
-    if pinned is None:
-        raise VerificationError(
-            "the daemon served the subject image on a platform the Campaign pins no manifest "
+            f"the daemon served the {role} image on a platform the Campaign pins no manifest "
             "for, so which bytes ran cannot be established",
             code=OBSERVED_CONFIGURATION_MISMATCH,
             details={
                 "platform": image_resolution.platform,
-                "pinned_platforms": _text_detail(runtime.image_platform_digests),
+                "pinned_platforms": _text_detail(pinned.platform_digests),
             },
         )
-    return validate_digest(pinned)
+    return ObservedImage(
+        image=pinned.image,
+        index_digest=pinned.index_digest,
+        platform_digest=validate_digest(platform_digest),
+    )
 
 
-def _subject_of(resolved_config: Mapping[str, Any]) -> Mapping[str, Any]:
+def _subject_of(resolved_config: Mapping[str, Any], seat: str) -> Mapping[str, Any]:
     environment = _table(resolved_config, "env")
-    subject = environment.get("subject")
+    subject = environment.get(seat)
     if not isinstance(subject, Mapping):
         raise VerificationError(
-            "the configuration the engine resolved declares no subject seat, so it does not "
-            "describe an evaluation of a subject",
+            f"the configuration the engine resolved declares no {seat!r} seat for the subject, "
+            "so it does not describe an evaluation of a subject",
             code=OBSERVED_CONFIGURATION_MISMATCH,
-            details={"tables": _text_detail(resolved_config)},
+            details={"seat": seat, "tables": _text_detail(environment)},
         )
     return subject
 
@@ -296,8 +370,8 @@ def _sampling_of(resolved_config: Mapping[str, Any]) -> dict[str, JsonValue]:
     return values
 
 
-def _mounted_skill_digests(resolved_config: Mapping[str, Any]) -> list[Digest]:
-    harness = _table(_subject_of(resolved_config), "harness")
+def _mounted_skill_digests(resolved_config: Mapping[str, Any], seat: str) -> list[Digest]:
+    harness = _table(_subject_of(resolved_config, seat), "harness")
     mounted = harness.get("skills", [])
     if not isinstance(mounted, list):
         raise VerificationError(

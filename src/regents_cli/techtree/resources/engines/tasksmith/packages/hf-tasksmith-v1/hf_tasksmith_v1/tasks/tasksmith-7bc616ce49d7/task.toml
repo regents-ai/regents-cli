@@ -1,0 +1,2996 @@
+schema_version = "1.3"
+
+[task]
+name = "repo2rlenv/tasksmith-7bc616ce49d7"
+
+[metadata.repo2env]
+recipe = "tasksmith"
+recipe_version = "1"
+source_url = "https://github.com/huggingface/diffusers/pull/13921"
+source_head = "43e01410a9229a5704882bf2ef53002914606fd5"
+source_base = "5e7540fc5ce41bcb7729e9b5b8788a0c2bc0442d"
+workspace_strategy = "head_minus_source_patch"
+source_diff_sha256 = "ecd5873ead01149311a3794844c38c507c96aed80be2d16e1b8f837db78abe27"
+acceptance_profile = "practical-generation-v1"
+upstream_test_policy = "retain"
+reward_kinds = [
+    "test_execution",
+]
+quality_status = "exported"
+fail_to_pass_count = 38
+pass_to_pass_count = 2
+bundle_hash = "sha256:26af76c13830eae1525461935131dae4de4d97ab8cf2746f35e0a3a1d39f818f"
+
+[metadata.repo2env.evaluation]
+schema_version = "1"
+status = "verified"
+stage = "complete"
+reason_codes = [
+    "quality_verified",
+]
+detail = "Reviewed controls, semantic probes and blind rollout passed the quality profile."
+checked_at = "2026-09-14T05:14:00.737724Z"
+provenance = "unknown"
+subject_bundle_hash = "sha256:26af76c13830eae1525461935131dae4de4d97ab8cf2746f35e0a3a1d39f818f"
+profile = "practical-generation-v1"
+source_task_path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v6/candidates/7b1eff345c97/candidates/7bc616ce49d7/quality/revisions/r0/tasksmith-7bc616ce49d7"
+source_task_toml_sha256 = "749285c2a14da835d93681e8a7d614fbde2faab52d1fd514b487006047559b2c"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "quality_result"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v6/candidates/7b1eff345c97/candidates/7bc616ce49d7/quality/result.json"
+sha256 = "5c1c941c5024aa9a78c1bbba3b162442d4055ca8819ad4e825a19ace01c5a52f"
+subject_bundle_hash = "sha256:26af76c13830eae1525461935131dae4de4d97ab8cf2746f35e0a3a1d39f818f"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "baseline"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v6/candidates/7b1eff345c97/candidates/7bc616ce49d7/quality/trials/r0-baseline/tsbatch-148ab7690805-7b1eff345c97-q-7bc616ce-r0-baseline/tasksmith-7bc616ce49d7__kirgRoh/result.json"
+sha256 = "0e15f9b193f7e134170c0fb7e4811761ea74f466c431462b494d82b0114dd5d7"
+subject_bundle_hash = "sha256:26af76c13830eae1525461935131dae4de4d97ab8cf2746f35e0a3a1d39f818f"
+harbor_task_checksum = "7051972846d3b7ecb54b69893fdca3912492c011d42e9ec80c5ba31d44cc12de"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "oracle"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v6/candidates/7b1eff345c97/candidates/7bc616ce49d7/quality/trials/r0-oracle/tsbatch-148ab7690805-7b1eff345c97-q-7bc616ce-r0-oracle/tasksmith-7bc616ce49d7__MxkP9TP/result.json"
+sha256 = "21785fa81adb671ece482b341cf0580a4804290ff96c5f0d592052da6da779a4"
+subject_bundle_hash = "sha256:26af76c13830eae1525461935131dae4de4d97ab8cf2746f35e0a3a1d39f818f"
+harbor_task_checksum = "7051972846d3b7ecb54b69893fdca3912492c011d42e9ec80c5ba31d44cc12de"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v6/candidates/7b1eff345c97/candidates/7bc616ce49d7/quality/trials/r0-probe0/tsbatch-148ab7690805-7b1eff345c97-q-7bc616ce-r0-probe0/tasksmith-7bc616ce49d7__9HDFKfi/result.json"
+sha256 = "c60ee3689c16526fcbfc6afbbcef8d42c164df452a54e03588bb491cfbc84f01"
+subject_bundle_hash = "sha256:8810204cd90ba1130a5dad49e0949bc54abae5556d2894a881bd612b18573280"
+harbor_task_checksum = "c5fab25ee62bda20aa6b80d315fdfbea81e121799997ffd9869912a6260c90c4"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v6/candidates/7b1eff345c97/candidates/7bc616ce49d7/quality/trials/r0-probe1/tsbatch-148ab7690805-7b1eff345c97-q-7bc616ce-r0-probe1/tasksmith-7bc616ce49d7__ZyHRAq2/result.json"
+sha256 = "64c96f96f683da5896e0cd13167cb387b10f0858fa0f38badf1b688201994c5b"
+subject_bundle_hash = "sha256:15f4733cf2b41cb50dc98738dd0d0bbe520fd04c1dc146cec80fe4a02d953c80"
+harbor_task_checksum = "d26baada150477f6f58cf5d0aaed6c1fee79fb79237379f920118a2a67d2a08d"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "rollout"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-scale50/batch-v6/candidates/7b1eff345c97/candidates/7bc616ce49d7/quality/trials/r0-rollout/tsbatch-148ab7690805-7b1eff345c97-q-7bc616ce-r0-rollout/tasksmith-7bc616ce49d7__rKButK2/result.json"
+sha256 = "311eaefc600c0cff48f97e5bf194c6909ab7ad3d4ce7dd3c96eaff3ca27e5167"
+subject_bundle_hash = "sha256:26af76c13830eae1525461935131dae4de4d97ab8cf2746f35e0a3a1d39f818f"
+harbor_task_checksum = "7051972846d3b7ecb54b69893fdca3912492c011d42e9ec80c5ba31d44cc12de"
+
+[metadata.repo2env.quality_requirements]
+probe_focus = [
+    "model_behavior",
+]
+
+[environment]
+cpus = 1
+memory_mb = 2048
+build_timeout_sec = 600
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 600
+user = "learner"
+network_mode = "no-network"
+
+[verifier]
+timeout_sec = 420
+network_mode = "no-network"
+environment_mode = "separate"
+
+[verifier.environment]
+network_mode = "no-network"
+cpus = 1
+memory_mb = 2048
+
+[[artifacts]]
+source = "/workspace/src/diffusers/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/callbacks.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/commands/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/commands/custom_blocks.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/commands/diffusers_cli.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/commands/env.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/commands/fp16_safetensors.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/configuration_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/dependency_versions_check.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/dependency_versions_table.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/experimental/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/experimental/rl/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/experimental/rl/value_guided_sampling.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/adaptive_projected_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/adaptive_projected_guidance_mix.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/auto_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/classifier_free_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/classifier_free_zero_star_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/frequency_decoupled_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/guider_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/magnitude_aware_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/perturbed_attention_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/skip_layer_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/smoothed_energy_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/guiders/tangential_classifier_free_guidance.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/_common.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/_helpers.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/context_parallel.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/faster_cache.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/first_block_cache.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/group_offloading.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/hooks.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/layer_skip.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/layerwise_casting.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/mag_cache.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/pyramid_attention_broadcast.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/smoothed_energy_guidance_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/taylorseer_cache.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/text_kv_cache.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/hooks/utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/image_processor.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/ip_adapter.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/lora_base.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/lora_conversion_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/lora_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/peft.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/single_file.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/single_file_model.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/single_file_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/textual_inversion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/transformer_flux.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/transformer_sd3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/unet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/unet_loader_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/loaders/utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/_modeling_parallel.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/activations.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/adapter.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/attention.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/attention_dispatch.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/attention_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/attention_processor.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/auto_model.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_asym_kl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_cosmos3_audio.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_dc.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_allegro.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_cogvideox.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_cosmos.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_flux2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_hunyuan_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_hunyuanimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_hunyuanimage_refiner.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_hunyuanvideo15.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_kvae.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_kvae_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_ltx.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_ltx2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_ltx2_audio.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_magvit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_mochi.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_qwenimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_temporal_decoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_kl_wan.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_longcat_audio_dit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_oobleck.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_rae.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_tiny.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/autoencoder_vidtok.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/consistency_decoder_vae.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/vae.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/autoencoders/vq_model.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/cache_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/condition_embedders/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/condition_embedders/condition_embedder_anima.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_cosmos.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_flux.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_hunyuan.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_qwenimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_sana.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_sd3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_sparsectrl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_union.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_xs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/controlnet_z_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/multicontrolnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/controlnets/multicontrolnet_union.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/downsampling.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/embeddings.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/embeddings_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/lora.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/model_loading_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/modeling_flax_pytorch_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/modeling_flax_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/modeling_outputs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/modeling_pytorch_flax_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/modeling_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/normalization.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/resnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/resnet_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/ace_step_transformer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/auraflow_transformer_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/cogvideox_transformer_3d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/consisid_transformer_3d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/dit_transformer_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/dual_transformer_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/hunyuan_transformer_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/latte_transformer_3d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/lumina_nextdit2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/pixart_transformer_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/prior_transformer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/sana_transformer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/stable_audio_transformer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/t5_film_transformer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_2d_dreamlite.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_allegro.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_anyflow.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_anyflow_far.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_bria.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_bria_fibo.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_chroma.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_chronoedit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_cogview3plus.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_cogview4.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_cosmos.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_cosmos3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_easyanimate.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_ernie_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_flux.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_flux2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_glm_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_helios.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_hidream_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_hunyuan_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_hunyuan_video15.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_hunyuan_video_framepack.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_hunyuanimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_ideogram4.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_joyimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_kandinsky.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_longcat_audio_dit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_longcat_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_ltx.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_ltx2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_lumina2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_mochi.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_motif_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_nucleusmoe_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_omnigen.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_ovis_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_prx.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_qwenimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_sana_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_sd3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_skyreels_v2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_temporal.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_wan.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_wan_animate.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_wan_vace.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/transformers/transformer_z_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_1d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_1d_blocks.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_2d_blocks.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_2d_blocks_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_2d_condition.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_2d_condition_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_3d_blocks.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_3d_condition.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_dreamlite.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_i2vgen_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_kandinsky3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_motion_model.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_spatio_temporal_condition.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/unet_stable_cascade.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/unets/uvit_2d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/upsampling.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/vae_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/models/vq_model.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/anima/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/anima/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/anima/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/anima/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/anima/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/anima/modular_blocks_anima.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/anima/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/components_manager.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ernie_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ernie_image/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ernie_image/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ernie_image/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ernie_image/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ernie_image/modular_blocks_ernie_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ernie_image/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/inputs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/modular_blocks_flux.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/modular_blocks_flux_kontext.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/inputs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/modular_blocks_flux2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/modular_blocks_flux2_klein.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/modular_blocks_flux2_klein_base.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/flux2/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/modular_blocks_helios.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/modular_blocks_helios_pyramid.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/modular_blocks_helios_pyramid_distilled.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/helios/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/hunyuan_video1_5/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/hunyuan_video1_5/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/hunyuan_video1_5/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/hunyuan_video1_5/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/hunyuan_video1_5/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/hunyuan_video1_5/modular_blocks_hunyuan_video1_5.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/hunyuan_video1_5/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ideogram4/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ideogram4/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ideogram4/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ideogram4/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ideogram4/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ideogram4/modular_blocks_ideogram4.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ideogram4/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ltx/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ltx/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ltx/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ltx/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ltx/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ltx/modular_blocks_ltx.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/ltx/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/mellon_node_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/modular_pipeline_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/inputs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/modular_blocks_qwenimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/modular_blocks_qwenimage_edit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/modular_blocks_qwenimage_edit_plus.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/modular_blocks_qwenimage_layered.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/qwenimage/prompt_templates.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/inputs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/modular_blocks_stable_diffusion_3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_3/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_xl/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_xl/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_xl/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_xl/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_xl/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_xl/modular_blocks_stable_diffusion_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/stable_diffusion_xl/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/modular_blocks_wan.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/modular_blocks_wan22.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/modular_blocks_wan22_i2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/modular_blocks_wan_i2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/wan/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/z_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/z_image/before_denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/z_image/decoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/z_image/denoise.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/z_image/encoders.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/z_image/modular_blocks_z_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/modular_pipelines/z_image/modular_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/optimization.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ace_step/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ace_step/modeling_ace_step.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ace_step/pipeline_ace_step.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/allegro/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/allegro/pipeline_allegro.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/allegro/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/pipeline_animatediff.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/pipeline_animatediff_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/pipeline_animatediff_sdxl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/pipeline_animatediff_sparsectrl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/pipeline_animatediff_video2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/pipeline_animatediff_video2video_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/animatediff/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/anyflow/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/anyflow/pipeline_anyflow.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/anyflow/pipeline_anyflow_far.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/anyflow/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/audioldm2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/audioldm2/modeling_audioldm2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/audioldm2/pipeline_audioldm2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/aura_flow/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/aura_flow/pipeline_aura_flow.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/auto_pipeline.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/bria/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/bria/pipeline_bria.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/bria/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/bria_fibo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/bria_fibo/pipeline_bria_fibo.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/bria_fibo/pipeline_bria_fibo_edit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/bria_fibo/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chroma/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chroma/pipeline_chroma.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chroma/pipeline_chroma_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chroma/pipeline_chroma_inpainting.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chroma/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chronoedit/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chronoedit/pipeline_chronoedit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/chronoedit/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogvideo/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogvideo/pipeline_cogvideox.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogvideo/pipeline_cogvideox_fun_control.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogvideo/pipeline_cogvideox_image2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogvideo/pipeline_cogvideox_video2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogvideo/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogview3/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogview3/pipeline_cogview3plus.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogview3/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogview4/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogview4/pipeline_cogview4.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogview4/pipeline_cogview4_control.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cogview4/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/consisid/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/consisid/consisid_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/consisid/pipeline_consisid.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/consisid/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/consistency_models/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/consistency_models/pipeline_consistency_models.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/multicontrolnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_blip_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_inpaint_sd_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_sd_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_sd_xl_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_union_inpaint_sd_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_union_sd_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_controlnet_union_sd_xl_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet/pipeline_flax_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet_hunyuandit/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet_hunyuandit/pipeline_hunyuandit_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet_sd3/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet_sd3/pipeline_stable_diffusion_3_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/controlnet_sd3/pipeline_stable_diffusion_3_controlnet_inpainting.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_cosmos2_5_predict.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_cosmos2_5_transfer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_cosmos2_text2image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_cosmos2_video2world.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_cosmos3_omni.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_cosmos_text2world.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_cosmos_video2world.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/cosmos/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ddim/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ddim/pipeline_ddim.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ddpm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ddpm/pipeline_ddpm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/pipeline_if.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/pipeline_if_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/pipeline_if_img2img_superresolution.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/pipeline_if_inpainting.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/pipeline_if_inpainting_superresolution.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/pipeline_if_superresolution.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/safety_checker.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/timesteps.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deepfloyd_if/watermark.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/alt_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/alt_diffusion/modeling_roberta_series.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/alt_diffusion/pipeline_alt_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/alt_diffusion/pipeline_alt_diffusion_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/alt_diffusion/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/amused/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/amused/pipeline_amused.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/amused/pipeline_amused_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/amused/pipeline_amused_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/audio_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/audio_diffusion/mel.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/audio_diffusion/pipeline_audio_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/audioldm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/audioldm/pipeline_audioldm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/blip_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/blip_diffusion/blip_image_processing.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/blip_diffusion/modeling_blip2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/blip_diffusion/modeling_ctx_clip.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/blip_diffusion/pipeline_blip_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/controlnet_xs/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/controlnet_xs/pipeline_controlnet_xs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/controlnet_xs/pipeline_controlnet_xs_sd_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/dance_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/dance_diffusion/pipeline_dance_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/i2vgen_xl/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/i2vgen_xl/pipeline_i2vgen_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/latent_diffusion_uncond/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/latent_diffusion_uncond/pipeline_latent_diffusion_uncond.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/musicldm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/musicldm/pipeline_musicldm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/paint_by_example/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/paint_by_example/image_encoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/paint_by_example/pipeline_paint_by_example.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/pia/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/pia/pipeline_pia.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/pndm/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/pndm/pipeline_pndm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/repaint/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/repaint/pipeline_repaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/score_sde_ve/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/score_sde_ve/pipeline_score_sde_ve.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/semantic_stable_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/semantic_stable_diffusion/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/semantic_stable_diffusion/pipeline_semantic_stable_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/spectrogram_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/spectrogram_diffusion/continuous_encoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/spectrogram_diffusion/midi_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/spectrogram_diffusion/notes_encoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/spectrogram_diffusion/pipeline_spectrogram_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_attend_and_excite/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_attend_and_excite/pipeline_stable_diffusion_attend_and_excite.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_diffedit/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_diffedit/pipeline_stable_diffusion_diffedit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_gligen/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_gligen/pipeline_stable_diffusion_gligen.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_gligen/pipeline_stable_diffusion_gligen_text_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_ldm3d/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_ldm3d/pipeline_stable_diffusion_ldm3d.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_panorama/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_panorama/pipeline_stable_diffusion_panorama.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_safe/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_safe/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_safe/pipeline_stable_diffusion_safe.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_safe/safety_checker.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_sag/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_sag/pipeline_stable_diffusion_sag.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_variants/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_variants/pipeline_cycle_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_variants/pipeline_onnx_stable_diffusion_inpaint_legacy.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_variants/pipeline_stable_diffusion_inpaint_legacy.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_variants/pipeline_stable_diffusion_model_editing.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_variants/pipeline_stable_diffusion_paradigms.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stable_diffusion_variants/pipeline_stable_diffusion_pix2pix_zero.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stochastic_karras_ve/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/stochastic_karras_ve/pipeline_stochastic_karras_ve.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/text_to_video_synthesis/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/text_to_video_synthesis/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/text_to_video_synthesis/pipeline_text_to_video_synth.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/text_to_video_synthesis/pipeline_text_to_video_synth_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/text_to_video_synthesis/pipeline_text_to_video_zero.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/text_to_video_synthesis/pipeline_text_to_video_zero_sdxl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unclip/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unclip/pipeline_unclip.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unclip/pipeline_unclip_image_variation.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unclip/text_proj.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unidiffuser/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unidiffuser/modeling_text_decoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unidiffuser/modeling_uvit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/unidiffuser/pipeline_unidiffuser.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/versatile_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/versatile_diffusion/modeling_text_unet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/versatile_diffusion/pipeline_versatile_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/versatile_diffusion/pipeline_versatile_diffusion_dual_guided.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/versatile_diffusion/pipeline_versatile_diffusion_image_variation.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/versatile_diffusion/pipeline_versatile_diffusion_text_to_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/vq_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/vq_diffusion/pipeline_vq_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/modeling_paella_vq_model.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/modeling_wuerstchen_common.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/modeling_wuerstchen_diffnext.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/modeling_wuerstchen_prior.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/pipeline_wuerstchen.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/pipeline_wuerstchen_combined.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/deprecated/wuerstchen/pipeline_wuerstchen_prior.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/dit/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/dit/pipeline_dit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/dreamlite/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/dreamlite/pipeline_dreamlite.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/dreamlite/pipeline_dreamlite_mobile.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/dreamlite/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/easyanimate/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/easyanimate/pipeline_easyanimate.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/easyanimate/pipeline_easyanimate_control.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/easyanimate/pipeline_easyanimate_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/easyanimate/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ernie_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ernie_image/pipeline_ernie_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ernie_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/modeling_flux.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_control.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_control_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_control_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_controlnet_image_to_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_controlnet_inpainting.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_fill.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_kontext.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_kontext_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_flux_prior_redux.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/image_processor.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/pipeline_flux2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/pipeline_flux2_klein.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/pipeline_flux2_klein_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/pipeline_flux2_klein_kv.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/flux2/system_messages.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/free_init_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/free_noise_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/glm_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/glm_image/pipeline_glm_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/glm_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/helios/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/helios/pipeline_helios.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/helios/pipeline_helios_pyramid.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/helios/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hidream_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hidream_image/pipeline_hidream_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hidream_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_image/pipeline_hunyuanimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_image/pipeline_hunyuanimage_refiner.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_skyreels_image2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_video_framepack.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video/pipeline_hunyuan_video_image2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video1_5/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video1_5/image_processor.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video1_5/pipeline_hunyuan_video1_5_image2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuan_video1_5/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuandit/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/hunyuandit/pipeline_hunyuandit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ideogram4/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ideogram4/pipeline_ideogram4.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ideogram4/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ideogram4/prompt_enhancer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/joyimage/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/joyimage/image_processor.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/joyimage/pipeline_joyimage_edit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/joyimage/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky/pipeline_kandinsky.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky/pipeline_kandinsky_combined.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky/pipeline_kandinsky_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky/pipeline_kandinsky_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky/pipeline_kandinsky_prior.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky/text_encoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2_combined.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2_controlnet_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2_inpainting.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2_prior.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky2_2/pipeline_kandinsky2_2_prior_emb2emb.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky3/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky3/convert_kandinsky3_unet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky3/pipeline_kandinsky3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky3/pipeline_kandinsky3_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky5/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky5/pipeline_kandinsky.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky5/pipeline_kandinsky_i2i.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky5/pipeline_kandinsky_i2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky5/pipeline_kandinsky_t2i.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kandinsky5/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kolors/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kolors/pipeline_kolors.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kolors/pipeline_kolors_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kolors/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kolors/text_encoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/kolors/tokenizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latent_consistency_models/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latent_consistency_models/pipeline_latent_consistency_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latent_consistency_models/pipeline_latent_consistency_text2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latent_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latent_diffusion/pipeline_latent_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latent_diffusion/pipeline_latent_diffusion_superresolution.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latte/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/latte/pipeline_latte.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ledits_pp/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ledits_pp/pipeline_leditspp_stable_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ledits_pp/pipeline_leditspp_stable_diffusion_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ledits_pp/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/llada2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/llada2/pipeline_llada2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/longcat_audio_dit/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/longcat_audio_dit/pipeline_longcat_audio_dit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/longcat_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/longcat_image/pipeline_longcat_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/longcat_image/pipeline_longcat_image_edit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/longcat_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/longcat_image/system_messages.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/modeling_latent_upsampler.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/pipeline_ltx.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/pipeline_ltx_condition.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/pipeline_ltx_i2v_long_multi_prompt.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/pipeline_ltx_image2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/pipeline_ltx_latent_upsample.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/connectors.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/export_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/image_processor.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/latent_upsampler.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/pipeline_ltx2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/pipeline_ltx2_condition.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/pipeline_ltx2_hdr_lora.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/pipeline_ltx2_ic_lora.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/pipeline_ltx2_image2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/pipeline_ltx2_latent_upsample.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ltx2/vocoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/lucy/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/lucy/pipeline_lucy_edit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/lucy/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/lumina/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/lumina/pipeline_lumina.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/lumina2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/lumina2/pipeline_lumina2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/marigold/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/marigold/marigold_image_processing.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/marigold/pipeline_marigold_depth.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/marigold/pipeline_marigold_intrinsics.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/marigold/pipeline_marigold_normals.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/mochi/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/mochi/pipeline_mochi.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/mochi/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/motif_video/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/motif_video/pipeline_motif_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/motif_video/pipeline_motif_video_image2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/motif_video/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/nucleusmoe_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/nucleusmoe_image/pipeline_nucleusmoe_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/nucleusmoe_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/omnigen/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/omnigen/pipeline_omnigen.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/omnigen/processor_omnigen.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/onnx_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ovis_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ovis_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/ovis_image/pipeline_ovis_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pag_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_controlnet_sd.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_controlnet_sd_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_controlnet_sd_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_controlnet_sd_xl_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_hunyuandit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_kolors.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_pixart_sigma.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sana.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_3_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_animatediff.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_xl_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pag/pipeline_pag_sd_xl_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pipeline_flax_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pipeline_loading_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pipeline_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pixart_alpha/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pixart_alpha/pipeline_pixart_alpha.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/pixart_alpha/pipeline_pixart_sigma.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/prx/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/prx/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/prx/pipeline_prx.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/prx/pipeline_prx_pixel.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_controlnet_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_edit.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_edit_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_edit_plus.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/qwenimage/pipeline_qwenimage_layered.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana/pipeline_sana.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana/pipeline_sana_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana/pipeline_sana_sprint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana/pipeline_sana_sprint_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana_video/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana_video/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana_video/pipeline_sana_video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/sana_video/pipeline_sana_video_i2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/shap_e/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/shap_e/camera.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/shap_e/pipeline_shap_e.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/shap_e/pipeline_shap_e_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/shap_e/renderer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/skyreels_v2/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/skyreels_v2/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/skyreels_v2/pipeline_skyreels_v2.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/skyreels_v2/pipeline_skyreels_v2_diffusion_forcing.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/skyreels_v2/pipeline_skyreels_v2_diffusion_forcing_i2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/skyreels_v2/pipeline_skyreels_v2_diffusion_forcing_v2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/skyreels_v2/pipeline_skyreels_v2_i2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_audio/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_audio/modeling_stable_audio.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_audio/pipeline_stable_audio.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_cascade/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_cascade/pipeline_stable_cascade.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_cascade/pipeline_stable_cascade_combined.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_cascade/pipeline_stable_cascade_prior.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/clip_image_project_model.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/convert_from_ckpt.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_flax_stable_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_flax_stable_diffusion_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_flax_stable_diffusion_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_onnx_stable_diffusion_upscale.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_depth2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_image_variation.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_instruct_pix2pix.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_latent_upscale.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_upscale.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_unclip.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/pipeline_stable_unclip_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/safety_checker.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/safety_checker_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion/stable_unclip_image_normalizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_3/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_3/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/pipeline_flax_stable_diffusion_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/pipeline_stable_diffusion_xl_instruct_pix2pix.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_diffusion_xl/watermark.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_video_diffusion/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/stable_video_diffusion/pipeline_stable_video_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/t2i_adapter/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/t2i_adapter/pipeline_stable_diffusion_adapter.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/t2i_adapter/pipeline_stable_diffusion_xl_adapter.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/transformers_loading_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/visualcloze/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/visualcloze/pipeline_visualcloze_combined.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/visualcloze/pipeline_visualcloze_generation.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/visualcloze/visualcloze_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/image_processor.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/pipeline_wan.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/pipeline_wan_animate.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/pipeline_wan_i2v.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/pipeline_wan_vace.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/wan/pipeline_wan_video2video.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/pipeline_output.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/pipeline_z_image.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/pipeline_z_image_controlnet.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/pipeline_z_image_controlnet_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/pipeline_z_image_img2img.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/pipeline_z_image_inpaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/pipelines/z_image/pipeline_z_image_omni.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/auto.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/autoround/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/autoround/autoround_quantizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/base.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/bitsandbytes/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/bitsandbytes/bnb_quantizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/bitsandbytes/utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/gguf/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/gguf/gguf_quantizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/gguf/utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/modelopt/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/modelopt/modelopt_quantizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/pipe_quant_config.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/quantization_config.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/quanto/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/quanto/quanto_quantizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/quanto/utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/torchao/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/quantizers/torchao/torchao_quantizer.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/deprecated/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/deprecated/scheduling_karras_ve.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/deprecated/scheduling_sde_vp.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_amused.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_block_refinement.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_consistency_decoder.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_consistency_models.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_cosine_dpmsolver_multistep.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddim.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddim_cogvideox.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddim_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddim_inverse.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddim_parallel.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddpm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddpm_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddpm_parallel.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ddpm_wuerstchen.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_deis_multistep.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_dpm_cogvideox.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_dpmsolver_multistep.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_dpmsolver_multistep_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_dpmsolver_multistep_inverse.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_dpmsolver_sde.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_dpmsolver_singlestep.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_edm_dpmsolver_multistep.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_edm_euler.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_euler_ancestral_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_euler_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_euler_discrete_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_flow_map_euler_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_flow_match_heun_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_flow_match_lcm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_helios.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_helios_dmd.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_heun_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ipndm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_k_dpm_2_ancestral_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_k_dpm_2_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_karras_ve_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_lcm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_lms_discrete.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_lms_discrete_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_ltx_euler_ancestral_rf.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_pndm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_pndm_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_repaint.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_sasolver.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_scm.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_sde_ve.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_sde_ve_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_tcd.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_unclip.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_unipc_multistep.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_utils_flax.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/schedulers/scheduling_vq_diffusion.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/training_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/__init__.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/accelerate_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/constants.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/deprecation_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/distributed_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/doc_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_auto_round_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_bitsandbytes_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_flax_and_transformers_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_flax_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_gguf_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_note_seq_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_nvidia_modelopt_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_onnx_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_optimum_quanto_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_pt_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torch_and_librosa_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torch_and_scipy_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torch_and_torchsde_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torch_and_transformers_and_onnx_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torch_and_transformers_and_opencv_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torch_and_transformers_and_sentencepiece_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torch_and_transformers_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_torchao_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_transformers_and_torch_and_note_seq_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dummy_transformers_flax_objects.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/dynamic_modules_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/export_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/hub_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/import_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/loading_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/logging.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/outputs.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/peft_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/pil_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/remote_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/source_code_parsing_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/state_dict_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/testing_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/torch_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/typing_utils.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/utils/versions.py"
+
+[[artifacts]]
+source = "/workspace/src/diffusers/video_processor.py"

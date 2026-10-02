@@ -18,19 +18,19 @@ from regents_cli.techtree.canonical import (
     sha256_digest_bytes,
     validate_digest,
 )
-from regents_cli.techtree.constants import EPISODE_RECEIPT_V2_SCHEMA_VERSION
+from regents_cli.techtree.constants import EPISODE_RECEIPT_V3_SCHEMA_VERSION
 from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.execution_facts import EpisodeReceiptExecutionFacts
 from regents_cli.techtree.models.base import ArtifactRef, Digest
 from regents_cli.techtree.models.campaign import SUBJECT_AGENT, EvidenceRequirementsV2
 from regents_cli.techtree.models.episode_receipt import (
-    EpisodeReceiptV2,
+    EpisodeReceiptV3,
     EvidenceStatus,
     NamedTraceReceipt,
     ScoreStatus,
     SubjectRuntimeReceipt,
 )
-from regents_cli.techtree.models.experiment import ExperimentManifestV2, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
 from regents_cli.techtree.models.run import RunRequestV2
 from regents_cli.techtree.verifiers.models import (
     NormalizedEpisode,
@@ -60,13 +60,13 @@ def build_episode_receipt(
     *,
     run_request: RunRequestV2,
     variant: VariantName,
-    experiment: ExperimentManifestV2,
+    experiment: ExperimentManifestV3,
     episode: NormalizedEpisode,
     raw_artifacts: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
     primary_reward: str,
     evidence: EvidenceRequirementsV2,
-) -> EpisodeReceiptV2:
+) -> EpisodeReceiptV3:
     """Construct one receipt from one normalized episode and the run's lineage."""
     _require_lineage(
         run_request=run_request,
@@ -84,8 +84,8 @@ def build_episode_receipt(
             details={"episode": episode.task_hash, "trace": trace.task_hash},
         )
     episode_digest = validate_digest(episode.raw_episode_digest)
-    return EpisodeReceiptV2(
-        schema_version=EPISODE_RECEIPT_V2_SCHEMA_VERSION,
+    return EpisodeReceiptV3(
+        schema_version=EPISODE_RECEIPT_V3_SCHEMA_VERSION,
         id=_receipt_id(run_id=run_request.run_id, variant=variant, episode_digest=episode_digest),
         run_id=run_request.run_id,
         campaign_spec_digest=run_request.campaign_spec_digest,
@@ -125,13 +125,13 @@ def build_variant_receipts(
     *,
     run_request: RunRequestV2,
     variant: VariantName,
-    experiment: ExperimentManifestV2,
+    experiment: ExperimentManifestV3,
     result: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
     ordered_task_hashes: Sequence[Digest],
     primary_reward: str,
     evidence: EvidenceRequirementsV2,
-) -> list[EpisodeReceiptV2]:
+) -> list[EpisodeReceiptV3]:
     """Exactly one receipt per committed task, in committed order, joined by task hash.
 
     A variant with an unscored task is refused: a comparison over the tasks that happened to
@@ -167,7 +167,7 @@ def _require_lineage(
     *,
     run_request: RunRequestV2,
     variant: VariantName,
-    experiment: ExperimentManifestV2,
+    experiment: ExperimentManifestV3,
     raw_artifacts: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
 ) -> None:
@@ -291,6 +291,9 @@ def _subject_runtime(trace: NormalizedTrace) -> SubjectRuntimeReceipt:
     return SubjectRuntimeReceipt(
         kind="docker",
         resolved_image_digest=validate_digest(trace.runtime.image_index_digest),
+        grader_image_digest=None
+        if trace.grader_image is None
+        else validate_digest(trace.grader_image.rsplit("@", 1)[1]),
         platform=None,
     )
 
@@ -389,7 +392,7 @@ def _episodes_by_task(
 
 
 def _require_every_task_scored(
-    receipts: Sequence[EpisodeReceiptV2], primary_reward: str, variant: VariantName
+    receipts: Sequence[EpisodeReceiptV3], primary_reward: str, variant: VariantName
 ) -> None:
     unscored = [
         receipt.task_hash for receipt in receipts if receipt.score_status is ScoreStatus.MISSING

@@ -17,13 +17,13 @@ from regents_cli.techtree.doctor.checks import (
     check_live_campaign,
     check_model_credential,
     check_python_version,
-    check_subject_image,
+    check_subject_images,
     check_techtree_home,
     check_uv_cli,
     detect_host_platform,
 )
 from regents_cli.techtree.models.base import NonEmptyString, ProtocolModel
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV2
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV3
 from regents_cli.techtree.paths import TechtreePaths
 
 
@@ -44,7 +44,7 @@ class DoctorService:
         self._paths = paths
 
     def run(
-        self, *, for_evaluation: bool = False, campaign: CampaignSpecV2 | None = None
+        self, *, for_evaluation: bool = False, campaign: CampaignSpecV3 | None = None
     ) -> list[DoctorCheck]:
         """The checks in a fixed order; `for_evaluation` adds the gate in front of a real run."""
         checks = [
@@ -66,7 +66,7 @@ class DoctorService:
         subject = campaign.agents.get(SUBJECT_AGENT)
         if subject is not None:
             checks.append(check_model_credential(subject.model))
-            checks.append(check_subject_image(subject.runtime))
+            checks.append(check_subject_images(campaign))
         return checks
 
     def report(self, checks: list[DoctorCheck]) -> DoctorReport:

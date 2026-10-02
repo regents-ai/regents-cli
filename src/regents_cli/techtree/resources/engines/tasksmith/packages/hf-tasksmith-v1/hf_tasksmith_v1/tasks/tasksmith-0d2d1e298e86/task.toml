@@ -1,0 +1,340 @@
+schema_version = "1.3"
+artifacts = [
+    { source = "/workspace/src/peft/__init__.py" },
+    { source = "/workspace/src/peft/auto.py" },
+    { source = "/workspace/src/peft/config.py" },
+    { source = "/workspace/src/peft/functional.py" },
+    { source = "/workspace/src/peft/helpers.py" },
+    { source = "/workspace/src/peft/import_utils.py" },
+    { source = "/workspace/src/peft/mapping.py" },
+    { source = "/workspace/src/peft/mapping_func.py" },
+    { source = "/workspace/src/peft/mixed_model.py" },
+    { source = "/workspace/src/peft/optimizers/__init__.py" },
+    { source = "/workspace/src/peft/optimizers/lorafa.py" },
+    { source = "/workspace/src/peft/optimizers/loraplus.py" },
+    { source = "/workspace/src/peft/peft_model.py" },
+    { source = "/workspace/src/peft/tuners/__init__.py" },
+    { source = "/workspace/src/peft/tuners/_buffer_dict.py" },
+    { source = "/workspace/src/peft/tuners/adalora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/adalora/bnb.py" },
+    { source = "/workspace/src/peft/tuners/adalora/config.py" },
+    { source = "/workspace/src/peft/tuners/adalora/gptq.py" },
+    { source = "/workspace/src/peft/tuners/adalora/layer.py" },
+    { source = "/workspace/src/peft/tuners/adalora/model.py" },
+    { source = "/workspace/src/peft/tuners/adamss/__init__.py" },
+    { source = "/workspace/src/peft/tuners/adamss/asa_callback.py" },
+    { source = "/workspace/src/peft/tuners/adamss/config.py" },
+    { source = "/workspace/src/peft/tuners/adamss/layer.py" },
+    { source = "/workspace/src/peft/tuners/adamss/model.py" },
+    { source = "/workspace/src/peft/tuners/adamss/utils.py" },
+    { source = "/workspace/src/peft/tuners/adaption_prompt/__init__.py" },
+    { source = "/workspace/src/peft/tuners/adaption_prompt/config.py" },
+    { source = "/workspace/src/peft/tuners/adaption_prompt/layer.py" },
+    { source = "/workspace/src/peft/tuners/adaption_prompt/model.py" },
+    { source = "/workspace/src/peft/tuners/adaption_prompt/utils.py" },
+    { source = "/workspace/src/peft/tuners/beft/__init__.py" },
+    { source = "/workspace/src/peft/tuners/beft/config.py" },
+    { source = "/workspace/src/peft/tuners/beft/layer.py" },
+    { source = "/workspace/src/peft/tuners/beft/model.py" },
+    { source = "/workspace/src/peft/tuners/boft/__init__.py" },
+    { source = "/workspace/src/peft/tuners/boft/config.py" },
+    { source = "/workspace/src/peft/tuners/boft/fbd/__init__.py" },
+    { source = "/workspace/src/peft/tuners/boft/layer.py" },
+    { source = "/workspace/src/peft/tuners/boft/model.py" },
+    { source = "/workspace/src/peft/tuners/c3a/__init__.py" },
+    { source = "/workspace/src/peft/tuners/c3a/config.py" },
+    { source = "/workspace/src/peft/tuners/c3a/layer.py" },
+    { source = "/workspace/src/peft/tuners/c3a/model.py" },
+    { source = "/workspace/src/peft/tuners/c3a/utils.py" },
+    { source = "/workspace/src/peft/tuners/cartridge/__init__.py" },
+    { source = "/workspace/src/peft/tuners/cartridge/config.py" },
+    { source = "/workspace/src/peft/tuners/cartridge/model.py" },
+    { source = "/workspace/src/peft/tuners/cartridge/utils.py" },
+    { source = "/workspace/src/peft/tuners/cpt/__init__.py" },
+    { source = "/workspace/src/peft/tuners/cpt/config.py" },
+    { source = "/workspace/src/peft/tuners/cpt/model.py" },
+    { source = "/workspace/src/peft/tuners/delora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/delora/config.py" },
+    { source = "/workspace/src/peft/tuners/delora/layer.py" },
+    { source = "/workspace/src/peft/tuners/delora/model.py" },
+    { source = "/workspace/src/peft/tuners/fourierft/__init__.py" },
+    { source = "/workspace/src/peft/tuners/fourierft/config.py" },
+    { source = "/workspace/src/peft/tuners/fourierft/layer.py" },
+    { source = "/workspace/src/peft/tuners/fourierft/model.py" },
+    { source = "/workspace/src/peft/tuners/frod/__init__.py" },
+    { source = "/workspace/src/peft/tuners/frod/config.py" },
+    { source = "/workspace/src/peft/tuners/frod/layer.py" },
+    { source = "/workspace/src/peft/tuners/frod/model.py" },
+    { source = "/workspace/src/peft/tuners/gralora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/gralora/config.py" },
+    { source = "/workspace/src/peft/tuners/gralora/layer.py" },
+    { source = "/workspace/src/peft/tuners/gralora/model.py" },
+    { source = "/workspace/src/peft/tuners/hira/__init__.py" },
+    { source = "/workspace/src/peft/tuners/hira/bnb.py" },
+    { source = "/workspace/src/peft/tuners/hira/config.py" },
+    { source = "/workspace/src/peft/tuners/hira/layer.py" },
+    { source = "/workspace/src/peft/tuners/hira/model.py" },
+    { source = "/workspace/src/peft/tuners/hra/__init__.py" },
+    { source = "/workspace/src/peft/tuners/hra/config.py" },
+    { source = "/workspace/src/peft/tuners/hra/layer.py" },
+    { source = "/workspace/src/peft/tuners/hra/model.py" },
+    { source = "/workspace/src/peft/tuners/ia3/__init__.py" },
+    { source = "/workspace/src/peft/tuners/ia3/bnb.py" },
+    { source = "/workspace/src/peft/tuners/ia3/config.py" },
+    { source = "/workspace/src/peft/tuners/ia3/layer.py" },
+    { source = "/workspace/src/peft/tuners/ia3/model.py" },
+    { source = "/workspace/src/peft/tuners/lily/__init__.py" },
+    { source = "/workspace/src/peft/tuners/lily/config.py" },
+    { source = "/workspace/src/peft/tuners/lily/layer.py" },
+    { source = "/workspace/src/peft/tuners/lily/model.py" },
+    { source = "/workspace/src/peft/tuners/ln_tuning/__init__.py" },
+    { source = "/workspace/src/peft/tuners/ln_tuning/config.py" },
+    { source = "/workspace/src/peft/tuners/ln_tuning/layer.py" },
+    { source = "/workspace/src/peft/tuners/ln_tuning/model.py" },
+    { source = "/workspace/src/peft/tuners/loha/__init__.py" },
+    { source = "/workspace/src/peft/tuners/loha/config.py" },
+    { source = "/workspace/src/peft/tuners/loha/layer.py" },
+    { source = "/workspace/src/peft/tuners/loha/model.py" },
+    { source = "/workspace/src/peft/tuners/lokr/__init__.py" },
+    { source = "/workspace/src/peft/tuners/lokr/config.py" },
+    { source = "/workspace/src/peft/tuners/lokr/layer.py" },
+    { source = "/workspace/src/peft/tuners/lokr/model.py" },
+    { source = "/workspace/src/peft/tuners/lora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/lora/aqlm.py" },
+    { source = "/workspace/src/peft/tuners/lora/arrow.py" },
+    { source = "/workspace/src/peft/tuners/lora/awq.py" },
+    { source = "/workspace/src/peft/tuners/lora/bnb.py" },
+    { source = "/workspace/src/peft/tuners/lora/config.py" },
+    { source = "/workspace/src/peft/tuners/lora/conversion.py" },
+    { source = "/workspace/src/peft/tuners/lora/corda.py" },
+    { source = "/workspace/src/peft/tuners/lora/dora.py" },
+    { source = "/workspace/src/peft/tuners/lora/eetq.py" },
+    { source = "/workspace/src/peft/tuners/lora/eva.py" },
+    { source = "/workspace/src/peft/tuners/lora/gptq.py" },
+    { source = "/workspace/src/peft/tuners/lora/hqq.py" },
+    { source = "/workspace/src/peft/tuners/lora/inc.py" },
+    { source = "/workspace/src/peft/tuners/lora/intruders.py" },
+    { source = "/workspace/src/peft/tuners/lora/layer.py" },
+    { source = "/workspace/src/peft/tuners/lora/loraga.py" },
+    { source = "/workspace/src/peft/tuners/lora/model.py" },
+    { source = "/workspace/src/peft/tuners/lora/monteclora.py" },
+    { source = "/workspace/src/peft/tuners/lora/te.py" },
+    { source = "/workspace/src/peft/tuners/lora/torchao.py" },
+    { source = "/workspace/src/peft/tuners/lora/tp_layer.py" },
+    { source = "/workspace/src/peft/tuners/lora/variants.py" },
+    { source = "/workspace/src/peft/tuners/lora/velora.py" },
+    { source = "/workspace/src/peft/tuners/lycoris_utils.py" },
+    { source = "/workspace/src/peft/tuners/miss/__init__.py" },
+    { source = "/workspace/src/peft/tuners/miss/config.py" },
+    { source = "/workspace/src/peft/tuners/miss/layer.py" },
+    { source = "/workspace/src/peft/tuners/miss/model.py" },
+    { source = "/workspace/src/peft/tuners/mixed/__init__.py" },
+    { source = "/workspace/src/peft/tuners/mixed/model.py" },
+    { source = "/workspace/src/peft/tuners/multitask_prompt_tuning/__init__.py" },
+    { source = "/workspace/src/peft/tuners/multitask_prompt_tuning/config.py" },
+    { source = "/workspace/src/peft/tuners/multitask_prompt_tuning/model.py" },
+    { source = "/workspace/src/peft/tuners/oft/__init__.py" },
+    { source = "/workspace/src/peft/tuners/oft/aqlm.py" },
+    { source = "/workspace/src/peft/tuners/oft/awq.py" },
+    { source = "/workspace/src/peft/tuners/oft/bnb.py" },
+    { source = "/workspace/src/peft/tuners/oft/config.py" },
+    { source = "/workspace/src/peft/tuners/oft/eetq.py" },
+    { source = "/workspace/src/peft/tuners/oft/gptq.py" },
+    { source = "/workspace/src/peft/tuners/oft/hqq.py" },
+    { source = "/workspace/src/peft/tuners/oft/inc.py" },
+    { source = "/workspace/src/peft/tuners/oft/layer.py" },
+    { source = "/workspace/src/peft/tuners/oft/model.py" },
+    { source = "/workspace/src/peft/tuners/osf/__init__.py" },
+    { source = "/workspace/src/peft/tuners/osf/config.py" },
+    { source = "/workspace/src/peft/tuners/osf/layer.py" },
+    { source = "/workspace/src/peft/tuners/osf/model.py" },
+    { source = "/workspace/src/peft/tuners/osf/utils.py" },
+    { source = "/workspace/src/peft/tuners/p_tuning/__init__.py" },
+    { source = "/workspace/src/peft/tuners/p_tuning/config.py" },
+    { source = "/workspace/src/peft/tuners/p_tuning/model.py" },
+    { source = "/workspace/src/peft/tuners/peanut/__init__.py" },
+    { source = "/workspace/src/peft/tuners/peanut/config.py" },
+    { source = "/workspace/src/peft/tuners/peanut/layer.py" },
+    { source = "/workspace/src/peft/tuners/peanut/model.py" },
+    { source = "/workspace/src/peft/tuners/poly/__init__.py" },
+    { source = "/workspace/src/peft/tuners/poly/config.py" },
+    { source = "/workspace/src/peft/tuners/poly/layer.py" },
+    { source = "/workspace/src/peft/tuners/poly/model.py" },
+    { source = "/workspace/src/peft/tuners/poly/router.py" },
+    { source = "/workspace/src/peft/tuners/prefix_tuning/__init__.py" },
+    { source = "/workspace/src/peft/tuners/prefix_tuning/config.py" },
+    { source = "/workspace/src/peft/tuners/prefix_tuning/model.py" },
+    { source = "/workspace/src/peft/tuners/prompt_tuning/__init__.py" },
+    { source = "/workspace/src/peft/tuners/prompt_tuning/config.py" },
+    { source = "/workspace/src/peft/tuners/prompt_tuning/model.py" },
+    { source = "/workspace/src/peft/tuners/psoft/__init__.py" },
+    { source = "/workspace/src/peft/tuners/psoft/config.py" },
+    { source = "/workspace/src/peft/tuners/psoft/layer.py" },
+    { source = "/workspace/src/peft/tuners/psoft/model.py" },
+    { source = "/workspace/src/peft/tuners/pvera/__init__.py" },
+    { source = "/workspace/src/peft/tuners/pvera/bnb.py" },
+    { source = "/workspace/src/peft/tuners/pvera/config.py" },
+    { source = "/workspace/src/peft/tuners/pvera/layer.py" },
+    { source = "/workspace/src/peft/tuners/pvera/model.py" },
+    { source = "/workspace/src/peft/tuners/randlora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/randlora/bnb.py" },
+    { source = "/workspace/src/peft/tuners/randlora/config.py" },
+    { source = "/workspace/src/peft/tuners/randlora/layer.py" },
+    { source = "/workspace/src/peft/tuners/randlora/model.py" },
+    { source = "/workspace/src/peft/tuners/road/__init__.py" },
+    { source = "/workspace/src/peft/tuners/road/bnb.py" },
+    { source = "/workspace/src/peft/tuners/road/config.py" },
+    { source = "/workspace/src/peft/tuners/road/layer.py" },
+    { source = "/workspace/src/peft/tuners/road/model.py" },
+    { source = "/workspace/src/peft/tuners/shira/__init__.py" },
+    { source = "/workspace/src/peft/tuners/shira/config.py" },
+    { source = "/workspace/src/peft/tuners/shira/layer.py" },
+    { source = "/workspace/src/peft/tuners/shira/mask_functions.py" },
+    { source = "/workspace/src/peft/tuners/shira/model.py" },
+    { source = "/workspace/src/peft/tuners/tinylora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/tinylora/config.py" },
+    { source = "/workspace/src/peft/tuners/tinylora/layer.py" },
+    { source = "/workspace/src/peft/tuners/tinylora/model.py" },
+    { source = "/workspace/src/peft/tuners/trainable_tokens/__init__.py" },
+    { source = "/workspace/src/peft/tuners/trainable_tokens/config.py" },
+    { source = "/workspace/src/peft/tuners/trainable_tokens/layer.py" },
+    { source = "/workspace/src/peft/tuners/trainable_tokens/model.py" },
+    { source = "/workspace/src/peft/tuners/tuners_utils.py" },
+    { source = "/workspace/src/peft/tuners/vblora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/vblora/config.py" },
+    { source = "/workspace/src/peft/tuners/vblora/layer.py" },
+    { source = "/workspace/src/peft/tuners/vblora/model.py" },
+    { source = "/workspace/src/peft/tuners/vera/__init__.py" },
+    { source = "/workspace/src/peft/tuners/vera/config.py" },
+    { source = "/workspace/src/peft/tuners/vera/layer.py" },
+    { source = "/workspace/src/peft/tuners/vera/model.py" },
+    { source = "/workspace/src/peft/tuners/waveft/__init__.py" },
+    { source = "/workspace/src/peft/tuners/waveft/config.py" },
+    { source = "/workspace/src/peft/tuners/waveft/constants.py" },
+    { source = "/workspace/src/peft/tuners/waveft/layer.py" },
+    { source = "/workspace/src/peft/tuners/waveft/model.py" },
+    { source = "/workspace/src/peft/tuners/waveft/wavelet.py" },
+    { source = "/workspace/src/peft/tuners/waveft/waverec2d.py" },
+    { source = "/workspace/src/peft/tuners/xlora/__init__.py" },
+    { source = "/workspace/src/peft/tuners/xlora/classifier.py" },
+    { source = "/workspace/src/peft/tuners/xlora/config.py" },
+    { source = "/workspace/src/peft/tuners/xlora/layer.py" },
+    { source = "/workspace/src/peft/tuners/xlora/model.py" },
+    { source = "/workspace/src/peft/utils/__init__.py" },
+    { source = "/workspace/src/peft/utils/constants.py" },
+    { source = "/workspace/src/peft/utils/hotswap.py" },
+    { source = "/workspace/src/peft/utils/incremental_pca.py" },
+    { source = "/workspace/src/peft/utils/integrations.py" },
+    { source = "/workspace/src/peft/utils/loftq_utils.py" },
+    { source = "/workspace/src/peft/utils/merge_utils.py" },
+    { source = "/workspace/src/peft/utils/other.py" },
+    { source = "/workspace/src/peft/utils/peft_types.py" },
+    { source = "/workspace/src/peft/utils/quantization_utils.py" },
+    { source = "/workspace/src/peft/utils/save_and_load.py" },
+    { source = "/workspace/src/peft/utils/transformers_weight_conversion.py" },
+    { source = "/workspace/src/peft/utils/warning.py" },
+]
+
+[task]
+name = "repo2rlenv/tasksmith-0d2d1e298e86"
+
+[metadata.repo2env]
+recipe = "tasksmith"
+recipe_version = "1"
+source_url = "https://github.com/huggingface/peft/pull/3350"
+source_head = "09802c1b43fff9b087be42e149d70e5350ff407a"
+source_base = "ddd04c51131aa40bef169c6d777ece9e7a483f59"
+workspace_strategy = "head_minus_source_patch"
+source_diff_sha256 = "1c5b7634391d3b2dda67bcdf3ea523ba19dcc296665c8c225861c7a61767b109"
+acceptance_profile = "practical-generation-v1"
+reward_kinds = [
+    "test_execution",
+]
+quality_status = "exported"
+fail_to_pass_count = 4
+pass_to_pass_count = 1
+bundle_hash = "sha256:3049cc9813052fd21529d84c43525097d64de3379f7a9ab5891092d3e6963b7e"
+
+[metadata.repo2env.evaluation]
+schema_version = "1"
+status = "verified"
+stage = "complete"
+reason_codes = [
+    "quality_verified",
+]
+detail = "Reviewed controls, semantic probes and blind rollout passed the quality profile."
+checked_at = "2026-09-14T05:18:06.242755Z"
+provenance = "unknown"
+subject_bundle_hash = "sha256:3049cc9813052fd21529d84c43525097d64de3379f7a9ab5891092d3e6963b7e"
+profile = "practical-generation-v1"
+source_task_path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/quality-recovery-v9/0d2d1e298e86/revisions/r0/tasksmith-0d2d1e298e86"
+source_task_toml_sha256 = "c280112cad911319ac03827648817f3133f10963e75b916d7fc596f9634ade5b"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "quality_result"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/delivery/evidence/tasksmith-0d2d1e298e86/quality-result.json"
+sha256 = "f61b025529dfb504017b9dd7d2c0f3b94b05e8e4879a763a48815d530c7b0f7e"
+subject_bundle_hash = "sha256:3049cc9813052fd21529d84c43525097d64de3379f7a9ab5891092d3e6963b7e"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "baseline"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/document-link-recovery-v1/candidates/0d2d1e298e86/quality/trials/r2-baseline/ts-d9a0d1fb0bcd-q-0d2d1e29-r2-baseline/tasksmith-0d2d1e298e86__PEZrvjJ/result.json"
+sha256 = "1532a6c03dbfc114f871d05f6680484d8955b34241c1751ad9dccb1cd4925556"
+subject_bundle_hash = "sha256:3049cc9813052fd21529d84c43525097d64de3379f7a9ab5891092d3e6963b7e"
+harbor_task_checksum = "1651ede34966e5af6f531b20fe91560790cc5b7de56949fdadd03523b3d23d42"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "oracle"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/document-link-recovery-v1/candidates/0d2d1e298e86/quality/trials/r2-oracle/ts-d9a0d1fb0bcd-q-0d2d1e29-r2-oracle/tasksmith-0d2d1e298e86__VpqBbmP/result.json"
+sha256 = "1d1cb167f4c97d8c1019f8f860278a5af61eccc20ce80b683d37e24d480b553d"
+subject_bundle_hash = "sha256:3049cc9813052fd21529d84c43525097d64de3379f7a9ab5891092d3e6963b7e"
+harbor_task_checksum = "1651ede34966e5af6f531b20fe91560790cc5b7de56949fdadd03523b3d23d42"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/quality-recovery-v9/0d2d1e298e86/trials/r0-probe0/hfqr-26213a3db96c-0d2d1e298e86-r0-probe0/tasksmith-0d2d1e298e86__JRuwfVX/result.json"
+sha256 = "8d200538712e1bd1af6ae05abdd2bbf34b9b8ff0e76a17376f471e4e664f6518"
+subject_bundle_hash = "sha256:81d8bf1d360d8d6ba8480f5bafe2dcbce2d47b8a1dca9cf0b5a15093b604d830"
+harbor_task_checksum = "df02245ec74cc1ecca6c552bb979d02c3e3678d07820a5df5c76b4d48a961cfa"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/quality-recovery-v9/0d2d1e298e86/trials/r0-probe1/hfqr-26213a3db96c-0d2d1e298e86-r0-probe1/tasksmith-0d2d1e298e86__MUVNKxS/result.json"
+sha256 = "aa2eec2814d2e55da5a8947ba85631b621c9c5706507355e17e01cf8af8e5cf9"
+subject_bundle_hash = "sha256:7bb89b9c807543d912a8e215f351aedde530aa8b83d0a99494c7d8be835188e4"
+harbor_task_checksum = "61c85773529954c7e0f1e54721794fb692d39ce377eef0e6b503a8556477f318"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "probe"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/quality-recovery-v9/0d2d1e298e86/trials/r0-probe2/hfqr-26213a3db96c-0d2d1e298e86-r0-probe2/tasksmith-0d2d1e298e86__sYgvtkT/result.json"
+sha256 = "ec32c6ab09e3c06c8de080582d3b246431b05602ef12f1d529aa69bc013abb1c"
+subject_bundle_hash = "sha256:71ee697ad80476eb1fa37522870e43e5e718d223b400c74576411129af7e44ab"
+harbor_task_checksum = "e294fba151b7f538cadb58c8ed94f0cc99dcefc1510c8fccd480ea7d1bd5a778"
+
+[[metadata.repo2env.evaluation.evidence]]
+kind = "rollout"
+path = "/Users/adithya/projects/Repo2RLEnv-tasksmith/workspace/tasksmith-hf-scale/quality-recovery-v9/0d2d1e298e86/trials/r0-rollout/hfqr-26213a3db96c-0d2d1e298e86-r0-rollout/tasksmith-0d2d1e298e86__VFMGMqh/result.json"
+sha256 = "f24d59d6307b974bcababa31ae09285a9cb8cebb7ffbc1753f8a1733c04522b6"
+subject_bundle_hash = "sha256:3049cc9813052fd21529d84c43525097d64de3379f7a9ab5891092d3e6963b7e"
+harbor_task_checksum = "1651ede34966e5af6f531b20fe91560790cc5b7de56949fdadd03523b3d23d42"
+
+[environment]
+cpus = 1
+memory_mb = 2048
+build_timeout_sec = 600
+network_mode = "no-network"
+
+[agent]
+timeout_sec = 600
+user = "learner"
+network_mode = "no-network"
+
+[verifier]
+timeout_sec = 150
+network_mode = "no-network"
+environment_mode = "separate"
+
+[verifier.environment]
+network_mode = "no-network"
+cpus = 1
+memory_mb = 2048

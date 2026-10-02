@@ -1,5 +1,5 @@
 {
-  "campaign_spec_digest": "sha256:f98deac51576f45213e3f857a5a551a480ae7a26cff6bd6aab24a4058922477d",
+  "campaign_spec_digest": "sha256:c72a742310795b4bf846b34e33c59e3ecd8e0eda9c7323e832d1dac408e9acee",
   "candidate_policy": {
     "constraints": {
       "format": "techtree-instruction-skill-v1",
@@ -9,6 +9,7 @@
     "required_mutation": "skill_insertion",
     "skill_visibility": "public"
   },
+  "held_out_campaign_spec_digest": null,
   "kind": "Climb",
   "leaderboard": {
     "enabled": false,
@@ -30,5 +31,5 @@
     "raw_episode_visibility": "prohibited",
     "report_visibility": "public"
   },
-  "schema_version": "techtree.climb.v1alpha1"
+  "schema_version": "techtree.climb.v1alpha2"
 }

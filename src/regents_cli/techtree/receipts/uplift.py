@@ -27,14 +27,14 @@ from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.execution_facts import UpliftReportExecutionFacts
 from regents_cli.techtree.ids import new_id
 from regents_cli.techtree.models.base import Digest
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV2
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV3
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import (
-    EpisodeReceiptV2,
+    EpisodeReceiptV3,
     EvidenceStatus,
     ScoreStatus,
 )
-from regents_cli.techtree.models.experiment import ExperimentManifestV2, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
 from regents_cli.techtree.models.run import RunRequestV2
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
@@ -70,8 +70,8 @@ class LocalAttestation(StrEnum):
 
 def pair_task_rewards(
     *,
-    baseline_receipts: Sequence[EpisodeReceiptV2],
-    candidate_receipts: Sequence[EpisodeReceiptV2],
+    baseline_receipts: Sequence[EpisodeReceiptV3],
+    candidate_receipts: Sequence[EpisodeReceiptV3],
     ordered_task_hashes: Sequence[Digest],
     reward_name: str,
 ) -> list[TaskDelta]:
@@ -142,7 +142,7 @@ def aggregate_primary_result(deltas: Sequence[TaskDelta], reward_name: str) -> P
 
 
 def decide_uplift(
-    *, campaign: CampaignSpecV2, comparison: RealComparisonResult, deltas: Sequence[TaskDelta]
+    *, campaign: CampaignSpecV3, comparison: RealComparisonResult, deltas: Sequence[TaskDelta]
 ) -> UpliftDecision:
     """Apply the Campaign's own acceptance rules, and no others.
 
@@ -167,7 +167,7 @@ def decide_uplift(
 
 
 def summarize_receipts(
-    baseline_receipts: Sequence[EpisodeReceiptV2], candidate_receipts: Sequence[EpisodeReceiptV2]
+    baseline_receipts: Sequence[EpisodeReceiptV3], candidate_receipts: Sequence[EpisodeReceiptV3]
 ) -> tuple[ScoreStatus, EvidenceStatus]:
     """The comparison's score and evidence statuses: as good as its weakest receipt."""
     receipts = [*baseline_receipts, *candidate_receipts]
@@ -215,12 +215,12 @@ def proof_grade_for(
 def build_uplift_report(
     *,
     run_request: RunRequestV2,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     execution: UpliftReportExecutionFacts,
     data_policy: DataPolicy,
     taskset_validation_receipt_digest: Digest,
-    baseline_manifest: ExperimentManifestV2,
-    candidate_manifest: ExperimentManifestV2,
+    baseline_manifest: ExperimentManifestV3,
+    candidate_manifest: ExperimentManifestV3,
     baseline_receipt_set: ReceiptSetManifest,
     candidate_receipt_set: ReceiptSetManifest,
     comparison: RealComparisonResult,
@@ -287,7 +287,7 @@ def build_uplift_report(
 
 
 def _rewards_by_task(
-    receipts: Sequence[EpisodeReceiptV2],
+    receipts: Sequence[EpisodeReceiptV3],
     reward_name: str,
     committed: Sequence[Digest],
     label: str,
@@ -385,11 +385,11 @@ def _require_reportable(
 def _require_lineage(
     *,
     run_request: RunRequestV2,
-    campaign: CampaignSpecV2,
+    campaign: CampaignSpecV3,
     execution: UpliftReportExecutionFacts,
     data_policy: DataPolicy,
-    baseline_manifest: ExperimentManifestV2,
-    candidate_manifest: ExperimentManifestV2,
+    baseline_manifest: ExperimentManifestV3,
+    candidate_manifest: ExperimentManifestV3,
     baseline_receipt_set: ReceiptSetManifest,
     candidate_receipt_set: ReceiptSetManifest,
     comparison: RealComparisonResult,

@@ -41,15 +41,15 @@ from regents_cli.techtree.identity.models import (
 )
 from regents_cli.techtree.identity.service import verify_signed_object
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import (
-    EpisodeReceiptV2,
+    EpisodeReceiptV3,
     ExecutionLocation,
     ScoreStatus,
 )
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV2, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
     PublicationStatus,
@@ -206,28 +206,28 @@ def verify_local_bundle(path: Path) -> VerificationResult:
 class _Documents:
     """Every parsed document one bundle carries."""
 
-    campaign: CampaignSpecV2
+    campaign: CampaignSpecV3
     execution_plan: ResolvedExecutionPlan
     data_policy: DataPolicy
     taskset_lock: TasksetLock
     validation_receipt: TasksetValidationReceipt
-    experiments: dict[ExperimentVariant, ExperimentManifestV2]
+    experiments: dict[ExperimentVariant, ExperimentManifestV3]
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest]
     report: ObjectEnvelope[UpliftReportV2]
 
 
 def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
-    campaign = _load_model(directory / CAMPAIGN_FILENAME, CampaignSpecV2, checks)
+    campaign = _load_model(directory / CAMPAIGN_FILENAME, CampaignSpecV3, checks)
     plan = _load_model(directory / EXECUTION_PLAN_FILENAME, ResolvedExecutionPlan, checks)
     policy = _load_model(directory / DATA_POLICY_FILENAME, DataPolicy, checks)
     lock = _load_model(directory / TASKSET_LOCK_FILENAME, TasksetLock, checks)
     receipt = _load_model(directory / VALIDATION_RECEIPT_FILENAME, TasksetValidationReceipt, checks)
     report = _load_envelope(directory / REPORT_FILENAME, UpliftReportV2, checks, "uplift-report")
-    experiments: dict[ExperimentVariant, ExperimentManifestV2] = {}
+    experiments: dict[ExperimentVariant, ExperimentManifestV3] = {}
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest] = {}
     for variant in _VARIANT_ORDER:
         experiment = _load_model(
-            directory / experiment_filename(variant), ExperimentManifestV2, checks
+            directory / experiment_filename(variant), ExperimentManifestV3, checks
         )
         receipt_set = _load_model(
             directory / receipt_set_filename(variant), ReceiptSetManifest, checks
@@ -429,19 +429,19 @@ def _planned_location(plan: ResolvedExecutionPlan) -> ExecutionLocation:
 
 def _check_receipts(
     directory: Path, documents: _Documents, identity: ExecutorIdentity, checks: _Checks
-) -> dict[ExperimentVariant, list[EpisodeReceiptV2]] | None:
+) -> dict[ExperimentVariant, list[EpisodeReceiptV3]] | None:
     """Every receipt's signature and every variant's commitment."""
     committed = list(documents.taskset_lock.ordered_task_hashes)
     plan_digest = digest_object(documents.execution_plan)
     planned = _planned_location(documents.execution_plan)
-    loaded: dict[ExperimentVariant, list[EpisodeReceiptV2]] = {}
+    loaded: dict[ExperimentVariant, list[EpisodeReceiptV3]] = {}
     for variant in _VARIANT_ORDER:
         receipt_set = documents.receipt_sets[variant]
-        envelopes: list[ObjectEnvelope[EpisodeReceiptV2]] = []
+        envelopes: list[ObjectEnvelope[EpisodeReceiptV3]] = []
         for position in range(receipt_set.receipt_count):
             relative_path = receipt_filename(variant, position)
             envelope = _load_envelope(
-                directory / relative_path, EpisodeReceiptV2, checks, relative_path
+                directory / relative_path, EpisodeReceiptV3, checks, relative_path
             )
             if envelope is None:
                 return None
@@ -484,7 +484,7 @@ def _check_receipts(
 
 def _check_receipts_plan(
     variant: ExperimentVariant,
-    envelopes: Sequence[ObjectEnvelope[EpisodeReceiptV2]],
+    envelopes: Sequence[ObjectEnvelope[EpisodeReceiptV3]],
     plan_digest: Digest,
     checks: _Checks,
 ) -> None:
@@ -505,7 +505,7 @@ def _check_receipts_plan(
 
 def _check_receipts_location(
     variant: ExperimentVariant,
-    envelopes: Sequence[ObjectEnvelope[EpisodeReceiptV2]],
+    envelopes: Sequence[ObjectEnvelope[EpisodeReceiptV3]],
     planned: ExecutionLocation,
     checks: _Checks,
 ) -> None:
@@ -527,7 +527,7 @@ def _check_receipts_location(
 
 def _check_aggregate(
     documents: _Documents,
-    receipts: dict[ExperimentVariant, list[EpisodeReceiptV2]],
+    receipts: dict[ExperimentVariant, list[EpisodeReceiptV3]],
     checks: _Checks,
 ) -> None:
     """Recompute the paired aggregate and require the report to equal it."""
@@ -653,7 +653,7 @@ def _check_p1_conditions(
     *,
     manifest: LocalProofBundleManifest,
     documents: _Documents,
-    receipts: dict[ExperimentVariant, list[EpisodeReceiptV2]] | None,
+    receipts: dict[ExperimentVariant, list[EpisodeReceiptV3]] | None,
     identity_matches: bool,
     checks: _Checks,
 ) -> None:

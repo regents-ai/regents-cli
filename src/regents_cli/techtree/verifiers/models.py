@@ -29,17 +29,33 @@ class VariantName(StrEnum):
     CANDIDATE = "candidate"
 
 
-class SubjectImageResolution(ProtocolModel):
-    """What the local daemon answered about the pinned subject image, asked before launch.
+class ResolvedImage(ProtocolModel):
+    """One pinned reference, and the content (the OCI index) the daemon holds for it."""
 
-    The daemon reports the content it holds for the reference (the OCI index) and the platform
-    it resolved it to; the platform-specific manifest digest is the Campaign's to pin.
+    image: NonEmptyString
+    index_digest: Digest
+
+
+class ImageResolution(ProtocolModel):
+    """What the local daemon answered about every image a variant may start, asked before launch.
+
+    One daemon serves every image on one platform; the platform-specific manifest digest is the
+    Campaign's to pin.
     """
 
     variant: VariantName
-    image: NonEmptyString
-    index_digest: Digest
     platform: NonEmptyString
+    images: list[ResolvedImage]
+
+    @model_validator(mode="after")
+    def _check_each_image_once(self) -> Self:
+        names = [entry.image for entry in self.images]
+        if not names or names != sorted(set(names)):
+            raise ValueError("a resolution lists each image once, sorted")
+        return self
+
+    def index_digest(self, image: str) -> Digest | None:
+        return next((entry.index_digest for entry in self.images if entry.image == image), None)
 
 
 class ChildProcessOutcome(ProtocolModel):
@@ -134,6 +150,8 @@ class NormalizedTrace(ProtocolModel):
     use_bundled_skill: bool
     skill_root_digests: list[Digest]
     runtime: NormalizedRuntime
+    #: The image a fresh grader box was started from; None when graded in the agent's box.
+    grader_image: NonEmptyString | None
     tools: list[NormalizedTool]
     rewards: list[NormalizedReward]
     metrics: dict[str, float | None]
@@ -197,7 +215,7 @@ class VariantExecutionResult(ProtocolModel):
     eval_log: ArtifactRef
     normalized_episodes: ArtifactRef
     child_outcome: ChildProcessOutcome
-    image_resolution: SubjectImageResolution
+    image_resolution: ImageResolution
     episodes: list[NormalizedEpisode]
 
     @model_validator(mode="after")

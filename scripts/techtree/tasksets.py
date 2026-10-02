@@ -33,6 +33,7 @@ from regents_cli.techtree.models.validation import (
     ValidationMethod,
 )
 from regents_cli.techtree.tasksets.membership import membership_digest
+from regents_cli.techtree.verifiers.config import TaskImagesToml, TasksetToml
 
 VALIDATE_EXECUTABLE: Final = "vf-validate"
 INSPECT_TASKSET_TOOL: Final = "inspect_taskset.py"
@@ -58,11 +59,18 @@ def lock_taskset(
     engine_digest: Digest,
     taskset_ref: TasksetRef,
     selection: TaskSelection,
+    *,
+    images: dict[str, TaskImagesToml] | None,
 ) -> TasksetLock:
-    """Inspect the taskset twice in fresh processes and pin what both inspections agree on."""
+    """Inspect the taskset twice in fresh processes and pin what both inspections agree on.
+
+    With `images`, the taskset is loaded with each task's pinned agent and grader images, which
+    are part of what its task hashes cover.
+    """
     runner = EngineRunner(registry, engine_digest)
-    first = _inspect(registry, runner, engine_digest, taskset_ref.id, selection.num_tasks)
-    second = _inspect(registry, runner, engine_digest, taskset_ref.id, selection.num_tasks)
+    taskset = TasksetToml(id=taskset_ref.id, images=images)
+    first = _inspect(registry, runner, engine_digest, taskset, selection.num_tasks)
+    second = _inspect(registry, runner, engine_digest, taskset, selection.num_tasks)
     if first != second:
         raise VerificationError(
             f"taskset {taskset_ref.id} produced a different membership on a second load, so it "
@@ -87,35 +95,39 @@ def validate_taskset(
     lock: TasksetLock,
     work_dir: Path,
     *,
+    runtime: Literal["subprocess", "docker"],
     docker_image: str | None,
+    images: dict[str, TaskImagesToml] | None,
 ) -> TasksetValidation:
     """Run the pinned model-free validation over every locked task and issue the receipt.
 
-    With `docker_image`, each task is validated in a fresh container of that image, the
-    Campaign's own subject image; without it, in the engine's own process.
+    On the docker runtime each task is validated in a fresh container: of `docker_image`, the
+    Campaign's own subject image, or with `images`, of the task's own pinned agent image, graded
+    in a fresh box from its grader image. On the subprocess runtime, in the engine's own process.
     """
     runner = EngineRunner(registry, engine_digest)
     output_dir = work_dir / "validation"
     run_dir = output_dir / VALIDATION_RUN_NAME
-    runtime: Literal["subprocess", "docker"] = "subprocess" if docker_image is None else "docker"
-    runtime_arguments = ["--runtime.type", runtime]
-    if docker_image is not None:
-        runtime_arguments += ["--runtime.image", docker_image]
+    taskset = TasksetToml(id=lock.taskset_ref.id, images=images)
+    config_path = work_dir / "validate.json"
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(
+        json.dumps(
+            {
+                "taskset": taskset.model_dump(mode="json", exclude_none=True),
+                "num_tasks": lock.task_count,
+                "runtime": {"type": runtime}
+                | ({} if docker_image is None else {"image": docker_image}),
+                "output_dir": str(output_dir),
+                "run": {"name": VALIDATION_RUN_NAME},
+                "rich": False,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     process = runner.run(
-        VALIDATE_EXECUTABLE,
-        [
-            lock.taskset_ref.id,
-            "--num-tasks",
-            str(lock.task_count),
-            *runtime_arguments,
-            "--output-dir",
-            str(output_dir),
-            "--run.name",
-            VALIDATION_RUN_NAME,
-            "--rich",
-            "false",
-        ],
-        timeout=VALIDATION_TIMEOUT_SECONDS,
+        VALIDATE_EXECUTABLE, ["@", str(config_path)], timeout=VALIDATION_TIMEOUT_SECONDS
     )
     # The exit code reports runner health, not validity: read the verdict from summary.json.
     summary_path = run_dir / "summary.json"
@@ -201,14 +213,24 @@ def _inspect(
     registry: EngineRegistry,
     runner: EngineRunner,
     engine_digest: Digest,
-    taskset_id: str,
+    taskset: TasksetToml,
     num_tasks: int,
 ) -> list[Digest]:
+    taskset_id = taskset.id
     with tempfile.TemporaryDirectory(prefix="techtree-inspect-") as directory:
+        config = Path(directory) / "taskset.json"
+        config.write_text(json.dumps(taskset.model_dump(mode="json", exclude_none=True)))
         output = Path(directory) / "inspection.json"
         process = runner.run_python_script(
             registry.tool_path(engine_digest, INSPECT_TASKSET_TOOL),
-            ["--taskset-id", taskset_id, "--num-tasks", str(num_tasks), "--output", str(output)],
+            [
+                "--taskset-config",
+                str(config),
+                "--num-tasks",
+                str(num_tasks),
+                "--output",
+                str(output),
+            ],
             timeout=INSPECTION_TIMEOUT_SECONDS,
         )
         if process.exit_code != 0:

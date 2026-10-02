@@ -8,8 +8,9 @@ subject's Skill list. Nothing public (slug, schedule, leaderboard) lives here.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from enum import StrEnum
-from typing import Final, Literal, Self
+from typing import Annotated, Final, Literal, NamedTuple, Self
 
 from pydantic import Field, PositiveFloat, PositiveInt, model_validator
 
@@ -98,12 +99,14 @@ class TaskMembershipCommitment(ProtocolModel):
 
 
 class CampaignTaskset(ProtocolModel):
-    """The taskset, the slice of it that is used, and its validation receipt."""
+    """The taskset, the slice of it that is used, its validation receipt, and, when each task
+    brings its own images, those images in membership order."""
 
     ref: TasksetRef
     selection: TaskSelection
     membership: TaskMembershipCommitment
     validation_receipt_digest: Digest
+    task_images: list[TaskImages] | None
 
     @model_validator(mode="after")
     def _check_membership_matches_selection(self) -> Self:
@@ -113,6 +116,15 @@ class CampaignTaskset(ProtocolModel):
                 f"membership commits {committed} tasks but the selection asks for "
                 f"{self.selection.num_tasks}"
             )
+        if self.task_images is not None:
+            pinned = [entry.task_hash for entry in self.task_images]
+            if pinned != self.membership.ordered_task_hashes:
+                raise ValueError(
+                    "task_images must list every committed task once, in membership order"
+                )
+            task_ids = [entry.task_id for entry in self.task_images]
+            if len(set(task_ids)) != len(task_ids):
+                raise ValueError("task_images must not repeat a task id")
         return self
 
 
@@ -147,47 +159,99 @@ class SamplingSpec(ProtocolModel):
     reasoning_effort: ReasoningEffort | None
 
 
-class RuntimeSpec(ProtocolModel):
-    """Where the subject agent executes.
+def _require_content_reference(image: str) -> None:
+    if _IMAGE_INDEX_DIGEST_RE.search(image) is None:
+        raise ValueError(f"image must name content, as repository@sha256:...; got {image!r}")
 
-    The image is pinned twice: `image` names an OCI index by digest, and `image_platform_digests`
+
+def _require_platforms_pinned(
+    label: str, platform_digests: Mapping[str, Digest], supported_platforms: list[str]
+) -> None:
+    declared = sorted(platform_digests)
+    supported = sorted(supported_platforms)
+    if declared != supported:
+        raise ValueError(
+            f"{label} must name exactly the supported platforms; it names {declared} for "
+            f"{supported}"
+        )
+
+
+class PinnedImage(ProtocolModel):
+    """One image pinned twice: `image` names an OCI index by digest, and `platform_digests`
     names the manifest that index resolves to per platform, because two hosts pulling the same
-    index run different bytes and a comparison has to say which.
-    """
+    index run different bytes and a comparison has to say which."""
 
-    type: Literal["docker"]
     image: NonEmptyString
-    supported_platforms: list[NonEmptyString]
-    image_platform_digests: dict[NonEmptyString, Digest]
-    cpu: PositiveFloat | None
-    memory_gb: PositiveFloat | None
-    network_policy: Literal["restricted", "open"]
+    platform_digests: dict[NonEmptyString, Digest]
 
     @property
-    def image_index_digest(self) -> Digest:
+    def index_digest(self) -> Digest:
         """The content the pinned reference names."""
         match = _IMAGE_INDEX_DIGEST_RE.search(self.image)
         assert match is not None  # the validator below refuses anything else
         return match.group(1)
 
     @model_validator(mode="after")
-    def _check_the_image_is_pinned_for_every_platform(self) -> Self:
+    def _check_the_image_names_content(self) -> Self:
+        _require_content_reference(self.image)
+        return self
+
+
+class TaskImages(ProtocolModel):
+    """The two images one task runs on: the agent works in one, a fresh box of the other grades."""
+
+    task_hash: Digest
+    task_id: NonEmptyString
+    agent: PinnedImage
+    grader: PinnedImage
+
+
+class _RuntimeBase(ProtocolModel):
+    type: Literal["docker"]
+    supported_platforms: list[NonEmptyString]
+    cpu: PositiveFloat | None
+    memory_gb: PositiveFloat | None
+    network_policy: Literal["restricted", "open"]
+
+    @model_validator(mode="after")
+    def _check_platforms(self) -> Self:
         if not self.supported_platforms:
             raise ValueError("a runtime must support at least one platform")
         if len(set(self.supported_platforms)) != len(self.supported_platforms):
             raise ValueError("supported_platforms must not repeat a platform")
-        if _IMAGE_INDEX_DIGEST_RE.search(self.image) is None:
-            raise ValueError(
-                f"image must name content, as repository@sha256:...; got {self.image!r}"
-            )
-        declared = sorted(self.image_platform_digests)
-        supported = sorted(self.supported_platforms)
-        if declared != supported:
-            raise ValueError(
-                "image_platform_digests must name exactly the supported platforms; it names "
-                f"{declared} for {supported}"
-            )
         return self
+
+
+class CampaignImageRuntime(_RuntimeBase):
+    """Every task runs in the one image the Campaign pins."""
+
+    image_source: Literal["campaign"]
+    image: NonEmptyString
+    image_platform_digests: dict[NonEmptyString, Digest]
+
+    @property
+    def pinned_image(self) -> PinnedImage:
+        return PinnedImage(image=self.image, platform_digests=self.image_platform_digests)
+
+    @model_validator(mode="after")
+    def _check_the_image_is_pinned_for_every_platform(self) -> Self:
+        _require_content_reference(self.image)
+        _require_platforms_pinned(
+            "image_platform_digests", self.image_platform_digests, self.supported_platforms
+        )
+        return self
+
+
+class TaskImageRuntime(_RuntimeBase):
+    """Each task runs in its own images, pinned in the Campaign's `taskset.task_images`."""
+
+    image_source: Literal["task"]
+
+
+#: Where the subject agent executes, and where its image comes from.
+RuntimeSpec = Annotated[
+    CampaignImageRuntime | TaskImageRuntime, Field(discriminator="image_source")
+]
 
 
 class HarnessSpecV2(ProtocolModel):
@@ -207,10 +271,28 @@ class AgentSpecV2(ProtocolModel):
     trainable: bool
 
 
-class EnvironmentSpec(ProtocolModel):
-    """The interaction shape the Campaign runs in."""
+#: The engine's name for the subject's seat in each environment. Techtree calls the role
+#: "subject" everywhere; the engine's Harbor environment names its one seat "agent".
+ENGINE_SEATS: Final[dict[str, str]] = {
+    "single-agent": "subject",
+    "harbor-separate-grader": "agent",
+}
 
-    id: Literal["single-agent"]
+
+class EnvironmentSpec(ProtocolModel):
+    """The interaction shape the Campaign runs in.
+
+    `harbor-separate-grader`: the agent works in its task's agent image, then a fresh box from
+    the task's grader image grades only the files the task lists, under the limits and network
+    the task itself declares.
+    """
+
+    id: Literal["single-agent", "harbor-separate-grader"]
+
+    @property
+    def engine_seat(self) -> str:
+        """The seat the engine runs the subject in."""
+        return ENGINE_SEATS[self.id]
 
 
 class MutationKind(StrEnum):
@@ -291,10 +373,10 @@ class CampaignMetadata(ProtocolModel):
     ]
 
 
-class CampaignSpecV2(ProtocolModel):
+class CampaignSpecV3(ProtocolModel):
     """A Campaign that binds exactly one resolved execution plan by digest."""
 
-    schema_version: Literal["techtree.campaign.v2"]
+    schema_version: Literal["techtree.campaign.v3"]
     kind: Literal["Campaign"]
     metadata: CampaignMetadata
     context: CampaignContext
@@ -338,4 +420,52 @@ class CampaignSpecV2(ProtocolModel):
             raise ValueError("use_bundled_skill would be an uncontrolled second difference")
         if self.evidence.runtime_evidence != "not_required":
             raise ValueError("runtime evidence is not collected, so requiring it is unsatisfiable")
+        check_images(self.environment, self.subject.runtime, self.taskset)
         return self
+
+
+def check_images(
+    environment: EnvironmentSpec, runtime: RuntimeSpec, taskset: CampaignTaskset
+) -> None:
+    """Hold the environment, the runtime's image source and the task images to one story."""
+    separate_grader = environment.id == "harbor-separate-grader"
+    if separate_grader != isinstance(runtime, TaskImageRuntime):
+        raise ValueError(
+            "the harbor-separate-grader environment runs each task in its own images, and only "
+            "it does: it pairs with image_source 'task'"
+        )
+    if isinstance(runtime, CampaignImageRuntime):
+        if taskset.task_images is not None:
+            raise ValueError("a runtime with image_source 'campaign' takes no task_images")
+        return
+    if taskset.task_images is None:
+        raise ValueError("a runtime with image_source 'task' needs taskset.task_images")
+    for entry in taskset.task_images:
+        for role, pinned in (("agent", entry.agent), ("grader", entry.grader)):
+            _require_platforms_pinned(
+                f"the {role} image of {entry.task_id}",
+                pinned.platform_digests,
+                runtime.supported_platforms,
+            )
+
+
+class TaskImagePins(NamedTuple):
+    """One committed task's images; a Campaign-image runtime grades in the agent's own box."""
+
+    task_hash: Digest
+    agent: PinnedImage
+    grader: PinnedImage | None
+
+
+def pinned_task_images(runtime: RuntimeSpec, taskset: CampaignTaskset) -> list[TaskImagePins]:
+    """Each committed task's agent image and grader image, in membership order."""
+    if isinstance(runtime, CampaignImageRuntime):
+        image = runtime.pinned_image
+        return [
+            TaskImagePins(task_hash, image, None)
+            for task_hash in taskset.membership.ordered_task_hashes
+        ]
+    assert taskset.task_images is not None  # check_images guarantees it
+    return [
+        TaskImagePins(entry.task_hash, entry.agent, entry.grader) for entry in taskset.task_images
+    ]

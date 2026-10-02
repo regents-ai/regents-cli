@@ -30,13 +30,13 @@ from regents_cli.techtree.fs import (
     remove_tree,
 )
 from regents_cli.techtree.models.base import ArtifactRef, Digest, JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV2
+from regents_cli.techtree.models.campaign import CampaignSpecV3
 from regents_cli.techtree.models.climb import ClimbManifest, ResolvedClimb
 from regents_cli.techtree.models.data_policy import DataPolicy
-from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV2
+from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import (
-    ExperimentManifestV2,
+    ExperimentManifestV3,
     ExperimentVariant,
     ManifestComparison,
 )
@@ -82,13 +82,13 @@ class RunInputBundle:
     draft: SubmissionDraft
     source: CampaignSource
     validation_evidence: ValidationEvidence
-    baseline: ExperimentManifestV2
-    candidate: ExperimentManifestV2
+    baseline: ExperimentManifestV3
+    candidate: ExperimentManifestV3
     comparison: ManifestComparison
     candidate_skill: StagedSkill
 
     @property
-    def campaign(self) -> CampaignSpecV2:
+    def campaign(self) -> CampaignSpecV3:
         return self.source.campaign
 
     @property
@@ -145,20 +145,20 @@ class RunArtifactStore:
         return self._write_artifact(directory / _VALIDATION_MARKER_FILE, marker, run_id=run_id)
 
     def write_episode_receipt(
-        self, run_id: str, *, position: int, receipt: EpisodeReceiptV2
+        self, run_id: str, *, position: int, receipt: EpisodeReceiptV3
     ) -> ArtifactRef:
         """Write one immutable receipt, named by its place in the committed task order."""
         directory = self._run_dir(run_id) / _RECEIPTS_DIR / receipt.variant.value
         ensure_private_directory(directory)
         return self._write_artifact(directory / _position_file(position), receipt, run_id=run_id)
 
-    def episode_receipts(self, run_id: str, variant: ExperimentVariant) -> list[EpisodeReceiptV2]:
+    def episode_receipts(self, run_id: str, variant: ExperimentVariant) -> list[EpisodeReceiptV3]:
         """Load one variant's receipts in Campaign task order."""
         directory = self._run_dir(run_id) / _RECEIPTS_DIR / variant.value
         if not directory.exists():
             return []
         return [
-            self._parse(path, EpisodeReceiptV2, run_id)
+            self._parse(path, EpisodeReceiptV3, run_id)
             for path in sorted(directory.iterdir())
             if path.is_file()
         ]
@@ -209,7 +209,7 @@ class RunArtifactStore:
     def _read_bundle(self, root: Path, request: RunRequestV2) -> RunInputBundle:
         run_id = request.run_id
         public = root / _PUBLIC_DIR
-        campaign = self._parse(public / _CAMPAIGN_FILE, CampaignSpecV2, run_id)
+        campaign = self._parse(public / _CAMPAIGN_FILE, CampaignSpecV3, run_id)
         data_policy = self._parse(public / _DATA_POLICY_FILE, DataPolicy, run_id)
         receipt = self._parse(public / _VALIDATION_RECEIPT_FILE, TasksetValidationReceipt, run_id)
         plan = self._parse(public / _EXECUTION_PLAN_FILE, ResolvedExecutionPlan, run_id)
@@ -241,10 +241,10 @@ class RunArtifactStore:
             source=CampaignSource.from_climb(resolved),
             validation_evidence=self._parse(public / _EVIDENCE_FILE, ValidationEvidence, run_id),
             baseline=self._parse(
-                root / _MANIFESTS_DIR / _BASELINE_FILE, ExperimentManifestV2, run_id
+                root / _MANIFESTS_DIR / _BASELINE_FILE, ExperimentManifestV3, run_id
             ),
             candidate=self._parse(
-                root / _MANIFESTS_DIR / _CANDIDATE_FILE, ExperimentManifestV2, run_id
+                root / _MANIFESTS_DIR / _CANDIDATE_FILE, ExperimentManifestV3, run_id
             ),
             comparison=self._parse(root / _COMPARISON_FILE, ManifestComparison, run_id),
             candidate_skill=StagedSkill(
@@ -268,10 +268,8 @@ class RunArtifactStore:
             computed=digest_object(draft),
         )
         _require(
-            source.campaign_digest
-            == request.campaign_spec_digest
-            == draft.campaign_spec_digest
-            == source.climb.campaign_spec_digest,
+            source.campaign_digest == request.campaign_spec_digest == draft.campaign_spec_digest
+            and source.campaign_digest in source.climb.campaign_digests,
             "the staged Campaign is not the Campaign this run executes",
             run_id,
             expected=request.campaign_spec_digest,
