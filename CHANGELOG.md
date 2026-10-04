@@ -8,7 +8,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - New Climb, `tasksmith-climb@1`: six real changes from Hugging Face's trl, transformers,
   diffusers, peft and accelerate repositories, taken back out of the code. The agent makes each
   change again, and the change's own tests, run in a separate box from the agent's, score it
-  solved or not.
+  solved or not. Each task's agent and grader images are public at
+  `ghcr.io/regents-ai/techtree-tasksmith`, for amd64 and arm64.
 - The Tasksmith Climb keeps six more tasks apart. `regents techtree climb prepare … --held-out`
   prepares a run on them; it is run once, on the winning Skill, and never decides the winner.
   `climb show` lists them.
