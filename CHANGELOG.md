@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.4.0 — 2026-10-02
+## 1.4.0 — 2026-10-04
 
 - New Climb, `tasksmith-climb@1`: six real changes from Hugging Face's trl, transformers,
   diffusers, peft and accelerate repositories, taken back out of the code. The agent makes each
@@ -20,6 +20,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   Campaign), experiment v3 and episode receipt v3 (the grader image's digest). The JSON
   schemas are in `schemas/techtree/v3`.
 - Techtree's release is now `climb-v0.6.0`.
+- A result on a Climb's held-out tasks says so, and that it never decides the winner.
+- Patchbay: `regents known-fixes report` takes one report per answer; the first one stands. A
+  second report shows Patchbay's "already reported" answer.
 
 ## 1.3.4 — 2026-10-01
 

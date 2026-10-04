@@ -1,7 +1,7 @@
 {
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "1f3ecdef0af89bb096e0febe455eaa4f6dd616bd",
+    "commit": "e7b143cf70e9591dafba2603c01d031c748d5019",
     "files": {
       "cli/commands.json": "src/regents_cli/platforms/patchbay/commands.json",
       "platform/priv/public/openapi.json": "src/regents_cli/platforms/patchbay/openapi.json",
