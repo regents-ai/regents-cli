@@ -1,0 +1,72 @@
+name: Techtree Tasksmith images
+
+# Publishes each Tasksmith task's agent and grader images, built from the task folders as
+# published at HF FineEnvs/HF_ML_Tasksmith at the pinned revision (see
+# scripts/techtree/build_tasksmith_images.py). Run by hand. The pins.json artifact it leaves goes to
+# scripts/techtree/tasksmith-image/pins.json; the Tasksmith Campaigns pin those digests, so
+# publishing changes nothing until the catalog is rebuilt from it.
+on:
+  workflow_dispatch:
+
+env:
+  REVISION: 3c63c8b059d734fe74f932101f44dd0b16e7ee26
+
+jobs:
+  task:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        task:
+          - tasksmith-0d2d1e298e86
+          - tasksmith-35c1a487454c
+          - tasksmith-7bc616ce49d7
+          - tasksmith-9f3fb07e5766
+          - tasksmith-c488fc138ba1
+          - tasksmith-ecb1931929df
+          - tasksmith-0df9b3cd6191
+          - tasksmith-0ea2241cceeb
+          - tasksmith-1c5704b1f07f
+          - tasksmith-5dd11b34cce1
+          - tasksmith-9aea936e30e4
+          - tasksmith-c98f3a4a299d
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - env:
+          TASK: ${{ matrix.task }}
+        run: |
+          uvx --from huggingface_hub hf download FineEnvs/HF_ML_Tasksmith --repo-type dataset \
+            --revision "$REVISION" --local-dir "$RUNNER_TEMP/source" --include "tasks/$TASK/*"
+          cd scripts/techtree
+          uv run --project ../.. python build_tasksmith_images.py --source "$RUNNER_TEMP/source" \
+            --pins "$RUNNER_TEMP/pins-$TASK.json" --task "$TASK"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pins-${{ matrix.task }}
+          path: ${{ runner.temp }}/pins-${{ matrix.task }}.json
+
+  pins:
+    needs: task
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: pins-*
+          merge-multiple: true
+          path: pins
+      - run: jq -S -s add pins/*.json > pins.json && cat pins.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pins
+          path: pins.json
