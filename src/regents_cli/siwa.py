@@ -386,8 +386,11 @@ def sign(request: Request, receipt: Receipt) -> dict[str, str]:
     return {**headers, "signature": signature_header(personal_sign(key, message))}
 
 
-def confirm(site: str, receipt: Receipt, timeout_ms: int) -> None:
-    """Have the sign-in server check a request signed with this sign-in, as the site does."""
+def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any] | None:
+    """Have the sign-in server check a request signed with this sign-in, as the site does.
+
+    Answers the wallet's agent registry listing, as the sign-in server names it, or None.
+    """
     request = Request("GET", "/")
     checked = _post(
         "/api/shared/siwa/http-verify",
@@ -401,3 +404,22 @@ def confirm(site: str, receipt: Receipt, timeout_ms: int) -> None:
             f"The sign-in server did not accept a request signed for {site}.",
             exit_code=EXIT_AUTH,
         )
+    listing: dict[str, Any] | None = checked["data"]["agentRegistration"]
+    return listing
+
+
+def registration_step(profile: dict[str, str], timeout_ms: int) -> dict[str, Any]:
+    """The one transaction that lists `profile` in the agent registry, for its wallet to send."""
+    step: dict[str, Any] = _post("/api/shared/siwa/agent/register-step", profile, timeout_ms)[
+        "data"
+    ]
+    return step
+
+
+def registration_outcome(profile: dict[str, str], tx_hash: str, timeout_ms: int) -> dict[str, Any]:
+    """What the sign-in server read of the registration sent as `tx_hash`, at the latest block:
+    `registration_pending` until it lands, then `agent_registered` with the listing."""
+    outcome: dict[str, Any] = _post(
+        "/api/shared/siwa/agent/registered", {**profile, "tx_hash": tx_hash}, timeout_ms
+    )
+    return outcome

@@ -92,5 +92,13 @@ def sign_in_good(site: str, timeout_ms: int) -> str:
             f"Signed in with your own key as {receipt.address} until "
             f"{receipt.receipt_expires_at}; only that key can sign a request to check it further."
         )
-    siwa.confirm(site, receipt, timeout_ms)
-    return f"The sign-in server accepts {receipt.address} until {receipt.receipt_expires_at}."
+    listing = siwa.confirm(site, receipt, timeout_ms)
+    listed = (
+        f"listed in the agent registry at {listing['registryUrl']}"
+        if listing
+        else "not listed in the agent registry (optional: regents auth register)"
+    )
+    return (
+        f"The sign-in server accepts {receipt.address} until {receipt.receipt_expires_at}; "
+        f"it is {listed}."
+    )

@@ -54,7 +54,21 @@ page, and the agent runs `regents protocol agents pair --code … --name … --h
 Signed in to Regents, `regents auth status` also shows the account the agent is paired with,
 and Regents counts that as the agent checking in.
 
+An agent may also list itself in the ERC-8004 agent registry on Base. It is optional; sign-in
+never needs it. The sign-in server builds the one transaction and hosts the agent's profile;
+the agent key on this machine sends it and pays its gas, so it needs a little ETH on Base
+(`SIWA_BASE_RPC` names another Base node than `https://mainnet.base.org`). Each run sends a new
+transaction. Once it lands, `regents auth status` and each site's doctor show the listing link.
+
+```bash
+regents auth register --name "Astra" --description "What I do, in a sentence"
+```
+
+With a wallet of your own, `--wallet-address 0x…` prints the transaction for that wallet to
+send; then run the same command with `--tx-hash` and the transaction's hash.
+
 `regents` never signs a payment. A paid command takes your own x402 payment signature on stdin.
+The one transaction it ever sends is the agent's registry listing above.
 
 ## How a site's commands get here
 

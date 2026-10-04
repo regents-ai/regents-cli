@@ -3,6 +3,21 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.5.0 — 2026-10-04
+
+- New: `regents auth register --name … --description … [--image …]` lists the agent in the
+  ERC-8004 agent registry on Base, through the sign-in server. It is optional; sign-in never
+  needs it. The agent key on this machine sends the one transaction and pays its gas, so it
+  needs a little ETH on Base; `SIWA_BASE_RPC` names another Base node. Each run sends a new
+  transaction. With your own wallet, `--wallet-address` prints the transaction to send, and
+  `--tx-hash` reports it once sent. The answer is the listing: agent id, registry link and
+  profile.
+- `regents auth status` shows `registry_listing`: the agent's registry link, or null when it
+  has none, read through a sign-in this machine's key made.
+- Each site's doctor says whether the signed-in agent is listed in the agent registry, with
+  its link.
+- Techtree's release is now `climb-v0.6.1`; the Climbs are unchanged.
+
 ## 1.4.0 — 2026-10-04
 
 - New Climb, `tasksmith-climb@1`: six real changes from Hugging Face's trl, transformers,

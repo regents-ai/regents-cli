@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import re
+import shlex
+import time
 from dataclasses import replace
 from typing import Any
 
 import click
 
-from regents_cli import output, siwa
-from regents_cli.errors import CommandError, UsageError
+from regents_cli import base, output, siwa
+from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
 from regents_cli.http import Request, base_address, send
 from regents_cli.platforms import pinned_platforms
 from regents_cli.runner import read_stdin
@@ -21,6 +24,9 @@ TIMEOUT = click.Option(
     help="How long to wait for each answer.",
 )
 JSON = click.Option(["--json", "as_json"], is_flag=True, help="Print the answer as JSON.")
+TX_HASH = re.compile(r"0x[0-9a-fA-F]{64}")
+REGISTRATION_WAIT_SECONDS = 60
+REGISTRATION_POLL_SECONDS = 2
 
 
 def auth_group(sites: list[str]) -> click.Group:
@@ -60,9 +66,38 @@ def auth_group(sites: list[str]) -> click.Group:
             "status",
             callback=status,
             params=[JSON, TIMEOUT],
-            help="Show the agent key's address and each site's sign-in. Signed in to Regents, "
-            "it also shows the account the agent is paired with, and Regents counts that as "
-            "the agent checking in.",
+            help="Show the agent key's address, each site's sign-in, and the agent's listing "
+            "in the agent registry (null when it has none), read through a sign-in this "
+            "machine's key made. Signed in to Regents, it also shows the account the agent is "
+            "paired with, and Regents counts that as the agent checking in.",
+        )
+    )
+    group.add_command(
+        click.Command(
+            "register",
+            callback=register,
+            params=[
+                click.Option(["--name"], required=True, help="The agent's public name."),
+                click.Option(
+                    ["--description"], required=True, help="What the agent does, in a sentence."
+                ),
+                click.Option(["--image"], help="An https address of the agent's picture."),
+                click.Option(
+                    ["--wallet-address"],
+                    help="List your own wallet instead: prints the transaction for it to send.",
+                ),
+                click.Option(
+                    ["--tx-hash"],
+                    help="Check a registration already sent, with the same name, description "
+                    "and image.",
+                ),
+                JSON,
+                TIMEOUT,
+            ],
+            help="List the agent in the agent registry on Base (optional; sign-in never needs "
+            "it). The agent key on this machine sends the one transaction and pays its gas, so "
+            f"it needs a little ETH on Base; {base.BASE_RPC} carries it unless SIWA_BASE_RPC "
+            "names another Base node. Each run sends a new transaction.",
         )
     )
     group.add_command(
@@ -130,9 +165,90 @@ def status(as_json: bool, timeout_ms: int) -> None:
             for site, receipt in receipts.items()
         ],
     }
+    mine = [site for site, receipt in receipts.items() if key and receipt.signed_by(key)]
+    if mine:
+        site = "regents" if "regents" in mine else mine[0]
+        listing = siwa.confirm(site, siwa.current(site, timeout_ms), timeout_ms)
+        answer["registry_listing"] = listing["registryUrl"] if listing else None
     if "regents" in receipts:
         answer["paired_with"] = paired_account(timeout_ms)
     output.emit(answer, as_json=as_json)
+
+
+def register(
+    name: str,
+    description: str,
+    image: str | None,
+    wallet_address: str | None,
+    tx_hash: str | None,
+    as_json: bool,
+    timeout_ms: int,
+) -> None:
+    key = siwa.load_key()
+    if wallet_address is not None and not siwa.ADDRESS.fullmatch(wallet_address):
+        raise UsageError(f"{wallet_address!r} is not an address.")
+    if tx_hash is not None and not TX_HASH.fullmatch(tx_hash):
+        raise UsageError("--tx-hash must be 0x followed by 64 hex characters.")
+    if wallet_address is not None:
+        wallet = wallet_address
+    elif key is not None:
+        wallet = key.address
+    else:
+        raise CommandError(
+            "no_agent_key",
+            "There is no agent key on this machine yet. Make it with regents auth login "
+            "--site <site>, or list your own wallet with --wallet-address.",
+            exit_code=EXIT_AUTH,
+        )
+    profile = {"wallet_address": wallet, "name": name, "description": description}
+    if image is not None:
+        profile["image"] = image
+    again = ["regents", "auth", "register", "--name", name, "--description", description]
+    again += ["--image", image] if image is not None else []
+    again += ["--wallet-address", wallet_address] if wallet_address is not None else []
+    if tx_hash is None:
+        step = siwa.registration_step(profile, timeout_ms)
+        if wallet_address is not None:
+            output.emit(
+                step,
+                as_json=as_json,
+                hint=f"Send this one transaction from {wallet} on Base with your wallet, then "
+                f"run: {shlex.join([*again, '--tx-hash', '<its hash>'])}",
+            )
+            return
+        if key is None or key.private_key is None:
+            raise CommandError(
+                "signer_cannot_send",
+                "This machine's agent key signs through a command, which signs messages and "
+                f"not transactions. Send it from that wallet: --wallet-address {wallet}.",
+                exit_code=EXIT_AUTH,
+            )
+        tx_hash = base.send(key, step, timeout_ms)
+    outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
+    deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
+    while outcome["code"] == "registration_pending" and time.monotonic() < deadline:
+        time.sleep(REGISTRATION_POLL_SECONDS)
+        outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
+    if outcome["code"] == "registration_pending":
+        output.emit(
+            {"wallet_address": wallet.lower(), "tx_hash": tx_hash, "listed": False},
+            as_json=as_json,
+            hint="The transaction is not on Base yet. Check again with: "
+            + shlex.join([*again, "--tx-hash", tx_hash]),
+        )
+        return
+    listed = outcome["data"]
+    output.emit(
+        {
+            "wallet_address": listed["walletAddress"],
+            "listed": True,
+            "agent_id": listed["agentId"],
+            "registry_url": listed["registryUrl"],
+            "profile_url": listed["profileUrl"],
+            "tx_hash": listed["txHash"],
+        },
+        as_json=as_json,
+    )
 
 
 def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
