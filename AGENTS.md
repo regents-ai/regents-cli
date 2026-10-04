@@ -6,13 +6,16 @@ package with every Regent site's commands, each site a namespace (`regents <site
 ## Workspace workflow
 
 Follow `/Users/sean/Documents/regent/.agents/skills/regent-workflow/SKILL.md`. One writer owns
-this repository: the regents-cli chief engineer. Sites never write here; they change their own
-`cli/commands.json` and the owner moves the pin.
+this repository: the regents-cli chief engineer, the only agent that changes it or publishes
+`regents-cli` (founder, 2026-10-04). Sites never write here. A site's command change starts in
+its own `cli/COMMANDS.md`, then its `cli/commands.json` and route; the owner moves the pin,
+writes the changelog and releases. `docs/site-commands.md` is the guide for sites.
 
 ## Repository contracts
 
-- A site's command description changes in its own repository first. Then move its pin in
-  `platforms.lock.json` to a commit on that site's GitHub main and run `make sync`.
+- A site's command description changes in its own repository first, docs before code. Then
+  move its pin in `platforms.lock.json` to a commit on that site's GitHub main, run `make sync`,
+  try each changed command against the site, and name every changed shape in `CHANGELOG.md`.
 - `src/regents_cli/schemas/commands.v1.json` is the description format. Change it here, and
   tell each site's lane in the same change.
 - Every described command runs from its description through `src/regents_cli/runner.py`; do not
