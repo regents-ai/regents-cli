@@ -1,7 +1,8 @@
 """What Techtree's copy may never claim, however reassuring it would sound.
 
 The costly failure: a person believes a protection or a promise that does not exist. A run's
-model calls go to a provider, nobody but the participant attests a run, nothing promises what
+model calls go to a provider, nobody but the participant attests a run, a rerun under another
+key is neither another person nor independent reproduction, nothing promises what
 a run will cost, nothing publishes a finishing time, and an address left at publish time buys
 nothing. Each claim is banned in the affirmative only, so the honest sentences that
 say what does not happen stay allowed.
@@ -39,6 +40,16 @@ BANNED: Final[tuple[tuple[str, re.Pattern[str]], ...]] = tuple(
             r"techtree\s+verified\s+the\s+execution|verified\s+by\s+techtree",
         ),
         ("someone else verified the run", r"independently\s+(verified|proven)|trustless"),
+        (
+            "a rerun counted as reproduction",
+            r"\breproduced\s+by\b|\breplicated\b"
+            r"|(?<!nobody\shas\s)(?<!\bnot\s)(?<!\bno\s)\bindependent(ly)?\s+(replay(ed)?|reproduc(ed|tion))\b",
+        ),
+        (
+            "a key counted as a person",
+            r"\b\d+\s+(people|persons|researchers|others)\b|\bothers\s+have\s+(rerun|reproduced|confirmed)\b"
+            r"|(?<!\bnot\s)(?<!\bnever\s)\banother\s+person\b",
+        ),
         ("proof of honest compute", r"proof\s+of\s+honest\s+compute|without\s+trusting\s+us\b"),
         ("the retired Climb name", r"HelloWorldBench"),
         (
