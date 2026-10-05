@@ -7,14 +7,16 @@ written is a function of the constants below and the bundle's authored files.
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import tomllib
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
-from regents_cli.techtree.canonical import digest_object
+from regents_cli.techtree.canonical import digest_object, validate_digest
 from regents_cli.techtree.engines.bundle import (
     DESCRIPTOR_FILENAME,
     PACKAGE_MANIFEST_SCHEMA,
@@ -24,6 +26,7 @@ from regents_cli.techtree.engines.bundle import (
     engine_bundle_digest,
     enumerate_bundle_files,
 )
+from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.fs import atomic_write_json, atomic_write_text
 from regents_cli.techtree.models.base import Digest
 from regents_cli.techtree.models.engine import EngineDescriptor, EnginePackage
@@ -36,16 +39,43 @@ VERIFIERS_REPOSITORY: Final = "https://github.com/PrimeIntellect-ai/verifiers"
 VERIFIERS_REVISION: Final = "fc73e02ea99594407bf7579c53f7711f7434635a"
 PYTHON_SERIES: Final = "3.12"
 
+HUB_API: Final = "https://api.primeintellect.ai/api/v1/environmentshub"
+HUB_RUNTIME: Final = "VERIFIERS_V1"
+
+
+@dataclass(frozen=True)
+class HubPackage:
+    """A taskset package published on the Prime Environments Hub, pinned to one publication.
+
+    The Hub lets an owner publish a version string twice, so the pin is the full content hash
+    the Hub lists for the publication and the sha256 of its exact wheel.
+    """
+
+    name: str
+    version: str
+    content_hash: str
+    wheel_url: str
+    wheel_sha256: str
+
+    @property
+    def distribution(self) -> str:
+        return self.name.split("/", 1)[1]
+
 
 @dataclass(frozen=True)
 class Engine:
-    """One Climb's engine: its taskset package, whose name is also its Verifiers taskset id."""
+    """One Climb's engine: its taskset package, whose name is also its Verifiers taskset id.
+
+    Without `hub`, the package's source ships in the bundle under `packages/`; with it, the
+    engine installs the pinned Hub wheel.
+    """
 
     name: str
     package: str
     description: str
     #: Verifiers extras the taskset needs, such as `harbor` for tasks graded in their own box.
     verifiers_extras: tuple[str, ...] = ()
+    hub: HubPackage | None = None
 
     @property
     def verifiers_requirement(self) -> str:
@@ -74,6 +104,20 @@ ENGINES: Final = (
         description="Pinned Verifiers environment and the HF Tasksmith taskset for Techtree.",
         verifiers_extras=("harbor",),
     ),
+    Engine(
+        name="au-bas-reconciliation",
+        package="au-bas-reconciliation-v1",
+        description="Pinned Verifiers environment and the Prime Environments Hub taskset "
+        "afzal0/au-bas-reconciliation-v1 for Techtree.",
+        hub=HubPackage(
+            name="afzal0/au-bas-reconciliation-v1",
+            version="0.1.1",
+            content_hash="5c571e4f4af46e0a2c7471e5d84aa825ce02b3f19de40f065fe13108fc1bbf50",
+            wheel_url="https://hub.primeintellect.ai/afzal0/au-bas-reconciliation-v1/@5c571e4f/"
+            "au_bas_reconciliation_v1-0.1.1-py3-none-any.whl",
+            wheel_sha256="5c1502f0cf2e101aca688597fbce44f7d2c130cf11c0395964e5ca5e85fa5502",
+        ),
+    ),
 )
 
 
@@ -100,9 +144,16 @@ dependencies = [
 package = false
 
 [tool.uv.sources]
-{engine.package} = {{ path = "{PACKAGES_DIRECTORY}/{engine.package}", editable = true }}
+{engine.package} = {package_source(engine)}
 verifiers = {{ git = "{VERIFIERS_REPOSITORY}", rev = "{VERIFIERS_REVISION}" }}
 """
+
+
+def package_source(engine: Engine) -> str:
+    """Where uv takes the taskset package from: the shipped tree, or the exact Hub wheel."""
+    if engine.hub is None:
+        return f'{{ path = "{PACKAGES_DIRECTORY}/{engine.package}", editable = true }}'
+    return f'{{ url = "{engine.hub.wheel_url}" }}'
 
 
 def package_source_digest(package_root: Path) -> Digest:
@@ -110,6 +161,41 @@ def package_source_digest(package_root: Path) -> Digest:
     return digest_object(
         content_manifest(PACKAGE_MANIFEST_SCHEMA, enumerate_bundle_files(package_root))
     )
+
+
+def locked_hub_wheel_digest(engine_root: Path, distribution: str, wheel_url: str) -> Digest:
+    """The hash the engine's lock holds for the one Hub wheel it installs from `wheel_url`."""
+    lock = tomllib.loads((engine_root / "uv.lock").read_text(encoding="utf-8"))
+    entry = next((entry for entry in lock["package"] if entry["name"] == distribution), None)
+    wheels = [] if entry is None else entry.get("wheels", [])
+    if (
+        entry is None
+        or entry.get("source") != {"url": wheel_url}
+        or [wheel["url"] for wheel in wheels] != [wheel_url]
+    ):
+        raise VerificationError(
+            f"the engine lock does not install {distribution} from exactly {wheel_url}",
+            code="taskset_package_digest_mismatch",
+            details={"package": distribution},
+        )
+    return validate_digest(wheels[0]["hash"])
+
+
+def check_hub_publication(hub: HubPackage) -> None:
+    """Confirm the Hub still lists the pinned content hash for this version and runtime."""
+    owner, environment = hub.name.split("/", 1)
+    with urllib.request.urlopen(f"{HUB_API}/{owner}/{environment}/versions") as response:
+        listed = json.load(response)["data"]["versions"]
+    if not any(
+        version["semantic_version"] == hub.version
+        and version["content_hash"] == hub.content_hash
+        and version["runtime"] == HUB_RUNTIME
+        for version in listed
+    ):
+        raise SystemExit(
+            f"the Hub lists no {HUB_RUNTIME} publication of {hub.name} {hub.version} with content "
+            f"hash {hub.content_hash}"
+        )
 
 
 def locked_verifiers_version(engine_root: Path) -> str:
@@ -121,12 +207,12 @@ def locked_verifiers_version(engine_root: Path) -> str:
 def build(engine: Engine) -> str:
     """Write one engine's project file, lock it, write its descriptor, and return its digest."""
     engine_root = ENGINES_ROOT / engine.name
+    if engine.hub is not None:
+        check_hub_publication(engine.hub)
     atomic_write_text(engine_root / "pyproject.toml", project(engine), mode=0o644)
     subprocess.run(
         ["uv", "lock", "--project", str(engine_root)], check=True, stdin=subprocess.DEVNULL
     )
-    package_root = engine_root / PACKAGES_DIRECTORY / engine.package
-    package = tomllib.loads((package_root / "pyproject.toml").read_text(encoding="utf-8"))
     descriptor = EngineDescriptor(
         schema_version="techtree.engine.v1alpha1",
         name=engine.name,
@@ -134,16 +220,29 @@ def build(engine: Engine) -> str:
         verifiers_version=locked_verifiers_version(engine_root),
         verifiers_revision=VERIFIERS_REVISION,
         supported_hosts=["darwin/amd64", "darwin/arm64", "linux/amd64", "linux/arm64"],
-        packages=[
-            EnginePackage(
-                name=engine.package,
-                version=package["project"]["version"],
-                source_digest=package_source_digest(package_root),
-            )
-        ],
+        packages=[engine_package(engine, engine_root)],
     )
     atomic_write_json(engine_root / DESCRIPTOR_FILENAME, descriptor, mode=0o644)
     return engine_bundle_digest(engine_root)
+
+
+def engine_package(engine: Engine, engine_root: Path) -> EnginePackage:
+    """The descriptor's entry for the taskset package, as the lock and the tree pin it."""
+    if engine.hub is None:
+        package_root = engine_root / PACKAGES_DIRECTORY / engine.package
+        package = tomllib.loads((package_root / "pyproject.toml").read_text(encoding="utf-8"))
+        return EnginePackage(
+            name=engine.package,
+            version=package["project"]["version"],
+            source_digest=package_source_digest(package_root),
+        )
+    locked = locked_hub_wheel_digest(engine_root, engine.package, engine.hub.wheel_url)
+    if locked != f"sha256:{engine.hub.wheel_sha256}":
+        raise SystemExit(
+            f"uv locked {engine.hub.wheel_url} at {locked}, but the pin is "
+            f"sha256:{engine.hub.wheel_sha256}"
+        )
+    return EnginePackage(name=engine.package, version=engine.hub.version, source_digest=locked)
 
 
 def main() -> None:

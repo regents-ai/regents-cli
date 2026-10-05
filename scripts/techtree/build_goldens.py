@@ -56,6 +56,7 @@ from regents_cli.techtree.models.campaign import (
     CampaignMetadata,
     CampaignSpecV3,
     CampaignTaskset,
+    EmbeddedPackageRef,
     EnvironmentSpec,
     EvidenceRequirementsV2,
     ExecutionSpec,
@@ -63,7 +64,6 @@ from regents_cli.techtree.models.campaign import (
     ModelSpec,
     MutationContract,
     MutationKind,
-    PackageRef,
     PublicContext,
     SamplingSpec,
     ScoringSpec,
@@ -228,7 +228,7 @@ def taskset_ref() -> TasksetRef:
     return TasksetRef(
         kind="verifiers",
         id=TASKSET_ID,
-        package=PackageRef(
+        package=EmbeddedPackageRef(
             kind="embedded",
             name=TASKSET_ID,
             revision="1",

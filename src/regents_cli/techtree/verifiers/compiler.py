@@ -40,6 +40,7 @@ from regents_cli.techtree.verifiers.config import (
     TaskImagesToml,
     TasksetToml,
     TimeoutToml,
+    VerifiersSingleAgentEnvToml,
     config_to_json_bytes,
     egress_for,
 )
@@ -132,12 +133,17 @@ def compile_variant_config(
         timeout=TimeoutToml(rollout=float(campaign.execution.timeout_seconds)),
     )
     env: EnvToml
-    if experiment.configuration.environment.id == "single-agent":
-        env = SingleAgentEnvToml(
-            taskset=taskset_toml(taskset), subject=seat, max_concurrent_agents=1
-        )
-    else:
-        env = HarborEnvToml(taskset=taskset_toml(taskset), agent=seat, max_concurrent_agents=1)
+    match experiment.configuration.environment.id:
+        case "single-agent":
+            env = SingleAgentEnvToml(
+                taskset=taskset_toml(taskset), subject=seat, max_concurrent_agents=1
+            )
+        case "harbor-separate-grader":
+            env = HarborEnvToml(taskset=taskset_toml(taskset), agent=seat, max_concurrent_agents=1)
+        case "verifiers-single-agent":
+            env = VerifiersSingleAgentEnvToml(
+                taskset=taskset_toml(taskset), agent=seat, max_concurrent_agents=1
+            )
 
     return EvalToml(
         model=subject.model.model_id,
@@ -155,15 +161,17 @@ def compile_variant_config(
 
 
 def taskset_toml(taskset: CampaignTaskset) -> TasksetToml:
-    """The taskset as the engine loads it: its id, and the task images the Campaign pins."""
-    if taskset.task_images is None:
-        return TasksetToml(id=taskset.ref.id)
+    """The taskset as the engine loads it: its id, the task images the Campaign pins, and the
+    taskset's own settings."""
     return TasksetToml(
         id=taskset.ref.id,
-        images={
+        images=None
+        if taskset.task_images is None
+        else {
             entry.task_id: TaskImagesToml(agent=entry.agent.image, grader=entry.grader.image)
             for entry in taskset.task_images
         },
+        settings=taskset.ref.config,
     )
 
 

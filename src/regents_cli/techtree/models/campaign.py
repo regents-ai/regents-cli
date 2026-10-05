@@ -33,6 +33,7 @@ CREDENTIAL_ENV_PATTERN: Final = r"^[A-Z][A-Z0-9_]{2,63}$"
 
 _CREDENTIAL_ENV_RE = re.compile(CREDENTIAL_ENV_PATTERN)
 _IMAGE_INDEX_DIGEST_RE = re.compile(r"@(sha256:[0-9a-f]{64})$")
+_HUB_NAME_PATTERN: Final = r"^[a-z0-9][a-z0-9._-]*/[a-z0-9][a-z0-9._-]*$"
 
 
 class ProgramRef(ProtocolModel):
@@ -56,13 +57,37 @@ class CampaignContext(ProtocolModel):
     outcome_contract_digest: Digest | None = None
 
 
-class PackageRef(ProtocolModel):
-    """The source package a taskset is defined in."""
+class EmbeddedPackageRef(ProtocolModel):
+    """A taskset package shipped inside the engine bundle; `digest` is its source tree's."""
 
-    kind: Literal["embedded", "git", "hub"]
+    kind: Literal["embedded"]
     name: NonEmptyString
     revision: NonEmptyString
     digest: Digest
+
+
+class HubPackageRef(ProtocolModel):
+    """A taskset package published on the Prime Environments Hub.
+
+    `name` is the Hub's `owner/environment`, `revision` the Hub's full content hash for this
+    publication, and `digest` the sha256 of the exact wheel at `artifact_url`. The version
+    string alone is not an identity: the Hub lets an owner publish the same version twice.
+    """
+
+    kind: Literal["hub"]
+    name: Annotated[str, Field(pattern=_HUB_NAME_PATTERN)]
+    version: NonEmptyString
+    revision: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+    digest: Digest
+    artifact_url: Annotated[str, Field(pattern=r"^https://hub\.primeintellect\.ai/\S+\.whl$")]
+
+    @property
+    def distribution(self) -> str:
+        """The Python distribution the wheel installs: the Hub name without its owner."""
+        return self.name.split("/", 1)[1]
+
+
+PackageRef = Annotated[EmbeddedPackageRef | HubPackageRef, Field(discriminator="kind")]
 
 
 class TasksetRef(ProtocolModel):
@@ -272,10 +297,12 @@ class AgentSpecV2(ProtocolModel):
 
 
 #: The engine's name for the subject's seat in each environment. Techtree calls the role
-#: "subject" everywhere; the engine's Harbor environment names its one seat "agent".
+#: "subject" everywhere; the engine's Harbor environment and Verifiers' own single-agent
+#: environment name their one seat "agent".
 ENGINE_SEATS: Final[dict[str, str]] = {
     "single-agent": "subject",
     "harbor-separate-grader": "agent",
+    "verifiers-single-agent": "agent",
 }
 
 
@@ -285,9 +312,12 @@ class EnvironmentSpec(ProtocolModel):
     `harbor-separate-grader`: the agent works in its task's agent image, then a fresh box from
     the task's grader image grades only the files the task lists, under the limits and network
     the task itself declares.
+
+    `verifiers-single-agent`: Verifiers' own single-agent environment, the one a published
+    taskset that brings no environment of its own runs in; one image for every task.
     """
 
-    id: Literal["single-agent", "harbor-separate-grader"]
+    id: Literal["single-agent", "harbor-separate-grader", "verifiers-single-agent"]
 
     @property
     def engine_seat(self) -> str:

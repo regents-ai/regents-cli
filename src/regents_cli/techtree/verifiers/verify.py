@@ -42,7 +42,6 @@ from regents_cli.techtree.verifiers.child import (
 )
 from regents_cli.techtree.verifiers.config import (
     EvalToml,
-    SingleAgentEnvToml,
     emitted_document,
     image_is_digest_pinned,
     runtime_images,
@@ -189,9 +188,7 @@ def verify_compiled_config(
             ),
         ),
         _push_check(observed),
-        _subject_seat_check(
-            observed, "subject" if isinstance(compiled.env, SingleAgentEnvToml) else "agent"
-        ),
+        _subject_seat_check(observed, compiled.env.seat_name),
     ]
 
 

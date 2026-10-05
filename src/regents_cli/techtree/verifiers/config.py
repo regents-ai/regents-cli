@@ -26,6 +26,7 @@ from typing import Any, Final, Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from regents_cli.techtree.errors import ValidationError
+from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.models.campaign import CREDENTIAL_ENV_PATTERN, ReasoningEffort
 
 EVAL_CONFIG_INVALID: Final = "eval_config_invalid"
@@ -149,10 +150,26 @@ class TaskImagesToml(TomlModel):
 
 
 class TasksetToml(TomlModel):
-    """`images` is the Tasksmith taskset's own configuration: task id to its pinned images."""
+    """`images` is the Tasksmith taskset's own configuration: task id to its pinned images.
+    `settings` is any other configuration the taskset takes, exactly as the Campaign commits to
+    it; the engine reads it beside `id`, so it is written there, nulls included."""
 
     id: str = Field(min_length=1)
     images: dict[str, TaskImagesToml] | None = None
+    settings: dict[str, JsonValue] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _check_settings_do_not_restate_the_taskset(self) -> Self:
+        restated = sorted({"id", "images"} & set(self.settings))
+        if restated:
+            raise ValueError(f"a taskset's settings cannot set {restated}")
+        return self
+
+    def document(self) -> dict[str, Any]:
+        """The taskset configuration exactly as the engine reads it."""
+        return self.model_dump(mode="json", exclude_none=True, exclude={"settings"}) | dict(
+            self.settings
+        )
 
 
 class SingleAgentEnvToml(TomlModel):
@@ -166,6 +183,10 @@ class SingleAgentEnvToml(TomlModel):
     @property
     def seat(self) -> SubjectAgentToml:
         return self.subject
+
+    @property
+    def seat_name(self) -> str:
+        return "subject"
 
     @model_validator(mode="after")
     def _check_one_campaign_image(self) -> Self:
@@ -188,6 +209,10 @@ class HarborEnvToml(TomlModel):
     def seat(self) -> SubjectAgentToml:
         return self.agent
 
+    @property
+    def seat_name(self) -> str:
+        return "agent"
+
     @model_validator(mode="after")
     def _check_per_task_images(self) -> Self:
         if self.agent.runtime.image is not None:
@@ -197,7 +222,32 @@ class HarborEnvToml(TomlModel):
         return self
 
 
-EnvToml = SingleAgentEnvToml | HarborEnvToml
+class VerifiersSingleAgentEnvToml(TomlModel):
+    """Verifiers' own single-agent environment, which a published taskset that exports no
+    environment runs in. Its one seat is `agent`, stamped onto every trace as `agent.name`."""
+
+    taskset: TasksetToml
+    agent: SubjectAgentToml
+    max_concurrent_agents: int = Field(default=1, ge=1)
+
+    @property
+    def seat(self) -> SubjectAgentToml:
+        return self.agent
+
+    @property
+    def seat_name(self) -> str:
+        return "agent"
+
+    @model_validator(mode="after")
+    def _check_one_campaign_image(self) -> Self:
+        if self.agent.runtime.image is None:
+            raise ValueError("a single-agent run names one image for every task")
+        if self.taskset.images is not None:
+            raise ValueError("a single-agent run takes no per-task images")
+        return self
+
+
+EnvToml = SingleAgentEnvToml | HarborEnvToml | VerifiersSingleAgentEnvToml
 
 
 def image_is_digest_pinned(image: str) -> bool:
@@ -206,9 +256,9 @@ def image_is_digest_pinned(image: str) -> bool:
 
 def runtime_images(env: EnvToml) -> list[str]:
     """Every image the run may start: the seat's own, or each task's agent and grader."""
-    if isinstance(env, SingleAgentEnvToml):
-        assert env.subject.runtime.image is not None  # the env's validator guarantees it
-        return [env.subject.runtime.image]
+    if not isinstance(env, HarborEnvToml):
+        assert env.seat.runtime.image is not None  # the env's validator guarantees it
+        return [env.seat.runtime.image]
     assert env.taskset.images is not None  # the env's validator guarantees it
     return [image for pins in env.taskset.images.values() for image in (pins.agent, pins.grader)]
 
@@ -259,11 +309,13 @@ def egress_for(network_policy: str) -> tuple[list[str], list[str]]:
 def emitted_document(config: EvalToml) -> dict[str, Any]:
     """Exactly the mapping Techtree writes: unset optionals dropped, except `rich`'s null."""
     document: dict[str, Any] = config.model_dump(mode="json")
-    return {
+    emitted = {
         key: _without_nulls(value)
         for key, value in document.items()
         if value is not None or key in _NULL_IS_THE_DECISION
     }
+    emitted["env"]["taskset"] = config.env.taskset.document()
+    return emitted
 
 
 def _without_nulls(value: Any) -> Any:

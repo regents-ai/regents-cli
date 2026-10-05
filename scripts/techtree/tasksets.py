@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final, Literal
 
-from build_engine_bundle import package_source_digest
+from build_engine_bundle import locked_hub_wheel_digest, package_source_digest
 
 from regents_cli.techtree.canonical import canonical_json_bytes, digest_object, validate_digest
 from regents_cli.techtree.constants import DIGEST_PREFIX, TASKSET_LOCK_SCHEMA_VERSION
@@ -23,7 +23,7 @@ from regents_cli.techtree.engines.registry import EngineRegistry
 from regents_cli.techtree.engines.runner import EngineRunner
 from regents_cli.techtree.errors import EngineError, VerificationError
 from regents_cli.techtree.models.base import ArtifactRef, Digest
-from regents_cli.techtree.models.campaign import TaskSelection, TasksetRef
+from regents_cli.techtree.models.campaign import HubPackageRef, TaskSelection, TasksetRef
 from regents_cli.techtree.models.validation import (
     TasksetLock,
     TasksetValidationReceipt,
@@ -68,7 +68,7 @@ def lock_taskset(
     are part of what its task hashes cover.
     """
     runner = EngineRunner(registry, engine_digest)
-    taskset = TasksetToml(id=taskset_ref.id, images=images)
+    taskset = TasksetToml(id=taskset_ref.id, images=images, settings=taskset_ref.config)
     first = _inspect(registry, runner, engine_digest, taskset, selection.num_tasks)
     second = _inspect(registry, runner, engine_digest, taskset, selection.num_tasks)
     if first != second:
@@ -108,13 +108,13 @@ def validate_taskset(
     runner = EngineRunner(registry, engine_digest)
     output_dir = work_dir / "validation"
     run_dir = output_dir / VALIDATION_RUN_NAME
-    taskset = TasksetToml(id=lock.taskset_ref.id, images=images)
+    taskset = TasksetToml(id=lock.taskset_ref.id, images=images, settings=lock.taskset_ref.config)
     config_path = work_dir / "validate.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(
         json.dumps(
             {
-                "taskset": taskset.model_dump(mode="json", exclude_none=True),
+                "taskset": taskset.document(),
                 "num_tasks": lock.task_count,
                 "runtime": {"type": runtime}
                 | ({} if docker_image is None else {"image": docker_image}),
@@ -219,7 +219,7 @@ def _inspect(
     taskset_id = taskset.id
     with tempfile.TemporaryDirectory(prefix="techtree-inspect-") as directory:
         config = Path(directory) / "taskset.json"
-        config.write_text(json.dumps(taskset.model_dump(mode="json", exclude_none=True)))
+        config.write_text(json.dumps(taskset.document()))
         output = Path(directory) / "inspection.json"
         process = runner.run_python_script(
             registry.tool_path(engine_digest, INSPECT_TASKSET_TOOL),
@@ -246,19 +246,28 @@ def _inspect(
 def _installed_package_digest(
     registry: EngineRegistry, engine_digest: Digest, taskset_ref: TasksetRef
 ) -> Digest:
-    """Recompute the installed package tree's digest; the descriptor and the ref must agree."""
+    """The installed package's digest, recomputed; the descriptor and the ref must agree.
+
+    An embedded package is its shipped source tree. A Hub package is the one wheel the engine's
+    lock installs, which `uv sync --frozen` checked against the lock's hash on install.
+    """
     engine_root = registry.path(engine_digest)
-    name = taskset_ref.package.name
-    resolved = package_source_digest(engine_root / PACKAGES_DIRECTORY / name)
+    package = taskset_ref.package
+    if isinstance(package, HubPackageRef):
+        name = package.distribution
+        resolved = locked_hub_wheel_digest(engine_root, name, package.artifact_url)
+    else:
+        name = package.name
+        resolved = package_source_digest(engine_root / PACKAGES_DIRECTORY / name)
     declared = next(
-        package.source_digest
-        for package in read_engine_descriptor(engine_root).packages
-        if package.name == name
+        entry.source_digest
+        for entry in read_engine_descriptor(engine_root).packages
+        if entry.name == name
     )
-    if not resolved == declared == taskset_ref.package.digest:
+    if not resolved == declared == package.digest:
         raise VerificationError(
-            f"the installed {name} tree hashes to {resolved}; the engine descriptor declares "
-            f"{declared} and the taskset reference commits to {taskset_ref.package.digest}",
+            f"the installed {name} package hashes to {resolved}; the engine descriptor declares "
+            f"{declared} and the taskset reference commits to {package.digest}",
             code="taskset_package_digest_mismatch",
             details={"package": name},
         )
