@@ -15,8 +15,9 @@ creator answers with, and its `task.toml` from `contract.json`, and imports
 it here like any other task.
 
 `contract.json` records the upstream pin, the Harbor release Techtree follows
-(0.23.0) and its task schema 1.4. Its fixed sections are derived from
-Skill2Env's host-authored `task_config.py` and Harbor 0.23.0's serialized defaults.
+(0.21.0, the one the pinned Verifiers build installs in every Climb engine) and its
+task schema 1.4. Its fixed sections are derived from Skill2Env's host-authored
+`task_config.py` and Harbor's serialized defaults, and load unchanged in 0.21.0.
 Skill2Env's own `pyproject.toml` still names Harbor 0.16.0.
 Techtree requires those sections explicitly and rejects aliases and additional
 configuration. These are intentionally narrower rules than Harbor's full schema.
