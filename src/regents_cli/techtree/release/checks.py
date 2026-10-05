@@ -19,7 +19,7 @@ from regents_cli.techtree.engines.bundle import shipped_engines
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.execution_facts import bound_execution_plan_digest
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.catalog import CatalogIndexV2
 from regents_cli.techtree.models.climb import ClimbManifest
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
@@ -105,7 +105,7 @@ def local_release_facts() -> ReleaseFacts:
     climbs: dict[str, ClimbFacts] = {}
     for entry in index.climbs:
         climb = ClimbManifest.model_validate_json((catalog_root / entry.path).read_bytes())
-        campaign = CampaignSpecV3.model_validate_json(
+        campaign = CampaignSpecV4.model_validate_json(
             (catalog_root / _object_path(index, climb.campaign_spec_digest)).read_bytes()
         )
         plan = ResolvedExecutionPlan.model_validate_json(

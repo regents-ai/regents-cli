@@ -9,7 +9,7 @@ DIGEST_PREFIX: Final = "sha256:"
 
 SKILL_SCHEMA_VERSION: Final = "techtree.skill.v1alpha1"
 SUBMISSION_DRAFT_SCHEMA_VERSION: Final = "techtree.submission-draft.v1alpha1"
-EXPERIMENT_V3_SCHEMA_VERSION: Final = "techtree.experiment.v3"
+EXPERIMENT_V4_SCHEMA_VERSION: Final = "techtree.experiment.v4"
 RUN_REQUEST_V2_SCHEMA_VERSION: Final = "techtree.run-request.v2"
 TASKSET_LOCK_SCHEMA_VERSION: Final = "techtree.taskset-lock.v1alpha1"
 EPISODE_RECEIPT_V3_SCHEMA_VERSION: Final = "techtree.episode-receipt.v3"

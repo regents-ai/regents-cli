@@ -41,7 +41,7 @@ from regents_cli.techtree.identity.models import (
 )
 from regents_cli.techtree.identity.service import verify_signed_object
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import (
     EpisodeReceiptV3,
@@ -49,7 +49,7 @@ from regents_cli.techtree.models.episode_receipt import (
     ScoreStatus,
 )
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
     PublicationStatus,
@@ -206,28 +206,28 @@ def verify_local_bundle(path: Path) -> VerificationResult:
 class _Documents:
     """Every parsed document one bundle carries."""
 
-    campaign: CampaignSpecV3
+    campaign: CampaignSpecV4
     execution_plan: ResolvedExecutionPlan
     data_policy: DataPolicy
     taskset_lock: TasksetLock
     validation_receipt: TasksetValidationReceipt
-    experiments: dict[ExperimentVariant, ExperimentManifestV3]
+    experiments: dict[ExperimentVariant, ExperimentManifestV4]
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest]
     report: ObjectEnvelope[UpliftReportV3]
 
 
 def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
-    campaign = _load_model(directory / CAMPAIGN_FILENAME, CampaignSpecV3, checks)
+    campaign = _load_model(directory / CAMPAIGN_FILENAME, CampaignSpecV4, checks)
     plan = _load_model(directory / EXECUTION_PLAN_FILENAME, ResolvedExecutionPlan, checks)
     policy = _load_model(directory / DATA_POLICY_FILENAME, DataPolicy, checks)
     lock = _load_model(directory / TASKSET_LOCK_FILENAME, TasksetLock, checks)
     receipt = _load_model(directory / VALIDATION_RECEIPT_FILENAME, TasksetValidationReceipt, checks)
     report = _load_envelope(directory / REPORT_FILENAME, UpliftReportV3, checks, "uplift-report")
-    experiments: dict[ExperimentVariant, ExperimentManifestV3] = {}
+    experiments: dict[ExperimentVariant, ExperimentManifestV4] = {}
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest] = {}
     for variant in _VARIANT_ORDER:
         experiment = _load_model(
-            directory / experiment_filename(variant), ExperimentManifestV3, checks
+            directory / experiment_filename(variant), ExperimentManifestV4, checks
         )
         receipt_set = _load_model(
             directory / receipt_set_filename(variant), ReceiptSetManifest, checks

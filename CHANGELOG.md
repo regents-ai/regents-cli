@@ -9,9 +9,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   one named reward. A Campaign records each reward's name and weight and the fingerprint of
   the package that scores it; a run whose rewards or weights differ from those is refused, and
   so is a task missing one of them. `climb show` says what a Climb is scored on.
-- Results use the report format `techtree.uplift-report.v3`, which no longer names a single
-  reward. Results published under the earlier format keep their meaning, and this version does
-  not re-check them.
+- New record formats: Campaigns are `techtree.campaign.v4` and experiment manifests
+  `techtree.experiment.v4`, both carrying the rewards and weights; Results use
+  `techtree.uplift-report.v3`, which no longer names a single reward. Results published under
+  the earlier formats keep their meaning, and this version does not re-check them.
 - The Climbs move to `hello-world-climb@3`, `frontier-cs-open-ended-climb@3` and
   `tasksmith-climb@2`: the same tasks, limits and starter Skills, each still scored on its one
   reward. Techtree's release is now `climb-v0.7.0`.

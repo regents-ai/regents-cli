@@ -376,7 +376,7 @@
       "type": "string"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/uplift-report.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/uplift-report.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "The complete result of one baseline-versus-candidate comparison.",

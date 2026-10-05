@@ -86,7 +86,7 @@
       "type": "string"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/run-request.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/run-request.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "What was asked for, fixed at the moment the run was created.",

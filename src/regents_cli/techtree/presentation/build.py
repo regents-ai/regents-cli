@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import Final
 
 from regents_cli.techtree.identity.models import VerificationResult
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.climb import ClimbManifest
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.skill import SkillArtifact
@@ -91,7 +91,7 @@ _FULL_SCORE: Final = 1.0
 def build_uplift_presentation(
     *,
     report: UpliftReportV3,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     baseline_receipts: Sequence[EpisodeReceiptV3],
     candidate_receipts: Sequence[EpisodeReceiptV3],
     climb: ClimbManifest,
@@ -434,7 +434,7 @@ def _verification_status(verification: VerificationResult | None) -> str:
 def _caveats(
     *,
     report: UpliftReportV3,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     climb: ClimbManifest,
     economics: _Economics,
     recorded_evidence: RecordedEvidence | None,
@@ -525,7 +525,7 @@ def _caveats(
     return caveats
 
 
-def _weak_attestation_text(campaign: CampaignSpecV3) -> str:
+def _weak_attestation_text(campaign: CampaignSpecV4) -> str:
     """Name the coordinate the run could not confirm, asking the same check the comparison used."""
     coordinates = {check.id for check in weaker_claim_warnings(campaign)}
     if coordinates == {MODEL_REVISION_UNDISCOVERABLE}:

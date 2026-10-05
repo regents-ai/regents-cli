@@ -30,14 +30,14 @@ from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.execution_facts import UpliftReportExecutionFacts
 from regents_cli.techtree.ids import new_id
 from regents_cli.techtree.models.base import Digest
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV3, Rubric
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV4, Rubric
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import (
     EpisodeReceiptV3,
     EvidenceStatus,
     ScoreStatus,
 )
-from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
 from regents_cli.techtree.models.run import RunRequestV2
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
@@ -145,7 +145,7 @@ def aggregate_primary_result(deltas: Sequence[TaskDelta]) -> PrimaryUpliftResult
 
 
 def decide_uplift(
-    *, campaign: CampaignSpecV3, comparison: RealComparisonResult, deltas: Sequence[TaskDelta]
+    *, campaign: CampaignSpecV4, comparison: RealComparisonResult, deltas: Sequence[TaskDelta]
 ) -> UpliftDecision:
     """Apply the Campaign's own acceptance rules, and no others.
 
@@ -218,12 +218,12 @@ def proof_grade_for(
 def build_uplift_report(
     *,
     run_request: RunRequestV2,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     execution: UpliftReportExecutionFacts,
     data_policy: DataPolicy,
     taskset_validation_receipt_digest: Digest,
-    baseline_manifest: ExperimentManifestV3,
-    candidate_manifest: ExperimentManifestV3,
+    baseline_manifest: ExperimentManifestV4,
+    candidate_manifest: ExperimentManifestV4,
     baseline_receipt_set: ReceiptSetManifest,
     candidate_receipt_set: ReceiptSetManifest,
     comparison: RealComparisonResult,
@@ -412,11 +412,11 @@ def _require_reportable(
 def _require_lineage(
     *,
     run_request: RunRequestV2,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     execution: UpliftReportExecutionFacts,
     data_policy: DataPolicy,
-    baseline_manifest: ExperimentManifestV3,
-    candidate_manifest: ExperimentManifestV3,
+    baseline_manifest: ExperimentManifestV4,
+    candidate_manifest: ExperimentManifestV4,
     baseline_receipt_set: ReceiptSetManifest,
     candidate_receipt_set: ReceiptSetManifest,
     comparison: RealComparisonResult,

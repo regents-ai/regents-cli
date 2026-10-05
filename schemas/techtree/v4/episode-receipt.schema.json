@@ -245,7 +245,7 @@
       "type": "object"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/episode-receipt.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/episode-receipt.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "The complete record of one scored episode.",

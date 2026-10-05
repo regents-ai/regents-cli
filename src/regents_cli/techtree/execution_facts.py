@@ -13,14 +13,14 @@ from typing import Final, Literal
 from regents_cli.techtree.canonical import digest_object
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.models.base import Digest
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.episode_receipt import ExecutionLocation
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 
 EXECUTION_PLAN_UNSUPPORTED: Final = "execution_plan_unsupported"
 
 
-def bound_execution_plan_digest(campaign: CampaignSpecV3, plan: ResolvedExecutionPlan) -> Digest:
+def bound_execution_plan_digest(campaign: CampaignSpecV4, plan: ResolvedExecutionPlan) -> Digest:
     """The plan's digest, refusing a plan this Campaign is not bound to."""
     digest = digest_object(plan)
     if digest != campaign.execution_plan_digest:
@@ -35,7 +35,7 @@ def bound_execution_plan_digest(campaign: CampaignSpecV3, plan: ResolvedExecutio
 
 
 def require_executable_execution_plan(
-    campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
+    campaign: CampaignSpecV4, plan: ResolvedExecutionPlan
 ) -> Digest:
     """The bound plan's digest, refusing a plan this build cannot run.
 
@@ -101,7 +101,7 @@ class UpliftReportExecutionFacts:
 
 
 def episode_receipt_execution_facts(
-    campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
+    campaign: CampaignSpecV4, plan: ResolvedExecutionPlan
 ) -> EpisodeReceiptExecutionFacts:
     return EpisodeReceiptExecutionFacts(
         execution_plan_digest=bound_execution_plan_digest(campaign, plan),
@@ -110,7 +110,7 @@ def episode_receipt_execution_facts(
 
 
 def uplift_report_execution_facts(
-    campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
+    campaign: CampaignSpecV4, plan: ResolvedExecutionPlan
 ) -> UpliftReportExecutionFacts:
     return UpliftReportExecutionFacts(
         execution_plan_digest=bound_execution_plan_digest(campaign, plan),
@@ -119,7 +119,7 @@ def uplift_report_execution_facts(
 
 
 def run_request_execution_facts(
-    campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
+    campaign: CampaignSpecV4, plan: ResolvedExecutionPlan
 ) -> RunRequestExecutionFacts:
     return RunRequestExecutionFacts(
         execution_plan_digest=require_executable_execution_plan(campaign, plan)
@@ -127,7 +127,7 @@ def run_request_execution_facts(
 
 
 def climb_summary_execution_facts(
-    campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
+    campaign: CampaignSpecV4, plan: ResolvedExecutionPlan
 ) -> ClimbSummaryExecutionFacts:
     bound_execution_plan_digest(campaign, plan)
     return ClimbSummaryExecutionFacts(
@@ -138,7 +138,7 @@ def climb_summary_execution_facts(
 
 
 def compatibility_result_execution_facts(
-    campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
+    campaign: CampaignSpecV4, plan: ResolvedExecutionPlan
 ) -> CompatibilityResultExecutionFacts:
     return CompatibilityResultExecutionFacts(
         execution_plan_digest=bound_execution_plan_digest(campaign, plan),

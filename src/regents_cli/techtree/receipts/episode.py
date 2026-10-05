@@ -31,7 +31,7 @@ from regents_cli.techtree.models.episode_receipt import (
     ScoreStatus,
     SubjectRuntimeReceipt,
 )
-from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
 from regents_cli.techtree.models.run import RunRequestV2
 from regents_cli.techtree.verifiers.models import (
     NormalizedEpisode,
@@ -62,7 +62,7 @@ def build_episode_receipt(
     *,
     run_request: RunRequestV2,
     variant: VariantName,
-    experiment: ExperimentManifestV3,
+    experiment: ExperimentManifestV4,
     episode: NormalizedEpisode,
     raw_artifacts: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
@@ -128,7 +128,7 @@ def build_variant_receipts(
     *,
     run_request: RunRequestV2,
     variant: VariantName,
-    experiment: ExperimentManifestV3,
+    experiment: ExperimentManifestV4,
     result: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
     ordered_task_hashes: Sequence[Digest],
@@ -170,7 +170,7 @@ def _require_lineage(
     *,
     run_request: RunRequestV2,
     variant: VariantName,
-    experiment: ExperimentManifestV3,
+    experiment: ExperimentManifestV4,
     raw_artifacts: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
 ) -> None:

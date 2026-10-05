@@ -46,11 +46,11 @@ from regents_cli.techtree.models.base import (
     ObjectEnvelope,
     ProtocolModel,
 )
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3, ScoreStatus
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
 from regents_cli.techtree.models.uplift_report import ComparisonStatus, UpliftReportV3
 from regents_cli.techtree.models.validation import TasksetLock, TasksetValidationReceipt
 from regents_cli.techtree.receipts.execution import (
@@ -164,12 +164,12 @@ class LocalProofBundleContents:
     """The objects one bundle is written from; receipts and report arrive already signed."""
 
     identity: ExecutorIdentity
-    campaign: CampaignSpecV3
+    campaign: CampaignSpecV4
     execution_plan: ResolvedExecutionPlan
     data_policy: DataPolicy
     taskset_lock: TasksetLock
     validation_receipt: TasksetValidationReceipt
-    experiments: Mapping[ExperimentVariant, ExperimentManifestV3]
+    experiments: Mapping[ExperimentVariant, ExperimentManifestV4]
     receipt_sets: Mapping[ExperimentVariant, ReceiptSetManifest]
     receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV3]]]
     report: ObjectEnvelope[UpliftReportV3]

@@ -1,4 +1,4 @@
-"""Regenerate the JSON Schemas of the v3 documents regents-cli writes, in schemas/techtree/v3.
+"""Regenerate the JSON Schemas of the v3 documents regents-cli writes, in schemas/techtree/v4.
 
 Keys are sorted and the indent fixed so a reordering inside Pydantic never shows as a change,
 and every schema carries an `$id` derived from its filename. Techtree's frozen v1alpha1 tree
@@ -13,7 +13,7 @@ from typing import Final
 
 from pydantic import BaseModel
 
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.catalog import (
     CatalogIndexV2,
     ClimbSummaryV2,
@@ -22,25 +22,25 @@ from regents_cli.techtree.models.catalog import (
 from regents_cli.techtree.models.climb import ClimbManifest
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV3
+from regents_cli.techtree.models.experiment import ExperimentManifestV4
 from regents_cli.techtree.models.run import RunRequestV2
 from regents_cli.techtree.models.uplift_report import UpliftReportV3
 
-VERSION: Final = "v3"
+VERSION: Final = "v4"
 DESTINATION: Final = Path(__file__).resolve().parents[2] / "schemas/techtree" / VERSION
 JSON_SCHEMA_DIALECT: Final = "https://json-schema.org/draft/2020-12/schema"
 #: A name, not a location: nothing fetches it.
 SCHEMA_ID_BASE: Final = "https://schemas.techtree.dev"
 
 MODELS: Final[dict[str, type[BaseModel]]] = {
-    "campaign": CampaignSpecV3,
+    "campaign": CampaignSpecV4,
     "catalog": CatalogIndexV2,
     "climb": ClimbManifest,
     "climb-summary": ClimbSummaryV2,
     "compatibility-result": CompatibilityResultV2,
     "episode-receipt": EpisodeReceiptV3,
     "execution-plan": ResolvedExecutionPlan,
-    "experiment-manifest": ExperimentManifestV3,
+    "experiment-manifest": ExperimentManifestV4,
     "run-request": RunRequestV2,
     "uplift-report": UpliftReportV3,
 }

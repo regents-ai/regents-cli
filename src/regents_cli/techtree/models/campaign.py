@@ -433,10 +433,10 @@ class CampaignMetadata(ProtocolModel):
     ]
 
 
-class CampaignSpecV3(ProtocolModel):
+class CampaignSpecV4(ProtocolModel):
     """A Campaign that binds exactly one resolved execution plan by digest."""
 
-    schema_version: Literal["techtree.campaign.v3"]
+    schema_version: Literal["techtree.campaign.v4"]
     kind: Literal["Campaign"]
     metadata: CampaignMetadata
     context: CampaignContext

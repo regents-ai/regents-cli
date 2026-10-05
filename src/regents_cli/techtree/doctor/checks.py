@@ -29,7 +29,7 @@ from regents_cli.techtree.errors import PrerequisiteError, ValidationError
 from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, ProtocolModel
 from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
-    CampaignSpecV3,
+    CampaignSpecV4,
     ModelSpec,
 )
 from regents_cli.techtree.models.engine import normalize_host_platform
@@ -568,7 +568,7 @@ def check_model_credential(model: ModelSpec) -> DoctorCheck:
     )
 
 
-def check_subject_images(campaign: CampaignSpecV3) -> DoctorCheck:
+def check_subject_images(campaign: CampaignSpecV4) -> DoctorCheck:
     """Whether every image the Campaign pins is on this machine, as pinned; nothing is pulled."""
     runtime = campaign.subject.runtime
     pins = pinned_images(runtime, campaign.taskset)
@@ -598,7 +598,7 @@ def check_subject_images(campaign: CampaignSpecV3) -> DoctorCheck:
     )
 
 
-def check_live_campaign(campaign: CampaignSpecV3) -> DoctorCheck:
+def check_live_campaign(campaign: CampaignSpecV4) -> DoctorCheck:
     """Refuse a Campaign whose coordinates are development placeholders."""
     subject = campaign.agents.get(SUBJECT_AGENT)
     metadata: dict[str, JsonValue] = {"campaign_id": campaign.metadata.id}

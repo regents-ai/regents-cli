@@ -32,7 +32,7 @@ from regents_cli.techtree.models.campaign import (
 )
 from regents_cli.techtree.models.engine import EngineDescriptor
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV3
+from regents_cli.techtree.models.experiment import ExperimentManifestV4
 from regents_cli.techtree.models.validation import TasksetLock
 from regents_cli.techtree.verifiers.child import (
     CANCELLATION_EXIT_CODE,
@@ -324,7 +324,7 @@ def _last_meaningful_line(process: EngineProcessResult) -> str:
 def verify_variant_execution(
     *,
     result: VariantExecutionResult,
-    experiment: ExperimentManifestV3,
+    experiment: ExperimentManifestV4,
     plan: ResolvedExecutionPlan,
     taskset_lock: TasksetLock,
     rubric: Rubric,
@@ -364,7 +364,7 @@ def verify_variant_execution(
 
 
 def _task_image_check(
-    result: VariantExecutionResult, experiment: ExperimentManifestV3, subject: AgentSpecV2
+    result: VariantExecutionResult, experiment: ExperimentManifestV4, subject: AgentSpecV2
 ) -> ExecutionCheck:
     """Every trace ran its own task's pinned agent image and was graded in its grader image."""
     pins = {
@@ -575,7 +575,7 @@ def _tool_inventory_check(traces: list[NormalizedTrace]) -> ExecutionCheck:
 
 
 def _manifest_check(
-    result: VariantExecutionResult, experiment: ExperimentManifestV3
+    result: VariantExecutionResult, experiment: ExperimentManifestV4
 ) -> ExecutionCheck:
     return _verdict(
         "result_matches_experiment",

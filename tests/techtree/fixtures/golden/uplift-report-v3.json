@@ -1,8 +1,8 @@
 {
   "payload": {
-    "baseline_manifest_digest": "sha256:8e272f017e5e30d430e4f65267eedc2ef8c1e0c2d9949e21453e4b69f4f08dc9",
-    "campaign_spec_digest": "sha256:b25a827fdc96680f2f327a89202a3d4c763e2682ac1aaa84b601310b4fcedba9",
-    "candidate_manifest_digest": "sha256:e2a8a425de5316504bf00a052a733fb3f6cb4c6c3db27ef3ecb06642b4b998bc",
+    "baseline_manifest_digest": "sha256:1fd63b06dd0b3bec3f32894142a017758d954554842c74a5f09f801c013c79a4",
+    "campaign_spec_digest": "sha256:35432972c4cc98245d63a862861c0f8285b58b1cc8772133217e798a25f3c5a8",
+    "candidate_manifest_digest": "sha256:41661151e13adb0699d2a44106478111e6dd8a5e239c9319e258678a8da8c6f6",
     "created_at": "2026-01-01T00:00:00Z",
     "data_policy_digest": "sha256:f61fff0ff5941205fca8fc044c81e7a56aed9017539f6927ab9df0e81f70f88b",
     "decision": "accepted",
@@ -40,7 +40,7 @@
     "program_ref": null,
     "proof_grade": "P1",
     "public_context": {
-      "climb_digest": "sha256:3cefb33803371e3e949b65acfaab32b910f2e939d5d3e09d2c1b4ccef655900d",
+      "climb_digest": "sha256:5015ce4676d3c17eaecd52e714e6253f1c3e01d449493736927cbec57ec72c0e",
       "kind": "climb"
     },
     "publication_eligible": true,
@@ -177,10 +177,10 @@
     ],
     "taskset_validation_receipt_digest": "sha256:8ccab5ac9e48a25ea26d621551b578ae4e210b61f950700477ae75252af27504"
   },
-  "payload_digest": "sha256:2d591f0c8e6725b75dee926447ab3dd1d64401038804cb76ab5050afba384bd3",
+  "payload_digest": "sha256:d411677c560afb279e372673e8bebbddefcc884df4b8d56ec03901e2b965ed23",
   "signature": {
     "algorithm": "ed25519",
     "key_id": "sha256:cb1636de7059dc2a939fb3e53590a8373911d5613540d1c00eeaf7d37a10d38f",
-    "signature": "yunoTW7lGH0KzqcpXearOefgBU9XrpY7XHh77//MFCKeuScygIYJB4yZn6xnNvSU0j7hnNoEQNqZopFeE/eWBQ=="
+    "signature": "M3AGDPqoxddhZRzh9Q1dYG9GZFtD7DIDycmHletp37EZVwDD1ZWvBHUwf5rHf8tS8G/omufr4HzeNqplffYBBA=="
   }
 }

@@ -38,7 +38,7 @@ from regents_cli.techtree.models.campaign import (
     CampaignContext,
     CampaignImageRuntime,
     CampaignMetadata,
-    CampaignSpecV3,
+    CampaignSpecV4,
     CampaignTaskset,
     EmbeddedPackageRef,
     EnvironmentSpec,
@@ -556,10 +556,10 @@ def campaign(
     receipt_digest: Digest,
     data_policy_digest: Digest,
     execution_plan_digest: Digest,
-) -> CampaignSpecV3:
+) -> CampaignSpecV4:
     """The scientific contract the Climb invites participants to run."""
-    return CampaignSpecV3(
-        schema_version="techtree.campaign.v3",
+    return CampaignSpecV4(
+        schema_version="techtree.campaign.v4",
         kind="Campaign",
         metadata=CampaignMetadata(
             id=derived_id("campaign", definition.label),

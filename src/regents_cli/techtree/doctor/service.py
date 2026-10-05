@@ -23,7 +23,7 @@ from regents_cli.techtree.doctor.checks import (
     detect_host_platform,
 )
 from regents_cli.techtree.models.base import NonEmptyString, ProtocolModel
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV3
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV4
 from regents_cli.techtree.paths import TechtreePaths
 
 
@@ -44,7 +44,7 @@ class DoctorService:
         self._paths = paths
 
     def run(
-        self, *, for_evaluation: bool = False, campaign: CampaignSpecV3 | None = None
+        self, *, for_evaluation: bool = False, campaign: CampaignSpecV4 | None = None
     ) -> list[DoctorCheck]:
         """The checks in a fixed order; `for_evaluation` adds the gate in front of a real run."""
         checks = [

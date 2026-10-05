@@ -19,7 +19,7 @@ from regents_cli.techtree.drafts.source import CampaignSource
 from regents_cli.techtree.drafts.store import DraftStore
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV3, Rubric
+from regents_cli.techtree.models.campaign import CampaignSpecV4, Rubric
 from regents_cli.techtree.models.catalog import ClimbSummaryV2, CompatibilityResultV2
 from regents_cli.techtree.models.run import AcknowledgementMethod, PolicyAcknowledgement
 from regents_cli.techtree.models.skill import SubmissionDraft
@@ -205,7 +205,7 @@ def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> N
     emit(answer, as_json=as_json)
 
 
-def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV3) -> list[str]:
+def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV4) -> list[str]:
     """The five things a person weighs before a run starts, read off this draft and Campaign."""
     return [
         f"This runs {draft.estimated_episodes} episodes: the same tasks once for each side of "
@@ -217,7 +217,7 @@ def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV3) -> list[st
     ]
 
 
-def _cost_line(campaign: CampaignSpecV3) -> str:
+def _cost_line(campaign: CampaignSpecV4) -> str:
     """What holds the spend while the run is under way, and what does not."""
     ceiling = campaign.budgets.maximum_usd
     if ceiling is None:
@@ -295,7 +295,7 @@ def _list_report(summaries: list[ClimbSummaryV2]) -> str:
 
 def _show_report(
     summary: ClimbSummaryV2,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     policy_digest: str,
     ownership: str,
     *,

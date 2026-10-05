@@ -177,7 +177,7 @@
       "type": "string"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/climb-summary.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/climb-summary.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Everything `climb list` and `climb show` display, in one object.",

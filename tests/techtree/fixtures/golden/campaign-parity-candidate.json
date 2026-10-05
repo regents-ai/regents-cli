@@ -74,7 +74,7 @@
     "minimum_skills": 1,
     "target_agent": "subject"
   },
-  "schema_version": "techtree.campaign.v3",
+  "schema_version": "techtree.campaign.v4",
   "scoring": {
     "aggregation": "mean",
     "minimum_absolute_delta": 0.05,

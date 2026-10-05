@@ -30,13 +30,13 @@ from regents_cli.techtree.fs import (
     remove_tree,
 )
 from regents_cli.techtree.models.base import ArtifactRef, Digest, JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.climb import ClimbManifest, ResolvedClimb
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import (
-    ExperimentManifestV3,
+    ExperimentManifestV4,
     ExperimentVariant,
     ManifestComparison,
 )
@@ -82,13 +82,13 @@ class RunInputBundle:
     draft: SubmissionDraft
     source: CampaignSource
     validation_evidence: ValidationEvidence
-    baseline: ExperimentManifestV3
-    candidate: ExperimentManifestV3
+    baseline: ExperimentManifestV4
+    candidate: ExperimentManifestV4
     comparison: ManifestComparison
     candidate_skill: StagedSkill
 
     @property
-    def campaign(self) -> CampaignSpecV3:
+    def campaign(self) -> CampaignSpecV4:
         return self.source.campaign
 
     @property
@@ -209,7 +209,7 @@ class RunArtifactStore:
     def _read_bundle(self, root: Path, request: RunRequestV2) -> RunInputBundle:
         run_id = request.run_id
         public = root / _PUBLIC_DIR
-        campaign = self._parse(public / _CAMPAIGN_FILE, CampaignSpecV3, run_id)
+        campaign = self._parse(public / _CAMPAIGN_FILE, CampaignSpecV4, run_id)
         data_policy = self._parse(public / _DATA_POLICY_FILE, DataPolicy, run_id)
         receipt = self._parse(public / _VALIDATION_RECEIPT_FILE, TasksetValidationReceipt, run_id)
         plan = self._parse(public / _EXECUTION_PLAN_FILE, ResolvedExecutionPlan, run_id)
@@ -241,10 +241,10 @@ class RunArtifactStore:
             source=CampaignSource.from_climb(resolved),
             validation_evidence=self._parse(public / _EVIDENCE_FILE, ValidationEvidence, run_id),
             baseline=self._parse(
-                root / _MANIFESTS_DIR / _BASELINE_FILE, ExperimentManifestV3, run_id
+                root / _MANIFESTS_DIR / _BASELINE_FILE, ExperimentManifestV4, run_id
             ),
             candidate=self._parse(
-                root / _MANIFESTS_DIR / _CANDIDATE_FILE, ExperimentManifestV3, run_id
+                root / _MANIFESTS_DIR / _CANDIDATE_FILE, ExperimentManifestV4, run_id
             ),
             comparison=self._parse(root / _COMPARISON_FILE, ManifestComparison, run_id),
             candidate_skill=StagedSkill(

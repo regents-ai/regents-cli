@@ -52,7 +52,7 @@
       "type": "string"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/compatibility-result.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/compatibility-result.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "Whether this host can run this Campaign, and what stands in the way.\n\n`required_engine_digest` is the engine the publisher validated the taskset against, from the\nvalidation receipt; `evaluation_engine_digest` is the engine the plan pins. They are reported\nside by side because a host holding one and not the other has to be told.",

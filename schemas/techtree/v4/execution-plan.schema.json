@@ -144,7 +144,7 @@
       "type": "object"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/execution-plan.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/execution-plan.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "All four planes, resolved, immutable, and digestible as one object.",

@@ -23,7 +23,7 @@ from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, 
 from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
     AgentSpecV2,
-    CampaignSpecV3,
+    CampaignSpecV4,
     MutationKind,
     VariantSchedule,
     pinned_task_images,
@@ -31,7 +31,7 @@ from regents_cli.techtree.models.campaign import (
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import (
-    ExperimentManifestV3,
+    ExperimentManifestV4,
     ExperimentVariant,
     ManifestComparison,
 )
@@ -144,7 +144,7 @@ def observe_variant(
     *,
     result: VariantExecutionResult,
     resolved_config: Mapping[str, Any],
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
 ) -> ObservedVariant:
     """Fingerprint one executed variant from its own evidence."""
     configuration = observed_from_episodes(
@@ -170,10 +170,10 @@ def observe_variant(
 
 def compare_real_variants(
     *,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     plan: ResolvedExecutionPlan,
-    baseline_manifest: ExperimentManifestV3,
-    candidate_manifest: ExperimentManifestV3,
+    baseline_manifest: ExperimentManifestV4,
+    candidate_manifest: ExperimentManifestV4,
     prepared_manifest_comparison: ManifestComparison,
     baseline_receipts: Sequence[EpisodeReceiptV3],
     candidate_receipts: Sequence[EpisodeReceiptV3],
@@ -240,7 +240,7 @@ def compare_real_variants(
     )
 
 
-def weaker_claim_warnings(campaign: CampaignSpecV3) -> list[ComparisonCheck]:
+def weaker_claim_warnings(campaign: CampaignSpecV4) -> list[ComparisonCheck]:
     """A model with no published revision is known by identifier, not by build."""
     if campaign.subject.model.revision is not None:
         return []
@@ -257,9 +257,9 @@ def weaker_claim_warnings(campaign: CampaignSpecV3) -> list[ComparisonCheck]:
 
 def _declared_checks(
     *,
-    campaign: CampaignSpecV3,
-    baseline: ExperimentManifestV3,
-    candidate: ExperimentManifestV3,
+    campaign: CampaignSpecV4,
+    baseline: ExperimentManifestV4,
+    candidate: ExperimentManifestV4,
     prepared: ManifestComparison,
     recomputed: ManifestComparison,
     taskset_lock: TasksetLock,
@@ -338,9 +338,9 @@ def _declared_checks(
 
 
 def _taskset_checks(
-    campaign: CampaignSpecV3,
-    baseline: ExperimentManifestV3,
-    candidate: ExperimentManifestV3,
+    campaign: CampaignSpecV4,
+    baseline: ExperimentManifestV4,
+    candidate: ExperimentManifestV4,
     lock: TasksetLock,
 ) -> list[ComparisonCheck]:
     committed = list(campaign.taskset.membership.ordered_task_hashes)
@@ -367,7 +367,7 @@ def _taskset_checks(
 
 
 def _mutation_check(
-    campaign: CampaignSpecV3, baseline: AgentSpecV2, candidate: AgentSpecV2
+    campaign: CampaignSpecV4, baseline: AgentSpecV2, candidate: AgentSpecV2
 ) -> ComparisonCheck:
     kind = campaign.mutation_contract.kind
     left = [reference.digest for reference in baseline.harness.skills]
@@ -389,10 +389,10 @@ def _mutation_check(
 
 def _observed_checks(
     *,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     plan: ResolvedExecutionPlan,
-    baseline_manifest: ExperimentManifestV3,
-    candidate_manifest: ExperimentManifestV3,
+    baseline_manifest: ExperimentManifestV4,
+    candidate_manifest: ExperimentManifestV4,
     baseline: ObservedVariant,
     candidate: ObservedVariant,
     committed: Sequence[Digest],
@@ -519,7 +519,7 @@ def _tool_surface_check(baseline: ObservedVariant, candidate: ObservedVariant) -
 
 
 def _declared_to_observed(
-    manifest: ExperimentManifestV3, observed: ObservedVariant, plan: ResolvedExecutionPlan
+    manifest: ExperimentManifestV4, observed: ObservedVariant, plan: ResolvedExecutionPlan
 ) -> ComparisonCheck:
     """One variant's execution against its manifest; the harness is held to the plan."""
     subject = _subject(manifest)
@@ -572,7 +572,7 @@ def _declared_to_observed(
 
 
 def _runtime_pin_checks(
-    campaign: CampaignSpecV3, baseline: ObservedVariant, candidate: ObservedVariant
+    campaign: CampaignSpecV4, baseline: ObservedVariant, candidate: ObservedVariant
 ) -> list[ComparisonCheck]:
     """Both executions are held to the images the Campaign pinned, per platform."""
     pins = pinned_task_images(campaign.subject.runtime, campaign.taskset)
@@ -709,5 +709,5 @@ def _same(identifier: str, label: str, left: object, right: object) -> Compariso
     )
 
 
-def _subject(manifest: ExperimentManifestV3) -> AgentSpecV2:
+def _subject(manifest: ExperimentManifestV4) -> AgentSpecV2:
     return manifest.configuration.agents[SUBJECT_AGENT]

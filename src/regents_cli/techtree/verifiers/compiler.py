@@ -22,11 +22,11 @@ from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
     AgentSpecV2,
     CampaignImageRuntime,
-    CampaignSpecV3,
+    CampaignSpecV4,
     CampaignTaskset,
 )
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
+from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
 from regents_cli.techtree.verifiers.config import (
     DockerRuntimeToml,
     EnvToml,
@@ -72,9 +72,9 @@ def skill_directory_name(digest: Digest) -> str:
 
 def compile_variant_config(
     *,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     plan: ResolvedExecutionPlan,
-    experiment: ExperimentManifestV3,
+    experiment: ExperimentManifestV4,
     run_paths: RunPaths,
     variant: VariantName,
     variant_max_concurrent: int,
@@ -175,7 +175,7 @@ def taskset_toml(taskset: CampaignTaskset) -> TasksetToml:
     )
 
 
-def _subject_of(experiment: ExperimentManifestV3) -> AgentSpecV2:
+def _subject_of(experiment: ExperimentManifestV4) -> AgentSpecV2:
     subject = experiment.configuration.agents.get(SUBJECT_AGENT)
     if subject is None:
         _refuse(
@@ -186,7 +186,7 @@ def _subject_of(experiment: ExperimentManifestV3) -> AgentSpecV2:
 
 
 def _check_manifest_derives_from(
-    experiment: ExperimentManifestV3, campaign: CampaignSpecV3, campaign_digest: Digest
+    experiment: ExperimentManifestV4, campaign: CampaignSpecV4, campaign_digest: Digest
 ) -> None:
     if experiment.campaign_spec_digest != campaign_digest:
         _refuse(
@@ -231,7 +231,7 @@ def _check_manifest_derives_from(
         )
 
 
-def _check_variant_matches(experiment: ExperimentManifestV3, variant: VariantName) -> None:
+def _check_variant_matches(experiment: ExperimentManifestV4, variant: VariantName) -> None:
     if _VARIANTS[experiment.variant] is not variant:
         _refuse(
             "the experiment manifest describes the other variant",
@@ -298,15 +298,15 @@ def divide_concurrency(max_concurrent: int) -> tuple[int, int]:
 
 def compile_plans(
     *,
-    campaign: CampaignSpecV3,
+    campaign: CampaignSpecV4,
     plan: ResolvedExecutionPlan,
-    baseline: ExperimentManifestV3,
-    candidate: ExperimentManifestV3,
+    baseline: ExperimentManifestV4,
+    candidate: ExperimentManifestV4,
     run_paths: RunPaths,
 ) -> tuple[VariantExecutionPlan, VariantExecutionPlan]:
     """Both variants' plans, with the Campaign's concurrency divided between them."""
     baseline_permits, candidate_permits = divide_concurrency(campaign.execution.max_concurrent)
-    manifests: Mapping[VariantName, tuple[ExperimentManifestV3, int]] = {
+    manifests: Mapping[VariantName, tuple[ExperimentManifestV4, int]] = {
         VariantName.BASELINE: (baseline, baseline_permits),
         VariantName.CANDIDATE: (candidate, candidate_permits),
     }

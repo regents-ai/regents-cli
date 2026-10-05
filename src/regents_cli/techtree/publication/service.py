@@ -36,7 +36,7 @@ from regents_cli.techtree.errors import (
 from regents_cli.techtree.fs import fsync_directory, open_exclusive
 from regents_cli.techtree.identity.models import VerificationResult
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope
-from regents_cli.techtree.models.experiment import ExperimentManifestV3
+from regents_cli.techtree.models.experiment import ExperimentManifestV4
 from regents_cli.techtree.models.skill import SubmissionDraft
 from regents_cli.techtree.models.uplift_report import PublicationStatus, UpliftReportV3
 from regents_cli.techtree.paths import TechtreePaths
@@ -333,7 +333,7 @@ class PublicationService:
         draft_path = self._paths.run_dir(run_id) / _INPUTS_DIRECTORY / _DRAFT_FILENAME
         try:
             draft = _load(draft_path, SubmissionDraft)
-            candidate = _load(directory / _CANDIDATE_MANIFEST_FILENAME, ExperimentManifestV3)
+            candidate = _load(directory / _CANDIDATE_MANIFEST_FILENAME, ExperimentManifestV4)
         except (OSError, PydanticValidationError) as error:
             raise ValidationError(
                 f"run {run_id}'s inputs do not name its candidate Skill, so there is no Skill "

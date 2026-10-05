@@ -18,7 +18,7 @@ from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.models.campaign import MutationContract, MutationKind
 from regents_cli.techtree.models.experiment import (
-    ExperimentManifestV3,
+    ExperimentManifestV4,
     ExperimentVariant,
     JsonDifference,
     ManifestComparison,
@@ -50,7 +50,7 @@ def diff_values(
 
 
 def compare_manifests(
-    baseline: ExperimentManifestV3, candidate: ExperimentManifestV3, mutation: MutationContract
+    baseline: ExperimentManifestV4, candidate: ExperimentManifestV4, mutation: MutationContract
 ) -> ManifestComparison:
     """Compare two variants' configurations and report whether the pair is controlled."""
     allowed = list(mutation.allowed_differences)
@@ -139,13 +139,13 @@ def _difference(pointer: str, baseline: JsonValue, candidate: JsonValue) -> Json
     )
 
 
-def _configuration_json(manifest: ExperimentManifestV3) -> JsonValue:
+def _configuration_json(manifest: ExperimentManifestV4) -> JsonValue:
     decoded: JsonValue = json.loads(canonical_json_bytes(manifest.configuration).decode("utf-8"))
     return decoded
 
 
 def _variant_violations(
-    baseline: ExperimentManifestV3, candidate: ExperimentManifestV3
+    baseline: ExperimentManifestV4, candidate: ExperimentManifestV4
 ) -> list[str]:
     violations: list[str] = []
     if baseline.variant is not ExperimentVariant.BASELINE:
@@ -160,7 +160,7 @@ def _variant_violations(
 
 
 def _shared_field_violations(
-    baseline: ExperimentManifestV3, candidate: ExperimentManifestV3
+    baseline: ExperimentManifestV4, candidate: ExperimentManifestV4
 ) -> list[str]:
     return [
         f"the baseline and the candidate name a different {label}"
@@ -189,7 +189,7 @@ def _shared_field_violations(
 
 
 def _skill_count_violations(
-    baseline: ExperimentManifestV3, candidate: ExperimentManifestV3, mutation: MutationContract
+    baseline: ExperimentManifestV4, candidate: ExperimentManifestV4, mutation: MutationContract
 ) -> list[str]:
     target = mutation.target_agent
     baseline_agent = baseline.configuration.agents.get(target)

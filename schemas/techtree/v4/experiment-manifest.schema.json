@@ -142,36 +142,6 @@
       "title": "BudgetSpec",
       "type": "object"
     },
-    "CampaignContext": {
-      "additionalProperties": false,
-      "description": "Forward-compatible pointers a Campaign may carry.",
-      "properties": {
-        "outcome_contract_digest": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Digest"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "program_ref": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/ProgramRef"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "title": "CampaignContext",
-      "type": "object"
-    },
     "CampaignImageRuntime": {
       "additionalProperties": false,
       "description": "Every task runs in the one image the Campaign pins.",
@@ -250,38 +220,6 @@
         "image_platform_digests"
       ],
       "title": "CampaignImageRuntime",
-      "type": "object"
-    },
-    "CampaignMetadata": {
-      "additionalProperties": false,
-      "description": "Identity and intent. Nothing public, nothing presentational.",
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/NonEmptyString"
-        },
-        "purpose": {
-          "enum": [
-            "component_uplift",
-            "baseline",
-            "release_assurance",
-            "environment_validation",
-            "reproduction"
-          ],
-          "title": "Purpose",
-          "type": "string"
-        },
-        "version": {
-          "minimum": 1,
-          "title": "Version",
-          "type": "integer"
-        }
-      },
-      "required": [
-        "id",
-        "version",
-        "purpose"
-      ],
-      "title": "CampaignMetadata",
       "type": "object"
     },
     "CampaignTaskset": {
@@ -428,6 +366,80 @@
       ],
       "title": "ExecutionSpec",
       "type": "object"
+    },
+    "ExperimentConfigurationV3": {
+      "additionalProperties": false,
+      "description": "The part of a manifest that is compared: the Campaign's science with the choices made.",
+      "properties": {
+        "agents": {
+          "additionalProperties": {
+            "$ref": "#/$defs/AgentSpecV2"
+          },
+          "title": "Agents",
+          "type": "object"
+        },
+        "budgets": {
+          "$ref": "#/$defs/BudgetSpec"
+        },
+        "data_policy_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "environment": {
+          "$ref": "#/$defs/EnvironmentSpec"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRequirementsV2"
+        },
+        "execution": {
+          "$ref": "#/$defs/ExecutionSpec"
+        },
+        "execution_plan_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "mutation_contract": {
+          "$ref": "#/$defs/MutationContract"
+        },
+        "outcome_contract_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scoring": {
+          "$ref": "#/$defs/ScoringSpec"
+        },
+        "taskset": {
+          "$ref": "#/$defs/CampaignTaskset"
+        }
+      },
+      "required": [
+        "taskset",
+        "environment",
+        "agents",
+        "mutation_contract",
+        "execution_plan_digest",
+        "execution",
+        "scoring",
+        "evidence",
+        "budgets",
+        "data_policy_digest",
+        "outcome_contract_digest"
+      ],
+      "title": "ExperimentConfigurationV3",
+      "type": "object"
+    },
+    "ExperimentVariant": {
+      "description": "Which side of the comparison a manifest describes.",
+      "enum": [
+        "baseline",
+        "candidate"
+      ],
+      "title": "ExperimentVariant",
+      "type": "string"
     },
     "HarnessSpecV2": {
       "additionalProperties": false,
@@ -661,6 +673,26 @@
         "version"
       ],
       "title": "ProgramRef",
+      "type": "object"
+    },
+    "PublicContext": {
+      "additionalProperties": false,
+      "description": "The optional public Climb an execution artifact was produced under.",
+      "properties": {
+        "climb_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "climb",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "climb_digest"
+      ],
+      "title": "PublicContext",
       "type": "object"
     },
     "Rubric": {
@@ -980,6 +1012,10 @@
       "title": "TasksetRef",
       "type": "object"
     },
+    "UtcDateTime": {
+      "format": "date-time",
+      "type": "string"
+    },
     "VariantSchedule": {
       "description": "The two variants run side by side; max_concurrent is divided between them.",
       "enum": [
@@ -989,78 +1025,66 @@
       "type": "string"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/campaign.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/experiment-manifest.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "A Campaign that binds exactly one resolved execution plan by digest.",
+  "description": "One fully resolved variant derived from a Campaign.",
   "properties": {
-    "agents": {
-      "additionalProperties": {
-        "$ref": "#/$defs/AgentSpecV2"
-      },
-      "title": "Agents",
-      "type": "object"
-    },
-    "budgets": {
-      "$ref": "#/$defs/BudgetSpec"
-    },
-    "context": {
-      "$ref": "#/$defs/CampaignContext"
-    },
-    "data_policy_digest": {
+    "campaign_spec_digest": {
       "$ref": "#/$defs/Digest"
     },
-    "environment": {
-      "$ref": "#/$defs/EnvironmentSpec"
+    "configuration": {
+      "$ref": "#/$defs/ExperimentConfigurationV3"
     },
-    "evidence": {
-      "$ref": "#/$defs/EvidenceRequirementsV2"
-    },
-    "execution": {
-      "$ref": "#/$defs/ExecutionSpec"
-    },
-    "execution_plan_digest": {
+    "configuration_digest": {
       "$ref": "#/$defs/Digest"
     },
-    "kind": {
-      "const": "Campaign",
-      "title": "Kind",
-      "type": "string"
+    "created_at": {
+      "$ref": "#/$defs/UtcDateTime"
     },
-    "metadata": {
-      "$ref": "#/$defs/CampaignMetadata"
+    "id": {
+      "$ref": "#/$defs/NonEmptyString"
     },
-    "mutation_contract": {
-      "$ref": "#/$defs/MutationContract"
+    "program_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProgramRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "public_context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PublicContext"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "schema_version": {
-      "const": "techtree.campaign.v3",
+      "const": "techtree.experiment.v4",
       "title": "Schema Version",
       "type": "string"
     },
-    "scoring": {
-      "$ref": "#/$defs/ScoringSpec"
-    },
-    "taskset": {
-      "$ref": "#/$defs/CampaignTaskset"
+    "variant": {
+      "$ref": "#/$defs/ExperimentVariant"
     }
   },
   "required": [
     "schema_version",
-    "kind",
-    "metadata",
-    "context",
-    "taskset",
-    "environment",
-    "agents",
-    "mutation_contract",
-    "execution",
-    "scoring",
-    "evidence",
-    "budgets",
-    "data_policy_digest",
-    "execution_plan_digest"
+    "id",
+    "campaign_spec_digest",
+    "program_ref",
+    "public_context",
+    "variant",
+    "configuration",
+    "configuration_digest",
+    "created_at"
   ],
-  "title": "CampaignSpecV3",
+  "title": "ExperimentManifestV4",
   "type": "object"
 }

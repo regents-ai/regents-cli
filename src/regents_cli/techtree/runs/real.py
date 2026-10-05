@@ -30,10 +30,10 @@ from regents_cli.techtree.errors import (
 from regents_cli.techtree.execution_facts import require_executable_execution_plan
 from regents_cli.techtree.fs import atomic_write_json, ensure_private_directory, open_exclusive
 from regents_cli.techtree.models.base import Digest, JsonValue
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, AgentSpecV2, CampaignSpecV3
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, AgentSpecV2, CampaignSpecV4
 from regents_cli.techtree.models.engine import EngineDescriptor, EngineInstallation
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
-from regents_cli.techtree.models.experiment import ExperimentManifestV3
+from regents_cli.techtree.models.experiment import ExperimentManifestV4
 from regents_cli.techtree.models.run import RunPhase, RunRequestV2
 from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.paths import TechtreePaths
@@ -103,7 +103,7 @@ class _ResolvedEngine:
     runner: EngineRunner
 
 
-def require_live_campaign(campaign: CampaignSpecV3) -> None:
+def require_live_campaign(campaign: CampaignSpecV4) -> None:
     """Refuse a Campaign whose coordinates are development placeholders."""
     check = check_live_campaign(campaign)
     if check.status is CheckStatus.PASS:
@@ -221,7 +221,7 @@ class RealVerifiersExecutor:
         finally:
             keep_evaluation_private(run_paths)
 
-    def _require_acknowledged_policy(self, request: RunRequestV2, campaign: CampaignSpecV3) -> None:
+    def _require_acknowledged_policy(self, request: RunRequestV2, campaign: CampaignSpecV4) -> None:
         acknowledged = request.policy_acknowledgement.data_policy_digest
         if acknowledged == campaign.data_policy_digest:
             return
@@ -236,7 +236,7 @@ class RealVerifiersExecutor:
         )
 
     def _require_executable_plan(
-        self, request: RunRequestV2, campaign: CampaignSpecV3, plan: ResolvedExecutionPlan
+        self, request: RunRequestV2, campaign: CampaignSpecV4, plan: ResolvedExecutionPlan
     ) -> None:
         digest = require_executable_execution_plan(campaign, plan)
         if digest == request.execution_plan_digest:
@@ -251,7 +251,7 @@ class RealVerifiersExecutor:
             },
         )
 
-    def _subject(self, campaign: CampaignSpecV3) -> AgentSpecV2:
+    def _subject(self, campaign: CampaignSpecV4) -> AgentSpecV2:
         subject = campaign.agents.get(SUBJECT_AGENT)
         if subject is None:
             raise ValidationError(
@@ -357,7 +357,7 @@ class RealVerifiersExecutor:
 
     def _compile_pair(
         self,
-        campaign: CampaignSpecV3,
+        campaign: CampaignSpecV4,
         plan: ResolvedExecutionPlan,
         inputs: RunInputBundle,
         run_paths: RunPaths,
@@ -481,7 +481,7 @@ class RealVerifiersExecutor:
             VariantName.BASELINE: outcome.baseline,
             VariantName.CANDIDATE: outcome.candidate,
         }
-        manifests: dict[VariantName, ExperimentManifestV3] = {
+        manifests: dict[VariantName, ExperimentManifestV4] = {
             VariantName.BASELINE: inputs.baseline,
             VariantName.CANDIDATE: inputs.candidate,
         }

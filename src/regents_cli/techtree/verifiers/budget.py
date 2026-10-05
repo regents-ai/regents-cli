@@ -10,12 +10,12 @@ from __future__ import annotations
 from typing import Final
 
 from regents_cli.techtree.errors import PrerequisiteError
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 
 CAMPAIGN_BUDGET_NOT_ENFORCED: Final = "campaign_budget_not_enforced"
 
 
-def require_executable_budget(campaign: CampaignSpecV3) -> None:
+def require_executable_budget(campaign: CampaignSpecV4) -> None:
     """Refuse a Campaign that leaves any limit the engine can enforce empty."""
     missing: list[str] = []
     if campaign.execution.timeout_seconds <= 0:

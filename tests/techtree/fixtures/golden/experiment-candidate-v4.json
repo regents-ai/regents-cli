@@ -1,5 +1,5 @@
 {
-  "campaign_spec_digest": "sha256:b25a827fdc96680f2f327a89202a3d4c763e2682ac1aaa84b601310b4fcedba9",
+  "campaign_spec_digest": "sha256:35432972c4cc98245d63a862861c0f8285b58b1cc8772133217e798a25f3c5a8",
   "configuration": {
     "agents": {
       "subject": {
@@ -142,9 +142,9 @@
   "id": "receipt_3ca25686e2d6ab80e89e575e279a4ec3",
   "program_ref": null,
   "public_context": {
-    "climb_digest": "sha256:3cefb33803371e3e949b65acfaab32b910f2e939d5d3e09d2c1b4ccef655900d",
+    "climb_digest": "sha256:5015ce4676d3c17eaecd52e714e6253f1c3e01d449493736927cbec57ec72c0e",
     "kind": "climb"
   },
-  "schema_version": "techtree.experiment.v3",
+  "schema_version": "techtree.experiment.v4",
   "variant": "candidate"
 }

@@ -61,7 +61,7 @@
       "type": "string"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/catalog.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/catalog.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "The generated map of everything the package ships.",

@@ -205,7 +205,7 @@
       "type": "string"
     }
   },
-  "$id": "https://schemas.techtree.dev/v3/climb.schema.json",
+  "$id": "https://schemas.techtree.dev/v4/climb.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "description": "A public invitation to run one Campaign.\n\nA Climb may name a held-out Campaign: tasks kept apart from the ones every round runs. It is\nrun once, on the winning Skill against no Skill, and reported beside the result; it never\ndecides the winner.",

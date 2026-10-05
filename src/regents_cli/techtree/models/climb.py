@@ -12,7 +12,7 @@ from pydantic import Field, model_validator
 
 from regents_cli.techtree.errors import PolicyError
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel, UtcDateTime
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV4
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.validation import TasksetValidationReceipt
@@ -184,7 +184,7 @@ class ResolvedClimb(ProtocolModel):
 
     climb: ClimbManifest
     climb_digest: Digest
-    campaign: CampaignSpecV3
+    campaign: CampaignSpecV4
     campaign_digest: Digest
     data_policy: DataPolicy
     data_policy_digest: Digest

@@ -66,10 +66,10 @@ class ExperimentConfigurationV3(ProtocolModel):
         return self
 
 
-class ExperimentManifestV3(ProtocolModel):
+class ExperimentManifestV4(ProtocolModel):
     """One fully resolved variant derived from a Campaign."""
 
-    schema_version: Literal["techtree.experiment.v3"]
+    schema_version: Literal["techtree.experiment.v4"]
     id: NonEmptyString
     campaign_spec_digest: Digest
     program_ref: ProgramRef | None
