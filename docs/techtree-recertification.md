@@ -70,9 +70,14 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-10-05, a free run against a local stand-in model on `hello-world-climb@3`
+  (`climb-v0.7.0`, each task scored on the environment's weighted total of its rewards): all 72
+  episodes finished and the proof verifies offline (351 checks). That run's proof is now the
+  test fixture in `tests/techtree/fixtures/run`.
+
 - 2026-10-02, a free run against a local stand-in model on `hello-world-climb@2`
   (`climb-v0.6.0`, regents-cli 1.4.0): all 72 episodes finished and the proof verifies offline
-  (351 checks). That run's proof is the test fixture in `tests/techtree/fixtures/run`.
+  (351 checks). That run's proof was the test fixture until 2026-10-05.
 
 - 2026-09-30, a free run against a local stand-in model on the Hello World Campaign above: all 72
   episodes finished and the proof verifies offline (351 checks). The stand-in's log shows every

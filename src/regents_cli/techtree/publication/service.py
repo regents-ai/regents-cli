@@ -38,7 +38,7 @@ from regents_cli.techtree.identity.models import VerificationResult
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope
 from regents_cli.techtree.models.experiment import ExperimentManifestV3
 from regents_cli.techtree.models.skill import SubmissionDraft
-from regents_cli.techtree.models.uplift_report import PublicationStatus, UpliftReportV2
+from regents_cli.techtree.models.uplift_report import PublicationStatus, UpliftReportV3
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.publication.journal import PublicationJournal, PublicationJournalEntry
 from regents_cli.techtree.publication.models import (
@@ -96,7 +96,7 @@ class PublicationPlan:
     files: tuple[PublicationFile, ...]
     #: The exact bytes the request carries.
     body: bytes = field(repr=False)
-    report: UpliftReportV2
+    report: UpliftReportV3
     verification: VerificationResult
     skill_name: str
 
@@ -366,10 +366,10 @@ class PublicationService:
         return directory
 
     @staticmethod
-    def _report(directory: Path, run_id: str) -> UpliftReportV2:
+    def _report(directory: Path, run_id: str) -> UpliftReportV3:
         raw = (directory / REPORT_FILENAME).read_bytes()
         try:
-            envelope = ObjectEnvelope[UpliftReportV2].model_validate_json(raw)
+            envelope = ObjectEnvelope[UpliftReportV3].model_validate_json(raw)
         except PydanticValidationError as error:
             raise VerificationError(
                 f"run {run_id}'s report cannot be read out of its own proof",

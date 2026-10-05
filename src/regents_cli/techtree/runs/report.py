@@ -28,7 +28,7 @@ from regents_cli.techtree.models.base import ObjectEnvelope
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.experiment import ExperimentVariant
 from regents_cli.techtree.models.run import RunPhase, RunRequestV2
-from regents_cli.techtree.models.uplift_report import UpliftReportV2
+from regents_cli.techtree.models.uplift_report import UpliftReportV3
 from regents_cli.techtree.models.validation import TasksetLock
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.receipts.bundle import (
@@ -96,7 +96,7 @@ class VariantReceipts:
 
 
 class RunReportService:
-    """Completes a run by turning its evidence into a signed, proven UpliftReportV2."""
+    """Completes a run by turning its evidence into a signed, proven UpliftReportV3."""
 
     def __init__(
         self,
@@ -113,7 +113,7 @@ class RunReportService:
         self._identity = identity
         self._clock = clock or _utc_now
 
-    def complete(self, *, request: RunRequestV2, execution: RealExecutionResult) -> UpliftReportV2:
+    def complete(self, *, request: RunRequestV2, execution: RealExecutionResult) -> UpliftReportV3:
         """Build, check, aggregate, sign, prove and record this run's result."""
         run_id = request.run_id
         raise_if_cancel_requested(self._run_store, run_id)
@@ -218,7 +218,7 @@ class RunReportService:
             result=result,
             execution=episode_receipt_execution_facts(campaign, inputs.execution_plan),
             ordered_task_hashes=lock.ordered_task_hashes,
-            primary_reward=campaign.scoring.primary_reward,
+            rubric=campaign.scoring.rubric,
             evidence=campaign.evidence,
         )
         for position, receipt in enumerate(receipts):
@@ -261,15 +261,15 @@ class RunReportService:
         comparison: RealComparisonResult,
         baseline: VariantReceipts,
         candidate: VariantReceipts,
-    ) -> UpliftReportV2:
+    ) -> UpliftReportV3:
         campaign = inputs.campaign
         deltas = pair_task_rewards(
             baseline_receipts=baseline.receipts,
             candidate_receipts=candidate.receipts,
             ordered_task_hashes=comparison.ordered_task_hashes,
-            reward_name=campaign.scoring.primary_reward,
+            rubric=campaign.scoring.rubric,
         )
-        primary = aggregate_primary_result(deltas, campaign.scoring.primary_reward)
+        primary = aggregate_primary_result(deltas)
         score, evidence = summarize_receipts(baseline.receipts, candidate.receipts)
         return build_uplift_report(
             run_request=request,
@@ -309,7 +309,7 @@ class RunReportService:
         inputs: RunInputBundle,
         lock: TasksetLock,
         identity: ExecutorIdentity,
-        report: UpliftReportV2,
+        report: UpliftReportV3,
         baseline: VariantReceipts,
         candidate: VariantReceipts,
         execution_record: ComparisonExecutionRecord,

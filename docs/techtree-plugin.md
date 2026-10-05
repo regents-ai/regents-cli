@@ -28,7 +28,7 @@ answers they give on regents-cli 1.1.0, checked on 2026-09-29.
 | release check | `release info` | `release_id`, `release_core_digest`, `cli_version`, `package_version`, `protocol_version`, `catalog_digest`, `climbs` (by Climb reference: `engine_digest`, `starter_skill_digest`, `starter_skill_object_url`), `intro_climb_reference`, `source_commit` |
 | doctor | `doctor` | `checks` (each `id`, `label`, `status`, `blocking`, `detail`, `metadata`), `blocking_failures`, `warnings`, `versions`, `host_platform`, `docker_platform`, `techtree_home` |
 | catalog | `climb list` | `climbs`, `count` |
-| catalog, demo | `climb show <ref>` | `climb`, `subject_model`, `subject_runtime`, `primary_reward`, `data_policy_digest`, `candidate_skill_ownership` |
+| catalog, demo | `climb show <ref>` | `climb`, `subject_model`, `subject_runtime`, `rubric`, `data_policy_digest`, `candidate_skill_ownership` |
 | demo | `skill starter [--climb <ref>]` | `climb_reference`, `skill_path`, `skill_name`, `skill_root_digest`, `candidate_label`, `release_id`, `prepare_command`. Without `--climb`, the introductory Climb |
 | demo | `climb prepare <ref> --skill <path> [--label <label>]` | `draft_id`, `draft_digest`, `data_policy_digest`, `campaign_spec_digest`, `skill_root_digest`, `estimated_episodes`, `campaign_maximum_usd`, `start_command`, and the policy fields |
 | demo | `climb start <draft id>` | without `--yes`: `approval_required`. With `--yes --reviewed-on host-agent`: the started run |

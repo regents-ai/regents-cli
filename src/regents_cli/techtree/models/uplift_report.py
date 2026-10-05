@@ -61,7 +61,8 @@ class UpliftDecision(StrEnum):
 
 
 class TaskDelta(ProtocolModel):
-    """What one task contributed to the comparison."""
+    """What one task contributed to the comparison: each side's score under the Campaign's
+    rubric, the weighted total of its rewards."""
 
     task_hash: Digest
     baseline_reward: float
@@ -70,9 +71,8 @@ class TaskDelta(ProtocolModel):
 
 
 class PrimaryUpliftResult(ProtocolModel):
-    """The headline comparison on the primary reward."""
+    """The headline comparison: the mean task score under the Campaign's rubric, per side."""
 
-    reward_name: NonEmptyString
     baseline_mean: float
     candidate_mean: float
     absolute_delta: float
@@ -92,10 +92,10 @@ class UpliftStatuses(ProtocolModel):
     publication: PublicationStatus
 
 
-class UpliftReportV2(ProtocolModel):
+class UpliftReportV3(ProtocolModel):
     """The complete result of one baseline-versus-candidate comparison."""
 
-    schema_version: Literal["techtree.uplift-report.v2"]
+    schema_version: Literal["techtree.uplift-report.v3"]
     id: NonEmptyString
     run_id: NonEmptyString
     campaign_spec_digest: Digest

@@ -31,7 +31,7 @@ from regents_cli.techtree.fs import (
 )
 from regents_cli.techtree.models.base import Digest, JsonValue
 from regents_cli.techtree.models.run import RunEvent, RunPhase, RunRequestV2, RunState
-from regents_cli.techtree.models.uplift_report import UpliftReportV2
+from regents_cli.techtree.models.uplift_report import UpliftReportV3
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.runs.events import (
     CANCEL_REQUESTED,
@@ -247,7 +247,7 @@ class RunStore:
         """Return where the run's report lives."""
         return self._run_dir(run_id) / _REPORT_DIRECTORY_NAME / _RESULT_FILE_NAME
 
-    def write_result(self, run_id: str, report: UpliftReportV2) -> None:
+    def write_result(self, run_id: str, report: UpliftReportV3) -> None:
         """Write the immutable report, announcing it in the log first."""
         self._require_run(run_id)
         if report.run_id != run_id:
@@ -268,7 +268,7 @@ class RunStore:
             self._write_immutable(path, report)
             self._commit_event(run_id, event)
 
-    def get_result(self, run_id: str) -> UpliftReportV2:
+    def get_result(self, run_id: str) -> UpliftReportV3:
         """Load the report."""
         self._require_run(run_id)
         path = self.result_path(run_id)
@@ -279,7 +279,7 @@ class RunStore:
                 f"run {run_id} has not produced a result", details={"run_id": run_id}
             ) from error
         try:
-            return UpliftReportV2.model_validate_json(raw)
+            return UpliftReportV3.model_validate_json(raw)
         except PydanticValidationError as error:
             raise ValidationError(
                 f"run result is not a valid report: {path} ({error.errors()[0]['msg']})",

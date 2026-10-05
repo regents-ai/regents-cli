@@ -502,7 +502,7 @@ class RealVerifiersExecutor:
                 experiment=manifests[variant],
                 plan=inputs.execution_plan,
                 taskset_lock=validation.lock,
-                primary_reward=inputs.campaign.scoring.primary_reward,
+                rubric=inputs.campaign.scoring.rubric,
                 engine=engine.descriptor,
             )
             failed = [check for check in checks if check.status == "failed"]

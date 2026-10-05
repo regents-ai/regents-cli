@@ -182,7 +182,7 @@
     },
     "PrimaryUpliftResult": {
       "additionalProperties": false,
-      "description": "The headline comparison on the primary reward.",
+      "description": "The headline comparison: the mean task score under the Campaign's rubric, per side.",
       "properties": {
         "absolute_delta": {
           "title": "Absolute Delta",
@@ -212,9 +212,6 @@
           ],
           "title": "Relative Delta"
         },
-        "reward_name": {
-          "$ref": "#/$defs/NonEmptyString"
-        },
         "ties": {
           "minimum": 0,
           "title": "Ties",
@@ -227,7 +224,6 @@
         }
       },
       "required": [
-        "reward_name",
         "baseline_mean",
         "candidate_mean",
         "absolute_delta",
@@ -306,7 +302,7 @@
     },
     "TaskDelta": {
       "additionalProperties": false,
-      "description": "What one task contributed to the comparison.",
+      "description": "What one task contributed to the comparison: each side's score under the Campaign's\nrubric, the weighted total of its rewards.",
       "properties": {
         "baseline_reward": {
           "title": "Baseline Reward",
@@ -464,7 +460,7 @@
       "$ref": "#/$defs/NonEmptyString"
     },
     "schema_version": {
-      "const": "techtree.uplift-report.v2",
+      "const": "techtree.uplift-report.v3",
       "title": "Schema Version",
       "type": "string"
     },
@@ -505,6 +501,6 @@
     "publication_eligible",
     "created_at"
   ],
-  "title": "UpliftReportV2",
+  "title": "UpliftReportV3",
   "type": "object"
 }

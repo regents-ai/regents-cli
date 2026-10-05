@@ -20,7 +20,7 @@ from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
     TaskDelta,
     UpliftDecision,
-    UpliftReportV2,
+    UpliftReportV3,
 )
 from regents_cli.techtree.presentation.evidence import RecordedEvidence
 from regents_cli.techtree.presentation.models import (
@@ -53,7 +53,7 @@ LATER_RESULT_LABEL: Final = "A Later Iteration"
 HELD_FIXED_LINE: Final = (
     "Everything else was the same on both sides: the same model sampled the same way, the "
     "same harness and tools, the same images, the same tasks in the same order, the same "
-    "reward, and the same declared limits."
+    "scoring, and the same declared limits."
 )
 
 
@@ -90,7 +90,7 @@ _FULL_SCORE: Final = 1.0
 
 def build_uplift_presentation(
     *,
-    report: UpliftReportV2,
+    report: UpliftReportV3,
     campaign: CampaignSpecV3,
     baseline_receipts: Sequence[EpisodeReceiptV3],
     candidate_receipts: Sequence[EpisodeReceiptV3],
@@ -433,7 +433,7 @@ def _verification_status(verification: VerificationResult | None) -> str:
 
 def _caveats(
     *,
-    report: UpliftReportV2,
+    report: UpliftReportV3,
     campaign: CampaignSpecV3,
     climb: ClimbManifest,
     economics: _Economics,

@@ -12,7 +12,7 @@
     ├── baseline-receipt-set.json / candidate-receipt-set.json
     ├── receipts/{baseline,candidate}/NNNN.json    signed EpisodeReceiptV3 envelopes
     ├── comparison-execution.json          signed ComparisonExecutionRecord, when recorded
-    └── uplift-report.json                 the signed UpliftReportV2 envelope
+    └── uplift-report.json                 the signed UpliftReportV3 envelope
 
 Every file is canonical bytes, so the digest of a file and the digest of the object inside
 it are the same number and verification hashes what is on disk. The manifest is signed too:
@@ -51,7 +51,7 @@ from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3, ScoreStatus
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import ExperimentManifestV3, ExperimentVariant
-from regents_cli.techtree.models.uplift_report import ComparisonStatus, UpliftReportV2
+from regents_cli.techtree.models.uplift_report import ComparisonStatus, UpliftReportV3
 from regents_cli.techtree.models.validation import TasksetLock, TasksetValidationReceipt
 from regents_cli.techtree.receipts.execution import (
     EXECUTION_RECORD_FILENAME,
@@ -172,7 +172,7 @@ class LocalProofBundleContents:
     experiments: Mapping[ExperimentVariant, ExperimentManifestV3]
     receipt_sets: Mapping[ExperimentVariant, ReceiptSetManifest]
     receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV3]]]
-    report: ObjectEnvelope[UpliftReportV2]
+    report: ObjectEnvelope[UpliftReportV3]
     execution_record: ObjectEnvelope[ComparisonExecutionRecord] | None = None
 
 

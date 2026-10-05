@@ -3,7 +3,8 @@
 Every hash that enters is revalidated as a digest before it is compared to anything, and
 every reference a receipt copies is required to agree with every other before it is built.
 A failed episode still gets a receipt whose `score_status` says so; refusals are for evidence
-that cannot be joined onto the Campaign's commitment at all.
+that cannot be joined onto the Campaign's commitment at all, which includes a trace scored by
+rewards or weights other than the Campaign rubric's.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ from regents_cli.techtree.constants import EPISODE_RECEIPT_V3_SCHEMA_VERSION
 from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.execution_facts import EpisodeReceiptExecutionFacts
 from regents_cli.techtree.models.base import ArtifactRef, Digest
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, EvidenceRequirementsV2
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, EvidenceRequirementsV2, Rubric
 from regents_cli.techtree.models.episode_receipt import (
     EpisodeReceiptV3,
     EvidenceStatus,
@@ -45,6 +46,7 @@ TASK_MEMBERSHIP_MISMATCH: Final = "task_membership_mismatch"
 TRACE_ROLE_MISMATCH: Final = "trace_role_mismatch"
 REWARD_MISSING: Final = "reward_missing"
 REWARD_NON_FINITE: Final = "reward_non_finite"
+REWARD_RUBRIC_MISMATCH: Final = "reward_rubric_mismatch"
 EPISODE_RECEIPT_INVALID: Final = "episode_receipt_invalid"
 
 #: Derived identifiers carry the 32 hexadecimal characters `ids.new_id` issues.
@@ -64,7 +66,7 @@ def build_episode_receipt(
     episode: NormalizedEpisode,
     raw_artifacts: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
-    primary_reward: str,
+    rubric: Rubric,
     evidence: EvidenceRequirementsV2,
 ) -> EpisodeReceiptV3:
     """Construct one receipt from one normalized episode and the run's lineage."""
@@ -83,6 +85,7 @@ def build_episode_receipt(
             code=TASK_MEMBERSHIP_MISMATCH,
             details={"episode": episode.task_hash, "trace": trace.task_hash},
         )
+    _require_rubric_rewards(trace, rubric, variant)
     episode_digest = validate_digest(episode.raw_episode_digest)
     return EpisodeReceiptV3(
         schema_version=EPISODE_RECEIPT_V3_SCHEMA_VERSION,
@@ -114,7 +117,7 @@ def build_episode_receipt(
                 )
             ]
         },
-        score_status=_score_status(episode, trace, primary_reward),
+        score_status=_score_status(episode, trace, rubric),
         evidence_status=_evidence_status(trace, evidence),
         executor_kind="verifiers",
         artifacts=_variant_artifacts(raw_artifacts),
@@ -129,7 +132,7 @@ def build_variant_receipts(
     result: VariantExecutionResult,
     execution: EpisodeReceiptExecutionFacts,
     ordered_task_hashes: Sequence[Digest],
-    primary_reward: str,
+    rubric: Rubric,
     evidence: EvidenceRequirementsV2,
 ) -> list[EpisodeReceiptV3]:
     """Exactly one receipt per committed task, in committed order, joined by task hash.
@@ -154,12 +157,12 @@ def build_variant_receipts(
             episode=episodes[task_hash],
             raw_artifacts=result,
             execution=execution,
-            primary_reward=primary_reward,
+            rubric=rubric,
             evidence=evidence,
         )
         for task_hash in committed
     ]
-    _require_every_task_scored(receipts, primary_reward, variant)
+    _require_every_task_scored(receipts, rubric, variant)
     return receipts
 
 
@@ -299,13 +302,37 @@ def _subject_runtime(trace: NormalizedTrace) -> SubjectRuntimeReceipt:
 
 
 def _score_status(
-    episode: NormalizedEpisode, trace: NormalizedTrace, primary_reward: str
+    episode: NormalizedEpisode, trace: NormalizedTrace, rubric: Rubric
 ) -> ScoreStatus:
     if not episode.ok or not trace.ok or episode.errors or trace.errors:
         return ScoreStatus.ERRORED
-    if trace.reward(primary_reward) is None:
+    if any(trace.reward(name) is None for name in rubric.weights):
         return ScoreStatus.MISSING
     return ScoreStatus.VALID
+
+
+def _require_rubric_rewards(trace: NormalizedTrace, rubric: Rubric, variant: VariantName) -> None:
+    """Every reward a trace records is one the rubric lists, at the rubric's weight."""
+    weights = rubric.weights
+    unexpected = sorted(reward.name for reward in trace.rewards if reward.name not in weights)
+    reweighted = sorted(
+        reward.name
+        for reward in trace.rewards
+        if reward.name in weights and reward.weight != weights[reward.name]
+    )
+    if not unexpected and not reweighted:
+        return
+    raise VerificationError(
+        f"a {variant.value} rollout was scored by rewards or weights the Campaign's rubric does "
+        "not list, so the environment that scored it is not the pinned scorer",
+        code=REWARD_RUBRIC_MISMATCH,
+        details={
+            "variant": variant.value,
+            "task_hash": trace.task_hash,
+            "unexpected": unexpected,
+            "reweighted": reweighted,
+        },
+    )
 
 
 def _evidence_status(trace: NormalizedTrace, evidence: EvidenceRequirementsV2) -> EvidenceStatus:
@@ -392,7 +419,7 @@ def _episodes_by_task(
 
 
 def _require_every_task_scored(
-    receipts: Sequence[EpisodeReceiptV3], primary_reward: str, variant: VariantName
+    receipts: Sequence[EpisodeReceiptV3], rubric: Rubric, variant: VariantName
 ) -> None:
     unscored = [
         receipt.task_hash for receipt in receipts if receipt.score_status is ScoreStatus.MISSING
@@ -400,8 +427,12 @@ def _require_every_task_scored(
     if not unscored:
         return
     raise VerificationError(
-        f"{len(unscored)} {variant.value} rollout(s) completed without scoring "
-        f"{primary_reward!r}, which is the reward this comparison is decided on",
+        f"{len(unscored)} {variant.value} rollout(s) completed without scoring every reward "
+        "the Campaign's rubric weighs into each task's score",
         code=REWARD_MISSING,
-        details={"variant": variant.value, "reward": primary_reward, "task_hashes": unscored},
+        details={
+            "variant": variant.value,
+            "rewards": sorted(rubric.weights),
+            "task_hashes": unscored,
+        },
     )

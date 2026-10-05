@@ -1,5 +1,5 @@
 {
-  "campaign_spec_digest": "sha256:c72a742310795b4bf846b34e33c59e3ecd8e0eda9c7323e832d1dac408e9acee",
+  "campaign_spec_digest": "sha256:b25a827fdc96680f2f327a89202a3d4c763e2682ac1aaa84b601310b4fcedba9",
   "candidate_policy": {
     "constraints": {
       "format": "techtree-instruction-skill-v1",

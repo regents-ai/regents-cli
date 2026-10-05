@@ -94,7 +94,7 @@ class EpisodeReceiptExecutionFacts:
 
 @dataclass(frozen=True, slots=True)
 class UpliftReportExecutionFacts:
-    """What an `UpliftReportV2` owes to the plan."""
+    """What an `UpliftReportV3` owes to the plan."""
 
     execution_plan_digest: Digest
     execution_location: ExecutionLocation

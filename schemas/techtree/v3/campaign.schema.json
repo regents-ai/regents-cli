@@ -329,14 +329,43 @@
       "pattern": "^sha256:[0-9a-f]{64}$",
       "type": "string"
     },
+    "EmbeddedPackageRef": {
+      "additionalProperties": false,
+      "description": "A taskset package shipped inside the engine bundle; `digest` is its source tree's.",
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "embedded",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "revision": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "revision",
+        "digest"
+      ],
+      "title": "EmbeddedPackageRef",
+      "type": "object"
+    },
     "EnvironmentSpec": {
       "additionalProperties": false,
-      "description": "The interaction shape the Campaign runs in.\n\n`harbor-separate-grader`: the agent works in its task's agent image, then a fresh box from\nthe task's grader image grades only the files the task lists, under the limits and network\nthe task itself declares.",
+      "description": "The interaction shape the Campaign runs in.\n\n`harbor-separate-grader`: the agent works in its task's agent image, then a fresh box from\nthe task's grader image grades only the files the task lists, under the limits and network\nthe task itself declares.\n\n`verifiers-single-agent`: Verifiers' own single-agent environment, the one a published\ntaskset that brings no environment of its own runs in; one image for every task.",
       "properties": {
         "id": {
           "enum": [
             "single-agent",
-            "harbor-separate-grader"
+            "harbor-separate-grader",
+            "verifiers-single-agent"
           ],
           "title": "Id",
           "type": "string"
@@ -421,6 +450,48 @@
         "skills"
       ],
       "title": "HarnessSpecV2",
+      "type": "object"
+    },
+    "HubPackageRef": {
+      "additionalProperties": false,
+      "description": "A taskset package published on the Prime Environments Hub.\n\n`name` is the Hub's `owner/environment`, `revision` the Hub's full content hash for this\npublication, and `digest` the sha256 of the exact wheel at `artifact_url`. The version\nstring alone is not an identity: the Hub lets an owner publish the same version twice.",
+      "properties": {
+        "artifact_url": {
+          "pattern": "^https://hub\\.primeintellect\\.ai/\\S+\\.whl$",
+          "title": "Artifact Url",
+          "type": "string"
+        },
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "hub",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*/[a-z0-9][a-z0-9._-]*$",
+          "title": "Name",
+          "type": "string"
+        },
+        "revision": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "version": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "version",
+        "revision",
+        "digest",
+        "artifact_url"
+      ],
+      "title": "HubPackageRef",
       "type": "object"
     },
     "JsonScalar": {
@@ -547,38 +618,6 @@
       "minLength": 1,
       "type": "string"
     },
-    "PackageRef": {
-      "additionalProperties": false,
-      "description": "The source package a taskset is defined in.",
-      "properties": {
-        "digest": {
-          "$ref": "#/$defs/Digest"
-        },
-        "kind": {
-          "enum": [
-            "embedded",
-            "git",
-            "hub"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "name": {
-          "$ref": "#/$defs/NonEmptyString"
-        },
-        "revision": {
-          "$ref": "#/$defs/NonEmptyString"
-        }
-      },
-      "required": [
-        "kind",
-        "name",
-        "revision",
-        "digest"
-      ],
-      "title": "PackageRef",
-      "type": "object"
-    },
     "PinnedImage": {
       "additionalProperties": false,
       "description": "One image pinned twice: `image` names an OCI index by digest, and `platform_digests`\nnames the manifest that index resolves to per platform, because two hosts pulling the same\nindex run different bytes and a comparison has to say which.",
@@ -622,6 +661,48 @@
         "version"
       ],
       "title": "ProgramRef",
+      "type": "object"
+    },
+    "Rubric": {
+      "additionalProperties": false,
+      "description": "The environment's own scorer, recorded as it scores.\n\nA task's score is the scorer's own aggregation: the sum of every reward's score times its\nweight, which is what Verifiers reports as an episode's reward. `scorer_digest` is the\ntaskset package the rewards are defined in. Rewards are listed once each, by name.",
+      "properties": {
+        "rewards": {
+          "items": {
+            "$ref": "#/$defs/RubricReward"
+          },
+          "minItems": 1,
+          "title": "Rewards",
+          "type": "array"
+        },
+        "scorer_digest": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "rewards",
+        "scorer_digest"
+      ],
+      "title": "Rubric",
+      "type": "object"
+    },
+    "RubricReward": {
+      "additionalProperties": false,
+      "description": "One reward the environment scores, and the weight its scorer gives it.",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "weight": {
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "weight"
+      ],
+      "title": "RubricReward",
       "type": "object"
     },
     "SamplingSpec": {
@@ -676,7 +757,7 @@
     },
     "ScoringSpec": {
       "additionalProperties": false,
-      "description": "Which reward decides the comparison, and what counts as an improvement.",
+      "description": "How each task is scored, and what counts as an improvement across them.",
       "properties": {
         "aggregation": {
           "const": "mean",
@@ -688,16 +769,16 @@
           "title": "Minimum Absolute Delta",
           "type": "number"
         },
-        "primary_reward": {
-          "$ref": "#/$defs/NonEmptyString"
-        },
         "require_candidate_above_baseline": {
           "title": "Require Candidate Above Baseline",
           "type": "boolean"
+        },
+        "rubric": {
+          "$ref": "#/$defs/Rubric"
         }
       },
       "required": [
-        "primary_reward",
+        "rubric",
         "aggregation",
         "require_candidate_above_baseline",
         "minimum_absolute_delta"
@@ -872,7 +953,22 @@
           "type": "string"
         },
         "package": {
-          "$ref": "#/$defs/PackageRef"
+          "discriminator": {
+            "mapping": {
+              "embedded": "#/$defs/EmbeddedPackageRef",
+              "hub": "#/$defs/HubPackageRef"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/EmbeddedPackageRef"
+            },
+            {
+              "$ref": "#/$defs/HubPackageRef"
+            }
+          ],
+          "title": "Package"
         }
       },
       "required": [

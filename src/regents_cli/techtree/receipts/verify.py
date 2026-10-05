@@ -53,7 +53,7 @@ from regents_cli.techtree.models.experiment import ExperimentManifestV3, Experim
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
     PublicationStatus,
-    UpliftReportV2,
+    UpliftReportV3,
 )
 from regents_cli.techtree.models.validation import TasksetLock, TasksetValidationReceipt
 from regents_cli.techtree.receipts.bundle import (
@@ -127,7 +127,7 @@ class LocalProofVerifier:
 def verify_report_envelope(path: Path) -> VerificationResult:
     """Verify a signed report envelope using the public key stored beside it."""
     checks = _Checks()
-    envelope = _load_envelope(path, UpliftReportV2, checks, "uplift-report")
+    envelope = _load_envelope(path, UpliftReportV3, checks, "uplift-report")
     identity = _load_identity(path.parent / PUBLIC_IDENTITY_FILENAME, checks)
     if envelope is None or identity is None:
         return checks.result()
@@ -213,7 +213,7 @@ class _Documents:
     validation_receipt: TasksetValidationReceipt
     experiments: dict[ExperimentVariant, ExperimentManifestV3]
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest]
-    report: ObjectEnvelope[UpliftReportV2]
+    report: ObjectEnvelope[UpliftReportV3]
 
 
 def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
@@ -222,7 +222,7 @@ def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
     policy = _load_model(directory / DATA_POLICY_FILENAME, DataPolicy, checks)
     lock = _load_model(directory / TASKSET_LOCK_FILENAME, TasksetLock, checks)
     receipt = _load_model(directory / VALIDATION_RECEIPT_FILENAME, TasksetValidationReceipt, checks)
-    report = _load_envelope(directory / REPORT_FILENAME, UpliftReportV2, checks, "uplift-report")
+    report = _load_envelope(directory / REPORT_FILENAME, UpliftReportV3, checks, "uplift-report")
     experiments: dict[ExperimentVariant, ExperimentManifestV3] = {}
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest] = {}
     for variant in _VARIANT_ORDER:
@@ -532,15 +532,14 @@ def _check_aggregate(
 ) -> None:
     """Recompute the paired aggregate and require the report to equal it."""
     report = documents.report.payload
-    reward = documents.campaign.scoring.primary_reward
     try:
         deltas = pair_task_rewards(
             baseline_receipts=receipts[ExperimentVariant.BASELINE],
             candidate_receipts=receipts[ExperimentVariant.CANDIDATE],
             ordered_task_hashes=list(documents.taskset_lock.ordered_task_hashes),
-            reward_name=reward,
+            rubric=documents.campaign.scoring.rubric,
         )
-        primary = aggregate_primary_result(deltas, reward)
+        primary = aggregate_primary_result(deltas)
     except VerificationError as error:
         checks.record(
             "aggregate.recomputed",
@@ -554,7 +553,7 @@ def _check_aggregate(
         list(deltas) == list(report.task_deltas) and primary == report.primary_result,
         COMPARISON_INVALID,
         f"the report's result is the one these receipts produce: {primary.baseline_mean:.4f} "
-        f"against {primary.candidate_mean:.4f} on {reward}",
+        f"against {primary.candidate_mean:.4f} on the rubric's weighted total",
         "the report states a different result than the one its own receipts produce",
     )
 
@@ -620,7 +619,7 @@ def _check_execution_record(
     )
 
 
-def _check_publication(report: UpliftReportV2, checks: _Checks) -> None:
+def _check_publication(report: UpliftReportV3, checks: _Checks) -> None:
     """A bundle is sealed before anyone could publish, and the report may not overclaim.
 
     Eligibility is checked in one direction only: the flag records what the build that wrote

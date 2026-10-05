@@ -365,10 +365,40 @@ class ExecutionSpec(ProtocolModel):
     retry_limit: int = Field(ge=0)
 
 
-class ScoringSpec(ProtocolModel):
-    """Which reward decides the comparison, and what counts as an improvement."""
+class RubricReward(ProtocolModel):
+    """One reward the environment scores, and the weight its scorer gives it."""
 
-    primary_reward: NonEmptyString
+    name: NonEmptyString
+    weight: float = Field(allow_inf_nan=False)
+
+
+class Rubric(ProtocolModel):
+    """The environment's own scorer, recorded as it scores.
+
+    A task's score is the scorer's own aggregation: the sum of every reward's score times its
+    weight, which is what Verifiers reports as an episode's reward. `scorer_digest` is the
+    taskset package the rewards are defined in. Rewards are listed once each, by name.
+    """
+
+    rewards: list[RubricReward] = Field(min_length=1)
+    scorer_digest: Digest
+
+    @model_validator(mode="after")
+    def _check_rewards_are_listed_once_in_name_order(self) -> Self:
+        names = [reward.name for reward in self.rewards]
+        if names != sorted(set(names)):
+            raise ValueError("a rubric lists each reward once, in name order")
+        return self
+
+    @property
+    def weights(self) -> dict[str, float]:
+        return {reward.name: reward.weight for reward in self.rewards}
+
+
+class ScoringSpec(ProtocolModel):
+    """How each task is scored, and what counts as an improvement across them."""
+
+    rubric: Rubric
     aggregation: Literal["mean"]
     require_candidate_above_baseline: bool
     minimum_absolute_delta: float = Field(ge=0.0)
@@ -451,6 +481,8 @@ class CampaignSpecV3(ProtocolModel):
         if self.evidence.runtime_evidence != "not_required":
             raise ValueError("runtime evidence is not collected, so requiring it is unsatisfiable")
         check_images(self.environment, self.subject.runtime, self.taskset)
+        if self.scoring.rubric.scorer_digest != self.taskset.ref.package.digest:
+            raise ValueError("the rubric's scorer is the taskset package the Campaign pins")
         return self
 
 

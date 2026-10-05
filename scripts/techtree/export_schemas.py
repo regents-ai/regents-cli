@@ -24,7 +24,7 @@ from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import ExperimentManifestV3
 from regents_cli.techtree.models.run import RunRequestV2
-from regents_cli.techtree.models.uplift_report import UpliftReportV2
+from regents_cli.techtree.models.uplift_report import UpliftReportV3
 
 VERSION: Final = "v3"
 DESTINATION: Final = Path(__file__).resolve().parents[2] / "schemas/techtree" / VERSION
@@ -42,7 +42,7 @@ MODELS: Final[dict[str, type[BaseModel]]] = {
     "execution-plan": ResolvedExecutionPlan,
     "experiment-manifest": ExperimentManifestV3,
     "run-request": RunRequestV2,
-    "uplift-report": UpliftReportV2,
+    "uplift-report": UpliftReportV3,
 }
 
 

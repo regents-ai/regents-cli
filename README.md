@@ -92,15 +92,15 @@ uv run --no-project \
 
 `regents techtree` runs Techtree on this machine: it tests a Skill on a Climb, builds tasks from
 a Skill and compares runs on them, and checks, publishes and withdraws proofs. Three Climbs ship
-with it: `hello-world-climb@2`, a short introduction; `frontier-cs-open-ended-climb@2`, ten
+with it: `hello-world-climb@3`, a short introduction; `frontier-cs-open-ended-climb@3`, ten
 open-ended C++ optimisation problems from [Frontier-CS](https://github.com/FrontierCS/Frontier-CS),
-made with FrontierSmith; and `tasksmith-climb@1`, six real changes from Hugging Face's own
+made with FrontierSmith; and `tasksmith-climb@2`, six real changes from Hugging Face's own
 repositories, taken from [HF ML Tasksmith](https://huggingface.co/datasets/FineEnvs/HF_ML_Tasksmith).
 
 ```bash
 regents techtree setup
-regents techtree skill starter --climb frontier-cs-open-ended-climb@2
-regents techtree climb prepare frontier-cs-open-ended-climb@2 --skill <path to SKILL.md> --label my-skill
+regents techtree skill starter --climb frontier-cs-open-ended-climb@3
+regents techtree climb prepare frontier-cs-open-ended-climb@3 --skill <path to SKILL.md> --label my-skill
 regents techtree climb start <draft id>
 regents techtree run status <run id>
 regents techtree forge inspect-skill <Skill folder>
@@ -117,7 +117,7 @@ regents techtree forge inspect-skill <Skill folder>
   and asks first. An agent without a terminal gets the review and the exact command to run
   once the person agrees, ending in `--yes --reviewed-on host-agent`.
 - The Tasksmith Climb keeps six more tasks apart. Once a Skill has won, run it on them with
-  `regents techtree climb prepare tasksmith-climb@1 --held-out --skill …`: that run is reported
+  `regents techtree climb prepare tasksmith-climb@2 --held-out --skill …`: that run is reported
   beside the win and never decides it.
 - `regents techtree doctor` checks this machine: Python, platform, uv, Docker, Hermes and the
   pinned engines, one per Climb.

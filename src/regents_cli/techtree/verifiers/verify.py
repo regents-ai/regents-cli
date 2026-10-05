@@ -27,6 +27,7 @@ from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
     AgentSpecV2,
     ModelSpec,
+    Rubric,
     pinned_task_images,
 )
 from regents_cli.techtree.models.engine import EngineDescriptor
@@ -326,7 +327,7 @@ def verify_variant_execution(
     experiment: ExperimentManifestV3,
     plan: ResolvedExecutionPlan,
     taskset_lock: TasksetLock,
-    primary_reward: str,
+    rubric: Rubric,
     engine: EngineDescriptor | None = None,
 ) -> list[ExecutionCheck]:
     """Ordered checks over one completed variant; raises only when nothing can be checked."""
@@ -354,7 +355,7 @@ def verify_variant_execution(
 
     checks = [_completion_check(result)]
     checks.extend(_membership_checks(result, taskset_lock))
-    checks.extend(_trace_checks(result, subject, plan, primary_reward))
+    checks.extend(_trace_checks(result, subject, plan, rubric))
     checks.append(_task_image_check(result, experiment, subject))
     checks.append(_manifest_check(result, experiment))
     if engine is not None:
@@ -454,7 +455,7 @@ def _trace_checks(
     result: VariantExecutionResult,
     subject: AgentSpecV2,
     plan: ResolvedExecutionPlan,
-    primary_reward: str,
+    rubric: Rubric,
 ) -> list[ExecutionCheck]:
     """Whether every trace is the subject the manifest declared, scored."""
     traces = [trace for episode in result.episodes for trace in episode.traces]
@@ -534,21 +535,26 @@ def _trace_checks(
                 "every trace completed.",
                 f"{len(incomplete)} trace(s) did not complete.",
             ),
-            _primary_reward_check(traces, primary_reward),
+            _rubric_check(traces, rubric),
             _tool_inventory_check(traces),
         ]
     )
     return checks
 
 
-def _primary_reward_check(traces: list[NormalizedTrace], primary_reward: str) -> ExecutionCheck:
-    unscored = [trace for trace in traces if trace.reward(primary_reward) is None]
+def _rubric_check(traces: list[NormalizedTrace], rubric: Rubric) -> ExecutionCheck:
+    weights = rubric.weights
+    off_rubric = [
+        trace
+        for trace in traces
+        if {reward.name: reward.weight for reward in trace.rewards} != weights
+    ]
     return _verdict(
-        "primary_reward_present",
-        not unscored,
-        f"every trace scored {primary_reward!r}.",
-        f"{len(unscored)} trace(s) carry no {primary_reward!r} reward, which is the reward the "
-        "comparison is decided on.",
+        "rewards_match_rubric",
+        not off_rubric,
+        f"every trace scored the rubric's {len(weights)} reward(s) at the rubric's weights.",
+        f"{len(off_rubric)} trace(s) scored other rewards or weights than the rubric's "
+        f"{sorted(weights)}, so their task scores are not the pinned scorer's.",
     )
 
 

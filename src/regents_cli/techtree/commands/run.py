@@ -19,7 +19,7 @@ from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.models.experiment import ExperimentVariant
 from regents_cli.techtree.models.run import PublicRunState
-from regents_cli.techtree.models.uplift_report import UpliftReportV2
+from regents_cli.techtree.models.uplift_report import UpliftReportV3
 from regents_cli.techtree.presentation.build import build_uplift_presentation
 from regents_cli.techtree.presentation.compact import render_uplift_markdown
 from regents_cli.techtree.presentation.evidence import read_recorded_evidence
@@ -243,7 +243,7 @@ def status_answer(service: RunService, run_id: str) -> dict[str, JsonValue]:
 
 
 def _verify_proof(
-    home: paths.TechtreePaths, run_id: str, report: UpliftReportV2
+    home: paths.TechtreePaths, run_id: str, report: UpliftReportV3
 ) -> VerificationResult | None:
     """Check the run's local proof when it claims one; a proof that does not verify is an error.
 

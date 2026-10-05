@@ -39,8 +39,8 @@ from regents_cli.techtree.publication.transport import HttpsPublicationTransport
 from regents_cli.techtree.release.models import PinnedNetworkKey, PublicationCoordinates
 
 RUN: Final = Path(__file__).parent / "fixtures" / "run"
-RUN_ID: Final = "run_08a49dfffa5642038ec36199d83e7c55"
-BUNDLE_DIGEST: Final = "sha256:94d321ca5beca6d009d786834a534308567f657850daae7a7eee9350dcf07823"
+RUN_ID: Final = "run_ebcd216ada794bafb46f10b9ac1702ef"
+BUNDLE_DIGEST: Final = "sha256:be84046e7518e4ba6916bf120c42f0d0fbc8db6e553c5198b3c8c7ea2e601404"
 SKILL_NAME: Final = "hello-world-v1"
 
 PINNED_ENDPOINT: Final = "https://run-log.techtree.example/api/v1/publications"

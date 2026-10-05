@@ -49,6 +49,8 @@ from regents_cli.techtree.models.campaign import (
     MutationContract,
     MutationKind,
     PinnedImage,
+    Rubric,
+    RubricReward,
     RuntimeSpec,
     SamplingSpec,
     ScoringSpec,
@@ -149,7 +151,9 @@ class CampaignDefinition:
     engine: str
     package: str
     task_count: int
-    primary_reward: str
+    #: Every reward the environment scores a task on, with the weight it gives it, as the
+    #: package's own source declares them; a run whose traces record anything else is refused.
+    rubric: tuple[tuple[str, float], ...]
     images: CampaignImage | TaskImageSet
     cpu: float
     memory_gb: float
@@ -193,7 +197,7 @@ class ClimbDefinition:
 
 HELLO_WORLD: Final = ClimbDefinition(
     slug="hello-world-climb",
-    version=2,
+    version=3,
     title="Techtree Hello World",
     summary=(
         "A toy Skill-uplift Climb. It runs the synthetic BranchCode v1 task family "
@@ -204,12 +208,12 @@ HELLO_WORLD: Final = ClimbDefinition(
     data_policy_label="hello-world-policy@1",
     campaign=CampaignDefinition(
         slug="hello-world-climb",
-        label="hello-world-campaign@2",
-        version=2,
+        label="hello-world-campaign@3",
+        version=3,
         engine="default",
         package="procedure-transfer-v1",
         task_count=36,
-        primary_reward="exact_match",
+        rubric=(("exact_match", 1.0),),
         images=CampaignImage(
             image=(
                 "ghcr.io/regents-ai/techtree-subject"
@@ -240,7 +244,7 @@ HELLO_WORLD: Final = ClimbDefinition(
 
 FRONTIER_CS: Final = ClimbDefinition(
     slug="frontier-cs-open-ended-climb",
-    version=2,
+    version=3,
     title="Frontier-CS Open-Ended",
     summary=(
         "Ten open-ended optimisation problems from Frontier-CS, created with FrontierSmith, "
@@ -252,12 +256,12 @@ FRONTIER_CS: Final = ClimbDefinition(
     data_policy_label="frontier-cs-open-ended-policy@1",
     campaign=CampaignDefinition(
         slug="frontier-cs-open-ended-climb",
-        label="frontier-cs-open-ended-campaign@2",
-        version=2,
+        label="frontier-cs-open-ended-campaign@3",
+        version=3,
         engine="frontier-cs",
         package="frontier-cs-open-ended-v1",
         task_count=10,
-        primary_reward="case_score_mean",
+        rubric=(("case_score_mean", 1.0),),
         # Hello World's image with g++ added (scripts/techtree/subject-image-cpp).
         images=CampaignImage(
             image=(
@@ -296,11 +300,11 @@ def tasksmith_campaign(slug: str, label: str, task_ids: tuple[str, ...]) -> Camp
     return CampaignDefinition(
         slug=slug,
         label=label,
-        version=1,
+        version=2,
         engine="tasksmith",
         package="hf-tasksmith-v1",
         task_count=len(task_ids),
-        primary_reward="solved",
+        rubric=(("solved", 1.0),),
         images=TaskImageSet(task_ids=task_ids),
         cpu=1.0,
         memory_gb=2.0,
@@ -316,7 +320,7 @@ def tasksmith_campaign(slug: str, label: str, task_ids: tuple[str, ...]) -> Camp
 
 TASKSMITH: Final = ClimbDefinition(
     slug="tasksmith-climb",
-    version=1,
+    version=2,
     title="HF Tasksmith",
     summary=(
         "Six real changes from Hugging Face's trl, transformers, diffusers, peft and "
@@ -327,9 +331,9 @@ TASKSMITH: Final = ClimbDefinition(
         "Not a measure of broad capability."
     ),
     data_policy_label="tasksmith-policy@1",
-    campaign=tasksmith_campaign("tasksmith-climb", "tasksmith-campaign@1", TRAINING_TASKS),
+    campaign=tasksmith_campaign("tasksmith-climb", "tasksmith-campaign@2", TRAINING_TASKS),
     held_out=tasksmith_campaign(
-        "tasksmith-held-out", "tasksmith-held-out-campaign@1", HELD_OUT_TASKS
+        "tasksmith-held-out", "tasksmith-held-out-campaign@2", HELD_OUT_TASKS
     ),
 )
 
@@ -611,7 +615,13 @@ def campaign(
             retry_limit=CAMPAIGN_RETRY_LIMIT,
         ),
         scoring=ScoringSpec(
-            primary_reward=definition.primary_reward,
+            rubric=Rubric(
+                rewards=[
+                    RubricReward(name=name, weight=weight)
+                    for name, weight in sorted(definition.rubric)
+                ],
+                scorer_digest=lock.taskset_ref.package.digest,
+            ),
             aggregation="mean",
             require_candidate_above_baseline=True,
             minimum_absolute_delta=0.0,

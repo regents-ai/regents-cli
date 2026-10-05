@@ -1,11 +1,14 @@
 """Reward aggregation, the verdict, and the report.
 
-Nothing here scores anything: every number is arithmetic over rewards the receipts hold. The
-join is by task hash in TasksetLock order, one receipt per task per variant or nothing. The
-verdict is exact: each score is read as the shortest decimal that reads back as it (the number
-the report's JSON writes), sums and the rule are worked in decimal with no rounding, and the
-means are rounded once to a double, so a Campaign asking for a tenth is not turned down over a
-binary hair. A relative delta over a zero baseline is null. A tie is exact equality.
+Nothing here scores anything: every number is arithmetic over rewards the receipts hold. A
+task's score is the Campaign rubric's weighted total of its rewards, worked in decimal and
+rounded once to a double; a receipt that lacks one of the rubric's rewards, or carries one the
+rubric does not list, is refused. The join is by task hash in TasksetLock order, one receipt
+per task per variant or nothing. The verdict is exact: each score is read as the shortest
+decimal that reads back as it (the number the report's JSON writes), sums and the rule are
+worked in decimal with no rounding, and the means are rounded once to a double, so a Campaign
+asking for a tenth is not turned down over a binary hair. A relative delta over a zero
+baseline is null. A tie is exact equality.
 
 An unattested real report withholds the verdict (`development_only`) because the frozen model
 ties the verdict to the P1 grade; an attested one carries P1 and the decision the Campaign's
@@ -15,19 +18,19 @@ own predeclared rules reach.
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from decimal import Context, Decimal, Inexact, localcontext
 from enum import StrEnum
 from typing import Literal
 
 from regents_cli.techtree.canonical import digest_object
-from regents_cli.techtree.constants import UPLIFT_V2_SCHEMA_VERSION
+from regents_cli.techtree.constants import UPLIFT_V3_SCHEMA_VERSION
 from regents_cli.techtree.errors import VerificationError
 from regents_cli.techtree.execution_facts import UpliftReportExecutionFacts
 from regents_cli.techtree.ids import new_id
 from regents_cli.techtree.models.base import Digest
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV3
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV3, Rubric
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import (
     EpisodeReceiptV3,
@@ -43,13 +46,14 @@ from regents_cli.techtree.models.uplift_report import (
     PublicationStatus,
     TaskDelta,
     UpliftDecision,
-    UpliftReportV2,
+    UpliftReportV3,
     UpliftStatuses,
 )
 from regents_cli.techtree.receipts.compare import COMPARISON_INVALID, RealComparisonResult
 from regents_cli.techtree.receipts.episode import (
     REWARD_MISSING,
     REWARD_NON_FINITE,
+    REWARD_RUBRIC_MISMATCH,
     TASK_MEMBERSHIP_MISMATCH,
 )
 from regents_cli.techtree.receipts.set import ReceiptSetManifest
@@ -73,7 +77,7 @@ def pair_task_rewards(
     baseline_receipts: Sequence[EpisodeReceiptV3],
     candidate_receipts: Sequence[EpisodeReceiptV3],
     ordered_task_hashes: Sequence[Digest],
-    reward_name: str,
+    rubric: Rubric,
 ) -> list[TaskDelta]:
     """Join the two variants by task hash and return rows in TasksetLock order."""
     committed = list(ordered_task_hashes)
@@ -90,8 +94,8 @@ def pair_task_rewards(
             code=TASK_MEMBERSHIP_MISMATCH,
             details={"task_count": len(committed)},
         )
-    baseline = _rewards_by_task(baseline_receipts, reward_name, committed, "baseline")
-    candidate = _rewards_by_task(candidate_receipts, reward_name, committed, "candidate")
+    baseline = _scores_by_task(baseline_receipts, rubric, committed, "baseline")
+    candidate = _scores_by_task(candidate_receipts, rubric, committed, "candidate")
     return [
         TaskDelta(
             task_hash=task_hash,
@@ -103,13 +107,13 @@ def pair_task_rewards(
     ]
 
 
-def aggregate_primary_result(deltas: Sequence[TaskDelta], reward_name: str) -> PrimaryUpliftResult:
+def aggregate_primary_result(deltas: Sequence[TaskDelta]) -> PrimaryUpliftResult:
     """The headline result from the paired rows and nothing else."""
     if not deltas:
         raise VerificationError(
             "an uplift result summarizes at least one paired task",
             code=TASK_MEMBERSHIP_MISMATCH,
-            details={"reward": reward_name, "task_count": 0},
+            details={"task_count": 0},
         )
     for delta in deltas:
         _require_finite(delta.baseline_reward, "baseline", delta.task_hash)
@@ -125,12 +129,11 @@ def aggregate_primary_result(deltas: Sequence[TaskDelta], reward_name: str) -> P
     ):
         if not math.isfinite(value):
             raise VerificationError(
-                f"the {label} over these rewards is not a finite number",
+                f"the {label} over these task scores is not a finite number",
                 code=REWARD_NON_FINITE,
-                details={"reward": reward_name, "task_count": len(deltas)},
+                details={"task_count": len(deltas)},
             )
     return PrimaryUpliftResult(
-        reward_name=reward_name,
         baseline_mean=baseline_mean,
         candidate_mean=candidate_mean,
         absolute_delta=absolute,
@@ -230,7 +233,7 @@ def build_uplift_report(
     evidence: EvidenceStatus,
     attestation: LocalAttestation,
     created_at: datetime,
-) -> UpliftReportV2:
+) -> UpliftReportV3:
     """Construct the report, or refuse when the evidence decided nothing.
 
     An uncontrolled comparison or an invalid score is a refusal rather than a status, because
@@ -255,8 +258,8 @@ def build_uplift_report(
         if grade == "P1"
         else UpliftDecision.DEVELOPMENT_ONLY
     )
-    return UpliftReportV2(
-        schema_version=UPLIFT_V2_SCHEMA_VERSION,
+    return UpliftReportV3(
+        schema_version=UPLIFT_V3_SCHEMA_VERSION,
         id=new_id("uplift"),
         run_id=run_request.run_id,
         campaign_spec_digest=run_request.campaign_spec_digest,
@@ -286,9 +289,9 @@ def build_uplift_report(
     )
 
 
-def _rewards_by_task(
+def _scores_by_task(
     receipts: Sequence[EpisodeReceiptV3],
-    reward_name: str,
+    rubric: Rubric,
     committed: Sequence[Digest],
     label: str,
 ) -> dict[Digest, float]:
@@ -309,14 +312,7 @@ def _rewards_by_task(
                 code=TASK_MEMBERSHIP_MISMATCH,
                 details={"variant": label, "task_hash": receipt.task_hash},
             )
-        reward = traces[0].rewards.get(reward_name)
-        if reward is None:
-            raise VerificationError(
-                f"a {label} receipt records no {reward_name!r} reward, which is the reward "
-                "this comparison is decided on",
-                code=REWARD_MISSING,
-                details={"task_hash": receipt.task_hash, "reward": reward_name},
-            )
+        reward = task_score(traces[0].rewards, rubric, label=label, task_hash=receipt.task_hash)
         _require_finite(reward, label, receipt.task_hash)
         rewards[receipt.task_hash] = reward
     missing: list[str] = [value for value in committed if value not in rewards]
@@ -339,6 +335,37 @@ def _require_finite(value: float, label: str, task_hash: Digest) -> None:
         code=REWARD_NON_FINITE,
         details={"variant": label, "task_hash": task_hash, "value": repr(value)},
     )
+
+
+def task_score(
+    scores: Mapping[str, float], rubric: Rubric, *, label: str, task_hash: Digest
+) -> float:
+    """The rubric's weighted total of one task's reward scores, worked exactly, rounded once."""
+    weights = rubric.weights
+    missing = sorted(set(weights) - set(scores))
+    if missing:
+        raise VerificationError(
+            f"a {label} receipt records no {', '.join(map(repr, missing))} reward, and the "
+            "Campaign's rubric scores every task on it",
+            code=REWARD_MISSING,
+            details={"task_hash": task_hash, "rewards": missing},
+        )
+    unexpected = sorted(set(scores) - set(weights))
+    if unexpected:
+        raise VerificationError(
+            f"a {label} receipt records {', '.join(map(repr, unexpected))}, which the "
+            "Campaign's rubric does not list, so its task score is not the scorer's",
+            code=REWARD_RUBRIC_MISMATCH,
+            details={"task_hash": task_hash, "rewards": unexpected},
+        )
+    for name, score in scores.items():
+        _require_finite(score, f"{label} {name!r}", task_hash)
+    with localcontext(_EXACT):
+        total = sum(
+            (_exact(scores[name]) * _exact(weight) for name, weight in weights.items()),
+            Decimal(0),
+        )
+    return float(total)
 
 
 def _exact(value: float) -> Decimal:

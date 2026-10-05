@@ -52,7 +52,7 @@ from regents_cli.techtree.models.run import (
     RunState,
     RunStatus,
 )
-from regents_cli.techtree.models.uplift_report import UpliftReportV2
+from regents_cli.techtree.models.uplift_report import UpliftReportV3
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.runs.artifacts import RunArtifactStore
 from regents_cli.techtree.runs.events import (
@@ -400,7 +400,7 @@ class RunService:
             heartbeat_stale=stale,
         )
 
-    def result(self, run_id: str) -> UpliftReportV2:
+    def result(self, run_id: str) -> UpliftReportV3:
         """Return the report, once the run has finished and the journal names it."""
         state = self._runs.state(run_id)
         if state.phase is not RunPhase.COMPLETED:

@@ -27,7 +27,7 @@ from regents_cli.techtree.constants import (
     EXPERIMENT_V3_SCHEMA_VERSION,
     RUN_REQUEST_V2_SCHEMA_VERSION,
     TASKSET_LOCK_SCHEMA_VERSION,
-    UPLIFT_V2_SCHEMA_VERSION,
+    UPLIFT_V3_SCHEMA_VERSION,
 )
 from regents_cli.techtree.crypto import (
     load_private_key,
@@ -65,6 +65,8 @@ from regents_cli.techtree.models.campaign import (
     MutationContract,
     MutationKind,
     PublicContext,
+    Rubric,
+    RubricReward,
     SamplingSpec,
     ScoringSpec,
     TaskMembershipCommitment,
@@ -123,7 +125,7 @@ from regents_cli.techtree.models.uplift_report import (
     PublicationStatus,
     TaskDelta,
     UpliftDecision,
-    UpliftReportV2,
+    UpliftReportV3,
     UpliftStatuses,
 )
 from regents_cli.techtree.models.validation import (
@@ -386,7 +388,10 @@ def campaign(
             order=VariantSchedule.PARALLEL, max_concurrent=1, timeout_seconds=1800, retry_limit=0
         ),
         scoring=ScoringSpec(
-            primary_reward="reward",
+            rubric=Rubric(
+                rewards=[RubricReward(name="exact_match", weight=1.0)],
+                scorer_digest=fixture_digest("reference-package"),
+            ),
             aggregation="mean",
             require_candidate_above_baseline=True,
             minimum_absolute_delta=0.05,
@@ -633,12 +638,12 @@ def uplift_report(
     receipt_digest: Digest,
     baseline: ExperimentManifestV3,
     candidate: ExperimentManifestV3,
-) -> UpliftReportV2:
+) -> UpliftReportV3:
     """The shape a report of a real comparison takes."""
     facts = uplift_report_execution_facts(spec, plan)
     deltas = task_deltas()
-    return UpliftReportV2(
-        schema_version=UPLIFT_V2_SCHEMA_VERSION,
+    return UpliftReportV3(
+        schema_version=UPLIFT_V3_SCHEMA_VERSION,
         id=fixture_id("uplift", "v2-uplift-report"),
         run_id=fixture_id("run", "v2-run"),
         campaign_spec_digest=digest_object(spec),
@@ -672,7 +677,7 @@ def uplift_report(
             controlled=True,
             violations=[],
         ),
-        primary_result=aggregate_primary_result(deltas, "exact_match"),
+        primary_result=aggregate_primary_result(deltas),
         task_deltas=deltas,
         decision=UpliftDecision.ACCEPTED,
         proof_grade="P1",
@@ -726,7 +731,7 @@ def variant_execution(
 
 
 def comparison_execution(
-    report: UpliftReportV2, baseline: ExperimentManifestV3, candidate: ExperimentManifestV3
+    report: UpliftReportV3, baseline: ExperimentManifestV3, candidate: ExperimentManifestV3
 ) -> ComparisonExecutionRecord:
     """One comparison's operational record: summed trace tokens and the provider's costs."""
     baseline_finished = FIXED_TIME + timedelta(seconds=612)
@@ -850,7 +855,7 @@ def golden_objects() -> dict[str, BaseModel]:
         ),
         "taskset-lock": lock,
         "taskset-validation-receipt": receipt,
-        "uplift-report-v2": sign_fixture(report),
+        "uplift-report-v3": sign_fixture(report),
     }
 
 

@@ -19,7 +19,7 @@ from regents_cli.techtree.drafts.source import CampaignSource
 from regents_cli.techtree.drafts.store import DraftStore
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV3
+from regents_cli.techtree.models.campaign import CampaignSpecV3, Rubric
 from regents_cli.techtree.models.catalog import ClimbSummaryV2, CompatibilityResultV2
 from regents_cli.techtree.models.run import AcknowledgementMethod, PolicyAcknowledgement
 from regents_cli.techtree.models.skill import SubmissionDraft
@@ -73,7 +73,7 @@ def show(reference: str, as_json: bool) -> None:
         "data_policy_digest": resolved.data_policy_digest,
         "subject_model": to_json_value(campaign.subject.model),
         "subject_runtime": to_json_value(campaign.subject.runtime),
-        "primary_reward": campaign.scoring.primary_reward,
+        "rubric": to_json_value(campaign.scoring.rubric),
         "candidate_skill_ownership": resolved.data_policy.candidate_skill.ownership,
         "held_out_campaign_spec_digest": resolved.climb.held_out_campaign_spec_digest,
     }
@@ -319,7 +319,7 @@ def _show_report(
         ),
         f"- Subject: {campaign.subject.model.provider} {campaign.subject.model.model_id} in "
         f"{summary.subject_harness} {summary.subject_harness_version}",
-        f"- Scored on: {campaign.scoring.primary_reward}",
+        f"- Scored on: {_rubric_phrase(campaign.scoring.rubric)}",
         f"- Proof grade: {summary.proof_grade}",
         f"- Candidate Skill: {_phrase(summary.candidate_skill_visibility)} to others; ownership "
         f"{ownership}",
@@ -367,6 +367,16 @@ def _prepare_report(prepared: PreparedDraft, start_command: str) -> str:
 
 def _phrase(value: str) -> str:
     return value.replace("_", " ")
+
+
+def _rubric_phrase(rubric: Rubric) -> str:
+    """One reward at full weight is its own name; anything else is the weighted total."""
+    match rubric.rewards:
+        case [reward] if reward.weight == 1.0:
+            return reward.name
+        case rewards:
+            weighted = ", ".join(f"{reward.name} (weight {reward.weight:g})" for reward in rewards)
+            return f"the environment's weighted total of {weighted}"
 
 
 CLIMB = click.Group("climb", help="Browse Climbs, prepare a Skill against one, and start a run.")

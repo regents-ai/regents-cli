@@ -78,8 +78,16 @@
   "scoring": {
     "aggregation": "mean",
     "minimum_absolute_delta": 0.05,
-    "primary_reward": "reward",
-    "require_candidate_above_baseline": true
+    "require_candidate_above_baseline": true,
+    "rubric": {
+      "rewards": [
+        {
+          "name": "exact_match",
+          "weight": 1.0
+        }
+      ],
+      "scorer_digest": "sha256:8f1b2ede17f82b676bfbeb2570392915dd3f63cac9117782e45287634a98a7a9"
+    }
   },
   "taskset": {
     "membership": {
