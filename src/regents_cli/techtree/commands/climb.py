@@ -13,10 +13,11 @@ from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import to_json_value
 from regents_cli.techtree.catalog.repository import climb_reference
 from regents_cli.techtree.catalog.service import CLIMB_LIST_STATUSES, CatalogService
-from regents_cli.techtree.commands.answers import JSON, emit
+from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
 from regents_cli.techtree.commands.run import run_service
 from regents_cli.techtree.drafts.source import CampaignSource
 from regents_cli.techtree.drafts.store import DraftStore
+from regents_cli.techtree.errors import UsageError
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.models.campaign import CampaignSpecV4, Rubric
@@ -25,6 +26,8 @@ from regents_cli.techtree.models.run import AcknowledgementMethod, PolicyAcknowl
 from regents_cli.techtree.models.skill import SubmissionDraft
 from regents_cli.techtree.runs.machine import public_state
 from regents_cli.techtree.runs.service import ApprovalActor, utc_now
+from regents_cli.techtree.site import site_base
+from regents_cli.techtree.skills.published import prepare_rerun
 from regents_cli.techtree.skills.service import PreparedDraft, SkillPreparationService
 
 ONLY_CHANGE_LINE: Final = "The Skill is the only scientific change."
@@ -34,8 +37,8 @@ ONLY_CHANGE_LINE: Final = "The Skill is the only scientific change."
 #: carries the proof and never the episodes.
 PUBLICATION_STEP_LINE: Final = (
     "Publishing is a separate step, taken after a run finishes and only if you choose to: what "
-    "travels then is the run's proof — the signed report and its receipts — and never the "
-    "episodes."
+    "travels then is the run's proof — the signed report, its receipts and your Skill, which "
+    "becomes public — and never the episodes."
 )
 
 #: A DataPolicy describes a published result, and read alone it looks like a plan to publish
@@ -43,8 +46,17 @@ PUBLICATION_STEP_LINE: Final = (
 PUBLICATION_TERMS_LINE: Final = (
     "These are the terms this Climb sets for a published result. Nothing is published unless "
     "you publish a finished run yourself, and what travels then is the run's proof — the signed "
-    "report and its receipts — and never the episodes. Your Skill and your episodes stay on "
-    "this machine, and model calls still go to the model provider you configured."
+    "report, its receipts and your Skill, which becomes public — and never the episodes. Until "
+    "then your Skill stays on this machine, and your episodes always do. Model calls still go "
+    "to the model provider you configured."
+)
+
+#: What a rerun is, and what it is not, said wherever a rerun is prepared.
+RERUN_LINE: Final = (
+    "A rerun of {bundle}: the same Campaign and the same Skill, with new runs made and signed "
+    "under this machine's own key. A rerun from another key is still a report from someone's "
+    "own machine: not another person, and not independent reproduction. No platform witnessed "
+    "either run."
 )
 
 REFERENCE = click.Argument(["reference"], metavar="REFERENCE")
@@ -90,10 +102,33 @@ def show(reference: str, as_json: bool) -> None:
     emit(answer, as_json=as_json)
 
 
-def prepare(reference: str, skill: Path, label: str | None, held_out: bool, as_json: bool) -> None:
-    prepared = SkillPreparationService(paths.home()).prepare(
-        climb_reference=reference, skill_path=skill, candidate_label=label, held_out=held_out
-    )
+def prepare(
+    reference: str | None,
+    skill: Path | None,
+    label: str | None,
+    held_out: bool,
+    rerun_of: str | None,
+    base_url: str | None,
+    as_json: bool,
+) -> None:
+    home = paths.home()
+    if rerun_of is not None:
+        if reference is not None or skill is not None or label is not None or held_out:
+            raise UsageError(
+                "--rerun-of takes no Climb, --skill, --label or --held-out: the Result names "
+                "its Campaign and carries its Skill"
+            )
+        prepared = prepare_rerun(home, rerun_of, base=site_base(base_url))
+    else:
+        if reference is None or skill is None:
+            raise UsageError(
+                "name a Climb and --skill, or rerun a published Result with --rerun-of"
+            )
+        if base_url is not None:
+            raise UsageError("--base-url is only for --rerun-of, which reads Techtree's site")
+        prepared = SkillPreparationService(home).prepare(
+            climb_reference=reference, skill_path=skill, candidate_label=label, held_out=held_out
+        )
     draft = prepared.draft
     source = prepared.source
     campaign = source.campaign
@@ -102,10 +137,12 @@ def prepare(reference: str, skill: Path, label: str | None, held_out: bool, as_j
     answer: dict[str, JsonValue] = {
         "draft_id": draft.id,
         "draft_digest": prepared.draft_digest,
+        "draft_dir": str(DraftStore(home).draft_dir(draft.id)),
+        "rerun_of": draft.rerun_of,
         "climb_reference": climb_reference(source.climb),
         "climb_digest": source.climb_digest,
         "campaign_spec_digest": draft.campaign_spec_digest,
-        "held_out": held_out,
+        "held_out": source.campaign_digest != source.climb.campaign_spec_digest,
         "data_policy_digest": draft.data_policy_digest,
         "candidate_label": draft.skill_artifact.name,
         "skill_root_digest": draft.skill_artifact.root_digest,
@@ -349,6 +386,7 @@ def _prepare_report(prepared: PreparedDraft, start_command: str) -> str:
         f"Draft {draft.id} is prepared against {climb_reference(prepared.source.climb)}"
         + (", on the tasks it keeps apart." if held_out else "."),
         "",
+        *([] if draft.rerun_of is None else [RERUN_LINE.format(bundle=draft.rerun_of), ""]),
         f"- Candidate: {draft.skill_artifact.name} ({draft.skill_artifact.root_digest})",
         f"- Files: {', '.join(draft.included_files)}",
         f"- Episodes: {draft.estimated_episodes}",
@@ -409,12 +447,12 @@ CLIMB.add_command(
     click.Command(
         "prepare",
         callback=prepare,
-        help="Snapshot a Skill against a Climb into a draft that `climb start` can run.",
+        help="Snapshot a Skill against a Climb into a draft that `climb start` can run, or "
+        "rerun a published Result with --rerun-of.",
         params=[
-            REFERENCE,
+            click.Argument(["reference"], metavar="[REFERENCE]", required=False),
             click.Option(
                 ["--skill"],
-                required=True,
                 type=click.Path(exists=True, dir_okay=True, path_type=Path),
                 help="The Skill's SKILL.md or its directory.",
             ),
@@ -426,6 +464,12 @@ CLIMB.add_command(
                 is_flag=True,
                 help="Against the tasks the Climb keeps apart: run once, on the winning Skill.",
             ),
+            click.Option(
+                ["--rerun-of"],
+                metavar="BUNDLE_DIGEST",
+                help="Rerun a published Result: its Campaign and its Skill, with new runs here.",
+            ),
+            BASE_URL,
             JSON,
         ],
     )

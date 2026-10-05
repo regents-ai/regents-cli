@@ -115,6 +115,9 @@ class UpliftReportV3(ProtocolModel):
     decision: UpliftDecision
     proof_grade: Literal["development_only", "P1"]
     publication_eligible: bool
+    #: The published Result this one reruns: same Campaign, same Skill, new runs. A rerun is
+    #: a report from someone's own machine, never independent reproduction.
+    rerun_of: Digest | None
     created_at: UtcDateTime
 
     @model_validator(mode="after")

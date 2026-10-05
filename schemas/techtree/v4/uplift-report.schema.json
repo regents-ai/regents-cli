@@ -456,6 +456,16 @@
       "title": "Publication Eligible",
       "type": "boolean"
     },
+    "rerun_of": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Digest"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "run_id": {
       "$ref": "#/$defs/NonEmptyString"
     },
@@ -499,6 +509,7 @@
     "decision",
     "proof_grade",
     "publication_eligible",
+    "rerun_of",
     "created_at"
   ],
   "title": "UpliftReportV3",

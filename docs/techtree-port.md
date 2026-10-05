@@ -50,7 +50,7 @@ it (founder, 2026-09-28), so the port picks up whatever Techtree ships from its 
 ```
 regents techtree setup | doctor
 regents techtree engine install | status | verify
-regents techtree skill starter
+regents techtree skill starter | fetch
 regents techtree climb list | show | prepare | start
 regents techtree run status | logs | cancel | result
 regents techtree proof verify

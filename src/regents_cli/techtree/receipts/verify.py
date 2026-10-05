@@ -7,12 +7,14 @@ fixed and each step depends on the one before:
      2. Verify every artifact digest.
      3. Verify Campaign, execution-plan and policy linkage.
      4. Verify TasksetLock and validation-receipt linkage.
-     5. Verify every EpisodeReceipt envelope signature.
-     6. Verify the receipt sets.
-     7. Verify the UpliftReport envelope signature.
-     8. Recompute the paired aggregate from the receipts.
-     9. Require the recomputed result to equal the report.
-    10. Require the report's publication fields to hold together.
+     5. Verify the candidate Skill: the one the candidate experiment ran, and one the site
+        would make public (`skills.checks`).
+     6. Verify every EpisodeReceipt envelope signature.
+     7. Verify the receipt sets.
+     8. Verify the UpliftReport envelope signature.
+     9. Recompute the paired aggregate from the receipts.
+    10. Require the recomputed result to equal the report.
+    11. Require the report's publication fields to hold together.
 
 Every digest is taken again from the file's own bytes and every aggregate is recomputed from
 the receipts; nothing raises past the first problem, every step records a named check, and
@@ -30,7 +32,8 @@ from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes
-from regents_cli.techtree.errors import VerificationError
+from regents_cli.techtree.drafts.source import StagedSkill
+from regents_cli.techtree.errors import ValidationError, VerificationError
 from regents_cli.techtree.identity.models import (
     LOCAL_IDENTITY_INVALID,
     SIGNATURE_VERIFICATION_FAILED,
@@ -41,7 +44,7 @@ from regents_cli.techtree.identity.models import (
 )
 from regents_cli.techtree.identity.service import verify_signed_object
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope
-from regents_cli.techtree.models.campaign import CampaignSpecV4
+from regents_cli.techtree.models.campaign import SUBJECT_AGENT, CampaignSpecV4
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import (
     EpisodeReceiptV3,
@@ -50,6 +53,7 @@ from regents_cli.techtree.models.episode_receipt import (
 )
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
+from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
     PublicationStatus,
@@ -70,12 +74,15 @@ from regents_cli.techtree.receipts.bundle import (
     PROOF_BUNDLE_INVALID,
     PUBLIC_IDENTITY_FILENAME,
     REPORT_FILENAME,
+    SKILL_DIRECTORY,
+    SKILL_FILENAME,
     TASKSET_LOCK_FILENAME,
     VALIDATION_RECEIPT_FILENAME,
     LocalProofBundleManifest,
     experiment_filename,
     receipt_filename,
     receipt_set_filename,
+    skill_filename,
 )
 from regents_cli.techtree.receipts.compare import COMPARISON_INVALID
 from regents_cli.techtree.receipts.execution import (
@@ -94,6 +101,7 @@ from regents_cli.techtree.receipts.uplift import (
     pair_task_rewards,
     publication_eligible_for,
 )
+from regents_cli.techtree.skills.checks import check_public_skill, staged_skill_files
 
 _VARIANT_ORDER: Final = (ExperimentVariant.BASELINE, ExperimentVariant.CANDIDATE)
 
@@ -175,6 +183,7 @@ def verify_local_bundle(path: Path) -> VerificationResult:
     if documents is None:
         return checks.result()
     _check_linkage(manifest, documents, checks)
+    _check_skill(directory, manifest, documents, checks)
     receipts = _check_receipts(directory, documents, identity, checks)
     checks.extend(
         verify_signed_object(
@@ -214,6 +223,7 @@ class _Documents:
     experiments: dict[ExperimentVariant, ExperimentManifestV4]
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest]
     report: ObjectEnvelope[UpliftReportV3]
+    skill: SkillArtifact
 
 
 def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
@@ -223,6 +233,7 @@ def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
     lock = _load_model(directory / TASKSET_LOCK_FILENAME, TasksetLock, checks)
     receipt = _load_model(directory / VALIDATION_RECEIPT_FILENAME, TasksetValidationReceipt, checks)
     report = _load_envelope(directory / REPORT_FILENAME, UpliftReportV3, checks, "uplift-report")
+    skill = _load_model(directory / SKILL_FILENAME, SkillArtifact, checks)
     experiments: dict[ExperimentVariant, ExperimentManifestV4] = {}
     receipt_sets: dict[ExperimentVariant, ReceiptSetManifest] = {}
     for variant in _VARIANT_ORDER:
@@ -243,6 +254,7 @@ def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
         or lock is None
         or receipt is None
         or report is None
+        or skill is None
         or len(experiments) != len(_VARIANT_ORDER)
         or len(receipt_sets) != len(_VARIANT_ORDER)
     ):
@@ -256,6 +268,7 @@ def _load_documents(directory: Path, checks: _Checks) -> _Documents | None:
         experiments=experiments,
         receipt_sets=receipt_sets,
         report=report,
+        skill=skill,
     )
 
 
@@ -284,6 +297,43 @@ def _check_artifacts(directory: Path, manifest: LocalProofBundleManifest, checks
             f"{relative_path} has changed since the bundle was written: committed "
             f"{reference.digest}, stored {digest}",
         )
+
+
+def _check_skill(
+    directory: Path, manifest: LocalProofBundleManifest, documents: _Documents, checks: _Checks
+) -> None:
+    """The Skill the proof carries is the one its candidate ran, and one the site accepts."""
+    skill = documents.skill
+    placed = sorted(
+        str(reference.relative_path)
+        for reference in manifest.artifacts
+        if str(reference.relative_path).startswith(f"{SKILL_DIRECTORY}/")
+    )
+    listed = sorted(skill_filename(entry.path) for entry in skill.files)
+    checks.verdict(
+        "skill.committed",
+        manifest.artifact(SKILL_FILENAME) is not None and placed == listed,
+        PROOF_BUNDLE_INVALID,
+        f"the bundle manifest commits to {SKILL_FILENAME} and to each of its {len(listed)} files",
+        f"the bundle manifest does not commit to exactly {SKILL_FILENAME} and the files it lists",
+    )
+    subject = documents.experiments[ExperimentVariant.CANDIDATE].configuration.agents[SUBJECT_AGENT]
+    expected = subject.harness.skills[0].digest
+    try:
+        check_public_skill(
+            skill,
+            staged_skill_files(StagedSkill(artifact=skill, files=directory / SKILL_DIRECTORY)),
+            expected_root=expected,
+        )
+    except ValidationError as error:
+        checks.record("skill.contents", "failed", error.code, error.message)
+        return
+    checks.record(
+        "skill.contents",
+        "passed",
+        PROOF_BUNDLE_INVALID,
+        f"the Skill is the one the candidate ran ({expected}) and holds every Skill check",
+    )
 
 
 def _check_linkage(

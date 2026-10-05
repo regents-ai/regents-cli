@@ -38,6 +38,9 @@ MEDIA_TYPES: Final[dict[str, str]] = {
 #: A directory holding more entries than this is not a Skill.
 MAX_ENTRIES: Final = 4096
 
+#: The code for a Skill larger than Techtree's site accepts, here and in `skills.checks`.
+SKILL_TOO_LARGE: Final = "skill_too_large"
+
 type EntryKind = Literal["file", "symlink", "directory", "special"]
 
 #: Why one entry cannot be carried.
@@ -161,17 +164,20 @@ def scan_skill(path: Path) -> SkillScanResult:
         if entry.reason is not None:
             raise ValidationError(
                 f"skill entry {entry.path} {UNSUPPORTED_WORDS[entry.reason]}",
+                code=SKILL_TOO_LARGE if entry.reason == "too_large" else None,
                 details={"path": entry.path, "reason": entry.reason},
             )
     if len(entries) > MAX_SKILL_FILES:
         raise ValidationError(
             f"skill contains {len(entries)} files, more than the {MAX_SKILL_FILES} allowed",
+            code=SKILL_TOO_LARGE,
             details={"count": len(entries), "maximum_files": MAX_SKILL_FILES},
         )
     total = sum(entry.size or 0 for entry in entries)
     if total > MAX_SKILL_TOTAL_BYTES:
         raise ValidationError(
             f"skill is larger than the {MAX_SKILL_TOTAL_BYTES} byte total limit",
+            code=SKILL_TOO_LARGE,
             details={"total_bytes": total, "maximum_total_bytes": MAX_SKILL_TOTAL_BYTES},
         )
     return SkillScanResult(

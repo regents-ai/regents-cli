@@ -20,7 +20,6 @@ from typing import Final
 from regents_cli.techtree.canonical import canonical_json_bytes, digest_object, sha256_digest_bytes
 from regents_cli.techtree.catalog.service import CatalogService
 from regents_cli.techtree.constants import (
-    MAX_SKILL_FILES,
     SKILL_SCHEMA_VERSION,
     SUBMISSION_DRAFT_SCHEMA_VERSION,
 )
@@ -53,7 +52,13 @@ from regents_cli.techtree.models.skill import (
     SubmissionDraft,
 )
 from regents_cli.techtree.paths import TechtreePaths
-from regents_cli.techtree.skills.scanner import ScannedFile, SkillScanResult, scan_skill
+from regents_cli.techtree.skills.checks import check_public_skill, staged_skill_files
+from regents_cli.techtree.skills.scanner import (
+    SKILL_TOO_LARGE,
+    ScannedFile,
+    SkillScanResult,
+    scan_skill,
+)
 
 CLIMB_NOT_PREPARABLE: Final = "climb_not_preparable"
 CANDIDATE_POLICY_VIOLATION: Final = "candidate_policy_violation"
@@ -72,6 +77,14 @@ _FILES_DIR: Final = "files"
 
 #: The one taskset this build knows the scored inputs of; its Skill may not name them.
 _REFERENCE_TASKSET: Final = "procedure-transfer-v1"
+
+
+@dataclass(frozen=True)
+class RerunOrigin:
+    """The published Result a draft reruns, and the Skill that Result carried."""
+
+    bundle_digest: Digest
+    skill_root_digest: Digest
 
 
 @dataclass(frozen=True)
@@ -99,9 +112,11 @@ class SkillPreparationService:
         skill_path: Path,
         candidate_label: str | None = None,
         held_out: bool = False,
+        rerun: RerunOrigin | None = None,
     ) -> PreparedDraft:
         """Resolve, snapshot, derive, compare, and persist one draft, against the Climb's
-        Campaign or, with `held_out`, its held-out one."""
+        Campaign or, with `held_out`, its held-out one; a rerun's Skill must be exactly the
+        one its Result carried."""
         created_at = utc_now()
         resolved = self._catalog.get_climb(climb_reference, held_out=held_out)
         if resolved.publisher_validation.normalized_evidence is None:
@@ -114,7 +129,7 @@ class SkillPreparationService:
         validation_evidence = self._catalog.validation_evidence(resolved)
         self._require_preparable(resolved)
         scan = _scan(skill_path)
-        _validate_candidate_policy(resolved, scan)
+        _validate_candidate_policy(resolved)
         _require_no_proving_inputs(resolved.campaign, scan)
 
         ensure_private_directory(self._paths.drafts_dir)
@@ -124,6 +139,15 @@ class SkillPreparationService:
             ensure_private_directory(staging)
             staged = _snapshot_skill(
                 skill_dir=staging / _SKILL_DIR, scan=scan, candidate_label=candidate_label
+            )
+            # Publishing makes the Skill public, so a Skill the site would refuse is refused
+            # here, before any model is called.
+            check_public_skill(
+                staged.artifact,
+                staged_skill_files(staged),
+                expected_root=(
+                    staged.artifact.root_digest if rerun is None else rerun.skill_root_digest
+                ),
             )
             baseline = build_baseline_manifest(
                 campaign=resolved.campaign,
@@ -159,6 +183,7 @@ class SkillPreparationService:
                     summary=rights_summary(resolved.data_policy),
                 ),
                 warnings=_warnings(resolved),
+                rerun_of=None if rerun is None else rerun.bundle_digest,
                 created_at=created_at,
             )
             draft_digest = digest_object(draft)
@@ -197,7 +222,7 @@ class SkillPreparationService:
             )
 
 
-def _validate_candidate_policy(resolved: ResolvedClimb, scan: SkillScanResult) -> None:
+def _validate_candidate_policy(resolved: ResolvedClimb) -> None:
     """Enforce the Climb's candidate constraints and its DataPolicy."""
     constraints = resolved.climb.candidate_policy.constraints
     if not constraints.min_skills <= 1 <= constraints.max_skills:
@@ -214,12 +239,6 @@ def _validate_candidate_policy(resolved: ResolvedClimb, scan: SkillScanResult) -
             "nothing a submission could be entered as",
             code=CANDIDATE_POLICY_VIOLATION,
             details={"candidate_skill_public_release": release},
-        )
-    if len(scan.files) > MAX_SKILL_FILES:
-        raise PolicyError(
-            f"this candidate has {len(scan.files)} files and the limit is {MAX_SKILL_FILES}",
-            code=CANDIDATE_POLICY_VIOLATION,
-            details={"file_count": len(scan.files)},
         )
 
 
@@ -282,7 +301,8 @@ def _scan(skill_path: Path) -> SkillScanResult:
     try:
         return scan_skill(skill_path)
     except ValidationError as error:
-        raise ValidationError(error.message, code=SKILL_INVALID, details=error.details) from error
+        code = SKILL_TOO_LARGE if error.code == SKILL_TOO_LARGE else SKILL_INVALID
+        raise ValidationError(error.message, code=code, details=error.details) from error
 
 
 def _snapshot_skill(

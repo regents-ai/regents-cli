@@ -8,7 +8,7 @@ from typing import Final
 DIGEST_PREFIX: Final = "sha256:"
 
 SKILL_SCHEMA_VERSION: Final = "techtree.skill.v1alpha1"
-SUBMISSION_DRAFT_SCHEMA_VERSION: Final = "techtree.submission-draft.v1alpha1"
+SUBMISSION_DRAFT_SCHEMA_VERSION: Final = "techtree.submission-draft.v1alpha2"
 EXPERIMENT_V4_SCHEMA_VERSION: Final = "techtree.experiment.v4"
 RUN_REQUEST_V2_SCHEMA_VERSION: Final = "techtree.run-request.v2"
 TASKSET_LOCK_SCHEMA_VERSION: Final = "techtree.taskset-lock.v1alpha1"
@@ -24,6 +24,6 @@ PUBLICATION_JOURNAL_SCHEMA_VERSION: Final = "techtree.publication-journal.v1alph
 DEFAULT_WORKER_HEARTBEAT_SECONDS: Final = 2
 DEFAULT_STALE_HEARTBEAT_SECONDS: Final = 15
 
-MAX_SKILL_FILE_BYTES: Final = 256 * 1024
-MAX_SKILL_TOTAL_BYTES: Final = 2 * 1024 * 1024
-MAX_SKILL_FILES: Final = 64
+MAX_SKILL_FILE_BYTES: Final = 128 * 1024
+MAX_SKILL_TOTAL_BYTES: Final = 256 * 1024
+MAX_SKILL_FILES: Final = 32

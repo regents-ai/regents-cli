@@ -1,17 +1,20 @@
-"""`regents techtree skill starter`: put a Climb's starter Skill, as this release pins it, on
-this machine."""
+"""`regents techtree skill starter | fetch`: put a Skill on this machine, either a Climb's
+starter Skill as this release pins it or a Skill someone published with a Result."""
 
 from __future__ import annotations
 
 import shlex
+from pathlib import Path
 from typing import Final
 
 import click
 
 from regents_cli.techtree import paths
-from regents_cli.techtree.commands.answers import JSON, emit
+from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.release.document import packaged_release_core_bytes, parse_release_core
+from regents_cli.techtree.site import site_base
+from regents_cli.techtree.skills.published import fetch_skill
 from regents_cli.techtree.skills.starter import STARTER_SKILLS, StarterSkillService
 
 _OBTAINED: Final[dict[str, str]] = {
@@ -76,7 +79,38 @@ def starter(climb: str | None, as_json: bool) -> None:
     emit(answer, as_json=as_json)
 
 
-SKILL = click.Group("skill", help="The starter Skills this release pins, one per Climb.")
+def fetch(root_digest: str, to: Path | None, base_url: str | None, as_json: bool) -> None:
+    fetched = fetch_skill(root_digest, base=site_base(base_url), to=to)
+    skill = fetched.skill
+    answer: dict[str, JsonValue] = {
+        "skill_root_digest": skill.root_digest,
+        "skill_name": skill.name,
+        "folder": str(fetched.folder),
+        "files": [entry.path for entry in skill.files],
+        "total_bytes": sum(entry.size for entry in skill.files),
+        "results": list(fetched.results),
+    }
+    answer["report"] = "\n".join(
+        [
+            f"The Skill {skill.name} matches the fingerprint asked for, and its files are in "
+            f"{fetched.folder}. Nothing in it was run.",
+            "",
+            f"- Fingerprint: {skill.root_digest}",
+            f"- Files: {', '.join(entry.path for entry in skill.files)}",
+            f"- Size: {answer['total_bytes']} bytes",
+            "",
+            "Published Results that carried it, newest first:",
+            *(f"- {digest}" for digest in fetched.results),
+            "",
+            "To rerun one: regents techtree climb prepare --rerun-of <digest>",
+        ]
+    )
+    emit(answer, as_json=as_json)
+
+
+SKILL = click.Group(
+    "skill", help="Skills on this machine: a Climb's starter Skill, or one someone published."
+)
 SKILL.add_command(
     click.Command(
         "starter",
@@ -88,6 +122,24 @@ SKILL.add_command(
                 metavar="REF",
                 help="The Climb whose starter Skill to fetch. Default: the introductory Climb.",
             ),
+            JSON,
+        ],
+    )
+)
+SKILL.add_command(
+    click.Command(
+        "fetch",
+        callback=fetch,
+        help="Fetch a published Skill by its fingerprint, check every file against it, and "
+        "write it to a folder. Nothing in it is run.",
+        params=[
+            click.Argument(["root_digest"], metavar="ROOT_DIGEST"),
+            click.Option(
+                ["--to"],
+                type=click.Path(file_okay=False, path_type=Path),
+                help="A new or empty folder. Default: ./<skill name>-<first 12 hex>.",
+            ),
+            BASE_URL,
             JSON,
         ],
     )

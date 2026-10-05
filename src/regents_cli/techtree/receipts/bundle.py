@@ -12,10 +12,14 @@
     ├── baseline-receipt-set.json / candidate-receipt-set.json
     ├── receipts/{baseline,candidate}/NNNN.json    signed EpisodeReceiptV3 envelopes
     ├── comparison-execution.json          signed ComparisonExecutionRecord, when recorded
+    ├── skill.json                         the candidate's SkillArtifact
+    ├── skill/<path>                       each file the SkillArtifact lists, as written
     └── uplift-report.json                 the signed UpliftReportV3 envelope
 
-Every file is canonical bytes, so the digest of a file and the digest of the object inside
-it are the same number and verification hashes what is on disk. The manifest is signed too:
+Every JSON document is canonical bytes, so the digest of a file and the digest of the object
+inside it are the same number and verification hashes what is on disk. The Skill's own files
+are its exact bytes under their own media types: publishing a Result makes its Skill public,
+and a rerun takes the Skill from here. The manifest is signed too:
 otherwise the one thing the artifact digests cannot protect is the artifact list itself. P1
 is a conclusion, never an assumption: `P1_CONDITIONS` is evaluated by
 `assess_local_attestation` before a report exists and re-derived from the written bytes by
@@ -51,6 +55,7 @@ from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3, ScoreStatus
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
+from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.models.uplift_report import ComparisonStatus, UpliftReportV3
 from regents_cli.techtree.models.validation import TasksetLock, TasksetValidationReceipt
 from regents_cli.techtree.receipts.execution import (
@@ -59,8 +64,9 @@ from regents_cli.techtree.receipts.execution import (
 )
 from regents_cli.techtree.receipts.set import ReceiptSetManifest
 from regents_cli.techtree.receipts.uplift import LocalAttestation
+from regents_cli.techtree.skills.scanner import MEDIA_TYPES
 
-LOCAL_PROOF_BUNDLE_SCHEMA_VERSION: Final = "techtree.local-proof-bundle.v1alpha1"
+LOCAL_PROOF_BUNDLE_SCHEMA_VERSION: Final = "techtree.local-proof-bundle.v1alpha2"
 PROOF_BUNDLE_INVALID: Final = "proof_bundle_invalid"
 
 BUNDLE_DIRECTORY: Final = "proof"
@@ -72,6 +78,8 @@ DATA_POLICY_FILENAME: Final = "data-policy.json"
 TASKSET_LOCK_FILENAME: Final = "taskset-lock.json"
 VALIDATION_RECEIPT_FILENAME: Final = "taskset-validation-receipt.json"
 REPORT_FILENAME: Final = "uplift-report.json"
+SKILL_FILENAME: Final = "skill.json"
+SKILL_DIRECTORY: Final = "skill"
 RECEIPTS_DIRECTORY: Final = "receipts"
 BUNDLE_MEDIA_TYPE: Final = "application/json"
 
@@ -130,7 +138,7 @@ class ReferencedObject:
 class LocalProofBundleManifest(ProtocolModel):
     """Everything one portable local proof carries, committed to by digest."""
 
-    schema_version: Literal["techtree.local-proof-bundle.v1alpha1"]
+    schema_version: Literal["techtree.local-proof-bundle.v1alpha2"]
     run_id: NonEmptyString
     campaign_spec_digest: Digest
     data_policy_digest: Digest
@@ -173,6 +181,8 @@ class LocalProofBundleContents:
     receipt_sets: Mapping[ExperimentVariant, ReceiptSetManifest]
     receipts: Mapping[ExperimentVariant, Sequence[ObjectEnvelope[EpisodeReceiptV3]]]
     report: ObjectEnvelope[UpliftReportV3]
+    skill: SkillArtifact
+    skill_files: Mapping[str, bytes]
     execution_record: ObjectEnvelope[ComparisonExecutionRecord] | None = None
 
 
@@ -192,8 +202,20 @@ def receipt_filename(variant: ExperimentVariant, position: int) -> str:
     return f"{RECEIPTS_DIRECTORY}/{variant.value}/{position:0{_POSITION_WIDTH}d}.json"
 
 
+def skill_filename(path: str) -> str:
+    return f"{SKILL_DIRECTORY}/{path}"
+
+
+def bundle_media_type(relative_path: str) -> str:
+    """A Skill file's own media type; every other bundle file is a JSON document."""
+    if relative_path.startswith(f"{SKILL_DIRECTORY}/"):
+        return MEDIA_TYPES[Path(relative_path).suffix.lower()]
+    return BUNDLE_MEDIA_TYPE
+
+
 def bundle_files(contents: LocalProofBundleContents) -> dict[str, bytes]:
-    """Every bundle file except the manifest, as canonical bytes."""
+    """Every bundle file except the manifest: documents as canonical bytes, Skill files as
+    written."""
     files: dict[str, bytes] = {
         PUBLIC_IDENTITY_FILENAME: canonical_json_bytes(contents.identity),
         CAMPAIGN_FILENAME: canonical_json_bytes(contents.campaign),
@@ -202,7 +224,10 @@ def bundle_files(contents: LocalProofBundleContents) -> dict[str, bytes]:
         TASKSET_LOCK_FILENAME: canonical_json_bytes(contents.taskset_lock),
         VALIDATION_RECEIPT_FILENAME: canonical_json_bytes(contents.validation_receipt),
         REPORT_FILENAME: canonical_json_bytes(contents.report),
+        SKILL_FILENAME: canonical_json_bytes(contents.skill),
     }
+    for entry in contents.skill.files:
+        files[skill_filename(entry.path)] = contents.skill_files[entry.path]
     if contents.execution_record is not None:
         files[EXECUTION_RECORD_FILENAME] = canonical_json_bytes(contents.execution_record)
     for variant in _VARIANT_ORDER:
@@ -227,7 +252,7 @@ def build_local_bundle(
         artifacts=[
             ArtifactRef(
                 digest=sha256_digest_bytes(data),
-                media_type=BUNDLE_MEDIA_TYPE,
+                media_type=bundle_media_type(relative_path),
                 size=len(data),
                 relative_path=relative_path,
             )

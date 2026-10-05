@@ -121,6 +121,15 @@ regents techtree forge inspect-skill <Skill folder>
   beside the win and never decides it.
 - `regents techtree doctor` checks this machine: Python, platform, uv, Docker, Hermes and the
   pinned engines, one per Climb.
+- Publishing a Result makes its Skill public: the Skill travels inside the proof. Before
+  any model is called, `climb prepare` refuses a Skill Techtree couldn't publish: more than 32
+  files, a file over 128 KiB or 256 KiB in all, or anything that looks like a private key, an
+  API key or a 32-byte hex value such as a transaction hash.
+- `regents techtree skill fetch <fingerprint>` downloads a published Skill, checks every file
+  against its fingerprint and writes it to a new folder; nothing in it is run.
+  `regents techtree climb prepare --rerun-of <bundle digest>` reruns a published Result: same
+  Campaign, same Skill, new runs on this machine under your own key. A rerun is a report from
+  your machine, not independent reproduction.
 
 ## Development
 

@@ -17,7 +17,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final
 
-from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
 from regents_cli.techtree.canonical import canonical_json_bytes
@@ -36,8 +35,7 @@ from regents_cli.techtree.errors import (
 from regents_cli.techtree.fs import fsync_directory, open_exclusive
 from regents_cli.techtree.identity.models import VerificationResult
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope
-from regents_cli.techtree.models.experiment import ExperimentManifestV4
-from regents_cli.techtree.models.skill import SubmissionDraft
+from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.models.uplift_report import PublicationStatus, UpliftReportV3
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.publication.journal import PublicationJournal, PublicationJournalEntry
@@ -57,6 +55,7 @@ from regents_cli.techtree.receipts.bundle import (
     BUNDLE_MANIFEST_FILENAME,
     PROOF_BUNDLE_INVALID,
     REPORT_FILENAME,
+    SKILL_FILENAME,
     LocalProofBundleManifest,
     proof_bundle_dir,
 )
@@ -72,9 +71,6 @@ PUBLICATION_NOT_ELIGIBLE: Final = "publication_not_eligible"
 PUBLICATION_RECEIPT_CONFLICT: Final = "publication_receipt_conflict"
 RUN_ALREADY_PUBLISHED: Final = "run_already_published"
 
-_INPUTS_DIRECTORY: Final = "inputs"
-_DRAFT_FILENAME: Final = "draft.json"
-_CANDIDATE_MANIFEST_FILENAME: Final = "candidate-experiment.json"
 _SKILL_NAME_PATTERN: Final = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9 ._-]{0,63}\Z")
 
 
@@ -146,6 +142,7 @@ class PublicationService:
                 details={
                     "run_id": run_id,
                     "failed_checks": [message.id for message in verification.failures],
+                    "failed_codes": [message.code for message in verification.failures],
                 },
             )
 
@@ -323,34 +320,18 @@ class PublicationService:
             )
         )
 
-    def _skill_name(self, run_id: str, directory: Path) -> str:
-        """The candidate Skill's public name, from the run's immutable inputs.
+    @staticmethod
+    def _skill_name(run_id: str, directory: Path) -> str:
+        """The candidate Skill's public name, from the Skill the verified proof carries.
 
-        The verified candidate manifest names one Skill by digest; the draft the run started
-        from must name the same one, and its name is what travels. A run whose inputs are
-        missing or disagree has no name to send and is refused.
+        The verifier has already held that Skill to the one the candidate experiment ran, so
+        its name is the one that travels. A name that is not a plain label is refused.
         """
-        draft_path = self._paths.run_dir(run_id) / _INPUTS_DIRECTORY / _DRAFT_FILENAME
-        try:
-            draft = _load(draft_path, SubmissionDraft)
-            candidate = _load(directory / _CANDIDATE_MANIFEST_FILENAME, ExperimentManifestV4)
-        except (OSError, PydanticValidationError) as error:
+        skill = SkillArtifact.model_validate_json((directory / SKILL_FILENAME).read_bytes())
+        if _SKILL_NAME_PATTERN.fullmatch(skill.name) is None:
             raise ValidationError(
-                f"run {run_id}'s inputs do not name its candidate Skill, so there is no Skill "
-                "name to publish it under",
-                details={"run_id": run_id, "path": str(draft_path)},
-            ) from error
-        skill = draft.skill_artifact
-        subject = candidate.configuration.agents.get("subject")
-        if (
-            subject is None
-            or len(subject.harness.skills) != 1
-            or subject.harness.skills[0].digest != skill.root_digest
-            or _SKILL_NAME_PATTERN.fullmatch(skill.name) is None
-        ):
-            raise ValidationError(
-                f"run {run_id}'s draft does not name the Skill its candidate experiment ran, so "
-                "there is no Skill name to publish it under",
+                f"run {run_id}'s Skill is named {skill.name!r}, which is not a name it can be "
+                "published under",
                 details={"run_id": run_id, "skill_root_digest": skill.root_digest},
             )
         return skill.name
@@ -412,7 +393,3 @@ def _bundle_digest(stored: dict[str, bytes], run_id: str) -> Digest:
             details={"run_id": run_id},
         ) from error
     return envelope.payload_digest
-
-
-def _load[ModelT: BaseModel](path: Path, model: type[ModelT]) -> ModelT:
-    return model.model_validate_json(path.read_bytes())

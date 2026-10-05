@@ -60,6 +60,17 @@ class CatalogService:
                 summaries.append(self.climb_summary(resolved))
         return summaries
 
+    def climb_for_campaign(self, campaign_digest: Digest) -> tuple[str, bool] | None:
+        """The Climb whose Campaign this is, and whether it is the held-out one."""
+        for reference in self._repository.list_climb_references():
+            entry = self._repository.climb_entry(reference)
+            climb = self._repository.load_climb(entry.reference)
+            if climb.campaign_spec_digest == campaign_digest:
+                return entry.reference, False
+            if climb.held_out_campaign_spec_digest == campaign_digest:
+                return entry.reference, True
+        return None
+
     def get_climb(self, reference: str, *, held_out: bool = False) -> ResolvedClimb:
         """Resolve one Climb, with the Campaign every round runs or its held-out one, into its
         complete, cross-checked object graph."""

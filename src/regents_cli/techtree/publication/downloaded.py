@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import json
 from base64 import b64decode
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from typing import Final
@@ -52,25 +54,46 @@ def verify_downloaded_bundle(path: Path) -> VerificationResult:
         submission = PublicationSubmission.model_validate_json(path.read_bytes())
     except (OSError, PydanticValidationError):
         return _refused(f"{path.name} is not a readable Result bundle")
+    with opened_submission(submission, label=path.name) as (_root, result):
+        return result
+
+
+@contextmanager
+def opened_submission(
+    submission: PublicationSubmission, *, label: str
+) -> Iterator[tuple[Path, VerificationResult]]:
+    """The submission laid out as a proof directory, and its verification; the directory is
+    gone when the block ends."""
     with TemporaryDirectory(prefix="techtree-published-") as scratch:
         root = Path(scratch)
-        for name, encoded in submission.files.items():
-            # SECURITY: a file name is a place inside the bundle, never a path out of it.
-            relative = _relative(name)
-            if relative is None:
-                return _refused(f"{path.name} places a file outside its bundle: {name}")
-            destination = root.joinpath(*relative.parts)
-            try:
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                destination.write_bytes(b64decode(encoded, validate=True))
-            except OSError:
-                return _refused(f"{path.name} places two files at {name}")
+        refusal = _lay_out(root, submission, label)
+        if refusal is not None:
+            yield root, _refused(refusal)
+            return
         result = verify_local_bundle(root)
         digest = _digest_check(root, submission)
-    return VerificationResult(
-        verified=result.verified and digest.status == "passed",
-        messages=[digest, *result.messages],
-    )
+        yield (
+            root,
+            VerificationResult(
+                verified=result.verified and digest.status == "passed",
+                messages=[digest, *result.messages],
+            ),
+        )
+
+
+def _lay_out(root: Path, submission: PublicationSubmission, label: str) -> str | None:
+    for name, encoded in submission.files.items():
+        # SECURITY: a file name is a place inside the bundle, never a path out of it.
+        relative = _relative(name)
+        if relative is None:
+            return f"{label} places a file outside its bundle: {name}"
+        destination = root.joinpath(*relative.parts)
+        try:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(b64decode(encoded, validate=True))
+        except OSError:
+            return f"{label} places two files at {name}"
+    return None
 
 
 def _relative(name: str) -> PurePosixPath | None:

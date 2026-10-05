@@ -78,7 +78,7 @@ class PolicyAcceptanceRequirement(ProtocolModel):
 class SubmissionDraft(ProtocolModel):
     """Everything a participant is about to commit to, in one object."""
 
-    schema_version: Literal["techtree.submission-draft.v1alpha1"]
+    schema_version: Literal["techtree.submission-draft.v1alpha2"]
     id: NonEmptyString
     campaign_spec_digest: Digest
     program_ref: ProgramRef | None
@@ -92,6 +92,8 @@ class SubmissionDraft(ProtocolModel):
     estimated_episodes: int = Field(ge=1)
     policy_acceptance: PolicyAcceptanceRequirement
     warnings: list[NonEmptyString]
+    #: The published Result this draft reruns, by its bundle digest; None for a new Skill.
+    rerun_of: Digest | None
     created_at: UtcDateTime
 
     @model_validator(mode="after")

@@ -684,6 +684,7 @@ def uplift_report(
         publication_eligible=publication_eligible_for(
             grade="P1", publication=PublicationStatus.NOT_REQUESTED
         ),
+        rerun_of=None,
         created_at=FIXED_TIME,
     )
 

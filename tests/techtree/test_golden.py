@@ -95,7 +95,7 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "uplift-report-v3.json": (
         ObjectEnvelope[UpliftReportV3],
-        "sha256:7683e88ab99d45a0be84898c714afefdcbe4ee2d57af5545268b86a9bc04c048",
+        "sha256:b1f661f9000a09a80ea89cab15358e9997dbccaa8529f868eca849c6efe0a84b",
     ),
 }
 

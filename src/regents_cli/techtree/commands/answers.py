@@ -12,6 +12,9 @@ from regents_cli.techtree.identity.models import VerificationMessage
 from regents_cli.techtree.models.base import JsonValue
 
 JSON = click.Option(["--json", "as_json"], is_flag=True, help="Print the answer as JSON.")
+BASE_URL = click.Option(
+    ["--base-url"], metavar="URL", help="Techtree's address; also TECHTREE_BASE_URL."
+)
 
 
 def emit(

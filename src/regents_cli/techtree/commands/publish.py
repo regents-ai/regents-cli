@@ -41,11 +41,15 @@ _ADDRESS_PROMPT: Final = "Leave an address with this run?"
 _PUBLISH_PROMPT: Final = "Publish this run to the public log?"
 
 #: Each episode receipt carries digests, task hashes and scores; the episodes themselves are
-#: not in the directory at all.
+#: not in the directory at all. The Skill is, and publishing makes it public.
 _WHAT_TRAVELS: Final = (
-    "These are the run's proof files: the signed report, the receipts, and the documents they "
-    "cite. No prompts and no replies are among them — a receipt records a task's digest and "
-    "its score, and the episodes themselves are not in this directory."
+    "These are the run's proof files: the signed report, the receipts, the documents they "
+    "cite, and your Skill. No prompts and no replies are among them — a receipt records a "
+    "task's digest and its score, and the episodes themselves are not in this directory."
+)
+_SKILL_GOES_PUBLIC: Final = (
+    "Your Skill travels with the proof: skill.json and every file under skill/ become public "
+    "with the entry, and anyone can fetch them and rerun this Result."
 )
 
 
@@ -151,6 +155,8 @@ def review_lines(
         *([] if contributor_address is None else [f"Address {contributor_address}"]),
         "",
         _WHAT_TRAVELS,
+        "",
+        _SKILL_GOES_PUBLIC,
         "",
         "The log shows arrivals in the order they arrive and ranks nothing. An entry that is "
         "published stays published: it can be withdrawn, which is recorded, and it is not "

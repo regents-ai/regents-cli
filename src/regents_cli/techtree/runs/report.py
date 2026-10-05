@@ -71,6 +71,7 @@ from regents_cli.techtree.runs.events import DETAIL_RESULT_DIGEST, RUN_COMPLETED
 from regents_cli.techtree.runs.executor import raise_if_cancel_requested
 from regents_cli.techtree.runs.real import TASKSET_LOCK_FILENAME
 from regents_cli.techtree.runs.store import RunStore
+from regents_cli.techtree.skills.checks import staged_skill_files
 from regents_cli.techtree.verifiers.compiler import divide_concurrency
 from regents_cli.techtree.verifiers.models import (
     RealExecutionResult,
@@ -299,6 +300,7 @@ class RunReportService:
                 comparison=comparison.status,
                 score=score,
             ).attestation,
+            rerun_of=inputs.draft.rerun_of,
             created_at=self._clock(),
         )
 
@@ -337,6 +339,8 @@ class RunReportService:
                     ExperimentVariant.CANDIDATE: candidate.signed_receipts,
                 },
                 report=self._identity.sign_object(report),
+                skill=inputs.candidate_skill.artifact,
+                skill_files=staged_skill_files(inputs.candidate_skill),
                 execution_record=self._identity.sign_object(execution_record),
             ),
             identity_service=self._identity,

@@ -232,6 +232,7 @@ def build_uplift_report(
     score: ScoreStatus,
     evidence: EvidenceStatus,
     attestation: LocalAttestation,
+    rerun_of: Digest | None,
     created_at: datetime,
 ) -> UpliftReportV3:
     """Construct the report, or refuse when the evidence decided nothing.
@@ -285,6 +286,7 @@ def build_uplift_report(
         decision=decision,
         proof_grade=grade,
         publication_eligible=publication_eligible_for(grade=grade, publication=publication),
+        rerun_of=rerun_of,
         created_at=created_at,
     )
 

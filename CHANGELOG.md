@@ -18,6 +18,23 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   reward. Techtree's release is now `climb-v0.7.0`.
 - A Climb can run a pinned taskset from the Prime Environments Hub, installed from its exact
   wheel.
+- Published Results now carry their Skill, and publishing makes it public: the proof holds
+  `skill.json` and every file of the Skill (proof format `techtree.local-proof-bundle.v1alpha2`).
+  `publish` says so before anything is sent, and the proof check holds the Skill to the one the
+  run used.
+- New: `regents techtree skill fetch <fingerprint> [--to DIR]` downloads a published Skill,
+  checks every file against its fingerprint, and writes it to a new or empty folder. Nothing in
+  it is run.
+- New: `regents techtree climb prepare --rerun-of <bundle digest>` reruns a published Result.
+  The Result is checked in full on this machine first, then an ordinary draft is made with its
+  Campaign and Skill; the Result it publishes says which Result it reruns (`rerun_of`). A rerun
+  is signed with this machine's own key and is not independent reproduction.
+- Skills are held to Techtree's publishing limits when they are prepared, so a Skill that could
+  not be published is refused before any model is called: at most 32 files, 128 KiB each and
+  256 KiB in all (down from 64, 256 KiB and 2 MiB), and nothing that looks like a private key,
+  an API key or a 32-byte hex value such as a transaction hash.
+- `--base-url` and `TECHTREE_BASE_URL` point the commands that read Techtree's site at another
+  address.
 
 ## 1.5.0 — 2026-10-04
 
