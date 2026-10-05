@@ -5,6 +5,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- The package's licence is now stated in full. regents-cli's own code stays MIT. The twelve
+  Tasksmith task folders it carries are republished from the Hugging Face dataset
+  FineEnvs/HF_ML_Tasksmith, with no licence granted by Regents Labs, and their reference
+  solutions are Apache-2.0 code from Hugging Face's libraries. `THIRD_PARTY_NOTICES.md` and
+  the Apache License text now ship in the package.
 - Every Climb now scores each task on its environment's own weighted total of rewards, not on
   one named reward. A Campaign records each reward's name and weight and the fingerprint of
   the package that scores it; a run whose rewards or weights differ from those is refused, and
