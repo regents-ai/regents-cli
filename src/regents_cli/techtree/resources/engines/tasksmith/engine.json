@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "hf-tasksmith-v1",
-      "source_digest": "sha256:f9a91d7983c6e25bb3528996f4a3355df4ceaee90904343860da2b6fb16c34f1",
+      "source_digest": "sha256:4ef69ee46037bdb4d7ec951052ca55d868d1d353042ce3ad9fbc43b780809e30",
       "version": "0.1.0"
     }
   ],

@@ -506,6 +506,12 @@ wheels = [
 name = "hf-tasksmith-v1"
 version = "0.1.0"
 source = { editable = "packages/hf-tasksmith-v1" }
+dependencies = [
+    { name = "verifiers", extra = ["harbor"] },
+]
+
+[package.metadata]
+requires-dist = [{ name = "verifiers", extras = ["harbor"], specifier = "==0.3.2.dev147" }]
 
 [[package]]
 name = "hf-xet"

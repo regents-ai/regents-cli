@@ -10,6 +10,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   FineEnvs/HF_ML_Tasksmith, with no licence granted by Regents Labs, and their reference
   solutions are Apache-2.0 code from Hugging Face's libraries. `THIRD_PARTY_NOTICES.md` and
   the Apache License text now ship in the package.
+- The Tasksmith taskset package is ready to publish on the Prime Environments Hub on its own:
+  it now carries a README with the twelve tasks, the images each runs in and how to run them,
+  its licence files and notice, and states the Verifiers version it needs.
 - Every Climb now scores each task on its environment's own weighted total of rewards, not on
   one named reward. A Campaign records each reward's name and weight and the fingerprint of
   the package that scores it; a run whose rewards or weights differ from those is refused, and

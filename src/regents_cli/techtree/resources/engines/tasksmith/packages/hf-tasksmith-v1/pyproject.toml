@@ -2,11 +2,14 @@
 name = "hf-tasksmith-v1"
 version = "0.1.0"
 description = "Twelve HF Tasksmith tasks, each worked in its own agent image and graded in its own grader image"
+readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+license = "MIT AND Apache-2.0 AND LicenseRef-HF-ML-Tasksmith"
+license-files = ["LICENSES/*"]
+dependencies = ["verifiers[harbor]==0.3.2.dev147"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
