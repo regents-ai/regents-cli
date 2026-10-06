@@ -30,12 +30,13 @@ from regents_cli.techtree.models.base import Digest, JsonValue, NonEmptyString, 
 from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
     CampaignSpecV4,
+    ModelAccess,
     ModelSpec,
 )
 from regents_cli.techtree.models.engine import normalize_host_platform
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.verifiers.child import EVAL_EXECUTABLE
-from regents_cli.techtree.verifiers.credentials import credential_status
+from regents_cli.techtree.verifiers.credentials import route_status
 from regents_cli.techtree.verifiers.image import pinned_images, resolve_images
 from regents_cli.techtree.verifiers.models import VariantName
 
@@ -550,22 +551,50 @@ def _check_one_engine_eval(registry: EngineRegistry, digest: Digest) -> DoctorCh
     )
 
 
-def check_model_credential(model: ModelSpec) -> DoctorCheck:
-    """Whether a run could authenticate; the credential is never read, only found."""
-    status = credential_status(model)
-    return DoctorCheck(
-        id="execution_model_credential",
-        label="Evaluation model credential",
-        status=CheckStatus.PASS if status.available else CheckStatus.FAIL,
-        detail=status.detail,
-        blocking=not status.available,
-        metadata={
-            "provider": status.provider,
-            "model_id": model.model_id,
-            "credential_env": status.credential_env,
-            "source": status.source,
-        },
-    )
+_ROUTE_CHECKS: Final[tuple[tuple[ModelAccess, str, str], ...]] = (
+    ("prime_key", "model_route_prime_key", "Own Prime key"),
+    ("chatgpt_plan", "model_route_chatgpt_plan", "ChatGPT sign-in"),
+)
+
+
+def check_model_routes(paths: TechtreePaths, model: ModelSpec | None) -> list[DoctorCheck]:
+    """Whether each route to the subject model is set up here, read with no network call and
+    no key opened. With a Climb's model, a route it does not offer is skipped, and the lines
+    stop a run only when none of the routes it offers is set up."""
+    statuses = {access: route_status(access, paths.root) for access, _, _ in _ROUTE_CHECKS}
+    offered = model.access if model is not None else None
+    stuck = offered is not None and not any(statuses[access].ready for access in offered)
+    checks: list[DoctorCheck] = []
+    for access, check_id, label in _ROUTE_CHECKS:
+        status = statuses[access]
+        if offered is not None and access not in offered:
+            checks.append(
+                DoctorCheck(
+                    id=check_id,
+                    label=label,
+                    status=CheckStatus.SKIP,
+                    detail=f"{status.detail}; this Climb does not run on it",
+                    metadata={"access": access},
+                )
+            )
+            continue
+        checks.append(
+            DoctorCheck(
+                id=check_id,
+                label=label,
+                status=(
+                    CheckStatus.PASS
+                    if status.ready
+                    else CheckStatus.FAIL
+                    if stuck
+                    else CheckStatus.WARN
+                ),
+                detail=status.detail,
+                blocking=stuck,
+                metadata={"access": access, "ready": status.ready},
+            )
+        )
+    return checks
 
 
 def check_subject_images(campaign: CampaignSpecV4) -> DoctorCheck:
@@ -612,14 +641,12 @@ def check_live_campaign(campaign: CampaignSpecV4) -> DoctorCheck:
             metadata=metadata,
         )
     metadata["model_id"] = subject.model.model_id
-    metadata["provider"] = subject.model.provider
     images = [pinned.image for pinned in pinned_images(subject.runtime, campaign.taskset)]
     metadata["images"] = len(images)
     placeholders = sorted(
         {
             f"{field}={value}"
             for field, value in (
-                ("provider", subject.model.provider),
                 ("model_id", subject.model.model_id),
                 *(("image", image) for image in images),
             )

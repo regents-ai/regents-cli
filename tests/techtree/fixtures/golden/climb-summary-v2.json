@@ -1,7 +1,7 @@
 {
-  "campaign_spec_digest": "sha256:35432972c4cc98245d63a862861c0f8285b58b1cc8772133217e798a25f3c5a8",
+  "campaign_spec_digest": "sha256:7a856fc9a5d1d1ccd6feb52daaa35bc4188e437cef81667fcf19e37454c8a3fd",
   "candidate_skill_visibility": "public",
-  "climb_digest": "sha256:5015ce4676d3c17eaecd52e714e6253f1c3e01d449493736927cbec57ec72c0e",
+  "climb_digest": "sha256:6f6b71b5322b39a886b60b57f57cc7a68c2cdca52351fab2ce9e3096c6f7072f",
   "compatibility": {
     "compatible": false,
     "engine_status": "not_installed",

@@ -12,6 +12,10 @@ from regents_cli.techtree.models.campaign import ProgramRef, PublicContext
 from regents_cli.techtree.models.experiment import ExperimentVariant
 from regents_cli.techtree.models.run import ExecutorKind
 
+#: How a try ended: on its own, after passing a token limit, at its model-call limit, or at a
+#: deadline. A try that stopped at a limit is graded as it stands.
+TryEnding = Literal["completed", "token_limit", "call_limit", "timeout"]
+
 
 class ExecutionLocation(ProtocolModel):
     """The proof's location facet: this build runs on the participant's machine."""
@@ -94,6 +98,7 @@ class EpisodeReceiptV3(ProtocolModel):
     episode_digest: Digest
     task_hash: Digest
     named_traces: dict[str, list[NamedTraceReceipt]]
+    ending: TryEnding
     score_status: ScoreStatus
     evidence_status: EvidenceStatus
     executor_kind: ExecutorKind

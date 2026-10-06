@@ -27,7 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.models.campaign import CREDENTIAL_ENV_PATTERN, ReasoningEffort
+from regents_cli.techtree.models.campaign import ReasoningEffort
 
 EVAL_CONFIG_INVALID: Final = "eval_config_invalid"
 
@@ -43,7 +43,8 @@ OPEN_BLOCK: Final[tuple[str, ...]] = ()
 
 IMAGE_DIGEST_PATTERN: Final = r"@sha256:[0-9a-f]{64}$"
 
-_CREDENTIAL_ENV_RE: Final = re.compile(CREDENTIAL_ENV_PATTERN)
+#: A credential is named, never carried: the name must look like an environment variable.
+_CREDENTIAL_ENV_RE: Final = re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
 _IMAGE_DIGEST_RE: Final = re.compile(IMAGE_DIGEST_PATTERN)
 
 #: The settings whose null the emitted document must state out loud.
@@ -57,8 +58,9 @@ class TomlModel(BaseModel):
 
 
 class EvalClientToml(TomlModel):
-    """The endpoint the evaluation runs against; `base_url` stays unset so the pinned client
-    resolves it rather than a deployment detail being frozen into a run's inputs."""
+    """The endpoint the evaluation runs against. On the own-Prime-key route `base_url` stays
+    unset, so the pinned client resolves Prime's endpoint rather than a deployment detail being
+    frozen into a run's inputs; on the plan route it is the forwarder on this machine."""
 
     type: Literal["eval"] = "eval"
     api_key_var: str
@@ -78,8 +80,6 @@ class EvalClientToml(TomlModel):
 
 
 class SamplingToml(TomlModel):
-    temperature: float | None = Field(ge=0.0, le=2.0)
-    max_tokens: int = Field(ge=1)
     reasoning_effort: ReasoningEffort | None
 
 

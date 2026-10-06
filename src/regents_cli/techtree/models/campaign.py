@@ -28,10 +28,6 @@ SUBJECT_AGENT: Final = "subject"
 #: The single JSON Pointer a candidate is allowed to differ at.
 SKILL_MUTATION_POINTER: Final = "/agents/subject/harness/skills"
 
-#: A credential is named, never carried: the name must look like an environment variable.
-CREDENTIAL_ENV_PATTERN: Final = r"^[A-Z][A-Z0-9_]{2,63}$"
-
-_CREDENTIAL_ENV_RE = re.compile(CREDENTIAL_ENV_PATTERN)
 _IMAGE_INDEX_DIGEST_RE = re.compile(r"@(sha256:[0-9a-f]{64})$")
 _HUB_NAME_PATTERN: Final = r"^[a-z0-9][a-z0-9._-]*/[a-z0-9][a-z0-9._-]*$"
 
@@ -153,22 +149,32 @@ class CampaignTaskset(ProtocolModel):
         return self
 
 
-class ModelSpec(ProtocolModel):
-    """Which model answers, and the environment variable holding its key."""
+#: A route to the subject model, paid for by the person running: their ChatGPT plan, or their
+#: own Prime key.
+ModelAccess = Literal["chatgpt_plan", "prime_key"]
 
-    provider: NonEmptyString
+
+class ModelSpec(ProtocolModel):
+    """Which model answers, by OpenAI's own name, and the routes a run may reach it by.
+
+    On either route the subject asks for `openai/<model_id>`, so it is given the same input on
+    both: `prime_key` sends that to Prime with the person's own key; on `chatgpt_plan` the
+    forwarder sends OpenAI `model_id` on the person's ChatGPT plan. One run uses one route.
+    """
+
     model_id: NonEmptyString
-    revision: NonEmptyString | None
-    credential_env: NonEmptyString
+    access: list[ModelAccess]
 
     @model_validator(mode="after")
-    def _check_credential_env_is_a_name(self) -> Self:
-        if _CREDENTIAL_ENV_RE.fullmatch(self.credential_env) is None:
-            raise ValueError(
-                "credential_env must be an uppercase environment-variable name such as "
-                "TECHTREE_MODEL_API_KEY, never a credential value"
-            )
+    def _check_access_is_a_set(self) -> Self:
+        if not self.access or self.access != sorted(set(self.access)):
+            raise ValueError("access lists at least one route, each once, in name order")
         return self
+
+    @property
+    def requested_name(self) -> str:
+        """The name the subject asks for on either route, and the one its traces record."""
+        return f"openai/{self.model_id}"
 
 
 #: The reasoning efforts a subject model can be asked for, as Prime names them.
@@ -176,11 +182,10 @@ ReasoningEffort = Literal["none", "low", "medium", "high", "xhigh", "max"]
 
 
 class SamplingSpec(ProtocolModel):
-    """How the subject model is sampled. A null setting is never sent, so the provider's own
-    default applies: a model with no temperature setting has a null temperature."""
+    """How the subject model is sampled, the same on every route. The ChatGPT plan takes no
+    temperature or reply cap, and a setting sent on one route only would make the routes' tries
+    differ, so the reasoning effort is the only setting. A null effort is never sent."""
 
-    temperature: float | None = Field(ge=0.0, le=2.0)
-    max_tokens: int = Field(ge=1)
     reasoning_effort: ReasoningEffort | None
 
 
@@ -411,12 +416,14 @@ class EvidenceRequirementsV2(ProtocolModel):
 
 
 class BudgetSpec(ProtocolModel):
-    """Optional ceilings on what a run may consume."""
+    """What a run may consume. Each try stops starting model calls once it passes a token limit
+    or reaches `maximum_model_calls`, on every route; `maximum_usd` stops the whole run on the
+    own-Prime-key route, the only one that reports dollars."""
 
-    maximum_input_tokens: PositiveInt | None = None
-    maximum_output_tokens: PositiveInt | None = None
-    maximum_model_calls: PositiveInt | None = None
-    maximum_usd: PositiveFloat | None = None
+    maximum_input_tokens: PositiveInt
+    maximum_output_tokens: PositiveInt
+    maximum_model_calls: PositiveInt
+    maximum_usd: PositiveFloat | None
 
 
 class CampaignMetadata(ProtocolModel):
@@ -481,6 +488,10 @@ class CampaignSpecV4(ProtocolModel):
         if self.evidence.runtime_evidence != "not_required":
             raise ValueError("runtime evidence is not collected, so requiring it is unsatisfiable")
         check_images(self.environment, self.subject.runtime, self.taskset)
+        if ("prime_key" in self.subject.model.access) != (self.budgets.maximum_usd is not None):
+            raise ValueError(
+                "maximum_usd is set exactly when the Campaign offers the own-Prime-key route"
+            )
         if self.scoring.rubric.scorer_digest != self.taskset.ref.package.digest:
             raise ValueError("the rubric's scorer is the taskset package the Campaign pins")
         return self

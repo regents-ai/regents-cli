@@ -263,6 +263,16 @@
     "data_policy_digest": {
       "$ref": "#/$defs/Digest"
     },
+    "ending": {
+      "enum": [
+        "completed",
+        "token_limit",
+        "call_limit",
+        "timeout"
+      ],
+      "title": "Ending",
+      "type": "string"
+    },
     "episode_digest": {
       "$ref": "#/$defs/Digest"
     },
@@ -366,6 +376,7 @@
     "episode_digest",
     "task_hash",
     "named_traces",
+    "ending",
     "score_status",
     "evidence_status",
     "executor_kind",

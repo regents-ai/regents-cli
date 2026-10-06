@@ -20,6 +20,7 @@ from regents_cli.techtree.models.base import (
     ProtocolModel,
 )
 from regents_cli.techtree.models.campaign import VariantSchedule
+from regents_cli.techtree.models.episode_receipt import TryEnding
 
 
 class VariantName(StrEnum):
@@ -141,6 +142,7 @@ class NormalizedTrace(ProtocolModel):
     agent_role: Literal["subject"]
     task_hash: Digest
     ok: bool
+    ending: TryEnding
     verifiers_version: NonEmptyString
     verifiers_revision: NonEmptyString
     model_id: NonEmptyString

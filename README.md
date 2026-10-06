@@ -111,8 +111,11 @@ regents techtree forge inspect-skill <Skill folder>
   runs and withdrawals): on macOS it was `~/Library/Application Support/techtree`, on Linux
   `~/.local/share/techtree`. Publish any finished run you made with `techtree` 0.3.0 before
   moving, using `techtree` 0.3.0: `regents` checks those runs but doesn't publish them.
-- Real runs call the model through your Prime sign-in, `~/.prime/config.json`. The provider
-  bills those calls to your own account.
+- Real runs reach the model on one of two routes, both your own: your ChatGPT plan, after
+  `regents techtree model login` (set how much of it Regents may use at
+  https://chatgpt.com/settings/usage), or your own Prime key (`PRIME_API_KEY`, or
+  `prime login`). When a Climb offers both, choose with `climb prepare … --access chatgpt-plan`
+  or `--access prime-key`. Techtree sells no model calls and charges nothing.
 - Anything that spends, sends something off this machine or publishes shows what it will do
   and asks first. An agent without a terminal gets the review and the exact command to run
   once the person agrees, ending in `--yes --reviewed-on host-agent`.

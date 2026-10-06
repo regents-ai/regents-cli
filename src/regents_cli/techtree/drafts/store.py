@@ -42,7 +42,7 @@ from regents_cli.techtree.fs import (
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.manifests.builder import skill_content_digest
 from regents_cli.techtree.models.base import JsonValue, StateModel, UtcDateTime
-from regents_cli.techtree.models.campaign import CampaignSpecV4
+from regents_cli.techtree.models.campaign import CampaignSpecV4, ModelAccess
 from regents_cli.techtree.models.climb import ClimbManifest, ResolvedClimb
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
@@ -282,6 +282,11 @@ class DraftStore:
                 details={"draft_id": draft_id},
             ) from error
         return CampaignSource.from_climb(resolved)
+
+    def access(self, draft_id: str) -> ModelAccess:
+        """The route this draft's runs reach the subject model by, as its manifests record it."""
+        baseline = self._load(draft_id, f"{_MANIFESTS_DIR}/{_BASELINE_FILE}", ExperimentManifestV4)
+        return baseline.configuration.access
 
     def load_snapshot(self, draft_id: str) -> DraftSnapshot:
         """Load the complete graph and verify it before returning it."""

@@ -123,8 +123,8 @@ def cancel(run_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> No
             as_json=as_json,
             review=[
                 f"Run {run_id} is {public_state(before.state.phase)}. Stopping it ends the "
-                "comparison at the next phase boundary; the episodes already run are not "
-                "refunded by a provider that charges for tokens, and the run produces no report."
+                "comparison at the next phase boundary; what the episodes already run used of "
+                "your Prime key or ChatGPT plan is not given back, and the run produces no report."
             ],
             command=["run", "cancel", run_id],
             question=f"Stop run {run_id}?",

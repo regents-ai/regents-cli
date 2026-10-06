@@ -26,6 +26,21 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   reward. Techtree's release is now `climb-v0.7.0`.
 - A Climb can run a pinned taskset from the Prime Environments Hub, installed from its exact
   wheel.
+- A Climb can now run on your ChatGPT plan as well as on your own Prime key. New:
+  `regents techtree model login`, `status` and `logout` sign this machine in to your plan with
+  OpenAI's Sign in with ChatGPT; the sign-in stays in `~/.regents/techtree/chatgpt.json`. Each
+  Climb lists the routes it runs on, and `climb prepare --access chatgpt-plan|prime-key` picks
+  one when it offers both. A run uses one route for both sides, says which before it starts,
+  and its Result records it (`access`). Techtree sells no model calls and charges nothing.
+- Every try now stops starting model calls once it passes its input or output token limit or
+  reaches its number of model calls, on either route. A Result counts how each side's tries
+  ended: completed, token limit, call limit or time limit.
+- The dollar maximum and the spend stop apply to runs on your own Prime key only. A run on
+  your plan shows no dollar cost: its Result says the calls were included in your plan.
+- `doctor` shows two lines in place of the evaluation model check, "Own Prime key" and
+  "ChatGPT sign-in". With a Climb, it blocks only when none of the Climb's routes is set up.
+- A Campaign's model is now just its name and its routes: the provider, revision and credential
+  fields are gone, and its limits no longer include a per-reply token cap.
 - Published Results now carry their Skill, and publishing makes it public: the proof holds
   `skill.json` and every file of the Skill (proof format `techtree.local-proof-bundle.v1alpha2`).
   `publish` says so before anything is sent, and the proof check holds the Skill to the one the

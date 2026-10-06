@@ -47,6 +47,7 @@ from regents_cli.techtree.models.campaign import (
     ExecutionSpec,
     HarnessSpecV2,
     HubPackageRef,
+    ModelAccess,
     ModelSpec,
     MutationContract,
     MutationKind,
@@ -105,11 +106,11 @@ CATALOG_ROOT: Final = ROOT / "src/regents_cli/techtree/resources/catalog"
 HARNESS_ID: Final = "hermes-agent"
 HARNESS_VERSION: Final = "v2026.9.24"
 
-SUBJECT_MODEL_PROVIDER: Final = "prime"
-SUBJECT_MODEL_ID: Final = "openai/gpt-6-luna"
-SUBJECT_CREDENTIAL_ENV: Final = "PRIME_API_KEY"
-#: GPT-6 Luna takes a reasoning effort and has no temperature setting, so none is sent.
-SUBJECT_TEMPERATURE: Final = None
+#: OpenAI's own name for the one model every Climb holds fixed; the own-Prime-key route asks
+#: Prime for it as "openai/gpt-6-luna".
+SUBJECT_MODEL_ID: Final = "gpt-6-luna"
+#: Every Climb runs on the person's ChatGPT plan or their own Prime key (decisions 59 a, 105 b).
+SUBJECT_ACCESS: Final[list[ModelAccess]] = ["chatgpt_plan", "prime_key"]
 SUBJECT_REASONING_EFFORT: Final = "high"
 
 CAMPAIGN_MAX_CONCURRENT: Final = 4
@@ -159,8 +160,7 @@ class CampaignDefinition:
     images: CampaignImage | TaskImageSet
     cpu: float
     memory_gb: float
-    subject_max_output_tokens: int
-    #: A ceiling on what the provider reports, never a price.
+    #: A ceiling on what Prime reports on the own-Prime-key route, never a price.
     budget_usd: float
     maximum_input_tokens: int
     maximum_output_tokens: int
@@ -232,7 +232,6 @@ HELLO_WORLD: Final = ClimbDefinition(
         ),
         cpu=2.0,
         memory_gb=4.0,
-        subject_max_output_tokens=16000,
         # The enforced token limits below can amount to $6.28.
         budget_usd=6.50,
         maximum_input_tokens=500000,
@@ -281,7 +280,6 @@ FRONTIER_CS: Final = ClimbDefinition(
         ),
         cpu=2.0,
         memory_gb=4.0,
-        subject_max_output_tokens=32000,
         # The enforced token limits below can amount to $2.35.
         budget_usd=2.50,
         maximum_input_tokens=400000,
@@ -310,7 +308,6 @@ def tasksmith_campaign(slug: str, label: str, task_ids: tuple[str, ...]) -> Camp
         images=TaskImageSet(task_ids=task_ids),
         cpu=1.0,
         memory_gb=2.0,
-        subject_max_output_tokens=32000,
         budget_usd=20.00,
         maximum_input_tokens=2000000,
         maximum_output_tokens=96000,
@@ -601,17 +598,8 @@ def campaign(
         ),
         agents={
             SUBJECT_AGENT: AgentSpecV2(
-                model=ModelSpec(
-                    provider=SUBJECT_MODEL_PROVIDER,
-                    model_id=SUBJECT_MODEL_ID,
-                    revision=None,
-                    credential_env=SUBJECT_CREDENTIAL_ENV,
-                ),
-                sampling=SamplingSpec(
-                    temperature=SUBJECT_TEMPERATURE,
-                    max_tokens=definition.subject_max_output_tokens,
-                    reasoning_effort=SUBJECT_REASONING_EFFORT,
-                ),
+                model=ModelSpec(model_id=SUBJECT_MODEL_ID, access=list(SUBJECT_ACCESS)),
+                sampling=SamplingSpec(reasoning_effort=SUBJECT_REASONING_EFFORT),
                 harness=HarnessSpecV2(use_bundled_skill=False, skills=[]),
                 runtime=runtime(definition, pins),
                 trainable=False,

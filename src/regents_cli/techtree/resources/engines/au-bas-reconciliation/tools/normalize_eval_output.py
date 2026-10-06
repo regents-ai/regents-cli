@@ -313,6 +313,23 @@ def normalize_usage(trace: Any) -> dict[str, Any] | None:
     }
 
 
+#: Why a rollout stopped early, by the limit that stopped it. Verifiers checks
+#: these between turns, so the turn that crosses a token limit still finishes.
+LIMIT_ENDINGS = {
+    "max_turns": "call_limit",
+    "max_input_tokens": "token_limit",
+    "max_output_tokens": "token_limit",
+    "max_total_tokens": "token_limit",
+}
+
+
+def ending_of(trace: Any) -> str:
+    """How the try ended: at a stage deadline, at a limit, or on its own."""
+    if trace.is_timeout:
+        return "timeout"
+    return LIMIT_ENDINGS.get(trace.stop_condition or "", "completed")
+
+
 def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
     """Project one subject rollout.
 
@@ -344,6 +361,7 @@ def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
         "agent_role": SUBJECT_ROLE,
         "task_hash": normalize_task_hash(trace.task.hash),
         "ok": bool(trace.ok) and not trace.is_timeout,
+        "ending": ending_of(trace),
         "verifiers_version": trace.verifiers.version,
         "verifiers_revision": revision,
         "model_id": trace.agent.config.model or "",

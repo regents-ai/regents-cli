@@ -120,10 +120,12 @@ def test_a_rerun_carries_the_results_skill_and_names_the_result(
 ) -> None:
     # Whether this machine has the engine installed is not what a rerun is about.
     monkeypatch.setattr(SkillPreparationService, "_require_preparable", lambda *_: None)
+    monkeypatch.setenv("PRIME_API_KEY", "not-a-real-key")
     route = f"/api/v1/publications/{BUNDLE_DIGEST}/bundle"
     prepared = prepare_rerun(
         TechtreePaths(tmp_path / "techtree"),
         BUNDLE_DIGEST,
+        access="prime_key",
         base=BASE,
         client=_site({route: _submission(_proof_files())}),
     )
@@ -146,6 +148,7 @@ def test_a_result_that_does_not_check_out_is_not_rerun(tmp_path: Path) -> None:
         prepare_rerun(
             TechtreePaths(tmp_path / "techtree"),
             BUNDLE_DIGEST,
+            access="prime_key",
             base=BASE,
             client=_site({route: _submission(files)}),
         )
@@ -158,6 +161,10 @@ def test_a_result_that_does_not_check_out_is_not_rerun(tmp_path: Path) -> None:
 def test_the_sites_refusal_reaches_the_person_with_its_code(tmp_path: Path) -> None:
     with pytest.raises(CommandError) as refused:
         prepare_rerun(
-            TechtreePaths(tmp_path / "techtree"), BUNDLE_DIGEST, base=BASE, client=_site({})
+            TechtreePaths(tmp_path / "techtree"),
+            BUNDLE_DIGEST,
+            access="prime_key",
+            base=BASE,
+            client=_site({}),
         )
     assert refused.value.code == "not_found"

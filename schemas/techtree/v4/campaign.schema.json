@@ -84,46 +84,22 @@
     },
     "BudgetSpec": {
       "additionalProperties": false,
-      "description": "Optional ceilings on what a run may consume.",
+      "description": "What a run may consume. Each try stops starting model calls once it passes a token limit\nor reaches `maximum_model_calls`, on every route; `maximum_usd` stops the whole run on the\nown-Prime-key route, the only one that reports dollars.",
       "properties": {
         "maximum_input_tokens": {
-          "anyOf": [
-            {
-              "exclusiveMinimum": 0,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Maximum Input Tokens"
+          "exclusiveMinimum": 0,
+          "title": "Maximum Input Tokens",
+          "type": "integer"
         },
         "maximum_model_calls": {
-          "anyOf": [
-            {
-              "exclusiveMinimum": 0,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Maximum Model Calls"
+          "exclusiveMinimum": 0,
+          "title": "Maximum Model Calls",
+          "type": "integer"
         },
         "maximum_output_tokens": {
-          "anyOf": [
-            {
-              "exclusiveMinimum": 0,
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Maximum Output Tokens"
+          "exclusiveMinimum": 0,
+          "title": "Maximum Output Tokens",
+          "type": "integer"
         },
         "maximum_usd": {
           "anyOf": [
@@ -135,10 +111,15 @@
               "type": "null"
             }
           ],
-          "default": null,
           "title": "Maximum Usd"
         }
       },
+      "required": [
+        "maximum_input_tokens",
+        "maximum_output_tokens",
+        "maximum_model_calls",
+        "maximum_usd"
+      ],
       "title": "BudgetSpec",
       "type": "object"
     },
@@ -534,33 +515,26 @@
     },
     "ModelSpec": {
       "additionalProperties": false,
-      "description": "Which model answers, and the environment variable holding its key.",
+      "description": "Which model answers, by OpenAI's own name, and the routes a run may reach it by.\n\nOn either route the subject asks for `openai/<model_id>`, so it is given the same input on\nboth: `prime_key` sends that to Prime with the person's own key; on `chatgpt_plan` the\nforwarder sends OpenAI `model_id` on the person's ChatGPT plan. One run uses one route.",
       "properties": {
-        "credential_env": {
-          "$ref": "#/$defs/NonEmptyString"
+        "access": {
+          "items": {
+            "enum": [
+              "chatgpt_plan",
+              "prime_key"
+            ],
+            "type": "string"
+          },
+          "title": "Access",
+          "type": "array"
         },
         "model_id": {
           "$ref": "#/$defs/NonEmptyString"
-        },
-        "provider": {
-          "$ref": "#/$defs/NonEmptyString"
-        },
-        "revision": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/NonEmptyString"
-            },
-            {
-              "type": "null"
-            }
-          ]
         }
       },
       "required": [
-        "provider",
         "model_id",
-        "revision",
-        "credential_env"
+        "access"
       ],
       "title": "ModelSpec",
       "type": "object"
@@ -707,13 +681,8 @@
     },
     "SamplingSpec": {
       "additionalProperties": false,
-      "description": "How the subject model is sampled. A null setting is never sent, so the provider's own\ndefault applies: a model with no temperature setting has a null temperature.",
+      "description": "How the subject model is sampled, the same on every route. The ChatGPT plan takes no\ntemperature or reply cap, and a setting sent on one route only would make the routes' tries\ndiffer, so the reasoning effort is the only setting. A null effort is never sent.",
       "properties": {
-        "max_tokens": {
-          "minimum": 1,
-          "title": "Max Tokens",
-          "type": "integer"
-        },
         "reasoning_effort": {
           "anyOf": [
             {
@@ -732,24 +701,9 @@
             }
           ],
           "title": "Reasoning Effort"
-        },
-        "temperature": {
-          "anyOf": [
-            {
-              "maximum": 2.0,
-              "minimum": 0.0,
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Temperature"
         }
       },
       "required": [
-        "temperature",
-        "max_tokens",
         "reasoning_effort"
       ],
       "title": "SamplingSpec",

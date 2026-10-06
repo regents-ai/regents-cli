@@ -4,8 +4,8 @@ The checks run over what was declared (the two manifests against the Campaign), 
 observed (one fingerprint per variant, against its manifest and against the other side), and
 what was joined (one receipt per committed task on each side, paired by task hash in lock
 order). Mounting a Skill changes the description of the harness's own skill-index tool, so
-that one description may differ and nothing else on the tool surface may. A model whose
-provider publishes no revision is a warning, never silence and never a failure. This module
+that one description may differ and nothing else on the tool surface may. OpenAI publishes no
+build of its models, so that is a warning, never silence and never a failure. This module
 reports; turning an invalid comparison into a refusal is the report builder's job.
 """
 
@@ -241,14 +241,12 @@ def compare_real_variants(
 
 
 def weaker_claim_warnings(campaign: CampaignSpecV4) -> list[ComparisonCheck]:
-    """A model with no published revision is known by identifier, not by build."""
-    if campaign.subject.model.revision is not None:
-        return []
+    """OpenAI publishes no build of its models, so a model is known by name, not by build."""
     return [
         ComparisonCheck(
             id=MODEL_REVISION_UNDISCOVERABLE,
             status="warning",
-            detail=f"the provider publishes no revision for {campaign.subject.model.model_id}, "
+            detail=f"OpenAI publishes no build identifier for {campaign.subject.model.model_id}, "
             "so both variants are known to have used the same model identifier and not the "
             "same model build",
         )
@@ -531,7 +529,7 @@ def _declared_to_observed(
     mismatches = [
         label
         for label, declared, seen in (
-            ("model", subject.model.model_id, configuration.model_id),
+            ("model", subject.model.requested_name, configuration.model_id),
             ("harness", plan.subject.harness_id, configuration.harness_id),
             ("harness version", plan.subject.harness_version, configuration.harness_version),
             (

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import Final
 
 from regents_cli.techtree.identity.models import VerificationResult
-from regents_cli.techtree.models.campaign import CampaignSpecV4
+from regents_cli.techtree.models.campaign import CampaignSpecV4, ModelAccess
 from regents_cli.techtree.models.climb import ClimbManifest
 from regents_cli.techtree.models.episode_receipt import EpisodeReceiptV3
 from regents_cli.techtree.models.skill import SkillArtifact
@@ -25,6 +25,7 @@ from regents_cli.techtree.models.uplift_report import (
 from regents_cli.techtree.presentation.evidence import RecordedEvidence
 from regents_cli.techtree.presentation.models import (
     PRESENTATION_SCHEMA_VERSION,
+    CostShown,
     EconomicsSource,
     PresentationCaveat,
     SkillSummary,
@@ -36,11 +37,8 @@ from regents_cli.techtree.presentation.sanitize import (
     ensure_no_hidden_task_material,
     sanitize_label,
 )
-from regents_cli.techtree.receipts.compare import (
-    MODEL_REVISION_UNDISCOVERABLE,
-    weaker_claim_warnings,
-)
 from regents_cli.techtree.receipts.execution import ComparisonExecutionRecord
+from regents_cli.techtree.verifiers.credentials import ROUTE_NAMES
 
 #: What a Skill-insertion comparison measures against: a role, not an absent value.
 BASELINE_SKILL_LABEL: Final = "No tested Skill"
@@ -108,7 +106,7 @@ def build_uplift_presentation(
     seen = recorded_evidence
     baseline_seen = None if seen is None else seen.baseline
     candidate_seen = None if seen is None else seen.candidate
-    cost_usd, cost_unavailable_reason = _cost(execution_record)
+    cost_usd, cost_provenance, cost_unavailable_reason = _cost(execution_record)
     generation = _generation(baseline_skill)
     primary = report.primary_result
     payload = UpliftPresentationPayload(
@@ -144,7 +142,7 @@ def build_uplift_presentation(
         every_rollout_completed=None if seen is None else seen.every_rollout_completed,
         economics_source=economics.source,
         cost_usd=cost_usd,
-        cost_provenance="unavailable" if cost_usd is None else "provider_reported",
+        cost_provenance=cost_provenance,
         cost_unavailable_reason=cost_unavailable_reason,
         decision=report.decision.value,
         proof_grade=report.proof_grade,
@@ -155,7 +153,7 @@ def build_uplift_presentation(
             climb=climb,
             economics=economics,
             recorded_evidence=recorded_evidence,
-            cost_reported=cost_usd is not None,
+            cost_provenance=cost_provenance,
         ),
     )
     ensure_no_hidden_task_material(payload)
@@ -227,11 +225,11 @@ def efficiency_sentence(payload: UpliftPresentationPayload) -> str | None:
 _WORK_OR_WEATHER: Final[dict[tuple[bool, bool], str]] = {
     (True, True): (
         "Those counts are properties of the work; how long each side took also depends on "
-        "this machine and on how busy the provider was."
+        "this machine and on how busy the model service was."
     ),
     (True, False): "Those counts are properties of the work.",
     (False, True): (
-        "How long each side took depends on this machine and on how busy the provider was, "
+        "How long each side took depends on this machine and on how busy the model service was, "
         "as well as on the work."
     ),
 }
@@ -267,7 +265,9 @@ def _calls(count: int) -> str:
 def cost_summary(payload: UpliftPresentationPayload) -> str:
     """The figure and, in the same breath, where it came from."""
     if payload.cost_usd is not None:
-        return f"${payload.cost_usd:.2f}, reported by the provider"
+        return f"${payload.cost_usd:.2f}, reported by Prime"
+    if payload.cost_provenance == "plan_included":
+        return "included in your ChatGPT plan"
     return "unavailable"
 
 
@@ -275,8 +275,7 @@ def cost_explanation(payload: UpliftPresentationPayload) -> list[str]:
     """What a reader needs in order to judge the figure above it."""
     if payload.cost_usd is not None:
         return [
-            "The sum of what the provider reported for every model call on both sides of "
-            "this comparison."
+            "The sum of what Prime reported for every model call on both sides of this comparison."
         ]
     assert payload.cost_unavailable_reason is not None
     return [payload.cost_unavailable_reason]
@@ -400,18 +399,32 @@ def _economics(
     )
 
 
-def _cost(record: ComparisonExecutionRecord | None) -> tuple[float | None, str | None]:
-    """Both sides' provider-reported costs summed, or the sentence saying which is missing."""
+def _cost(
+    record: ComparisonExecutionRecord | None,
+) -> tuple[float | None, CostShown, str | None]:
+    """Both sides' Prime-reported costs summed, the plan both ran on, or the sentence saying
+    which is missing."""
     if record is None:
-        return None, (
-            "This run wrote no signed execution record, so there is no reported cost to show."
+        return (
+            None,
+            "unavailable",
+            ("This run wrote no signed execution record, so there is no reported cost to show."),
         )
     baseline, candidate = record.baseline.cost, record.candidate.cost
+    if baseline.provenance == candidate.provenance == "plan_included":
+        return (
+            None,
+            "plan_included",
+            (
+                "This run used your ChatGPT plan, which counts tokens and gives no dollar figure. "
+                "Techtree charged nothing."
+            ),
+        )
     if baseline.cost_usd is None or candidate.cost_usd is None:
         missing = baseline if baseline.cost_usd is None else candidate
         side = "baseline" if missing is baseline else "candidate"
-        return None, f"No cost can be shown: for the {side}, {missing.detail}."
-    return baseline.cost_usd + candidate.cost_usd, None
+        return None, "unavailable", f"No cost can be shown: for the {side}, {missing.detail}."
+    return baseline.cost_usd + candidate.cost_usd, "provider_reported", None
 
 
 def _tokens(receipts: Sequence[EpisodeReceiptV3]) -> int | None:
@@ -438,7 +451,7 @@ def _caveats(
     climb: ClimbManifest,
     economics: _Economics,
     recorded_evidence: RecordedEvidence | None,
-    cost_reported: bool,
+    cost_provenance: CostShown,
 ) -> list[PresentationCaveat]:
     """What would invalidate the result first, then what bounds it, then the standing facts."""
     caveats: list[PresentationCaveat] = []
@@ -497,9 +510,9 @@ def _caveats(
             severity="info",
             text="The raw episodes stay on this machine. They are not in the proof directory "
             "and nothing sends them: publishing a run sends its proof and never its episodes, "
-            "and nothing is published unless you publish this run yourself. Model inference "
-            "was still sent to the model provider this run used, under that provider's "
-            "policies.",
+            "and nothing is published unless you publish this run yourself. The model calls "
+            f"still went to {_ROUTE_SERVICE[report.access]} on your "
+            f"{ROUTE_NAMES[report.access]}, under its policies.",
         )
     )
     caveats.append(
@@ -509,10 +522,10 @@ def _caveats(
             text="No external evidence service is required, used, or contacted.",
         )
     )
-    throttling = _throttling_caveat(recorded_evidence)
+    throttling = _throttling_caveat(recorded_evidence, report.access)
     if throttling is not None:
         caveats.append(throttling)
-    caveats.append(_economics_caveat(economics, cost_reported=cost_reported))
+    caveats.append(_economics_caveat(economics, cost_provenance=cost_provenance))
     if report.decision is UpliftDecision.REJECTED:
         caveats.append(
             PresentationCaveat(
@@ -525,20 +538,20 @@ def _caveats(
     return caveats
 
 
+#: Where a run's model calls went, by its route.
+_ROUTE_SERVICE: Final[dict[ModelAccess, str]] = {
+    "chatgpt_plan": "OpenAI",
+    "prime_key": "Prime",
+}
+
+
 def _weak_attestation_text(campaign: CampaignSpecV4) -> str:
-    """Name the coordinate the run could not confirm, asking the same check the comparison used."""
-    coordinates = {check.id for check in weaker_claim_warnings(campaign)}
-    if coordinates == {MODEL_REVISION_UNDISCOVERABLE}:
-        named = (
-            "Your provider publishes no immutable build identifier for "
-            f"{sanitize_label(campaign.subject.model.model_id)}, so both sides provably used "
-            "the same model name but not provably the same model build."
-        )
-    else:
-        named = (
-            "At least one declared coordinate could not be confirmed from what the run "
-            "observed, and this build has no plainer name for it."
-        )
+    """Name the coordinate the run could not confirm: the model's build."""
+    named = (
+        "OpenAI publishes no immutable build identifier for "
+        f"{sanitize_label(campaign.subject.model.model_id)}, so both sides provably used "
+        "the same model name but not provably the same model build."
+    )
     return (
         "The comparison is controlled with warnings, which means one coordinate is attested "
         f"more weakly than the rest. {named} No mismatch was found; a mismatch would have made "
@@ -546,18 +559,20 @@ def _weak_attestation_text(campaign: CampaignSpecV4) -> str:
     )
 
 
-def _throttling_caveat(recorded_evidence: RecordedEvidence | None) -> PresentationCaveat | None:
+def _throttling_caveat(
+    recorded_evidence: RecordedEvidence | None, access: ModelAccess
+) -> PresentationCaveat | None:
     """An uneven refusal count is part of how much the comparison proves; an even one is a note."""
     if recorded_evidence is None:
         return None
     baseline = recorded_evidence.baseline.rate_limited_calls
     candidate = recorded_evidence.candidate.rate_limited_calls
     if baseline == candidate == 0:
-        text = "The provider refused no model call on either side."
+        text = f"{_ROUTE_SERVICE[access]} refused no model call on either side."
     else:
         text = (
-            f"The provider refused {_calls(baseline)} with a rate limit on the baseline side "
-            f"and {candidate:,} on the candidate side."
+            f"{_ROUTE_SERVICE[access]} refused {_calls(baseline)} with a rate limit on the "
+            f"baseline side and {candidate:,} on the candidate side."
         )
     if recorded_evidence.every_rollout_completed:
         text = f"{text} Every rollout still ran to completion."
@@ -568,21 +583,28 @@ def _throttling_caveat(recorded_evidence: RecordedEvidence | None) -> Presentati
     )
 
 
-def _economics_caveat(economics: _Economics, *, cost_reported: bool) -> PresentationCaveat:
+def _economics_caveat(economics: _Economics, *, cost_provenance: CostShown) -> PresentationCaveat:
     """Missing economics is a warning about what is unknown, never a finding about the result."""
     if economics.source == "comparison_execution_record":
-        if cost_reported:
+        if cost_provenance == "provider_reported":
             return PresentationCaveat(
                 code="cost_provider_reported",
                 severity="info",
                 text="Timing, token counts and cost come from this run's signed execution "
-                "record; the cost is what the provider reported for each model call.",
+                "record; the cost is what Prime reported for each model call.",
+            )
+        if cost_provenance == "plan_included":
+            return PresentationCaveat(
+                code="cost_plan_included",
+                severity="info",
+                text="Timing and token counts come from this run's signed execution record. "
+                "The run used your ChatGPT plan, which gives no dollar figure.",
             )
         return PresentationCaveat(
             code="cost_unavailable",
             severity="warning",
-            text="Timing and token counts come from this run's signed execution record. The "
-            "provider did not report a cost for every model call, so no total is shown. What "
+            text="Timing and token counts come from this run's signed execution record. "
+            "Prime did not report a cost for every model call, so no total is shown. What "
             "the comparison measured is unaffected.",
         )
     if economics.source == "episode_receipts":

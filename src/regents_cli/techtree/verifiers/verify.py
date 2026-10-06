@@ -26,7 +26,6 @@ from regents_cli.techtree.fs import ensure_private_directory
 from regents_cli.techtree.models.campaign import (
     SUBJECT_AGENT,
     AgentSpecV2,
-    ModelSpec,
     Rubric,
     pinned_task_images,
 )
@@ -47,7 +46,6 @@ from regents_cli.techtree.verifiers.config import (
     image_is_digest_pinned,
     runtime_images,
 )
-from regents_cli.techtree.verifiers.credentials import credential_status
 from regents_cli.techtree.verifiers.models import (
     ExecutionCheck,
     NormalizedTrace,
@@ -91,14 +89,12 @@ def dry_run_variant_config(
     compiled: EvalToml,
     input_config_path: Path,
     dry_run_dir: Path,
-    model: ModelSpec | None = None,
     timeout: float = DEFAULT_DRY_RUN_TIMEOUT_SECONDS,
 ) -> DryRunOutcome:
     """Resolve one compiled configuration against the installed engine.
 
     The child gets the engine's ordinary minimal environment: a dry run makes no model call,
-    so it needs no credential and cannot leak one. With `model` the credential is diagnosed
-    separately as its own check.
+    so it needs no credential and cannot leak one.
     """
     if not input_config_path.is_file():
         raise ValidationError(
@@ -151,8 +147,6 @@ def dry_run_variant_config(
         )
 
     checks.append(_image_pinning_check(compiled))
-    if model is not None:
-        checks.append(_credential_check(model))
 
     return DryRunOutcome(
         variant=variant,
@@ -272,15 +266,6 @@ def _image_pinning_check(compiled: EvalToml) -> ExecutionCheck:
         status="warning",
         detail=f"the runtime image {unpinned[0]!r} is not pinned by content digest, "
         "so what runs could change without the Campaign changing.",
-    )
-
-
-def _credential_check(model: ModelSpec) -> ExecutionCheck:
-    status = credential_status(model)
-    return ExecutionCheck(
-        id="evaluation_credential_available",
-        status="passed" if status.available else "failed",
-        detail=status.detail,
     )
 
 
@@ -477,7 +462,7 @@ def _trace_checks(
     ]
 
     expectations: list[tuple[str, str, Any, set[Any]]] = [
-        ("model_id_matches", "model", subject.model.model_id, {t.model_id for t in traces}),
+        ("model_id_matches", "model", subject.model.requested_name, {t.model_id for t in traces}),
         ("harness_id_matches", "harness", plan.subject.harness_id, {t.harness_id for t in traces}),
         (
             "harness_version_matches",

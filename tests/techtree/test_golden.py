@@ -35,15 +35,15 @@ GOLDEN = Path(__file__).parent / "fixtures" / "golden"
 CASES: dict[str, tuple[type[BaseModel], str]] = {
     "campaign-v4.json": (
         CampaignSpecV4,
-        "sha256:35432972c4cc98245d63a862861c0f8285b58b1cc8772133217e798a25f3c5a8",
+        "sha256:7a856fc9a5d1d1ccd6feb52daaa35bc4188e437cef81667fcf19e37454c8a3fd",
     ),
     "campaign-parity-candidate.json": (
         CampaignSpecV4,
-        "sha256:1ed3fece70f9a00c35d0ae080a7d15a1006272adf4c15bdaeb111fc06d055c2b",
+        "sha256:eb85e175ef94f573f980fba3b3f758e9f2bb32f93002a905754611b1acb134de",
     ),
     "climb-v2.json": (
         ClimbManifest,
-        "sha256:5015ce4676d3c17eaecd52e714e6253f1c3e01d449493736927cbec57ec72c0e",
+        "sha256:6f6b71b5322b39a886b60b57f57cc7a68c2cdca52351fab2ce9e3096c6f7072f",
     ),
     "climb.json": (
         ClimbManifest,
@@ -51,11 +51,11 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "climb-summary-v2.json": (
         ClimbSummaryV2,
-        "sha256:2618b333a8ee58cb438d0557e908af3fc833b04912ddaa8581f221ba7a019b83",
+        "sha256:5f468a0ff40156c45bcc95cb1a39804fcc24c18feb6a8ecb57c9f4db477cf906",
     ),
     "comparison-execution.json": (
         ComparisonExecutionRecord,
-        "sha256:153c44943199ca01ae5904b0802566a9ce8c6338292afb1e85edb5880d060fe9",
+        "sha256:3c8c470d58491b4b48b8241d476c3fdb7719592153a7a510b4fbedfbc5210f66",
     ),
     "data-policy.json": (
         DataPolicy,
@@ -63,7 +63,7 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "episode-receipt-v3.json": (
         ObjectEnvelope[EpisodeReceiptV3],
-        "sha256:4bce630c4e057c8fa011ad22857d57564f659a34a5806ffaafa6c1c9329771b6",
+        "sha256:ef218050f56ff8c477c8627dcca3fdf63a2d73414ae7d42c7b9932b7d96511a0",
     ),
     "execution-plan.json": (
         ResolvedExecutionPlan,
@@ -75,15 +75,15 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "experiment-baseline-v4.json": (
         ExperimentManifestV4,
-        "sha256:1fd63b06dd0b3bec3f32894142a017758d954554842c74a5f09f801c013c79a4",
+        "sha256:54bb3813b5469edbddc80224e33f9969a54adc645631f52c304666c1d849b209",
     ),
     "experiment-candidate-v4.json": (
         ExperimentManifestV4,
-        "sha256:41661151e13adb0699d2a44106478111e6dd8a5e239c9319e258678a8da8c6f6",
+        "sha256:31f7376c763b97b915928c46268c801b78c34a22989af80c2b7f28c18a9275e8",
     ),
     "run-request-v2.json": (
         RunRequestV2,
-        "sha256:d1afc8d83779564e2f5d9a3a52bfe56ef722b9c3949394e084749b0da03f9f74",
+        "sha256:a23dd025e8270d53f6fc32d2262eea7109fa4da4e52c1b848ac70252f15436a8",
     ),
     "taskset-lock.json": (
         TasksetLock,
@@ -95,7 +95,7 @@ CASES: dict[str, tuple[type[BaseModel], str]] = {
     ),
     "uplift-report-v3.json": (
         ObjectEnvelope[UpliftReportV3],
-        "sha256:b1f661f9000a09a80ea89cab15358e9997dbccaa8529f868eca849c6efe0a84b",
+        "sha256:605144e6a1362ab411e4f122d8b681b506a1b02c2c5a9261bb06a4711815169e",
     ),
 }
 

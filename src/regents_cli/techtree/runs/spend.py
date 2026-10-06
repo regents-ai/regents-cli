@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from pathlib import Path
 from typing import Final
 
 from regents_cli.techtree.errors import RunError
 
 RUN_SPEND_UNREPORTED: Final = "run_spend_unreported"
+RUN_SPEND_LIMIT_REACHED: Final = "run_spend_limit_reached"
 
 _READ_CHUNK_BYTES: Final = 1 << 20
 
@@ -52,6 +53,28 @@ class SpendMeter:
                     if line.strip():
                         self._spent_usd += record_cost(json.loads(line), source=path)
         return offset
+
+
+def spend_guard(
+    run_id: str, traces_paths: Iterable[Path], maximum_usd: float
+) -> Callable[[], None]:
+    """A check, called on every poll of a run on the person's own Prime key, that stops the run
+    once what Prime reported for its finished tasks reaches the Campaign's maximum."""
+    meter = SpendMeter(traces_paths)
+
+    def guard() -> None:
+        spent_usd = meter.read()
+        if spent_usd < maximum_usd:
+            return
+        raise RunError(
+            f"this run's model calls cost ${spent_usd:.2f}, as Prime reported them, which "
+            f"reached the ${maximum_usd:.2f} maximum its Campaign declares, so Techtree stopped "
+            "both sides; a stopped run has no score, and the partial evidence was kept",
+            code=RUN_SPEND_LIMIT_REACHED,
+            details={"run_id": run_id, "spent_usd": spent_usd, "maximum_usd": maximum_usd},
+        )
+
+    return guard
 
 
 def record_cost(record: Mapping[str, object], *, source: Path) -> float:

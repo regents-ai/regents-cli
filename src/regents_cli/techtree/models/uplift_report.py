@@ -12,7 +12,7 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel, UtcDateTime
-from regents_cli.techtree.models.campaign import ProgramRef, PublicContext
+from regents_cli.techtree.models.campaign import ModelAccess, ProgramRef, PublicContext
 from regents_cli.techtree.models.episode_receipt import (
     EvidenceStatus,
     ExecutionLocation,
@@ -82,6 +82,29 @@ class PrimaryUpliftResult(ProtocolModel):
     ties: int = Field(ge=0)
 
 
+class EndingCounts(ProtocolModel):
+    """How one side's tries ended, one count per ending."""
+
+    completed: int = Field(ge=0)
+    token_limit: int = Field(ge=0)
+    call_limit: int = Field(ge=0)
+    timeout: int = Field(ge=0)
+
+    @property
+    def total(self) -> int:
+        return self.completed + self.token_limit + self.call_limit + self.timeout
+
+
+#: Where a run's cost comes from: what Prime reported, in dollars, on the person's own key; or
+#: the person's ChatGPT plan, which counts tokens and gives no dollar figure.
+CostProvenance = Literal["provider_reported", "plan_included"]
+
+COST_PROVENANCE: dict[ModelAccess, CostProvenance] = {
+    "prime_key": "provider_reported",
+    "chatgpt_plan": "plan_included",
+}
+
+
 class UpliftStatuses(ProtocolModel):
     """The five independent statuses of a report."""
 
@@ -112,6 +135,11 @@ class UpliftReportV3(ProtocolModel):
     manifest_comparison: ManifestComparison
     primary_result: PrimaryUpliftResult
     task_deltas: list[TaskDelta]
+    #: The one route both sides reached the subject model by.
+    access: ModelAccess
+    cost_provenance: CostProvenance
+    baseline_endings: EndingCounts
+    candidate_endings: EndingCounts
     decision: UpliftDecision
     proof_grade: Literal["development_only", "P1"]
     publication_eligible: bool
@@ -132,4 +160,14 @@ class UpliftReportV3(ProtocolModel):
             raise ValueError("a report cannot be publication eligible while publication is blocked")
         if self.baseline_manifest_digest == self.candidate_manifest_digest:
             raise ValueError("a report compares two different manifests")
+        if self.cost_provenance != COST_PROVENANCE[self.access]:
+            raise ValueError(
+                f"a run on the {self.access} route has {COST_PROVENANCE[self.access]} cost"
+            )
+        for side, endings in (
+            ("baseline", self.baseline_endings),
+            ("candidate", self.candidate_endings),
+        ):
+            if endings.total != len(self.task_deltas):
+                raise ValueError(f"the {side} side counts an ending for each of its tries")
         return self

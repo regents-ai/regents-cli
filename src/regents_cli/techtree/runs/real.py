@@ -2,8 +2,8 @@
 
 The order of `RealVerifiersExecutor.execute` is the whole spending argument (spec 6.17):
 every free refusal happens before every costly one. The staged inputs are verified before
-the engine is resolved; the engine before the credential is required; the credential before
-the taskset is validated; the taskset before a configuration is compiled; and both
+the engine is resolved; the engine before the run's route to the subject model is checked; the
+route before the taskset is validated; the taskset before a configuration is compiled; and both
 configurations survive a model-free dry run against the real engine before a single container
 starts. A run that is going to fail should fail while it is still free.
 """
@@ -11,12 +11,13 @@ starts. A run that is going to fail should fail while it is still free.
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
 from regents_cli.techtree.canonical import sha256_digest_bytes, to_json_value
+from regents_cli.techtree.chatgpt.forwarder import FORWARDER_KEY_ENV, PlanForwarder
 from regents_cli.techtree.doctor.checks import CheckStatus, check_live_campaign
 from regents_cli.techtree.engines.bundle import read_engine_descriptor
 from regents_cli.techtree.engines.registry import EngineRegistry
@@ -30,7 +31,12 @@ from regents_cli.techtree.errors import (
 from regents_cli.techtree.execution_facts import require_executable_execution_plan
 from regents_cli.techtree.fs import atomic_write_json, ensure_private_directory, open_exclusive
 from regents_cli.techtree.models.base import Digest, JsonValue
-from regents_cli.techtree.models.campaign import SUBJECT_AGENT, AgentSpecV2, CampaignSpecV4
+from regents_cli.techtree.models.campaign import (
+    SUBJECT_AGENT,
+    AgentSpecV2,
+    CampaignSpecV4,
+    ModelAccess,
+)
 from regents_cli.techtree.models.engine import EngineDescriptor, EngineInstallation
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import ExperimentManifestV4
@@ -40,6 +46,7 @@ from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.runs.artifacts import RunInputBundle
 from regents_cli.techtree.runs.child_registry import ChildRegistry, execution_dir
 from regents_cli.techtree.runs.executor import ExecutionContext
+from regents_cli.techtree.runs.spend import spend_guard
 from regents_cli.techtree.runs.validation import TasksetValidationOutcome, validate_taskset
 from regents_cli.techtree.runs.variants import (
     DEFAULT_POLL_INTERVAL_SECONDS,
@@ -48,7 +55,6 @@ from regents_cli.techtree.runs.variants import (
     VariantScheduler,
     require_concurrency_budget,
 )
-from regents_cli.techtree.verifiers.budget import require_executable_budget
 from regents_cli.techtree.verifiers.child import (
     DEFAULT_GRACE_SECONDS,
     EVAL_EXECUTABLE,
@@ -56,13 +62,17 @@ from regents_cli.techtree.verifiers.child import (
     eval_argv,
 )
 from regents_cli.techtree.verifiers.compiler import (
+    ModelEndpoint,
     compile_plans,
     compile_variant_config,
+    plan_endpoint,
+    prime_key_endpoint,
     skill_directory_name,
     write_variant_config,
 )
 from regents_cli.techtree.verifiers.credentials import (
-    require_credentials,
+    prime_key_environment,
+    require_route,
     scrubbed_child_environment,
 )
 from regents_cli.techtree.verifiers.image import resolve_images
@@ -76,6 +86,7 @@ from regents_cli.techtree.verifiers.models import (
 )
 from regents_cli.techtree.verifiers.outputs import (
     DEFAULT_NORMALIZE_TIMEOUT_SECONDS,
+    TRACES_FILENAME,
     build_variant_result,
 )
 from regents_cli.techtree.verifiers.paths import RunPaths
@@ -101,6 +112,16 @@ class _ResolvedEngine:
     installation: EngineInstallation
     descriptor: EngineDescriptor
     runner: EngineRunner
+
+
+@dataclass(frozen=True)
+class _Route:
+    """How this run reaches the subject model: where the engine sends calls, what the children
+    may read to sign them, and the check that stops the run when the route says to."""
+
+    endpoint: ModelEndpoint
+    child_environment: Mapping[str, str]
+    guard: Callable[[], None]
 
 
 def require_live_campaign(campaign: CampaignSpecV4) -> None:
@@ -183,43 +204,81 @@ class RealVerifiersExecutor:
         require_live_campaign(campaign)
         subject = self._subject(campaign)
 
-        # 4-5. The engine, then the credential the subject's calls are paid with, then
-        # whether every limit the engine enforces is set. All three refusals are free.
+        # 4-5. The engine, then the one route this run's subject calls go on, set up here.
+        # Both refusals are free.
         engine = self._resolve_engine(plan.evaluation.engine_digest)
-        require_credentials(subject.model)
-        require_executable_budget(campaign)
+        access = inputs.baseline.configuration.access
+        require_route(access, self._paths.root)
 
         # 6-7. The publisher's validation, re-checked, and the membership it commits to.
         validation = self._validate_taskset(context, inputs)
         lock_path = self._write_taskset_lock(run_paths, validation)
 
-        # 8-11. Both configurations compiled and dry-run, and every image resolved, before
-        # either child is launched, so a missing image costs nothing rather than half a run.
-        self._materialize_skill_mount(inputs, run_paths)
-        pair = self._compile_pair(campaign, plan, inputs, run_paths, engine, subject)
-        images = {
-            variant: resolve_images(subject.runtime, campaign.taskset, variant)
-            for variant in _VARIANT_ORDER
-        }
+        with contextlib.ExitStack() as stack:
+            route = self._open_route(stack, access, campaign, subject, run_id)
 
-        try:
-            # 12-15. Both children, started and watched.
-            outcome = self._run_children(
-                context, pair=pair, engine=engine, maximum_usd=campaign.budgets.maximum_usd
+            # 8-11. Both configurations compiled and dry-run, and every image resolved, before
+            # either child is launched, so a missing image costs nothing rather than half a run.
+            self._materialize_skill_mount(inputs, run_paths)
+            pair = self._compile_pair(campaign, plan, inputs, run_paths, engine, route.endpoint)
+            images = {
+                variant: resolve_images(subject.runtime, campaign.taskset, variant)
+                for variant in _VARIANT_ORDER
+            }
+
+            try:
+                # 12-15. Both children, started and watched.
+                outcome = self._run_children(context, pair=pair, engine=engine, route=route)
+                # 16-18. The engine's own reading of what each child left behind.
+                results = self._normalize(
+                    pair=pair,
+                    outcome=outcome,
+                    images=images,
+                    inputs=inputs,
+                    validation=validation,
+                    engine=engine,
+                    lock_path=lock_path,
+                )
+                return self._record(run_paths, engine, outcome, results)
+            finally:
+                keep_evaluation_private(run_paths)
+
+    def _open_route(
+        self,
+        stack: contextlib.ExitStack,
+        access: ModelAccess,
+        campaign: CampaignSpecV4,
+        subject: AgentSpecV2,
+        run_id: str,
+    ) -> _Route:
+        """The run's route; on the plan, the forwarder serves on loopback for as long as `stack`."""
+        if access == "chatgpt_plan":
+            forwarder = stack.enter_context(PlanForwarder(self._paths.root, subject.model.model_id))
+            return _Route(
+                endpoint=plan_endpoint(subject.model, forwarder.base_url),
+                child_environment={FORWARDER_KEY_ENV: forwarder.key},
+                guard=forwarder.raise_if_stopped,
             )
-            # 16-18. The engine's own reading of what each child left behind.
-            results = self._normalize(
-                pair=pair,
-                outcome=outcome,
-                images=images,
-                inputs=inputs,
-                validation=validation,
-                engine=engine,
-                lock_path=lock_path,
+        maximum_usd = campaign.budgets.maximum_usd
+        if maximum_usd is None:
+            raise ValidationError(
+                "this Campaign offers the own-Prime-key route without a spending maximum",
+                code=REAL_EXECUTION_UNSUPPORTED,
+                details={"campaign_id": campaign.metadata.id},
             )
-            return self._record(run_paths, engine, outcome, results)
-        finally:
-            keep_evaluation_private(run_paths)
+        run_paths = RunPaths.for_run(self._paths, run_id)
+        return _Route(
+            endpoint=prime_key_endpoint(subject.model),
+            child_environment=prime_key_environment(),
+            guard=spend_guard(
+                run_id,
+                (
+                    run_paths.variant_output_dir(variant) / TRACES_FILENAME
+                    for variant in _VARIANT_ORDER
+                ),
+                maximum_usd,
+            ),
+        )
 
     def _require_acknowledged_policy(self, request: RunRequestV2, campaign: CampaignSpecV4) -> None:
         acknowledged = request.policy_acknowledgement.data_policy_digest
@@ -362,7 +421,7 @@ class RealVerifiersExecutor:
         inputs: RunInputBundle,
         run_paths: RunPaths,
         engine: _ResolvedEngine,
-        subject: AgentSpecV2,
+        endpoint: ModelEndpoint,
     ) -> VariantPair:
         """Compile, write and dry-run both variants' configurations."""
         baseline_plan, candidate_plan = compile_plans(
@@ -371,6 +430,7 @@ class RealVerifiersExecutor:
             baseline=inputs.baseline,
             candidate=inputs.candidate,
             run_paths=run_paths,
+            endpoint=endpoint,
         )
         pair = VariantPair(baseline=baseline_plan, candidate=candidate_plan)
         require_concurrency_budget(pair, max_concurrent=campaign.execution.max_concurrent)
@@ -384,6 +444,7 @@ class RealVerifiersExecutor:
                 run_paths=run_paths,
                 variant=variant,
                 variant_max_concurrent=pair.plan(variant).max_concurrent,
+                endpoint=endpoint,
             )
             input_path = run_paths.variant_input_config(variant)
             write_variant_config(compiled, input_path)
@@ -393,7 +454,6 @@ class RealVerifiersExecutor:
                 compiled=compiled,
                 input_config_path=input_path,
                 dry_run_dir=run_paths.variant_dry_run_dir(variant),
-                model=subject.model,
                 timeout=self._dry_run_timeout,
             )
             if not outcome.ok:
@@ -412,11 +472,13 @@ class RealVerifiersExecutor:
         *,
         pair: VariantPair,
         engine: _ResolvedEngine,
-        maximum_usd: float | None,
+        route: _Route,
     ) -> VariantPairOutcome:
         run_id = context.request.run_id
         run_paths = RunPaths.for_run(self._paths, run_id)
-        environment = scrubbed_child_environment(engine=engine.installation)
+        environment = scrubbed_child_environment(
+            engine=engine.installation, extra=route.child_environment
+        )
         executable = self._registry.executable(engine.digest, EVAL_EXECUTABLE)
         children = {
             variant: self._build_child(
@@ -440,7 +502,7 @@ class RealVerifiersExecutor:
             pair=pair,
             baseline_child=children[VariantName.BASELINE],
             candidate_child=children[VariantName.CANDIDATE],
-            maximum_usd=maximum_usd,
+            guard=route.guard,
         )
 
     def _build_child(

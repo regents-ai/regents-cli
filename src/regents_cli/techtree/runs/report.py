@@ -61,6 +61,7 @@ from regents_cli.techtree.receipts.set import (
 from regents_cli.techtree.receipts.uplift import (
     aggregate_primary_result,
     build_uplift_report,
+    count_endings,
     pair_task_rewards,
     summarize_receipts,
 )
@@ -170,6 +171,7 @@ class RunReportService:
             run_id=run_id,
             campaign_spec_digest=request.campaign_spec_digest,
             campaign_max_concurrent=inputs.campaign.execution.max_concurrent,
+            access=inputs.baseline.configuration.access,
             execution=execution,
             launch=read_children_record(children_record_path(run_root)),
             concurrency=divide_concurrency(inputs.campaign.execution.max_concurrent),
@@ -272,6 +274,7 @@ class RunReportService:
         )
         primary = aggregate_primary_result(deltas)
         score, evidence = summarize_receipts(baseline.receipts, candidate.receipts)
+        endings = (count_endings(baseline.receipts), count_endings(candidate.receipts))
         return build_uplift_report(
             run_request=request,
             campaign=campaign,
@@ -300,6 +303,7 @@ class RunReportService:
                 comparison=comparison.status,
                 score=score,
             ).attestation,
+            endings=endings,
             rerun_of=inputs.draft.rerun_of,
             created_at=self._clock(),
         )

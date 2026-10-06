@@ -10,10 +10,12 @@ from __future__ import annotations
 import math
 import os
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, NoReturn
 
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes
+from regents_cli.techtree.chatgpt.forwarder import FORWARDER_KEY_ENV
 from regents_cli.techtree.errors import ValidationError
 from regents_cli.techtree.execution_facts import bound_execution_plan_digest
 from regents_cli.techtree.fs import ensure_private_directory, fsync_directory, open_exclusive
@@ -24,6 +26,8 @@ from regents_cli.techtree.models.campaign import (
     CampaignImageRuntime,
     CampaignSpecV4,
     CampaignTaskset,
+    ModelAccess,
+    ModelSpec,
 )
 from regents_cli.techtree.models.execution_plan import ResolvedExecutionPlan
 from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
@@ -44,6 +48,7 @@ from regents_cli.techtree.verifiers.config import (
     config_to_json_bytes,
     egress_for,
 )
+from regents_cli.techtree.verifiers.credentials import PRIME_KEY_ENV
 from regents_cli.techtree.verifiers.models import VariantExecutionPlan, VariantName
 from regents_cli.techtree.verifiers.paths import EVAL_RUN_NAME, RunPaths
 
@@ -64,6 +69,40 @@ def _refuse(message: str, **details: str | int | bool | None) -> NoReturn:
     raise ValidationError(message, code=MANIFEST_NOT_COMPILABLE, details=dict(details))
 
 
+@dataclass(frozen=True)
+class ModelEndpoint:
+    """Where the engine sends the subject's model calls on one route.
+
+    `base_url` unset lets the pinned client resolve Prime's endpoint as Prime does; the plan
+    route names the forwarder on this machine's loopback address.
+    """
+
+    access: ModelAccess
+    model: str
+    api_key_var: str
+    base_url: str | None
+
+
+def prime_key_endpoint(model: ModelSpec) -> ModelEndpoint:
+    """Prime, asked for OpenAI's model under its own name, with the person's own key."""
+    return ModelEndpoint(
+        access="prime_key",
+        model=model.requested_name,
+        api_key_var=PRIME_KEY_ENV,
+        base_url=None,
+    )
+
+
+def plan_endpoint(model: ModelSpec, forwarder_base_url: str) -> ModelEndpoint:
+    """OpenAI, through the forwarder, which signs each call with the person's ChatGPT plan."""
+    return ModelEndpoint(
+        access="chatgpt_plan",
+        model=model.requested_name,
+        api_key_var=FORWARDER_KEY_ENV,
+        base_url=forwarder_base_url,
+    )
+
+
 def skill_directory_name(digest: Digest) -> str:
     """The run-owned directory one skill's tree occupies; the folder name is part of what the
     subject sees, so it is a property of the skill's content."""
@@ -78,12 +117,20 @@ def compile_variant_config(
     run_paths: RunPaths,
     variant: VariantName,
     variant_max_concurrent: int,
+    endpoint: ModelEndpoint,
 ) -> EvalToml:
     """Translate one resolved experiment into the strict config, refusing any disagreement."""
     campaign_digest = digest_object(campaign)
     bound_execution_plan_digest(campaign, plan)
     _check_manifest_derives_from(experiment, campaign, campaign_digest)
     _check_variant_matches(experiment, variant)
+    if endpoint.access != experiment.configuration.access:
+        _refuse(
+            "the experiment runs on a different route than the endpoint it was compiled for",
+            manifest_id=experiment.id,
+            manifest_access=experiment.configuration.access,
+            endpoint_access=endpoint.access,
+        )
 
     subject = _subject_of(experiment)
     _check_subject_is_executable(subject, plan)
@@ -96,15 +143,9 @@ def compile_variant_config(
     # Every limit the Campaign declares is compiled into the place the engine reads it; a
     # declared budget the engine never sees is decorative. One Verifiers model turn is the
     # model-call budget unit, so maximum_model_calls compiles to max_turns, and the total is
-    # the sum of the two declared token allowances rather than a fourth decision.
-    maximum_input = campaign.budgets.maximum_input_tokens
-    maximum_output = campaign.budgets.maximum_output_tokens
-    maximum_turns = campaign.budgets.maximum_model_calls
-    maximum_total = (
-        maximum_input + maximum_output
-        if maximum_input is not None and maximum_output is not None
-        else None
-    )
+    # the sum of the two declared token allowances rather than a fourth decision. The engine
+    # checks them between turns on every route, so the turn that crosses a token limit finishes.
+    budgets = campaign.budgets
 
     if variant_max_concurrent < 1:
         _refuse(
@@ -124,10 +165,10 @@ def compile_variant_config(
             cpu=subject.runtime.cpu,
             memory=subject.runtime.memory_gb,
         ),
-        max_turns=maximum_turns,
-        max_input_tokens=maximum_input,
-        max_output_tokens=maximum_output,
-        max_total_tokens=maximum_total,
+        max_turns=budgets.maximum_model_calls,
+        max_input_tokens=budgets.maximum_input_tokens,
+        max_output_tokens=budgets.maximum_output_tokens,
+        max_total_tokens=budgets.maximum_input_tokens + budgets.maximum_output_tokens,
         # timeout_seconds bounds one subject rollout; the variant's own bound is the
         # supervisor's hard deadline.
         timeout=TimeoutToml(rollout=float(campaign.execution.timeout_seconds)),
@@ -146,13 +187,9 @@ def compile_variant_config(
             )
 
     return EvalToml(
-        model=subject.model.model_id,
-        client=EvalClientToml(api_key_var=subject.model.credential_env),
-        sampling=SamplingToml(
-            temperature=subject.sampling.temperature,
-            max_tokens=subject.sampling.max_tokens,
-            reasoning_effort=subject.sampling.reasoning_effort,
-        ),
+        model=endpoint.model,
+        client=EvalClientToml(api_key_var=endpoint.api_key_var, base_url=endpoint.base_url),
+        sampling=SamplingToml(reasoning_effort=subject.sampling.reasoning_effort),
         env=env,
         num_tasks=taskset.selection.num_tasks,
         max_concurrent=variant_max_concurrent,
@@ -303,6 +340,7 @@ def compile_plans(
     baseline: ExperimentManifestV4,
     candidate: ExperimentManifestV4,
     run_paths: RunPaths,
+    endpoint: ModelEndpoint,
 ) -> tuple[VariantExecutionPlan, VariantExecutionPlan]:
     """Both variants' plans, with the Campaign's concurrency divided between them."""
     baseline_permits, candidate_permits = divide_concurrency(campaign.execution.max_concurrent)
@@ -319,6 +357,7 @@ def compile_plans(
             run_paths=run_paths,
             variant=variant,
             variant_max_concurrent=permits,
+            endpoint=endpoint,
         )
         plans[variant] = VariantExecutionPlan(
             variant=variant,

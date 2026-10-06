@@ -20,6 +20,7 @@ from regents_cli.techtree.models.campaign import (
     AgentSpecV2,
     CampaignSpecV4,
     HarnessSpecV2,
+    ModelAccess,
     MutationKind,
     PublicContext,
 )
@@ -40,9 +41,13 @@ MANIFEST_BUILD_FAILED: Final = "manifest_build_failed"
 _ID_HEX_LENGTH: Final = 24
 
 
-def build_experiment_configuration(campaign: CampaignSpecV4) -> ExperimentConfigurationV3:
-    """Copy the Campaign's scientific fields; this is the baseline configuration."""
+def build_experiment_configuration(
+    campaign: CampaignSpecV4, access: ModelAccess
+) -> ExperimentConfigurationV3:
+    """Copy the Campaign's scientific fields and the run's route; this is the baseline
+    configuration."""
     return ExperimentConfigurationV3(
+        access=access,
         taskset=campaign.taskset.model_copy(deep=True),
         environment=campaign.environment.model_copy(deep=True),
         agents={name: agent.model_copy(deep=True) for name, agent in campaign.agents.items()},
@@ -88,11 +93,12 @@ def build_baseline_manifest(
     *,
     campaign: CampaignSpecV4,
     campaign_digest: Digest,
+    access: ModelAccess,
     public_context: PublicContext | None,
     created_at: datetime | None = None,
     manifest_id: str | None = None,
 ) -> ExperimentManifestV4:
-    configuration = build_experiment_configuration(campaign)
+    configuration = build_experiment_configuration(campaign, access)
     _require_campaign_baseline(configuration, campaign)
     return finalize_manifest(
         campaign=campaign,
@@ -109,13 +115,14 @@ def build_candidate_manifest(
     *,
     campaign: CampaignSpecV4,
     campaign_digest: Digest,
+    access: ModelAccess,
     skill: SkillArtifact,
     public_context: PublicContext | None,
     created_at: datetime | None = None,
     manifest_id: str | None = None,
 ) -> ExperimentManifestV4:
     """The baseline configuration with the subject harness's Skill list replaced."""
-    configuration = build_experiment_configuration(campaign)
+    configuration = build_experiment_configuration(campaign, access)
     baseline_subject = _require_campaign_baseline(configuration, campaign)
     reference = build_skill_reference(skill)
     mutation = campaign.mutation_contract

@@ -117,6 +117,7 @@ def build_episode_receipt(
                 )
             ]
         },
+        ending=trace.ending,
         score_status=_score_status(episode, trace, rubric),
         evidence_status=_evidence_status(trace, evidence),
         executor_kind="verifiers",

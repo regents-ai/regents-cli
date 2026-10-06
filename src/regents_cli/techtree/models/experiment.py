@@ -26,6 +26,7 @@ from regents_cli.techtree.models.campaign import (
     EnvironmentSpec,
     EvidenceRequirementsV2,
     ExecutionSpec,
+    ModelAccess,
     MutationContract,
     MutationKind,
     ProgramRef,
@@ -43,8 +44,13 @@ class ExperimentVariant(StrEnum):
 
 
 class ExperimentConfigurationV3(ProtocolModel):
-    """The part of a manifest that is compared: the Campaign's science with the choices made."""
+    """The part of a manifest that is compared: the Campaign's science with the choices made.
 
+    `access` is the one route this run reaches the subject model by. It is compared like the
+    rest, so a run's two sides always use the same route.
+    """
+
+    access: ModelAccess
     taskset: CampaignTaskset
     environment: EnvironmentSpec
     agents: dict[str, AgentSpecV2]
@@ -63,6 +69,8 @@ class ExperimentConfigurationV3(ProtocolModel):
         if subject is None:
             raise ValueError("an experiment configuration defines a subject agent")
         check_images(self.environment, subject.runtime, self.taskset)
+        if self.access not in subject.model.access:
+            raise ValueError(f"the subject model is not offered on the {self.access} route")
         return self
 
 

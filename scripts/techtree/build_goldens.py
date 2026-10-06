@@ -121,6 +121,7 @@ from regents_cli.techtree.models.experiment import (
 from regents_cli.techtree.models.run import PolicyAcknowledgement, RunRequestV2
 from regents_cli.techtree.models.uplift_report import (
     ComparisonStatus,
+    EndingCounts,
     ExecutionStatus,
     PublicationStatus,
     TaskDelta,
@@ -330,13 +331,8 @@ def execution_plan(package_version: str, revision: str) -> ResolvedExecutionPlan
 def subject_agent(skills: list[ArtifactRef]) -> AgentSpecV2:
     """The frozen development subject."""
     return AgentSpecV2(
-        model=ModelSpec(
-            provider="development",
-            model_id="development-placeholder",
-            revision=None,
-            credential_env="TECHTREE_MODEL_API_KEY",
-        ),
-        sampling=SamplingSpec(temperature=0.0, max_tokens=512, reasoning_effort=None),
+        model=ModelSpec(model_id="development-placeholder", access=["prime_key"]),
+        sampling=SamplingSpec(reasoning_effort=None),
         harness=HarnessSpecV2(use_bundled_skill=False, skills=skills),
         runtime=CampaignImageRuntime(
             type="docker",
@@ -398,10 +394,10 @@ def campaign(
         ),
         evidence=EvidenceRequirementsV2(runtime_evidence="not_required"),
         budgets=BudgetSpec(
-            maximum_input_tokens=None,
-            maximum_output_tokens=None,
-            maximum_model_calls=None,
-            maximum_usd=None,
+            maximum_input_tokens=200_000,
+            maximum_output_tokens=20_000,
+            maximum_model_calls=40,
+            maximum_usd=1.0,
         ),
         data_policy_digest=data_policy_digest,
         execution_plan_digest=plan_digest,
@@ -475,6 +471,7 @@ def experiment(
         taskset=spec.taskset,
         environment=spec.environment,
         agents={SUBJECT_AGENT: subject_agent(skills)},
+        access="prime_key",
         mutation_contract=spec.mutation_contract,
         execution_plan_digest=bound_execution_plan_digest(spec, plan),
         execution=spec.execution,
@@ -600,6 +597,7 @@ def episode_receipt(
                 )
             ]
         },
+        ending="completed",
         score_status=ScoreStatus.VALID,
         evidence_status=EvidenceStatus.COMPLETE,
         executor_kind="verifiers",
@@ -678,6 +676,14 @@ def uplift_report(
             violations=[],
         ),
         primary_result=aggregate_primary_result(deltas),
+        access="prime_key",
+        cost_provenance="provider_reported",
+        baseline_endings=EndingCounts(
+            completed=len(deltas), token_limit=0, call_limit=0, timeout=0
+        ),
+        candidate_endings=EndingCounts(
+            completed=len(deltas) - 1, token_limit=1, call_limit=0, timeout=0
+        ),
         task_deltas=deltas,
         decision=UpliftDecision.ACCEPTED,
         proof_grade="P1",
@@ -721,7 +727,7 @@ def variant_execution(
         cost=VariantCost(
             provenance="provider_reported",
             cost_usd=cost_usd,
-            detail="the sum of what the provider reported for every model call this side made",
+            detail="the sum of what Prime reported for every model call this side made",
         ),
         experiment_manifest_digest=digest_object(manifest),
         argv_digest=fixture_digest(f"{variant.value}-argv"),

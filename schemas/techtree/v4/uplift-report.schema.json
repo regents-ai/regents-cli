@@ -16,6 +16,40 @@
       "pattern": "^sha256:[0-9a-f]{64}$",
       "type": "string"
     },
+    "EndingCounts": {
+      "additionalProperties": false,
+      "description": "How one side's tries ended, one count per ending.",
+      "properties": {
+        "call_limit": {
+          "minimum": 0,
+          "title": "Call Limit",
+          "type": "integer"
+        },
+        "completed": {
+          "minimum": 0,
+          "title": "Completed",
+          "type": "integer"
+        },
+        "timeout": {
+          "minimum": 0,
+          "title": "Timeout",
+          "type": "integer"
+        },
+        "token_limit": {
+          "minimum": 0,
+          "title": "Token Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "completed",
+        "token_limit",
+        "call_limit",
+        "timeout"
+      ],
+      "title": "EndingCounts",
+      "type": "object"
+    },
     "EvidenceStatus": {
       "description": "How complete the supporting evidence is.",
       "enum": [
@@ -381,14 +415,36 @@
   "additionalProperties": false,
   "description": "The complete result of one baseline-versus-candidate comparison.",
   "properties": {
+    "access": {
+      "enum": [
+        "chatgpt_plan",
+        "prime_key"
+      ],
+      "title": "Access",
+      "type": "string"
+    },
+    "baseline_endings": {
+      "$ref": "#/$defs/EndingCounts"
+    },
     "baseline_manifest_digest": {
       "$ref": "#/$defs/Digest"
     },
     "campaign_spec_digest": {
       "$ref": "#/$defs/Digest"
     },
+    "candidate_endings": {
+      "$ref": "#/$defs/EndingCounts"
+    },
     "candidate_manifest_digest": {
       "$ref": "#/$defs/Digest"
+    },
+    "cost_provenance": {
+      "enum": [
+        "provider_reported",
+        "plan_included"
+      ],
+      "title": "Cost Provenance",
+      "type": "string"
     },
     "created_at": {
       "$ref": "#/$defs/UtcDateTime"
@@ -506,6 +562,10 @@
     "manifest_comparison",
     "primary_result",
     "task_deltas",
+    "access",
+    "cost_provenance",
+    "baseline_endings",
+    "candidate_endings",
     "decision",
     "proof_grade",
     "publication_eligible",

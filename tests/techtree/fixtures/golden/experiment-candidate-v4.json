@@ -1,6 +1,7 @@
 {
-  "campaign_spec_digest": "sha256:35432972c4cc98245d63a862861c0f8285b58b1cc8772133217e798a25f3c5a8",
+  "campaign_spec_digest": "sha256:7a856fc9a5d1d1ccd6feb52daaa35bc4188e437cef81667fcf19e37454c8a3fd",
   "configuration": {
+    "access": "prime_key",
     "agents": {
       "subject": {
         "harness": {
@@ -15,10 +16,10 @@
           "use_bundled_skill": false
         },
         "model": {
-          "credential_env": "TECHTREE_MODEL_API_KEY",
-          "model_id": "development-placeholder",
-          "provider": "development",
-          "revision": null
+          "access": [
+            "prime_key"
+          ],
+          "model_id": "development-placeholder"
         },
         "runtime": {
           "cpu": 2.0,
@@ -37,18 +38,16 @@
           "type": "docker"
         },
         "sampling": {
-          "max_tokens": 512,
-          "reasoning_effort": null,
-          "temperature": 0.0
+          "reasoning_effort": null
         },
         "trainable": false
       }
     },
     "budgets": {
-      "maximum_input_tokens": null,
-      "maximum_model_calls": null,
-      "maximum_output_tokens": null,
-      "maximum_usd": null
+      "maximum_input_tokens": 200000,
+      "maximum_model_calls": 40,
+      "maximum_output_tokens": 20000,
+      "maximum_usd": 1.0
     },
     "data_policy_digest": "sha256:f61fff0ff5941205fca8fc044c81e7a56aed9017539f6927ab9df0e81f70f88b",
     "environment": {
@@ -137,12 +136,12 @@
       "validation_receipt_digest": "sha256:8ccab5ac9e48a25ea26d621551b578ae4e210b61f950700477ae75252af27504"
     }
   },
-  "configuration_digest": "sha256:a9418155566416e73eb8ec212ba49f0d38d42d91358b95605148ea69da4cd9ac",
+  "configuration_digest": "sha256:8121b39278a027a1559b02488b3e423298d37bc15864d088a248fc5bf903598a",
   "created_at": "2026-01-01T00:00:00Z",
   "id": "receipt_3ca25686e2d6ab80e89e575e279a4ec3",
   "program_ref": null,
   "public_context": {
-    "climb_digest": "sha256:5015ce4676d3c17eaecd52e714e6253f1c3e01d449493736927cbec57ec72c0e",
+    "climb_digest": "sha256:6f6b71b5322b39a886b60b57f57cc7a68c2cdca52351fab2ce9e3096c6f7072f",
     "kind": "climb"
   },
   "schema_version": "techtree.experiment.v4",

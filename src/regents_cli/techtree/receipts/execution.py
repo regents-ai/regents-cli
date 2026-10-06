@@ -29,7 +29,7 @@ from regents_cli.techtree.models.base import (
     ProtocolModel,
     UtcDateTime,
 )
-from regents_cli.techtree.models.campaign import VariantSchedule
+from regents_cli.techtree.models.campaign import ModelAccess, VariantSchedule
 from regents_cli.techtree.models.experiment import ExperimentVariant
 from regents_cli.techtree.runs.spend import reported_cost
 from regents_cli.techtree.verifiers.models import (
@@ -59,9 +59,10 @@ class PairOutcome(StrEnum):
 
 
 class VariantCost(ProtocolModel):
-    """One side's cost as the provider reported it, or the sentence saying why there is none."""
+    """One side's cost as Prime reported it, the plan it ran on, or the sentence saying why
+    there is none."""
 
-    provenance: Literal["provider_reported", "unavailable"]
+    provenance: Literal["provider_reported", "plan_included", "unavailable"]
     cost_usd: float | None = Field(default=None, ge=0.0)
     detail: NonEmptyString
 
@@ -170,6 +171,7 @@ def build_comparison_execution_record(
     run_id: str,
     campaign_spec_digest: Digest,
     campaign_max_concurrent: int,
+    access: ModelAccess,
     execution: RealExecutionResult,
     launch: tuple[float, ExperimentVariant] | None,
     concurrency: tuple[int, int],
@@ -184,9 +186,14 @@ def build_comparison_execution_record(
     """
     baseline_permits, candidate_permits = concurrency
     baseline_traces, candidate_traces = raw_traces
-    baseline = _summary(execution.baseline, max_concurrent=baseline_permits, traces=baseline_traces)
+    baseline = _summary(
+        execution.baseline, max_concurrent=baseline_permits, traces=baseline_traces, access=access
+    )
     candidate = _summary(
-        execution.candidate, max_concurrent=candidate_permits, traces=candidate_traces
+        execution.candidate,
+        max_concurrent=candidate_permits,
+        traces=candidate_traces,
+        access=access,
     )
     started_at = min(baseline.started_at, candidate.started_at)
     finished_at = max(baseline.finished_at, candidate.finished_at)
@@ -252,7 +259,7 @@ def read_children_record(path: Path) -> tuple[float, ExperimentVariant] | None:
 
 
 def _summary(
-    result: VariantExecutionResult, *, max_concurrent: int, traces: bytes
+    result: VariantExecutionResult, *, max_concurrent: int, traces: bytes, access: ModelAccess
 ) -> VariantExecutionSummary:
     outcome = result.child_outcome
     return VariantExecutionSummary(
@@ -265,7 +272,7 @@ def _summary(
         episode_count=len(result.episodes),
         max_concurrent=max_concurrent,
         usage=_usage(result),
-        cost=_cost(traces),
+        cost=_cost(traces, access),
         experiment_manifest_digest=result.experiment_manifest_digest,
         argv_digest=outcome.argv_digest,
         normalized_episodes_digest=result.normalized_episodes.digest,
@@ -274,19 +281,26 @@ def _summary(
     )
 
 
-def _cost(traces: bytes) -> VariantCost:
-    """The provider's figures summed over every model call, or unavailable when any has none."""
+def _cost(traces: bytes, access: ModelAccess) -> VariantCost:
+    """Prime's figures summed over every model call, or unavailable when any has none; on the
+    ChatGPT plan, the plan, which reports tokens and no dollar figure."""
+    if access == "chatgpt_plan":
+        return VariantCost(
+            provenance="plan_included",
+            detail="this side ran on the person's ChatGPT plan, which counts tokens and gives "
+            "no dollar figure",
+        )
     cost_usd = reported_cost(traces)
     if cost_usd is None:
         return VariantCost(
             provenance="unavailable",
-            detail="the provider did not report what at least one of this side's model calls "
+            detail="Prime did not report what at least one of this side's model calls "
             "cost, so its total is unknown",
         )
     return VariantCost(
         provenance="provider_reported",
         cost_usd=cost_usd,
-        detail="the sum of what the provider reported for every model call this side made",
+        detail="the sum of what Prime reported for every model call this side made",
     )
 
 

@@ -4,13 +4,13 @@
     "cancelled": false,
     "cost": {
       "cost_usd": 0.0412,
-      "detail": "the sum of what the provider reported for every model call this side made",
+      "detail": "the sum of what Prime reported for every model call this side made",
       "provenance": "provider_reported"
     },
     "elapsed_seconds": 612.0,
     "episode_count": 20,
     "exit_code": 0,
-    "experiment_manifest_digest": "sha256:1fd63b06dd0b3bec3f32894142a017758d954554842c74a5f09f801c013c79a4",
+    "experiment_manifest_digest": "sha256:54bb3813b5469edbddc80224e33f9969a54adc645631f52c304666c1d849b209",
     "finished_at": "2026-01-01T00:10:12Z",
     "max_concurrent": 2,
     "normalized_episodes_digest": "sha256:0b4bd43e1d22a5e85443443fdb6388f59e1026543e73142cd201f7cfa95a3309",
@@ -30,19 +30,19 @@
     "variant": "baseline"
   },
   "campaign_max_concurrent": 4,
-  "campaign_spec_digest": "sha256:35432972c4cc98245d63a862861c0f8285b58b1cc8772133217e798a25f3c5a8",
+  "campaign_spec_digest": "sha256:7a856fc9a5d1d1ccd6feb52daaa35bc4188e437cef81667fcf19e37454c8a3fd",
   "candidate": {
     "argv_digest": "sha256:bb7c5a050f3c02f847398a8678250801fcf48c7b728d2c0da276a675c6bebebd",
     "cancelled": false,
     "cost": {
       "cost_usd": 0.0437,
-      "detail": "the sum of what the provider reported for every model call this side made",
+      "detail": "the sum of what Prime reported for every model call this side made",
       "provenance": "provider_reported"
     },
     "elapsed_seconds": 598.0,
     "episode_count": 20,
     "exit_code": 0,
-    "experiment_manifest_digest": "sha256:41661151e13adb0699d2a44106478111e6dd8a5e239c9319e258678a8da8c6f6",
+    "experiment_manifest_digest": "sha256:31f7376c763b97b915928c46268c801b78c34a22989af80c2b7f28c18a9275e8",
     "finished_at": "2026-01-01T00:09:58Z",
     "max_concurrent": 2,
     "normalized_episodes_digest": "sha256:bb3310f7eb89275b0aa425c9d3285562d43948a4ab6900dd29d90385f52a0131",

@@ -41,7 +41,7 @@ from regents_cli.techtree.manifests.builder import (
 )
 from regents_cli.techtree.manifests.compare import assert_controlled_comparison, compare_manifests
 from regents_cli.techtree.models.base import Digest, JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV4
+from regents_cli.techtree.models.campaign import CampaignSpecV4, ModelAccess
 from regents_cli.techtree.models.climb import ResolvedClimb
 from regents_cli.techtree.models.data_policy import DataPolicy
 from regents_cli.techtree.models.experiment import ManifestComparison
@@ -59,6 +59,7 @@ from regents_cli.techtree.skills.scanner import (
     SkillScanResult,
     scan_skill,
 )
+from regents_cli.techtree.verifiers.credentials import choose_route
 
 CLIMB_NOT_PREPARABLE: Final = "climb_not_preparable"
 CANDIDATE_POLICY_VIOLATION: Final = "candidate_policy_violation"
@@ -95,6 +96,7 @@ class PreparedDraft:
     draft_digest: Digest
     manifest_comparison: ManifestComparison
     source: CampaignSource
+    access: ModelAccess
 
 
 class SkillPreparationService:
@@ -110,13 +112,15 @@ class SkillPreparationService:
         *,
         climb_reference: str,
         skill_path: Path,
+        access: ModelAccess | None,
         candidate_label: str | None = None,
         held_out: bool = False,
         rerun: RerunOrigin | None = None,
     ) -> PreparedDraft:
         """Resolve, snapshot, derive, compare, and persist one draft, against the Climb's
-        Campaign or, with `held_out`, its held-out one; a rerun's Skill must be exactly the
-        one its Result carried."""
+        Campaign or, with `held_out`, its held-out one, on the route asked for (which may be
+        left out only when the Climb offers one); a rerun's Skill must be exactly the one its
+        Result carried."""
         created_at = utc_now()
         resolved = self._catalog.get_climb(climb_reference, held_out=held_out)
         if resolved.publisher_validation.normalized_evidence is None:
@@ -128,6 +132,7 @@ class SkillPreparationService:
             )
         validation_evidence = self._catalog.validation_evidence(resolved)
         self._require_preparable(resolved)
+        route = choose_route(resolved.campaign.subject.model.access, access, self._paths.root)
         scan = _scan(skill_path)
         _validate_candidate_policy(resolved)
         _require_no_proving_inputs(resolved.campaign, scan)
@@ -153,6 +158,7 @@ class SkillPreparationService:
                 campaign=resolved.campaign,
                 campaign_digest=resolved.campaign_digest,
                 public_context=source.public_context,
+                access=route.access,
                 created_at=created_at,
             )
             candidate = build_candidate_manifest(
@@ -160,6 +166,7 @@ class SkillPreparationService:
                 campaign_digest=resolved.campaign_digest,
                 skill=staged.artifact,
                 public_context=source.public_context,
+                access=route.access,
                 created_at=created_at,
             )
             comparison = compare_manifests(baseline, candidate, resolved.campaign.mutation_contract)
@@ -199,7 +206,11 @@ class SkillPreparationService:
         finally:
             remove_tree(staging)
         return PreparedDraft(
-            draft=draft, draft_digest=draft_digest, manifest_comparison=comparison, source=source
+            draft=draft,
+            draft_digest=draft_digest,
+            manifest_comparison=comparison,
+            source=source,
+            access=route.access,
         )
 
     def _require_preparable(self, resolved: ResolvedClimb) -> None:
@@ -386,9 +397,7 @@ def _warnings(resolved: ResolvedClimb) -> list[str]:
     )
     warnings.append(
         "Nothing produced here is a public proof. Starting this run evaluates the agent for "
-        "real and spends model tokens on inference at the model provider you configured. A "
-        "provider that charges for tokens bills that use to your own account; a model you run "
-        "yourself sends no bill."
+        "real, on your own Prime key or your ChatGPT plan; Techtree charges nothing."
     )
     release = resolved.data_policy.candidate_skill.public_release
     if release == "required_for_climb":

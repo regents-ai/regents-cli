@@ -22,6 +22,11 @@ type TaskOutcome = Literal["win", "loss", "tie"]
 type EconomicsSource = Literal["comparison_execution_record", "episode_receipts", "unavailable"]
 
 
+#: Where a shown cost comes from: Prime's reported dollars, the person's ChatGPT plan (no dollar
+#: figure), or nothing that can be shown.
+CostShown = Literal["provider_reported", "plan_included", "unavailable"]
+
+
 class TaskResultRow(ProtocolModel):
     """What one committed task contributed to the comparison."""
 
@@ -95,7 +100,7 @@ class UpliftPresentationPayload(ProtocolModel):
     every_rollout_completed: bool | None
     economics_source: EconomicsSource
     cost_usd: float | None = Field(default=None, ge=0.0)
-    cost_provenance: Literal["provider_reported", "unavailable"]
+    cost_provenance: CostShown
     cost_unavailable_reason: NonEmptyString | None = None
     decision: NonEmptyString
     proof_grade: NonEmptyString
@@ -125,7 +130,7 @@ class UpliftPresentationPayload(ProtocolModel):
     def _check_a_missing_cost_says_what_is_missing(self) -> Self:
         reported = self.cost_provenance == "provider_reported"
         if (self.cost_usd is not None) != reported:
-            raise ValueError("a cost figure is present exactly when the provider reported one")
+            raise ValueError("a cost figure is present exactly when Prime reported one")
         if reported == (self.cost_unavailable_reason is not None):
             raise ValueError(
                 "a payload with no cost figure says what is missing, and one with a figure "

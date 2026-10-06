@@ -23,6 +23,7 @@ from regents_cli.techtree.catalog.service import CatalogService
 from regents_cli.techtree.errors import ConflictError, ValidationError, VerificationError
 from regents_cli.techtree.fs import atomic_write_bytes, ensure_private_directory
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope, ProtocolModel
+from regents_cli.techtree.models.campaign import ModelAccess
 from regents_cli.techtree.models.skill import SkillArtifact
 from regents_cli.techtree.paths import TechtreePaths
 from regents_cli.techtree.publication.downloaded import opened_submission
@@ -77,10 +78,12 @@ def prepare_rerun(
     paths: TechtreePaths,
     bundle_digest: str,
     *,
+    access: ModelAccess | None,
     base: str,
     client: httpx.Client | None = None,
 ) -> PreparedDraft:
-    """An ordinary draft over a published Result's Campaign and Skill, recording what it reruns."""
+    """An ordinary draft over a published Result's Campaign and Skill, recording what it reruns,
+    on any route the Campaign offers: not necessarily the one the original ran on."""
     submission = _parse(
         get_json(base, "publications", bundle_digest, "bundle", client=client),
         PublicationSubmission,
@@ -121,6 +124,7 @@ def prepare_rerun(
         return SkillPreparationService(paths).prepare(
             climb_reference=climb_reference,
             skill_path=root / SKILL_DIRECTORY,
+            access=access,
             candidate_label=skill.name,
             held_out=held_out,
             rerun=RerunOrigin(bundle_digest=bundle_digest, skill_root_digest=skill.root_digest),

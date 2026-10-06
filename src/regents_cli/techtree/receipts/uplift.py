@@ -18,6 +18,7 @@ own predeclared rules reach.
 from __future__ import annotations
 
 import math
+from collections import Counter
 from collections.abc import Mapping, Sequence
 from datetime import datetime
 from decimal import Context, Decimal, Inexact, localcontext
@@ -40,7 +41,9 @@ from regents_cli.techtree.models.episode_receipt import (
 from regents_cli.techtree.models.experiment import ExperimentManifestV4, ExperimentVariant
 from regents_cli.techtree.models.run import RunRequestV2
 from regents_cli.techtree.models.uplift_report import (
+    COST_PROVENANCE,
     ComparisonStatus,
+    EndingCounts,
     ExecutionStatus,
     PrimaryUpliftResult,
     PublicationStatus,
@@ -189,6 +192,17 @@ def summarize_receipts(
     return score, evidence
 
 
+def count_endings(receipts: Sequence[EpisodeReceiptV3]) -> EndingCounts:
+    """How one side's tries ended, counted from its receipts."""
+    endings = Counter(receipt.ending for receipt in receipts)
+    return EndingCounts(
+        completed=endings["completed"],
+        token_limit=endings["token_limit"],
+        call_limit=endings["call_limit"],
+        timeout=endings["timeout"],
+    )
+
+
 def publication_status_for(data_policy: DataPolicy) -> PublicationStatus:
     """A policy that does not make the report public blocks publication before anyone asks."""
     if data_policy.derived_artifacts.uplift_report == "public":
@@ -232,6 +246,7 @@ def build_uplift_report(
     score: ScoreStatus,
     evidence: EvidenceStatus,
     attestation: LocalAttestation,
+    endings: tuple[EndingCounts, EndingCounts],
     rerun_of: Digest | None,
     created_at: datetime,
 ) -> UpliftReportV3:
@@ -283,6 +298,10 @@ def build_uplift_report(
         manifest_comparison=comparison.manifest_comparison,
         primary_result=primary,
         task_deltas=list(task_deltas),
+        access=baseline_manifest.configuration.access,
+        cost_provenance=COST_PROVENANCE[baseline_manifest.configuration.access],
+        baseline_endings=endings[0],
+        candidate_endings=endings[1],
         decision=decision,
         proof_grade=grade,
         publication_eligible=publication_eligible_for(grade=grade, publication=publication),

@@ -6,10 +6,10 @@
         "use_bundled_skill": false
       },
       "model": {
-        "credential_env": "TECHTREE_MODEL_API_KEY",
-        "model_id": "development-placeholder",
-        "provider": "development",
-        "revision": null
+        "access": [
+          "prime_key"
+        ],
+        "model_id": "development-placeholder"
       },
       "runtime": {
         "cpu": 2.0,
@@ -28,18 +28,16 @@
         "type": "docker"
       },
       "sampling": {
-        "max_tokens": 512,
-        "reasoning_effort": null,
-        "temperature": 0.0
+        "reasoning_effort": null
       },
       "trainable": false
     }
   },
   "budgets": {
-    "maximum_input_tokens": null,
-    "maximum_model_calls": null,
-    "maximum_output_tokens": null,
-    "maximum_usd": null
+    "maximum_input_tokens": 200000,
+    "maximum_model_calls": 40,
+    "maximum_output_tokens": 20000,
+    "maximum_usd": 1.0
   },
   "context": {
     "outcome_contract_digest": null,

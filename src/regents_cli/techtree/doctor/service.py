@@ -15,7 +15,7 @@ from regents_cli.techtree.doctor.checks import (
     check_hermes_plugin,
     check_host_platform,
     check_live_campaign,
-    check_model_credential,
+    check_model_routes,
     check_python_version,
     check_subject_images,
     check_techtree_home,
@@ -57,15 +57,17 @@ class DoctorService:
             check_hermes_plugin(),
             check_engine(self._paths),
         ]
+        subject = campaign.agents.get(SUBJECT_AGENT) if campaign is not None else None
+        checks.extend(
+            check_model_routes(self._paths, subject.model if subject is not None else None)
+        )
         if not for_evaluation:
             return checks
         checks.append(check_engine_eval(self._paths))
         if campaign is None:
             return checks
         checks.append(check_live_campaign(campaign))
-        subject = campaign.agents.get(SUBJECT_AGENT)
         if subject is not None:
-            checks.append(check_model_credential(subject.model))
             checks.append(check_subject_images(campaign))
         return checks
 

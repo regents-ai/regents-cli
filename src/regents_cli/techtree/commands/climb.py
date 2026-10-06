@@ -13,6 +13,7 @@ from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import to_json_value
 from regents_cli.techtree.catalog.repository import climb_reference
 from regents_cli.techtree.catalog.service import CLIMB_LIST_STATUSES, CatalogService
+from regents_cli.techtree.chatgpt.signin import USAGE_SETTINGS_URL
 from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
 from regents_cli.techtree.commands.run import run_service
 from regents_cli.techtree.drafts.source import CampaignSource
@@ -20,7 +21,7 @@ from regents_cli.techtree.drafts.store import DraftStore
 from regents_cli.techtree.errors import UsageError
 from regents_cli.techtree.ids import validate_id
 from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.models.campaign import CampaignSpecV4, Rubric
+from regents_cli.techtree.models.campaign import CampaignSpecV4, ModelAccess, Rubric
 from regents_cli.techtree.models.catalog import ClimbSummaryV2, CompatibilityResultV2
 from regents_cli.techtree.models.run import AcknowledgementMethod, PolicyAcknowledgement
 from regents_cli.techtree.models.skill import SubmissionDraft
@@ -29,6 +30,7 @@ from regents_cli.techtree.runs.service import ApprovalActor, utc_now
 from regents_cli.techtree.site import site_base
 from regents_cli.techtree.skills.published import prepare_rerun
 from regents_cli.techtree.skills.service import PreparedDraft, SkillPreparationService
+from regents_cli.techtree.verifiers.credentials import ROUTE_NAMES
 
 ONLY_CHANGE_LINE: Final = "The Skill is the only scientific change."
 
@@ -48,8 +50,14 @@ PUBLICATION_TERMS_LINE: Final = (
     "you publish a finished run yourself, and what travels then is the run's proof — the signed "
     "report, its receipts and your Skill, which becomes public — and never the episodes. Until "
     "then your Skill stays on this machine, and your episodes always do. Model calls still go "
-    "to the model provider you configured."
+    "to OpenAI or Prime, on the route the run uses."
 )
+
+#: `--access` spells a route with a hyphen; records spell it with an underscore.
+_ACCESS_FLAGS: Final[dict[str, ModelAccess]] = {
+    "chatgpt-plan": "chatgpt_plan",
+    "prime-key": "prime_key",
+}
 
 #: What a rerun is, and what it is not, said wherever a rerun is prepared.
 RERUN_LINE: Final = (
@@ -84,6 +92,7 @@ def show(reference: str, as_json: bool) -> None:
         "climb": to_json_value(summary),
         "data_policy_digest": resolved.data_policy_digest,
         "subject_model": to_json_value(campaign.subject.model),
+        "budgets": to_json_value(campaign.budgets),
         "subject_runtime": to_json_value(campaign.subject.runtime),
         "rubric": to_json_value(campaign.scoring.rubric),
         "candidate_skill_ownership": resolved.data_policy.candidate_skill.ownership,
@@ -108,17 +117,19 @@ def prepare(
     label: str | None,
     held_out: bool,
     rerun_of: str | None,
+    access_flag: str | None,
     base_url: str | None,
     as_json: bool,
 ) -> None:
     home = paths.home()
+    access = None if access_flag is None else _ACCESS_FLAGS[access_flag]
     if rerun_of is not None:
         if reference is not None or skill is not None or label is not None or held_out:
             raise UsageError(
                 "--rerun-of takes no Climb, --skill, --label or --held-out: the Result names "
                 "its Campaign and carries its Skill"
             )
-        prepared = prepare_rerun(home, rerun_of, base=site_base(base_url))
+        prepared = prepare_rerun(home, rerun_of, access=access, base=site_base(base_url))
     else:
         if reference is None or skill is None:
             raise UsageError(
@@ -127,7 +138,11 @@ def prepare(
         if base_url is not None:
             raise UsageError("--base-url is only for --rerun-of, which reads Techtree's site")
         prepared = SkillPreparationService(home).prepare(
-            climb_reference=reference, skill_path=skill, candidate_label=label, held_out=held_out
+            climb_reference=reference,
+            skill_path=skill,
+            access=access,
+            candidate_label=label,
+            held_out=held_out,
         )
     draft = prepared.draft
     source = prepared.source
@@ -150,6 +165,7 @@ def prepare(
         "baseline_skill_count": len(campaign.subject.harness.skills),
         "candidate_skill_count": 1,
         "estimated_episodes": draft.estimated_episodes,
+        "access": prepared.access,
         "campaign_maximum_usd": campaign.budgets.maximum_usd,
         "candidate_ownership": policy.candidate_skill.ownership,
         "candidate_public_release": policy.candidate_skill.public_release,
@@ -179,18 +195,19 @@ def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> N
     draft = drafts.get(draft_id)
     source = drafts.get_source(draft_id)
     campaign = source.campaign
+    access = drafts.access(draft_id)
     reviewed_on = approve(
         yes=yes,
         reviewed_on=reviewed_on,
         as_json=as_json,
         review=[
-            *review_lines(draft=draft, campaign=campaign),
+            *review_lines(draft=draft, campaign=campaign, access=access),
             draft.policy_acceptance.summary,
             PUBLICATION_TERMS_LINE,
         ],
         command=["climb", "start", draft_id],
         question="Start this run?",
-        why="A run spends model tokens under the Campaign's declared maximum and accepts the "
+        why=f"A run uses your {ROUTE_NAMES[access]} under the Climb's limits and accepts the "
         "Climb's data policy.",
     )
     # Which surface the review happened on is recorded with the run: a person who read it on
@@ -212,7 +229,7 @@ def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> N
     )
     state = status.state
     request = service.request(state.run_id)
-    warnings = _start_warnings(source)
+    warnings = _start_warnings(source, access)
     answer: dict[str, JsonValue] = {
         "run_id": state.run_id,
         "draft_id": draft_id,
@@ -221,13 +238,15 @@ def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> N
         "worker_pid": state.worker_pid,
         "campaign_spec_digest": draft.campaign_spec_digest,
         "data_policy_digest": draft.data_policy_digest,
+        "access": access,
         "policy_acknowledgement_method": method,
         "approved_by": actor,
         "state_digest": service.state_digest(state.run_id),
         "warnings": to_json_value(warnings),
         "report": "\n".join(
             [
-                f"Run {state.run_id} started from draft {draft_id}: {public_state(state.phase)}.",
+                f"Run {state.run_id} started from draft {draft_id} on your "
+                f"{ROUTE_NAMES[access]}: {public_state(state.phase)}.",
                 "",
                 f"- Draft digest: {request.draft_digest}",
                 f"- Worker process: {state.worker_pid}",
@@ -242,37 +261,46 @@ def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> N
     emit(answer, as_json=as_json)
 
 
-def review_lines(*, draft: SubmissionDraft, campaign: CampaignSpecV4) -> list[str]:
-    """The five things a person weighs before a run starts, read off this draft and Campaign."""
+def review_lines(
+    *, draft: SubmissionDraft, campaign: CampaignSpecV4, access: ModelAccess
+) -> list[str]:
+    """What a person weighs before a run starts, read off this draft and Campaign, beginning
+    with the route the run uses and what it costs."""
     return [
+        *route_lines(campaign, access, tries=draft.estimated_episodes),
         f"This runs {draft.estimated_episodes} episodes: the same tasks once for each side of "
         "the comparison.",
-        _cost_line(campaign),
         ONLY_CHANGE_LINE,
-        f"Model calls go to {campaign.subject.model.provider}, under that provider's policies.",
+        _calls_line(campaign, access),
         PUBLICATION_STEP_LINE,
     ]
 
 
-def _cost_line(campaign: CampaignSpecV4) -> str:
-    """What holds the spend while the run is under way, and what does not."""
-    ceiling = campaign.budgets.maximum_usd
-    if ceiling is None:
-        return (
-            "This run spends model tokens on inference. This Campaign declares no maximum, so "
-            "Techtree does not stop the run for what it spends. Each episode still has enforced "
-            "turn, token, and time limits. A provider that charges for tokens bills the episodes "
-            "above to your own account, and a model you run yourself sends no bill."
-        )
-    return (
-        "This run spends model tokens on inference. While it runs, Techtree adds up the cost "
-        "the provider reports for each finished task, and once the total reaches the "
-        f"${ceiling:.2f} maximum this Campaign declares, it stops both sides; a stopped run has "
-        "no score. Tasks still under way when it stops can add a little to the total. Each "
-        "episode also has enforced turn, token, and time limits. A provider that charges for "
-        "tokens bills the episodes above to your own account, and a model you run yourself "
-        "sends no bill."
-    )
+def route_lines(campaign: CampaignSpecV4, access: ModelAccess, *, tries: int) -> list[str]:
+    """The route a run uses and the limits that stop it. The call and dollar limits are exact;
+    a try's last reply can carry it past its token limits."""
+    budgets = campaign.budgets
+    calls = budgets.maximum_model_calls
+    if access == "chatgpt_plan":
+        tokens = (budgets.maximum_input_tokens + budgets.maximum_output_tokens) * tries
+        return [
+            "Using your ChatGPT plan",
+            f"Manage usage: {USAGE_SETTINGS_URL}",
+            "Runs on your ChatGPT plan. Each try stops starting model calls once it passes its "
+            f"token limit or reaches {calls} calls, so the run uses about {tokens:,} tokens of "
+            "your plan's limits; a try's last reply can go over. Techtree charges nothing.",
+        ]
+    return [
+        f"Runs on your own Prime key. Stops at ${budgets.maximum_usd:.2f}, or sooner when each "
+        f"try passes its token limit or reaches {calls} calls. Techtree charges nothing."
+    ]
+
+
+def _calls_line(campaign: CampaignSpecV4, access: ModelAccess) -> str:
+    model = campaign.subject.model.model_id
+    if access == "chatgpt_plan":
+        return f"Model calls go to OpenAI's {model} on your ChatGPT plan, under OpenAI's policies."
+    return f"Model calls go to {model} through Prime on your own key, under Prime's policies."
 
 
 def _development_warnings(summaries: list[ClimbSummaryV2]) -> list[JsonValue]:
@@ -294,15 +322,15 @@ def _compatibility_warnings(compatibility: CompatibilityResultV2) -> list[JsonVa
     return [{"id": issue.code, "text": issue.message} for issue in compatibility.issues]
 
 
-def _start_warnings(source: CampaignSource) -> list[dict[str, str]]:
-    """Two facts read off the run: it spends real tokens, and whether its report is publishable."""
+def _start_warnings(source: CampaignSource, access: ModelAccess) -> list[dict[str, str]]:
+    """Two facts read off the run: what it uses up, and whether its report is publishable."""
     warnings = [
         {
             "id": "paid_evaluation_run",
-            "text": "This run evaluates the agent for real and spends model tokens on inference "
-            f"with {source.campaign.subject.model.provider}. If that provider charges for "
-            "tokens, what you pay is whatever it charges; a model you run yourself sends no "
-            "bill.",
+            "text": "This run evaluates the agent for real and uses your ChatGPT plan's limits."
+            if access == "chatgpt_plan"
+            else "This run evaluates the agent for real, and Prime charges your own key for "
+            "its model calls.",
         }
     ]
     if source.climb.publication.proof_grade == "development_only":
@@ -354,8 +382,17 @@ def _show_report(
             if held_out
             else []
         ),
-        f"- Subject: {campaign.subject.model.provider} {campaign.subject.model.model_id} in "
-        f"{summary.subject_harness} {summary.subject_harness_version}",
+        f"- Subject: {campaign.subject.model.model_id} in {summary.subject_harness} "
+        f"{summary.subject_harness_version}",
+        "- Runs on: " + ", ".join(ROUTE_NAMES[access] for access in campaign.subject.model.access),
+        f"- Limits per try: {campaign.budgets.maximum_input_tokens:,} input tokens, "
+        f"{campaign.budgets.maximum_output_tokens:,} output tokens, "
+        f"{campaign.budgets.maximum_model_calls} model calls",
+        *(
+            []
+            if campaign.budgets.maximum_usd is None
+            else [f"- Dollar limit on your own Prime key: ${campaign.budgets.maximum_usd:.2f}"]
+        ),
         f"- Scored on: {_rubric_phrase(campaign.scoring.rubric)}",
         f"- Proof grade: {summary.proof_grade}",
         f"- Candidate Skill: {_phrase(summary.candidate_skill_visibility)} to others; ownership "
@@ -371,8 +408,12 @@ def _show_report(
     for issue in compatibility.issues:
         lines.append(f"- {issue.severity.upper()} {issue.code}: {issue.message}")
     lines.append("")
+    access_flag = (
+        " --access prime-key|chatgpt-plan" if len(campaign.subject.model.access) > 1 else ""
+    )
     lines.append(
         f"Next: regents techtree climb prepare {summary.reference} --skill <path to SKILL.md>"
+        + access_flag
     )
     return "\n".join(lines)
 
@@ -380,7 +421,6 @@ def _show_report(
 def _prepare_report(prepared: PreparedDraft, start_command: str) -> str:
     draft = prepared.draft
     campaign = prepared.source.campaign
-    ceiling = campaign.budgets.maximum_usd
     held_out = prepared.source.campaign_digest != prepared.source.climb.campaign_spec_digest
     lines = [
         f"Draft {draft.id} is prepared against {climb_reference(prepared.source.climb)}"
@@ -390,9 +430,10 @@ def _prepare_report(prepared: PreparedDraft, start_command: str) -> str:
         f"- Candidate: {draft.skill_artifact.name} ({draft.skill_artifact.root_digest})",
         f"- Files: {', '.join(draft.included_files)}",
         f"- Episodes: {draft.estimated_episodes}",
-        f"- Declared maximum: {'none' if ceiling is None else f'${ceiling:.2f}'}",
         f"- Comparison controlled: {'yes' if prepared.manifest_comparison.controlled else 'no'}",
         f"- Proof grade: {prepared.source.climb.publication.proof_grade}",
+        "",
+        *route_lines(campaign, prepared.access, tries=draft.estimated_episodes),
         "",
         draft.policy_acceptance.summary,
     ]
@@ -468,6 +509,12 @@ CLIMB.add_command(
                 ["--rerun-of"],
                 metavar="BUNDLE_DIGEST",
                 help="Rerun a published Result: its Campaign and its Skill, with new runs here.",
+            ),
+            click.Option(
+                ["--access", "access_flag"],
+                type=click.Choice(sorted(_ACCESS_FLAGS)),
+                help="The route this run reaches the model by: your own Prime key or your "
+                "ChatGPT plan. Needed when the Climb offers both.",
             ),
             BASE_URL,
             JSON,
