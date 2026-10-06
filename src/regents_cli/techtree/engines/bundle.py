@@ -29,7 +29,6 @@ SHIPPED_ENGINES: Final[tuple[str, ...]] = (
     "default",
     "frontier-cs",
     "tasksmith",
-    "au-bas-reconciliation",
 )
 DESCRIPTOR_FILENAME: Final = "engine.json"
 #: Written by the installer when an installation is complete; never part of the digest.

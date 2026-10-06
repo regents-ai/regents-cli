@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.6.0 — 2026-10-06
 
 - The package's licence is now stated in full. regents-cli's own code stays MIT; the
   Frontier-CS problems it carries keep their MIT licence and the Skill2Env contract its

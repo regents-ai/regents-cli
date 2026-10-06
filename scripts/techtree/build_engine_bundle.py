@@ -113,20 +113,6 @@ ENGINES: Final = (
             wheel_sha256="3c7d549f89d77bcf047a8b0252a745ab6d4c46b7a783c530799fb2fa04cbbaf3",
         ),
     ),
-    Engine(
-        name="au-bas-reconciliation",
-        package="au-bas-reconciliation-v1",
-        description="Pinned Verifiers environment and the Prime Environments Hub taskset "
-        "afzal0/au-bas-reconciliation-v1 for Techtree.",
-        hub=HubPackage(
-            name="afzal0/au-bas-reconciliation-v1",
-            version="0.1.1",
-            content_hash="5c571e4f4af46e0a2c7471e5d84aa825ce02b3f19de40f065fe13108fc1bbf50",
-            wheel_url="https://hub.primeintellect.ai/afzal0/au-bas-reconciliation-v1/@5c571e4f/"
-            "au_bas_reconciliation_v1-0.1.1-py3-none-any.whl",
-            wheel_sha256="5c1502f0cf2e101aca688597fbce44f7d2c130cf11c0395964e5ca5e85fa5502",
-        ),
-    ),
 )
 
 
