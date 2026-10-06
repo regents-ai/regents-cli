@@ -101,8 +101,17 @@ ENGINES: Final = (
     Engine(
         name="tasksmith",
         package="hf-tasksmith-v1",
-        description="Pinned Verifiers environment and the HF Tasksmith taskset for Techtree.",
+        description="Pinned Verifiers environment and the Prime Environments Hub taskset "
+        "techtree/hf-tasksmith-v1 for Techtree.",
         verifiers_extras=("harbor",),
+        hub=HubPackage(
+            name="techtree/hf-tasksmith-v1",
+            version="0.1.0",
+            content_hash="d0f95ca8af13821fc0c1a215ca4bac60afe1d7c56db3adb53951c75294516d22",
+            wheel_url="https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/"
+            "hf_tasksmith_v1-0.1.0-py3-none-any.whl",
+            wheel_sha256="3c7d549f89d77bcf047a8b0252a745ab6d4c46b7a783c530799fb2fa04cbbaf3",
+        ),
     ),
     Engine(
         name="au-bas-reconciliation",

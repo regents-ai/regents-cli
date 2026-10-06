@@ -6,7 +6,7 @@
 [project]
 name = "techtree-engine-tasksmith"
 version = "0.1.0"
-description = "Pinned Verifiers environment and the HF Tasksmith taskset for Techtree."
+description = "Pinned Verifiers environment and the Prime Environments Hub taskset techtree/hf-tasksmith-v1 for Techtree."
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "hf-tasksmith-v1",
@@ -18,5 +18,5 @@ dependencies = [
 package = false
 
 [tool.uv.sources]
-hf-tasksmith-v1 = { path = "packages/hf-tasksmith-v1", editable = true }
+hf-tasksmith-v1 = { url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/hf_tasksmith_v1-0.1.0-py3-none-any.whl" }
 verifiers = { git = "https://github.com/PrimeIntellect-ai/verifiers", rev = "fc73e02ea99594407bf7579c53f7711f7434635a" }

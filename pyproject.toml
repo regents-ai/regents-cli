@@ -4,7 +4,7 @@ version = "1.5.0"
 description = "The regents command: every Regents Labs site from one command line."
 readme = "README.md"
 requires-python = ">=3.12"
-license = "MIT AND Apache-2.0 AND LicenseRef-HF-ML-Tasksmith"
+license = "MIT AND Apache-2.0"
 license-files = ["LICENSE", "LICENSES/*", "THIRD_PARTY_NOTICES.md"]
 authors = [{ name = "Regents Labs" }]
 keywords = ["regents", "cli", "agents"]
@@ -64,8 +64,9 @@ default-groups = ["dev"]
 line-length = 100
 target-version = "py312"
 src = ["src", "scripts", "tests"]
-# Techtree's engine bundle is hashed byte for byte into every run; it is never reformatted.
-extend-exclude = ["src/regents_cli/techtree/resources"]
+# Techtree's engine bundle is hashed byte for byte into every run, and its Hub taskset packages
+# are published byte for byte; neither is ever reformatted.
+extend-exclude = ["src/regents_cli/techtree/resources", "tasksets"]
 
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "N", "RUF", "SIM", "UP", "W"]

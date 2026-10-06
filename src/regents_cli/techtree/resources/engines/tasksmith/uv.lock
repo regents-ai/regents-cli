@@ -505,9 +505,12 @@ wheels = [
 [[package]]
 name = "hf-tasksmith-v1"
 version = "0.1.0"
-source = { editable = "packages/hf-tasksmith-v1" }
+source = { url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/hf_tasksmith_v1-0.1.0-py3-none-any.whl" }
 dependencies = [
     { name = "verifiers", extra = ["harbor"] },
+]
+wheels = [
+    { url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/hf_tasksmith_v1-0.1.0-py3-none-any.whl", hash = "sha256:3c7d549f89d77bcf047a8b0252a745ab6d4c46b7a783c530799fb2fa04cbbaf3" },
 ]
 
 [package.metadata]
@@ -1745,7 +1748,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "hf-tasksmith-v1", editable = "packages/hf-tasksmith-v1" },
+    { name = "hf-tasksmith-v1", url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/hf_tasksmith_v1-0.1.0-py3-none-any.whl" },
     { name = "verifiers", extras = ["harbor"], git = "https://github.com/PrimeIntellect-ai/verifiers?rev=fc73e02ea99594407bf7579c53f7711f7434635a" },
 ]
 

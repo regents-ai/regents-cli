@@ -5,14 +5,14 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
-- The package's licence is now stated in full. regents-cli's own code stays MIT. The twelve
-  Tasksmith task folders it carries are republished from the Hugging Face dataset
-  FineEnvs/HF_ML_Tasksmith, with no licence granted by Regents Labs, and their reference
-  solutions are Apache-2.0 code from Hugging Face's libraries. `THIRD_PARTY_NOTICES.md` and
-  the Apache License text now ship in the package.
-- The Tasksmith taskset package is ready to publish on the Prime Environments Hub on its own:
-  it now carries a README with the twelve tasks, the images each runs in and how to run them,
-  its licence files and notice, and states the Verifiers version it needs.
+- The package's licence is now stated in full. regents-cli's own code stays MIT; the
+  Frontier-CS problems it carries keep their MIT licence and the Skill2Env contract its
+  Apache-2.0 licence. `THIRD_PARTY_NOTICES.md` and the Apache License text now ship in the
+  package.
+- The Tasksmith Climb's twelve tasks no longer ship inside regents-cli. They are published on
+  the Prime Environments Hub as `techtree/hf-tasksmith-v1` 0.1.0, with a README listing the
+  tasks, the images each runs in and how to run them, and their licences; the Tasksmith engine
+  installs that exact publication, checked against its wheel's fingerprint.
 - Every Climb now scores each task on its environment's own weighted total of rewards, not on
   one named reward. A Campaign records each reward's name and weight and the fingerprint of
   the package that scores it; a run whose rewards or weights differ from those is refused, and

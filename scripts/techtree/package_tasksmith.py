@@ -1,4 +1,4 @@
-"""Copy the Tasksmith Climb's twelve tasks into the tasksmith engine's package, with provenance.
+"""Copy the Tasksmith Climb's twelve tasks into the hf-tasksmith-v1 package, with provenance.
 
 The source is HF FineEnvs/HF_ML_Tasksmith at the pinned revision, downloaded beforehand:
 
@@ -24,7 +24,7 @@ import tomllib
 from pathlib import Path
 from typing import Final
 
-from build_engine_bundle import ENGINES_ROOT, package_source_digest
+from build_engine_bundle import ROOT, package_source_digest
 
 from regents_cli.techtree.fs import atomic_write_json
 
@@ -50,7 +50,8 @@ HELD_OUT_TASKS: Final = (
     "tasksmith-c98f3a4a299d",
 )
 
-PACKAGE_ROOT: Final = ENGINES_ROOT / "tasksmith/packages/hf-tasksmith-v1/hf_tasksmith_v1"
+#: The package's source, published on the Prime Environments Hub as techtree/hf-tasksmith-v1.
+PACKAGE_ROOT: Final = ROOT / "tasksets/hf-tasksmith-v1/hf_tasksmith_v1"
 #: What the engine reads while a task runs: the rest of tests/ is copied into the grader box.
 KEPT_TESTS: Final = ("contract.json", "grade.py", "test.sh", "test_driver.py", "test_results.py")
 LEFT_OUT: Final = ("environment/", "tests/Dockerfile", "tests/source/")

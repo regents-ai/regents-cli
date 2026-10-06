@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal
 
+from build_engine_bundle import ENGINES
 from package_tasksmith import HELD_OUT_TASKS, TRAINING_TASKS
 from pydantic import BaseModel
 from tasksets import TasksetValidation, lock_taskset, validate_taskset
@@ -45,6 +46,7 @@ from regents_cli.techtree.models.campaign import (
     EvidenceRequirementsV2,
     ExecutionSpec,
     HarnessSpecV2,
+    HubPackageRef,
     ModelSpec,
     MutationContract,
     MutationKind,
@@ -363,12 +365,17 @@ def read_task_pins(path: Path) -> TaskPins:
 
 
 def taskset_ref(definition: CampaignDefinition) -> TasksetRef:
-    """The Campaign's taskset, read from its packaged engine's own descriptor."""
+    """The Campaign's taskset, read from its packaged engine's own descriptor.
+
+    A shipped package is named by its source tree; a Hub package by its publication and the
+    exact wheel the engine's lock installs.
+    """
     package = next(
         entry
         for entry in read_engine_descriptor(embedded_engine_root(definition.engine)).packages
         if entry.name == definition.package
     )
+    hub = next(engine.hub for engine in ENGINES if engine.name == definition.engine)
     return TasksetRef(
         kind="verifiers",
         id=definition.package,
@@ -377,6 +384,15 @@ def taskset_ref(definition: CampaignDefinition) -> TasksetRef:
             name=definition.package,
             revision=package.version,
             digest=package.source_digest,
+        )
+        if hub is None
+        else HubPackageRef(
+            kind="hub",
+            name=hub.name,
+            version=hub.version,
+            revision=hub.content_hash,
+            digest=package.source_digest,
+            artifact_url=hub.wheel_url,
         ),
         config={},
     )
