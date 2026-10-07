@@ -92,13 +92,19 @@ def sign_in_good(site: str, timeout_ms: int) -> str:
             f"Signed in with your own key as {receipt.address} until "
             f"{receipt.receipt_expires_at}; only that key can sign a request to check it further."
         )
-    listing = siwa.confirm(site, receipt, timeout_ms)
+    told = siwa.confirm(site, receipt, timeout_ms)
+    listing, person = told["agentRegistration"], told["agentBook"]
     listed = (
         f"listed in the agent registry at {listing['registryUrl']}"
         if listing
         else "not listed in the agent registry (optional: regents auth register)"
     )
+    vouched = (
+        f"its World ID person is {person['humanId']}"
+        if person
+        else "it has accepted no World ID person (optional: regents auth accept-world-id)"
+    )
     return (
         f"The sign-in server accepts {receipt.address} until {receipt.receipt_expires_at}; "
-        f"it is {listed}."
+        f"it is {listed}, and {vouched}."
     )

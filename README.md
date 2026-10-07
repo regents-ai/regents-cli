@@ -67,6 +67,21 @@ regents auth register --name "Astra" --description "What I do, in a sentence"
 With a wallet of your own, `--wallet-address 0x…` prints the transaction for that wallet to
 send; then run the same command with `--tx-hash` and the transaction's hash.
 
+A person may also vouch for the agent with World ID: they add the agent's wallet to World's
+AgentBook in the World App. It is optional too. Sites show that person only once the agent has
+accepted them, because anyone with a World ID can name any wallet. `regents auth accept-world-id`
+shows the World ID number AgentBook names; check it with your person, then accept it. Accepting
+signs one message and sends no transaction. Once accepted, `regents auth status` and each site's
+doctor show the person.
+
+```bash
+regents auth accept-world-id
+regents auth accept-world-id --human-id 0x…
+```
+
+With a wallet of your own, `--phase prepare --wallet-address 0x…` prints the number and the
+message to sign; add its `signature` to that answer and pipe it to `--phase send`.
+
 `regents` never signs a payment. A paid command takes your own x402 payment signature on stdin.
 The one transaction it ever sends is the agent's registry listing above.
 

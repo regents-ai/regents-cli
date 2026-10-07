@@ -386,10 +386,12 @@ def sign(request: Request, receipt: Receipt) -> dict[str, str]:
     return {**headers, "signature": signature_header(personal_sign(key, message))}
 
 
-def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any] | None:
+def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
     """Have the sign-in server check a request signed with this sign-in, as the site does.
 
-    Answers the wallet's agent registry listing, as the sign-in server names it, or None.
+    Answers what the sign-in server tells the site about the wallet: its agent registry
+    listing (`agentRegistration`) and the World ID person it accepted (`agentBook`), each
+    None when it has none.
     """
     request = Request("GET", "/")
     checked = _post(
@@ -404,8 +406,8 @@ def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any] | No
             f"The sign-in server did not accept a request signed for {site}.",
             exit_code=EXIT_AUTH,
         )
-    listing: dict[str, Any] | None = checked["data"]["agentRegistration"]
-    return listing
+    told: dict[str, Any] = checked["data"]
+    return told
 
 
 def registration_step(profile: dict[str, str], timeout_ms: int) -> dict[str, Any]:
@@ -423,3 +425,43 @@ def registration_outcome(profile: dict[str, str], tx_hash: str, timeout_ms: int)
         "/api/shared/siwa/agent/registered", {**profile, "tx_hash": tx_hash}, timeout_ms
     )
     return outcome
+
+
+def signer_name(key: Key) -> str:
+    """How this machine's key signs, so the sign-in server can word its advice on a refusal."""
+    if key.signer is None:
+        return "own-key"
+    return Path((key.signer.split() or [""])[0]).name
+
+
+def agent_book_challenge(wallet_address: str, timeout_ms: int) -> dict[str, Any]:
+    """The person World's AgentBook names behind this wallet now, and the message the wallet
+    signs to accept them."""
+    if not ADDRESS.fullmatch(wallet_address):
+        raise UsageError(f"{wallet_address!r} is not an address.")
+    data = _post(
+        "/api/shared/siwa/agent-book/challenge",
+        {"wallet_address": wallet_address, "chain_id": CHAIN_ID},
+        timeout_ms,
+    )["data"]
+    return {
+        "wallet_address": data["walletAddress"],
+        "human_id": data["humanId"],
+        "accepted": data["accepted"],
+        "nonce": data["nonce"],
+        "message": data["message"],
+    }
+
+
+def accept_agent_book(
+    signed: dict[str, str], signer: str | None, timeout_ms: int
+) -> dict[str, Any]:
+    """Hand the signed challenge back; the sign-in server keeps the person while World's
+    AgentBook still names them."""
+    data = _post(
+        "/api/shared/siwa/agent-book/accept",
+        {"chain_id": CHAIN_ID, **signed},
+        timeout_ms,
+        headers={"x-agent-signer": signer} if signer is not None else None,
+    )["data"]
+    return {"wallet_address": data["walletAddress"], "human_id": data["humanId"], "accepted": True}
