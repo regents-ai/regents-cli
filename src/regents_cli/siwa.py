@@ -447,7 +447,6 @@ def agent_book_challenge(wallet_address: str, timeout_ms: int) -> dict[str, Any]
     return {
         "wallet_address": data["walletAddress"],
         "human_id": data["humanId"],
-        "accepted": data["accepted"],
         "nonce": data["nonce"],
         "message": data["message"],
     }
@@ -456,12 +455,11 @@ def agent_book_challenge(wallet_address: str, timeout_ms: int) -> dict[str, Any]
 def accept_agent_book(
     signed: dict[str, str], signer: str | None, timeout_ms: int
 ) -> dict[str, Any]:
-    """Hand the signed challenge back; the sign-in server keeps the person while World's
-    AgentBook still names them."""
+    """Hand the signed challenge back; the sign-in server keeps the person for good."""
     data = _post(
         "/api/shared/siwa/agent-book/accept",
         {"chain_id": CHAIN_ID, **signed},
         timeout_ms,
         headers={"x-agent-signer": signer} if signer is not None else None,
     )["data"]
-    return {"wallet_address": data["walletAddress"], "human_id": data["humanId"], "accepted": True}
+    return {"wallet_address": data["walletAddress"], "human_id": data["humanId"]}

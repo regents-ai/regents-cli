@@ -71,8 +71,9 @@ A person may also vouch for the agent with World ID: they add the agent's wallet
 AgentBook in the World App. It is optional too. Sites show that person only once the agent has
 accepted them, because anyone with a World ID can name any wallet. `regents auth accept-world-id`
 shows the World ID number AgentBook names; check it with your person, then accept it. Accepting
-signs one message and sends no transaction. Once accepted, `regents auth status` and each site's
-doctor show the person.
+signs one message and sends no transaction, and it is for good: sites show that person behind the
+agent from then on, whatever AgentBook names later, and the agent can never accept another. Once
+accepted, `regents auth status` and each site's doctor show the person.
 
 ```bash
 regents auth accept-world-id

@@ -306,7 +306,8 @@ def accept_world_id(
         output.emit(
             siwa.agent_book_challenge(wallet_address, timeout_ms),
             as_json=as_json,
-            hint="Check that human_id is your person's World ID number. Then sign the message "
+            hint="Check that human_id is your person's World ID number: accepting is for good, "
+            "and the wallet can never accept another person. Then sign the message "
             f'with {wallet_address}, add the signature to this answer as "signature", and '
             "pipe it to: regents auth accept-world-id --phase send. The message lasts five "
             "minutes.",
@@ -314,7 +315,7 @@ def accept_world_id(
         return
     if phase == "send":
         signed = read_stdin(timeout_ms)
-        fields = {"wallet_address", "human_id", "accepted", "nonce", "message", "signature"}
+        fields = {"wallet_address", "human_id", "nonce", "message", "signature"}
         if not isinstance(signed, dict) or set(signed) != fields:
             raise UsageError(
                 "stdin must hold the answer of --phase prepare with the message's signature "
@@ -336,13 +337,12 @@ def accept_world_id(
         )
     found = siwa.agent_book_challenge(key.address, timeout_ms)
     if human_id is None:
-        named = {field: found[field] for field in ("wallet_address", "human_id", "accepted")}
+        named = {field: found[field] for field in ("wallet_address", "human_id")}
         hint = (
-            "This wallet has accepted this person, so sites show them."
-            if found["accepted"]
-            else "World's AgentBook names this person behind the agent. Anyone with a World ID "
-            "can put their number on any wallet, so ask your person whether this is their World "
-            "ID number. If it is, run: "
+            "World's AgentBook names this person behind the agent. Anyone with a World ID can put "
+            "their number on any wallet, so ask your person whether this is their World ID "
+            "number. Accepting is for good: the agent can never accept another person. If it is "
+            "theirs, run: "
             + shlex.join(["regents", "auth", "accept-world-id", "--human-id", found["human_id"]])
         )
         output.emit(named, as_json=as_json, hint=hint)

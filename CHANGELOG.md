@@ -3,6 +3,13 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Accepting a World ID person is now for good: sites show that person behind the agent from then
+  on, whatever World's AgentBook names later, and the agent can never accept another. A wallet
+  that has accepted gets `agent_book_already_accepted`. `accept-world-id` no longer shows
+  `accepted`, and `--phase send` reads the prepare answer without it.
+
 ## 1.7.0 — 2026-10-07
 
 - New: `regents auth accept-world-id` accepts the person who vouched for the agent with World
