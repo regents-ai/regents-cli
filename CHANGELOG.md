@@ -3,12 +3,19 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.7.2 — 2026-10-07
+
+- Techtree release `climb-v0.7.1`: the same Climbs, catalog and engines as `climb-v0.7.0`, now
+  named with this version of `regents`, so Techtree can pin it.
+
 ## 1.7.1 — 2026-10-07
 
 - Accepting a World ID person is now for good: sites show that person behind the agent from then
   on, whatever World's AgentBook names later, and the agent can never accept another. A wallet
   that has accepted gets `agent_book_already_accepted`. `accept-world-id` no longer shows
   `accepted`, and `--phase send` reads the prepare answer without it.
+- On 1.7.0, `accept-world-id` stops working now that the sign-in server keeps the person for
+  good. Upgrade with `uv tool upgrade regents-cli`.
 
 ## 1.7.0 — 2026-10-07
 
