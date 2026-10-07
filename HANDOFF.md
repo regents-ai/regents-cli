@@ -39,7 +39,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
 3b. Regents: `regents protocol agents pair | me` from Regents `cd94535`. `protocol` is the one
    command tree named apart from its site (`SIGN_IN_SITES` in `platforms/__init__.py`), and
    `auth status` reads `agents me` to show the paired account.
-4. KeyFleet: its `cli/commands.json` is at `79d6cbe` in a private repository; pinning it here
+4. Keyfleet: its `cli/commands.json` is at `79d6cbe` in a private repository; pinning it here
    would publish it, so it waits for the founder's call.
 5. Techtree: slices T0–T5 are done. `climb start`, `forge plan-start` and every other paid
    step stop at their approval. T5 moved the engine

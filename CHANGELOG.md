@@ -3,6 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.7.3 — 2026-10-07
+
+- A key set up with the SIWA agent client's `use-wallet` now works: it signs in, signs requests
+  and accepts a World ID person on the chain it names (Base or Ethereum). Before, `regents`
+  answered `bad_key_file` for it.
+- On a Mac, the agent key is locked with a passkey, as the SIWA agent client's `keygen` now
+  does. `regents` reads a locked key and signs through the helper that holds it unlocked, shared
+  with the client; when none is running, the person confirms with Touch ID on a page that opens
+  on this Mac, once after each restart. A key `regents` makes on a Mac is locked the same way.
+  The client's `show-key` shows the plain key to copy.
+- Techtree release `climb-v0.7.2`: the same Climbs, catalog and engines, named with this version.
+
 ## 1.7.2 — 2026-10-07
 
 - Techtree release `climb-v0.7.1`: the same Climbs, catalog and engines as `climb-v0.7.0`, now
