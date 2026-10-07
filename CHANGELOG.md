@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.7.0 — 2026-10-07
 
 - New: `regents auth accept-world-id` accepts the person who vouched for the agent with World
   ID. It shows the World ID number World's AgentBook names behind the agent's wallet; with
