@@ -1,6 +1,6 @@
 [project]
 name = "regents-cli"
-version = "1.7.0"
+version = "1.7.1"
 description = "The regents command: every Regents Labs site from one command line."
 readme = "README.md"
 requires-python = ">=3.12"
