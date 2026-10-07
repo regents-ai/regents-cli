@@ -94,9 +94,11 @@ The one transaction it ever sends is the agent's registry listing above.
 Each site describes its commands in its own repository, in `cli/commands.json`
 ([format](src/regents_cli/schemas/commands.v1.json)): every command's name, inputs, the route it
 calls, who may call it and what it changes. The site changes that file in the same commit as the
-route. `platforms.lock.json` pins each site's description and API documents by commit, and
-`make sync` copies them into `src/regents_cli/platforms/`. Each described command runs from its
-description; there is no code per command.
+route. `platforms.lock.json` pins each site's description and API documents by commit on the
+site's main, and `make sync` copies them into `src/regents_cli/platforms/` from the site's checkout
+beside this one. Some sites' repositories are private, so the copies are made and checked on the
+founder's machine (`make release-check`), not by the publish workflow. Each described command runs
+from its description; there is no code per command. A command's route must answer JSON.
 
 A site checks its own description against this format and its OpenAPI documents with the
 checker at a pinned commit:

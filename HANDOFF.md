@@ -20,7 +20,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
 - `src/regents_cli/output.py`: readable output, `--json`, and the shared error shape.
 - `src/regents_cli/errors.py`: the exit codes.
 - `src/regents_cli/platforms/`: each site's pinned files, copied by `make sync` from
-  `platforms.lock.json`.
+  `platforms.lock.json`, read at the pinned commit from the site's checkout beside this one
+  (`repos/<repository name>`), so only the founder's machine can run it.
 - `src/regents_cli/schemas/commands.v1.json`: the description format.
 - `src/regents_cli/check_commands.py`: the description checker (also run by each site).
 - `src/regents_cli/techtree/`: `regents techtree`, ported from Techtree 0.3.0 under the
@@ -39,8 +40,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
 3b. Regents: `regents protocol agents pair | me` from Regents `cd94535`. `protocol` is the one
    command tree named apart from its site (`SIGN_IN_SITES` in `platforms/__init__.py`), and
    `auth status` reads `agents me` to show the paired account.
-4. Keyfleet: its `cli/commands.json` is at `79d6cbe` in a private repository; pinning it here
-   would publish it, so it waits for the founder's call.
+4. Keyfleet: the founder approved pinning it from its private repository (CLI-KF-PIN 2 a,
+   CLI-KF-PIN-2 d, 2026-10-07). Pin it once Keyfleet `49a067f` (drops `health`, whose route
+   answers plain text) is on its GitHub main. Its commands ship as one release once the Keyfleet
+   chief ships the agent routes.
 5. Techtree: slices T0–T5 are done. `climb start`, `forge plan-start` and every other paid
    step stop at their approval. T5 moved the engine
    to Verifiers 0.3.2 and cut ReleaseCore `climb-v0.3.1`. The first run 1 failed on GitHub
@@ -51,9 +54,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
 6. 1.0.0 is on PyPI (2026-09-29, tag `v1.0.0` = `fdddd9f`, wheel sha256 `64630b1b…`).
    `.github/workflows/publish.yml`, run by hand with the founder's go, runs `make check`,
    builds the wheel and publishes it through PyPI trusted publishing (environment `pypi`).
+   It cannot read private sites, so run `make release-check` on the founder's machine first.
 7. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Checks
 
-Run `make check`. Do not publish, deploy, sign, access production, or move value without the
+Run `make check`, and `make release-check` before a release. Do not publish, deploy, sign, access production, or move value without the
 founder's explicit go.

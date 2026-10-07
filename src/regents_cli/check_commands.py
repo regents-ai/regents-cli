@@ -34,18 +34,35 @@ def read_document(path: Path) -> Any:
     return json.loads(text) if path.suffix == ".json" else yaml.safe_load(text)
 
 
-def operations_in(documents: list[Any]) -> dict[str, tuple[str, str]]:
+def answers_json(document: Any, operation: dict[str, Any]) -> bool:
+    """Whether no success answer of `operation` is declared as anything but JSON, the only
+    answer `regents` reads."""
+    shared = (document.get("components") or {}).get("responses") or {}
+    for code, response in (operation.get("responses") or {}).items():
+        if str(code).startswith("2"):
+            name = response.get("$ref", "").removeprefix("#/components/responses/")
+            content = (shared.get(name, {}) if name else response).get("content") or {}
+            if any(kind != "application/json" for kind in content):
+                return False
+    return True
+
+
+def operations_in(documents: list[Any]) -> dict[str, tuple[str, str, bool]]:
     found = {}
     for document in documents:
         for route, item in (document.get("paths") or {}).items():
             for method in METHODS:
                 operation = (item or {}).get(method) or {}
                 if "operationId" in operation:
-                    found[operation["operationId"]] = (method.upper(), route)
+                    found[operation["operationId"]] = (
+                        method.upper(),
+                        route,
+                        answers_json(document, operation),
+                    )
     return found
 
 
-def problems_in(description: Any, operations: dict[str, tuple[str, str]]) -> list[str]:
+def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) -> list[str]:
     schema = json.loads(
         files("regents_cli.schemas").joinpath("commands.v1.json").read_text("utf-8")
     )
@@ -108,11 +125,13 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str]]) -> lis
         operation = operations.get(entry["operation_id"])
         if operation is None:
             say(f"operation {entry['operation_id']} is not in the site's OpenAPI documents")
-        elif operation != (entry["method"], entry["path"]):
+        elif operation[:2] != (entry["method"], entry["path"]):
             say(
-                f"operation {entry['operation_id']} is {' '.join(operation)}, "
+                f"operation {entry['operation_id']} is {' '.join(operation[:2])}, "
                 f"not {entry['method']} {entry['path']}"
             )
+        elif not operation[2]:
+            say(f"operation {entry['operation_id']} does not answer JSON on success")
     return problems
 
 
