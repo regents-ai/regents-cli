@@ -30,6 +30,7 @@ def main() -> int:
             request,
             receipt=vector["receipt"],
             wallet_address=vector["wallet_address"],
+            chain_id=siwa.BASE,
             key_id=vector["key_id"],
             created=vector["created"],
             expires=vector["expires"],

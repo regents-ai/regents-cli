@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent key</title>
+<style>
+  :root { --bg: #fafaf9; --fg: #1c1917; --muted: #78716c; --bad: #b91c1c; --btn: #1c1917; --btn-fg: #fafaf9; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1c1917; --fg: #fafaf9; --muted: #a8a29e; --bad: #f87171; --btn: #fafaf9; --btn-fg: #1c1917; } }
+  body { background: var(--bg); color: var(--fg); font: 16px/1.5 -apple-system, system-ui, sans-serif; margin: 0; padding: 48px 16px; }
+  main { max-width: 480px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 0 0 20px; }
+  code { font-size: 13px; word-break: break-all; }
+  button { background: var(--btn); color: var(--btn-fg); border: 0; border-radius: 8px; padding: 10px 18px; font: inherit; cursor: pointer; }
+  #note { color: var(--bad); margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p id="lead"></p>
+  <p><code id="address"></code></p>
+  <button id="go">Use Touch ID</button>
+  <p id="note"></p>
+</main>
+<script>
+const setup = __SETUP__;
+const words = {
+  lock: ["Lock your agent's key", "A passkey on this Mac locks it. Touch ID opens it."],
+  unlock: ["Unlock your agent's key", "Asked once after each restart."],
+}[setup.mode];
+const $ = (id) => document.getElementById(id);
+document.title = words[0];
+$("title").textContent = words[0];
+$("lead").textContent = words[1];
+$("address").textContent = setup.address;
+const hex = (bytes) => [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
+const unhex = (text) => new Uint8Array(text.match(/../g).map((h) => parseInt(h, 16)));
+const random = (size) => crypto.getRandomValues(new Uint8Array(size));
+const salt = () => crypto.subtle.digest("SHA-256", new TextEncoder().encode("regent agent key"));
+
+async function secretOf(credentialId) {
+  const credential = await navigator.credentials.get({ publicKey: {
+    challenge: random(32),
+    rpId: "localhost",
+    allowCredentials: [{ type: "public-key", id: unhex(credentialId) }],
+    userVerification: "required",
+    extensions: { prf: { eval: { first: await salt() } } },
+  } });
+  const first = credential.getClientExtensionResults().prf?.results?.first;
+  if (!first) throw new Error("This browser can't open the passkey. Open this page in Safari or Chrome.");
+  return { credential_id: credentialId, secret: hex(first) };
+}
+
+async function makePasskey() {
+  const credential = await navigator.credentials.create({ publicKey: {
+    rp: { name: "Regent agent key", id: "localhost" },
+    user: { id: random(16), name: setup.address, displayName: "Regent agent key" },
+    challenge: random(32),
+    pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+    authenticatorSelection: { residentKey: "required", userVerification: "required" },
+    extensions: { prf: { eval: { first: await salt() } } },
+  } });
+  // A passkey store may give the secret only when the passkey is next used.
+  const first = credential.getClientExtensionResults().prf?.results?.first;
+  return first ? { credential_id: hex(credential.rawId), secret: hex(first) } : secretOf(hex(credential.rawId));
+}
+
+$("go").onclick = async () => {
+  $("go").disabled = true;
+  $("note").textContent = "";
+  try {
+    const answer = setup.mode === "lock" ? await makePasskey() : await secretOf(setup.credentialId);
+    const sent = await fetch(location.pathname, { method: "POST", body: JSON.stringify(answer) }).catch(() => null);
+    if (!sent?.ok) throw new Error("Your agent stopped waiting. Run its command again.");
+    $("title").textContent = "Done";
+    $("lead").textContent = "You can close this tab.";
+    $("go").hidden = true;
+  } catch (error) {
+    $("note").textContent = error.message;
+    $("go").disabled = false;
+  }
+};
+</script>
+</body>
+</html>

@@ -11,10 +11,9 @@ import os
 from typing import Any
 
 import httpx
-from eth_account import Account
 
+from regents_cli import siwa
 from regents_cli.errors import EXIT_UNREACHABLE, CommandError
-from regents_cli.siwa import Key
 
 BASE_RPC = "https://mainnet.base.org"
 
@@ -49,7 +48,7 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
     )
 
 
-def send(key: Key, step: dict[str, Any], timeout_ms: int) -> str:
+def send(key: siwa.Key, step: dict[str, Any], timeout_ms: int) -> str:
     """Sign `step` (from, to, data, value, chainId) with `key`, send it once, answer its hash."""
     sender = step["from"]
     fields = {"from": sender, "to": step["to"], "data": step["data"], "value": step["value"]}
@@ -57,21 +56,18 @@ def send(key: Key, step: dict[str, Any], timeout_ms: int) -> str:
         gas = int(call("eth_estimateGas", [fields], timeout_ms), 16) * 6 // 5
         tip = int(call("eth_maxPriorityFeePerGas", [], timeout_ms), 16)
         latest = call("eth_getBlockByNumber", ["latest", False], timeout_ms)
-        nonce = int(call("eth_getTransactionCount", [sender, "pending"], timeout_ms), 16)
         transaction = {
-            "type": 2,
-            "chainId": step["chainId"],
-            "nonce": nonce,
-            "to": bytes.fromhex(step["to"].removeprefix("0x")),
+            "chainId": hex(step["chainId"]),
+            "nonce": call("eth_getTransactionCount", [sender, "pending"], timeout_ms),
+            "to": step["to"],
             "data": step["data"],
-            "value": int(step["value"], 16),
-            "gas": gas,
-            "maxFeePerGas": int(latest["baseFeePerGas"], 16) * 2 + tip,
-            "maxPriorityFeePerGas": tip,
+            "value": step["value"],
+            "gas": hex(gas),
+            "maxFeePerGas": hex(int(latest["baseFeePerGas"], 16) * 2 + tip),
+            "maxPriorityFeePerGas": hex(tip),
         }
-        signed = Account.sign_transaction(transaction, private_key=key.private_key)
         sent: str = call(
-            "eth_sendRawTransaction", ["0x" + bytes(signed.raw_transaction).hex()], timeout_ms
+            "eth_sendRawTransaction", [siwa.sign_transaction(key, transaction)], timeout_ms
         )
     except CommandError as error:
         if error.code != "base_refused":

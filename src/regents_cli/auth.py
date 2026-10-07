@@ -251,7 +251,7 @@ def register(
                 f"run: {shlex.join([*again, '--tx-hash', '<its hash>'])}",
             )
             return
-        if key is None or key.private_key is None:
+        if key is None or key.signer is not None:
             raise CommandError(
                 "signer_cannot_send",
                 "This machine's agent key signs through a command, which signs messages and "

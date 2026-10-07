@@ -33,7 +33,10 @@ A site's wallet-proof commands need a wallet sign-in (SIWA). One agent key lives
 machine and signs every request. It is the same key the SIWA agent client
 (`https://siwa.regents.sh/skill.md`) uses: `~/.siwa-agent/key.json`, with each site's sign-in
 in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
-or your own wallet's signing command set up with the client's `use-wallet`. Set
+or your own wallet's signing command on Base or Ethereum, set up with the client's `use-wallet`.
+On a Mac, the key `regents` makes is locked with a passkey: your person confirms with Touch ID on
+a page that opens on this Mac, once after each restart, for `regents` and the client alike. The
+client's `show-key` shows the plain key to copy. Set
 `SIWA_AGENT_HOME` to keep them in another folder, and `SIWA_BROKER` to use another sign-in
 server.
 

@@ -2,8 +2,9 @@
 
 The agent key and each site's receipt live where the SIWA agent client keeps them:
 `$SIWA_AGENT_HOME` (default `~/.siwa-agent`) holds `key.json` and `receipts/<site>.json`, so
-the client and `regents` share one identity. The key either holds a private key or names a
-shell command that signs. `regents auth login --site <name>` signs in to that site's
+the client and `regents` share one identity. The key holds a private key, the same key locked
+with a passkey on a Mac (see `passkey`), or names a shell command that signs on Base or
+Ethereum. `regents auth login --site <name>` signs in to that site's
 audience and keeps the receipt; every wallet-proof request is then signed with the key.
 Someone who keeps their own key instead signs the exact messages printed here.
 """
@@ -17,6 +18,7 @@ import os
 import re
 import secrets
 import subprocess
+import sys
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -25,12 +27,13 @@ from typing import Any
 
 import httpx
 from eth_account import Account
-from eth_account.messages import encode_defunct
 
+from regents_cli import passkey
 from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError, UsageError
 from regents_cli.http import Request, answer, origin
 
-CHAIN_ID = 8453
+BASE = 8453
+CHAINS = (BASE, 1)
 BROKER = "https://siwa.regents.sh"
 SIGNATURE_LIFETIME_SECONDS = 120
 RENEW_MARGIN_SECONDS = 60
@@ -76,11 +79,14 @@ def receipt_file(site: str) -> Path:
 
 @dataclass(frozen=True, slots=True)
 class Key:
-    """The agent key: a private key, or the shell command that signs for `address`."""
+    """The agent key: a private key, that key locked with a passkey, or the shell command that
+    signs for `address` on `chain_id`."""
 
     address: str
     private_key: str | None = None
+    locked: dict[str, str] | None = None
     signer: str | None = None
+    chain_id: int = BASE
 
 
 @dataclass(frozen=True, slots=True)
@@ -128,23 +134,47 @@ def load_key() -> Key | None:
     stored = _read_private(key_file())
     if stored is None:
         return None
-    if not isinstance(stored, dict) or set(stored) not in (
-        {"address", "private_key"},
-        {"address", "signer"},
+    if not (
+        isinstance(stored, dict)
+        and (
+            set(stored) == {"address", "private_key"}
+            or (
+                set(stored) == {"address", "locked"}
+                and isinstance(stored["locked"], dict)
+                and set(stored["locked"]) == {"credential_id", "iv", "box"}
+            )
+            or (set(stored) == {"address", "signer", "chain_id"} and stored["chain_id"] in CHAINS)
+        )
     ):
         raise CommandError(
             "bad_key_file",
-            f"{key_file()} must hold an address and either a private_key or a signer.",
+            f"{key_file()} must hold an address and either a private_key, a locked key, or a "
+            "signer with its chain_id (8453 for Base, 1 for Ethereum). Set it up again with "
+            "the SIWA agent client's keygen or use-wallet.",
             exit_code=EXIT_AUTH,
         )
     return Key(**stored)
 
 
 def create_key() -> Key:
+    """Make the agent key. On a Mac it is locked with a passkey and kept unlocked by the helper
+    until the Mac restarts; elsewhere the file holds the plain key."""
     account = Account.create()
-    key = Key(address=account.address.lower(), private_key="0x" + bytes(account.key).hex())
-    _write_private(key_file(), {"address": key.address, "private_key": key.private_key})
+    address, private_key = account.address.lower(), "0x" + bytes(account.key).hex()
+    if sys.platform != "darwin":
+        _write_private(key_file(), {"address": address, "private_key": private_key})
+        return Key(address=address, private_key=private_key)
+    key = Key(address=address, locked=passkey.lock(address, private_key))
+    _write_private(key_file(), {"address": address, "locked": key.locked})
+    passkey.start_helper(address, private_key)
     return key
+
+
+def chain_for(address: str) -> int:
+    """The chain a sign-in for `address` is on: the agent key's own when it is this machine's
+    key, else Base, where an outside wallet signs in with --phase prepare."""
+    key = load_key()
+    return key.chain_id if key is not None and key.address == address.lower() else BASE
 
 
 def load_receipt(site: str) -> Receipt | None:
@@ -171,8 +201,24 @@ def remove_receipt(site: str) -> bool:
 def personal_sign(key: Key, message: str) -> str:
     if key.signer is not None:
         return _run_signer(key.signer, message)
-    signed = Account.sign_message(encode_defunct(text=message), private_key=key.private_key)
-    return "0x" + bytes(signed.signature).hex()
+    if key.locked is not None:
+        signature: str = passkey.unlocked(
+            key.address, key.locked, {"op": "sign_message", "text": message}
+        )["signature"]
+        return signature
+    assert key.private_key is not None
+    return passkey.sign_message_with(key.private_key, message)
+
+
+def sign_transaction(key: Key, transaction: dict[str, str]) -> str:
+    """The raw signed transaction, given as the 0x fields `passkey.sign_transaction_with` takes."""
+    if key.locked is not None:
+        raw: str = passkey.unlocked(
+            key.address, key.locked, {"op": "sign_transaction", "transaction": transaction}
+        )["raw"]
+        return raw
+    assert key.private_key is not None
+    return passkey.sign_transaction_with(key.private_key, transaction)
 
 
 def _run_signer(command: str, message: str) -> str:
@@ -241,7 +287,7 @@ def challenge(site: str, wallet_address: str, timeout_ms: int) -> dict[str, str]
         raise UsageError(f"{wallet_address!r} is not an address.")
     issued = _post(
         "/api/shared/siwa/wallet/nonce",
-        {"wallet_address": wallet_address, "chain_id": CHAIN_ID, "audience": site},
+        {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address), "audience": site},
         timeout_ms,
     )
     data = issued["data"]
@@ -256,7 +302,7 @@ def verify(site: str, signed: dict[str, str], timeout_ms: int) -> Receipt:
     """Hand the signed challenge back and keep the receipt for `site`."""
     verified = _post(
         "/api/shared/siwa/wallet/verify",
-        {"chain_id": CHAIN_ID, "audience": site, **signed},
+        {"chain_id": chain_for(signed["wallet_address"]), "audience": site, **signed},
         timeout_ms,
     )
     data = verified["data"]
@@ -303,6 +349,7 @@ def unsigned(
     *,
     receipt: str,
     wallet_address: str,
+    chain_id: int,
     key_id: str,
     created: int,
     expires: int,
@@ -314,7 +361,7 @@ def unsigned(
         "x-key-id": key_id,
         "x-timestamp": str(created),
         "x-agent-wallet-address": wallet_address,
-        "x-agent-chain-id": str(CHAIN_ID),
+        "x-agent-chain-id": str(chain_id),
     }
     components = list(COMPONENTS)
     if (content := request.content) is not None:
@@ -337,6 +384,7 @@ def prepare(request: Request, receipt: Receipt) -> tuple[dict[str, str], str]:
         request,
         receipt=receipt.receipt,
         wallet_address=receipt.address,
+        chain_id=chain_for(receipt.address),
         key_id=receipt.key_id,
         created=created,
         expires=created + SIGNATURE_LIFETIME_SECONDS,
@@ -352,10 +400,12 @@ def rebuild(request: Request, headers: dict[str, str]) -> tuple[dict[str, str], 
     match = SIGNATURE_INPUT.fullmatch(headers.get("signature-input", ""))
     if match is None:
         raise UsageError("The request's signature-input is not one regents prepared.")
+    wallet_address = headers.get("x-agent-wallet-address", "")
     expected, message = unsigned(
         request,
         receipt=headers.get("x-siwa-receipt", ""),
-        wallet_address=headers.get("x-agent-wallet-address", ""),
+        wallet_address=wallet_address,
+        chain_id=chain_for(wallet_address),
         key_id=match["key_id"],
         created=int(match["created"]),
         expires=int(match["expires"]),
@@ -441,7 +491,7 @@ def agent_book_challenge(wallet_address: str, timeout_ms: int) -> dict[str, Any]
         raise UsageError(f"{wallet_address!r} is not an address.")
     data = _post(
         "/api/shared/siwa/agent-book/challenge",
-        {"wallet_address": wallet_address, "chain_id": CHAIN_ID},
+        {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address)},
         timeout_ms,
     )["data"]
     return {
@@ -458,7 +508,7 @@ def accept_agent_book(
     """Hand the signed challenge back; the sign-in server keeps the person for good."""
     data = _post(
         "/api/shared/siwa/agent-book/accept",
-        {"chain_id": CHAIN_ID, **signed},
+        {"chain_id": chain_for(signed["wallet_address"]), **signed},
         timeout_ms,
         headers={"x-agent-signer": signer} if signer is not None else None,
     )["data"]
