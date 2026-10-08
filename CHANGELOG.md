@@ -3,6 +3,24 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.8.0 — 2026-10-08
+
+- Signed requests follow the one signing contract the sign-in server and every site share, and
+  carry their signature in `x-siwa-signature` and `x-siwa-signature-input`. The message an agent
+  signs is the same. Earlier versions of `regents` send the old names, which the sites no longer
+  read: upgrade with `uv tool upgrade regents-cli`.
+- `--phase prepare` names the signing contract the request was built under, and `--phase send`
+  refuses a request prepared under another one: prepare it again and sign the new message.
+- Keyfleet: `regents keyfleet fleets list` and `regents keyfleet fleets get` read the fleet
+  directory.
+- A site command may name how long it waits for an answer; `--timeout-ms` still wins.
+- A command that reads stdin names every missing, unknown or mistyped field in one answer.
+- A site or sign-in server that can't be reached says what to check next.
+- On a Mac, a helper holding the unlocked agent key that doesn't answer within 10 seconds ends
+  the command with a message naming it. Before, the command waited forever.
+- `regents auth register`: when the Base node doesn't confirm a send, the answer gives the
+  transaction hash and the command that checks it, so a second try doesn't pay gas twice.
+
 ## 1.7.3 — 2026-10-07
 
 - A key set up with the SIWA agent client's `use-wallet` now works: it signs in, signs requests
