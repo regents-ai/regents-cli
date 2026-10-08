@@ -38,6 +38,8 @@ from regents_cli.output import stderr
 BOX_INFO = b"agent key box"
 PASSKEY_WAIT_SECONDS = 300
 HELPER_START_SECONDS = 10
+#: The helper only signs, which takes milliseconds; one that is silent this long is stuck.
+HELPER_ANSWER_SECONDS = 10
 ASKS = {
     "lock": "Ask your person to lock your new key: they press Use Touch ID on the page that "
     "just opened on this Mac.",
@@ -143,12 +145,24 @@ def _helper_socket(address: str) -> str:
 
 def _ask_helper(path: str, request: dict[str, Any]) -> dict[str, Any] | None:
     """One request to the helper; None when no helper is listening, or the one there is
-    stopping and closes without an answer."""
+    stopping and closes without an answer. A helper that is there but silent is stuck: that
+    ends the command, rather than unlocking the key again behind it."""
     try:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+            connection.settimeout(HELPER_ANSWER_SECONDS)
             connection.connect(path)
             connection.sendall(json.dumps(request).encode("utf-8") + b"\n")
             reply = connection.makefile("rb").readline()
+    except TimeoutError:
+        raise CommandError(
+            "key_helper_not_answering",
+            f"The helper that keeps your unlocked agent key ({path}) did not answer within "
+            f"{HELPER_ANSWER_SECONDS} seconds. Nothing was signed or sent.",
+            exit_code=EXIT_AUTH,
+            hint="Stop the stuck helper (the process running regents_cli.passkey or "
+            "siwa_agent key-helper) or restart this Mac, then run the command again; Touch ID "
+            "is asked once.",
+        ) from None
     except (FileNotFoundError, ConnectionRefusedError, BrokenPipeError, ConnectionResetError):
         return None
     if not reply:
@@ -192,7 +206,13 @@ def unlocked(address: str, locked: dict[str, str], request: dict[str, Any]) -> d
     if answer is None:
         start_helper(address, _open_box(address, locked))
         answer = _ask_helper(path, request)
-    assert answer is not None
+    if answer is None:
+        raise CommandError(
+            "key_helper_failed",
+            "The helper that keeps the unlocked key started, then closed without answering. "
+            "Nothing was signed or sent.",
+            exit_code=EXIT_AUTH,
+        )
     return answer
 
 
