@@ -54,7 +54,9 @@ command's body may have several. A missing, unknown or mistyped field is named i
 With a key of your own, sign the exact messages yourself: `regents auth login --site patchbay
 --phase prepare --wallet-address 0x…` prints the sign-in message; pipe it back with its
 `signature` to `--phase send`. A command's `--phase prepare` prints the request and the message
-to sign, and `--phase send` reads `{"request": …, "signature": …}`.
+to sign, and `--phase send` reads `{"request": …, "signature": …}` and sends exactly that request.
+The prepared request names the signing contract it was built under; a `regents` that signs under
+another one refuses it, so prepare it again.
 
 On regents.sh, a person pairs the agent with their account: they make a code on their Account
 page, and the agent runs `regents protocol agents pair --code … --name … --harness hermes`.

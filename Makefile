@@ -7,7 +7,6 @@ check:
 	uv run mypy
 	uv run scripts/sync_platforms.py --copies
 	uv run python -m regents_cli.check_commands
-	uv run scripts/check_signing.py
 	uv run pytest -q
 	uv run scripts/check_wheel.py
 

@@ -69,7 +69,8 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
       receipt = this site's sign-in from `regents auth login --site <site>`
       sign the request with the agent key: SIWA headers plus an HTTP message signature
       --phase prepare  -> print the request and the exact message, send nothing
-      --phase send     -> read {"request", "signature"} from stdin and send that
+      --phase send     -> read {"request", "signature"} from stdin and send that; a request
+                          prepared under another signing contract is refused, never re-signed
 
   answer = send once; never retried, redirects never followed
   2xx with JSON      -> print it (readable, or JSON with --json); a next-page hint when

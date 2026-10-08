@@ -235,6 +235,7 @@ def prepared(base: str, request: Request, receipt: siwa.Receipt) -> dict[str, An
     content = request.content
     body = {} if content is None else {"body": content.decode("utf-8")}
     return {
+        "contract": siwa.contract_id(),
         "origin": base,
         "method": request.method,
         "path": request.target,
@@ -251,7 +252,7 @@ def signed_by_caller(command: Command, base: str, request: Request, timeout_ms: 
     if not isinstance(piped, dict) or set(piped) != {"request", "signature"}:
         raise UsageError(f"stdin must hold {shape}.")
     given, signature = piped["request"], piped["signature"]
-    keys = {"origin", "method", "path", "headers", "message"}
+    keys = {"contract", "origin", "method", "path", "headers", "message"}
     if request.body is not None:
         keys.add("body")
     if (
@@ -261,6 +262,11 @@ def signed_by_caller(command: Command, base: str, request: Request, timeout_ms: 
         or not isinstance(signature, str)
     ):
         raise UsageError(f"stdin must hold {shape}.")
+    if given["contract"] != siwa.contract_id():
+        raise UsageError(
+            "This request was prepared under another signing contract than this regents signs "
+            "with. Prepare it again with --phase prepare and sign the new message."
+        )
     if (given["origin"], given["method"], given["path"]) != (base, request.method, request.target):
         raise UsageError("The prepared request is for another site, method or path.")
     if request.body is not None:
@@ -268,7 +274,7 @@ def signed_by_caller(command: Command, base: str, request: Request, timeout_ms: 
     headers, message = siwa.rebuild(request, given["headers"])
     if message != given["message"]:
         raise UsageError("The prepared message does not match its request.")
-    return replace(request, headers={**headers, "signature": siwa.signature_header(signature)})
+    return replace(request, headers=siwa.with_signature(headers, signature))
 
 
 def prepared_body(command: Command, request: Request, text: Any) -> dict[str, Any]:
