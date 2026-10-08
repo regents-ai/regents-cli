@@ -277,6 +277,7 @@ def _post(
             "unreachable",
             f"The sign-in server {address} could not be reached, or did not answer in time.",
             exit_code=EXIT_UNREACHABLE,
+            hint="Check that it is up and the address is right: SIWA_BROKER names another.",
         ) from None
     return answer(response)
 

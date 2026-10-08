@@ -103,6 +103,7 @@ def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
             "unreachable",
             f"{base} could not be reached. The request was not retried.",
             exit_code=EXIT_UNREACHABLE,
+            hint="Check that the site is up and this is its address; --base-url names another.",
         ) from None
 
 
