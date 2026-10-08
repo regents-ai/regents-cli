@@ -49,9 +49,18 @@ class Input:
 @dataclass(frozen=True, slots=True)
 class StdinField:
     field: str
-    type: Literal["object", "string"]
+    type: Literal["array", "object", "string"]
     required: bool
     description: str
+
+    @classmethod
+    def parse(cls, raw: dict[str, Any]) -> StdinField:
+        return cls(
+            field=raw["field"],
+            type=raw["type"],
+            required=raw.get("required", False),
+            description=raw["description"],
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,7 +114,7 @@ class Command:
             flags=tuple(Input.parse(f, argument=False) for f in raw.get("flags", [])),
             required_one_of=tuple(raw.get("required_one_of", [])),
             body=raw.get("body"),
-            stdin_fields=tuple(StdinField(**s) for s in raw.get("stdin_fields", [])),
+            stdin_fields=tuple(StdinField.parse(s) for s in raw.get("stdin_fields", [])),
             pagination=Pagination(**pagination) if pagination else None,
         )
 

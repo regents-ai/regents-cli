@@ -1,25 +1,25 @@
 {
   "private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
-  "receipt": "eyJhdWQiOiJwYXRjaGJheSIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTA1Njc1MTYyOTUsImlhdCI6MTc5MDU2MzkxNjI5NSwianRpIjoiZTEzMzI4ODktMGQ2ZC00MTE5LWIwNzctMDIxMTM1MTQwMDVjIiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiIyMGIxODc5MzI5OTUyYzdmYWE5NzUzODQwYWUwYjlhMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.zu8fnV04reUyMzZ9qoCjeCKkSUe9FR7d819ZZDoeah0",
+  "receipt": "eyJhdWQiOiJrZXlmbGVldCIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTE0MzQxMzY5MDcsImlhdCI6MTc5MTQzMDUzNjkwNywianRpIjoiNjkxNGI5MzUtYTRjNS00M2UyLTgwNzctNDUzYjBlOTNlYWE5Iiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiJkNmQzM2I5ZDJiYTZmMTk2NDc5ODJiZGYwNDMwMGVlMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.eHq4OUFTH2jrOcwnzR2UmPyefODF80OrDzN2pCZS_e0",
   "wallet_address": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
   "key_id": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
-  "created": 1790563916,
-  "expires": 1790564036,
+  "created": 1791430536,
+  "expires": 1791430656,
   "requests": [
     {
       "method": "GET",
       "path": "/api/agent/payment_intents/0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21",
       "body": null,
       "nonce": "sig-nonce-00000000000000000000000000000000",
-      "message": "\"@method\": get\n\"@path\": /api/agent/payment_intents/0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21\n\"x-siwa-receipt\": eyJhdWQiOiJwYXRjaGJheSIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTA1Njc1MTYyOTUsImlhdCI6MTc5MDU2MzkxNjI5NSwianRpIjoiZTEzMzI4ODktMGQ2ZC00MTE5LWIwNzctMDIxMTM1MTQwMDVjIiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiIyMGIxODc5MzI5OTUyYzdmYWE5NzUzODQwYWUwYjlhMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.zu8fnV04reUyMzZ9qoCjeCKkSUe9FR7d819ZZDoeah0\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790563916\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790563916;expires=1790564036;nonce=\"sig-nonce-00000000000000000000000000000000\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
+      "message": "\"@method\": get\n\"@path\": /api/agent/payment_intents/0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21\n\"x-siwa-receipt\": eyJhdWQiOiJrZXlmbGVldCIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTE0MzQxMzY5MDcsImlhdCI6MTc5MTQzMDUzNjkwNywianRpIjoiNjkxNGI5MzUtYTRjNS00M2UyLTgwNzctNDUzYjBlOTNlYWE5Iiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiJkNmQzM2I5ZDJiYTZmMTk2NDc5ODJiZGYwNDMwMGVlMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.eHq4OUFTH2jrOcwnzR2UmPyefODF80OrDzN2pCZS_e0\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1791430536\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1791430536;expires=1791430656;nonce=\"sig-nonce-00000000000000000000000000000000\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
       "headers": {
-        "x-siwa-receipt": "eyJhdWQiOiJwYXRjaGJheSIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTA1Njc1MTYyOTUsImlhdCI6MTc5MDU2MzkxNjI5NSwianRpIjoiZTEzMzI4ODktMGQ2ZC00MTE5LWIwNzctMDIxMTM1MTQwMDVjIiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiIyMGIxODc5MzI5OTUyYzdmYWE5NzUzODQwYWUwYjlhMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.zu8fnV04reUyMzZ9qoCjeCKkSUe9FR7d819ZZDoeah0",
+        "x-siwa-receipt": "eyJhdWQiOiJrZXlmbGVldCIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTE0MzQxMzY5MDcsImlhdCI6MTc5MTQzMDUzNjkwNywianRpIjoiNjkxNGI5MzUtYTRjNS00M2UyLTgwNzctNDUzYjBlOTNlYWE5Iiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiJkNmQzM2I5ZDJiYTZmMTk2NDc5ODJiZGYwNDMwMGVlMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.eHq4OUFTH2jrOcwnzR2UmPyefODF80OrDzN2pCZS_e0",
         "x-key-id": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
-        "x-timestamp": "1790563916",
+        "x-timestamp": "1791430536",
         "x-agent-wallet-address": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
         "x-agent-chain-id": "8453",
-        "signature-input": "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790563916;expires=1790564036;nonce=\"sig-nonce-00000000000000000000000000000000\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
-        "signature": "sig1=:aATpKWV6Tpzf8jGwxu2c1vMfJgam95JXukhSzkTTmxwZE7FB+rQjHb3gkaHqBNbANpiQr67vpQ6PRCWWekaQYhw=:"
+        "signature-input": "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1791430536;expires=1791430656;nonce=\"sig-nonce-00000000000000000000000000000000\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
+        "signature": "sig1=:vBEPH7lJ3YuS5tnDWAsQdEH8NUhy7qBUn4fC/A08W81uXcF8Hme+NG2JaD89P7bmSyMC12eHQXIOIfNoKQrPNhs=:"
       }
     },
     {
@@ -33,16 +33,33 @@
         }
       },
       "nonce": "sig-nonce-00000000000000000000000000000001",
-      "message": "\"@method\": post\n\"@path\": /api/agent/payment_intents\n\"x-siwa-receipt\": eyJhdWQiOiJwYXRjaGJheSIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTA1Njc1MTYyOTUsImlhdCI6MTc5MDU2MzkxNjI5NSwianRpIjoiZTEzMzI4ODktMGQ2ZC00MTE5LWIwNzctMDIxMTM1MTQwMDVjIiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiIyMGIxODc5MzI5OTUyYzdmYWE5NzUzODQwYWUwYjlhMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.zu8fnV04reUyMzZ9qoCjeCKkSUe9FR7d819ZZDoeah0\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790563916\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"content-digest\": sha-256=:9R739trMTtXhJQSiwN5cL6nztBciPCIEjanH98DP3C8=:\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790563916;expires=1790564036;nonce=\"sig-nonce-00000000000000000000000000000001\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
+      "message": "\"@method\": post\n\"@path\": /api/agent/payment_intents\n\"x-siwa-receipt\": eyJhdWQiOiJrZXlmbGVldCIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTE0MzQxMzY5MDcsImlhdCI6MTc5MTQzMDUzNjkwNywianRpIjoiNjkxNGI5MzUtYTRjNS00M2UyLTgwNzctNDUzYjBlOTNlYWE5Iiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiJkNmQzM2I5ZDJiYTZmMTk2NDc5ODJiZGYwNDMwMGVlMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.eHq4OUFTH2jrOcwnzR2UmPyefODF80OrDzN2pCZS_e0\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1791430536\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"content-digest\": sha-256=:9R739trMTtXhJQSiwN5cL6nztBciPCIEjanH98DP3C8=:\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1791430536;expires=1791430656;nonce=\"sig-nonce-00000000000000000000000000000001\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
       "headers": {
-        "x-siwa-receipt": "eyJhdWQiOiJwYXRjaGJheSIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTA1Njc1MTYyOTUsImlhdCI6MTc5MDU2MzkxNjI5NSwianRpIjoiZTEzMzI4ODktMGQ2ZC00MTE5LWIwNzctMDIxMTM1MTQwMDVjIiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiIyMGIxODc5MzI5OTUyYzdmYWE5NzUzODQwYWUwYjlhMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.zu8fnV04reUyMzZ9qoCjeCKkSUe9FR7d819ZZDoeah0",
+        "x-siwa-receipt": "eyJhdWQiOiJrZXlmbGVldCIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTE0MzQxMzY5MDcsImlhdCI6MTc5MTQzMDUzNjkwNywianRpIjoiNjkxNGI5MzUtYTRjNS00M2UyLTgwNzctNDUzYjBlOTNlYWE5Iiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiJkNmQzM2I5ZDJiYTZmMTk2NDc5ODJiZGYwNDMwMGVlMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.eHq4OUFTH2jrOcwnzR2UmPyefODF80OrDzN2pCZS_e0",
         "x-key-id": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
-        "x-timestamp": "1790563916",
+        "x-timestamp": "1791430536",
         "x-agent-wallet-address": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
         "x-agent-chain-id": "8453",
         "content-digest": "sha-256=:9R739trMTtXhJQSiwN5cL6nztBciPCIEjanH98DP3C8=:",
-        "signature-input": "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790563916;expires=1790564036;nonce=\"sig-nonce-00000000000000000000000000000001\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
-        "signature": "sig1=:IsvtKfkOao8elFLD2kzNtNEq/My3hsL+m+pWZZgMQB8tYkKreCkInsDzYOoFna1gu2ff4R10xOaYtVlw9Mxu7hs=:"
+        "signature-input": "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1791430536;expires=1791430656;nonce=\"sig-nonce-00000000000000000000000000000001\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
+        "signature": "sig1=:N9aUmyw4nweNMVkeibKQPZRM1gUjwerdW6Jv3bgMwhsTC8hf3QyBThG7mm6bNx+kSVJqZJgU6VTcjasCr5hIlRw=:"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/agent/fleets/fleet_tech_classic/rooms",
+      "body": {},
+      "nonce": "sig-nonce-00000000000000000000000000000002",
+      "message": "\"@method\": get\n\"@path\": /api/v1/agent/fleets/fleet_tech_classic/rooms\n\"x-siwa-receipt\": eyJhdWQiOiJrZXlmbGVldCIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTE0MzQxMzY5MDcsImlhdCI6MTc5MTQzMDUzNjkwNywianRpIjoiNjkxNGI5MzUtYTRjNS00M2UyLTgwNzctNDUzYjBlOTNlYWE5Iiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiJkNmQzM2I5ZDJiYTZmMTk2NDc5ODJiZGYwNDMwMGVlMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.eHq4OUFTH2jrOcwnzR2UmPyefODF80OrDzN2pCZS_e0\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1791430536\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"content-digest\": sha-256=:RBNvo1WzZ4oRRq0W9+hknpT7T8If536DEMBg9hyq/4o=:\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1791430536;expires=1791430656;nonce=\"sig-nonce-00000000000000000000000000000002\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
+      "headers": {
+        "x-siwa-receipt": "eyJhdWQiOiJrZXlmbGVldCIsImNoYWluX2lkIjo4NDUzLCJleHAiOjE3OTE0MzQxMzY5MDcsImlhdCI6MTc5MTQzMDUzNjkwNywianRpIjoiNjkxNGI5MzUtYTRjNS00M2UyLTgwNzctNDUzYjBlOTNlYWE5Iiwia2V5X2lkIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwibm9uY2UiOiJkNmQzM2I5ZDJiYTZmMTk2NDc5ODJiZGYwNDMwMGVlMyIsInN1YiI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsInR5cCI6InNpd2Ffd2FsbGV0X3JlY2VpcHQiLCJ2ZXJpZmllZCI6IndhbGxldF9zaWduYXR1cmUifQ.eHq4OUFTH2jrOcwnzR2UmPyefODF80OrDzN2pCZS_e0",
+        "x-key-id": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
+        "x-timestamp": "1791430536",
+        "x-agent-wallet-address": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf",
+        "x-agent-chain-id": "8453",
+        "content-digest": "sha-256=:RBNvo1WzZ4oRRq0W9+hknpT7T8If536DEMBg9hyq/4o=:",
+        "signature-input": "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1791430536;expires=1791430656;nonce=\"sig-nonce-00000000000000000000000000000002\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\"",
+        "signature": "sig1=:jDz+TJeUHd0U4/pmvaD9q5yC7uhZcbyJ+Ik4yQhjPA49yITMexrVs3J0ru5gJq+OcNjFByHs+J4kOqDr31sHfBw=:"
       }
     }
   ]

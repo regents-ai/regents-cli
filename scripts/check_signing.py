@@ -1,9 +1,10 @@
 """Fail when signed requests stop matching ones siwa-server's verifier accepted.
 
 The costly failure: a change to how `regents` signs breaks every wallet-proof request on every
-site at once. scripts/signing_vector.json holds a GET and a POST, signed with the well-known
-test key 0x…01, that siwa-server's own verifier accepted when they were recorded. The receipt in
-it comes from a sign-in server on a developer's machine and expired within the hour.
+site at once. scripts/signing_vector.json holds a GET, a POST and a GET with an empty signed
+body (for a site that reads a body on every signed request), signed with the well-known test
+key 0x…01, that siwa-server's own verifier accepted when they were recorded. The receipt in it
+comes from a sign-in server on a developer's machine and expired within the hour.
 
     uv run scripts/check_signing.py
 """

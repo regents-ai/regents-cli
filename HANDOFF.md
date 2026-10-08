@@ -21,7 +21,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
 - `src/regents_cli/errors.py`: the exit codes.
 - `src/regents_cli/platforms/`: each site's pinned files, copied by `make sync` from
   `platforms.lock.json`, read at the pinned commit from the site's checkout beside this one
-  (`repos/<repository name>`), so only the founder's machine can run it.
+  (`repos/<repository name>`), so only the founder's machine can run it. The lock holds each
+  copy's sha256, and `make check` refuses a copy that differs or a folder the lock does not name.
 - `src/regents_cli/schemas/commands.v1.json`: the description format.
 - `src/regents_cli/check_commands.py`: the description checker (also run by each site).
 - `src/regents_cli/techtree/`: `regents techtree`, ported from Techtree 0.3.0 under the
@@ -54,7 +55,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
 6. 1.0.0 is on PyPI (2026-09-29, tag `v1.0.0` = `fdddd9f`, wheel sha256 `64630b1b…`).
    `.github/workflows/publish.yml`, run by hand with the founder's go, runs `make check`,
    builds the wheel and publishes it through PyPI trusted publishing (environment `pypi`).
-   It cannot read private sites, so run `make release-check` on the founder's machine first.
+   It cannot read private sites, so it checks the copies against the lock's sha256 only; run
+   `make release-check` on the founder's machine first to check the lock against the sites.
 7. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Checks

@@ -135,7 +135,7 @@
           }
         },
         "body": {
-          "description": "Fixed fields sent in every request body, beside the ones the inputs fill.",
+          "description": "Fixed fields sent in every request body, beside the ones the inputs fill. A wallet-proof GET or DELETE may give only {}: an empty signed body, for a site that reads a body on every signed request.",
           "type": "object"
         },
         "stdin_fields": {
@@ -156,6 +156,7 @@
               },
               "type": {
                 "enum": [
+                  "array",
                   "object",
                   "string"
                 ]

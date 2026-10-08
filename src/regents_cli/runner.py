@@ -23,6 +23,12 @@ from regents_cli.http import Request, base_address, send
 from regents_cli.platforms import Command, Input, Platform
 
 STDIN_LIMIT = 200_000
+#: Each stdin field type, as the JSON value it must be and how an error names it.
+STDIN_TYPES: dict[str, tuple[type, str]] = {
+    "array": (list, "a list"),
+    "object": (dict, "an object"),
+    "string": (str, "a string"),
+}
 
 
 class Pattern(click.ParamType[str]):
@@ -203,9 +209,9 @@ def with_stdin_fields(command: Command, request: Request, timeout_ms: int) -> Re
     for spec in command.stdin_fields:
         if spec.required and spec.field not in piped:
             raise UsageError(f"Pipe {shape} on stdin; {spec.field} is required.")
-        kind = dict if spec.type == "object" else str
+        kind, named = STDIN_TYPES[spec.type]
         if spec.field in piped and not isinstance(piped[spec.field], kind):
-            raise UsageError(f"{spec.field} must be {'an object' if kind is dict else 'a string'}.")
+            raise UsageError(f"{spec.field} must be {named}.")
     return replace(request, body={**(request.body or {}), **piped})
 
 

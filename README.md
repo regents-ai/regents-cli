@@ -96,8 +96,10 @@ Each site describes its commands in its own repository, in `cli/commands.json`
 calls, who may call it and what it changes. The site changes that file in the same commit as the
 route. `platforms.lock.json` pins each site's description and API documents by commit on the
 site's main, and `make sync` copies them into `src/regents_cli/platforms/` from the site's checkout
-beside this one. Some sites' repositories are private, so the copies are made and checked on the
-founder's machine (`make release-check`), not by the publish workflow. Each described command runs
+beside this one, recording each copy's sha256 in the lock. Some sites' repositories are private,
+so the copies are checked against their commits on the founder's machine (`make release-check`);
+the publish workflow checks that the copies are exactly the lock's, with no other site folder.
+Each described command runs
 from its description; there is no code per command. A command's route must answer JSON.
 
 A site checks its own description against this format and its OpenAPI documents with the

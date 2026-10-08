@@ -34,15 +34,24 @@ def read_document(path: Path) -> Any:
     return json.loads(text) if path.suffix == ".json" else yaml.safe_load(text)
 
 
+def is_json(kind: str) -> bool:
+    media = kind.split(";")[0].strip().lower()
+    return media == "application/json" or (
+        media.startswith("application/") and media.endswith("+json")
+    )
+
+
 def answers_json(document: Any, operation: dict[str, Any]) -> bool:
-    """Whether no success answer of `operation` is declared as anything but JSON, the only
-    answer `regents` reads."""
+    """Whether every success answer of `operation` can be JSON, the only answer `regents`
+    reads: never 204 No Content, and any content it declares is JSON."""
     shared = (document.get("components") or {}).get("responses") or {}
     for code, response in (operation.get("responses") or {}).items():
+        if str(code) == "204":
+            return False
         if str(code).startswith("2"):
             name = response.get("$ref", "").removeprefix("#/components/responses/")
             content = (shared.get(name, {}) if name else response).get("content") or {}
-            if any(kind != "application/json" for kind in content):
+            if not all(map(is_json, content)):
                 return False
     return True
 
@@ -108,11 +117,15 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) 
             if ("minimum" in i or "maximum" in i) and i["type"] != "integer":
                 say(f"{i['name']}: only integer inputs take minimum and maximum")
 
-        sends_body = (
-            any(i["in"] == "body" for i in inputs) or "body" in entry or "stdin_fields" in entry
-        )
-        if sends_body and entry["method"] in ("GET", "DELETE"):
-            say(f"{entry['method']} sends no body")
+        fills_body = any(i["in"] == "body" for i in inputs) or "stdin_fields" in entry
+        empty_signed_body = entry.get("body") == {} and entry["authority"] == "wallet-proof"
+        if entry["method"] in ("GET", "DELETE") and (
+            fills_body or ("body" in entry and not empty_signed_body)
+        ):
+            say(
+                f"{entry['method']} sends no body, except an empty signed one: "
+                "body {} on a wallet-proof command"
+            )
         if "stdin_fields" in entry and entry["authority"] != "wallet-proof":
             say("only wallet-proof commands read body fields from stdin")
         for name in entry.get("required_one_of", []):

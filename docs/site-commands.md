@@ -98,9 +98,15 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
 - **No redirects** on command routes.
 - **An answer within 30 seconds**, the default wait. Longer work starts a job and returns an id
   that a read command checks (`assist request`, then `assist get <id>`).
-- **Pages** as a `has_more` flag and a cursor field, read back through one flag.
+- **Pages** as a `has_more` flag and a cursor field, read back through one flag. Without
+  `has_more` the command line never says there is another page.
 - **Wallet-proof routes** verify the signed request with `Siwa.AgentAuthPlug` from
-  elixir-utils, for the site's own SIWA audience, and read the caller's wallet from it.
+  elixir-utils, for the site's own SIWA audience, and read the caller's wallet from it. A site
+  that reads a body on every signed request (`body: :always`) gives each wallet-proof GET or
+  DELETE `"body": {}`, so the command line signs and sends an empty JSON body. A site whose
+  reads take no body leaves it out: a body it never reads fails the signature check.
+- **A list from the caller** (several rooms at once, say) is a wallet-proof command's stdin
+  field of type `array`.
 - **Payments**: a `prepare` route freezes the terms; the paying route answers 402 with the
   terms and an x402 `payment-required` header. The site names its own payee; the command line
   never names one, and a person's own wallet signs.
