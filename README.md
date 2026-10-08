@@ -47,6 +47,10 @@ echo '{"args": {"goal": "…", "site_url": "https://…", "sign_in": "none"}}' \
   | regents patchbay assist request
 ```
 
+A command that reads stdin takes one JSON object holding the fields of the site's own request
+body; its `--help` names them. Patchbay's `assist request` body has one field, `args`; another
+command's body may have several. A missing, unknown or mistyped field is named in one answer.
+
 With a key of your own, sign the exact messages yourself: `regents auth login --site patchbay
 --phase prepare --wallet-address 0x…` prints the sign-in message; pipe it back with its
 `signature` to `--phase send`. A command's `--phase prepare` prints the request and the message

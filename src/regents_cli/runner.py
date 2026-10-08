@@ -204,15 +204,29 @@ def with_stdin_fields(command: Command, request: Request, timeout_ms: int) -> Re
     shape = stdin_shape(command)
     piped = read_stdin(timeout_ms)
     piped = {} if piped is None else piped
-    if not isinstance(piped, dict) or not set(piped) <= {f.field for f in command.stdin_fields}:
+    if not isinstance(piped, dict):
         raise UsageError(f"stdin must hold {shape}.")
-    for spec in command.stdin_fields:
-        if spec.required and spec.field not in piped:
-            raise UsageError(f"Pipe {shape} on stdin; {spec.field} is required.")
-        kind, named = STDIN_TYPES[spec.type]
-        if spec.field in piped and not isinstance(piped[spec.field], kind):
-            raise UsageError(f"{spec.field} must be {named}.")
+    unknown = sorted(set(piped) - {f.field for f in command.stdin_fields})
+    if unknown:
+        are = "is not one of its fields" if len(unknown) == 1 else "are not among its fields"
+        raise UsageError(f"stdin must hold {shape}; {in_words(unknown)} {are}.")
+    missing = [f.field for f in command.stdin_fields if f.required and f.field not in piped]
+    if missing:
+        are = "is" if len(missing) == 1 else "are"
+        raise UsageError(f"Pipe {shape} on stdin; {in_words(missing)} {are} required.")
+    wrong = [
+        f"{f.field} must be {STDIN_TYPES[f.type][1]}"
+        for f in command.stdin_fields
+        if f.field in piped and not isinstance(piped[f.field], STDIN_TYPES[f.type][0])
+    ]
+    if wrong:
+        raise UsageError("; ".join(wrong) + ".")
     return replace(request, body={**(request.body or {}), **piped})
+
+
+def in_words(names: list[str]) -> str:
+    """rooms, graph and run."""
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
 
 
 def prepared(base: str, request: Request, receipt: siwa.Receipt) -> dict[str, Any]:
