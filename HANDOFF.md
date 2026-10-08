@@ -59,6 +59,13 @@ behind a site, and never holds one up (founder, 2026-09-28).
    `make release-check` on the founder's machine first to check the lock against the sites.
 7. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
+## Next pins
+
+- **Patchbay**, once the founder releases its PB-JEV-1 candidate (`5a8775b` on 2026-10-08):
+  `/webmcp/health` renames `demo_fallback_enabled` to `sample_enabled`. Only the pinned
+  `openapi.json` names the old field; no code here reads it. Move the pin, `make sync`, and
+  check the copy names `sample_enabled`.
+
 ## Checks
 
 Run `make check`, and `make release-check` before a release. Do not publish, deploy, sign, access production, or move value without the
