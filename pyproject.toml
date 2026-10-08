@@ -12,6 +12,7 @@ dependencies = [
   "click>=8.2,<9",
   "cryptography>=50.0.1,<51",
   "eth-account>=0.13,<1",
+  "eth-utils>=6,<7",
   "filelock>=3.18,<4",
   "httpx>=0.28,<1",
   "markdown-it-py>=4,<5",

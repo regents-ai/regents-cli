@@ -11,6 +11,7 @@ import os
 from typing import Any
 
 import httpx
+from eth_utils.crypto import keccak
 
 from regents_cli import siwa
 from regents_cli.errors import EXIT_UNREACHABLE, CommandError
@@ -49,7 +50,10 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
 
 
 def send(key: siwa.Key, step: dict[str, Any], timeout_ms: int) -> str:
-    """Sign `step` (from, to, data, value, chainId) with `key`, send it once, answer its hash."""
+    """Sign `step` (from, to, data, value, chainId) with `key`, send it once, answer its hash.
+
+    When the node does not confirm the send, the transaction may still be on its way: the error
+    carries its hash as `tx_hash`, so the caller can check it rather than send a second one."""
     sender = step["from"]
     fields = {"from": sender, "to": step["to"], "data": step["data"], "value": step["value"]}
     try:
@@ -66,9 +70,20 @@ def send(key: siwa.Key, step: dict[str, Any], timeout_ms: int) -> str:
             "maxFeePerGas": hex(int(latest["baseFeePerGas"], 16) * 2 + tip),
             "maxPriorityFeePerGas": hex(tip),
         }
-        sent: str = call(
-            "eth_sendRawTransaction", [siwa.sign_transaction(key, transaction)], timeout_ms
-        )
+        raw = siwa.sign_transaction(key, transaction)
+        tx_hash = "0x" + keccak(hexstr=raw).hex()
+        try:
+            sent: str = call("eth_sendRawTransaction", [raw], timeout_ms)
+        except CommandError as error:
+            if error.code != "base_unreachable":
+                raise
+            raise CommandError(
+                "base_send_unclear",
+                f"The Base node {rpc_address()} did not confirm the send, so the transaction "
+                f"may be on its way: {tx_hash}.",
+                exit_code=EXIT_UNREACHABLE,
+                tx_hash=tx_hash,
+            ) from None
     except CommandError as error:
         if error.code != "base_refused":
             raise

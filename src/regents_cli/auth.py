@@ -258,7 +258,19 @@ def register(
                 f"not transactions. Send it from that wallet: --wallet-address {wallet}.",
                 exit_code=EXIT_AUTH,
             )
-        tx_hash = base.send(key, step, timeout_ms)
+        try:
+            tx_hash = base.send(key, step, timeout_ms)
+        except CommandError as error:
+            if error.code != "base_send_unclear":
+                raise
+            sent = error.fields["tx_hash"]
+            raise CommandError(
+                error.code,
+                error.message,
+                exit_code=error.exit_code,
+                tx_hash=sent,
+                hint="Check it before sending another: " + shlex.join([*again, "--tx-hash", sent]),
+            ) from None
     outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
     deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
     while outcome["code"] == "registration_pending" and time.monotonic() < deadline:
