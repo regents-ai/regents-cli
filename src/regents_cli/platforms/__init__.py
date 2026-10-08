@@ -14,6 +14,9 @@ from typing import Any, Final, Literal
 type Authority = Literal["public", "wallet-proof"]
 type Effect = Literal["read", "quote", "write", "prepare", "payment"]
 
+#: How long `regents` waits for each answer, unless a command names its own `timeout_ms`.
+DEFAULT_TIMEOUT_MS: Final = 30_000
+
 #: The one command tree named apart from its site (founder, 2026-09-28): Regents' commands read
 #: `regents protocol …` rather than `regents regents …`, and sign in to the site `regents`.
 SIGN_IN_SITES: Final = {"protocol": "regents"}
@@ -84,6 +87,7 @@ class Command:
     required_one_of: tuple[str, ...]
     body: dict[str, Any] | None
     stdin_fields: tuple[StdinField, ...]
+    timeout_ms: int
     pagination: Pagination | None
 
     @property
@@ -115,6 +119,7 @@ class Command:
             required_one_of=tuple(raw.get("required_one_of", [])),
             body=raw.get("body"),
             stdin_fields=tuple(StdinField.parse(s) for s in raw.get("stdin_fields", [])),
+            timeout_ms=raw.get("timeout_ms", DEFAULT_TIMEOUT_MS),
             pagination=Pagination(**pagination) if pagination else None,
         )
 

@@ -15,7 +15,7 @@ import click
 from regents_cli import output, siwa
 from regents_cli.errors import CommandError
 from regents_cli.http import Request, base_address, respond, send
-from regents_cli.platforms import Command, Platform
+from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
 
 
 def doctor_command(platform: Platform) -> click.Command:
@@ -46,7 +46,7 @@ def doctor_command(platform: Platform) -> click.Command:
             click.Option(
                 ["--timeout-ms"],
                 type=click.IntRange(1, 300_000),
-                default=30_000,
+                default=DEFAULT_TIMEOUT_MS,
                 show_default=True,
                 help="How long to wait for each answer.",
             ),

@@ -13,13 +13,13 @@ import click
 from regents_cli import base, output, siwa
 from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
 from regents_cli.http import Request, base_address, send
-from regents_cli.platforms import pinned_platforms
+from regents_cli.platforms import DEFAULT_TIMEOUT_MS, pinned_platforms
 from regents_cli.runner import read_stdin
 
 TIMEOUT = click.Option(
     ["--timeout-ms"],
     type=click.IntRange(1, 300_000),
-    default=30_000,
+    default=DEFAULT_TIMEOUT_MS,
     show_default=True,
     help="How long to wait for each answer.",
 )

@@ -171,6 +171,12 @@
             }
           }
         },
+        "timeout_ms": {
+          "description": "How long `regents` waits for this command's answer by default, for a route that holds the request open until there is news. Without it, 30000. The caller's --timeout-ms still wins.",
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 300000
+        },
         "pagination": {
           "description": "How to read the next page: while the answer's `has_more` is true, pass its `cursor` back as --<flag>.",
           "type": "object",

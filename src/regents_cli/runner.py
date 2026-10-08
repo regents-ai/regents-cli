@@ -104,7 +104,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         click.Option(
             ["--timeout-ms"],
             type=click.IntRange(1, 300_000),
-            default=30_000,
+            default=command.timeout_ms,
             show_default=True,
             help="How long to wait for the answer.",
         ),
