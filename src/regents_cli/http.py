@@ -77,6 +77,29 @@ def send(base: str, request: Request, timeout_ms: int) -> Any:
     return answer(respond(base, request, timeout_ms))
 
 
+def unreadable_address(error: httpx.InvalidURL) -> CommandError:
+    """Why httpx could not read an address. On a command that checks its addresses first, the
+    cause is NO_PROXY: httpx reads an IPv6 entry only without brackets (::1, not [::1])."""
+    bracketed = dict.fromkeys(
+        entry.strip()
+        for name in ("NO_PROXY", "no_proxy")
+        for entry in os.environ.get(name, "").split(",")
+        if entry.strip().startswith("[")
+    )
+    if bracketed:
+        return CommandError(
+            "proxy_settings",
+            f"NO_PROXY lists {', '.join(bracketed)}, which regents can't read, so nothing was "
+            "sent. Write an IPv6 address there without brackets, such as ::1.",
+            exit_code=EXIT_UNREACHABLE,
+        )
+    return CommandError(
+        "unreachable",
+        f"An address could not be read ({error}), so nothing was sent.",
+        exit_code=EXIT_UNREACHABLE,
+    )
+
+
 def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
     """Send once and never follow a redirect."""
     content = request.content

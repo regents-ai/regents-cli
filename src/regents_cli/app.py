@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from importlib.metadata import version
 
 import click
+import httpx
 
 from regents_cli import output
 from regents_cli.auth import auth_group
@@ -18,6 +19,7 @@ from regents_cli.errors import (
     CommandError,
     UsageError,
 )
+from regents_cli.http import unreadable_address
 from regents_cli.platforms import pinned_platforms
 from regents_cli.runner import platform_group
 from regents_cli.techtree.cli import techtree_group
@@ -92,6 +94,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     except CommandError as error:
         output.emit_error(error, as_json=as_json)
         return error.exit_code
+    except httpx.InvalidURL as error:
+        unreadable = unreadable_address(error)
+        output.emit_error(unreadable, as_json=as_json)
+        return unreadable.exit_code
     except (click.Abort, KeyboardInterrupt):
         output.emit_error(
             CommandError("cancelled", "The command was interrupted.", exit_code=EXIT_CANCELLED),

@@ -3,6 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- A machine whose `NO_PROXY` lists an IPv6 address in brackets, such as `[::1]`, gets a plain
+  answer naming the entry and how to write it (`::1`) instead of a crash. Commands that reach no
+  site still run.
+
 ## 1.8.0 — 2026-10-08
 
 - Signed requests follow the one signing contract the sign-in server and every site share, and
