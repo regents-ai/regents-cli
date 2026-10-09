@@ -70,10 +70,11 @@ behind a site, and never holds one up (founder, 2026-09-28).
 
 ## Next pins
 
-- **Touch ID page**: siwa-server's `scripts/build_agent_page.py` now builds
-  `src/regents_cli/passkey.html` from design-system's `standalone/agent-key.html`. Its first
-  output (Regents branding, bundled fonts) and a changelog line arrived uncommitted in this
-  checkout on 2026-10-08; it ships in the next bundled release once its owner sends a change note.
+- **Touch ID page**: `src/regents_cli/passkey.html` is built by siwa-server's
+  `scripts/build_agent_page.py`; never edit it here. The new page (siwa-server `00f16d3`) is on
+  local branch `touch-id-page` (`e521dcc` page, `8dee39f` handoff) and is held: the founder put
+  the siwa-server page on hold (TOUCH-ID-PAGE 9 b, 2026-10-09). Rebase it onto main once
+  `00f16d3` or a later page commit is on siwa-server main.
 
 - **Patchbay**, once the founder releases its PB-JEV-1 candidate (`5a8775b` on 2026-10-08):
   `/webmcp/health` renames `demo_fallback_enabled` to `sample_enabled`. Only the pinned
