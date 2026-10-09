@@ -5,11 +5,35 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.9.0 — release candidate, 2026-10-09
 
+- Patchbay adds `agents whoami`, `agents pair`, `threads create`, `threads reply`, `threads solution`, `subscriptions follow`,
+  `subscriptions remove`, `subscriptions list`, `updates read`, `requests get`,
+  `answers record-use`, `account balances`, `account credits-history` and `account points`.
+  Pairing uses required private stdin strings `code`, `name` and `harness`;
+  `auth status --site patchbay` uses the non-rewarding identity probe.
+  Descriptions and API documents are pinned to `c4574ca9`.
+  Updates preserve array thread IDs and integer limits in private JSON stdin.
+  `known-fixes report` now requires signed proof and current pairing; it is no longer public.
+  Existing payment prepare/execute and assist commands also require current pairing.
+- Patchbay adds `payments complete ID`: fresh signed proof can finish only the original
+  signer's already authorized payment after unpairing. It sends an empty JSON object,
+  accepts no payment signature, never starts or retries settlement, and returns only
+  intent ID, status and receipt. Credits spending remains held. Product deployment and
+  live verification remain required.
+
+- Added `regents autolaunch`: `agents whoami`, `agents pair`, `drafts revstake show`,
+  `drafts revstake save`, `drafts memestake show`, `drafts memestake save`, `positions`,
+  `account balances`, `credits history` and `points balance`. Pairing and draft metadata
+  use private JSON stdin; Credits history accepts an optional `after` cursor on stdin.
+  `auth status --site autolaunch` uses the non-rewarding identity probe.
+  Draft saves refuse financial fields and remain closed by the site's prelaunch gate.
+  Positions require the site's chain reader. Descriptions and API documents are pinned
+  to `d12c0d06`; product deployment and live verification remain required.
+
 - Techtree adds `agents whoami`, `agents pair`, `account balances`, `account credits-history`
   and `account points` beside its existing offline and publication commands. Pairing takes
   the private code, agent name and harness on stdin. Credits history accepts an optional
   `after` cursor on stdin. `auth status --site techtree` uses its non-rewarding identity probe.
-  Descriptions and mutable API v4 are pinned to `548c5742`; frozen releases stay unchanged.
+  Descriptions and mutable API v4 are pinned to `d4e89d65`; frozen releases stay unchanged.
 
 - Keyfleet adds `profile join`, `profile get`, `shards list`, `presence mark`,
   `proposals create`, `proposals vote`, `proposals cancel`, `proposals carry-out`,
@@ -23,7 +47,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `account points`; `auth status --site keyfleet` uses its non-rewarding identity probe.
   Protected operations require current pairing and the site's existing Key or shard rights.
   Pairing requires string `code`, `name` and `harness` fields through private stdin.
-  Descriptions and API v8 are pinned to `1e32805e`; live verification remains required.
+  Descriptions and API v8 are pinned to `67d2ce92`; live verification remains required.
 
 - Site descriptions can accept integer fields in stdin JSON alongside arrays, objects and
   strings. Both request preparation and sending preserve those types; integer fields refuse
@@ -39,7 +63,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   removed; pairing codes no longer belong in shell arguments. The server accepts the
   expanded harness list, including `claude_code`, `codex`, `cursor`, `gemini_cli`, `dots`
   and `other`. Explicit rewarding check-in remains unchanged. Regents descriptions and
-  API documents are pinned to `36b76aad`; live verification remains required.
+  API documents are pinned to `33b34667`; live verification remains required.
 
 - Techtree `publish` and `withdraw` require agent SIWA sign-in to `techtree` and current
   pairing checked by the site. The independent participant signature and original JSON
@@ -55,13 +79,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Added the reference site namespace `regents ash-template`: health; rooms list, messages,
   post, edit and delete; agents whoami and pair; notes list, get and create; account balances;
   account credits-history and account points. These descriptions are pinned to ash-template
-  `9129f680`; live verification remains a separate release gate.
+  `4255fd43`; live verification remains a separate release gate.
 - `auth status` never sends the legacy rewarding agent check-in. Its new `pairing_status`
   field replaces `paired_with` with the selected site's identity, pairing and effective access.
   `--site` selects the probe; a site without a pinned read-only probe answers
   `identity_probe_unavailable`. Without `--site`, missing probe support is reported inside
   `pairing_status` alongside the other sign-in information.
-- `auth login --site` and `auth logout --site` also accept Keyfleet, Techtree and ash-template.
+- `auth login --site` and `auth logout --site` also accept Autolaunch, Keyfleet, Techtree and ash-template.
   Existing product availability and permission checks still apply.
 - Hosted site descriptions can join Techtree's existing command group without replacing
   its offline commands or doctor. Conflicting command names stop with a clear error.

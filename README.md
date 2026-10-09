@@ -60,7 +60,8 @@ The prepared request names the signing contract it was built under; a `regents` 
 another one refuses it, so prepare it again.
 
 On regents.sh, a person pairs the agent with their account: they make a code on their Account
-page, and the agent runs `regents protocol agents pair --code … --name … --harness hermes`.
+page, and the agent supplies string `code`, `name` and `harness` fields through private JSON
+stdin to `regents protocol agents pair`.
 `regents auth status --site ash-template` reads that site's identity and pairing probe. It
 never sends the legacy check-in or awards Points. Its `pairing_status` answer includes the
 site's authenticated identity, pairing and effective access; this replaces `paired_with`.
@@ -68,7 +69,7 @@ Without `--site`, status prefers Regents when signed in there, then another sign
 this agent. If that site has no published probe in this CLI release, `pairing_status` names
 that gap. Selecting such a site explicitly returns `identity_probe_unavailable`.
 
-Login accepts sites whose commands this release carries, including Keyfleet and Techtree.
+Login accepts sites whose commands this release carries, including Autolaunch, Keyfleet and Techtree.
 Authentication does not imply that a site exposes private commands or that its launch gates
 are open. See each site's `/agents.md` before performing work.
 
