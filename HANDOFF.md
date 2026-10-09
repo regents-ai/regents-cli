@@ -62,15 +62,18 @@ behind a site, and never holds one up (founder, 2026-09-28).
    builds the wheel and publishes it through PyPI trusted publishing (environment `pypi`).
    It cannot read private sites, so it checks the copies against the lock's sha256 only; run
    `make release-check` on the founder's machine first to check the lock against the sites.
-7. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
+7. 1.8.0 (2026-10-08) signs from the shared SIWA contract `53180b09…6060` (elixir-utils
+   `fe3aa1d`); 1.8.1 (2026-10-09, `5479455`, wheel sha256 `e701a2e7…`) explains a bracketed
+   IPv6 `NO_PROXY` entry instead of crashing. Changes now wait and ship together, moving the last
+   number; see "What the release says" in `docs/site-commands.md` (founder, 2026-10-09).
+8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
 
-- **siwa** (elixir-utils), at the founder's one SIWA cutover approval: the lock pins
-  `fe3aa1d`, which is on the local checkout only. At cutover it fast-forwards elixir-utils
-  main with the same hash; `make release-check` then confirms it is on GitHub main. Publish
-  1.8.0 right after `siwa-server` is live on that contract, then check a signed
-  `regents protocol agents me` against regents.sh.
+- **Touch ID page**: siwa-server's `scripts/build_agent_page.py` now builds
+  `src/regents_cli/passkey.html` from design-system's `standalone/agent-key.html`. Its first
+  output (Regents branding, bundled fonts) and a changelog line arrived uncommitted in this
+  checkout on 2026-10-08; it ships in the next bundled release once its owner sends a change note.
 
 - **Patchbay**, once the founder releases its PB-JEV-1 candidate (`5a8775b` on 2026-10-08):
   `/webmcp/health` renames `demo_fallback_enabled` to `sample_enabled`. Only the pinned
@@ -79,5 +82,6 @@ behind a site, and never holds one up (founder, 2026-09-28).
 
 ## Checks
 
-Run `make check`, and `make release-check` before a release. Do not publish, deploy, sign, access production, or move value without the
+Run `make check`, and `make release-check` before a release, on its own line: piping it into
+`tail` in a `&&` chain hides its failure. Do not publish, deploy, sign, access production, or move value without the
 founder's explicit go.

@@ -47,9 +47,12 @@ Docs: cli/COMMANDS.md#known-fixes-report
 ### What the release says
 
 Each release's `CHANGELOG.md` entry names every changed command and shape in plain words.
-Wording or answer fixes are a patch release (1.3.4); new commands or new answer fields are a
-minor release (1.4.0). A renamed or removed command is a hard cutover: the old name goes in the
-same release, the entry says so, and nothing keeps answering to it.
+Changes wait and ship together: one release carries every change note that has arrived since
+the last one, rather than one release per change. A release moves the last number (1.8.1 to
+1.8.2), new commands and answer fields included. The middle number moves only for a cutover
+every caller must follow, such as a change to how requests are signed (1.8.0). A renamed or
+removed command is a hard cutover: the old name goes in the same release, the entry says so,
+and nothing keeps answering to it.
 
 ## Shared authentication and custom command groups
 
