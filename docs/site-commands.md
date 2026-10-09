@@ -122,8 +122,10 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
   that reads a body on every signed request (`body: :always`) gives each wallet-proof GET or
   DELETE `"body": {}`, so the command line signs and sends an empty JSON body. A site whose
   reads take no body leaves it out: a body it never reads fails the signature check.
-- **A list from the caller** (several rooms at once, say) is a wallet-proof command's stdin
-  field of type `array`.
+- **Typed fields from the caller** belong in a wallet-proof command's stdin JSON object.
+  Fields may be `array`, `object`, `string` or `integer`; they retain their JSON types in
+  the signed body. An integer field refuses strings, fractions and booleans. A bare root
+  JSON array is not a command body.
 - **Payments**: a `prepare` route freezes the terms; the paying route answers 402 with the
   terms and an x402 `payment-required` header. The site names its own payee; the command line
   never names one, and a person's own wallet signs.

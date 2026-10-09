@@ -158,7 +158,8 @@
                 "enum": [
                   "array",
                   "object",
-                  "string"
+                  "string",
+                  "integer"
                 ]
               },
               "required": {

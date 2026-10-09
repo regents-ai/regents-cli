@@ -113,3 +113,41 @@ def test_send_refuses_a_changed_body(
     assert code == 2
     assert "not the ones regents prepared" in out + err
     assert signed_in == []
+
+
+def test_typed_stdin_keeps_arrays_and_integers_in_both_phases(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Do not stringify typed JSON, or accept booleans as integers when sending a proof."""
+    from dataclasses import replace
+
+    from regents_cli.errors import UsageError
+    from regents_cli.platforms import StdinField, pinned_platforms
+
+    platform = next(p for p in pinned_platforms() if p.name == "patchbay")
+    command = replace(
+        platform.commands[0],
+        method="POST",
+        body=None,
+        arguments=(),
+        flags=(),
+        stdin_fields=(
+            StdinField("items", "array", True, "The selected items."),
+            StdinField("limit", "integer", True, "The result limit."),
+        ),
+    )
+    request = runner.request_for(command, {})
+    good = '{"items":["one","two"],"limit":2}'
+    monkeypatch.setattr("sys.stdin", io.StringIO(good))
+    built = runner.with_stdin_fields(command, request, 1000)
+    assert built.content == good.encode()
+    assert runner.prepared_body(command, request, good) == json.loads(good)
+    for value in (True, 2.5, "2", None):
+        wrong = json.dumps({"items": ["one"], "limit": value}, separators=(",", ":"))
+        monkeypatch.setattr("sys.stdin", io.StringIO(wrong))
+        with pytest.raises(UsageError, match="limit must be an integer"):
+            runner.with_stdin_fields(command, request, 1000)
+        with pytest.raises(UsageError, match="limit must be an integer"):
+            runner.prepared_body(command, request, wrong)
+    with pytest.raises(UsageError, match="limit is required"):
+        runner.prepared_body(command, request, '{"items":[]}')

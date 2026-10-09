@@ -5,6 +5,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.9.0 — release candidate, 2026-10-09
 
+- Site descriptions can accept integer fields in stdin JSON alongside arrays, objects and
+  strings. Both request preparation and sending preserve those types; integer fields refuse
+  booleans, fractions and quoted numbers.
+
 - Regents adds `protocol agents whoami`, `protocol account show`, `protocol account claims`,
   `protocol staking position`, `protocol account balances`, `protocol account credits-history`
   and `protocol account budget`. These are signed reads; account reads require current

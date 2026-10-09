@@ -29,6 +29,7 @@ STDIN_TYPES: dict[str, tuple[type, str]] = {
     "array": (list, "a list"),
     "object": (dict, "an object"),
     "string": (str, "a string"),
+    "integer": (int, "an integer"),
 }
 
 
@@ -225,18 +226,25 @@ def with_stdin_fields(command: Command, request: Request, timeout_ms: int) -> Re
     if unknown:
         are = "is not one of its fields" if len(unknown) == 1 else "are not among its fields"
         raise UsageError(f"stdin must hold {shape}; {in_words(unknown)} {are}.")
+    validate_stdin_fields(command, piped)
+    return replace(request, body={**(request.body or {}), **piped})
+
+
+def validate_stdin_fields(command: Command, piped: dict[str, Any]) -> None:
+    """Keep JSON types intact, including refusing booleans where an integer is required."""
     missing = [f.field for f in command.stdin_fields if f.required and f.field not in piped]
     if missing:
         are = "is" if len(missing) == 1 else "are"
-        raise UsageError(f"Pipe {shape} on stdin; {in_words(missing)} {are} required.")
+        raise UsageError(
+            f"Pipe {stdin_shape(command)} on stdin; {in_words(missing)} {are} required."
+        )
     wrong = [
         f"{f.field} must be {STDIN_TYPES[f.type][1]}"
         for f in command.stdin_fields
-        if f.field in piped and not isinstance(piped[f.field], STDIN_TYPES[f.type][0])
+        if f.field in piped and type(piped[f.field]) is not STDIN_TYPES[f.type][0]
     ]
     if wrong:
         raise UsageError("; ".join(wrong) + ".")
-    return replace(request, body={**(request.body or {}), **piped})
 
 
 def in_words(names: list[str]) -> str:
@@ -306,6 +314,7 @@ def prepared_body(command: Command, request: Request, text: Any) -> dict[str, An
         or replace(request, body=body).content != text.encode("utf-8")
     ):
         raise UsageError("The prepared body is not this command's.")
+    validate_stdin_fields(command, body)
     return body
 
 

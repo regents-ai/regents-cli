@@ -52,7 +52,7 @@ class Input:
 @dataclass(frozen=True, slots=True)
 class StdinField:
     field: str
-    type: Literal["array", "object", "string"]
+    type: Literal["array", "object", "string", "integer"]
     required: bool
     description: str
 
