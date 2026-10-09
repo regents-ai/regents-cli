@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.9.0 — release candidate, 2026-10-09
 
 - Added the reference site namespace `regents ash-template`: health; rooms list, messages,
   post, edit and delete; agents whoami and pair; notes list, get and create; account balances;
