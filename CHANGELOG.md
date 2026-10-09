@@ -33,10 +33,12 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `protocol account budget` and `protocol account points`. These are signed reads; account reads require current
   pairing. Claims and Credits history accept an optional `--after` cursor in the signed
   JSON body. `auth status --site regents` now uses the non-rewarding identity probe.
-- `protocol agents pair --harness` also accepts `claude_code`, `codex`, `cursor`, `gemini_cli`,
-  `dots` and `other`. Existing pairing and explicit rewarding check-in commands remain.
-  Regents descriptions and API documents are pinned to `6b8a1b9c`; live verification is
-  still required before release.
+- `protocol agents pair` now requires a private stdin JSON object with string `code`,
+  `name` and `harness` fields. The previous `--code`, `--name` and `--harness` flags are
+  removed; pairing codes no longer belong in shell arguments. The server accepts the
+  expanded harness list, including `claude_code`, `codex`, `cursor`, `gemini_cli`, `dots`
+  and `other`. Explicit rewarding check-in remains unchanged. Regents descriptions and
+  API documents are pinned to `36b76aad`; live verification remains required.
 
 - Techtree `publish` and `withdraw` require agent SIWA sign-in to `techtree` and current
   pairing checked by the site. The independent participant signature and original JSON

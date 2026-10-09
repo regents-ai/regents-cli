@@ -55,11 +55,11 @@
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "6b8a1b9ca5e336a7ae9f2ac56400a35050d20d2f",
+    "commit": "36b76aad6c17d707d9b1da7cecbfedd983f51507",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",
-        "sha256": "8af55128b447f762aa8d22071082eab1cab76db6657c8dcda7f9ef3b008939b4"
+        "sha256": "2ccf58418487d64a97564a3d6e474036102ef6bfaad8f63e046f302fb5a5e6c1"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/protocol/openapi.json",
