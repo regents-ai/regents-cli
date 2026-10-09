@@ -51,3 +51,16 @@ starter Skill, under `climbs` by Climb reference (`engine_digest`, `starter_skil
 `starter_skill_object_url` are gone. `intro_climb_reference` is one of the keys of `climbs`.
 `subject_hermes_version` is the Hermes release tag (`v2026.9.24`, Hermes 0.21.5) every Campaign
 pins.
+
+## Hosted publication authentication in CLI 1.9.0
+
+Publication and withdrawal require SIWA audience `techtree` and current account pairing.
+The CLI signs the original JSON bytes with its configured agent signer after normal approval;
+it preserves the independent participant proof and the pinned network receipt checks.
+Offline commands do not sign in. Each approved retry makes fresh SIWA proof for its body.
+
+Both actions POST to `https://techtree.sh/api/v1/publications`, with a 2,097,152-byte body
+limit and no redirects. Other endpoint overrides are refused before authentication.
+The optional contributor address is private: review/approval output redacts it, using
+`<private-address>` as an explicit placeholder. Replace it privately before running that
+approval command. Skill name and GitHub URL remain public metadata.

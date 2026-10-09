@@ -10,29 +10,34 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Final
 from urllib.parse import urlsplit
 
 import httpx
 
-from regents_cli.techtree.errors import TechtreeError, ValidationError
+from regents_cli import siwa
+from regents_cli.errors import CommandError
+from regents_cli.http import Request
+from regents_cli.techtree.errors import AuthenticationError, TechtreeError, ValidationError
 from regents_cli.techtree.release.models import PublicationCoordinates
 
 CONTRIBUTOR_ADDRESS_HEADER: Final = "x-techtree-contributor-address"
 SKILL_NAME_HEADER: Final = "x-techtree-skill-name"
 SKILL_GITHUB_URL_HEADER: Final = "x-techtree-skill-github-url"
 
-#: Points a development build at a local stand-in for the run log. The pinned network key is
-#: never overridable: a key a person can point elsewhere removes what makes a receipt mean
-#: anything.
+#: An override must still name the approved endpoint: agent proof never travels elsewhere.
 ENDPOINT_VARIABLE: Final = "REGENTS_TECHTREE_PUBLICATION_ENDPOINT"
+APPROVED_ENDPOINT: Final = "https://techtree.sh/api/v1/publications"
 
 PUBLICATION_ENDPOINT_INVALID: Final = "publication_endpoint_invalid"
 PUBLICATION_TRANSPORT_FAILED: Final = "publication_transport_failed"
 PUBLICATION_TRANSPORT_REDIRECTED: Final = "publication_transport_redirected"
 PUBLICATION_RESPONSE_NOT_JSON: Final = "publication_response_not_json"
 PUBLICATION_RESPONSE_TOO_LARGE: Final = "publication_response_too_large"
+PUBLICATION_REQUEST_TOO_LARGE: Final = "publication_request_too_large"
 
+MAX_REQUEST_BYTES: Final = 2_097_152
 MAX_RESPONSE_BYTES: Final = 4 * 1024 * 1024
 _MEDIA_TYPE: Final = "application/json"
 _TIMEOUT_SECONDS: Final = 120.0
@@ -54,6 +59,27 @@ class HttpsPublicationTransport:
         skill_github_url: str | None,
     ) -> bytes:
         """POST `body` to `endpoint` and return the response bytes, or raise a typed failure."""
+        endpoint = validated_endpoint(endpoint)
+        if len(body) > MAX_REQUEST_BYTES:
+            raise ValidationError(
+                f"the publication exceeds the {MAX_REQUEST_BYTES}-byte request limit; "
+                "nothing was signed or sent",
+                code=PUBLICATION_REQUEST_TOO_LARGE,
+                details={"limit": MAX_REQUEST_BYTES},
+            )
+        # The independent participant proof stays byte-for-byte intact inside this envelope.
+        signed_request = Request("POST", urlsplit(endpoint).path, raw_content=body)
+        try:
+            receipt = siwa.current("techtree", int(_TIMEOUT_SECONDS * 1000))
+            proof = siwa.sign(signed_request, receipt)
+        except CommandError as error:
+            # A signing command may include sensitive output in its error; never relay it.
+            raise AuthenticationError(
+                "Techtree agent authentication failed before submission. "
+                "Use the agent's own configured signer and regents auth login --site techtree. "
+                "Protected publication also requires a current account pairing.",
+                code=error.code,
+            ) from None
         headers = {"Content-Type": _MEDIA_TYPE, "Accept": _MEDIA_TYPE}
         if contributor_address is not None:
             headers[CONTRIBUTOR_ADDRESS_HEADER] = contributor_address
@@ -61,26 +87,26 @@ class HttpsPublicationTransport:
             headers[SKILL_NAME_HEADER] = skill_name
         if skill_github_url is not None:
             headers[SKILL_GITHUB_URL_HEADER] = skill_github_url
-        request = self._client.build_request(
-            "POST", validated_endpoint(endpoint), content=body, headers=headers
-        )
+        headers.update(proof)
+        request = self._client.build_request("POST", endpoint, content=body, headers=headers)
         try:
             # SECURITY: follow_redirects is set here, on the send, so no client anybody
             # builds can turn it on.
             response = self._client.send(request, stream=True, follow_redirects=False)
             try:
-                return _response_bytes(response)
+                return _response_bytes(response, private_address=contributor_address)
             finally:
                 response.close()
         except httpx.HTTPError as error:
             raise TechtreeError(
-                "the run log could not be reached, so nothing was sent",
+                "the run log's answer could not be confirmed. Check the public result before "
+                "retrying; a retry uses fresh authentication for the same proof",
                 code=PUBLICATION_TRANSPORT_FAILED,
                 details={"reason": type(error).__name__},
-            ) from error
+            ) from None
 
 
-def _response_bytes(response: httpx.Response) -> bytes:
+def _response_bytes(response: httpx.Response, *, private_address: str | None = None) -> bytes:
     """The answer, having proved it is a JSON document that ended."""
     if 300 <= response.status_code < 400:
         raise TechtreeError(
@@ -91,7 +117,9 @@ def _response_bytes(response: httpx.Response) -> bytes:
         )
     media_type = response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
     if not response.is_success:
-        refusal = _refusal(_capped_bytes(response)) if media_type == _MEDIA_TYPE else {}
+        refusal = (
+            _refusal(_capped_bytes(response), private_address) if media_type == _MEDIA_TYPE else {}
+        )
         raise TechtreeError(
             f"the run log refused this submission: HTTP {response.status_code}"
             + (f": {refusal['message']}" if "message" in refusal else ""),
@@ -108,7 +136,7 @@ def _response_bytes(response: httpx.Response) -> bytes:
     return _capped_bytes(response)
 
 
-def _refusal(body: bytes) -> dict[str, str]:
+def _refusal(body: bytes, private_address: str | None = None) -> dict[str, str]:
     """The site's own `{"error": {code, message, hint}}`, as far as it is there."""
     try:
         error = json.loads(body).get("error")
@@ -121,7 +149,13 @@ def _refusal(body: bytes) -> dict[str, str]:
         "message": error.get("message"),
         "hint": error.get("hint"),
     }
-    return {key: value for key, value in said.items() if isinstance(value, str)}
+    return {
+        key: re.sub(re.escape(private_address), "[private address]", value, flags=re.IGNORECASE)
+        if private_address is not None
+        else value
+        for key, value in said.items()
+        if isinstance(value, str)
+    }
 
 
 def _capped_bytes(response: httpx.Response) -> bytes:
@@ -151,18 +185,10 @@ def publication_endpoint(coordinates: PublicationCoordinates) -> str:
 
 def validated_endpoint(endpoint: str) -> str:
     """The endpoint, or a refusal of an address nothing may be sent to."""
-    parts = urlsplit(endpoint)
-    if parts.scheme != "https" or not parts.netloc:
+    if endpoint != APPROVED_ENDPOINT:
         raise ValidationError(
-            "a run log address is an https URL, and this one is not",
+            f"signed publications and withdrawals go only to {APPROVED_ENDPOINT}; "
+            "no other endpoint is approved",
             code=PUBLICATION_ENDPOINT_INVALID,
-            details={"scheme": parts.scheme},
-        )
-    if parts.query or parts.fragment:
-        raise ValidationError(
-            "a run log address carries no query string: a submission travels in the request "
-            "body and never in a URL",
-            code=PUBLICATION_ENDPOINT_INVALID,
-            details={"scheme": parts.scheme},
         )
     return endpoint

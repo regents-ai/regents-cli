@@ -59,15 +59,20 @@ def test_saying_no_at_the_prompt_sends_nothing(
 def test_a_machine_that_cannot_be_asked_is_told_which_flag_to_pass(
     log: RunLog, run_dir: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    assert main([*PUBLISH, "--json"]) == 1
+    private_address = "0x" + "1" * 40
+    assert main([*PUBLISH, "--address", private_address, "--json"]) == 1
 
-    error = json.loads(capsys.readouterr().out)["error"]
+    shown = capsys.readouterr().out
+    assert private_address not in shown
+    error = json.loads(shown)["error"]
     assert error["code"] == "approval_required"
     assert shlex.split(error["approval"]["command"]) == [
         "regents",
         "techtree",
         "publish",
         RUN_ID,
+        "--address",
+        "<private-address>",
         "--yes",
         "--reviewed-on",
         "host-agent",
@@ -108,6 +113,7 @@ def test_a_machine_publishing_without_the_option_sends_no_address(
     assert str(request.url) == PINNED_ENDPOINT
     assert "x-techtree-contributor-address" not in request.headers
     assert request.headers["x-techtree-skill-name"] == SKILL_NAME
+    assert request.headers["x-siwa-signature"] == "test-only"
     assert "x-techtree-skill-github-url" not in request.headers
     submission = PublicationSubmission.model_validate_json(request.content)
     assert submission.run_id == RUN_ID

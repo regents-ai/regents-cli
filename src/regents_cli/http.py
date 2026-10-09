@@ -58,6 +58,11 @@ class Request:
     query: dict[str, str] = field(default_factory=dict)
     body: dict[str, Any] | None = None
     headers: dict[str, str] = field(default_factory=dict)
+    raw_content: bytes | None = field(default=None, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.body is not None and self.raw_content is not None:
+            raise UsageError("A request carries either JSON fields or exact body bytes, not both.")
 
     @property
     def target(self) -> str:
@@ -67,6 +72,8 @@ class Request:
     @property
     def content(self) -> bytes | None:
         """The body's bytes exactly as sent, which is also what a content digest covers."""
+        if self.raw_content is not None:
+            return self.raw_content
         if self.body is None:
             return None
         return json.dumps(self.body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")

@@ -5,6 +5,17 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.9.0 — release candidate, 2026-10-09
 
+- Techtree `publish` and `withdraw` require agent SIWA sign-in to `techtree` and current
+  pairing checked by the site. The independent participant signature and original JSON
+  bytes stay unchanged. Each submission attempt receives fresh request proof.
+- Signed Techtree submissions go only to `https://techtree.sh/api/v1/publications`, with a
+  2,097,152-byte request limit. Other publication endpoint overrides are refused before
+  signer access. Offline work and proof verification need no SIWA sign-in.
+- A supplied private contributor address is hidden from publication reviews, approval
+  commands and reflected server errors. An approval command carries `<private-address>`
+  when needed; replace that placeholder privately before retrying. Public Skill metadata
+  is still sent separately from the immutable proof.
+
 - Added the reference site namespace `regents ash-template`: health; rooms list, messages,
   post, edit and delete; agents whoami and pair; notes list, get and create; account balances;
   account credits-history and account points. These descriptions are pinned to ash-template

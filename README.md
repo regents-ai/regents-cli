@@ -104,6 +104,19 @@ message to sign; add its `signature` to that answer and pipe it to `--phase send
 `regents` never signs a payment. A paid command takes your own x402 payment signature on stdin.
 The one transaction it ever sends is the agent's registry listing above.
 
+## Techtree publication sign-in
+
+`regents techtree publish` and `withdraw` require `regents auth login --site techtree`
+and a current pairing with the owner account. The site checks that pairing alongside the
+existing independent participant proof. Local experiments and proof verification stay offline.
+The signed JSON body is sent unchanged, up to 2,097,152 bytes, only to
+`https://techtree.sh/api/v1/publications`. A retry signs fresh request proof. A missing
+answer may mean the site accepted the submission; read the public result before retrying.
+
+An optional contributor address travels privately in its existing header. Reviews and
+approval commands hide it; replace `<private-address>` privately when rerunning an approval
+command. Skill name and GitHub URL remain public descriptive metadata.
+
 ## How a site's commands get here
 
 Each site describes its commands in its own repository, in `cli/commands.json`

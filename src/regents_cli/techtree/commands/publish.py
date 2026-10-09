@@ -86,7 +86,7 @@ def publish(
         command=[
             "publish",
             run_id,
-            *([] if contributor is None else ["--address", contributor]),
+            *([] if contributor is None else ["--address", "<private-address>"]),
             *([] if skill_github_url is None else ["--github-url", skill_github_url]),
         ],
         question=_PUBLISH_PROMPT,
@@ -152,7 +152,14 @@ def review_lines(
         f"Proof {plan.bundle_digest}",
         f"Skill {plan.skill_name}",
         f"GitHub {skill_github_url or 'none'}",
-        *([] if contributor_address is None else [f"Address {contributor_address}"]),
+        *(
+            []
+            if contributor_address is None
+            else [
+                "Private contributor address supplied. It is omitted from this review; "
+                "replace <private-address> privately when rerunning the approval command."
+            ]
+        ),
         "",
         _WHAT_TRAVELS,
         "",
@@ -194,5 +201,6 @@ PUBLISH = click.Command(
         JSON,
     ],
     help="Publish a verified run's proof to the public run log. Shows every file that would "
-    "be sent and asks before sending anything.",
+    "be sent and asks before sending anything. Requires regents auth login --site techtree "
+    "and a current account pairing; the independent run proof is retained.",
 )

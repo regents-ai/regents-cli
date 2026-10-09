@@ -18,6 +18,7 @@ import httpx
 import pytest
 from pydantic import BaseModel
 
+from regents_cli import siwa
 from regents_cli.techtree.canonical import canonical_json_bytes, digest_object, sha256_digest_bytes
 from regents_cli.techtree.commands import publish as publish_module
 from regents_cli.techtree.commands import withdraw as withdraw_module
@@ -43,7 +44,7 @@ RUN_ID: Final = "run_7e001b6fd2644bfca8f40090bb493ac8"
 BUNDLE_DIGEST: Final = "sha256:5da0e5344aa167a922a95654d653c9009c5c407b2a2fa029b37771d6fbc1dcf3"
 SKILL_NAME: Final = "hello-world-v1"
 
-PINNED_ENDPOINT: Final = "https://run-log.techtree.example/api/v1/publications"
+PINNED_ENDPOINT: Final = "https://techtree.sh/api/v1/publications"
 PUBLIC_LOG_URL: Final = "https://run-log.techtree.example/runs"
 ENTRY_URL: Final = f"{PUBLIC_LOG_URL}/sha256:{'7' * 64}"
 LOG_SEQUENCE: Final = 7
@@ -139,6 +140,9 @@ class RunLog:
 def install(monkeypatch: pytest.MonkeyPatch, home: Path, log: RunLog) -> None:
     """Point the commands at a throwaway home, the stand-in's key and its transport."""
     monkeypatch.setenv("HOME", str(home))
+    receipt = siwa.Receipt("0x" + "1" * 40, "techtree", "test-only", "2099-01-01T00:00:00Z", "test")
+    monkeypatch.setattr(siwa, "current", lambda _site, _timeout: receipt)
+    monkeypatch.setattr(siwa, "sign", lambda _request, _receipt: {"x-siwa-signature": "test-only"})
     for module in (publish_module, withdraw_module):
         monkeypatch.setattr(module, "packaged_publication_coordinates", lambda: COORDINATES)
         monkeypatch.setattr(module, "HttpsPublicationTransport", log.transport)

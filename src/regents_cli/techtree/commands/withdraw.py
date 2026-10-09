@@ -95,5 +95,6 @@ WITHDRAW = click.Command(
     callback=withdraw,
     params=[click.Argument(["bundle_digest"], metavar="BUNDLE_DIGEST"), YES, REVIEWED_ON, JSON],
     help="Withdraw a published run from the public run log. The entry is marked withdrawn, "
-    "not deleted; the request is signed with this machine's key.",
+    "not deleted; the request retains the participant's signature and requires "
+    "regents auth login --site techtree and a current account pairing.",
 )
