@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Regents public API",
-    "version": "1.0.0",
-    "description": "Public service health, the product directory, owner-authorized historical name and stake reads, and agent pairing: an agent signs with its own SIWA key to pair with a person's account and to check in. Does not describe wallet transactions, session changes, or separate product APIs.",
+    "version": "2.0.0",
+    "description": "Public service health, the product directory, owner-authorized historical name and stake reads, and agent pairing: an agent signs with its own SIWA key to pair with a person's account and to check in. Does not describe wallet transactions, session changes, or separate product APIs. Signed agent reads use current pairings and shared balances, history and budgets.",
     "contact": {
       "name": "Regents Labs"
     }
@@ -34,7 +34,7 @@
       "get": {
         "operationId": "listProducts",
         "summary": "List the Regents products",
-        "description": "Autolaunch, Techtree and Patchbay, in the order the site lists them, with the summary and links their pages on Regents show. Takes no query parameters.",
+        "description": "Autolaunch, Techtree, Patchbay and Keyfleet, in the order the site lists them, with the summary and links their pages on Regents show. Takes no query parameters.",
         "responses": {
           "200": {
             "description": "The product directory",
@@ -74,7 +74,8 @@
               "enum": [
                 "autolaunch",
                 "techtree",
-                "patchbay"
+                "patchbay",
+                "keyfleet"
               ]
             }
           }
@@ -374,8 +375,17 @@
           "401": {
             "$ref": "#/components/responses/AgentVerificationFailed"
           },
+          "409": {
+            "$ref": "#/components/responses/AgentPairConflict"
+          },
           "429": {
             "$ref": "#/components/responses/AgentRateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/AgentVerificationUnavailable"
+          },
+          "default": {
+            "$ref": "#/components/responses/AgentSignInRefused"
           }
         }
       }
@@ -436,6 +446,833 @@
           },
           "429": {
             "$ref": "#/components/responses/AgentRateLimited"
+          },
+          "409": {
+            "$ref": "#/components/responses/AgentRequestReplayed"
+          },
+          "503": {
+            "$ref": "#/components/responses/AgentVerificationUnavailable"
+          },
+          "default": {
+            "$ref": "#/components/responses/AgentSignInRefused"
+          }
+        }
+      }
+    },
+    "/api/agents/v1/whoami": {
+      "get": {
+        "operationId": "agentWhoami",
+        "summary": "Check agent identity and current pairing",
+        "description": "Requires fresh SIWA proof for audience regents. No query string or browser-session authority. No pairing required. Does not check in or award Points.",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiwaReceipt"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaKeyId"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentWallet"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentChainId"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignatureInput"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignature"
+          }
+        ],
+        "x-authentication": "siwa_per_request",
+        "x-pairing-required": false,
+        "responses": {
+          "200": {
+            "description": "Check agent identity and current pairing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentWhoami"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing proof",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing current pairing or owner account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Wallet required or proof replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request budget exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/v1/account": {
+      "get": {
+        "operationId": "agentAccount",
+        "summary": "Read the paired account",
+        "description": "Requires fresh SIWA proof for audience regents. No query string or browser-session authority. Requires a current pairing and an owner account on Regents.",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiwaReceipt"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaKeyId"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentWallet"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentChainId"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignatureInput"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignature"
+          }
+        ],
+        "x-authentication": "siwa_per_request",
+        "x-pairing-required": true,
+        "responses": {
+          "200": {
+            "description": "Read the paired account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentAccountRead"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing proof",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing current pairing or owner account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Wallet required or proof replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request budget exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/v1/staking/position": {
+      "get": {
+        "operationId": "agentStakingPosition",
+        "summary": "Read the paired owner staking position",
+        "description": "Requires fresh SIWA proof for audience regents. No query string or browser-session authority. Requires a current pairing and an owner account on Regents.",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiwaReceipt"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaKeyId"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentWallet"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentChainId"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignatureInput"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignature"
+          }
+        ],
+        "x-authentication": "siwa_per_request",
+        "x-pairing-required": true,
+        "responses": {
+          "200": {
+            "description": "Read the paired owner staking position",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StakingPosition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing proof",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing current pairing or owner account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Wallet required or proof replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request budget exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/v1/claims": {
+      "post": {
+        "operationId": "agentClaims",
+        "summary": "Read the paired owner name claims",
+        "description": "Requires fresh SIWA proof for audience regents. No query string or browser-session authority. Requires a current pairing and an owner account on Regents.",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiwaReceipt"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaKeyId"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentWallet"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentChainId"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignatureInput"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignature"
+          },
+          {
+            "$ref": "#/components/parameters/ContentDigest"
+          }
+        ],
+        "x-authentication": "siwa_per_request",
+        "x-pairing-required": true,
+        "responses": {
+          "200": {
+            "description": "Read the paired owner name claims",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimsPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing proof",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing current pairing or owner account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Wallet required or proof replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request budget exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "after": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/v1/credits/balance": {
+      "get": {
+        "operationId": "agentCreditsBalance",
+        "summary": "Read shared Credits balance",
+        "description": "Requires fresh SIWA proof for audience regents. No query string or browser-session authority. Requires a current pairing and an owner account on Regents.",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiwaReceipt"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaKeyId"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentWallet"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentChainId"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignatureInput"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignature"
+          }
+        ],
+        "x-authentication": "siwa_per_request",
+        "x-pairing-required": true,
+        "responses": {
+          "200": {
+            "description": "Read shared Credits balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentCreditsBalance"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing proof",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing current pairing or owner account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Wallet required or proof replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request budget exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/v1/credits/history": {
+      "post": {
+        "operationId": "agentCreditsHistory",
+        "summary": "Read shared Credits history",
+        "description": "Requires fresh SIWA proof for audience regents. No query string or browser-session authority. Requires a current pairing and an owner account on Regents.",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiwaReceipt"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaKeyId"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentWallet"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentChainId"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignatureInput"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignature"
+          },
+          {
+            "$ref": "#/components/parameters/ContentDigest"
+          }
+        ],
+        "x-authentication": "siwa_per_request",
+        "x-pairing-required": true,
+        "responses": {
+          "200": {
+            "description": "Read shared Credits history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentCreditsHistory"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing proof",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing current pairing or owner account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Wallet required or proof replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request budget exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "after": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/v1/credits/budget": {
+      "get": {
+        "operationId": "agentCreditsBudget",
+        "summary": "Read effective agent spending budget",
+        "description": "Requires fresh SIWA proof for audience regents. No query string or browser-session authority. Requires a current pairing and an owner account on Regents.",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiwaReceipt"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaKeyId"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentWallet"
+          },
+          {
+            "$ref": "#/components/parameters/SiwaAgentChainId"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignatureInput"
+          },
+          {
+            "$ref": "#/components/parameters/HttpSignature"
+          }
+        ],
+        "x-authentication": "siwa_per_request",
+        "x-pairing-required": true,
+        "responses": {
+          "200": {
+            "description": "Read effective agent spending budget",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentCreditsBudget"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing proof",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing current pairing or owner account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Wallet required or proof replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request budget exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/capabilities": {
+      "get": {
+        "operationId": "getCapabilities",
+        "summary": "Read the manifest of browser and HTTP agent operations",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Public operation manifest with authentication and availability metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "audience",
+                    "proof_headers",
+                    "tools"
+                  ],
+                  "properties": {
+                    "audience": {
+                      "type": "string"
+                    },
+                    "proof_headers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -561,7 +1398,9 @@
           "error": {
             "type": "object",
             "required": [
-              "code"
+              "code",
+              "message",
+              "hint"
             ],
             "properties": {
               "code": {
@@ -574,6 +1413,12 @@
                   "claims_unconfigured",
                   "claims_unavailable"
                 ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "hint": {
+                "type": "string"
               }
             }
           }
@@ -582,21 +1427,21 @@
       "HTTPError": {
         "type": "object",
         "required": [
-          "errors"
+          "error"
         ],
         "properties": {
-          "errors": {
+          "error": {
             "type": "object",
             "required": [
-              "detail",
               "code",
+              "message",
               "hint"
             ],
             "properties": {
-              "detail": {
+              "code": {
                 "type": "string"
               },
-              "code": {
+              "message": {
                 "type": "string"
               },
               "hint": {
@@ -626,7 +1471,10 @@
           "harness",
           "wallet",
           "paired_at",
-          "last_contact_at"
+          "last_contact_at",
+          "registry_listing",
+          "human_backed",
+          "same_person_agent_count"
         ],
         "properties": {
           "name": {
@@ -648,6 +1496,26 @@
           "last_contact_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "registry_listing": {
+            "description": "The agent's page in the agent registry, or null when it has no listing there.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "human_backed": {
+            "description": "Whether a person verified with World ID stands behind the agent. Once true, it stays true, because the first person saved stays linked to the agent for good.",
+            "type": "boolean"
+          },
+          "same_person_agent_count": {
+            "description": "How many agents, this one included, the same verified person stands behind, or null when no verified person stands behind the agent.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
           }
         }
       },
@@ -672,6 +1540,9 @@
           "wallet",
           "paired_at",
           "last_contact_at",
+          "registry_listing",
+          "human_backed",
+          "same_person_agent_count",
           "account"
         ],
         "properties": {
@@ -694,6 +1565,26 @@
           "last_contact_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "registry_listing": {
+            "description": "The agent's page in the agent registry, or null when it has no listing there.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "human_backed": {
+            "description": "Whether a person verified with World ID stands behind the agent. Once true, it stays true, because the first person saved stays linked to the agent for good.",
+            "type": "boolean"
+          },
+          "same_person_agent_count": {
+            "description": "How many agents, this one included, the same verified person stands behind, or null when no verified person stands behind the agent.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
           },
           "account": {
             "$ref": "#/components/schemas/PairedAccount"
@@ -733,7 +1624,13 @@
           "openclaw",
           "nemoclaw",
           "ironclaw",
-          "pi"
+          "pi",
+          "claude_code",
+          "codex",
+          "cursor",
+          "gemini_cli",
+          "dots",
+          "other"
         ]
       },
       "AgentPairingError": {
@@ -748,19 +1645,18 @@
             "additionalProperties": false,
             "required": [
               "code",
-              "message"
+              "message",
+              "hint"
             ],
             "properties": {
               "code": {
                 "type": "string",
-                "enum": [
-                  "pairing_failed",
-                  "verification_failed",
-                  "rate_limited",
-                  "not_paired"
-                ]
+                "description": "pairing_failed, harness_unknown, agent_limit, not_paired, verification_failed, duplicate_proof, unsupported_query, missing_signed_body, siwa_request_failed or rate_limited, or a code the sign-in service gave, which https://siwa.regents.sh/skill.md explains"
               },
               "message": {
+                "type": "string"
+              },
+              "hint": {
                 "type": "string"
               }
             }
@@ -784,7 +1680,8 @@
             "enum": [
               "autolaunch",
               "techtree",
-              "patchbay"
+              "patchbay",
+              "keyfleet"
             ]
           },
           "name": {
@@ -804,8 +1701,12 @@
             "description": "The product's page on Regents."
           },
           "github": {
-            "type": "string",
-            "format": "uri"
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The product's public source code; null while its code is not public."
           }
         }
       },
@@ -827,7 +1728,7 @@
       "Product": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Everything the product's page on Regents shows. Techtree and Patchbay carry what_it_does and about; Autolaunch carries launches, why_fair and before_you_bid.",
+        "description": "Everything the product's page on Regents shows. Techtree, Patchbay and Keyfleet carry what_it_does and about; Autolaunch carries launches, why_fair and before_you_bid.",
         "required": [
           "slug",
           "name",
@@ -849,7 +1750,8 @@
             "enum": [
               "autolaunch",
               "techtree",
-              "patchbay"
+              "patchbay",
+              "keyfleet"
             ]
           },
           "name": {
@@ -867,8 +1769,12 @@
             "format": "uri"
           },
           "github": {
-            "type": "string",
-            "format": "uri"
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The product's public source code; null while its code is not public."
           },
           "kicker": {
             "type": "string"
@@ -1063,7 +1969,8 @@
             "additionalProperties": false,
             "required": [
               "code",
-              "message"
+              "message",
+              "hint"
             ],
             "properties": {
               "code": {
@@ -1074,6 +1981,9 @@
                 ]
               },
               "message": {
+                "type": "string"
+              },
+              "hint": {
                 "type": "string"
               }
             }
@@ -1161,7 +2071,8 @@
             "additionalProperties": false,
             "required": [
               "code",
-              "message"
+              "message",
+              "hint"
             ],
             "properties": {
               "code": {
@@ -1176,10 +2087,298 @@
               },
               "message": {
                 "type": "string"
+              },
+              "hint": {
+                "type": "string"
               }
             }
           }
         }
+      },
+      "AgentAccountRead": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "display_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ens_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "display_name",
+              "ens_name"
+            ],
+            "additionalProperties": false
+          },
+          "pairing_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "agent_wallet": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "account",
+          "pairing_id",
+          "agent_wallet"
+        ],
+        "additionalProperties": false
+      },
+      "AgentCreditsBalance": {
+        "type": "object",
+        "properties": {
+          "credits": {
+            "type": "object",
+            "properties": {
+              "available": {
+                "type": "string",
+                "description": "Exact decimal amount"
+              },
+              "given": {
+                "type": "string",
+                "description": "Exact decimal amount"
+              },
+              "purchased": {
+                "type": "string",
+                "description": "Exact decimal amount"
+              },
+              "held": {
+                "type": "string",
+                "description": "Exact decimal amount"
+              }
+            },
+            "required": [
+              "available",
+              "given",
+              "purchased",
+              "held"
+            ],
+            "additionalProperties": false
+          },
+          "pairing_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "credits",
+          "pairing_id"
+        ],
+        "additionalProperties": false
+      },
+      "AgentCreditsBudget": {
+        "type": "object",
+        "properties": {
+          "pairing_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "spending_grant": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "site_allowed": {
+                "type": "boolean"
+              },
+              "max_per_spend": {
+                "type": "string",
+                "description": "Exact decimal amount"
+              },
+              "daily_limit": {
+                "type": "string",
+                "description": "Exact decimal amount"
+              },
+              "sites": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "used_24h": {
+                "type": "string",
+                "description": "Exact decimal amount"
+              }
+            },
+            "required": [
+              "enabled",
+              "site_allowed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "pairing_id",
+          "spending_grant"
+        ],
+        "additionalProperties": false
+      },
+      "AgentCreditsHistory": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "operation": {
+                  "type": "string"
+                },
+                "available_delta": {
+                  "type": "string",
+                  "description": "Exact decimal amount"
+                },
+                "held_delta": {
+                  "type": "string",
+                  "description": "Exact decimal amount"
+                }
+              },
+              "required": [
+                "id",
+                "at",
+                "operation",
+                "available_delta",
+                "held_delta"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "more?": {
+            "type": "boolean"
+          },
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "entries",
+          "more?",
+          "next"
+        ],
+        "additionalProperties": false
+      },
+      "AgentWhoami": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "agent": {
+                "type": "object",
+                "properties": {
+                  "wallet": {
+                    "type": "string"
+                  },
+                  "registry_listing": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "wallet",
+                  "registry_listing"
+                ],
+                "additionalProperties": false
+              },
+              "audience": {
+                "type": "string"
+              },
+              "authenticated": {
+                "type": "boolean"
+              },
+              "pairing": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "paired_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "paired_at"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "effective_access": {
+                "type": "object",
+                "properties": {
+                  "paired": {
+                    "type": "boolean"
+                  },
+                  "product_permissions": {
+                    "type": "string"
+                  },
+                  "account_management": {
+                    "type": "boolean"
+                  },
+                  "spending": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "paired",
+                  "product_permissions",
+                  "account_management",
+                  "spending"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "agent",
+              "audience",
+              "authenticated",
+              "pairing",
+              "effective_access"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
       }
     },
     "parameters": {
@@ -1229,7 +2428,7 @@
         }
       },
       "HttpSignatureInput": {
-        "name": "signature-input",
+        "name": "x-siwa-signature-input",
         "in": "header",
         "required": true,
         "schema": {
@@ -1238,7 +2437,7 @@
         }
       },
       "HttpSignature": {
-        "name": "signature",
+        "name": "x-siwa-signature",
         "in": "header",
         "required": true,
         "schema": {
@@ -1298,7 +2497,8 @@
                 "value": {
                   "error": {
                     "code": "not_paired",
-                    "message": "This agent is not paired with an account. Ask your person for a pairing code."
+                    "message": "This agent is not paired with an account.",
+                    "hint": "Ask your person for a pairing code, then pair again."
                   }
                 }
               }
@@ -1307,7 +2507,7 @@
         }
       },
       "AgentPairingFailed": {
-        "description": "The pairing code could not be claimed",
+        "description": "The pairing code could not be claimed, or the runtime is not on the list",
         "headers": {
           "RateLimit": {
             "$ref": "#/components/headers/RateLimit"
@@ -1326,7 +2526,17 @@
                 "value": {
                   "error": {
                     "code": "pairing_failed",
-                    "message": "The pairing code could not be used."
+                    "message": "The pairing code could not be used.",
+                    "hint": "Ask your person for a new pairing code. Each code works once and expires ten minutes after it was made."
+                  }
+                }
+              },
+              "harnessUnknown": {
+                "value": {
+                  "error": {
+                    "code": "harness_unknown",
+                    "message": "That harness is not one we know.",
+                    "hint": "Send one of: hermes, grok_bot, muse, openclaw, nemoclaw, ironclaw, pi, claude_code, codex, cursor, gemini_cli, dots, other. Send other if yours is not listed."
                   }
                 }
               }
@@ -1335,7 +2545,7 @@
         }
       },
       "AgentVerificationFailed": {
-        "description": "SIWA verification did not verify the signed agent request",
+        "description": "The sign-in service did not verify the signed agent request. The answer is verification_failed; duplicate_proof, unsupported_query or missing_signed_body when a signature header repeats, a query string is sent or the body was not captured whole; or the sign-in service's own refusal, whose message and hint say what went wrong and what to do next",
         "headers": {
           "RateLimit": {
             "$ref": "#/components/headers/RateLimit"
@@ -1354,7 +2564,17 @@
                 "value": {
                   "error": {
                     "code": "verification_failed",
-                    "message": "The signed agent request could not be verified."
+                    "message": "The signed agent request could not be verified.",
+                    "hint": "Sign the request with your agent key as https://siwa.regents.sh/skill.md describes, then send it again."
+                  }
+                }
+              },
+              "headersMissing": {
+                "value": {
+                  "error": {
+                    "code": "http_headers_missing",
+                    "hint": "The request's signature headers are missing, too old or malformed. Send it with `uv run siwa_agent.py request METHOD URL`, which signs each request fresh, just before sending. Each signature works once, for two minutes.",
+                    "message": "missing required signed agent headers"
                   }
                 }
               }
@@ -1385,8 +2605,122 @@
                 "value": {
                   "error": {
                     "code": "rate_limited",
-                    "message": "Too many requests. Wait the number of seconds in Retry-After",
-                    "then try again.": null
+                    "message": "Too many requests.",
+                    "hint": "Wait the number of seconds in Retry-After, then try again."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "AgentRequestReplayed": {
+        "content": {
+          "application/json": {
+            "examples": {
+              "requestReplayed": {
+                "value": {
+                  "error": {
+                    "code": "request_replayed",
+                    "hint": "That signed request was already used; each one works once. Run `request` again to sign it fresh, and never resend saved signature headers.",
+                    "message": "request replay detected"
+                  }
+                }
+              }
+            },
+            "schema": {
+              "$ref": "#/components/schemas/AgentPairingError"
+            }
+          }
+        },
+        "description": "The sign-in service has already verified this exact signed request once",
+        "headers": {
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimitPolicy"
+          }
+        }
+      },
+      "AgentVerificationUnavailable": {
+        "content": {
+          "application/json": {
+            "examples": {
+              "verificationUnavailable": {
+                "value": {
+                  "error": {
+                    "code": "siwa_request_failed",
+                    "hint": "Try again in a minute.",
+                    "message": "The sign-in service could not be reached."
+                  }
+                }
+              }
+            },
+            "schema": {
+              "$ref": "#/components/schemas/AgentPairingError"
+            }
+          }
+        },
+        "description": "The sign-in service could not be reached to verify the request",
+        "headers": {
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimitPolicy"
+          }
+        }
+      },
+      "AgentSignInRefused": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AgentPairingError"
+            }
+          }
+        },
+        "description": "Another refusal from the sign-in service, passed on unchanged: its status, code, message, and a hint written for this site and the agent's signing tool",
+        "headers": {
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimitPolicy"
+          }
+        }
+      },
+      "AgentPairConflict": {
+        "description": "The sign-in service has already verified this exact signed request once, or the person's account already has 100 paired agents",
+        "headers": {
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimitPolicy"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AgentPairingError"
+            },
+            "examples": {
+              "requestReplayed": {
+                "value": {
+                  "error": {
+                    "code": "request_replayed",
+                    "message": "request replay detected",
+                    "hint": "That signed request was already used; each one works once. Run `request` again to sign it fresh, and never resend saved signature headers."
+                  }
+                }
+              },
+              "agentLimit": {
+                "value": {
+                  "error": {
+                    "code": "agent_limit",
+                    "message": "This account already has 100 paired agents.",
+                    "hint": "Ask your person to unpair an agent on their Regents account page, then pair again. The same code works until it expires."
                   }
                 }
               }

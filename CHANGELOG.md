@@ -5,6 +5,16 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.9.0 — release candidate, 2026-10-09
 
+- Regents adds `protocol agents whoami`, `protocol account show`, `protocol account claims`,
+  `protocol staking position`, `protocol account balances`, `protocol account credits-history`
+  and `protocol account budget`. These are signed reads; account reads require current
+  pairing. Claims and Credits history accept an optional `--after` cursor in the signed
+  JSON body. `auth status --site regents` now uses the non-rewarding identity probe.
+- `protocol agents pair --harness` also accepts `claude_code`, `codex`, `cursor`, `gemini_cli`,
+  `dots` and `other`. Existing pairing and explicit rewarding check-in commands remain.
+  Regents descriptions and API documents are pinned to `35d3ffd7`; live verification is
+  still required before release.
+
 - Techtree `publish` and `withdraw` require agent SIWA sign-in to `techtree` and current
   pairing checked by the site. The independent participant signature and original JSON
   bytes stay unchanged. Each submission attempt receives fresh request proof.
@@ -19,7 +29,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Added the reference site namespace `regents ash-template`: health; rooms list, messages,
   post, edit and delete; agents whoami and pair; notes list, get and create; account balances;
   account credits-history and account points. These descriptions are pinned to ash-template
-  `16c372f`; its shared production migration and deployment are still pending.
+  `9129f680`; live verification remains a separate release gate.
 - `auth status` never sends the legacy rewarding agent check-in. Its new `pairing_status`
   field replaces `paired_with` with the selected site's identity, pairing and effective access.
   `--site` selects the probe; a site without a pinned read-only probe answers
