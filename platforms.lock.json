@@ -19,19 +19,19 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "49a067f35e13791ecb6dfc19bcf700539ed77777",
+    "commit": "84aeca94f7d2d41f74c51b4436a50640b62f1972",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
-        "sha256": "23e6406e71730938e31fd3d7329efc05e9a023d467af7de4c4e283a53cc90ebd"
+        "sha256": "bdaf47c4131c03218936073cbc658a0fa0b073d84b3cbb29e6eedf91fae46252"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/keyfleet/openapi.json",
-        "sha256": "1dfdf1007c20a2f9464ec7088b63165ad31810129f341ce98784aa63079f2812"
+        "sha256": "e503d378bc2375069c672b46ec55ec2ca5dabc562cdc1d869bb5659c77b40a4a"
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/keyfleet/api-contract.openapiv3.yaml",
-        "sha256": "ff0bb2637840fe650a960632183ce50cb050cca8e706c39bfe262036846cfbfd"
+        "sha256": "bfb4aefd54b5f94e488ac0bb91e48aaba27dfc3997cd17060b7d999a7d3bb003"
       }
     }
   },
@@ -82,6 +82,20 @@
       "siwa/contract/fixtures.json": {
         "copy": "src/regents_cli/platforms/siwa/fixtures.json",
         "sha256": "808b8112d56ae485cdf267fd424b344e3c054fb4c9231319ec88c0631e6bb0e5"
+      }
+    }
+  },
+  "techtree": {
+    "repository": "regents-ai/techtree",
+    "commit": "548c57423707727e7d58d455370a50722392bb4e",
+    "files": {
+      "cli/commands.json": {
+        "copy": "src/regents_cli/platforms/techtree/commands.json",
+        "sha256": "c29c3ac3dd48d29ee20f48c68262cba3a4afd5198cad85a9ada35243b2738f90"
+      },
+      "cli/openapi.json": {
+        "copy": "src/regents_cli/platforms/techtree/openapi.json",
+        "sha256": "c36234cd42640ea9be9d3cf4af4771f5b1e2c6b3df8538adb2d06715cf93c4ef"
       }
     }
   }

@@ -5,6 +5,25 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.9.0 — release candidate, 2026-10-09
 
+- Techtree adds `agents whoami`, `agents pair`, `account balances`, `account credits-history`
+  and `account points` beside its existing offline and publication commands. Pairing takes
+  the private code, agent name and harness on stdin. Credits history accepts an optional
+  `after` cursor on stdin. `auth status --site techtree` uses its non-rewarding identity probe.
+  Descriptions and mutable API v4 are pinned to `548c5742`; frozen releases stay unchanged.
+
+- Keyfleet adds `profile join`, `profile get`, `shards list`, `presence mark`,
+  `proposals create`, `proposals vote`, `proposals cancel`, `proposals carry-out`,
+  `split run` and `keys claim`. Transaction-building commands return steps for the
+  user's wallet; the CLI does not send those transactions.
+- Keyfleet adds `rooms list`, `rooms read`, `rooms send`, `rooms create`, `rooms topic`,
+  `rooms sync`, `keys thread`, `keys post`, `mutes list`, `mutes add` and `mutes remove`.
+- Keyfleet adds `polls list`, `polls start`, `polls show`, `polls vote` and `polls end`.
+  Poll creation takes integer minutes and a JSON array of choices, preserving their types.
+- Keyfleet adds `agents whoami`, `account balances`, `account credits history` and
+  `account points`; `auth status --site keyfleet` uses its non-rewarding identity probe.
+  Protected operations require current pairing and the site's existing Key or shard rights.
+  Descriptions and API v8 are pinned to `84aeca94`; live verification remains required.
+
 - Site descriptions can accept integer fields in stdin JSON alongside arrays, objects and
   strings. Both request preparation and sending preserve those types; integer fields refuse
   booleans, fractions and quoted numbers.
