@@ -10,6 +10,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   tells your agent what you did and that pairing with your account is a separate step, with
   links to the agent guide and patchbay.help. It loads nothing from the internet. The page is
   siwa-server's (`fd13322`), the same wherever an agent asks for Touch ID.
+- When the helper holding your unlocked agent key does not answer in time, the message now says
+  what is certain: the command stopped and sent nothing, and anything the helper signed after
+  that stays with it. It used to say nothing was signed, which a late answer can't prove.
 
 ## 1.9.1 — 2026-10-10
 

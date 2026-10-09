@@ -157,7 +157,8 @@ def _ask_helper(path: str, request: dict[str, Any]) -> dict[str, Any] | None:
         raise CommandError(
             "key_helper_not_answering",
             f"The helper that keeps your unlocked agent key ({path}) did not answer within "
-            f"{HELPER_ANSWER_SECONDS} seconds. Nothing was signed or sent.",
+            f"{HELPER_ANSWER_SECONDS} seconds, so this command stopped and sent nothing. Anything "
+            "the helper signed after that stays with it.",
             exit_code=EXIT_AUTH,
             hint="Stop the stuck helper (the process running regents_cli.passkey or "
             "siwa_agent key-helper) or restart this Mac, then run the command again; Touch ID "
@@ -209,8 +210,8 @@ def unlocked(address: str, locked: dict[str, str], request: dict[str, Any]) -> d
     if answer is None:
         raise CommandError(
             "key_helper_failed",
-            "The helper that keeps the unlocked key started, then closed without answering. "
-            "Nothing was signed or sent.",
+            "The helper that keeps the unlocked key started, then closed without answering, so "
+            "this command sent nothing.",
             exit_code=EXIT_AUTH,
         )
     return answer
