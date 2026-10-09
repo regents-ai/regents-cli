@@ -3,6 +3,14 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- The Touch ID page that opens on your Mac carries the Regents look, shows which agent address
+  it is for, and says why its address is on your own computer. A message box with a Copy button
+  tells your agent what you did and that pairing with your account is a separate step, with
+  links to the agent guide and patchbay.help. It loads nothing from the internet. The page is
+  siwa-server's (`fd13322`), the same wherever an agent asks for Touch ID.
+
 ## 1.9.1 — 2026-10-10
 
 - `regents ash-template --help` now describes the released signed-agent reference
