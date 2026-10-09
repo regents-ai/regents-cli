@@ -10,6 +10,7 @@ import json
 import re
 import sys
 import threading
+from copy import deepcopy
 from dataclasses import replace
 from typing import Any
 from urllib.parse import quote
@@ -64,21 +65,35 @@ def param_type(spec: Input) -> click.ParamType[Any]:
     return TYPES.get(spec.type, click.STRING)
 
 
-def platform_group(platform: Platform) -> click.Group:
+def platform_group(platform: Platform, group: click.Group | None = None) -> click.Group:
     help_text = f"Commands for {platform.base_url.removeprefix('https://')}."
     if platform.notes:
         help_text += "\n\n" + "\n\n".join(platform.notes)
-    group = click.Group(platform.name, help=help_text, no_args_is_help=True)
+    if group is None:
+        group = click.Group(platform.name, help=help_text, no_args_is_help=True)
+    else:
+        # Custom groups reuse their command objects; composition must not mutate those.
+        group = deepcopy(group)
+        group.help = f"{group.help}\n\n{help_text}"
     for command in platform.commands:
         parent = group
         for word in command.group_words:
             child = parent.commands.get(word)
-            if not isinstance(child, click.Group):
+            if child is None:
                 child = click.Group(word, no_args_is_help=True)
                 parent.add_command(child)
+            elif not isinstance(child, click.Group):
+                raise UsageError(
+                    f"{platform.name}: described group {word} conflicts with a command."
+                )
             parent = child
+        if command.name in parent.commands:
+            raise UsageError(
+                f"{platform.name}: described command {' '.join(command.words)} already exists."
+            )
         parent.add_command(build_command(platform, command))
-    group.add_command(doctor_command(platform))
+    if "doctor" not in group.commands:
+        group.add_command(doctor_command(platform))
     return group
 
 

@@ -63,14 +63,12 @@ def root() -> click.Group:
         ],
     )
     platforms = pinned_platforms()
-    group.add_command(
-        auth_group(
-            [p.site for p in platforms if any(c.authority == "wallet-proof" for c in p.commands)]
-        )
-    )
+    custom_groups = {"techtree": techtree_group()}
+    group.add_command(auth_group(sorted({p.site for p in platforms} | custom_groups.keys())))
     for platform in platforms:
-        group.add_command(platform_group(platform))
-    group.add_command(techtree_group())
+        group.add_command(platform_group(platform, custom_groups.pop(platform.name, None)))
+    for custom in custom_groups.values():
+        group.add_command(custom)
     return group
 
 

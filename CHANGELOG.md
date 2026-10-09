@@ -3,6 +3,22 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Added the reference site namespace `regents ash-template`: health; rooms list, messages,
+  post, edit and delete; agents whoami and pair; notes list, get and create; account balances;
+  account credits-history and account points. These descriptions are pinned to ash-template
+  `16c372f`; its shared production migration and deployment are still pending.
+- `auth status` never sends the legacy rewarding agent check-in. Its new `pairing_status`
+  field replaces `paired_with` with the selected site's identity, pairing and effective access.
+  `--site` selects the probe; a site without a pinned read-only probe answers
+  `identity_probe_unavailable`. Without `--site`, missing probe support is reported inside
+  `pairing_status` alongside the other sign-in information.
+- `auth login --site` and `auth logout --site` also accept Keyfleet, Techtree and ash-template.
+  Existing product availability and permission checks still apply.
+- Hosted site descriptions can join Techtree's existing command group without replacing
+  its offline commands or doctor. Conflicting command names stop with a clear error.
+
 ## 1.8.1 — 2026-10-09
 
 - A machine whose `NO_PROXY` lists an IPv6 address in brackets, such as `[::1]`, gets a plain

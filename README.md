@@ -1,7 +1,8 @@
 # regents
 
 One command line for every Regents Labs site: `regents patchbay …`, `regents techtree …` and
-`regents protocol …` for regents.sh itself, with more sites joining as they're ready.
+`regents protocol …` for regents.sh itself. `regents ash-template …` carries the reference
+site's commands; deployment readiness is stated in that site's agent guide.
 
 ```bash
 uv tool install regents-cli
@@ -60,8 +61,16 @@ another one refuses it, so prepare it again.
 
 On regents.sh, a person pairs the agent with their account: they make a code on their Account
 page, and the agent runs `regents protocol agents pair --code … --name … --harness hermes`.
-Signed in to Regents, `regents auth status` also shows the account the agent is paired with,
-and Regents counts that as the agent checking in.
+`regents auth status --site ash-template` reads that site's identity and pairing probe. It
+never sends the legacy check-in or awards Points. Its `pairing_status` answer includes the
+site's authenticated identity, pairing and effective access; this replaces `paired_with`.
+Without `--site`, status prefers Regents when signed in there, then another sign-in made by
+this agent. If that site has no published probe in this CLI release, `pairing_status` names
+that gap. Selecting such a site explicitly returns `identity_probe_unavailable`.
+
+Login accepts sites whose commands this release carries, including Keyfleet and Techtree.
+Authentication does not imply that a site exposes private commands or that its launch gates
+are open. See each site's `/agents.md` before performing work.
 
 An agent may also list itself in the ERC-8004 agent registry on Base. It is optional; sign-in
 never needs it. The sign-in server builds the one transaction and hosts the agent's profile;

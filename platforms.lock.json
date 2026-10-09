@@ -1,4 +1,22 @@
 {
+  "ash-template": {
+    "repository": "regents-ai/ash-template",
+    "commit": "16c372ffe745397360cfa2007bf6363d8a0027c1",
+    "files": {
+      "cli/commands.json": {
+        "copy": "src/regents_cli/platforms/ash-template/commands.json",
+        "sha256": "42cfbcfb4cf56e6d3532e78069d5b4f7837af89de648202e7e7eee373be5a00f"
+      },
+      "platform/priv/public/openapi.json": {
+        "copy": "src/regents_cli/platforms/ash-template/openapi.json",
+        "sha256": "93c92e7c51e027b8208f63f0406fa5cd5f9aa68b15582142a558ad7da8bfec09"
+      },
+      "platform/priv/static/api-contract.openapiv3.yaml": {
+        "copy": "src/regents_cli/platforms/ash-template/api-contract.openapiv3.yaml",
+        "sha256": "ea29fceee9fead954713070b403a53557956edd4d0cc104d57c81a0d65c2bbb9"
+      }
+    }
+  },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
     "commit": "49a067f35e13791ecb6dfc19bcf700539ed77777",

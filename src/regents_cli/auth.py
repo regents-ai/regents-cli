@@ -13,7 +13,7 @@ import click
 from regents_cli import base, output, siwa
 from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
 from regents_cli.http import Request, base_address, send
-from regents_cli.platforms import DEFAULT_TIMEOUT_MS, pinned_platforms
+from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform, pinned_platforms
 from regents_cli.runner import read_stdin
 
 TIMEOUT = click.Option(
@@ -66,12 +66,20 @@ def auth_group(sites: list[str]) -> click.Group:
         click.Command(
             "status",
             callback=status,
-            params=[JSON, TIMEOUT],
+            params=[
+                click.Option(
+                    ["--site"],
+                    type=click.Choice(sites),
+                    help="Read this site's identity and pairing probe; "
+                    "never checks in or awards Points.",
+                ),
+                JSON,
+                TIMEOUT,
+            ],
             help="Show the agent key's address, each site's sign-in, the agent's listing in "
             "the agent registry and the World ID person it accepted (each null when it has "
-            "none), read through a sign-in this machine's key made. Signed in to Regents, it "
-            "also shows the account the agent is paired with, and Regents counts that as the "
-            "agent checking in.",
+            "none), read through a sign-in this machine's key made. Pairing status uses a "
+            "site's read-only identity probe. A site without that command reports it unavailable.",
         )
     )
     group.add_command(
@@ -180,7 +188,9 @@ def login(
     output.emit(answer, as_json=as_json)
 
 
-def status(as_json: bool, timeout_ms: int) -> None:
+def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
+    if site is not None:
+        identity_probe(site)
     key = siwa.load_key()
     receipts = siwa.receipts()
     answer: dict[str, Any] = {
@@ -198,15 +208,30 @@ def status(as_json: bool, timeout_ms: int) -> None:
     }
     mine = [site for site, receipt in receipts.items() if key and receipt.signed_by(key)]
     if mine:
-        site = "regents" if "regents" in mine else mine[0]
-        told = siwa.confirm(site, siwa.current(site, timeout_ms), timeout_ms)
+        confirmation_site = site if site in mine else "regents" if "regents" in mine else mine[0]
+        told = siwa.confirm(
+            confirmation_site, siwa.current(confirmation_site, timeout_ms), timeout_ms
+        )
         listing, person = told["agentRegistration"], told["agentBook"]
         answer["registry_listing"] = listing["registryUrl"] if listing else None
         answer["world_id"] = (
             {"human_id": person["humanId"], "agent_count": person["agentCount"]} if person else None
         )
-    if "regents" in receipts:
-        answer["paired_with"] = paired_account(timeout_ms)
+    selected = site or ("regents" if "regents" in mine else mine[0] if mine else None)
+    if selected is not None:
+        try:
+            platform, probe = identity_probe(selected)
+        except CommandError as error:
+            answer["pairing_status"] = {"site": selected, **error.as_json()}
+        else:
+            request = Request(probe.method, probe.path)
+            request = replace(
+                request, headers=siwa.sign(request, siwa.current(selected, timeout_ms))
+            )
+            told = send(
+                base_address(None, platform.env_var, platform.base_url), request, timeout_ms
+            )
+            answer["pairing_status"] = {"site": selected, **told["data"]}
     output.emit(answer, as_json=as_json)
 
 
@@ -379,20 +404,27 @@ def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
     return "this machine" if key is not None and receipt.signed_by(key) else "you"
 
 
-def paired_account(timeout_ms: int) -> dict[str, Any] | None:
-    """The agent's pairing on Regents, as `regents protocol agents me` reads it; None unpaired."""
-    platform = next(p for p in pinned_platforms() if p.site == "regents")
-    me = next(c for c in platform.commands if c.words == ("agents", "me"))
-    request = Request(me.method, me.path, {}, None)
-    request = replace(request, headers=siwa.sign(request, siwa.current("regents", timeout_ms)))
-    try:
-        answer = send(base_address(None, platform.env_var, platform.base_url), request, timeout_ms)
-    except CommandError as error:
-        if error.code == "not_paired":
-            return None
-        raise
-    paired: dict[str, Any] = answer["data"]
-    return paired
+def identity_probe(site: str) -> tuple[Platform, Command]:
+    """Find the pinned read-only probe; never substitute the rewarding legacy check-in."""
+    for platform in pinned_platforms():
+        if platform.site != site:
+            continue
+        for command in platform.commands:
+            if (
+                command.words == ("agents", "whoami")
+                and command.method == "GET"
+                and command.effect == "read"
+                and command.authority == "wallet-proof"
+                and not command.inputs
+                and command.body is None
+            ):
+                return platform, command
+    raise CommandError(
+        "identity_probe_unavailable",
+        f"This release has no read-only identity probe for {site}. "
+        "Use the site's agent guide and a CLI release that includes its agents whoami command. "
+        "No check-in was sent.",
+    )
 
 
 def logout(site: str, as_json: bool) -> None:

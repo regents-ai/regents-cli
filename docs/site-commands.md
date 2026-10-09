@@ -51,6 +51,20 @@ Wording or answer fixes are a patch release (1.3.4); new commands or new answer 
 minor release (1.4.0). A renamed or removed command is a hard cutover: the old name goes in the
 same release, the entry says so, and nothing keeps answering to it.
 
+## Shared authentication and custom command groups
+
+Every pinned site can be selected by `auth login --site`, including sites whose current
+commands are public. Techtree's existing custom group also contributes its audience. This
+does not declare new product operations or bypass the SIWA server's registered audiences.
+
+`auth status --site <site>` uses the pinned `agents whoami` command only when it is a signed
+GET with a read effect and no inputs or body. Describe that probe in the product first.
+A missing probe is reported as unavailable; the CLI never substitutes `agents me`.
+
+A product with a custom group receives its described commands in that same group. Existing
+custom commands, including its doctor, remain. A described command may join an existing
+subgroup but cannot replace any existing leaf command.
+
 ## How a described command runs
 
 The runner reads the pinned `commands.json` entry and does this, the same for every site:
