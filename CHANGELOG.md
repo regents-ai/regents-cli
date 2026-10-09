@@ -19,10 +19,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `rooms sync`, `keys thread`, `keys post`, `mutes list`, `mutes add` and `mutes remove`.
 - Keyfleet adds `polls list`, `polls start`, `polls show`, `polls vote` and `polls end`.
   Poll creation takes integer minutes and a JSON array of choices, preserving their types.
-- Keyfleet adds `agents whoami`, `account balances`, `account credits history` and
+- Keyfleet adds `agents whoami`, `agents pair`, `account balances`, `account credits history` and
   `account points`; `auth status --site keyfleet` uses its non-rewarding identity probe.
   Protected operations require current pairing and the site's existing Key or shard rights.
-  Descriptions and API v8 are pinned to `84aeca94`; live verification remains required.
+  Pairing requires string `code`, `name` and `harness` fields through private stdin.
+  Descriptions and API v8 are pinned to `1e32805e`; live verification remains required.
 
 - Site descriptions can accept integer fields in stdin JSON alongside arrays, objects and
   strings. Both request preparation and sending preserve those types; integer fields refuse
