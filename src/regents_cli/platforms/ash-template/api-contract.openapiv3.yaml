@@ -584,7 +584,7 @@ paths:
     get:
       operationId: account_balances
       summary: Read shared Credits and this pairing’s spending grant.
-      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority.
+      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority. spending_grant reports current pairing grant settings, site_allowed, owner-wide used_24h and remaining_24h, and separate grant_approvals_available. Approval availability does not disable existing grants. This read snapshot does not authorize a spend.
       security:
       - siwaProof: []
       parameters:
@@ -1133,7 +1133,7 @@ components:
           schema: {$ref: "#/components/schemas/NoteError"}
           examples:
             invalid:
-              value: {error: {code: invalid_note, message: "The note could not be saved.", hint: "Send only title (1 to 120 characters) and body (up to 10,000 characters, optional)."}}
+              value: {error: {code: invalid_note, message: "The note could not be saved.", hint: "Send a title of 1 to 120 characters and an optional body of up to 10,000 characters. Agent creates also require operation_id, a UUID retained when retrying with fresh proof; omit it for updates."}}
     NotesUnavailable:
       description: Sign-in is not configured or the notes could not be reached
       content:

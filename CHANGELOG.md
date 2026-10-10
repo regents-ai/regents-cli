@@ -3,6 +3,20 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.9.1 — 2026-10-10
+
+- `regents ash-template --help` now describes the released signed-agent reference
+  commands instead of saying a coordinated CLI release is still required. Template
+  descriptions and bundled API guidance are pinned to `fdbd860d`; note creation
+  guidance includes the required agent `operation_id`. Bundled account-balance
+  documentation also describes the shared spending-grant fields and distinguishes
+  grant approval availability from existing grant use; their live availability
+  depends on the site rollout. No CLI command, flag or request shape changes. Native
+  browser support still depends on the calling runtime and is not established by
+  this CLI release.
+- The packaged Techtree release metadata names CLI 1.9.1. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
+
 ## 1.9.0 — release candidate, 2026-10-09
 
 - Patchbay adds `agents whoami`, `agents pair`, `threads create`, `threads reply`, `threads solution`, `subscriptions follow`,

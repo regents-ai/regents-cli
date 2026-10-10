@@ -893,7 +893,7 @@
             }
           },
           "422": {
-            "description": "The note is invalid: a missing or too-long title, a too-long body, or any other field (invalid_note)",
+            "description": "The note could not be saved (invalid_note). Check title and body limits and allowed fields. Agent creates require a valid, unused operation_id UUID; retain it on retries and read that note ID if it already exists. The current pairing and per-owner write allowance must also permit the write.",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -1245,7 +1245,7 @@
             }
           },
           "422": {
-            "description": "The note is invalid: a missing or too-long title, a too-long body, or any other field (invalid_note)",
+            "description": "The note could not be saved (invalid_note). Check title and body limits and allowed fields; omit operation_id on updates. The current pairing and per-owner write allowance must also permit the write.",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -2558,8 +2558,8 @@
     "/tools/account/balances": {
       "get": {
         "operationId": "account_balances",
-        "summary": "Read shared Credits and this pairing\u2019s spending grant.",
-        "description": "Per-request SIWA proof. Current pairing required. Cookies confer no authority.",
+        "summary": "Read shared Credits and this pairing’s spending grant.",
+        "description": "Per-request SIWA proof. Current pairing required. Cookies confer no authority. spending_grant reports current pairing grant settings, site_allowed, owner-wide used_24h and remaining_24h, and separate grant_approvals_available. Approval availability does not disable existing grants. This read snapshot does not authorize a spend.",
         "security": [
           {
             "siwaProof": []
