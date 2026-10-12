@@ -19,11 +19,11 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "d12c0d06d67d3f5b0feddb7db11c8728341194ea",
+    "commit": "1833c5b6607c0b7e729676faff0d8224fb181ce0",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
-        "sha256": "eb5179cafe37dce7d32ec6f188971f2486f338764b8fd9b9e55e8bb038e22905"
+        "sha256": "2dc92fd42d56e7a837f755eafcfb1be9816b16359f5a25e68dcce3b3b3e429af"
       },
       "cli/docs/profile.openapi.json": {
         "copy": "src/regents_cli/platforms/autolaunch/profile.openapi.json",
@@ -31,7 +31,7 @@
       },
       "cli/docs/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/autolaunch/api-contract.openapiv3.yaml",
-        "sha256": "998877caa123b4d2be6a41c92fb8d832317ee98958bc7df5ba722e1ecf554127"
+        "sha256": "142f4fbc9d97da5a06b2fb6d14c5e5c4c19a6e0747a15bfe847dbfd49787014e"
       }
     }
   },

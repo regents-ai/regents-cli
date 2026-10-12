@@ -201,10 +201,10 @@ paths:
         - {$ref: "#/components/parameters/Search"}
         - name: state
           in: query
-          description: "Auctions in one state: created (opening soon), active (live), ended (bidding closed, waiting to be finished), failed, graduated (launched)."
+          description: "Filter auctions: created (opening soon), active (live), ended (bidding closed, waiting to be finished), failed, graduated (launched), or finished (graduated and failed together)."
           schema:
             type: string
-            enum: [all, created, active, ended, failed, graduated]
+            enum: [all, created, active, ended, failed, graduated, finished]
             default: all
         - name: sort
           in: query
@@ -411,6 +411,22 @@ paths:
           "description": "Invalid input"
         "503":
           "description": "Dependency unavailable"
+  /api/agents/v1/me:
+    "get":
+      "operationId": "agent_status"
+      "summary": "Check in as a paired agent"
+      "security":
+        -
+          "SiwaProof": []
+      "responses":
+        "200":
+          "description": "Success"
+        "401":
+          "description": "Fresh request proof required"
+        "404":
+          "description": "This agent is not paired with an account"
+        "503":
+          "description": "Dependency unavailable"
   /api/agents/v1/pair:
     "post":
       "operationId": "agent_pair"
@@ -509,10 +525,10 @@ paths:
                   "type": "string"
               "required": []
               "additionalProperties": false
-  /api/agent/v1/drafts/memestake:
+  /api/agent/v1/drafts/memestock:
     "get":
-      "operationId": "autolaunch_memestake_draft"
-      "summary": "Read my memestake token metadata draft"
+      "operationId": "autolaunch_memestock_draft"
+      "summary": "Read my memestock token metadata draft"
       "security":
         -
           "SiwaProof": []
@@ -528,8 +544,8 @@ paths:
         "503":
           "description": "Dependency unavailable"
     "patch":
-      "operationId": "autolaunch_memestake_draft_save"
-      "summary": "Save my memestake token metadata; no treasury, chain, launch terms or wallet actions"
+      "operationId": "autolaunch_memestock_draft_save"
+      "summary": "Save my memestock token metadata; no treasury, chain, launch terms or wallet actions"
       "security":
         -
           "SiwaProof": []
@@ -609,8 +625,8 @@ paths:
           "description": "Dependency unavailable"
   /api/agent/v1/account/credits/history:
     "post":
-      "operationId": "credits_history"
-      "summary": "Read canonical Credits history"
+      "operationId": "account_credits_history"
+      "summary": "Read Credits history"
       "security":
         -
           "SiwaProof": []
@@ -638,8 +654,8 @@ paths:
               "additionalProperties": false
   /api/agent/v1/account/points:
     "get":
-      "operationId": "points_balance"
-      "summary": "Read canonical Points without creating an account or earning rewards"
+      "operationId": "account_points"
+      "summary": "Read Points"
       "security":
         -
           "SiwaProof": []
@@ -698,8 +714,8 @@ components:
     Kind:
       name: kind
       in: query
-      description: "Launch type: revstake or memestake."
-      schema: {type: string, enum: [all, revstake, memestake], default: all}
+      description: "Launch type: revstake or memestock."
+      schema: {type: string, enum: [all, revstake, memestock], default: all}
     X:
       name: x
       in: query
@@ -802,12 +818,17 @@ components:
             quote_token: {$ref: "#/components/schemas/QuoteToken"}
             current_clearing_price: {type: string}
             projected_clearing_price: {type: string}
-            would_be_active_now: {type: boolean}
+            would_be_active_now:
+              type: boolean
+              description: True only when the auction is taking bids and the max price reaches the current clearing price.
             status_band: {type: string, enum: [active, borderline, inactive]}
             estimated_tokens_if_end_now: {type: string}
-            warnings: {type: array, items: {type: string}}
+            warnings:
+              type: array
+              items: {type: string}
+              description: "auction_not_biddable: the auction is not taking bids, so no bid can be placed. max_price_below_current_clearing_price: a bid at this max price would not be filled now."
     QuoteToken:
-      description: The token bids are paid in. REGENT for revstake auctions; the auction's stock token (on Base or Robinhood) for memestake auctions.
+      description: The token bids are paid in. REGENT for revstake auctions; the auction's stock token (on Base or Robinhood) for memestock auctions.
       type: object
       additionalProperties: false
       required: [address, symbol, decimals]
@@ -858,13 +879,13 @@ components:
         token_symbol: {type: [string, "null"]}
         summary: {type: [string, "null"]}
         featured: {type: boolean}
-        kind: {type: string, enum: [revstake, memestake], description: "The launch type: a Revstake or a Memestake launch."}
+        kind: {type: string, enum: [revstake, memestock], description: "The launch type: a Revstake or a Memestock launch."}
         state: {type: string, enum: [created, active, ended, graduated, failed], description: "ended: bidding has closed and the auction is waiting to be finished; graduated and failed are final."}
         opened_at: {type: [string, "null"], format: date-time}
         estimated_end_at: {type: [string, "null"], format: date-time, description: "When bidding closes, estimated from the auction's end block and the chain's block times."}
         quote_token: {$ref: "#/components/schemas/QuoteToken"}
         clearing_price: {type: [string, "null"], description: "The auction's current clearing price in the quote token, as a decimal string."}
-        token_allocation: {allOf: [{$ref: "#/components/schemas/DecimalString"}], description: "Whole tokens the auction sells, fixed by its launch type: 10 billion of a Revstake token's 100 billion, 800 million of a Memestake token's 1 billion."}
+        token_allocation: {allOf: [{$ref: "#/components/schemas/DecimalString"}], description: "Whole tokens the auction sells, fixed by its launch type: 10 billion of a Revstake token's 100 billion, 800 million of a Memestock token's 1 billion."}
         bid_volume:
           description: Everything bid so far, in whole quote-token units.
           oneOf: [{$ref: "#/components/schemas/DecimalString"}, {type: "null"}]
@@ -971,7 +992,7 @@ components:
       additionalProperties: false
       required: [bid, chain, name, symbol, currency, amount, max_price, standing, can, page]
       properties:
-        bid: {type: string, description: "The id the page tool autolaunch_settle_bid takes."}
+        bid: {type: string, description: "The bid's id: its number on a Base auction, or auction:number on a Robinhood one."}
         chain: {type: string, enum: [base, robinhood]}
         name: {type: string, description: "The auction's name, as its creator wrote it."}
         symbol: {type: string}
@@ -984,7 +1005,7 @@ components:
         can:
           type: [string, "null"]
           enum: [withdraw, claim, early_return, null]
-          description: "What autolaunch_settle_bid can press for this bid now. early_return means the unspent money may come back before the auction ends; the bid's card says when."
+          description: "What the bid's card on its auction page offers now. early_return means the unspent money may come back before the auction ends; the bid's card says when."
         page: {type: [string, "null"], format: uri, description: "The auction page where the bid's card is; null for a Robinhood auction this site does not list."}
     MyToken:
       type: object

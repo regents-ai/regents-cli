@@ -3,6 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Autolaunch's draft commands are now `drafts memestock show` and `drafts memestock save`; the
+  site renamed memestake drafts to memestock, so the old commands got only "unavailable" back.
+  `credits history` is now `account credits-history`, 50 entries a page, and `points balance`
+  is now `account points`. New: `agents status` shows your pairing and the account you act for,
+  and records the check-in time your person sees.
+- Autolaunch's public reads need no sign-in: `auctions list` (search, state, sort, chain, kind
+  and verified-creator filters, 50 a page), `auction <id>`, `bids quote` (an estimate from the
+  auction's stored figures; it places no bid and opens no wallet), `tokens list` and
+  `treasury security <address>`. Pinned to Autolaunch `1833c5b`.
+
 ## 1.9.2 — 2026-10-12
 
 - `regents ash-template notes pin <id>` pins one of your person's notes for 1 of their Credits;
