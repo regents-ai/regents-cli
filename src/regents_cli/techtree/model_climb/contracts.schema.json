@@ -1,0 +1,1979 @@
+{
+  "$defs": {
+    "AttemptEnd": {
+      "enum": [
+        "succeeded",
+        "failed",
+        "cancelled",
+        "budget_exhausted",
+        "indeterminate"
+      ],
+      "type": "string"
+    },
+    "AttemptOperational": {
+      "additionalProperties": false,
+      "properties": {
+        "ended_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UtcDateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "event_cursor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NonEmptyString"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pod_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NonEmptyString"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "started_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "upstream_job_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NonEmptyString"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "upstream_job_id",
+        "pod_id",
+        "event_cursor",
+        "started_at",
+        "ended_at"
+      ],
+      "title": "AttemptOperational",
+      "type": "object"
+    },
+    "BenchmarkRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "BenchmarkRelease",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/Created"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/BenchmarkReleaseSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "BenchmarkRelease",
+      "type": "object"
+    },
+    "BenchmarkReleaseSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "dataset_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "output_schema_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "proving_commitment": {
+          "$ref": "#/$defs/Digest"
+        },
+        "qualification_report_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "sampling": {
+          "$ref": "#/$defs/SamplingProtocol"
+        },
+        "scorer_test_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "verifier": {
+          "$ref": "#/$defs/VerifierRef"
+        }
+      },
+      "required": [
+        "dataset_release",
+        "verifier",
+        "proving_commitment",
+        "output_schema_digest",
+        "sampling",
+        "scorer_test_digest",
+        "qualification_report_digest"
+      ],
+      "title": "BenchmarkReleaseSpec",
+      "type": "object"
+    },
+    "BudgetReservation": {
+      "additionalProperties": false,
+      "description": "How much the plan may spend, and how that cap is enforced (contract 6.1).",
+      "properties": {
+        "amount_cents": {
+          "$ref": "#/$defs/Cents"
+        },
+        "credit_ceiling_attested": {
+          "title": "Credit Ceiling Attested",
+          "type": "boolean"
+        },
+        "enforcement": {
+          "$ref": "#/$defs/Enforcement"
+        },
+        "prices": {
+          "items": {
+            "$ref": "#/$defs/PriceQuote"
+          },
+          "title": "Prices",
+          "type": "array"
+        },
+        "shutdown_allowance_cents": {
+          "$ref": "#/$defs/Cents"
+        }
+      },
+      "required": [
+        "amount_cents",
+        "enforcement",
+        "shutdown_allowance_cents",
+        "credit_ceiling_attested",
+        "prices"
+      ],
+      "title": "BudgetReservation",
+      "type": "object"
+    },
+    "Budgets": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_max_cents": {
+          "$ref": "#/$defs/Cents"
+        },
+        "inference_trial_max_cents": {
+          "$ref": "#/$defs/Cents"
+        },
+        "maximum_parallel_jobs": {
+          "$ref": "#/$defs/Positive"
+        },
+        "maximum_wall_time_seconds": {
+          "$ref": "#/$defs/Positive"
+        },
+        "training_max_cents": {
+          "$ref": "#/$defs/Cents"
+        }
+      },
+      "required": [
+        "training_max_cents",
+        "evaluation_max_cents",
+        "inference_trial_max_cents",
+        "maximum_wall_time_seconds",
+        "maximum_parallel_jobs"
+      ],
+      "title": "Budgets",
+      "type": "object"
+    },
+    "BusinessMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "deployment": {
+          "$ref": "#/$defs/Digest"
+        },
+        "metric": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric",
+        "deployment",
+        "value"
+      ],
+      "title": "BusinessMetric",
+      "type": "object"
+    },
+    "Cents": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ComputeTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "gpu_count": {
+          "$ref": "#/$defs/Positive"
+        },
+        "gpu_model": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "provider": {
+          "const": "prime_intellect",
+          "title": "Provider",
+          "type": "string"
+        },
+        "region": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "provider",
+        "gpu_model",
+        "gpu_count",
+        "region"
+      ],
+      "title": "ComputeTarget",
+      "type": "object"
+    },
+    "Count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "Created": {
+      "additionalProperties": false,
+      "description": "The `operational` of a kind whose only operational fact is when it was made.",
+      "properties": {
+        "created_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        }
+      },
+      "required": [
+        "created_at"
+      ],
+      "title": "Created",
+      "type": "object"
+    },
+    "DataPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "chatgpt_projection": {
+          "enum": [
+            "denied",
+            "approved_summary_only"
+          ],
+          "title": "Chatgpt Projection",
+          "type": "string"
+        },
+        "export_beyond_approved_boundary": {
+          "const": "denied",
+          "title": "Export Beyond Approved Boundary",
+          "type": "string"
+        },
+        "external_judge": {
+          "enum": [
+            "denied",
+            "approved"
+          ],
+          "title": "External Judge",
+          "type": "string"
+        },
+        "external_teacher": {
+          "enum": [
+            "denied",
+            "approved"
+          ],
+          "title": "External Teacher",
+          "type": "string"
+        },
+        "monitoring_upload": {
+          "enum": [
+            "denied",
+            "approved"
+          ],
+          "title": "Monitoring Upload",
+          "type": "string"
+        },
+        "public_publication": {
+          "enum": [
+            "denied",
+            "approved"
+          ],
+          "title": "Public Publication",
+          "type": "string"
+        }
+      },
+      "required": [
+        "export_beyond_approved_boundary",
+        "external_teacher",
+        "external_judge",
+        "monitoring_upload",
+        "public_publication",
+        "chatgpt_projection"
+      ],
+      "title": "DataPolicy",
+      "type": "object"
+    },
+    "DatasetRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "DatasetRelease",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/SnapshotOperational"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/DatasetReleaseSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "DatasetRelease",
+      "type": "object"
+    },
+    "DatasetReleaseSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "duplicate_cluster_rule": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "exclusions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Count"
+          },
+          "title": "Exclusions",
+          "type": "object"
+        },
+        "feature_cutoff_rule": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "label_policy": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "rights_class": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "row_schema_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "snapshot_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "source_lineage": {
+          "items": {
+            "$ref": "#/$defs/LineageStep"
+          },
+          "title": "Source Lineage",
+          "type": "array"
+        },
+        "splits": {
+          "$ref": "#/$defs/SplitCommitments"
+        },
+        "transformation_digest": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "snapshot_digest",
+        "source_lineage",
+        "rights_class",
+        "row_schema_digest",
+        "transformation_digest",
+        "feature_cutoff_rule",
+        "label_policy",
+        "duplicate_cluster_rule",
+        "splits",
+        "exclusions"
+      ],
+      "title": "DatasetReleaseSpec",
+      "type": "object"
+    },
+    "DeploymentOperational": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "endpoint_handle": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "endpoint_handle",
+        "created_at"
+      ],
+      "title": "DeploymentOperational",
+      "type": "object"
+    },
+    "DeploymentRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "DeploymentRelease",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/DeploymentOperational"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/DeploymentReleaseSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "DeploymentRelease",
+      "type": "object"
+    },
+    "DeploymentReleaseSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/Digest"
+        },
+        "calibrator_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fallback": {
+          "enum": [
+            "incumbent",
+            "human_queue",
+            "safe_failure"
+          ],
+          "title": "Fallback",
+          "type": "string"
+        },
+        "hardware_profile": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "output_schema_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "policy_version": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "predecessor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prompt_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "quantization": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "quota": {
+          "$ref": "#/$defs/Quota"
+        },
+        "runtime_image_digest": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "artifact",
+        "prompt_digest",
+        "output_schema_digest",
+        "calibrator_digest",
+        "policy_version",
+        "runtime_image_digest",
+        "quantization",
+        "hardware_profile",
+        "quota",
+        "fallback",
+        "predecessor"
+      ],
+      "title": "DeploymentReleaseSpec",
+      "type": "object"
+    },
+    "Digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "Enforcement": {
+      "enum": [
+        "provider_hard_limit",
+        "bounded_operational_limit",
+        "estimate_only"
+      ],
+      "type": "string"
+    },
+    "ExecutionGrant": {
+      "additionalProperties": false,
+      "description": "One operation on one resolved plan, within these limits; signed by its issuer's key.\n\nEvery field is bound: the signature covers them all, so changing any one breaks it.",
+      "properties": {
+        "actor_key_id": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "approving_human": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "attestation": {
+          "$ref": "#/$defs/GrantAttestation"
+        },
+        "benchmark_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "dataset_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "egress": {
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          },
+          "title": "Egress",
+          "type": "array"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "gpu_count": {
+          "$ref": "#/$defs/Positive"
+        },
+        "gpu_model": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "grant_id": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "issuer_key_id": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "kind": {
+          "const": "ExecutionGrant",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_attempts": {
+          "$ref": "#/$defs/Positive"
+        },
+        "max_cents": {
+          "$ref": "#/$defs/Cents"
+        },
+        "max_parallel_jobs": {
+          "$ref": "#/$defs/Positive"
+        },
+        "max_wall_time_seconds": {
+          "$ref": "#/$defs/Positive"
+        },
+        "mode": {
+          "const": "local",
+          "title": "Mode",
+          "type": "string"
+        },
+        "nonce": {
+          "pattern": "^[0-9a-f]{32}$",
+          "title": "Nonce",
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/GrantedOperation"
+        },
+        "plan": {
+          "$ref": "#/$defs/Digest"
+        },
+        "provider": {
+          "const": "prime_intellect",
+          "title": "Provider",
+          "type": "string"
+        },
+        "recipe": {
+          "$ref": "#/$defs/Digest"
+        },
+        "region": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "uses_allowed": {
+          "$ref": "#/$defs/Positive"
+        },
+        "workspace": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "grant_id",
+        "mode",
+        "issuer_key_id",
+        "approving_human",
+        "workspace",
+        "actor_key_id",
+        "operation",
+        "plan",
+        "dataset_release",
+        "benchmark_release",
+        "recipe",
+        "provider",
+        "region",
+        "gpu_model",
+        "gpu_count",
+        "max_cents",
+        "max_wall_time_seconds",
+        "max_attempts",
+        "max_parallel_jobs",
+        "egress",
+        "issued_at",
+        "expires_at",
+        "nonce",
+        "uses_allowed",
+        "attestation"
+      ],
+      "title": "ExecutionGrant",
+      "type": "object"
+    },
+    "GrantAttestation": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "const": "participant",
+          "title": "Level",
+          "type": "string"
+        },
+        "operator_attested": {
+          "const": true,
+          "title": "Operator Attested",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "level",
+        "operator_attested"
+      ],
+      "title": "GrantAttestation",
+      "type": "object"
+    },
+    "GrantedOperation": {
+      "enum": [
+        "model_climb_start",
+        "model_climb_prove",
+        "model_climb_deployment_apply",
+        "model_climb_deployment_promote",
+        "model_climb_deployment_rollback"
+      ],
+      "type": "string"
+    },
+    "HarnessProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_policy_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "output_schema_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "prompt_digest": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "prompt_digest",
+        "output_schema_digest",
+        "decision_policy_digest"
+      ],
+      "title": "HarnessProfile",
+      "type": "object"
+    },
+    "LineageStep": {
+      "additionalProperties": false,
+      "properties": {
+        "source_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "transformation": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "source_digest",
+        "transformation"
+      ],
+      "title": "LineageStep",
+      "type": "object"
+    },
+    "LoraConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "$ref": "#/$defs/Positive"
+        },
+        "dropout": {
+          "exclusiveMaximum": 1,
+          "minimum": 0,
+          "title": "Dropout",
+          "type": "number"
+        },
+        "expected_modules": {
+          "$ref": "#/$defs/Positive"
+        },
+        "rank": {
+          "$ref": "#/$defs/Positive"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rank",
+        "alpha",
+        "dropout",
+        "targets",
+        "expected_modules"
+      ],
+      "title": "LoraConfig",
+      "type": "object"
+    },
+    "MetricConstraint": {
+      "additionalProperties": false,
+      "properties": {
+        "bound": {
+          "enum": [
+            "at_most",
+            "at_least"
+          ],
+          "title": "Bound",
+          "type": "string"
+        },
+        "metric": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric",
+        "bound",
+        "value"
+      ],
+      "title": "MetricConstraint",
+      "type": "object"
+    },
+    "Metrics": {
+      "additionalProperties": false,
+      "properties": {
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/MetricConstraint"
+          },
+          "title": "Constraints",
+          "type": "array"
+        },
+        "minimum_negatives": {
+          "$ref": "#/$defs/Positive"
+        },
+        "minimum_positives": {
+          "$ref": "#/$defs/Positive"
+        },
+        "primary": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "primary",
+        "constraints",
+        "minimum_positives",
+        "minimum_negatives"
+      ],
+      "title": "Metrics",
+      "type": "object"
+    },
+    "ModelArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "ModelArtifact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/StoredOperational"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/ModelArtifactSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "ModelArtifact",
+      "type": "object"
+    },
+    "ModelArtifactSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_config_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "adapter_root": {
+          "$ref": "#/$defs/Digest"
+        },
+        "attempt": {
+          "$ref": "#/$defs/Digest"
+        },
+        "base_weights_root": {
+          "$ref": "#/$defs/Digest"
+        },
+        "config_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "licence": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "merged_weights_root": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "plan": {
+          "$ref": "#/$defs/Digest"
+        },
+        "privacy_class": {
+          "enum": [
+            "private",
+            "public"
+          ],
+          "title": "Privacy Class",
+          "type": "string"
+        },
+        "tokenizer_digest": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "base_weights_root",
+        "adapter_root",
+        "adapter_config_digest",
+        "tokenizer_digest",
+        "config_digest",
+        "merged_weights_root",
+        "plan",
+        "attempt",
+        "licence",
+        "privacy_class"
+      ],
+      "title": "ModelArtifactSpec",
+      "type": "object"
+    },
+    "ModelRef": {
+      "additionalProperties": false,
+      "properties": {
+        "model_id": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        }
+      },
+      "required": [
+        "model_id",
+        "revision"
+      ],
+      "title": "ModelRef",
+      "type": "object"
+    },
+    "ModelStudySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "ModelStudySpec",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/StudyOperational"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/ModelStudySpecSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "ModelStudySpec",
+      "type": "object"
+    },
+    "ModelStudySpecSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline": {
+          "$ref": "#/$defs/ModelRef"
+        },
+        "baseline_tokenizer_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "baseline_weights_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "benchmark_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "budgets": {
+          "$ref": "#/$defs/Budgets"
+        },
+        "data_policy": {
+          "$ref": "#/$defs/DataPolicy"
+        },
+        "dataset_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "harness": {
+          "$ref": "#/$defs/HarnessProfile"
+        },
+        "hypothesis": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "metrics": {
+          "$ref": "#/$defs/Metrics"
+        },
+        "mutation": {
+          "const": "model_weights",
+          "title": "Mutation",
+          "type": "string"
+        },
+        "selection": {
+          "$ref": "#/$defs/SelectionRule"
+        },
+        "task_kind": {
+          "const": "structured_prediction",
+          "title": "Task Kind",
+          "type": "string"
+        },
+        "workspace": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "workspace",
+        "task_kind",
+        "hypothesis",
+        "mutation",
+        "baseline",
+        "baseline_weights_digest",
+        "baseline_tokenizer_digest",
+        "harness",
+        "dataset_release",
+        "benchmark_release",
+        "selection",
+        "metrics",
+        "budgets",
+        "data_policy"
+      ],
+      "title": "ModelStudySpecSpec",
+      "type": "object"
+    },
+    "ModelUpliftReport": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "ModelUpliftReport",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/Created"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/ModelUpliftReportSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "ModelUpliftReport",
+      "type": "object"
+    },
+    "ModelUpliftReportSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/Digest"
+        },
+        "benchmark_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "evaluator_outputs": {
+          "items": {
+            "$ref": "#/$defs/Digest"
+          },
+          "minItems": 1,
+          "title": "Evaluator Outputs",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "paired_outcomes": {
+          "$ref": "#/$defs/PairedOutcomes"
+        },
+        "results": {
+          "$ref": "#/$defs/ResultFields"
+        },
+        "uncertainty": {
+          "$ref": "#/$defs/Uncertainty"
+        }
+      },
+      "required": [
+        "artifact",
+        "benchmark_release",
+        "evaluator_outputs",
+        "paired_outcomes",
+        "uncertainty",
+        "results",
+        "limitations"
+      ],
+      "title": "ModelUpliftReportSpec",
+      "type": "object"
+    },
+    "NonEmptyString": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "Optimizer": {
+      "additionalProperties": false,
+      "properties": {
+        "learning_rate": {
+          "exclusiveMinimum": 0,
+          "title": "Learning Rate",
+          "type": "number"
+        },
+        "name": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "optimization_dtype": {
+          "const": "bfloat16",
+          "title": "Optimization Dtype",
+          "type": "string"
+        },
+        "reduce_dtype": {
+          "const": "bfloat16",
+          "title": "Reduce Dtype",
+          "type": "string"
+        },
+        "weight_decay": {
+          "minimum": 0,
+          "title": "Weight Decay",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "learning_rate",
+        "weight_decay",
+        "optimization_dtype",
+        "reduce_dtype"
+      ],
+      "title": "Optimizer",
+      "type": "object"
+    },
+    "PairedOutcomes": {
+      "additionalProperties": false,
+      "description": "Base and candidate on the same cases: each case counted once, in one cell.",
+      "properties": {
+        "base_only_correct": {
+          "$ref": "#/$defs/Count"
+        },
+        "both_correct": {
+          "$ref": "#/$defs/Count"
+        },
+        "candidate_only_correct": {
+          "$ref": "#/$defs/Count"
+        },
+        "cases": {
+          "$ref": "#/$defs/Count"
+        },
+        "negatives": {
+          "$ref": "#/$defs/Count"
+        },
+        "neither_correct": {
+          "$ref": "#/$defs/Count"
+        },
+        "positives": {
+          "$ref": "#/$defs/Count"
+        }
+      },
+      "required": [
+        "cases",
+        "both_correct",
+        "base_only_correct",
+        "candidate_only_correct",
+        "neither_correct",
+        "positives",
+        "negatives"
+      ],
+      "title": "PairedOutcomes",
+      "type": "object"
+    },
+    "Positive": {
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "PriceQuote": {
+      "additionalProperties": false,
+      "properties": {
+        "cents_per_hour": {
+          "$ref": "#/$defs/Cents"
+        },
+        "item": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "item",
+        "cents_per_hour"
+      ],
+      "title": "PriceQuote",
+      "type": "object"
+    },
+    "Quota": {
+      "additionalProperties": false,
+      "properties": {
+        "monthly_max_cents": {
+          "$ref": "#/$defs/Cents"
+        },
+        "requests_per_minute": {
+          "$ref": "#/$defs/Positive"
+        }
+      },
+      "required": [
+        "requests_per_minute",
+        "monthly_max_cents"
+      ],
+      "title": "Quota",
+      "type": "object"
+    },
+    "ResolvedModelPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "ResolvedModelPlan",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/Created"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/ResolvedModelPlanSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "ResolvedModelPlan",
+      "type": "object"
+    },
+    "ResolvedModelPlanSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "budget": {
+          "$ref": "#/$defs/BudgetReservation"
+        },
+        "compatibility_profile": {
+          "$ref": "#/$defs/Digest"
+        },
+        "compute": {
+          "$ref": "#/$defs/ComputeTarget"
+        },
+        "dataset_release": {
+          "$ref": "#/$defs/Digest"
+        },
+        "egress": {
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          },
+          "title": "Egress",
+          "type": "array"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "recipe": {
+          "$ref": "#/$defs/Digest"
+        },
+        "study": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "study",
+        "dataset_release",
+        "benchmark_release",
+        "recipe",
+        "compute",
+        "egress",
+        "compatibility_profile",
+        "budget",
+        "expires_at"
+      ],
+      "title": "ResolvedModelPlanSpec",
+      "type": "object"
+    },
+    "ResultFields": {
+      "additionalProperties": false,
+      "properties": {
+        "attestation": {
+          "enum": [
+            "participant",
+            "identified_executor",
+            "independently_reproduced"
+          ],
+          "title": "Attestation",
+          "type": "string"
+        },
+        "comparison": {
+          "enum": [
+            "valid",
+            "invalid",
+            "exploratory"
+          ],
+          "title": "Comparison",
+          "type": "string"
+        },
+        "execution": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "cancelled",
+            "indeterminate"
+          ],
+          "title": "Execution",
+          "type": "string"
+        },
+        "integrity": {
+          "enum": [
+            "verified",
+            "invalid",
+            "incomplete"
+          ],
+          "title": "Integrity",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "uplift",
+            "tie",
+            "regression",
+            "inconclusive"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "release_gate": {
+          "enum": [
+            "pass",
+            "fail",
+            "insufficient_evidence",
+            "not_evaluated"
+          ],
+          "title": "Release Gate",
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution",
+        "integrity",
+        "comparison",
+        "outcome",
+        "release_gate",
+        "attestation"
+      ],
+      "title": "ResultFields",
+      "type": "object"
+    },
+    "Revision": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "SamplingProtocol": {
+      "additionalProperties": false,
+      "properties": {
+        "max_output_tokens": {
+          "$ref": "#/$defs/Positive"
+        },
+        "samples_per_case": {
+          "$ref": "#/$defs/Positive"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "temperature": {
+          "minimum": 0,
+          "title": "Temperature",
+          "type": "number"
+        }
+      },
+      "required": [
+        "temperature",
+        "max_output_tokens",
+        "samples_per_case",
+        "seed"
+      ],
+      "title": "SamplingProtocol",
+      "type": "object"
+    },
+    "SchemaVersion": {
+      "const": "techtree.model-climb.v1alpha1",
+      "type": "string"
+    },
+    "SelectionRule": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_limit": {
+          "$ref": "#/$defs/Positive"
+        },
+        "rule": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "split": {
+          "const": "validation",
+          "title": "Split",
+          "type": "string"
+        }
+      },
+      "required": [
+        "split",
+        "rule",
+        "candidate_limit"
+      ],
+      "title": "SelectionRule",
+      "type": "object"
+    },
+    "ServiceComparisonReport": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "ServiceComparisonReport",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/Created"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/ServiceComparisonReportSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "ServiceComparisonReport",
+      "type": "object"
+    },
+    "ServiceComparisonReportSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "business_metrics": {
+          "items": {
+            "$ref": "#/$defs/BusinessMetric"
+          },
+          "title": "Business Metrics",
+          "type": "array"
+        },
+        "cost_model": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "deployments": {
+          "items": {
+            "$ref": "#/$defs/Digest"
+          },
+          "minItems": 2,
+          "title": "Deployments",
+          "type": "array"
+        },
+        "infrastructure_differences": {
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          },
+          "title": "Infrastructure Differences",
+          "type": "array"
+        },
+        "latency_protocol": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "load_protocol": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "deployments",
+        "load_protocol",
+        "latency_protocol",
+        "business_metrics",
+        "infrastructure_differences",
+        "cost_model"
+      ],
+      "title": "ServiceComparisonReportSpec",
+      "type": "object"
+    },
+    "SnapshotOperational": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "snapshot_handle": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "snapshot_handle",
+        "created_at"
+      ],
+      "title": "SnapshotOperational",
+      "type": "object"
+    },
+    "SplitCommitment": {
+      "additionalProperties": false,
+      "description": "sha256 over the sorted HMAC-SHA256(salt, row id) of one split (contract 3.4).",
+      "properties": {
+        "commitment": {
+          "$ref": "#/$defs/Digest"
+        },
+        "rows": {
+          "$ref": "#/$defs/Count"
+        }
+      },
+      "required": [
+        "commitment",
+        "rows"
+      ],
+      "title": "SplitCommitment",
+      "type": "object"
+    },
+    "SplitCommitments": {
+      "additionalProperties": false,
+      "properties": {
+        "debug": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SplitCommitment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "proving": {
+          "$ref": "#/$defs/SplitCommitment"
+        },
+        "train": {
+          "$ref": "#/$defs/SplitCommitment"
+        },
+        "validation": {
+          "$ref": "#/$defs/SplitCommitment"
+        }
+      },
+      "required": [
+        "train",
+        "validation",
+        "proving",
+        "debug"
+      ],
+      "title": "SplitCommitments",
+      "type": "object"
+    },
+    "StoredOperational": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "storage_handle": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "storage_handle",
+        "created_at"
+      ],
+      "title": "StoredOperational",
+      "type": "object"
+    },
+    "StudyOperational": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "$ref": "#/$defs/UtcDateTime"
+        },
+        "label": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "label",
+        "created_at"
+      ],
+      "title": "StudyOperational",
+      "type": "object"
+    },
+    "TrainerRef": {
+      "additionalProperties": false,
+      "properties": {
+        "lock_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "name": {
+          "const": "prime-rl",
+          "title": "Name",
+          "type": "string"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        }
+      },
+      "required": [
+        "name",
+        "revision",
+        "lock_digest"
+      ],
+      "title": "TrainerRef",
+      "type": "object"
+    },
+    "TrainingAttempt": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "TrainingAttempt",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/AttemptOperational"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/TrainingAttemptSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "TrainingAttempt",
+      "type": "object"
+    },
+    "TrainingAttemptSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "checkpoints": {
+          "items": {
+            "$ref": "#/$defs/Digest"
+          },
+          "title": "Checkpoints",
+          "type": "array"
+        },
+        "exit_reason": {
+          "$ref": "#/$defs/AttemptEnd"
+        },
+        "measured_cost_cents": {
+          "$ref": "#/$defs/Cents"
+        },
+        "observed_config_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "optimizer_state_restored": {
+          "title": "Optimizer State Restored",
+          "type": "boolean"
+        },
+        "plan": {
+          "$ref": "#/$defs/Digest"
+        },
+        "predecessor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rng_state_restored": {
+          "title": "Rng State Restored",
+          "type": "boolean"
+        },
+        "run_id": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "steps": {
+          "$ref": "#/$defs/Count"
+        },
+        "tokens": {
+          "$ref": "#/$defs/Count"
+        }
+      },
+      "required": [
+        "plan",
+        "run_id",
+        "attempt_id",
+        "observed_config_digest",
+        "steps",
+        "tokens",
+        "checkpoints",
+        "exit_reason",
+        "measured_cost_cents",
+        "predecessor",
+        "optimizer_state_restored",
+        "rng_state_restored"
+      ],
+      "title": "TrainingAttemptSpec",
+      "type": "object"
+    },
+    "TrainingLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_size": {
+          "$ref": "#/$defs/Positive"
+        },
+        "max_context_tokens": {
+          "$ref": "#/$defs/Positive"
+        },
+        "max_steps": {
+          "$ref": "#/$defs/Positive"
+        },
+        "micro_batch_size": {
+          "$ref": "#/$defs/Positive"
+        }
+      },
+      "required": [
+        "micro_batch_size",
+        "batch_size",
+        "max_context_tokens",
+        "max_steps"
+      ],
+      "title": "TrainingLimits",
+      "type": "object"
+    },
+    "TrainingRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "kind": {
+          "const": "TrainingRecipe",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operational": {
+          "$ref": "#/$defs/Created"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/SchemaVersion"
+        },
+        "spec": {
+          "$ref": "#/$defs/TrainingRecipeSpec"
+        }
+      },
+      "required": [
+        "schema_version",
+        "kind",
+        "spec",
+        "operational",
+        "digest"
+      ],
+      "title": "TrainingRecipe",
+      "type": "object"
+    },
+    "TrainingRecipeSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_selection": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "image_digest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "limits": {
+          "$ref": "#/$defs/TrainingLimits"
+        },
+        "lora": {
+          "$ref": "#/$defs/LoraConfig"
+        },
+        "loss_mask": {
+          "const": "assistant_only",
+          "title": "Loss Mask",
+          "type": "string"
+        },
+        "model": {
+          "$ref": "#/$defs/ModelRef"
+        },
+        "optimizer": {
+          "$ref": "#/$defs/Optimizer"
+        },
+        "renderer": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "trainer": {
+          "$ref": "#/$defs/TrainerRef"
+        }
+      },
+      "required": [
+        "trainer",
+        "image_digest",
+        "model",
+        "renderer",
+        "loss_mask",
+        "lora",
+        "optimizer",
+        "seed",
+        "limits",
+        "checkpoint_selection"
+      ],
+      "title": "TrainingRecipeSpec",
+      "type": "object"
+    },
+    "Uncertainty": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "interval_high": {
+          "title": "Interval High",
+          "type": "number"
+        },
+        "interval_low": {
+          "title": "Interval Low",
+          "type": "number"
+        },
+        "method": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "method",
+        "confidence",
+        "interval_low",
+        "interval_high"
+      ],
+      "title": "Uncertainty",
+      "type": "object"
+    },
+    "UtcDateTime": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "VerifierRef": {
+      "additionalProperties": false,
+      "properties": {
+        "environment": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "package": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "version": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "required": [
+        "package",
+        "version",
+        "environment"
+      ],
+      "title": "VerifierRef",
+      "type": "object"
+    }
+  },
+  "$id": "https://schemas.techtree.dev/techtree.model-climb.v1alpha1/contracts.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "discriminator": {
+    "mapping": {
+      "BenchmarkRelease": "#/$defs/BenchmarkRelease",
+      "DatasetRelease": "#/$defs/DatasetRelease",
+      "DeploymentRelease": "#/$defs/DeploymentRelease",
+      "ExecutionGrant": "#/$defs/ExecutionGrant",
+      "ModelArtifact": "#/$defs/ModelArtifact",
+      "ModelStudySpec": "#/$defs/ModelStudySpec",
+      "ModelUpliftReport": "#/$defs/ModelUpliftReport",
+      "ResolvedModelPlan": "#/$defs/ResolvedModelPlan",
+      "ServiceComparisonReport": "#/$defs/ServiceComparisonReport",
+      "TrainingAttempt": "#/$defs/TrainingAttempt",
+      "TrainingRecipe": "#/$defs/TrainingRecipe"
+    },
+    "propertyName": "kind"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ModelStudySpec"
+    },
+    {
+      "$ref": "#/$defs/DatasetRelease"
+    },
+    {
+      "$ref": "#/$defs/BenchmarkRelease"
+    },
+    {
+      "$ref": "#/$defs/TrainingRecipe"
+    },
+    {
+      "$ref": "#/$defs/ResolvedModelPlan"
+    },
+    {
+      "$ref": "#/$defs/ModelArtifact"
+    },
+    {
+      "$ref": "#/$defs/TrainingAttempt"
+    },
+    {
+      "$ref": "#/$defs/ModelUpliftReport"
+    },
+    {
+      "$ref": "#/$defs/ServiceComparisonReport"
+    },
+    {
+      "$ref": "#/$defs/DeploymentRelease"
+    },
+    {
+      "$ref": "#/$defs/ExecutionGrant"
+    }
+  ]
+}

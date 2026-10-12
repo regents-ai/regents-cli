@@ -26,6 +26,7 @@ ID_PREFIXES: Final[frozenset[str]] = frozenset(
         "forgeprop",
         "forgecon",
         "forgecol",
+        "grant",
     }
 )
 

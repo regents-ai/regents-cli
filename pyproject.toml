@@ -80,8 +80,9 @@ python_version = "3.12"
 strict = true
 files = ["src", "scripts", "tests"]
 mypy_path = ["src"]
-# The engine bundle imports Verifiers, which lives only in the engine's own environment.
-exclude = ["^src/regents_cli/techtree/resources/"]
+# The engine bundle imports Verifiers, and the Model Climb check imports prime-rl; each lives
+# only in its own environment.
+exclude = ["^src/regents_cli/techtree/resources/", "^scripts/techtree/model-climb-image/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

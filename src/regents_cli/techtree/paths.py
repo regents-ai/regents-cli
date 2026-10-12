@@ -46,6 +46,10 @@ class TechtreePaths:
     def forge_dir(self) -> Path:
         return self.root / "forge"
 
+    @property
+    def model_climb_dir(self) -> Path:
+        return self.root / "model-climb"
+
     def draft_dir(self, draft_id: str) -> Path:
         return self.drafts_dir / validate_id(draft_id, "draft")
 
