@@ -70,11 +70,15 @@ def sft_toml(recipe: dict[str, Any], model_dir: Path) -> str:
     return "\n".join(
         [
             f"max_steps = {recipe['max_steps']}",
+            "dashboard = false",
             "",
             "[model]",
             f"name = {json.dumps(str(model_dir))}",
             'optimization_dtype = "bfloat16"',
             'reduce_dtype = "bfloat16"',
+            "",
+            "[model.fusions]",
+            "enabled = []",
             "",
             "[model.lora]",
             f"rank = {recipe['rank']}",

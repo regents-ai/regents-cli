@@ -29,8 +29,11 @@ from regents_cli.techtree.model_climb.contracts import (
 from regents_cli.techtree.model_climb.store import ModelClimbStore
 from regents_cli.techtree.models.base import JsonValue
 
+CAPABILITIES: Final = "model_climb_capabilities"
+PROFILE_CHECK: Final = "model_climb_profile_check"
+GRANT_ISSUE: Final = "model_climb_grant_issue"
 #: The operations from the contract's table this build runs.
-BUILT_OPERATIONS: Final = ("model_climb_capabilities",)
+BUILT_OPERATIONS: Final = (CAPABILITIES, PROFILE_CHECK, GRANT_ISSUE)
 CONFIRMATION_LENGTH: Final = 12
 _DURATION: Final = re.compile(r"^(\d+)([mhd])$")
 _UNITS: Final = {"m": "minutes", "h": "hours", "d": "days"}
@@ -52,7 +55,7 @@ def capabilities(as_json: bool) -> None:
     )
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
-        "operation_id": "model_climb_capabilities",
+        "operation_id": CAPABILITIES,
         "contract": CONTRACT,
         "profiles": [
             {
@@ -126,6 +129,7 @@ def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
         )
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
+        "operation_id": PROFILE_CHECK,
         **report,
         "report_path": str(report_path),
         "next_actions": ["Send the report to Techtree for review (contract 7.4 step 1)."],
@@ -148,6 +152,13 @@ def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
             output.checks(checks),
         ],
     )
+
+
+def _setting(resolved: JsonValue, *path: str) -> JsonValue:
+    """One setting of prime-rl's resolved configuration, or None where it has none."""
+    for key in path:
+        resolved = resolved.get(key) if isinstance(resolved, dict) else None
+    return resolved
 
 
 def _profile_report(
@@ -189,6 +200,26 @@ def _profile_report(
             + ("only the assistant's answers" if only_answers else _mask_problem(fixture)),
         )
         fixtures.append(fixture.model_dump(mode="json"))
+    resolved = answer.dry_run.resolved
+    if resolved is not None:
+        check(
+            "Layer merging off",
+            _setting(resolved, "model", "fusions", "enabled") == [],
+            "LoRA attaches to the separate projections the coverage check counts",
+        )
+        quiet = (
+            _setting(resolved, "dashboard") is False
+            and _setting(resolved, "heartbeat") is None
+            and _setting(resolved, "monitors", "prime") is None
+            and _setting(resolved, "monitors", "wandb") is None
+        )
+        check(
+            "Nothing sent anywhere",
+            quiet,
+            "no dashboard, heartbeat, Prime or W&B monitor; metrics stay in a local file"
+            if quiet
+            else "the configuration starts a dashboard, a heartbeat or an online monitor",
+        )
     coverage_answer: JsonValue = None
     modules = answer.modules
     if modules is not None:
@@ -215,7 +246,6 @@ def _profile_report(
             "missing": list(found.missing),
             "unexpected": list(found.unexpected),
         }
-    resolved = answer.dry_run.resolved
     report: dict[str, JsonValue] = {
         "profile": profile.name,
         "checked_at": checked_at.isoformat(),
@@ -311,6 +341,7 @@ def grant_issue(
     path = store.put_grant(envelope)
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
+        "operation_id": GRANT_ISSUE,
         "grant_id": grant.grant_id,
         "grant": grant.model_dump(mode="json"),
         "path": str(path),
