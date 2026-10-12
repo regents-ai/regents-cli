@@ -66,6 +66,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
    `fe3aa1d`); 1.8.1 (2026-10-09, `5479455`, wheel sha256 `e701a2e7…`) explains a bracketed
    IPv6 `NO_PROXY` entry instead of crashing. Changes now wait and ship together, moving the last
    number; see "What the release says" in `docs/site-commands.md` (founder, 2026-10-09).
+   1.9.0 (2026-10-09, `e6e91e9`…`93536cd`) added signed pairing and account commands for every
+   site; 1.9.1 (2026-10-10, `d7deae0`, wheel sha256 `a9ad6b3b…462e`) corrected the template's
+   help. The next bundle starts with the Touch ID page and the key helper's messages.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
