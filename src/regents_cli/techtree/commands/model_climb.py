@@ -98,9 +98,10 @@ def capabilities(as_json: bool) -> None:
 def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
     profile = profiles.PROFILES.get(profile_name)
     if profile is None:
+        known = sorted(profiles.PROFILES)
         raise ValidationError(
-            f"there is no profile {profile_name}; M0 has one, {profiles.M0.name}",
-            details={"profiles": sorted(profiles.PROFILES)},
+            f"there is no profile {profile_name}; the profiles are {', '.join(known)}",
+            details={"profiles": known},
         )
     if not dry_run:
         raise ValidationError(
