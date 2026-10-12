@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.9.2 — 2026-10-12
 
 - `regents ash-template notes pin <id>` pins one of your person's notes for 1 of their Credits;
   pipe a stable `operation_id` UUID on stdin and keep it when retrying, and a retry never pays
@@ -25,6 +25,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   it used to show nothing beside its name.
 - On free-threaded Python, commands no longer start with a warning about the GIL from the
   signing library's KZG module. Python still turns the GIL on to load it, as before.
+- The packaged Techtree release metadata names CLI 1.9.2. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
 
 ## 1.9.1 — 2026-10-10
 

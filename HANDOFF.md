@@ -68,7 +68,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
    number; see "What the release says" in `docs/site-commands.md` (founder, 2026-10-09).
    1.9.0 (2026-10-09, `e6e91e9`…`93536cd`) added signed pairing and account commands for every
    site; 1.9.1 (2026-10-10, `d7deae0`, wheel sha256 `a9ad6b3b…462e`) corrected the template's
-   help. The next bundle starts with the Touch ID page and the key helper's messages.
+   help. 1.9.2 (2026-10-12) adds the template's `notes pin` and `notes unpin` (template
+   `0adfa86`), siwa-server's Touch ID page, the key helper's timeout messages and the site help
+   that lists each group's commands. The next bundle starts with Autolaunch's main `372881ad`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
