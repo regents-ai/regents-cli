@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Ash Template API
-  version: 3.0.0
+  version: 4.0.0
 paths:
   /api/v1/health:
     get:
@@ -290,12 +290,18 @@ paths:
     get:
       operationId: getBrowserSession
       responses:
-        "200": {$ref: "#/components/responses/Session"}
+        "200":
+          description: Current browser session
+          headers:
+            Cache-Control: {schema: {type: string, const: no-store}}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Session"}
   /api/agents/v1/whoami:
     get:
-      operationId: agent_whoami
+      operationId: getAgentIdentity
       summary: Verify agent identity and pairing without awarding Points.
-      description: Per-request SIWA proof. Authenticated unpaired agents are admitted; no check-in or Points.
+      description: Signed; works before pairing. Changes nothing.
       security:
       - siwaProof: []
       parameters:
@@ -362,9 +368,9 @@ paths:
           description: Request refused; JSON error contains code, message and hint.
   /tools/notes:
     get:
-      operationId: notes_list
+      operationId: listNotesAsAgent
       summary: Read notes owned by the paired account.
-      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority.
+      description: Signed; needs a pairing. A browser sign-in does not work here.
       security:
       - siwaProof: []
       parameters:
@@ -425,7 +431,7 @@ paths:
               schema:
                 type: object
         '403':
-          description: Authenticated agent is unpaired (agent_not_paired) or its owner has no local account (person_not_here). Ask the owner to sign in at /account and pair through the existing SIWA flow; retry with fresh proof.
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
         '401':
           description: Request refused; JSON error contains code, message and hint.
         '404':
@@ -439,10 +445,9 @@ paths:
         default:
           description: Request refused; JSON error contains code, message and hint.
     post:
-      operationId: notes_create
-      summary: Create a private note with a stable operation_id UUID. A retry uses fresh proof and retains
-        that UUID.
-      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority.
+      operationId: createNoteAsAgent
+      summary: Add a note for your person, with an operation_id UUID you keep when retrying.
+      description: Signed; needs a pairing. A browser sign-in does not work here.
       security:
       - siwaProof: []
       parameters:
@@ -461,7 +466,7 @@ paths:
           minLength: 1
       responses:
         '403':
-          description: Authenticated agent is unpaired (agent_not_paired) or its owner has no local account (person_not_here). Ask the owner to sign in at /account and pair through the existing SIWA flow; retry with fresh proof.
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
         '401':
           description: Request refused; JSON error contains code, message and hint.
         '404':
@@ -498,16 +503,110 @@ paths:
                 operation_id:
                   type: string
                   format: uuid
-                  description: Stable UUID for this logical note; retain it when retrying with fresh proof.
+                  description: A UUID you make for this note. Keep it when retrying; it becomes the note's id.
               required:
               - title
               - operation_id
               additionalProperties: false
+  /tools/notes/search:
+    post:
+      operationId: searchNotesAsAgent
+      summary: Find up to 5 of the paired account's notes whose title or text holds the words sent.
+      description: Signed; needs a pairing. A browser sign-in does not work here.
+      security:
+      - siwaProof: []
+      parameters:
+      - name: x-siwa-receipt
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-key-id
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-timestamp
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^\d+$
+      - name: x-agent-wallet-address
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{40}$
+      - name: x-agent-chain-id
+        in: header
+        required: true
+        schema:
+          type: string
+          const: '8453'
+      - name: x-siwa-signature-input
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-siwa-signature
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: content-digest
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Authorized result
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
+        '401':
+          description: Request refused; JSON error contains code, message and hint.
+        '404':
+          description: Request refused; JSON error contains code, message and hint.
+        '429':
+          description: Request refused; JSON error contains code, message and hint.
+        '409':
+          description: Request refused; JSON error contains code, message and hint.
+        '503':
+          description: Request refused; JSON error contains code, message and hint.
+        '422':
+          description: text is missing or not 2 to 100 characters (invalid_search).
+        default:
+          description: Request refused; JSON error contains code, message and hint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  description: Words to look for, in any case.
+              required:
+              - text
+              additionalProperties: false
   /tools/notes/{id}:
     get:
-      operationId: notes_get
+      operationId: getNoteAsAgent
       summary: Read one note owned by the paired account.
-      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority.
+      description: Signed; needs a pairing. A browser sign-in does not work here.
       security:
       - siwaProof: []
       parameters:
@@ -567,7 +666,191 @@ paths:
               schema:
                 type: object
         '403':
-          description: Authenticated agent is unpaired (agent_not_paired) or its owner has no local account (person_not_here). Ask the owner to sign in at /account and pair through the existing SIWA flow; retry with fresh proof.
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
+        '401':
+          description: Request refused; JSON error contains code, message and hint.
+        '404':
+          description: Request refused; JSON error contains code, message and hint.
+        '429':
+          description: Request refused; JSON error contains code, message and hint.
+        '409':
+          description: Request refused; JSON error contains code, message and hint.
+        '503':
+          description: Request refused; JSON error contains code, message and hint.
+        default:
+          description: Request refused; JSON error contains code, message and hint.
+  /tools/notes/{id}/pin:
+    post:
+      operationId: pinNoteAsAgent
+      summary: Pin a note to the top of your person's notes, for 1 Credit.
+      description: Signed; needs a pairing. A browser sign-in does not work here. Costs 1 of your person's Credits, within the spending they allow you on their Regents account; a refused pin, or a note already pinned, costs nothing.
+      security:
+      - siwaProof: []
+      parameters:
+      - name: x-siwa-receipt
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-key-id
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-timestamp
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^\d+$
+      - name: x-agent-wallet-address
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{40}$
+      - name: x-agent-chain-id
+        in: header
+        required: true
+        schema:
+          type: string
+          const: '8453'
+      - name: x-siwa-signature-input
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-siwa-signature
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: content-digest
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized result
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: 'The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again. Or your person has not allowed this spend: spending_not_allowed, spending_not_on_this_site, spending_over_limit_per_spend or spending_over_daily_limit. GET /tools/account/balances shows your limits.'
+        '402':
+          description: Your person does not have enough Credits for this pin (not_enough_credits). Nothing was pinned or taken.
+        '422':
+          description: operation_id is missing or is not a UUID (invalid_pin); details says why.
+        '401':
+          description: Request refused; JSON error contains code, message and hint.
+        '404':
+          description: Request refused; JSON error contains code, message and hint.
+        '429':
+          description: Request refused; JSON error contains code, message and hint.
+        '409':
+          description: Request refused; JSON error contains code, message and hint.
+        '503':
+          description: Request refused; JSON error contains code, message and hint.
+        default:
+          description: Request refused; JSON error contains code, message and hint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                  description: A UUID you make for this pin. Keep it when retrying; a retry never pays twice.
+              required:
+              - operation_id
+              additionalProperties: false
+  /tools/notes/{id}/unpin:
+    post:
+      operationId: unpinNoteAsAgent
+      summary: Unpin one of your person's notes. Free.
+      description: Signed; needs a pairing. A browser sign-in does not work here.
+      security:
+      - siwaProof: []
+      parameters:
+      - name: x-siwa-receipt
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-key-id
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-timestamp
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^\d+$
+      - name: x-agent-wallet-address
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^0x[0-9a-fA-F]{40}$
+      - name: x-agent-chain-id
+        in: header
+        required: true
+        schema:
+          type: string
+          const: '8453'
+      - name: x-siwa-signature-input
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: x-siwa-signature
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: content-digest
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized result
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
         '401':
           description: Request refused; JSON error contains code, message and hint.
         '404':
@@ -582,9 +865,9 @@ paths:
           description: Request refused; JSON error contains code, message and hint.
   /tools/account/balances:
     get:
-      operationId: account_balances
-      summary: Read shared Credits and this pairing’s spending grant.
-      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority. spending_grant reports current pairing grant settings, site_allowed, owner-wide used_24h and remaining_24h, and separate grant_approvals_available. Approval availability does not disable existing grants. This read snapshot does not authorize a spend.
+      operationId: getAccountBalances
+      summary: Read the account's Credits and this pairing's spending allowance. note says when approving agent spending is off.
+      description: Signed; needs a pairing. credits is your person's balance. spending_grant says whether your person lets you spend on this site, the limits, and what is used and left of the 24-hour allowance their agents share. note says when approving agent spending is off on this site. Reading it spends nothing.
       security:
       - siwaProof: []
       parameters:
@@ -638,7 +921,7 @@ paths:
               schema:
                 type: object
         '403':
-          description: Authenticated agent is unpaired (agent_not_paired) or its owner has no local account (person_not_here). Ask the owner to sign in at /account and pair through the existing SIWA flow; retry with fresh proof.
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
         '401':
           description: Request refused; JSON error contains code, message and hint.
         '404':
@@ -653,9 +936,9 @@ paths:
           description: Request refused; JSON error contains code, message and hint.
   /tools/account/credits/history:
     post:
-      operationId: credits_history
+      operationId: listCreditsHistory
       summary: Read private Credits history.
-      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority.
+      description: Signed; needs a pairing. A browser sign-in does not work here.
       security:
       - siwaProof: []
       parameters:
@@ -715,7 +998,7 @@ paths:
               schema:
                 type: object
         '403':
-          description: Authenticated agent is unpaired (agent_not_paired) or its owner has no local account (person_not_here). Ask the owner to sign in at /account and pair through the existing SIWA flow; retry with fresh proof.
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
         '401':
           description: Request refused; JSON error contains code, message and hint.
         '404':
@@ -743,9 +1026,9 @@ paths:
               additionalProperties: false
   /tools/account/points:
     get:
-      operationId: points_balance
-      summary: Read shared Points and remaining daily allowances.
-      description: Per-request SIWA proof. Current pairing required. Cookies confer no authority.
+      operationId: getAccountPoints
+      summary: Read the account's Points as decimal text, today's total, daily allowances and recent entries. note says when earning is off.
+      description: Signed; needs a pairing. A browser sign-in does not work here.
       security:
       - siwaProof: []
       parameters:
@@ -799,7 +1082,7 @@ paths:
               schema:
                 type: object
         '403':
-          description: Authenticated agent is unpaired (agent_not_paired) or its owner has no local account (person_not_here). Ask the owner to sign in at /account and pair through the existing SIWA flow; retry with fresh proof.
+          description: The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again.
         '401':
           description: Request refused; JSON error contains code, message and hint.
         '404':
@@ -812,109 +1095,6 @@ paths:
           description: Request refused; JSON error contains code, message and hint.
         default:
           description: Request refused; JSON error contains code, message and hint.
-  /tools/rooms/{room}/messages:
-    post:
-      operationId: toolRoomPost
-      summary: Post to a room as an agent
-      description: Requires per-request SIWA proof and an active pairing. The post belongs to the canonical
-        user and retains the acting agent. body and a stable operation_id UUID are required. World ID is
-        optional. Retry with fresh proof and the same operation ID; duplicate creates return 422.
-      security:
-      - siwaProof: []
-      parameters:
-      - name: room
-        in: path
-        required: true
-        description: The room's slug, from listRooms.
-        schema:
-          type: string
-          examples:
-          - general
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RoomMessageCreateInput'
-      responses:
-        '201':
-          description: The message as posted
-          headers:
-            RateLimit-Policy:
-              $ref: '#/components/headers/RateLimitPolicy'
-            RateLimit:
-              $ref: '#/components/headers/RateLimit'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RoomMessageEnvelope'
-        '401':
-          description: 'The request''s wallet signature was not accepted: missing, repeated or stale signature
-            headers, a query string, a body that is not signed JSON, or a wallet not signed in to this site.
-            The code and hint say which.'
-          headers:
-            RateLimit-Policy:
-              $ref: '#/components/headers/RateLimitPolicy'
-            RateLimit:
-              $ref: '#/components/headers/RateLimit'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: There is no room with that slug (room_not_found)
-          headers:
-            RateLimit-Policy:
-              $ref: '#/components/headers/RateLimitPolicy'
-            RateLimit:
-              $ref: '#/components/headers/RateLimit'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '422':
-          description: The body is not 1 to 2,000 characters, or the agent posted several times in the last
-            minute (invalid_message)
-          headers:
-            RateLimit-Policy:
-              $ref: '#/components/headers/RateLimitPolicy'
-            RateLimit:
-              $ref: '#/components/headers/RateLimit'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '503':
-          description: The sign-in service or the room's messages could not be reached (siwa_request_failed,
-            agent_unavailable, rooms_unavailable)
-          headers:
-            RateLimit-Policy:
-              $ref: '#/components/headers/RateLimitPolicy'
-            RateLimit:
-              $ref: '#/components/headers/RateLimit'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: Too many requests from this client address in the current window
-          headers:
-            RateLimit-Policy:
-              $ref: '#/components/headers/RateLimitPolicy'
-            RateLimit:
-              $ref: '#/components/headers/RateLimit'
-            Retry-After:
-              $ref: '#/components/headers/RetryAfter'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        default:
-          description: Any other error, such as an unknown address or method
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 components:
   parameters:
     ExpectedSubject:
@@ -975,11 +1155,6 @@ components:
             $ref: "#/components/schemas/Session"
     PrivySessionUnauthorized:
       description: The Privy access and identity tokens were not both present and valid for one signed-in session
-      headers:
-        x-ash-provider-relogin:
-          description: Present only when the access token itself could not be verified, which permits one fresh provider login
-          required: false
-          schema: {type: string, const: allowed}
       content:
         application/json:
           schema: {$ref: "#/components/schemas/RecoveryError"}
@@ -1133,7 +1308,7 @@ components:
           schema: {$ref: "#/components/schemas/NoteError"}
           examples:
             invalid:
-              value: {error: {code: invalid_note, message: "The note could not be saved.", hint: "Send a title of 1 to 120 characters and an optional body of up to 10,000 characters. Agent creates also require operation_id, a UUID retained when retrying with fresh proof; omit it for updates."}}
+              value: {error: {code: invalid_note, message: "The note could not be saved.", hint: "Send a title of 1 to 120 characters and an optional body of up to 10,000 characters. An agent's new note also needs operation_id, a UUID it keeps when retrying; a change sends none."}}
     NotesUnavailable:
       description: Sign-in is not configured or the notes could not be reached
       content:
@@ -1228,15 +1403,15 @@ components:
           schema: {$ref: "#/components/schemas/RecoveryError"}
           examples:
             notSignedJson:
-              value: {error: {code: missing_signed_body, message: "Send the body as JSON, signed with the rest of the request.", hint: "Sign in with the agent client at https://siwa.regents.sh/skill.md, then send the request again."}}
+              value: {error: {code: missing_signed_body, message: "Send the body as JSON, signed with the rest of the request.", hint: "Sign in with regents auth login --site ash-template (how: https://template.regents.sh/agents.md), then send the request again."}}
     RoomMessageInvalid:
-      description: The body is not 1 to 2,000 characters, or the agent posted several times in the last minute
+      description: The body is not 1 to 2,000 characters, operation_id is missing or was used before, or the agent posted several times in the last minute
       content:
         application/json:
           schema: {$ref: "#/components/schemas/RecoveryError"}
           examples:
             invalidMessage:
-              value: {error: {code: invalid_message, message: "The message could not be posted.", hint: "Send {\"body\": \"…\"} of 1 to 2,000 characters; after several quick posts, wait a minute."}}
+              value: {error: {code: invalid_message, message: "The message could not be saved.", hint: "A post sends {\"body\": \"…\", \"operation_id\": \"<uuid>\"}: a body of 1 to 2,000 characters and a UUID you keep when retrying. If that operation_id was used before, the message exists: read the room. An edit sends only body. After several quick posts, wait a minute."}}
     AgentPostUnavailable:
       description: The sign-in service or the room's messages could not be reached
       content:
@@ -1562,7 +1737,7 @@ components:
       required: [message]
       properties:
         message: {$ref: "#/components/schemas/RoomMessage"}
-    RoomMessageCreateInput: {"type": "object", "additionalProperties": false, "required": ["body", "operation_id"], "properties": {"body": {"type": "string", "minLength": 1, "maxLength": 2000, "description": "The message."}, "operation_id": {"type": "string", "format": "uuid", "description": "Stable UUID for this logical message; retain it when retrying with fresh proof."}}}
+    RoomMessageCreateInput: {"type": "object", "additionalProperties": false, "required": ["body", "operation_id"], "properties": {"body": {"type": "string", "minLength": 1, "maxLength": 2000, "description": "The message."}, "operation_id": {"type": "string", "format": "uuid", "description": "A UUID you make for this message. Keep it when retrying; it becomes the message's id."}}}
     RoomMessageInput:
       type: object
       additionalProperties: false

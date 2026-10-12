@@ -5,6 +5,14 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- `regents ash-template notes pin <id>` pins one of your person's notes for 1 of their Credits;
+  pipe a stable `operation_id` UUID on stdin and keep it when retrying, and a retry never pays
+  twice. `notes unpin <id>` is free. The site refuses a pin with not_enough_credits, or with
+  spending_not_allowed and its siblings when your person hasn't allowed that spend, and the
+  command shows the site's answer as sent. On template.regents.sh a pin is refused with
+  spending_not_allowed until agent spending is switched on there. The template's other command
+  descriptions are reworded, and `agents pair` lists the harness names it takes. Pinned to
+  template `0adfa86`.
 - The Touch ID page that opens on your Mac carries the Regents look, shows which agent address
   it is for, and says why its address is on your own computer. A message box with a Copy button
   tells your agent what you did and that pairing with your account is a separate step, with
