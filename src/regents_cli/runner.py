@@ -76,6 +76,7 @@ def platform_group(platform: Platform, group: click.Group | None = None) -> clic
         # Custom groups reuse their command objects; composition must not mutate those.
         group = deepcopy(group)
         group.help = f"{group.help}\n\n{help_text}"
+    described: list[click.Group] = []
     for command in platform.commands:
         parent = group
         for word in command.group_words:
@@ -83,6 +84,7 @@ def platform_group(platform: Platform, group: click.Group | None = None) -> clic
             if child is None:
                 child = click.Group(word, no_args_is_help=True)
                 parent.add_command(child)
+                described.append(child)
             elif not isinstance(child, click.Group):
                 raise UsageError(
                     f"{platform.name}: described group {word} conflicts with a command."
@@ -93,6 +95,9 @@ def platform_group(platform: Platform, group: click.Group | None = None) -> clic
                 f"{platform.name}: described command {' '.join(command.words)} already exists."
             )
         parent.add_command(build_command(platform, command))
+    # A description names commands, not groups: each group's line lists what it holds.
+    for child in described:
+        child.help = ", ".join(sorted(child.commands))
     if "doctor" not in group.commands:
         group.add_command(doctor_command(platform))
     return group

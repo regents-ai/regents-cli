@@ -13,6 +13,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - When the helper holding your unlocked agent key does not answer in time, the message now says
   what is certain: the command stopped and sent nothing, and anything the helper signed after
   that stays with it. It used to say nothing was signed, which a late answer can't prove.
+- Each group in a site's help, such as `account` or `rooms`, now lists the commands it holds;
+  it used to show nothing beside its name.
+- On free-threaded Python, commands no longer start with a warning about the GIL from the
+  signing library's KZG module. Python still turns the GIL on to load it, as before.
 
 ## 1.9.1 — 2026-10-10
 
