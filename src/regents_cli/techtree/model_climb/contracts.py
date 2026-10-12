@@ -318,11 +318,16 @@ class TrainingRecipe(_ScientificObject):
 type Enforcement = Literal["provider_hard_limit", "bounded_operational_limit", "estimate_only"]
 
 
+#: M0's compute: San Francisco Compute's Autoresearch batch jobs (contract 6.1).
+type ComputeProvider = Literal["sfcompute_autoresearch"]
+
+
 class ComputeTarget(ProtocolModel):
-    provider: Literal["prime_intellect"]
+    provider: ComputeProvider
+    #: The Autoresearch mission every job is filed under.
+    mission: NonEmptyString
     gpu_model: NonEmptyString
     gpu_count: Positive
-    region: NonEmptyString
 
 
 class PriceQuote(ProtocolModel):
@@ -406,8 +411,9 @@ class TrainingAttemptSpec(ProtocolModel):
 
 
 class AttemptOperational(ProtocolModel):
+    #: The attempt's intent, sent as the provider's idempotency key and label (contract 5).
+    intent_id: NonEmptyString
     upstream_job_id: NonEmptyString | None
-    pod_id: NonEmptyString | None
     event_cursor: NonEmptyString | None
     started_at: UtcDateTime
     ended_at: UtcDateTime | None
@@ -547,6 +553,7 @@ type ScientificObject = Annotated[
 
 #: The operations a grant may admit: those that spend, deploy or publish.
 type GrantedOperation = Literal[
+    "model_climb_profile_test",
     "model_climb_start",
     "model_climb_prove",
     "model_climb_deployment_apply",
@@ -579,8 +586,8 @@ class ExecutionGrant(ProtocolModel):
     dataset_release: Digest
     benchmark_release: Digest
     recipe: Digest
-    provider: Literal["prime_intellect"]
-    region: NonEmptyString
+    provider: ComputeProvider
+    mission: NonEmptyString
     gpu_model: NonEmptyString
     gpu_count: Positive
     max_cents: Cents

@@ -107,7 +107,10 @@ def plan(study_digest: str, *, cents: int = 4000) -> ResolvedModelPlan:
             benchmark_release=digest("7"),
             recipe=digest("8"),
             compute=ComputeTarget(
-                provider="prime_intellect", gpu_model="H100_80GB", gpu_count=2, region="us-east"
+                provider="sfcompute_autoresearch",
+                mission="regents-123",
+                gpu_model="H100_80GB",
+                gpu_count=2,
             ),
             egress=["huggingface.co"],
             compatibility_profile=digest("9"),

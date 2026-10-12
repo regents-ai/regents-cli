@@ -33,15 +33,8 @@
             }
           ]
         },
-        "pod_id": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/NonEmptyString"
-            },
-            {
-              "type": "null"
-            }
-          ]
+        "intent_id": {
+          "$ref": "#/$defs/NonEmptyString"
         },
         "started_at": {
           "$ref": "#/$defs/UtcDateTime"
@@ -58,8 +51,8 @@
         }
       },
       "required": [
+        "intent_id",
         "upstream_job_id",
-        "pod_id",
         "event_cursor",
         "started_at",
         "ended_at"
@@ -225,6 +218,10 @@
       "minimum": 0,
       "type": "integer"
     },
+    "ComputeProvider": {
+      "const": "sfcompute_autoresearch",
+      "type": "string"
+    },
     "ComputeTarget": {
       "additionalProperties": false,
       "properties": {
@@ -234,20 +231,18 @@
         "gpu_model": {
           "$ref": "#/$defs/NonEmptyString"
         },
-        "provider": {
-          "const": "prime_intellect",
-          "title": "Provider",
-          "type": "string"
-        },
-        "region": {
+        "mission": {
           "$ref": "#/$defs/NonEmptyString"
+        },
+        "provider": {
+          "$ref": "#/$defs/ComputeProvider"
         }
       },
       "required": [
         "provider",
+        "mission",
         "gpu_model",
-        "gpu_count",
-        "region"
+        "gpu_count"
       ],
       "title": "ComputeTarget",
       "type": "object"
@@ -612,6 +607,9 @@
         "max_wall_time_seconds": {
           "$ref": "#/$defs/Positive"
         },
+        "mission": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
         "mode": {
           "const": "local",
           "title": "Mode",
@@ -629,15 +627,10 @@
           "$ref": "#/$defs/Digest"
         },
         "provider": {
-          "const": "prime_intellect",
-          "title": "Provider",
-          "type": "string"
+          "$ref": "#/$defs/ComputeProvider"
         },
         "recipe": {
           "$ref": "#/$defs/Digest"
-        },
-        "region": {
-          "$ref": "#/$defs/NonEmptyString"
         },
         "schema_version": {
           "$ref": "#/$defs/SchemaVersion"
@@ -664,7 +657,7 @@
         "benchmark_release",
         "recipe",
         "provider",
-        "region",
+        "mission",
         "gpu_model",
         "gpu_count",
         "max_cents",
@@ -704,6 +697,7 @@
     },
     "GrantedOperation": {
       "enum": [
+        "model_climb_profile_test",
         "model_climb_start",
         "model_climb_prove",
         "model_climb_deployment_apply",

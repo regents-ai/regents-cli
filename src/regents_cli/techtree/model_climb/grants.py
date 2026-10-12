@@ -125,7 +125,7 @@ def draft_grant(
         benchmark_release=plan.spec.benchmark_release,
         recipe=plan.spec.recipe,
         provider=plan.spec.compute.provider,
-        region=plan.spec.compute.region,
+        mission=plan.spec.compute.mission,
         gpu_model=plan.spec.compute.gpu_model,
         gpu_count=plan.spec.compute.gpu_count,
         max_cents=limits.max_cents,
