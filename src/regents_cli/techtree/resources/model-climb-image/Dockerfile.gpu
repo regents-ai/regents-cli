@@ -45,6 +45,8 @@ COPY check.py job.py model_climb_fixture.py fixtures.jsonl invoice-fields.schema
 # It is prepared here instead, and from here on uv can neither resolve nor fetch anything.
 RUN uv sync --locked --no-config --script "$(.venv/bin/python /opt/m0/chat_program.py)"
 ENV UV_FROZEN=1 UV_NO_INDEX=1
+# vLLM sends its maker a usage report unless it is told not to; the job declares one host only.
+ENV VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
 ENV MODEL_DIR=/opt/model PRL_OUTPUT_DIR=/tmp/prl PYTHONPATH=/opt/m0 \
     PATH=/opt/prime-rl/.venv/bin:/usr/local/cuda/bin:$PATH \
     HF_HUB_ETAG_TIMEOUT=500 HF_HUB_DOWNLOAD_TIMEOUT=300

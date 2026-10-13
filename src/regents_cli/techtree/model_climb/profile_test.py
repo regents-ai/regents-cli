@@ -4,11 +4,13 @@
 a study and a recipe that say exactly what the test is (four public fixtures, one pinned tuple,
 no claim about quality), and a resolved plan that reserves the money and names the compute.
 
-`advance` takes an admitted grant one step and never waits: it submits the one batch job, or
-looks at the job already submitted, or, once the provider says the job has ended, reads what it
-measured, judges it and writes the measured profile. Running the command again is how a person
-or an agent looks again. The job measures and this module judges: coverage, the nonzero
-adapter and whether the adapter changes the output are all decided here.
+`advance` takes a grant one step and never waits: it submits the one batch job, or looks at
+the job already submitted, or, once the provider says the job has ended, reads what it
+measured, judges it and writes the measured profile. A submission needs the grant to admit it;
+a look at a job already submitted does not, so a grant that has expired or been revoked never
+leaves a job unread. Running the command again is how a person or an agent looks again. The
+job measures and this module judges: coverage, the nonzero adapter and whether the adapter
+changes the output are all decided here.
 """
 
 from __future__ import annotations
@@ -75,9 +77,13 @@ from regents_cli.techtree.model_climb.data import MINIMUM_SALT_BYTES, split_comm
 from regents_cli.techtree.model_climb.provider import (
     BUDGET_EXHAUSTED,
     MICROS_PER_CENT,
+    UNSUPPORTED_CAPABILITY,
     Autoresearch,
     Job,
+    ProviderError,
+    Receipt,
     SubmissionRefusedError,
+    UnreadableAnswerError,
     cents,
 )
 from regents_cli.techtree.model_climb.store import ModelClimbStore
@@ -99,14 +105,19 @@ PLAN_LIFETIME: Final = timedelta(hours=24)
 #: An attempt's folder: the job as submitted, and the month's image-build usage read before it.
 JOB_FILE: Final = "job.json"
 BUILDS_BEFORE_FILE: Final = "builds-before.json"
+JOURNAL_FILE: Final = "journal.jsonl"
 #: The provider stops an image build here; it is the only limit on the build (contract 6.1).
 BUILD_TIMEOUT_MINUTES: Final = 60
 #: A grant states its hours in hundredths, which say a whole number of minutes exactly only
 #: when that number is a multiple of this; a plan's minutes are one, so plan, grant and job
 #: name the same figure.
 MINUTE_STEP: Final = 3
-#: What Dockerfile.gpu sets so that a step which tries to install fails instead (contract 6.1).
+#: What Dockerfile.gpu sets so that a step which tries to install fails instead (contract 6.1):
+#: uv may resolve nothing and has no package index to fetch from.
 PACKAGE_TOOLS: Final[dict[str, str | None]] = {"UV_FROZEN": "1", "UV_NO_INDEX": "1"}
+#: What Dockerfile.gpu sets so that vLLM sends its maker no usage report, which would be a
+#: host the plan does not declare.
+USAGE_REPORTS: Final[dict[str, str | None]] = {"VLLM_NO_USAGE_STATS": "1", "DO_NOT_TRACK": "1"}
 #: The adapter's log-probabilities must move by more than this, and by more than this many
 #: times what two identical requests to the base model differ by (contract 7.4).
 SIGNAL_FLOOR: Final = 0.01
@@ -193,7 +204,7 @@ def dry_run_report(store: ModelClimbStore, profile: profiles.Profile) -> tuple[P
     for path in sorted(folder.glob("*-dry-run.json"), reverse=True):
         report: Any = fs.read_json(path)
         passed = [check["status"] == "pass" for check in report["checks"]]
-        if report.get("recipe") == profile.recipe and all(passed):
+        if report["recipe"] == profile.recipe and all(passed):
             return path, digest_object(report)
     raise ValidationError(
         f"no model-free check of {profile.name} with its current settings has found no "
@@ -224,9 +235,26 @@ def mission_name(profile: profiles.Profile) -> str:
     return f"model-climb-{profile.name}"
 
 
-def minutes_within(max_cents: int, micros_per_gpu_minute: int, gpu_count: int) -> int:
-    """The most whole minutes whose cost at this rate is no more than `max_cents`."""
-    return max_cents * MICROS_PER_CENT // (micros_per_gpu_minute * gpu_count)
+def job_minutes(
+    max_cents: int, cents_per_gpu_hour: int, gpu_count: int, wall_seconds: int | None = None
+) -> int:
+    """The minutes a job is given (contract 6.1): the largest multiple of three whose cost at
+    the plan's rate is no more than `max_cents` and, under a grant, that fits its wall time."""
+    minutes = max_cents * 60 // (cents_per_gpu_hour * gpu_count)
+    if wall_seconds is not None:
+        minutes = min(minutes, wall_seconds // 60)
+    return minutes - minutes % MINUTE_STEP
+
+
+def granted_minutes(grant: ExecutionGrant, plan: ResolvedModelPlan) -> int:
+    """The minutes the job gets under `grant`, which are fewer than the plan's when the grant
+    is tighter. The grant's review and the job itself both take the figure from here."""
+    return job_minutes(
+        grant.max_cents,
+        plan.spec.budget.prices[0].cents_per_hour,
+        grant.gpu_count,
+        grant.max_wall_time_seconds,
+    )
 
 
 def build_notice(max_cents: int, minutes: int, gpu_count: int) -> str:
@@ -264,9 +292,8 @@ def draft_plan(
 ) -> Drafted:
     """Write the test's plan and the four objects it names into the store."""
     report_path, report_digest = dry_run_report(store, profile)
-    affordable = minutes_within(max_cents, micros_per_gpu_minute, profile.gpu_count)
-    minutes = affordable - affordable % MINUTE_STEP
-    if minutes < 1:
+    minutes = job_minutes(max_cents, cents_per_gpu_hour(micros_per_gpu_minute), profile.gpu_count)
+    if minutes < MINUTE_STEP:
         raise ValidationError(
             f"{max_cents} cents buys less than {MINUTE_STEP} minutes on {profile.gpu_count} "
             f"{profile.gpu_model} GPUs at the rate read now",
@@ -516,7 +543,8 @@ def job_body(
         "chip": plan.spec.compute.gpu_model,
         "chip_count": plan.spec.compute.gpu_count,
         "mission": plan.spec.compute.mission,
-        "context": {**context},
+        # Each file as the provider's API takes it: an object holding the text.
+        "context": {name: {"content": text} for name, text in context.items()},
         "dockerfile_path": DOCKERFILE,
         "build_timeout_minutes": BUILD_TIMEOUT_MINUTES,
         "command": COMMAND,
@@ -536,9 +564,18 @@ class _Submission:
 
     provider: Autoresearch
     body: dict[str, JsonValue]
+    #: How long the provider may hold the job in its queue before dropping it.
+    queue_ttl_minutes: int
 
     def submit(self, intent_id: str) -> str:
-        return self.provider.submit({**self.body, "idempotency_key": intent_id, "label": intent_id})
+        return self.provider.submit(
+            {
+                **self.body,
+                "idempotency_key": intent_id,
+                "label": intent_id,
+                "queue_ttl_minutes": self.queue_ttl_minutes,
+            }
+        )
 
     def find(self, intent_id: str) -> str | None:
         return self.provider.find(intent_id)
@@ -564,6 +601,7 @@ class JobEnvironment(ProtocolModel):
     packages: dict[str, str]
     #: uv's settings as the job saw them, by name; None for one that was not set.
     package_tools: dict[str, str | None]
+    usage_reports: dict[str, str | None]
 
 
 class Downloaded(ProtocolModel):
@@ -680,11 +718,18 @@ def judge(
             ", ".join(f"{gpu.name} (driver {gpu.driver})" for gpu in seen.gpus) or "none",
         )
         check(
-            "Package tools offline",
+            "Package tools closed",
             seen.package_tools == PACKAGE_TOOLS,
-            "inside the job uv could neither look a package up nor fetch one"
+            "inside the job uv was set to resolve nothing and to use no package index"
             if seen.package_tools == PACKAGE_TOOLS
             else f"inside the job uv's settings were {seen.package_tools}",
+        )
+        check(
+            "Usage reports off",
+            seen.usage_reports == USAGE_REPORTS,
+            "inside the job vLLM was set to send its maker no usage report"
+            if seen.usage_reports == USAGE_REPORTS
+            else f"inside the job the settings were {seen.usage_reports}",
         )
     if result.download is not None:
         pinned = len(profile.weight_files) + len(profile.tokenizer_files)
@@ -753,6 +798,8 @@ class Waiting:
     intent_id: str
     job_id: str
     status: str
+    #: What the provider says the job is waiting for while it is queued, as it says it.
+    wait_reason: str | None
     max_cost_cents: int
 
 
@@ -777,8 +824,72 @@ def advance(
     *,
     now: datetime,
 ) -> Waiting | Measured:
+    """One step of the grant's attempt: begin it and submit its job, or look at the job it
+    has. The ledger is held throughout, so two commands started together cannot both find a
+    use left and both submit."""
+    with ledger.held(store.ledger_path):
+        return _advance(store, service, provider, profile, envelope, now)
+
+
+def _advance(
+    store: ModelClimbStore,
+    service: IdentityService,
+    provider: Autoresearch,
+    profile: profiles.Profile,
+    envelope: ObjectEnvelope[ExecutionGrant],
+    now: datetime,
+) -> Waiting | Measured:
     identity = service.ensure()
-    intent_id = _unfinished(store, identity, envelope)
+    grant = envelope.payload
+    intent_id = unfinished(store, identity, envelope)
+    # The job is dropped from the provider's queue while the grant still has the time an
+    # image build may take, so it cannot start under a grant that has run out.
+    queue_minutes = int((grant.expires_at - now).total_seconds()) // 60 - BUILD_TIMEOUT_MINUTES
+    if intent_id is None or Journal(store.attempts_dir / intent_id / JOURNAL_FILE).latest() is None:
+        # Nothing has been sent for this attempt, so this run may submit. Only here must the
+        # grant still admit the job and the plan still be the one this regents-cli would write.
+        intent_id = _ready(
+            store, provider, profile, envelope, identity, intent_id, queue_minutes, now
+        )
+    # From here a job may exist. Whatever has become of the grant or of this regents-cli
+    # since, the job is still read, and cancelled or collected.
+    plan = grants.stored_plan(store, grant.plan)
+    folder = store.attempts_dir / intent_id
+    body = fs.read_json(folder / JOB_FILE)
+    assert isinstance(body, dict)
+    # The use is on the ledger before the job is submitted, never after (contract 6).
+    grants.use(store, service, envelope, intent_id=intent_id, now=now)
+    try:
+        job_id = submit_once(
+            Journal(folder / JOURNAL_FILE), _Submission(provider, body, queue_minutes), intent_id
+        )
+    except SubmissionRefusedError:
+        # No job exists, so the attempt is over; its use stays spent.
+        _finish(folder, "failed", None, None)
+        raise
+    try:
+        return _follow(store, identity, provider, profile, plan, envelope, intent_id, job_id, now)
+    except ProviderError as error:
+        raise TechtreeError(
+            f"job {job_id} was submitted, and this look at it did not finish: {error.message}. "
+            "If the job has not ended it is still running. Run this command again to look at "
+            "it, or stop it on the provider's page.",
+            code=error.code,
+            details={**error.details, "job_id": job_id, "intent_id": intent_id},
+        ) from error
+
+
+def _ready(
+    store: ModelClimbStore,
+    provider: Autoresearch,
+    profile: profiles.Profile,
+    envelope: ObjectEnvelope[ExecutionGrant],
+    identity: ExecutorIdentity,
+    intent_id: str | None,
+    queue_minutes: int,
+    now: datetime,
+) -> str:
+    """The attempt a submission may now be made for: the one already begun, or a new one."""
     grant = grants.admit(
         store,
         envelope,
@@ -797,56 +908,132 @@ def advance(
             code=grants.PLAN_CHANGED,
             details={"plan": grant.plan, "recipe": plan.spec.recipe},
         )
-    if intent_id is None:
-        intent_id = _begin(store, provider, profile, plan, grant, context)
-    folder = store.attempts_dir / intent_id
-    body = fs.read_json(folder / JOB_FILE)
-    assert isinstance(body, dict)
-    # The use is on the ledger before the job is submitted, never after (contract 6).
-    grants.use(store, service, envelope, intent_id=intent_id, now=now)
-    try:
-        job_id = submit_once(
-            Journal(folder / "journal.jsonl"), _Submission(provider, body), intent_id
+    if queue_minutes < 1:
+        raise PolicyError(
+            f"grant {grant.grant_id} expires at {grant.expires_at.isoformat()}, which leaves "
+            f"no time for a job after the {BUILD_TIMEOUT_MINUTES} minutes its image build may "
+            "take. Issue a grant that lasts longer; nothing was submitted.",
+            code=grants.APPROVAL_REQUIRED,
+            details={"grant_id": grant.grant_id},
         )
-    except SubmissionRefusedError:
-        # No job exists, so the attempt is over; its use stays spent.
-        _finish(folder, "failed", None)
-        raise
-    job = provider.job(job_id)
+    return intent_id or _begin(store, provider, profile, plan, grant, context)
+
+
+def _follow(
+    store: ModelClimbStore,
+    identity: ExecutorIdentity,
+    provider: Autoresearch,
+    profile: profiles.Profile,
+    plan: ResolvedModelPlan,
+    envelope: ObjectEnvelope[ExecutionGrant],
+    intent_id: str,
+    job_id: str,
+    now: datetime,
+) -> Waiting | Measured:
+    """Look at the attempt's job: collect it when it has ended, cancel it when it may not
+    run, and otherwise say that it is still going."""
+    grant = envelope.payload
+    folder = store.attempts_dir / intent_id
+    try:
+        job = provider.job(job_id)
+    except UnreadableAnswerError as error:
+        # A job the engine cannot read is a job it cannot hold to the grant, so it is stopped.
+        # The attempt stays open: a later look can still collect what the provider has.
+        provider.cancel(job_id)
+        raise TechtreeError(
+            f"job {job_id} was cancelled, because {error.message}. Its attempt stays open, so "
+            "this command can be run again; the grant's use is spent.",
+            code=UNSUPPORTED_CAPABILITY,
+            details={**error.details, "job_id": job_id, "intent_id": intent_id},
+        ) from error
     if job.ended:
         return _collect(store, provider, profile, plan, grant, intent_id, job, now)
     ceiling = job.max_cost_usd_micros
-    if ceiling is None or ceiling > grant.max_cents * MICROS_PER_CENT:
-        provider.cancel(job_id)
-        _finish(folder, "budget_exhausted", None)
-        raise TechtreeError(
-            f"job {job_id} was cancelled before it ran: "
-            + (
+    if ceiling is None or ceiling <= 0 or ceiling > grant.max_cents * MICROS_PER_CENT:
+        raise _stop(
+            provider,
+            folder,
+            job_id,
+            intent_id,
+            "budget_exhausted",
+            (
                 "the provider's answer names no maximum for it"
-                if ceiling is None
+                if ceiling is None or ceiling <= 0
                 else f"the provider's maximum for it is {cents(ceiling)} cents"
             )
             + f", and the grant allows {grant.max_cents}",
-            code=BUDGET_EXHAUSTED,
-            details={"job_id": job_id, "intent_id": intent_id, "max_cost_usd_micros": ceiling},
+            max_cost_usd_micros=ceiling,
         )
     if job.money_wait is not None:
         # Automatic top-up is off, so this wait cannot end by itself, and a job that starts
         # whenever money is next added is not the run that was approved (contract 6.1).
-        provider.cancel(job_id)
-        _finish(folder, "budget_exhausted", None)
-        raise TechtreeError(
-            f"job {job_id} was cancelled before it ran: the provider was holding it for a "
-            f'reason only money ends ("{job.money_wait}"). The grant\'s use is spent.',
-            code=BUDGET_EXHAUSTED,
-            details={"job_id": job_id, "intent_id": intent_id, "wait_reason": job.money_wait},
+        raise _stop(
+            provider,
+            folder,
+            job_id,
+            intent_id,
+            "budget_exhausted",
+            f'the provider was holding it for a reason only money ends ("{job.money_wait}")',
+            wait_reason=job.money_wait,
+        )
+    if grants.revoked(store, identity, envelope):
+        raise _stop(
+            provider,
+            folder,
+            job_id,
+            intent_id,
+            "cancelled",
+            f"grant {grant.grant_id} was revoked while it was going",
+            kind=PolicyError,
+            code=grants.APPROVAL_REQUIRED,
         )
     return Waiting(
-        intent_id=intent_id, job_id=job_id, status=job.status, max_cost_cents=cents(ceiling)
+        intent_id=intent_id,
+        job_id=job_id,
+        status=job.status,
+        wait_reason=job.queue.wait_reason if job.queue else None,
+        max_cost_cents=cents(ceiling),
     )
 
 
-def _unfinished(
+def _stop(
+    provider: Autoresearch,
+    folder: Path,
+    job_id: str,
+    intent_id: str,
+    end: AttemptEnd,
+    why: str,
+    *,
+    kind: type[TechtreeError] = TechtreeError,
+    code: str = BUDGET_EXHAUSTED,
+    **details: JsonValue,
+) -> TechtreeError:
+    """Cancel the job, close its attempt, and return the refusal that says so. What the job
+    was charged is read from the provider's receipt after the cancel, however little of it
+    ran, and is never filled in when the provider gives no figure (contract 7.4 step 3)."""
+    provider.cancel(job_id)
+    receipt = provider.job(job_id).receipt
+    _finish(folder, end, None, receipt)
+    charged = receipt.charged_usd_micros if receipt else None
+    return kind(
+        f"job {job_id} was cancelled: {why}. "
+        + (
+            "The provider gave no figure for what it charged."
+            if charged is None
+            else f"The provider's receipt shows {cents(charged)} cents charged."
+        )
+        + " The grant's use is spent.",
+        code=code,
+        details={
+            "job_id": job_id,
+            "intent_id": intent_id,
+            "charged_usd_micros": charged,
+            **details,
+        },
+    )
+
+
+def unfinished(
     store: ModelClimbStore, identity: ExecutorIdentity, envelope: ObjectEnvelope[ExecutionGrant]
 ) -> str | None:
     """The attempt this grant was last used on, while it has no outcome yet."""
@@ -878,16 +1065,7 @@ def _begin(
             code=grants.PLAN_CHANGED,
             details={"plan": grant.plan, "cents_per_gpu_hour": cents_per_gpu_hour(rate)},
         )
-    minutes = min(
-        minutes_within(grant.max_cents, rate, grant.gpu_count),
-        grant.max_wall_time_seconds // 60,
-    )
-    if minutes < 1:
-        raise ValidationError(
-            "the grant's limits leave less than one minute for the job",
-            details={"grant_id": grant.grant_id},
-        )
-    body = job_body(profile, plan, context, minutes)
+    body = job_body(profile, plan, context, granted_minutes(grant, plan))
     ceiling = provider.preflight(body)
     if ceiling > grant.max_cents * MICROS_PER_CENT:
         raise TechtreeError(
@@ -921,10 +1099,19 @@ def _begin(
     return intent_id
 
 
-def _finish(folder: Path, exit_reason: AttemptEnd, profile_path: Path | None) -> None:
+def _finish(
+    folder: Path, exit_reason: AttemptEnd, profile_path: Path | None, receipt: Receipt | None
+) -> None:
+    """Close the attempt. The two figures are the provider's receipt's, and null when it gave
+    none: no zero stands in for a figure that was not given."""
     fs.atomic_write_json(
         folder / "outcome.json",
-        {"exit_reason": exit_reason, "profile": str(profile_path) if profile_path else None},
+        {
+            "exit_reason": exit_reason,
+            "profile": str(profile_path) if profile_path else None,
+            "charged_usd_micros": receipt.charged_usd_micros if receipt else None,
+            "billed_seconds_per_gpu": receipt.billed_seconds if receipt else None,
+        },
     )
 
 
@@ -951,6 +1138,9 @@ def _collect(
         for row in (result.answers or [] if result else [])
     ]
     resolved = result.train.resolved if result and result.train else None
+    folder = store.attempts_dir / intent_id
+    submitted: Any = fs.read_json(folder / JOB_FILE)
+    charged = job.receipt.charged_usd_micros
     document: dict[str, JsonValue] = {
         "profile": profile.name,
         "tested_at": now.isoformat(),
@@ -963,14 +1153,18 @@ def _collect(
         "job_id": job.id,
         "job_status": job.status,
         "image_digest": job.receipt.image_digest,
-        "build_context_digest": context_digest(build_context()),
-        "measured_cost_cents": cents(job.receipt.charged_usd_micros),
-        "charged_usd_micros": job.receipt.charged_usd_micros,
+        # The image folder the job was submitted with, which a later regents-cli may not hold.
+        "build_context_digest": context_digest(
+            {name: file["content"] for name, file in submitted["context"].items()}
+        ),
+        # The provider's receipt's figures; null when it gave none, never a zero in its place.
+        "measured_cost_cents": cents(charged) if charged is not None else None,
+        "charged_usd_micros": charged,
         "billed_seconds_per_gpu": job.receipt.billed_seconds,
         # The month's image-build minutes as the provider's usage gives them, read before the
         # job was submitted and now; the build of this run is what was added in between.
         "build_usage": {
-            "before_submit": fs.read_json(store.attempts_dir / intent_id / BUILDS_BEFORE_FILE),
+            "before_submit": fs.read_json(folder / BUILDS_BEFORE_FILE),
             "after": provider.build_usage(),
         },
         "egress": {"declared": [*plan.spec.egress], "enforcement": EGRESS_NOTE},
@@ -994,7 +1188,7 @@ def _collect(
         if job.status.startswith("cancel")
         else "failed"
     )
-    _finish(store.attempts_dir / intent_id, exit_reason, path)
+    _finish(folder, exit_reason, path, job.receipt)
     return Measured(
         intent_id=intent_id,
         job_id=job.id,

@@ -431,6 +431,7 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
                 "intent_id": reached.intent_id,
                 "job_id": reached.job_id,
                 "job_status": reached.status,
+                "queue_wait_reason": reached.wait_reason,
                 "max_cost_cents": reached.max_cost_cents,
                 "next_actions": [again],
             },
@@ -439,8 +440,13 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
                 output.report(
                     "\n".join(
                         [
-                            f"Job {reached.job_id} is {reached.status} at the provider, "
-                            f"which puts its maximum at ${_dollars(reached.max_cost_cents)}. "
+                            f"Job {reached.job_id} is {reached.status} at the provider"
+                            + (
+                                f', waiting for "{reached.wait_reason}"'
+                                if reached.wait_reason
+                                else ""
+                            )
+                            + f", which puts its maximum at ${_dollars(reached.max_cost_cents)}. "
                             "Closing this terminal does not stop it.",
                             "",
                             f"Look again: {again}",
@@ -463,6 +469,7 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
             },
         )
     document = reached.document
+    measured_cost = document["measured_cost_cents"]
     emit(
         {
             "schema_version": OPERATION_SCHEMA_VERSION,
@@ -484,7 +491,12 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
                         f"- Measured profile: {reached.digest}",
                         f"- File: {reached.path}",
                         f"- Built image: {document['image_digest']}",
-                        f"- Measured cost: ${_dollars(cast(int, document['measured_cost_cents']))}",
+                        "- Measured cost: "
+                        + (
+                            "the provider's receipt gave no figure"
+                            if measured_cost is None
+                            else f"${_dollars(cast(int, measured_cost))}"
+                        ),
                         f"- Egress: {profile_test.EGRESS_NOTE}",
                     ]
                 )
@@ -541,14 +553,18 @@ def grant_issue(
     )
     review = _grant_review(grant)
     dollars = _dollars(grant.max_cents)
-    # What the typed figure covers and what it does not (contract 6.1).
-    covers = (
-        profile_test.build_notice(
-            grant.max_cents, grant.max_wall_time_seconds // 60, grant.gpu_count
-        )
-        if grant.operation == PROFILE_TEST
-        else None
-    )
+    # What the typed figure covers and what it does not, with the minutes the job will get
+    # under this grant (contract 6.1).
+    covers = None
+    if grant.operation == PROFILE_TEST:
+        minutes = profile_test.granted_minutes(grant, grants.stored_plan(store, plan_digest))
+        if minutes < profile_test.MINUTE_STEP:
+            raise ValidationError(
+                f"no grant can be issued: its limits leave less than {profile_test.MINUTE_STEP} "
+                "minutes for the job",
+                details={"plan": plan_digest},
+            )
+        covers = profile_test.build_notice(grant.max_cents, minutes, grant.gpu_count)
     if as_json or not (sys.stdin.isatty() and sys.stdout.isatty()):
         raise PolicyError(
             "a grant is issued only by a person at this machine's terminal, who answers for "
@@ -571,7 +587,7 @@ def grant_issue(
     if covers is not None:
         output.show(output.report(covers))
     typed = click.prompt(
-        f"Type the most this grant may spend on GPU time, {dollars}, to issue it",
+        f"Type the most one attempt under this grant may spend on GPU time, {dollars}, to issue it",
         default="",
         show_default=False,
     )
@@ -613,24 +629,36 @@ def grant_issue(
 def grant_revoke(grant_id: str, as_json: bool) -> None:
     store = _store()
     service = IdentityService(IdentityStore(paths.home()))
-    service.ensure()
+    identity = service.ensure()
     try:
         envelope = store.get_grant(grant_id)
     except NotFoundError as error:
         raise ValidationError(error.message, details={"grant_id": grant_id}) from error
     grants.revoke(store, service, envelope, now=datetime.now(UTC))
+    # Revoking writes to this machine only. A job already at the provider is cancelled by the
+    # paid test's own command, which is the one that holds the provider's token.
+    cancel = [
+        f"regents techtree model-climb profile test {profile.name} --grant {grant_id}"
+        for profile in profiles.PROFILES.values()
+        if envelope.payload.operation == PROFILE_TEST
+        and profile_test.mission_name(profile) == envelope.payload.mission
+        and profile_test.unfinished(store, identity, envelope) is not None
+    ]
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
         "operation_id": GRANT_REVOKE,
         "grant_id": grant_id,
         "revoked": True,
-        "next_actions": [],
+        "job_may_be_running": bool(cancel),
+        "next_actions": [*cancel],
     }
-    emit(
-        answer,
-        as_json=as_json,
-        shown=[output.report(f"Grant {grant_id} is revoked. Nothing runs under it again.")],
-    )
+    said = f"Grant {grant_id} is revoked. Nothing new is submitted under it."
+    if cancel:
+        said += (
+            " A job submitted under it has not been collected and may still be running; "
+            f"this cancels it: {cancel[0]}"
+        )
+    emit(answer, as_json=as_json, shown=[output.report(said)])
 
 
 def _dollars(cents: int) -> str:
@@ -649,9 +677,14 @@ def _grant_review(grant: ExecutionGrant) -> list[str]:
         f"  recipe {grant.recipe}",
         f"Compute: {grant.gpu_count} x {grant.gpu_model} at {grant.provider}",
         f"  mission {grant.mission}",
-        f"Rents GPU time for at most ${_dollars(grant.max_cents)} and runs at most "
-        f"{hours.normalize()} hours",
-        f"At most {grant.max_attempts} attempt(s), {grant.max_parallel_jobs} at a time",
+        f"Rents GPU time for at most ${_dollars(grant.max_cents)} in one attempt, which runs "
+        f"at most {hours.normalize()} hours",
+        (
+            "One attempt, which is one job"
+            if grant.max_attempts == 1
+            else f"{grant.max_attempts} attempts, {grant.max_parallel_jobs} at a time, so "
+            f"${_dollars(grant.max_cents * grant.max_attempts)} of GPU time over all of them"
+        ),
         "May reach: " + (", ".join(grant.egress) if grant.egress else "nothing beyond the job"),
         f"Workspace {grant.workspace}; for actor {grant.actor_key_id}",
         f"Approved by {grant.approving_human} on this machine, operator-attested",

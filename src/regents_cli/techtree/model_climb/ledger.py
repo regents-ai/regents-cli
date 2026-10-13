@@ -10,7 +10,10 @@ it. The provider's lookup by intent id is what stops a second submission.
 
 from __future__ import annotations
 
+import fcntl
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
@@ -18,7 +21,7 @@ from typing import Literal
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
 
-from regents_cli.techtree.errors import PolicyError
+from regents_cli.techtree.errors import ConflictError, PolicyError
 from regents_cli.techtree.identity.models import ExecutorIdentity
 from regents_cli.techtree.identity.service import IdentityService, verify_signed_object
 from regents_cli.techtree.model_climb.contracts import ExecutionGrant
@@ -31,6 +34,7 @@ from regents_cli.techtree.models.base import (
 )
 
 APPROVAL_REQUIRED = "approval_required"
+IDEMPOTENCY_CONFLICT = "idempotency_conflict"
 
 type Event = Literal["issued", "used", "revoked"]
 
@@ -79,6 +83,25 @@ def record(
         handle.write(_LINE.dump_json(service.sign_object(line)) + b"\n")
         handle.flush()
         os.fsync(handle.fileno())
+
+
+@contextmanager
+def held(path: Path) -> Iterator[None]:
+    """Keep every other command on this machine off the ledger until the block ends, so that
+    reading a grant's uses and spending one are a single step. A command that finds the ledger
+    held is refused at once; it never waits, and the lock ends with the process that holds it."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("ab") as handle:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise ConflictError(
+                "another command on this machine is spending or reading a grant right now, so "
+                "this one did nothing. Run it again when that one has answered.",
+                code=IDEMPOTENCY_CONFLICT,
+                details={"reason": "grant_ledger_held", "path": str(path)},
+            ) from error
+        yield
 
 
 def lines(

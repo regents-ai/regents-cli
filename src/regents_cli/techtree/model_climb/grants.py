@@ -122,6 +122,11 @@ def draft_grant(
             f"the plan reserves {budget.amount_cents} cents, and a compatibility test may "
             f"reserve at most {PROFILE_TEST_MAX_CENTS}",
         ),
+        (
+            operation == PROFILE_TEST and limits.max_attempts != 1,
+            "a compatibility test's grant is for one attempt, and this one asks for "
+            f"{limits.max_attempts}",
+        ),
     )
     if refusals:
         raise ValidationError(
@@ -268,6 +273,14 @@ def revoke(
     held = ledger.lines(store.ledger_path, service.ensure(), envelope)
     if not any(line.event == "revoked" for line in held):
         ledger.record(store.ledger_path, service, envelope, "revoked", at=now)
+
+
+def revoked(
+    store: ModelClimbStore, identity: ExecutorIdentity, envelope: ObjectEnvelope[ExecutionGrant]
+) -> bool:
+    return any(
+        line.event == "revoked" for line in ledger.lines(store.ledger_path, identity, envelope)
+    )
 
 
 def _uses(grant: ExecutionGrant) -> int:

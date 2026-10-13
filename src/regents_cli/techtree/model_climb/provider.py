@@ -14,7 +14,7 @@ them is refused, never guessed at.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Final
 from urllib.parse import quote
 
@@ -23,7 +23,10 @@ from pydantic import BaseModel, ConfigDict
 from pydantic import ValidationError as PydanticValidationError
 
 from regents_cli.techtree.errors import TechtreeError
-from regents_cli.techtree.model_climb.attempts import SubmissionOutcomeUnknownError
+from regents_cli.techtree.model_climb.attempts import (
+    JOB_INDETERMINATE,
+    SubmissionOutcomeUnknownError,
+)
 from regents_cli.techtree.models.base import JsonValue
 
 BASE_URL: Final = "https://autoresearch.sfcompute.com"
@@ -38,7 +41,8 @@ COST_CAP: Final = "cost-cap"
 #: cap reached or with too little room left, and an account past due or suspended.
 MONEY_WAITS: Final = frozenset({"balance", "spend_cap", "spend_cap_headroom", "payment"})
 MICROS_PER_CENT: Final = 10_000
-#: What the free preflight reads of a job; the rest only matters to a real run.
+#: All the free preflight takes of a job. It cannot be told the mission, the restarts or the
+#: build limit, so the maximum read back from the submitted job is what covers those.
 PREFLIGHT_FIELDS: Final = (
     "chip",
     "chip_count",
@@ -53,6 +57,15 @@ PREFLIGHT_FIELDS: Final = (
 
 class SubmissionRefusedError(TechtreeError):
     """The provider answered the submission and created no job."""
+
+
+class ProviderError(TechtreeError):
+    """A call to the provider did not give an answer the engine can use: it could not be
+    reached, it refused the request, or what it sent cannot be read."""
+
+
+class UnreadableAnswerError(ProviderError):
+    """The provider answered, and the answer is not what its manual describes."""
 
 
 class _Answer(BaseModel):
@@ -77,11 +90,12 @@ class Validation(_Answer):
 
 
 class Receipt(_Answer):
-    """What ran and what it cost, which Autoresearch puts on a job once it has ended."""
+    """What ran and what it cost, which Autoresearch puts on a job once it has ended. A
+    figure it leaves out stays absent: nothing is put in its place."""
 
     image_digest: str | None = None
-    charged_usd_micros: int
-    billed_seconds: int
+    charged_usd_micros: int | None = None
+    billed_seconds: int | None = None
 
 
 class Queue(_Answer):
@@ -133,7 +147,7 @@ class Billing(_Answer):
 
 @dataclass(frozen=True)
 class Autoresearch:
-    token: str
+    token: str = field(repr=False)
 
     @classmethod
     def signed_in(cls) -> Autoresearch:
@@ -191,6 +205,13 @@ class Autoresearch:
                 code=BUDGET_EXHAUSTED if over_cap else RUNNER_UNAVAILABLE,
                 details={"step": "preflight", "blocked_by": [item.check for item in blocks]},
             )
+        if validation.max_cost_usd_micros <= 0:
+            raise UnreadableAnswerError(
+                "the compute provider's preflight names no maximum for this job, so nothing "
+                "was recorded or submitted",
+                code=UNSUPPORTED_CAPABILITY,
+                details={"step": "preflight"},
+            )
         return validation.max_cost_usd_micros
 
     def has_mission(self, name: str) -> bool:
@@ -229,9 +250,19 @@ class Autoresearch:
             raise SubmissionOutcomeUnknownError from error
 
     def find(self, label: str) -> str | None:
-        """The id of the job submitted under `label`, if the provider has one."""
+        """The id of the job submitted under `label`, if the provider has one. Two under one
+        label is refused: an attempt submits one job, and which of them is it cannot be told."""
         answer = self._send("GET", "/preview/jobs", query={"label": label, "limit": "2"})
         jobs = _read(_Jobs, answer, "the job list").items
+        if len(jobs) > 1:
+            found = ", ".join(job.id for job in jobs)
+            raise TechtreeError(
+                f"the compute provider holds more than one job labelled {label} ({found}), and "
+                "an attempt submits one. Nothing was submitted or cancelled; look at them on "
+                "the provider's page.",
+                code=JOB_INDETERMINATE,
+                details={"intent_id": label, "job_ids": [job.id for job in jobs]},
+            )
         return jobs[0].id if jobs else None
 
     def job(self, job_id: str) -> Job:
@@ -265,7 +296,14 @@ class Autoresearch:
             raise _unreachable(path) from error
         if response.status_code >= 400:
             raise _refused(response)
-        return response.json()
+        try:
+            return response.json()
+        except ValueError as error:
+            raise UnreadableAnswerError(
+                f"the compute provider's answer for {path} can't be read: it is not JSON",
+                code=UNSUPPORTED_CAPABILITY,
+                details={"step": "provider_answer", "path": path},
+            ) from error
 
     def _request(
         self,
@@ -292,23 +330,23 @@ def _read[T: _Answer](shape: type[T], answer: Any, what: str) -> T:
     except PydanticValidationError as error:
         problem = error.errors()[0]
         field = ".".join(str(part) for part in problem["loc"])
-        raise TechtreeError(
+        raise UnreadableAnswerError(
             f"the compute provider's answer for {what} can't be read: {field}: {problem['msg']}",
             code=UNSUPPORTED_CAPABILITY,
             details={"step": "provider_answer", "field": field},
         ) from error
 
 
-def _unreachable(path: str) -> TechtreeError:
-    return TechtreeError(
+def _unreachable(path: str) -> ProviderError:
+    return ProviderError(
         f"the compute provider at {BASE_URL} could not be reached; the request was not sent again",
         code=UNSUPPORTED_CAPABILITY,
         details={"step": "provider", "path": path},
     )
 
 
-def _refused(response: httpx.Response) -> TechtreeError:
-    return TechtreeError(
+def _refused(response: httpx.Response) -> ProviderError:
+    return ProviderError(
         f"the compute provider refused the request ({response.status_code}): {response.text[:500]}",
         code=UNSUPPORTED_CAPABILITY,
         details={"step": "provider", "status": response.status_code},

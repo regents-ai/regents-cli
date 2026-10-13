@@ -54,6 +54,7 @@ REWARD = "fixture_reward"
 PACKAGES = ("torch", "transformers", "vllm", "verifiers", "prime-rl", "safetensors")
 #: The image sets these so uv can neither look a package up nor fetch one while the job runs.
 PACKAGE_TOOLS = ("UV_FROZEN", "UV_NO_INDEX")
+USAGE_REPORTS = ("VLLM_NO_USAGE_STATS", "DO_NOT_TRACK")
 
 
 class StopJob(Exception):
@@ -156,6 +157,7 @@ def environment() -> dict[str, Any]:
         "prime_rl_revision": revision,
         "packages": {name: metadata.version(name) for name in PACKAGES},
         "package_tools": {name: os.environ.get(name) for name in PACKAGE_TOOLS},
+        "usage_reports": {name: os.environ.get(name) for name in USAGE_REPORTS},
     }
 
 
