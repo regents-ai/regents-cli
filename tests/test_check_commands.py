@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from regents_cli.check_commands import operations_in, problems_in
+from regents_cli.check_commands import followed, operations_in, problems_in
 
 OPENAPI = {
     "openapi": "3.1.0",
@@ -101,3 +101,10 @@ def described(**changes: Any) -> dict[str, Any]:
 def test_body_and_conditions(changes: dict[str, Any], problem: str | None) -> None:
     problems = problems_in(described(**changes), operations_in([OPENAPI]))
     assert problems == ([f"notes create: {problem}"] if problem else [])
+
+
+def test_a_ref_loop_stops_the_check() -> None:
+    """A $ref loop in a site's OpenAPI document fails `make check-cli` instead of hanging it."""
+    loop = {"A": {"$ref": "#/B"}, "B": {"$ref": "#/A"}}
+    with pytest.raises(ValueError, match="leads back to itself"):
+        followed(loop, {"$ref": "#/A"})

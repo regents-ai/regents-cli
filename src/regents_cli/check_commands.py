@@ -75,8 +75,12 @@ class Operation(NamedTuple):
 
 def followed(document: Any, node: Any) -> Any:
     """`node`, or what its local `$ref` points to in `document`, followed to the end."""
+    seen = set()
     while "$ref" in node:
         reference = node["$ref"]
+        if reference in seen:
+            raise ValueError(f"$ref {reference} leads back to itself")
+        seen.add(reference)
         node = document
         for part in reference.removeprefix("#/").split("/"):
             node = node[part.replace("~1", "/").replace("~0", "~")]
