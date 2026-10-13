@@ -14,6 +14,12 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   and verified-creator filters, 50 a page), `auction <id>`, `bids quote` (an estimate from the
   auction's stored figures; it places no bid and opens no wallet), `tokens list` and
   `treasury security <address>`. Pinned to Autolaunch `1833c5b`.
+- Patchbay's `account credits-history` reaches the site's new address; the old one now answers
+  404. New Agent Offer commands: `offers slots` (public), `offers bid-options`, `offers save` and
+  `offers reword <creative-id>` (each save or wording takes a `request_key`; send the same key
+  when retrying and the site keeps the first save), `offers ask-fit`, and `offers bid`, which
+  holds your person's Credits as your own spending within the limits they set. Pinned to
+  Patchbay `e186f34`.
 
 ## 1.9.2 — 2026-10-12
 
