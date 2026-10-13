@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.10.2 — 2026-10-13
 
 - A payment that may have gone through is never offered as a plain rerun. After no answer, an
   interruption, a site failure or "settlement pending", the next step quotes the site's own
@@ -17,6 +17,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - A rerun shows a contributor address as `<private-address>`, as the approval review does.
 - `techtree run logs` of a run that ended without a result ends there, instead of sending you
   back to `run status`, which sent you to the logs.
+- A payment the site refused without a reason says so, instead of "may have gone through", and
+  `--phase prepare`, which sends nothing, is never treated as paying.
 - Techtree release `climb-v0.7.3`: the same Climbs, catalog, engines and starter Skills, named
   with this version. Releases 1.7.4 to 1.10.1 kept the name `climb-v0.7.2`, which Techtree
   already uses for 1.7.3, so techtree.sh could not offer any of them; from now on each release
