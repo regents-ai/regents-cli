@@ -20,7 +20,7 @@ from regents_cli.http import Request, send
 from regents_cli.techtree import fs, paths
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes, validate_digest
 from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
-from regents_cli.techtree.errors import NotFoundError, PolicyError, ValidationError
+from regents_cli.techtree.errors import NotFoundError, PolicyError, TechtreeError, ValidationError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
 from regents_cli.techtree.model_climb import grants, ledger, profile_test, profiles, proof
@@ -30,7 +30,7 @@ from regents_cli.techtree.model_climb.contracts import (
     ExecutionGrant,
     GrantedOperation,
 )
-from regents_cli.techtree.model_climb.provider import Autoresearch
+from regents_cli.techtree.model_climb.provider import RUNNER_UNAVAILABLE, Autoresearch
 from regents_cli.techtree.model_climb.store import ModelClimbStore
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.site import site_base
@@ -305,7 +305,16 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
     # Before the provider is asked anything: a plan stands on a model-free report.
     profile_test.dry_run_report(store, profile)
     now = datetime.now(UTC)
-    rate = Autoresearch.signed_in().micros_per_gpu_minute(profile.gpu_model, profile.gpu_count)
+    provider = Autoresearch.signed_in()
+    rate = provider.micros_per_gpu_minute(profile.gpu_model, profile.gpu_count)
+    mission = profile_test.mission_name(profile)
+    if not provider.has_mission(mission):
+        raise TechtreeError(
+            f"the mission {mission} is not open at the provider. The operator opens it there "
+            "once; nothing was written.",
+            code=RUNNER_UNAVAILABLE,
+            details={"mission": mission},
+        )
     drafted = profile_test.draft_plan(
         store, profile, max_cents=max_cents, micros_per_gpu_minute=rate, now=now
     )

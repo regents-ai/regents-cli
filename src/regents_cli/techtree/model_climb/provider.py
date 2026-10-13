@@ -1,9 +1,9 @@
 """San Francisco Compute's Autoresearch batch jobs, over its HTTP API (contract 6.1).
 
 The engine signs in with the operator's service token, read from `GMN_TOKEN`; it is never
-printed, stored or sent anywhere but that API. Six calls are all the engine makes: read the
-rate, ask whether a job would be taken, submit one job, find a job by its label, read a job,
-and cancel a job.
+printed, stored or sent anywhere but that API. Seven calls are all the engine makes: read
+the rate, read whether the operator's mission exists, ask whether a job would be taken, submit
+one job, find a job by its label, read a job, and cancel a job.
 
 Autoresearch publishes what each call takes and describes what it answers in prose. The answer
 fields read here are the ones its manual names (read 13 Oct 2026). An answer without one of
@@ -12,10 +12,10 @@ them is refused, never guessed at.
 
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass
 from typing import Any, Final
+from urllib.parse import quote
 
 import httpx
 from pydantic import BaseModel, ConfigDict
@@ -29,6 +29,10 @@ BASE_URL: Final = "https://autoresearch.sfcompute.com"
 TOKEN_ENV: Final = "GMN_TOKEN"
 TIMEOUT_SECONDS: Final = 60.0
 UNSUPPORTED_CAPABILITY: Final = "unsupported_capability"
+RUNNER_UNAVAILABLE: Final = "runner_unavailable"
+BUDGET_EXHAUSTED: Final = "budget_exhausted"
+#: The preflight item that weighs a job's worst case against the workspace's spending cap.
+COST_CAP: Final = "cost-cap"
 MICROS_PER_CENT: Final = 10_000
 #: What the free preflight reads of a job; the rest only matters to a real run.
 PREFLIGHT_FIELDS: Final = (
@@ -53,12 +57,19 @@ class _Answer(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
 
+class PreflightItem(_Answer):
+    """One thing the preflight looked at: `block` stops a submission, the rest do not."""
+
+    check: str
+    verdict: str
+    message: str = ""
+
+
 class Validation(_Answer):
     max_cost_usd_micros: int
     max_duration_minutes: int
     would_submit: bool
-    #: The provider's own account of each thing it looked at, as it gave it.
-    preflight: JsonValue = None
+    preflight: list[PreflightItem] = []
 
 
 class Receipt(_Answer):
@@ -139,13 +150,28 @@ class Autoresearch:
         )
         validation = _read(Validation, answer, "the job preflight")
         if not validation.would_submit:
+            blocks = [item for item in validation.preflight if item.verdict == "block"]
+            over_cap = any(item.check == COST_CAP for item in blocks)
             raise TechtreeError(
-                "the compute provider would not take this job, so nothing was submitted: "
-                + json.dumps(validation.preflight)[:500],
-                code=UNSUPPORTED_CAPABILITY,
-                details={"step": "preflight", "preflight": validation.preflight},
+                "the compute provider would not take this job, so nothing was recorded or "
+                "submitted: " + ("; ".join(item.message for item in blocks) or "it gave no reason"),
+                code=BUDGET_EXHAUSTED if over_cap else RUNNER_UNAVAILABLE,
+                details={"step": "preflight", "blocked_by": [item.check for item in blocks]},
             )
         return validation.max_cost_usd_micros
+
+    def has_mission(self, name: str) -> bool:
+        """Whether the operator has opened the mission `name` at the provider. Reads only."""
+        path = f"/preview/missions/{quote(name, safe='')}"
+        try:
+            response = self._request("GET", path)
+        except httpx.TransportError as error:
+            raise _unreachable(path) from error
+        if response.status_code == 404:
+            return False
+        if response.status_code >= 400:
+            raise _refused(response)
+        return True
 
     def submit(self, body: dict[str, JsonValue]) -> str:
         """Create the job and return its id. `SubmissionOutcomeUnknownError` when the request
@@ -200,12 +226,7 @@ class Autoresearch:
         try:
             response = self._request(method, path, query=query, body=body)
         except httpx.TransportError as error:
-            raise TechtreeError(
-                f"the compute provider at {BASE_URL} could not be reached; the request was "
-                "not sent again",
-                code=UNSUPPORTED_CAPABILITY,
-                details={"step": "provider", "path": path},
-            ) from error
+            raise _unreachable(path) from error
         if response.status_code >= 400:
             raise _refused(response)
         return response.json()
@@ -240,6 +261,14 @@ def _read[T: _Answer](shape: type[T], answer: Any, what: str) -> T:
             code=UNSUPPORTED_CAPABILITY,
             details={"step": "provider_answer", "field": field},
         ) from error
+
+
+def _unreachable(path: str) -> TechtreeError:
+    return TechtreeError(
+        f"the compute provider at {BASE_URL} could not be reached; the request was not sent again",
+        code=UNSUPPORTED_CAPABILITY,
+        details={"step": "provider", "path": path},
+    )
 
 
 def _refused(response: httpx.Response) -> TechtreeError:

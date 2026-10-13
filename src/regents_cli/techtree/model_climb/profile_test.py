@@ -68,6 +68,7 @@ from regents_cli.techtree.model_climb.contracts import (
 )
 from regents_cli.techtree.model_climb.data import MINIMUM_SALT_BYTES, split_commitment
 from regents_cli.techtree.model_climb.provider import (
+    BUDGET_EXHAUSTED,
     MICROS_PER_CENT,
     Autoresearch,
     Job,
@@ -77,7 +78,6 @@ from regents_cli.techtree.model_climb.provider import (
 from regents_cli.techtree.model_climb.store import ModelClimbStore
 from regents_cli.techtree.models.base import Digest, JsonValue, ObjectEnvelope, ProtocolModel
 
-BUDGET_EXHAUSTED: Final = "budget_exhausted"
 IMAGE_FOLDER: Final = "model-climb-image"
 DOCKERFILE: Final = "Dockerfile.gpu"
 COMMAND: Final = "/opt/prime-rl/.venv/bin/python /opt/m0/job.py"
@@ -94,6 +94,8 @@ PLAN_LIFETIME: Final = timedelta(hours=24)
 BUILD_TIMEOUT_MINUTES: Final = 60
 #: The adapter's log-probabilities must move by more than this, and by more than this many
 #: times what two identical requests to the base model differ by (contract 7.4).
+#: What Dockerfile.gpu sets so that a step which tries to install fails instead (contract 6.1).
+PACKAGE_TOOLS: Final[dict[str, str | None]] = {"UV_FROZEN": "1", "UV_NO_INDEX": "1"}
 SIGNAL_FLOOR: Final = 0.01
 SIGNAL_OVER_NOISE: Final = 10
 
@@ -207,6 +209,11 @@ def _layer_types(store: ModelClimbStore, profile: profiles.Profile, digest: Dige
 # The plan.
 
 
+def mission_name(profile: profiles.Profile) -> str:
+    """The operator's mission every job of this profile is filed under (contract 6.1)."""
+    return f"model-climb-{profile.name}"
+
+
 def minutes_within(max_cents: int, micros_per_gpu_minute: int, gpu_count: int) -> int:
     """The most whole minutes whose cost at this rate is no more than `max_cents`."""
     return max_cents * MICROS_PER_CENT // (micros_per_gpu_minute * gpu_count)
@@ -257,7 +264,7 @@ def draft_plan(
             recipe=recipe.digest,
             compute=ComputeTarget(
                 provider="sfcompute_autoresearch",
-                mission=f"model-climb-{profile.name}",
+                mission=mission_name(profile),
                 gpu_model=profile.gpu_model,
                 gpu_count=profile.gpu_count,
             ),
@@ -532,6 +539,8 @@ class JobEnvironment(ProtocolModel):
     python: str
     prime_rl_revision: str
     packages: dict[str, str]
+    #: uv's settings as the job saw them, by name; None for one that was not set.
+    package_tools: dict[str, str | None]
 
 
 class Downloaded(ProtocolModel):
@@ -646,6 +655,13 @@ def judge(
             "GPUs",
             len(seen.gpus) == profile.gpu_count,
             ", ".join(f"{gpu.name} (driver {gpu.driver})" for gpu in seen.gpus) or "none",
+        )
+        check(
+            "Package tools offline",
+            seen.package_tools == PACKAGE_TOOLS,
+            "inside the job uv could neither look a package up nor fetch one"
+            if seen.package_tools == PACKAGE_TOOLS
+            else f"inside the job uv's settings were {seen.package_tools}",
         )
     if result.download is not None:
         pinned = len(profile.weight_files) + len(profile.tokenizer_files)

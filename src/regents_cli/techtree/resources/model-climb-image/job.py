@@ -52,6 +52,8 @@ SCHEMA_FIXTURE = "invoice-fields"
 #: The one reward model_climb_fixture.py gives.
 REWARD = "fixture_reward"
 PACKAGES = ("torch", "transformers", "vllm", "verifiers", "prime-rl", "safetensors")
+#: The image sets these so uv can neither look a package up nor fetch one while the job runs.
+PACKAGE_TOOLS = ("UV_FROZEN", "UV_NO_INDEX")
 
 
 class StopJob(Exception):
@@ -153,6 +155,7 @@ def environment() -> dict[str, Any]:
         "python": platform.python_version(),
         "prime_rl_revision": revision,
         "packages": {name: metadata.version(name) for name in PACKAGES},
+        "package_tools": {name: os.environ.get(name) for name in PACKAGE_TOOLS},
     }
 
 
