@@ -1,7 +1,7 @@
 """`regents <site> doctor`: the same checks for every site, read from its description.
 
 The site answers at all; each public read that needs no input answers; and, for a site with
-wallet-proof commands, the sign-in on this machine is one the sign-in server accepts.
+signed commands, the sign-in on this machine is one the sign-in server accepts.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def doctor_command(platform: Platform) -> click.Command:
             for c in platform.commands
             if needs_nothing(c)
         ]
-        if any(c.authority == "wallet-proof" for c in platform.commands):
+        if any(c.signed for c in platform.commands):
             checks.append(check(SIGN_IN, lambda: sign_in_good(platform.site, timeout_ms)))
         found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
         failed = [c for c in checks if not c["ok"]]

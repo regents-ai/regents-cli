@@ -498,7 +498,7 @@ def identity_probe(site: str) -> tuple[Platform, Command]:
                 command.words == ("agents", "whoami")
                 and command.method == "GET"
                 and command.effect == "read"
-                and command.authority == "wallet-proof"
+                and command.authority == "signed_agent"
                 and not command.inputs
                 and command.body is None
             ):

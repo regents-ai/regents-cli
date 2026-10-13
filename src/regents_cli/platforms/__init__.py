@@ -11,7 +11,8 @@ from dataclasses import dataclass
 from importlib.resources import files
 from typing import Any, Final, Literal
 
-type Authority = Literal["public", "wallet-proof"]
+type Authority = Literal["public", "signed_agent", "paired_agent"]
+type Condition = Literal["spending_allowed", "member"]
 type Effect = Literal["read", "quote", "write", "prepare", "payment"]
 
 #: How long `regents` waits for each answer, unless a command names its own `timeout_ms`.
@@ -103,6 +104,7 @@ class Command:
     method: str
     path: str
     authority: Authority
+    conditions: tuple[Condition, ...]
     effect: Effect
     arguments: tuple[Input, ...]
     flags: tuple[Input, ...]
@@ -112,6 +114,11 @@ class Command:
     timeout_ms: int
     pagination: Pagination | None
     next_steps: tuple[FollowUp, ...]
+
+    @property
+    def signed(self) -> bool:
+        """Whether every request is signed by the agent's key: all but public commands."""
+        return self.authority != "public"
 
     @property
     def group_words(self) -> tuple[str, ...]:
@@ -136,6 +143,7 @@ class Command:
             method=raw["method"],
             path=raw["path"],
             authority=raw["authority"],
+            conditions=tuple(raw.get("conditions", [])),
             effect=raw["effect"],
             arguments=tuple(Input.parse(a, argument=True) for a in raw.get("arguments", [])),
             flags=tuple(Input.parse(f, argument=False) for f in raw.get("flags", [])),

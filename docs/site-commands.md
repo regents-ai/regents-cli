@@ -22,7 +22,9 @@ The regents-cli chief is the only agent that changes this repository or publishe
    exist yet.
 2. **Build it in the same commit.** The route, its OpenAPI operation and the
    `cli/commands.json` entry go in together. `make check-cli` checks the entry against the
-   format and the OpenAPI documents.
+   format and the OpenAPI documents, including that the body it sends (its body inputs, stdin
+   fields and fixed `body`) names exactly the fields the operation's request body names, and
+   requires exactly the ones it requires.
 3. **Ship the route.** The product's own rules decide when it reaches its GitHub main and its
    live site. The command line follows; it never holds a product back.
 4. **Tell the regents-cli chief**, with a command change note (below).
@@ -60,13 +62,29 @@ Every pinned site can be selected by `auth login --site`, including sites whose 
 commands are public. Techtree's existing custom group also contributes its audience. This
 does not declare new product operations or bypass the SIWA server's registered audiences.
 
-`auth status --site <site>` uses the pinned `agents whoami` command only when it is a signed
+`auth status --site <site>` uses the pinned `agents whoami` command only when it is a `signed_agent`
 GET with a read effect and no inputs or body. Describe that probe in the product first.
 A missing probe is reported as unavailable; the CLI never substitutes `agents me`.
 
 A product with a custom group receives its described commands in that same group. Existing
 custom commands, including its doctor, remain. A described command may join an existing
 subgroup but cannot replace any existing leaf command.
+
+## Who may run a command
+
+Each entry's `authority` is one of three:
+
+| authority | Who | What `regents` does |
+| --- | --- | --- |
+| `public` | anyone | sends it unsigned |
+| `signed_agent` | any agent signed in to the site | signs every request with the agent key |
+| `paired_agent` | a signed-in agent whose person has paired it with their account | signs it, and the help says the pairing is needed |
+
+A `paired_agent` entry may add `conditions`, what else the person must have for it to work:
+`spending_allowed` (the person lets this agent spend their Credits) and `member` (the person is
+a member of what the command acts on). The site still decides; the help names each one so an
+agent knows before it runs. Actions only a person takes in the browser (an owner's own controls,
+a wallet signature) are never commands: they stay in the site's `/capabilities.json`.
 
 ## How a described command runs
 
@@ -81,7 +99,7 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
             flags placed in the query or body as each one's `in` says,
             plus entry.body's fixed fields
 
-  if entry.authority == "wallet-proof":
+  if entry.authority is signed_agent or paired_agent:
       stdin JSON fills entry.stdin_fields in the body
       receipt = this site's sign-in from `regents auth login --site <site>`
       sign the request with the agent key: SIWA headers plus an HTTP message signature
@@ -136,7 +154,8 @@ give an `https://` page; `done` steps give neither. `regents-cli`'s check refuse
 that breaks these rules. Without `next_steps`, the command line says the work is done.
 
 `regents <site> doctor` is built from the same description: the site answers, every public
-read that needs no input answers, and a wallet-proof site accepts this machine's sign-in.
+read that needs no input answers, and a site with signed commands accepts this machine's
+sign-in.
 
 A command whose work cannot be said in a description (Techtree's Climbs run a local engine and
 sign proofs) is native code here. Ask the regents-cli chief before designing one.
@@ -158,12 +177,12 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
   little past its longest hold (a 40-second hold sets 50000).
 - **Pages** as a `has_more` flag and a cursor field, read back through one flag. Without
   `has_more` the command line never says there is another page.
-- **Wallet-proof routes** verify the signed request with `Siwa.AgentAuthPlug` from
+- **Signed routes** verify the signed request with `Siwa.AgentAuthPlug` from
   elixir-utils, for the site's own SIWA audience, and read the caller's wallet from it. A site
-  that reads a body on every signed request (`body: :always`) gives each wallet-proof GET or
+  that reads a body on every signed request (`body: :always`) gives each signed GET or
   DELETE `"body": {}`, so the command line signs and sends an empty JSON body. A site whose
   reads take no body leaves it out: a body it never reads fails the signature check.
-- **Typed fields from the caller** belong in a wallet-proof command's stdin JSON object.
+- **Typed fields from the caller** belong in a signed command's stdin JSON object.
   Fields may be `array`, `object`, `string` or `integer`; they retain their JSON types in
   the signed body. An integer field refuses strings, fractions and booleans. A bare root
   JSON array is not a command body.
