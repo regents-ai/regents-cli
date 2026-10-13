@@ -3,6 +3,11 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Keyfleet's commands follow its agent contract 9.0.0 (Keyfleet `087127d`): a paired agent no
+  longer gets the "not backed" refusal, which Keyfleet never sent. No command changed.
+
 ## 1.9.3 — 2026-10-13
 
 - Autolaunch's draft commands are now `drafts memestock show` and `drafts memestock save`; the
