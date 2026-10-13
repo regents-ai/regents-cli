@@ -18,6 +18,7 @@ import click
 
 from regents_cli import output
 from regents_cli.errors import CommandError
+from regents_cli.next_steps import Step, done, human
 from regents_cli.techtree.errors import TechtreeError, UsageError
 
 type ReviewedOn = Literal["cli", "host-agent"]
@@ -38,15 +39,20 @@ REVIEWED_ON = click.Option(
 
 
 class ApprovalRequiredError(CommandError):
-    """Nobody here can be asked; the error carries `review` and `approval.command`.
-
-    `approval.command` is shell text, quoted with `shlex.join`, so `shlex.split` gives back
-    the exact arguments.
+    """Nobody here can be asked; the error carries `review`, and its last next step runs the
+    agreed command, as shell text quoted with `shlex.join`, so `shlex.split` gives back the
+    exact arguments.
     """
 
     def __init__(self, message: str, *, review: Sequence[str], command: str) -> None:
         super().__init__(
-            "approval_required", message, review=list(review), approval={"command": command}
+            "approval_required",
+            message,
+            next_steps=[
+                human("Show your person the review, and ask whether they agree."),
+                Step("run", "Only once they agree, run this.", command),
+            ],
+            review=list(review),
         )
 
 
@@ -54,6 +60,9 @@ class NotApprovedError(TechtreeError):
     """The person was asked and did not say yes."""
 
     default_code = "not_approved"
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message, next_steps=[done("Your person said no; nothing more to run.")])
 
 
 def approve(
@@ -78,7 +87,7 @@ def approve(
             )
         if as_json or not (sys.stdin.isatty() and sys.stdout.isatty()):
             raise ApprovalRequiredError(
-                f"{why} Show the person the review; once they agree, run approval.command.",
+                f"{why} Show the person the review; once they agree, run the last next step.",
                 review=review,
                 command=shlex.join(
                     ["regents", "techtree", *command, "--yes", "--reviewed-on", "host-agent"]

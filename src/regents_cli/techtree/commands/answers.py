@@ -8,6 +8,7 @@ import click
 from rich.console import RenderableType
 
 from regents_cli import output
+from regents_cli.next_steps import Step
 from regents_cli.techtree.identity.models import VerificationMessage
 from regents_cli.techtree.models.base import JsonValue
 
@@ -18,14 +19,21 @@ BASE_URL = click.Option(
 
 
 def emit(
-    answer: dict[str, JsonValue], *, as_json: bool, shown: Sequence[RenderableType] | None = None
+    answer: dict[str, JsonValue],
+    *,
+    as_json: bool,
+    next_steps: Sequence[Step],
+    shown: Sequence[RenderableType] | None = None,
 ) -> None:
     """The whole answer as JSON, or what a person reads: its `report` as Markdown, unless
-    `shown` says the same thing in blocks better suited, such as a check list or a file as it is."""
-    if as_json:
-        output.emit(answer, as_json=True)
-        return
-    output.show(*(shown if shown is not None else [output.report(str(answer["report"]))]))
+    `shown` says the same thing in blocks better suited, such as a check list or a file as it is.
+    Either way it ends with what to do next."""
+    output.emit(
+        answer,
+        as_json=as_json,
+        next_steps=next_steps,
+        shown=shown if shown is not None else [output.report(str(answer["report"]))],
+    )
 
 
 def warnings(messages: list[VerificationMessage]) -> list[JsonValue]:

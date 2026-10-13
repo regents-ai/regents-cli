@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import json
 import re
-import shlex
 import time
 from dataclasses import replace
 from typing import Any
@@ -13,8 +13,9 @@ import click
 from regents_cli import base, output, siwa
 from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
 from regents_cli.http import Request, base_address, send
+from regents_cli.next_steps import Step, done, human, pair_first, run, run_piped
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform, pinned_platforms
-from regents_cli.runner import read_stdin
+from regents_cli.runner import read_stdin, unpaired
 
 TIMEOUT = click.Option(
     ["--timeout-ms"],
@@ -160,7 +161,15 @@ def login(
     if (phase == "prepare") != (wallet_address is not None):
         raise UsageError("--wallet-address goes with --phase prepare, and only with it.")
     if phase == "prepare" and wallet_address is not None:
-        output.emit(siwa.challenge(site, wallet_address, timeout_ms), as_json=as_json)
+        challenge = siwa.challenge(site, wallet_address, timeout_ms)
+        piped = json.dumps({**challenge, "signature": "<signature of message>"})
+        signed = run_piped(
+            piped,
+            ["regents", "auth", "login", "--site", site, "--phase", "send", *_json(as_json)],
+            f"Sign message with {wallet_address}, put the signature in place of <signature of "
+            "message>, and send it.",
+        )
+        output.emit(challenge, as_json=as_json, next_steps=[signed])
         return
     created = False
     if phase == "send":
@@ -169,7 +178,8 @@ def login(
         if not isinstance(signed, dict) or set(signed) != fields:
             raise UsageError(
                 'stdin must hold {"wallet_address", "nonce", "message", "signature"}: the '
-                "answer of --phase prepare with the message's signature added."
+                "answer of --phase prepare, less its next_steps, with the message's signature "
+                "added."
             )
         receipt = siwa.verify(site, signed, timeout_ms)
     else:
@@ -185,7 +195,25 @@ def login(
     }
     if created:
         answer["key_created"] = str(siwa.key_file())
-    output.emit(answer, as_json=as_json)
+    output.emit(answer, as_json=as_json, next_steps=after_sign_in(site, as_json))
+
+
+def after_sign_in(site: str, as_json: bool) -> list[Step]:
+    """Signed in: check the pairing where the site can say, or the sign-in is all there was."""
+    try:
+        platform, probe = identity_probe(site)
+    except CommandError:
+        return [done(f"Signed in to {site}; nothing more to run.")]
+    return [
+        run(
+            ["regents", platform.name, *probe.words, *_json(as_json)],
+            "Check whether this agent is paired to a person's account.",
+        )
+    ]
+
+
+def _json(as_json: bool) -> list[str]:
+    return ["--json"] if as_json else []
 
 
 def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
@@ -232,7 +260,31 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
                 base_address(None, platform.env_var, platform.base_url), request, timeout_ms
             )
             answer["pairing_status"] = {"site": selected, **told["data"]}
-    output.emit(answer, as_json=as_json)
+    output.emit(answer, as_json=as_json, next_steps=after_status(answer, receipts))
+
+
+def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> list[Step]:
+    """Sign in where there is no fresh sign-in, pair where the site says it is not paired."""
+    if not receipts:
+        return [
+            run(
+                ["regents", "auth", "login", "--site", "<site>"],
+                "Sign in to the site you need, such as patchbay; the first time makes the key.",
+            )
+        ]
+    steps = [
+        run(
+            ["regents", "auth", "login", "--site", site],
+            f"The {site} sign-in has run out; sign in again before using {site}.",
+        )
+        for site, receipt in receipts.items()
+        if not receipt.fresh()
+    ]
+    pairing = answer.get("pairing_status")
+    if isinstance(pairing, dict) and unpaired(pairing):
+        platform = next(p for p in pinned_platforms() if p.site == pairing["site"])
+        steps += pair_first(platform.name)
+    return steps or [done("Signed in and nothing waits; nothing more to run.")]
 
 
 def register(
@@ -272,8 +324,13 @@ def register(
             output.emit(
                 step,
                 as_json=as_json,
-                hint=f"Send this one transaction from {wallet} on Base with your wallet, then "
-                f"run: {shlex.join([*again, '--tx-hash', '<its hash>'])}",
+                next_steps=[
+                    run(
+                        [*again, "--tx-hash", "<its hash>"],
+                        f"Send this one transaction from {wallet} on Base with your wallet, "
+                        "then check it with its hash.",
+                    )
+                ],
             )
             return
         if key is None or key.signer is not None:
@@ -293,8 +350,8 @@ def register(
                 error.code,
                 error.message,
                 exit_code=error.exit_code,
+                next_steps=[run([*again, "--tx-hash", sent], "Check it before sending another.")],
                 tx_hash=sent,
-                hint="Check it before sending another: " + shlex.join([*again, "--tx-hash", sent]),
             ) from None
     outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
     deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
@@ -305,8 +362,12 @@ def register(
         output.emit(
             {"wallet_address": wallet.lower(), "tx_hash": tx_hash, "listed": False},
             as_json=as_json,
-            hint="The transaction is not on Base yet. Check again with: "
-            + shlex.join([*again, "--tx-hash", tx_hash]),
+            next_steps=[
+                run(
+                    [*again, "--tx-hash", tx_hash],
+                    "The transaction is not on Base yet. Check again in a minute.",
+                )
+            ],
         )
         return
     listed = outcome["data"]
@@ -320,6 +381,7 @@ def register(
             "tx_hash": listed["txHash"],
         },
         as_json=as_json,
+        next_steps=[done("The agent is listed; nothing more to run.")],
     )
 
 
@@ -340,14 +402,23 @@ def accept_world_id(
     if human_id is not None and not HUMAN_ID.fullmatch(human_id):
         raise UsageError("--human-id must be 0x followed by 64 hex characters.")
     if phase == "prepare" and wallet_address is not None:
+        challenge = siwa.agent_book_challenge(wallet_address, timeout_ms)
+        piped = json.dumps({**challenge, "signature": "<signature of message>"})
         output.emit(
-            siwa.agent_book_challenge(wallet_address, timeout_ms),
+            challenge,
             as_json=as_json,
-            hint="Check that human_id is your person's World ID number: accepting is for good, "
-            "and the wallet can never accept another person. Then sign the message "
-            f'with {wallet_address}, add the signature to this answer as "signature", and '
-            "pipe it to: regents auth accept-world-id --phase send. The message lasts five "
-            "minutes.",
+            next_steps=[
+                human(
+                    "Ask your person whether human_id is their World ID number: accepting is "
+                    "for good, and the wallet can never accept another person."
+                ),
+                run_piped(
+                    piped,
+                    ["regents", "auth", "accept-world-id", "--phase", "send", *_json(as_json)],
+                    f"If it is theirs, sign message with {wallet_address} within five minutes, "
+                    "put the signature in place of <signature of message>, and send it.",
+                ),
+            ],
         )
         return
     if phase == "send":
@@ -355,13 +426,14 @@ def accept_world_id(
         fields = {"wallet_address", "human_id", "nonce", "message", "signature"}
         if not isinstance(signed, dict) or set(signed) != fields:
             raise UsageError(
-                "stdin must hold the answer of --phase prepare with the message's signature "
-                'added as "signature".'
+                "stdin must hold the answer of --phase prepare, less its next_steps, with the "
+                'message\'s signature added as "signature".'
             )
         proof = {field: signed[field] for field in ("wallet_address", "nonce", "message")}
         output.emit(
             siwa.accept_agent_book({**proof, "signature": signed["signature"]}, None, timeout_ms),
             as_json=as_json,
+            next_steps=[ACCEPTED],
         )
         return
     key = siwa.load_key()
@@ -375,14 +447,19 @@ def accept_world_id(
     found = siwa.agent_book_challenge(key.address, timeout_ms)
     if human_id is None:
         named = {field: found[field] for field in ("wallet_address", "human_id")}
-        hint = (
-            "World's AgentBook names this person behind the agent. Anyone with a World ID can put "
-            "their number on any wallet, so ask your person whether this is their World ID "
-            "number. Accepting is for good: the agent can never accept another person. If it is "
-            "theirs, run: "
-            + shlex.join(["regents", "auth", "accept-world-id", "--human-id", found["human_id"]])
+        accept = ["regents", "auth", "accept-world-id", "--human-id", found["human_id"]]
+        output.emit(
+            named,
+            as_json=as_json,
+            next_steps=[
+                human(
+                    "World's AgentBook names this person behind the agent, but anyone with a "
+                    "World ID can put their number on any wallet. Ask your person whether this "
+                    "is their World ID number: accepting is for good."
+                ),
+                run([*accept, *_json(as_json)], "If it is theirs, accept it."),
+            ],
         )
-        output.emit(named, as_json=as_json, hint=hint)
         return
     if human_id.lower() != found["human_id"]:
         raise CommandError(
@@ -397,7 +474,14 @@ def accept_world_id(
         "message": found["message"],
         "signature": siwa.personal_sign(key, found["message"]),
     }
-    output.emit(siwa.accept_agent_book(signed, siwa.signer_name(key), timeout_ms), as_json=as_json)
+    output.emit(
+        siwa.accept_agent_book(signed, siwa.signer_name(key), timeout_ms),
+        as_json=as_json,
+        next_steps=[ACCEPTED],
+    )
+
+
+ACCEPTED = done("The agent's wallet accepted its World ID person; nothing more to run.")
 
 
 def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
@@ -428,4 +512,8 @@ def identity_probe(site: str) -> tuple[Platform, Command]:
 
 
 def logout(site: str, as_json: bool) -> None:
-    output.emit({"site": site, "signed_out": siwa.remove_receipt(site)}, as_json=as_json)
+    output.emit(
+        {"site": site, "signed_out": siwa.remove_receipt(site)},
+        as_json=as_json,
+        next_steps=[done(f"Signed out of {site}; nothing more to run.")],
+    )

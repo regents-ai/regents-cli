@@ -79,7 +79,7 @@ class Request:
         return json.dumps(self.body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
-def send(base: str, request: Request, timeout_ms: int) -> Any:
+def send(base: str, request: Request, timeout_ms: int) -> dict[str, Any]:
     """Send once, never follow a redirect, and return the JSON answer or raise its error."""
     return answer(respond(base, request, timeout_ms))
 
@@ -133,19 +133,18 @@ def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
             "unreachable",
             f"{base} could not be reached. The request was not retried.",
             exit_code=EXIT_UNREACHABLE,
-            hint="Check that the site is up and this is its address; --base-url names another.",
         ) from None
 
 
-def answer(response: httpx.Response) -> Any:
+def answer(response: httpx.Response) -> dict[str, Any]:
     try:
         body = response.json()
     except ValueError:
         body = None
-    if response.is_success and body is not None:
+    if response.is_success and isinstance(body, dict):
         return body
     if response.is_success:
-        raise CommandError("invalid_response", "The site answered, but not with JSON.")
+        raise CommandError("invalid_response", "The site answered, but not with a JSON object.")
     raise _error_for(response, body)
 
 

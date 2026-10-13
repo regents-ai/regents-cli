@@ -21,11 +21,15 @@ from regents_cli import output, siwa
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
 from regents_cli.http import Request, base_address, send
+from regents_cli.next_steps import Step, done, pair_first, run_piped
+from regents_cli.next_steps import run as run_step
 from regents_cli.platforms import Command, Input, Platform
 
 STDIN_LIMIT = 200_000
 #: The one command that asks for its stdin fields when run at a terminal, its code hidden.
 PAIR = ("agents", "pair")
+#: The read-only command that says which account an agent is paired to.
+WHOAMI = ("agents", "whoami")
 #: Each stdin field type, as the JSON value it must be and how an error names it.
 STDIN_TYPES: dict[str, tuple[type, str]] = {
     "array": (list, "a list"),
@@ -159,17 +163,22 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             raise UsageError("Give at least one of " + ", ".join(f"--{n}" for n in missing) + ".")
         base = base_address(base_url, platform.env_var, platform.base_url)
         request = request_for(command, given)
+        line = command_line(platform, command, given)
+        shared = [*(["--base-url", base_url] if base_url else []), *(["--json"] if as_json else [])]
         if command.authority == "wallet-proof" and phase == "send":
             request = signed_by_caller(command, base, request, timeout_ms)
         elif command.authority == "wallet-proof":
             request = with_stdin_fields(command, request, timeout_ms)
             receipt = siwa.current(platform.site, timeout_ms)
             if phase == "prepare":
-                output.emit(prepared(base, request, receipt), as_json=as_json)
+                ready = prepared(base, request, receipt)
+                output.emit(ready, as_json=as_json, next_steps=[send_signed(ready, line, shared)])
                 return
             request = replace(request, headers=siwa.sign(request, receipt))
         answer = send(base, request, timeout_ms)
-        output.emit(answer, as_json=as_json, hint=next_page_hint(command, answer))
+        output.emit(
+            answer, as_json=as_json, next_steps=after(platform, command, answer, line, shared)
+        )
 
     return click.Command(command.name, params=params, callback=run, help=help_text)
 
@@ -290,7 +299,10 @@ def prepared(base: str, request: Request, receipt: siwa.Receipt) -> dict[str, An
 def signed_by_caller(command: Command, base: str, request: Request, timeout_ms: int) -> Request:
     """The prepared request piped back with its signature, checked to be this command's."""
     piped = read_stdin(timeout_ms)
-    shape = '{"request": …, "signature": …} (the request from --phase prepare)'
+    shape = (
+        '{"request": …, "signature": …} '
+        "(the request is --phase prepare's answer, less its next_steps)"
+    )
     if not isinstance(piped, dict) or set(piped) != {"request", "signature"}:
         raise UsageError(f"stdin must hold {shape}.")
     given, signature = piped["request"], piped["signature"]
@@ -337,14 +349,88 @@ def prepared_body(command: Command, request: Request, text: Any) -> dict[str, An
     return body
 
 
-def next_page_hint(command: Command, answer: Any) -> str | None:
-    if command.pagination is None:
-        return None
-    has_more = dig(answer, command.pagination.has_more)
-    cursor = dig(answer, command.pagination.cursor)
-    if has_more is True and cursor is not None:
-        return f"More: add --{command.pagination.flag} {cursor}"
-    return None
+def command_line(platform: Platform, command: Command, given: dict[str, Any]) -> list[str]:
+    """The command as typed, from the values it was given."""
+    line = ["regents", platform.name]
+    line += [str(given[word[1:-1]]) if word.startswith("<") else word for word in command.words]
+    for spec in command.flags:
+        if given[spec.name] is not None:
+            line += [f"--{spec.name}", str(given[spec.name])]
+    return line
+
+
+def send_signed(ready: dict[str, Any], line: list[str], shared: list[str]) -> Step:
+    """After --phase prepare: the prepared request back, with the signature of its message."""
+    piped = json.dumps({"request": ready, "signature": "<signature of message>"})
+    return run_piped(
+        piped,
+        [*line, "--phase", "send", *shared],
+        "Sign message with your own key, put the signature in place of <signature of message>, "
+        "and send it.",
+    )
+
+
+def after(
+    platform: Platform, command: Command, answer: dict[str, Any], line: list[str], shared: list[str]
+) -> list[Step]:
+    """What follows a site's answer: its next page, the follow-ups the site describes, a check
+    of a new pairing, or nothing more."""
+    steps: list[Step] = []
+    if command.pagination is not None:
+        cursor = dig(answer, command.pagination.cursor)
+        if dig(answer, command.pagination.has_more) is True and cursor is not None:
+            steps.append(
+                run_step(
+                    [*with_flag(line, command.pagination.flag, str(cursor)), *shared],
+                    "Read the next page, if you need more than this one.",
+                )
+            )
+    for follow_up in command.next_steps:
+        if follow_up.kind != "run" or follow_up.command is None:
+            steps.append(Step(follow_up.kind, follow_up.say, url=follow_up.url))
+            continue
+        filled = [
+            dig(answer, follow_up.arguments[word[1:-1]]) if word.startswith("<") else word
+            for word in follow_up.command.split(" ")
+        ]
+        if all(isinstance(word, str | int) and str(word) for word in filled):
+            words = [str(word) for word in filled]
+            steps.append(run_step(["regents", platform.name, *words, *shared], follow_up.say))
+    if command.words == WHOAMI and unpaired(answer.get("data")):
+        steps += pair_first(platform.name)
+    whoami = any(c.words == WHOAMI for c in platform.commands)
+    if command.words == PAIR and whoami:
+        steps.append(
+            run_step(
+                ["regents", platform.name, *WHOAMI, *shared],
+                "Check the pairing: it names the account this agent now acts for.",
+            )
+        )
+    return steps or [done(DONE[command.effect])]
+
+
+#: What a finished answer means, by what the command does.
+DONE = {
+    "read": "That is the answer; nothing more to run.",
+    "quote": "That is the quote; nothing more to run unless you go ahead with it.",
+    "write": "The site took the change; nothing more to run.",
+    "prepare": "The terms are set; nothing more to run unless you go ahead with them.",
+    "payment": "The site took the payment; nothing more to run.",
+}
+
+
+def unpaired(identity: Any) -> bool:
+    """Whether an `agents whoami` answer's data says no person's account is paired."""
+    return isinstance(identity, dict) and "pairing" in identity and identity["pairing"] is None
+
+
+def with_flag(line: list[str], flag: str, value: str) -> list[str]:
+    """The command line with --flag set to value, in place of any value it had."""
+    name = f"--{flag}"
+    if name in line:
+        at = line.index(name)
+        return [*line[: at + 1], value, *line[at + 2 :]]
+    return [*line, name, value]
 
 
 def dig(value: Any, dotted: str) -> Any:

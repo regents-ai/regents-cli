@@ -8,6 +8,7 @@ from typing import Final
 import click
 
 from regents_cli import output
+from regents_cli.next_steps import Step, done, run
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import to_json_value, validate_digest
@@ -24,7 +25,7 @@ from regents_cli.techtree.presentation.build import build_uplift_presentation
 from regents_cli.techtree.presentation.compact import render_uplift_markdown
 from regents_cli.techtree.presentation.evidence import read_recorded_evidence
 from regents_cli.techtree.presentation.models import UpliftPresentationPayload
-from regents_cli.techtree.publication.offer import publication_offer
+from regents_cli.techtree.publication.offer import publication_step
 from regents_cli.techtree.receipts.bundle import PROOF_BUNDLE_INVALID, proof_bundle_dir
 from regents_cli.techtree.receipts.execution import read_execution_record
 from regents_cli.techtree.receipts.verify import LocalProofVerifier
@@ -92,7 +93,7 @@ def status(
             )
     answer = status_answer(service, run_id)
     answer["report"] = _status_report(answer)
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[after_status(answer)])
 
 
 def logs(run_id: str, tail: int, variant: str | None, as_json: bool) -> None:
@@ -108,7 +109,17 @@ def logs(run_id: str, tail: int, variant: str | None, as_json: bool) -> None:
         "truncated": window.truncated,
         "report": "\n".join(window.lines) if window.lines else "(no log lines yet)",
     }
-    emit(answer, as_json=as_json, shown=[output.verbatim(str(answer["report"]))])
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[
+            run(
+                ["regents", "techtree", "run", "status", run_id],
+                "See where the run stands; the logs say what it did, not whether it ended.",
+            )
+        ],
+        shown=[output.verbatim(str(answer["report"]))],
+    )
 
 
 def cancel(run_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> None:
@@ -162,11 +173,18 @@ def cancel(run_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> No
         [
             f"Run {run_id}: {cancellation.outcome.replace('_', ' ')} ({state.phase.value}).",
             *(f"- {warning['text']!s}" for warning in warnings if isinstance(warning, dict)),
-            "",
-            f"Next: regents techtree run status {run_id}",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[
+            run(
+                ["regents", "techtree", "run", "status", run_id, "--timeout-seconds", "30"],
+                "Wait for it to stop.",
+            )
+        ],
+    )
 
 
 def result(run_id: str, as_json: bool) -> None:
@@ -199,8 +217,9 @@ def result(run_id: str, as_json: bool) -> None:
         "execution_record": to_json_value(record),
         "state_digest": service.state_digest(run_id),
     }
+    steps = [done("That is the run's result; nothing more to run.")]
     if verification is not None and report.publication_eligible:
-        answer["publication_offer"] = dict(publication_offer(run_id))
+        steps = [publication_step(run_id)]
     if report.proof_grade == "development_only":
         answer["warnings"] = [
             {
@@ -211,7 +230,7 @@ def result(run_id: str, as_json: bool) -> None:
             }
         ]
     answer["report"] = _result_report(presentation, answer)
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=steps)
 
 
 def status_answer(service: RunService, run_id: str) -> dict[str, JsonValue]:
@@ -284,14 +303,23 @@ def _status_report(answer: dict[str, JsonValue]) -> str:
     error = answer["error"]
     if isinstance(error, dict):
         lines.append(f"- Failed: {error['code']}: {error['message']}")
-    lines.append("")
-    if answer["result_available"]:
-        lines.append(f"Next: regents techtree run result {answer['run_id']}")
-    elif answer["terminal"]:
-        lines.append(f"Next: regents techtree run logs {answer['run_id']}")
-    else:
-        lines.append(f"Next: regents techtree run status {answer['run_id']} --timeout-seconds 30")
     return "\n".join(lines)
+
+
+def after_status(answer: dict[str, JsonValue]) -> Step:
+    """Read the result once there is one, the logs of a run that ended without one, or wait."""
+    run_id = str(answer["run_id"])
+    if answer["result_available"]:
+        return run(["regents", "techtree", "run", "result", run_id], "Read the result.")
+    if answer["terminal"]:
+        return run(
+            ["regents", "techtree", "run", "logs", run_id],
+            "The run ended without a result; its logs say why.",
+        )
+    return run(
+        ["regents", "techtree", "run", "status", run_id, "--timeout-seconds", "30"],
+        "It is still going: wait up to 30 seconds for news, and ask again.",
+    )
 
 
 def _result_report(presentation: UpliftPresentationPayload, answer: dict[str, JsonValue]) -> str:
@@ -300,9 +328,6 @@ def _result_report(presentation: UpliftPresentationPayload, answer: dict[str, Js
     if isinstance(warnings, list):
         notices = [str(warning["text"]) for warning in warnings if isinstance(warning, dict)]
         markdown = "\n\n".join([*notices, markdown])
-    offer = answer.get("publication_offer")
-    if isinstance(offer, dict):
-        markdown = f"{markdown}\n\nTo publish this result: {offer['command']}"
     return markdown
 
 

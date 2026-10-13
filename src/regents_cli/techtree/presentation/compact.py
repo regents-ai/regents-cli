@@ -56,7 +56,7 @@ def render_uplift_markdown(
         lines.append("")
         lines.extend(f"- {caveat.text}" for caveat in qualifications)
     lines.append("")
-    lines.append(_next_line(payload))
+    lines.append(_closing_line(payload))
     return "\n".join(lines)
 
 
@@ -90,13 +90,13 @@ def _seconds(value: float | None) -> str:
     return "unavailable" if value is None else f"{value:.1f}s"
 
 
-def _next_line(payload: UpliftPresentationPayload) -> str:
+def _closing_line(payload: UpliftPresentationPayload) -> str:
     """A development-only result has no proof to check, so it is offered nothing but the table."""
     if payload.proof_grade == "development_only":
-        return "Next: every task is in this answer's `presentation.task_rows`."
+        return "Every task is in this answer's `presentation.task_rows`."
     return (
-        "Next: every task is in this answer's `presentation.task_rows`; check this run's local "
-        "proof offline with `regents techtree proof verify`."
+        "Every task is in this answer's `presentation.task_rows`. Anyone can check this run's "
+        "local proof offline with `regents techtree proof verify`."
     )
 
 

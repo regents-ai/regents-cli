@@ -178,6 +178,14 @@
           "minimum": 1000,
           "maximum": 300000
         },
+        "next_steps": {
+          "description": "What to do after a successful answer, in order; `regents` adds a next-page step for `pagination` itself. Without it, the answer ends the work. Answers never carry a top-level `next_steps` of their own: `regents` puts the steps there.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/next_step"
+          }
+        },
         "pagination": {
           "description": "How to read the next page: while the answer's `has_more` is true, pass its `cursor` back as --<flag>.",
           "type": "object",
@@ -198,6 +206,79 @@
               "$ref": "#/$defs/name"
             }
           }
+        }
+      }
+    },
+    "next_step": {
+      "description": "run: another command of this description, its <arguments> filled from the answer, left out when the answer lacks one of them. human: something a person does first, with the page to do it on. done: the work is finished.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "say"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "run",
+            "human",
+            "done"
+          ]
+        },
+        "say": {
+          "description": "What the step does and why, in a sentence.",
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "description": "run only: the command, as written in its `command`, such as threads get <id>.",
+          "type": "string",
+          "minLength": 1
+        },
+        "arguments": {
+          "description": "run only: the answer field that fills each <argument> of `command`.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/answer_field"
+          }
+        },
+        "url": {
+          "description": "human only: the page the person uses.",
+          "type": "string",
+          "pattern": "^https://"
+        }
+      },
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "run"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "command"
+        ],
+        "not": {
+          "required": [
+            "url"
+          ]
+        }
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "command"
+              ]
+            },
+            {
+              "required": [
+                "arguments"
+              ]
+            }
+          ]
         }
       }
     },

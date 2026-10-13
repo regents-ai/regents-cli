@@ -13,6 +13,7 @@ from typing import Final
 import click
 
 from regents_cli import output
+from regents_cli.next_steps import done
 from regents_cli.techtree.canonical import validate_digest
 from regents_cli.techtree.commands.answers import JSON, emit
 from regents_cli.techtree.errors import VerificationError
@@ -72,7 +73,7 @@ def info(as_json: bool) -> None:
             ),
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[done("That is this release; nothing more to run.")])
 
 
 def verify(expected: str | None, as_json: bool) -> None:
@@ -117,6 +118,7 @@ def verify(expected: str | None, as_json: bool) -> None:
                 for c in result.checks
             ),
         ],
+        next_steps=[done("This release verifies; nothing more to run.")],
     )
 
 

@@ -9,13 +9,17 @@ from __future__ import annotations
 from collections.abc import Callable
 from functools import partial
 from typing import Any
+from urllib.parse import urlsplit
 
 import click
 
 from regents_cli import output, siwa
 from regents_cli.errors import CommandError
 from regents_cli.http import Request, base_address, respond, send
+from regents_cli.next_steps import Step, done, human, patchbay, run, sign_in
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
+
+SIGN_IN = "sign-in"
 
 
 def doctor_command(platform: Platform) -> click.Command:
@@ -28,14 +32,23 @@ def doctor_command(platform: Platform) -> click.Command:
             if needs_nothing(c)
         ]
         if any(c.authority == "wallet-proof" for c in platform.commands):
-            checks.append(check("sign-in", lambda: sign_in_good(platform.site, timeout_ms)))
+            checks.append(check(SIGN_IN, lambda: sign_in_good(platform.site, timeout_ms)))
         found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
-        failed = sum(not c["ok"] for c in checks)
+        failed = [c for c in checks if not c["ok"]]
         if failed:
+            message = f"{len(failed)} of {len(checks)} checks failed."
+            again = ["regents", platform.name, "doctor"]
+            again += ["--base-url", base_url] if base_url else []
+            again += ["--json"] if as_json else []
             raise CommandError(
-                "doctor_found_problems", f"{failed} of {len(checks)} checks failed.", **found
+                "doctor_found_problems",
+                message,
+                next_steps=repairs(platform, failed, message, again),
+                **found,
             )
-        output.emit(found, as_json=as_json)
+        output.emit(
+            found, as_json=as_json, next_steps=[done("Every check held; nothing more to run.")]
+        )
 
     return click.Command(
         "doctor",
@@ -54,6 +67,26 @@ def doctor_command(platform: Platform) -> click.Command:
         help="Check that the site answers, that its public reads answer, and that your "
         "sign-in is good.",
     )
+
+
+def repairs(
+    platform: Platform, failed: list[dict[str, Any]], message: str, again: list[str]
+) -> list[Step]:
+    """Sign in again for a failed sign-in; report a site that failed its own checks."""
+    steps: list[Step] = []
+    if any(c["check"] == SIGN_IN for c in failed):
+        steps.append(sign_in(platform.site))
+    broken = [c for c in failed if c["check"] != SIGN_IN]
+    steps.append(run(again, "Then check again."))
+    if broken and platform.name == "patchbay":
+        steps.append(human(f"If Patchbay keeps failing its checks, tell your person: {message}"))
+    elif broken:
+        detail = "; ".join(f"{c['check']}: {c['detail']}" for c in broken)
+        host = urlsplit(platform.base_url).hostname or platform.base_url
+        steps.append(
+            patchbay(host, (platform.name, "doctor"), "doctor_found_problems", detail, None)
+        )
+    return steps
 
 
 def needs_nothing(command: Command) -> bool:

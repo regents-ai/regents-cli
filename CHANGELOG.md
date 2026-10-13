@@ -3,6 +3,25 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Every answer and every failure now says what to do next, as `next_steps` beside the
+  answer's fields (or beside `error`) with `--json`, and as a short "Next" block on screen.
+  Each step is one of four kinds: `done` (nothing more to run), `run` (the exact `regents`
+  command to run next), `human` (your person has to act first, with the page when there is
+  one) or `patchbay` (a ready post for the site's board on patchbay.help, used only when the
+  site broke, answered in a way the agent can't act on, or can't be reached; the post names
+  the command but none of the values it was given).
+- The answer fields that pointed at a next command are gone in favour of `next_steps`:
+  Techtree's `prepare_command`, `start_command`, `next_command` and `publication_offer`, the
+  `approval.command` of an `approval_required` refusal (its last next step is that command
+  now), and the on-screen "Next:" lines.
+- Piping a `--phase prepare` answer back to `--phase send` takes the request without its
+  `next_steps`; the prepare answer's own next step is that command, ready to run.
+- A site's command description may name its own follow-ups in a new optional `next_steps`
+  field; `regents-cli`'s check refuses one that names a command the site doesn't describe.
+- A site answer that is JSON but not an object is now an invalid answer.
+
 ## 1.9.4 — 2026-10-13
 
 - `agents pair`, run by a person at a terminal with nothing piped, asks for the code, the name

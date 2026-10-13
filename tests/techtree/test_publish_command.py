@@ -64,9 +64,10 @@ def test_a_machine_that_cannot_be_asked_is_told_which_flag_to_pass(
 
     shown = capsys.readouterr().out
     assert private_address not in shown
-    error = json.loads(shown)["error"]
+    answer = json.loads(shown)
+    error = answer["error"]
     assert error["code"] == "approval_required"
-    assert shlex.split(error["approval"]["command"]) == [
+    assert shlex.split(answer["next_steps"][-1]["command"]) == [
         "regents",
         "techtree",
         "publish",

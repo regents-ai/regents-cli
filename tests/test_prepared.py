@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import io
 import json
+import shlex
 from pathlib import Path
 from typing import Any
 
@@ -74,6 +75,12 @@ def prepare(
     assert code == 0, err
     prepared: dict[str, Any] = json.loads(out)
     assert prepared["contract"] == contract
+    # The one next step sends this request back: the answer less its next_steps.
+    [step] = prepared.pop("next_steps")
+    printf, _, piped, pipe, *sent = shlex.split(step["command"])
+    assert (printf, pipe) == ("printf", "|")
+    assert json.loads(piped) == {"request": prepared, "signature": "<signature of message>"}
+    assert sent == ["regents", *command, "--phase", "send", "--json"]
     return prepared
 
 

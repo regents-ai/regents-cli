@@ -5,22 +5,22 @@ from __future__ import annotations
 import sys
 from collections.abc import Sequence
 from importlib.metadata import version
+from urllib.parse import urlsplit
 
 import click
 import httpx
 
-from regents_cli import output
+from regents_cli import next_steps, output
 from regents_cli.auth import auth_group
 from regents_cli.errors import (
     EXIT_CANCELLED,
     EXIT_CODES,
-    EXIT_FAILED,
     EXIT_OK,
     CommandError,
     UsageError,
 )
 from regents_cli.http import unreadable_address
-from regents_cli.platforms import pinned_platforms
+from regents_cli.platforms import Platform, pinned_platforms
 from regents_cli.runner import platform_group
 from regents_cli.techtree.cli import techtree_group
 
@@ -81,33 +81,73 @@ def _print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> 
 def main(argv: Sequence[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     as_json = "--json" in args[: args.index("--") if "--" in args else len(args)]
+    cli = root()
     try:
-        root().main(args, prog_name="regents", standalone_mode=False)
+        cli.main(args, prog_name="regents", standalone_mode=False)
     except click.exceptions.NoArgsIsHelpError as shown:
         click.echo(shown.ctx.get_help() if shown.ctx else "")
-    except click.UsageError as error:
-        problem = UsageError(error.format_message())
-        output.emit_error(problem, as_json=as_json)
-        return problem.exit_code
-    except CommandError as error:
-        output.emit_error(error, as_json=as_json)
-        return error.exit_code
-    except httpx.InvalidURL as error:
-        unreadable = unreadable_address(error)
-        output.emit_error(unreadable, as_json=as_json)
-        return unreadable.exit_code
-    except (click.Abort, KeyboardInterrupt):
-        output.emit_error(
-            CommandError("cancelled", "The command was interrupted.", exit_code=EXIT_CANCELLED),
-            as_json=as_json,
-        )
-        return EXIT_CANCELLED
     except click.exceptions.Exit as done:
         return done.exit_code
+    except (click.Abort, KeyboardInterrupt):
+        return _failed(
+            CommandError("cancelled", "The command was interrupted.", exit_code=EXIT_CANCELLED),
+            cli,
+            args,
+            as_json,
+        )
+    except click.UsageError as error:
+        return _failed(UsageError(error.format_message()), cli, args, as_json)
+    except CommandError as error:
+        return _failed(error, cli, args, as_json)
+    except httpx.InvalidURL as error:
+        return _failed(unreadable_address(error), cli, args, as_json)
     except click.ClickException as error:
-        output.emit_error(CommandError("command_error", error.format_message()), as_json=as_json)
-        return EXIT_FAILED
+        return _failed(CommandError("command_error", error.format_message()), cli, args, as_json)
     return EXIT_OK
+
+
+def _failed(error: CommandError, cli: click.Group, args: list[str], as_json: bool) -> int:
+    steps = next_steps.for_failure(error, invocation(cli, args))
+    output.emit_error(error, steps, as_json=as_json)
+    return error.exit_code
+
+
+def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
+    """The command the arguments name, its site and that site's host."""
+    words: list[str] = []
+    command: click.Command = cli
+    for arg in args:
+        child = command.commands.get(arg) if isinstance(command, click.Group) else None
+        if child is None:
+            break
+        words.append(arg)
+        command = child
+    platforms = pinned_platforms()
+    platform: Platform | None = None
+    if words[:1] == ["auth"]:
+        site = _value_of("--site", args)
+        platform = next((p for p in platforms if p.site == site), None)
+    elif words:
+        platform = next((p for p in platforms if p.name == words[0]), None)
+    described = platform is not None and any(
+        c.stdin_fields and (*c.group_words, c.name) == tuple(words[1:]) for c in platform.commands
+    )
+    return next_steps.Invocation(
+        args=tuple(args),
+        words=tuple(words),
+        site=platform.site if platform is not None else None,
+        host=urlsplit(platform.base_url).hostname if platform is not None else None,
+        takes_stdin=described or _value_of("--phase", args) == "send",
+    )
+
+
+def _value_of(flag: str, args: list[str]) -> str | None:
+    for index, arg in enumerate(args):
+        if arg == flag and index + 1 < len(args):
+            return args[index + 1]
+        if arg.startswith(flag + "="):
+            return arg.removeprefix(flag + "=")
+    return None
 
 
 def run() -> None:

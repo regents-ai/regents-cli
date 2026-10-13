@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import shlex
 from pathlib import Path
 from typing import Final
 
 import click
 
+from regents_cli.next_steps import Step, done, run
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import to_json_value
@@ -80,7 +80,12 @@ def list_climbs(status: str, as_json: bool) -> None:
     if development:
         answer["warnings"] = development
     answer["report"] = _list_report(summaries)
-    emit(answer, as_json=as_json)
+    runnable = [summary for summary in summaries if summary.compatibility.compatible]
+    steps = [
+        run(["regents", "techtree", "climb", "show", summary.reference], "Read it in full.")
+        for summary in (runnable or summaries)[:1]
+    ]
+    emit(answer, as_json=as_json, next_steps=steps or [done("No Climbs match; nothing to run.")])
 
 
 def show(reference: str, as_json: bool) -> None:
@@ -108,7 +113,7 @@ def show(reference: str, as_json: bool) -> None:
         resolved.data_policy.candidate_skill.ownership,
         held_out=resolved.climb.held_out_campaign_spec_digest is not None,
     )
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=after_show(summary, campaign))
 
 
 def prepare(
@@ -148,7 +153,6 @@ def prepare(
     source = prepared.source
     campaign = source.campaign
     policy = source.data_policy
-    start_command = shlex.join(["regents", "techtree", "climb", "start", draft.id])
     answer: dict[str, JsonValue] = {
         "draft_id": draft.id,
         "draft_digest": prepared.draft_digest,
@@ -180,12 +184,15 @@ def prepare(
             ],
             "allowed_differences": list(prepared.manifest_comparison.allowed_differences),
         },
-        "start_command": start_command,
     }
     if draft.warnings:
         answer["warnings"] = [{"id": "draft_warning", "text": text} for text in draft.warnings]
-    answer["report"] = _prepare_report(prepared, start_command)
-    emit(answer, as_json=as_json)
+    answer["report"] = _prepare_report(prepared)
+    begin = run(
+        ["regents", "techtree", "climb", "start", draft.id],
+        "Start the run: it shows what the run uses and asks before starting.",
+    )
+    emit(answer, as_json=as_json, next_steps=[begin])
 
 
 def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> None:
@@ -253,12 +260,14 @@ def start(draft_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> N
                 f"- Approved by: {_phrase(actor)}",
                 "",
                 *(f"- {warning['text']}" for warning in warnings),
-                "",
-                f"Next: regents techtree run status {state.run_id}",
             ]
         ),
     }
-    emit(answer, as_json=as_json)
+    watch = run(
+        ["regents", "techtree", "run", "status", state.run_id, "--timeout-seconds", "30"],
+        "Watch it: wait up to 30 seconds for news, and ask again until it ends.",
+    )
+    emit(answer, as_json=as_json, next_steps=[watch])
 
 
 def review_lines(
@@ -407,18 +416,45 @@ def _show_report(
     ]
     for issue in compatibility.issues:
         lines.append(f"- {issue.severity.upper()} {issue.code}: {issue.message}")
-    lines.append("")
-    access_flag = (
-        " --access prime-key|chatgpt-plan" if len(campaign.subject.model.access) > 1 else ""
-    )
-    lines.append(
-        f"Next: regents techtree climb prepare {summary.reference} --skill <path to SKILL.md>"
-        + access_flag
-    )
     return "\n".join(lines)
 
 
-def _prepare_report(prepared: PreparedDraft, start_command: str) -> str:
+def after_show(summary: ClimbSummaryV2, campaign: CampaignSpecV4) -> list[Step]:
+    """Prepare a Skill for a Climb that runs here; otherwise get this machine ready first."""
+    if not summary.compatibility.compatible:
+        return [
+            run(
+                ["regents", "techtree", "setup"],
+                "This machine can't run it yet: get it ready, then read the Climb again.",
+            )
+        ]
+    access = (
+        ["--access", "<prime-key or chatgpt-plan>"]
+        if len(campaign.subject.model.access) > 1
+        else []
+    )
+    return [
+        run(
+            ["regents", "techtree", "skill", "starter", "--climb", summary.reference],
+            "Fetch the Climb's starter Skill, to begin from it.",
+        ),
+        run(
+            [
+                "regents",
+                "techtree",
+                "climb",
+                "prepare",
+                summary.reference,
+                "--skill",
+                "<path to SKILL.md>",
+                *access,
+            ],
+            "Or prepare your own Skill for it.",
+        ),
+    ]
+
+
+def _prepare_report(prepared: PreparedDraft) -> str:
     draft = prepared.draft
     campaign = prepared.source.campaign
     held_out = prepared.source.campaign_digest != prepared.source.climb.campaign_spec_digest
@@ -440,7 +476,6 @@ def _prepare_report(prepared: PreparedDraft, start_command: str) -> str:
     if draft.warnings:
         lines.append("")
         lines.extend(f"- {text}" for text in draft.warnings)
-    lines.extend(["", f"Next: {start_command}"])
     return "\n".join(lines)
 
 

@@ -3,12 +3,12 @@ starter Skill as this release pins it or a Skill someone published with a Result
 
 from __future__ import annotations
 
-import shlex
 from pathlib import Path
 from typing import Final
 
 import click
 
+from regents_cli.next_steps import done, run
 from regents_cli.techtree import paths
 from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
 from regents_cli.techtree.models.base import JsonValue
@@ -32,19 +32,17 @@ def starter(climb: str | None, as_json: bool) -> None:
     skill_path = str(materialized.entrypoint)
     # The label is stated because `climb prepare` would otherwise name the candidate after its
     # directory, which is the digest it was verified against.
-    prepare_command = shlex.join(
-        [
-            "regents",
-            "techtree",
-            "climb",
-            "prepare",
-            reference,
-            "--skill",
-            skill_path,
-            "--label",
-            skill.candidate_label,
-        ]
-    )
+    prepare = [
+        "regents",
+        "techtree",
+        "climb",
+        "prepare",
+        reference,
+        "--skill",
+        skill_path,
+        "--label",
+        skill.candidate_label,
+    ]
     answer: dict[str, JsonValue] = {
         "release_id": release.release_id,
         "climb_reference": reference,
@@ -56,7 +54,6 @@ def starter(climb: str | None, as_json: bool) -> None:
         "file_count": materialized.file_count,
         "total_bytes": materialized.total_bytes,
         "origin": materialized.origin,
-        "prepare_command": prepare_command,
     }
     answer["report"] = "\n".join(
         [
@@ -72,11 +69,9 @@ def starter(climb: str | None, as_json: bool) -> None:
             f"- Skill file: {skill_path}",
             f"- Files: {materialized.file_count}",
             f"- Size: {materialized.total_bytes} bytes",
-            "",
-            f"Next: {prepare_command}",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[run(prepare, "Prepare it for a Climb.")])
 
 
 def fetch(root_digest: str, to: Path | None, base_url: str | None, as_json: bool) -> None:
@@ -101,11 +96,20 @@ def fetch(root_digest: str, to: Path | None, base_url: str | None, as_json: bool
             "",
             "Published Results that carried it, newest first:",
             *(f"- {digest}" for digest in fetched.results),
-            "",
-            "To rerun one: regents techtree climb prepare --rerun-of <digest>",
         ]
     )
-    emit(answer, as_json=as_json)
+    rerun = [
+        run(
+            ["regents", "techtree", "climb", "prepare", "--rerun-of", digest],
+            "Rerun the newest Result that carried it.",
+        )
+        for digest in fetched.results[:1]
+    ]
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=rerun or [done("The Skill is here; nothing more to run.")],
+    )
 
 
 SKILL = click.Group(

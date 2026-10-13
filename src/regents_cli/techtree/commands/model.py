@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import click
 
+from regents_cli.next_steps import done, human
 from regents_cli.techtree import paths
 from regents_cli.techtree.chatgpt import signin
 from regents_cli.techtree.commands.answers import JSON, emit
@@ -31,7 +32,17 @@ def login(as_json: bool) -> None:
             f"{signin.USAGE_SETTINGS_URL}",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[
+            human(
+                "Your person may set how much of their plan Regents may use.",
+                signin.USAGE_SETTINGS_URL,
+            ),
+            done("Signed in; Climbs can now run on the ChatGPT plan."),
+        ],
+    )
 
 
 def status(as_json: bool) -> None:
@@ -58,7 +69,7 @@ def status(as_json: bool) -> None:
             f"Manage what Regents may use at {signin.USAGE_SETTINGS_URL}",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[done("Signed in; nothing more to run.")])
 
 
 def logout(as_json: bool) -> None:
@@ -69,7 +80,16 @@ def logout(as_json: bool) -> None:
         "revocation_confirmed": logged_out.revocation_confirmed,
     }
     answer["report"] = _logout_report(logged_out)
-    emit(answer, as_json=as_json)
+    unconfirmed = logged_out.removed and not logged_out.revocation_confirmed
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[
+            human("Your person disconnects Regents there to finish.", signin.USAGE_SETTINGS_URL)
+            if unconfirmed
+            else done("Signed out; nothing more to run.")
+        ],
+    )
 
 
 def _logout_report(logged_out: signin.LoggedOut) -> str:

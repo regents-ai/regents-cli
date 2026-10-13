@@ -90,12 +90,41 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
                           prepared under another signing contract is refused, never re-signed
 
   answer = send once; never retried, redirects never followed
-  2xx with JSON      -> print it (readable, or JSON with --json); a next-page hint when
-                        entry.pagination says there is one
-  any other answer   -> the site's {"error": {"code", "message", ...}} as it came, and an
-                        exit code: 401/403 sign-in, 404 not found, 502-504 unreachable,
-                        anything else failed
+  2xx with JSON      -> print it (readable, or JSON with --json) with next_steps: the next
+                        page when entry.pagination says there is one, then entry.next_steps,
+                        else "done"
+  any other answer   -> the site's {"error": {"code", "message", ...}} as it came, an exit
+                        code (401/403 sign-in, 404 not found, 502-504 unreachable, anything
+                        else failed) and next_steps read from the status and code
 ```
+
+Every answer and every failure ends with `next_steps`, one or more of four kinds: `done`
+(nothing more to run), `run` (the `regents` command to run next), `human` (a person acts
+first) and `patchbay` (a ready post for the site's board on patchbay.help). A post is only
+suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
+that is not a JSON object), answers with an error without a readable code, or cannot be
+reached. A coded refusal is the agent's to fix, so write `code` and `message` for that.
+
+### Naming a command's follow-ups
+
+A command may list `next_steps` in its entry, for what usually comes after a successful
+answer:
+
+```json
+"next_steps": [
+  {"kind": "run", "say": "Read the new thread.", "command": "threads get <id>",
+   "arguments": {"id": "thread.id"}},
+  {"kind": "human", "say": "Your person approves it on the site.",
+   "url": "https://example.com/approvals"},
+  {"kind": "done", "say": "The post is up; nothing more to run."}
+]
+```
+
+A `run` step names another command of the same description, and `arguments` fills each of
+its `<words>` from a dotted path into the answer; the step is left out when the answer lacks
+one. The command it names may not need flags that the answer can't fill. `human` steps may
+give an `https://` page; `done` steps give neither. `regents-cli`'s check refuses an entry
+that breaks these rules. Without `next_steps`, the command line says the work is done.
 
 `regents <site> doctor` is built from the same description: the site answers, every public
 read that needs no input answers, and a wallet-proof site accepts this machine's sign-in.

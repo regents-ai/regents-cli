@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Final
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, Final
+
+if TYPE_CHECKING:
+    from regents_cli.next_steps import Step
 
 EXIT_OK: Final = 0
 EXIT_FAILED: Final = 1
@@ -26,16 +30,24 @@ EXIT_CODES: Final = {
 class CommandError(Exception):
     """A failure reported as {"error": {"code", "message", ...}} with its exit code.
 
-    Extra fields travel into the error object; never put a secret in them.
+    Extra fields travel into the error object; never put a secret in them. `next_steps` says
+    what to do about it when the place that raises it knows better than its kind does.
     """
 
     def __init__(
-        self, code: str, message: str, *, exit_code: int = EXIT_FAILED, **fields: Any
+        self,
+        code: str,
+        message: str,
+        *,
+        exit_code: int = EXIT_FAILED,
+        next_steps: Sequence[Step] = (),
+        **fields: Any,
     ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.exit_code = exit_code
+        self.next_steps = tuple(next_steps)
         self.fields = fields
 
     def as_json(self) -> dict[str, Any]:

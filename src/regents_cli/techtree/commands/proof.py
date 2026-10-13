@@ -15,6 +15,7 @@ import click
 from rich.console import RenderableType
 
 from regents_cli import output
+from regents_cli.next_steps import done
 from regents_cli.techtree import paths
 from regents_cli.techtree.commands.answers import JSON, emit, warnings
 from regents_cli.techtree.commands.publish import publication_service
@@ -30,7 +31,7 @@ from regents_cli.techtree.publication.downloaded import (
     is_downloaded_bundle,
     verify_downloaded_bundle,
 )
-from regents_cli.techtree.publication.offer import publication_offer
+from regents_cli.techtree.publication.offer import publication_step
 from regents_cli.techtree.receipts.bundle import (
     BUNDLE_MANIFEST_FILENAME,
     PROOF_BUNDLE_INVALID,
@@ -82,10 +83,11 @@ def verify(target: str, as_json: bool) -> None:
     # Offered only for a bundle of a run on this machine whose report says it may be published:
     # offering a command that would refuse is worse than offering nothing.
     run_id = _run_of(path, runs_dir) if kind == "bundle" else None
+    steps = [done("The proof holds; nothing more to run.")]
     if run_id is not None and publication_service().publication_eligible(run_id):
-        answer["publication_offer"] = dict(publication_offer(run_id))
+        steps = [publication_step(run_id)]
     answer["report"] = _report(answer, summary, result)
-    emit(answer, as_json=as_json, shown=_shown(answer, summary, result))
+    emit(answer, as_json=as_json, next_steps=steps, shown=_shown(answer, summary, result))
 
 
 def resolve_proof_target(target: str, *, runs_dir: Path) -> tuple[Path, ProofTargetKind]:
@@ -166,7 +168,7 @@ def _report(
         "",
         _what_was_checked(checks),
         *(f"- {heading}: {_tally(group)}" for heading, group in _grouped(checks)),
-        *_closing(answer, result),
+        *_closing(result),
     ]
     return "\n".join(lines)
 
@@ -176,7 +178,7 @@ def _shown(
 ) -> list[RenderableType]:
     """The same report for a person at a terminal, its checks as check lists."""
     checks = result.messages
-    closing = _closing(answer, result)
+    closing = _closing(result)
     return [
         output.report("\n".join(_opening(answer, checks))),
         output.checks(
@@ -205,13 +207,10 @@ def _what_was_checked(checks: Sequence[VerificationMessage]) -> str:
     return f"What was checked, {len(checks)} checks in all"
 
 
-def _closing(answer: dict[str, JsonValue], result: VerificationResult) -> list[str]:
+def _closing(result: VerificationResult) -> list[str]:
     lines: list[str] = []
     if result.warnings:
         lines += ["", "Warnings", *(f"- {message.detail}" for message in result.warnings)]
-    offer = answer.get("publication_offer")
-    if isinstance(offer, dict):
-        lines += ["", f"To publish it: `{offer['command']}`", str(offer["reason"])]
     return lines
 
 

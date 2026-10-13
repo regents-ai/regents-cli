@@ -10,16 +10,22 @@ answers they give on regents-cli 1.1.0, checked on 2026-09-29.
   level. There is no envelope: no `ok`, `facts`, `next_actions`, `operation` or
   `schema_version`. Report-style answers carry `report` (compact Markdown), and `warnings`
   (a list of `{id, text}`) when there are any.
-- **Failure:** stdout is `{"error": {"code", "message", "details"?}}`. `error.code` is 0.3.0's
+- **Next steps:** every answer, success or failure, carries `next_steps`: one or more
+  `{kind, say, command?, url?}`. `kind` is `done` (nothing more to run), `run` (`command` is
+  the `regents` command to run next, as shell text), `human` (a person has to act first;
+  `url` is where, when there is one) or `patchbay` (`command` posts the problem on
+  patchbay.help). On success it sits beside the answer's fields; on failure, beside `error`.
+- **Failure:** stdout is `{"error": {"code", "message", "details"?}, "next_steps": [...]}`. `error.code` is 0.3.0's
   code. Exit codes are regents' own: 1 failed, 2 usage, 3 sign-in or proof, 4 not found,
   5 unreachable, 130 interrupted.
 - **Approval:** a step that spends, sends, publishes or signs answers, without `--yes`, with
   exit 1 and `error.code` `approval_required`, `error.review` (lines to show the person) and
-  `error.approval.command` (shell text; `shlex.split` gives the arguments, ending in
-  `--yes --reviewed-on host-agent`). Nothing waits for input: there is no `--no-input`.
-- **Publishing offer:** `run result` and `proof verify` carry `publication_offer`
-  `{command, reason, retry: "reconcile_first"}` when a verified run can be published. It
-  replaces the `next_actions` entry the plugin looks for today.
+  two next steps: `human` (show the review, ask), then `run`, whose `command` is shell text
+  (`shlex.split` gives the arguments, ending in `--yes --reviewed-on host-agent`). Nothing
+  waits for input: there is no `--no-input`.
+- **Publishing offer:** `run result` and `proof verify` carry a `run` next step whose
+  `command` is `regents techtree publish <run id>` when, and only when, a verified run can be
+  published. It replaces the `next_actions` entry the plugin looks for today.
 
 ## The calls
 
@@ -29,15 +35,15 @@ answers they give on regents-cli 1.1.0, checked on 2026-09-29.
 | doctor | `doctor` | `checks` (each `id`, `label`, `status`, `blocking`, `detail`, `metadata`), `blocking_failures`, `warnings`, `versions`, `host_platform`, `docker_platform`, `techtree_home` |
 | catalog | `climb list` | `climbs`, `count` |
 | catalog, demo | `climb show <ref>` | `climb`, `subject_model`, `subject_runtime`, `rubric`, `data_policy_digest`, `candidate_skill_ownership` |
-| demo | `skill starter [--climb <ref>]` | `climb_reference`, `skill_path`, `skill_name`, `skill_root_digest`, `candidate_label`, `release_id`, `prepare_command`. Without `--climb`, the introductory Climb |
-| demo | `climb prepare <ref> --skill <path> [--label <label>] [--access chatgpt-plan\|prime-key]` | `draft_id`, `draft_dir`, `draft_digest`, `data_policy_digest`, `campaign_spec_digest`, `skill_root_digest`, `estimated_episodes`, `access` (`chatgpt_plan` or `prime_key`, the route the run uses), `campaign_maximum_usd` (null on a Climb that offers only the ChatGPT plan), `start_command`, and the policy fields. `--access` is needed when the Climb offers more than one route; without it the answer is `model_access_required`, listing the routes and which are set up |
+| demo | `skill starter [--climb <ref>]` | `climb_reference`, `skill_path`, `skill_name`, `skill_root_digest`, `candidate_label`, `release_id`; its next step prepares the Climb. Without `--climb`, the introductory Climb |
+| demo | `climb prepare <ref> --skill <path> [--label <label>] [--access chatgpt-plan\|prime-key]` | `draft_id`, `draft_dir`, `draft_digest`, `data_policy_digest`, `campaign_spec_digest`, `skill_root_digest`, `estimated_episodes`, `access` (`chatgpt_plan` or `prime_key`, the route the run uses), `campaign_maximum_usd` (null on a Climb that offers only the ChatGPT plan), and the policy fields; its next step starts the run. `--access` is needed when the Climb offers more than one route; without it the answer is `model_access_required`, listing the routes and which are set up |
 | rerun | `climb prepare --rerun-of <bundle digest> [--base-url <url>]` | the same fields as `climb prepare`, plus `rerun_of`. The Climb, held-out choice and Skill come from the published Result, which is checked offline first |
 | fetch | `skill fetch <skill root digest> [--to <dir>] [--base-url <url>]` | `skill_root_digest`, `skill_name`, `folder`, `files`, `total_bytes`, `results` (the Results that carry it) |
 | demo | `climb start <draft id>` | without `--yes`: `approval_required`. With `--yes --reviewed-on host-agent`: the started run, with its `access` |
 | model | `model login`, `model status`, `model logout` | `login`: `email`, `access` (`chatgpt_plan`), `usage_settings`. `status`: `email`, `models` (each `slug`, `display_name`), `usage_settings`; with no sign-in it refuses with `model_sign_in_required`. `logout`: `removed`, `email`, `revocation_confirmed`. Every call goes to OpenAI; nothing goes to the Techtree site |
 | run | `run status <run id>` | `phase`, `public_state`, `terminal`, `result_available`, `worker_alive`, `heartbeat_stale`, `progress`, `state_digest`, `error` |
 | run | `run cancel <run id>` | 0.3.0's `--confirm` is gone: it goes through the approval. Answer: `outcome`, `phase`, `worker_alive`, `state_digest` |
-| run | `run result <run id>` | `uplift_report`, `presentation`, `execution_record`, `state_digest`, `publication_offer` |
+| run | `run result <run id>` | `uplift_report`, `presentation`, `execution_record`, `state_digest`; a verified run's next step publishes it |
 | proof | `proof verify <run id or bundle path>` | `verified`, `kind`, `target`, `summary`, `checks` |
 | publish | `publish <run id>` | without `--yes`: `approval_required`. Sent: `bundle_digest`, `entry_url`, `log_sequence`, `accepted_at`, `receipt_path`, `contributor_address_sent`, `retry` |
 

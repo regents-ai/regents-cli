@@ -1,8 +1,8 @@
 """`regents techtree forge …`: tasks from a Skill, and experiments on them.
 
 The steps that call a model or accept tasks (plan-start, construct-start, accept, run) go
-through `approve()`. Every answer is the record as Techtree keeps it, its `warnings`, the
-`next_command` when there is one to run, and `report`, the Markdown a person reads.
+through `approve()`. Every answer is the record as Techtree keeps it, its `warnings`, and
+`report`, the Markdown a person reads, followed by what to do next.
 """
 
 from __future__ import annotations
@@ -10,11 +10,13 @@ from __future__ import annotations
 import shlex
 from collections.abc import Callable
 from pathlib import Path
-from typing import Final
+from typing import Final, NamedTuple
 
 import click
 from pydantic import BaseModel
 
+from regents_cli.next_steps import Step, done, human
+from regents_cli.next_steps import run as run_step
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.commands.answers import JSON, emit
@@ -137,28 +139,36 @@ type Answer = dict[str, JsonValue]
 # ---------------------------------------------------------------------------
 
 
+class Told(NamedTuple):
+    """A record's answer and what to do next."""
+
+    answer: Answer
+    next_steps: list[Step]
+
+
 def _answer(
     record: BaseModel,
     report: list[str],
     *,
     warnings: list[tuple[str, str]] | None = None,
-    next_command: str | None = None,
-    next_words: str | None = None,
-) -> Answer:
-    """The record, its warnings, the next command, and the report ending on a `Next:` line.
-
-    `next_words` is a next step a person or agent completes (a provider to choose, a folder to
-    write), said in the report only.
-    """
+    next_steps: list[Step] | None = None,
+) -> Told:
+    """The record, its warnings and its report, and what to do next."""
     answer: Answer = record.model_dump(mode="json")
     if warnings:
         answer["warnings"] = [{"id": warning_id, "text": text} for warning_id, text in warnings]
         report = [*report, "", *(f"- {text}" for _, text in warnings)]
-    if next_command is not None:
-        answer["next_command"] = next_command
-    step = next_command or next_words
-    answer["report"] = "\n".join([*report, *(["", f"Next: {step}"] if step else [])])
-    return answer
+    answer["report"] = "\n".join(report)
+    return Told(answer, next_steps or [done("That is where it stands; nothing more to run.")])
+
+
+def _emit(told: Told, *, as_json: bool) -> None:
+    emit(told.answer, as_json=as_json, next_steps=told.next_steps)
+
+
+def _step(say: str, *words: str) -> Step:
+    """Run `regents techtree <words>` next."""
+    return run_step(["regents", "techtree", *words], say)
 
 
 def _warning(warning_id: str, text: str) -> tuple[str, str]:
@@ -222,10 +232,10 @@ def inspect_skill(path: Path, as_json: bool) -> None:
                 "refusals": [refusal.model_dump(mode="json") for refusal in record.refusals],
             },
         )
-    emit(_source_answer(status), as_json=as_json)
+    _emit(_source_answer(status), as_json=as_json)
 
 
-def _source_answer(status: ForgeSourceStatus) -> Answer:
+def _source_answer(status: ForgeSourceStatus) -> Told:
     record = status.record
     declaration = record.declaration
     kept = [entry for entry in record.entries if entry.disposition == "admitted"]
@@ -268,16 +278,24 @@ def _source_answer(status: ForgeSourceStatus) -> Answer:
         if record.state == "admitted" and left_out
         else []
     )
-    return _answer(
-        status,
-        lines,
-        warnings=warnings,
-        next_words=(
-            _command("forge", "plan", status.source_id)
-            + " --provider PROVIDER --model MODEL, with the provider and model the person chooses"
-            if record.state == "admitted"
-            else None
+    plan = [
+        human(
+            "Ask your person which provider and model to plan with: the call is on their account."
         ),
+        _step(
+            "Then plan tasks for this Skill with them.",
+            "forge",
+            "plan",
+            status.source_id,
+            "--provider",
+            "<provider>",
+            "--model",
+            "<model>",
+        ),
+    ]
+    refused = [done("Techtree can't use this Skill as it is; nothing more to run for it.")]
+    return _answer(
+        status, lines, warnings=warnings, next_steps=plan if record.state == "admitted" else refused
     )
 
 
@@ -298,7 +316,7 @@ def plan(
         reasoning=reasoning,
         max_tasks=tasks,
     )
-    emit(_plan_answer(status), as_json=as_json)
+    _emit(_plan_answer(status), as_json=as_json)
 
 
 def plan_start(plan_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> None:
@@ -318,7 +336,7 @@ def plan_start(plan_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) 
     if started.state != "succeeded" and call is not None:
         again = (
             "The planner is not called again; to try again, prepare a new plan with "
-            + _new_plan_command(started)
+            + _command(*_new_plan_words(started))
         )
         raise RunError(
             f"{call.failure.message}. {again}"
@@ -327,8 +345,9 @@ def plan_start(plan_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) 
             f"have answered or charged. {again}",
             code="forge_planning_outcome_unknown" if call.failure is None else call.failure.code,
             details={"plan_id": plan_id, "path": started.path},
+            next_steps=[_new_plan_step(started)],
         )
-    emit(_plan_answer(started), as_json=as_json)
+    _emit(_plan_answer(started), as_json=as_json)
 
 
 def _plan_review(status: ForgePlanStatus) -> list[str]:
@@ -365,19 +384,23 @@ def _plan_review(status: ForgePlanStatus) -> list[str]:
     ]
 
 
-def _new_plan_command(status: ForgePlanStatus) -> str:
+def _new_plan_words(status: ForgePlanStatus) -> list[str]:
     review = status.record.review
-    return _command(
+    return [
         "forge",
         "plan",
         review.source_id,
         *_model_options(review.model),
         "--tasks",
         str(review.limits.max_tasks),
-    )
+    ]
 
 
-def _plan_answer(status: ForgePlanStatus) -> Answer:
+def _new_plan_step(status: ForgePlanStatus) -> Step:
+    return _step("Prepare a new plan to try again.", *_new_plan_words(status))
+
+
+def _plan_answer(status: ForgePlanStatus) -> Told:
     lines = [f"- Plan: {status.plan_id}", f"- State: {_PLAN_STATE_WORDS[status.state]}"]
     if status.approval is not None:
         lines.append(f"- Approved: {_approved_words(status.approval)}")
@@ -405,21 +428,27 @@ def _plan_answer(status: ForgePlanStatus) -> Answer:
         if status.state == "outcome_unknown"
         else []
     )
-    next_command = {
-        "prepared": _command("forge", "plan-start", status.plan_id),
-        "succeeded": _command("forge", "status", call.result) if call and call.result else None,
-        "rejected": _new_plan_command(status),
-        "failed": _new_plan_command(status),
-        "outcome_unknown": _new_plan_command(status),
-    }.get(status.state)
-    answer = _answer(status, lines, warnings=warnings, next_command=next_command)
-    answer["review"] = list(_plan_review(status))
-    return answer
+    if status.state == "prepared":
+        step = _step(
+            "Send it to the planner: it shows what is sent and asks first.",
+            "forge",
+            "plan-start",
+            status.plan_id,
+        )
+    elif status.state == "succeeded" and call is not None and call.result is not None:
+        step = _step("Read the proposed claims and tasks.", "forge", "status", call.result)
+    elif status.state == "running":
+        step = _step("The planner is working; check again.", "forge", "status", status.plan_id)
+    else:
+        step = _new_plan_step(status)
+    told = _answer(status, lines, warnings=warnings, next_steps=[step])
+    told.answer["review"] = list(_plan_review(status))
+    return told
 
 
 def correct(proposal_id: str, file: Path, as_json: bool) -> None:
     home = paths.home()
-    emit(_proposal_answer(home, correct_proposal(home, proposal_id, file)), as_json=as_json)
+    _emit(_proposal_answer(home, correct_proposal(home, proposal_id, file)), as_json=as_json)
 
 
 def _claim_lines(claims: list[ForgeSkillClaim]) -> list[str]:
@@ -434,7 +463,7 @@ def _task_label(name: str, claim: str, kind: ForgeTaskKind) -> str:
     return f"{name} ({claim}, {TASK_KIND_WORDS[kind]})"
 
 
-def _proposal_answer(home: TechtreePaths, status: ForgeProposalStatus) -> Answer:
+def _proposal_answer(home: TechtreePaths, status: ForgeProposalStatus) -> Told:
     record = status.record
     source = (
         f"the planner, plan {record.plan_id}"
@@ -467,7 +496,22 @@ def _proposal_answer(home: TechtreePaths, status: ForgeProposalStatus) -> Answer
     return _answer(
         status,
         lines,
-        next_command=_command("forge", "construct", status.proposal_id, *_model_options(model)),
+        next_steps=[
+            _step(
+                "Build these tasks, once your person agrees with them.",
+                "forge",
+                "construct",
+                status.proposal_id,
+                *_model_options(model),
+            ),
+            _step(
+                "Or correct them first, from an edited copy of claims-and-tasks.json.",
+                "forge",
+                "correct-proposal",
+                status.proposal_id,
+                "<edited copy>",
+            ),
+        ],
     )
 
 
@@ -483,7 +527,7 @@ def construct(
     status = prepare_construction(
         home, proposal_id=proposal_id, provider=provider, model_id=model, reasoning=reasoning
     )
-    emit(_construction_answer(status), as_json=as_json)
+    _emit(_construction_answer(status), as_json=as_json)
 
 
 def construct_start(
@@ -510,18 +554,18 @@ def construct_start(
             code="forge_construction_nothing_usable",
             details={"construction_id": construction_id, "path": started.path},
         )
-    emit(_construction_answer(started), as_json=as_json)
+    _emit(_construction_answer(started), as_json=as_json)
 
 
 def fix_task(construction_id: str, task_name: str, folder: Path, as_json: bool) -> None:
     status = correct_task(paths.home(), construction_id, task_name, folder)
     [task] = [task for task in status.tasks if task.task_name == task_name]
-    answer = _construction_answer(status)
-    answer["report"] = (
+    told = _construction_answer(status)
+    told.answer["report"] = (
         f"Recorded your correction of {task_name}: {_correction_words(task.corrections[-1])}\n\n"
-        + str(answer["report"])
+        + str(told.answer["report"])
     )
-    emit(answer, as_json=as_json)
+    _emit(told, as_json=as_json)
 
 
 def _construction_review(status: ForgeConstructionStatus) -> list[str]:
@@ -617,7 +661,7 @@ def _changes_words(correction: ForgeTaskCorrection) -> str:
     )
 
 
-def _construction_answer(status: ForgeConstructionStatus) -> Answer:
+def _construction_answer(status: ForgeConstructionStatus) -> Told:
     lines = [
         f"- Construction: {status.construction_id}",
         f"- State: {_CONSTRUCTION_STATE_WORDS[status.state]}",
@@ -680,16 +724,49 @@ def _construction_answer(status: ForgeConstructionStatus) -> Answer:
                 "yourself with forge correct-task.",
             )
         )
-    next_command = (
-        _command("forge", "construct-start", status.construction_id)
-        if status.state == "prepared"
-        else _command("forge", "collect", status.construction_id)
-        if ended and usable >= MINIMUM_COLLECTION_TASKS
-        else None
-    )
-    answer = _answer(status, lines, warnings=warnings, next_command=next_command)
-    answer["review"] = list(_construction_review(status))
-    return answer
+    if status.state == "prepared":
+        steps = [
+            _step(
+                "Send the tasks to the creator: it shows what is sent and asks first.",
+                "forge",
+                "construct-start",
+                status.construction_id,
+            )
+        ]
+    elif not ended:
+        steps = [
+            _step("The creator is working; check again.", "forge", "status", status.construction_id)
+        ]
+    elif usable >= MINIMUM_COLLECTION_TASKS:
+        steps = [
+            _step(
+                "Collect the usable tasks into a collection.",
+                "forge",
+                "collect",
+                status.construction_id,
+            )
+        ]
+    else:
+        steps = [
+            _step(
+                "Too few usable tasks: correct one yourself from a folder you wrote.",
+                "forge",
+                "correct-task",
+                status.construction_id,
+                "<task name>",
+                "<folder>",
+            ),
+            _step(
+                "Or add tasks to the proposal, then build it again with forge construct.",
+                "forge",
+                "correct-proposal",
+                status.record.review.proposal_id,
+                "<edited copy>",
+            ),
+        ]
+    told = _answer(status, lines, warnings=warnings, next_steps=steps)
+    told.answer["review"] = list(_construction_review(status))
+    return told
 
 
 # ---------------------------------------------------------------------------
@@ -701,7 +778,7 @@ def collect(construction_id: str, task: tuple[str, ...], as_json: bool) -> None:
     status = prepare_collection(
         paths.home(), construction_id=construction_id, task_names=list(task) or None
     )
-    emit(_collection_answer(status), as_json=as_json)
+    _emit(_collection_answer(status), as_json=as_json)
 
 
 def accept(collection_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -> None:
@@ -717,7 +794,7 @@ def accept(collection_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool
         why="Accepting is the person's decision about which tasks make the collection, and it "
         "freezes them.",
     )
-    emit(
+    _emit(
         _collection_answer(
             accept_collection(home, collection_id, reviewed_on=reviewed_on, yes=yes)
         ),
@@ -729,13 +806,13 @@ def verify(collection_id: str, as_json: bool) -> None:
     status = verify_collection(paths.home(), collection_id)
     members = status.record.review.members
     held_out = sum(member.part == "held_out" for member in members)
-    answer = _collection_answer(status)
-    answer["report"] = (
+    told = _collection_answer(status)
+    told.answer["report"] = (
         f"Verified: collection {collection_id} holds exactly the files and qualification "
         f"accepted for its {len(members)} {_plural(len(members), 'task', 'tasks')}, {held_out} "
-        "of them held out.\n\n" + str(answer["report"])
+        "of them held out.\n\n" + str(told.answer["report"])
     )
-    emit(answer, as_json=as_json)
+    _emit(told, as_json=as_json)
 
 
 def export(collection_id: str, to: Path, as_json: bool) -> None:
@@ -764,7 +841,11 @@ def export(collection_id: str, to: Path, as_json: bool) -> None:
             ]
         ),
     }
-    emit(answer, as_json=as_json)
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[done("The collection is in the folder; nothing more to run.")],
+    )
 
 
 def _collection_review(status: ForgeCollectionStatus) -> list[str]:
@@ -811,7 +892,7 @@ def _candidate_words(task: ForgeCollectionCandidate) -> str:
     return went + ("" if task.why is None else f": {task.why}") + "; not corrected by a person"
 
 
-def _collection_answer(status: ForgeCollectionStatus) -> Answer:
+def _collection_answer(status: ForgeCollectionStatus) -> Told:
     state = "prepared; not accepted yet" if status.acceptance is None else "accepted; frozen"
     lines = [f"- Collection: {status.collection_id}", f"- State: {state}"]
     if status.acceptance is not None:
@@ -839,12 +920,50 @@ def _collection_answer(status: ForgeCollectionStatus) -> Answer:
                 f"{-(-VERDICT_MINIMUM_PAIRS // held_out)} repetitions per task.",
             )
         )
-    verb = "accept" if status.acceptance is None else "verify"
-    answer = _answer(
-        status, lines, warnings=warnings, next_command=_command("forge", verb, status.collection_id)
-    )
-    answer["review"] = list(_collection_review(status))
-    return answer
+    if status.acceptance is None:
+        steps = [
+            human("Your person reads each task before the collection is accepted."),
+            _step(
+                "Then accept it: it shows the tasks and asks first.",
+                "forge",
+                "accept",
+                status.collection_id,
+            ),
+        ]
+    else:
+        steps = [
+            _step(
+                "Run the baseline arm on it, with the provider and model your person chooses.",
+                "forge",
+                "run",
+                "--arm",
+                ForgeArm.BASELINE.value,
+                "--collection",
+                status.collection_id,
+                "--provider",
+                "<provider>",
+                "--model",
+                "<model>",
+            ),
+            _step(
+                "And the candidate arm, with the Skill.",
+                "forge",
+                "run",
+                "--arm",
+                ForgeArm.CANDIDATE.value,
+                "--collection",
+                status.collection_id,
+                "--provider",
+                "<provider>",
+                "--model",
+                "<model>",
+                "--skill",
+                "<Skill folder>",
+            ),
+        ]
+    told = _answer(status, lines, warnings=warnings, next_steps=steps)
+    told.answer["review"] = list(_collection_review(status))
+    return told
 
 
 # ---------------------------------------------------------------------------
@@ -898,7 +1017,7 @@ def run(
         question="Start this experiment?",
         why="An experiment makes model calls on the person's own account.",
     )
-    emit(_run_answer(run_arm(home, spec, skill)), as_json=as_json)
+    _emit(_run_answer(run_arm(home, spec, skill)), as_json=as_json)
 
 
 def run_review_lines(spec: ForgeRunSpec, *, hidden: frozenset[str] = frozenset()) -> list[str]:
@@ -953,7 +1072,7 @@ def _toolset_words(spec: ForgeRunSpec) -> str:
     return words[0] if len(words) == 1 else f"{', '.join(words[:-1])} and {words[-1]}"
 
 
-def _run_answer(status: ForgeRunStatus) -> Answer:
+def _run_answer(status: ForgeRunStatus) -> Told:
     spec = status.spec
     record = status.record
     limits = spec.limits
@@ -1020,20 +1139,20 @@ def _run_answer(status: ForgeRunStatus) -> Answer:
         else []
     )
     pair = (
-        f"BASELINE_RUN_ID {status.run_id}"
+        ["<baseline run id>", status.run_id]
         if spec.arm is ForgeArm.CANDIDATE
-        else f"{status.run_id} CANDIDATE_RUN_ID"
+        else [status.run_id, "<candidate run id>"]
     )
     return _answer(
         status,
         lines,
         warnings=warnings,
-        next_words=f"{_command('forge', 'compare')} {pair}, once both arms have run",
+        next_steps=[_step("Compare the two arms, once both have run.", "forge", "compare", *pair)],
     )
 
 
 def compare(baseline_run: str, candidate_run: str, as_json: bool) -> None:
-    emit(
+    _emit(
         _comparison_answer(compare_runs(paths.home(), baseline_run, candidate_run)), as_json=as_json
     )
 
@@ -1072,7 +1191,7 @@ def _attempts(attempts: list[int]) -> str:
     return f"{_plural(len(attempts), 'attempt', 'attempts')} {', '.join(map(str, attempts))}"
 
 
-def _comparison_answer(status: ForgeComparisonStatus) -> Answer:
+def _comparison_answer(status: ForgeComparisonStatus) -> Told:
     record = status.record
     baseline_skill = record.baseline_skill
     lines = [
@@ -1142,8 +1261,15 @@ def _comparison_answer(status: ForgeComparisonStatus) -> Answer:
         status,
         lines,
         warnings=warnings,
-        next_words="show the person the verdicts and the report, and let them decide; to revise "
-        f"the Skill, {_command('uplift', 'context', status.comparison_id)}",
+        next_steps=[
+            human("Show your person the verdicts and the report, and let them decide."),
+            _step(
+                "To revise the Skill, build the context a revision starts from.",
+                "uplift",
+                "context",
+                status.comparison_id,
+            ),
+        ],
     )
 
 
@@ -1158,7 +1284,7 @@ def _side_words(outcome: ForgeAttemptOutcome | None, reward: float | None) -> st
 # ---------------------------------------------------------------------------
 
 
-def _build_answer(status: ForgeBuildStatus) -> Answer:
+def _build_answer(status: ForgeBuildStatus) -> Told:
     source = status.build.source
     qualification = status.qualification
     committed = len(status.build.task_set.tasks)
@@ -1200,7 +1326,7 @@ def _build_answer(status: ForgeBuildStatus) -> Answer:
     return _answer(status, lines, warnings=warnings)
 
 
-def _revision_answer(status: ForgeRevisionStatus) -> Answer:
+def _revision_answer(status: ForgeRevisionStatus) -> Told:
     """A revision as a person sees it: every screening finding, held-out tasks included."""
     record = status.record
     shared = len(record.screening)
@@ -1247,7 +1373,7 @@ def _revision_answer(status: ForgeRevisionStatus) -> Answer:
 
 
 #: One reader per ID prefix, each giving the answer that record's own command gives.
-_STATUS: Final[dict[str, Callable[[TechtreePaths, str], Answer]]] = {
+_STATUS: Final[dict[str, Callable[[TechtreePaths, str], Told]]] = {
     "forgesrc": lambda home, record_id: _source_answer(read_source_status(home, record_id)),
     "forgeplan": lambda home, record_id: _plan_answer(read_plan_status(home, record_id)),
     "forgeprop": lambda home, record_id: _proposal_answer(
@@ -1273,7 +1399,7 @@ def status(record_id: str, as_json: bool) -> None:
             code="forge_record_unknown",
             details={"id": record_id},
         )
-    emit(reader(paths.home(), record_id), as_json=as_json)
+    _emit(reader(paths.home(), record_id), as_json=as_json)
 
 
 # ---------------------------------------------------------------------------

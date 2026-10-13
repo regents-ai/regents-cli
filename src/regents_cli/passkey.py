@@ -33,6 +33,7 @@ from eth_account import Account
 from eth_account.messages import encode_defunct
 
 from regents_cli.errors import EXIT_AUTH, CommandError
+from regents_cli.next_steps import human
 from regents_cli.output import stderr
 
 BOX_INFO = b"agent key box"
@@ -160,9 +161,13 @@ def _ask_helper(path: str, request: dict[str, Any]) -> dict[str, Any] | None:
             f"{HELPER_ANSWER_SECONDS} seconds, so this command stopped and sent nothing. Anything "
             "the helper signed after that stays with it.",
             exit_code=EXIT_AUTH,
-            hint="Stop the stuck helper (the process running regents_cli.passkey or "
-            "siwa_agent key-helper) or restart this Mac, then run the command again; Touch ID "
-            "is asked once.",
+            next_steps=[
+                human(
+                    "Your person stops the stuck helper (the process running regents_cli.passkey "
+                    "or siwa_agent key-helper) or restarts this Mac. Then run the command again; "
+                    "Touch ID is asked once."
+                )
+            ],
         ) from None
     except (FileNotFoundError, ConnectionRefusedError, BrokenPipeError, ConnectionResetError):
         return None

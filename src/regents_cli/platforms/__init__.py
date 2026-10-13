@@ -74,6 +74,28 @@ class Pagination:
 
 
 @dataclass(frozen=True, slots=True)
+class FollowUp:
+    """A step the site names for after a command's answer: another of its commands, filled from
+    the answer, something a person does, or the end of the work."""
+
+    kind: Literal["run", "human", "done"]
+    say: str
+    command: str | None
+    arguments: dict[str, str]
+    url: str | None
+
+    @classmethod
+    def parse(cls, raw: dict[str, Any]) -> FollowUp:
+        return cls(
+            kind=raw["kind"],
+            say=raw["say"],
+            command=raw.get("command"),
+            arguments=raw.get("arguments", {}),
+            url=raw.get("url"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class Command:
     words: tuple[str, ...]
     description: str
@@ -89,6 +111,7 @@ class Command:
     stdin_fields: tuple[StdinField, ...]
     timeout_ms: int
     pagination: Pagination | None
+    next_steps: tuple[FollowUp, ...]
 
     @property
     def group_words(self) -> tuple[str, ...]:
@@ -121,6 +144,7 @@ class Command:
             stdin_fields=tuple(StdinField.parse(s) for s in raw.get("stdin_fields", [])),
             timeout_ms=raw.get("timeout_ms", DEFAULT_TIMEOUT_MS),
             pagination=Pagination(**pagination) if pagination else None,
+            next_steps=tuple(FollowUp.parse(s) for s in raw.get("next_steps", [])),
         )
 
 

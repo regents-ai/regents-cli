@@ -3,7 +3,8 @@
 Every command tree shows what a person reads through the same few blocks: a summary of
 fields, a table of records, a check list with one mark per check, a compact Markdown report,
 text shown exactly as it is, the review a person reads before agreeing to something, and one
-shape of failure. At a terminal they are styled; in a pipe they are plain text.
+shape of failure. Every answer and every failure ends with what to do next (`next_steps`).
+At a terminal they are styled; in a pipe they are plain text.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from rich.table import Table
 from rich.text import Text
 
 from regents_cli.errors import CommandError
+from regents_cli.next_steps import Kind, Step
 
 stdout = Console(highlight=False)
 stderr = Console(stderr=True, highlight=False)
@@ -40,6 +42,13 @@ MARKS: dict[CheckStatus, tuple[str, str]] = {
     "skip": ("-", "dim"),
 }
 
+STEP_MARKS: dict[Kind, tuple[str, str]] = {
+    "done": ("✓", "bold green"),
+    "run": ("→", "bold cyan"),
+    "human": ("!", "bold yellow"),
+    "patchbay": ("↗", "bold magenta"),
+}
+
 
 @dataclass(frozen=True)
 class Check:
@@ -50,21 +59,34 @@ class Check:
     detail: str
 
 
-def emit(value: Any, *, as_json: bool, hint: str | None = None) -> None:
-    """The answer: as JSON, or as a summary, table or check list read off its shape."""
+def emit(
+    value: dict[str, Any],
+    *,
+    as_json: bool,
+    next_steps: Sequence[Step],
+    shown: Sequence[RenderableType] | None = None,
+) -> None:
+    """The answer and what to do next: as JSON, with `next_steps` beside the answer's fields,
+    or as blocks read off the answer's shape (or `shown`, when that says it better) and a Next
+    block."""
+    if not next_steps:
+        raise ValueError("Every answer says what to do next.")
     if as_json:
-        sys.stdout.write(json.dumps(value, ensure_ascii=False) + "\n")
+        steps = [step.as_json() for step in next_steps]
+        sys.stdout.write(json.dumps({**value, "next_steps": steps}, ensure_ascii=False) + "\n")
         return
-    show(_renderable(value))
-    if hint:
-        stdout.print(Text(hint, style="dim"))
+    show(*(shown if shown is not None else [_renderable(value)]), _next(next_steps))
 
 
-def emit_error(error: CommandError, *, as_json: bool) -> None:
+def emit_error(error: CommandError, next_steps: Sequence[Step], *, as_json: bool) -> None:
+    """The failure and what to do about it, with `next_steps` beside `error` in JSON."""
     if as_json:
-        sys.stdout.write(json.dumps(error.as_json(), ensure_ascii=False) + "\n")
+        steps = [step.as_json() for step in next_steps]
+        sys.stdout.write(
+            json.dumps({**error.as_json(), "next_steps": steps}, ensure_ascii=False) + "\n"
+        )
         return
-    stderr.print(_failure(error), crop=False)
+    stderr.print(_spaced([_failure(error), _next(next_steps)]), crop=False)
 
 
 def show(*blocks: RenderableType) -> None:
@@ -135,6 +157,19 @@ def _failure(error: CommandError) -> RenderableType:
     if fields:
         blocks.append(_indented(_renderable(fields)))
     return Group(*blocks)
+
+
+def _next(steps: Sequence[Step]) -> RenderableType:
+    """One line per step, marked by its kind; a command or address on its own line, whole, so
+    it can be copied as it is."""
+    lines: list[RenderableType] = [Text("Next", style="bold")]
+    for step in steps:
+        mark, style = STEP_MARKS[step.kind]
+        lines.append(Text.assemble(("  " + mark + " ", style), step.say))
+        for exact in (step.command, step.url):
+            if exact is not None:
+                lines.append(Text("    " + exact, style="cyan", no_wrap=True, overflow="ignore"))
+    return Group(*lines)
 
 
 def _renderable(value: Any) -> RenderableType:

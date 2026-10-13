@@ -26,9 +26,9 @@ def test_nobody_to_ask_never_prompts_and_returns_the_command_to_approve() -> Non
             question="Publish?",
             why="Publishing needs a person's agreement.",
         )
-    error = refused.value.as_json()["error"]
-    assert error["review"] == REVIEW
-    assert error["approval"]["command"] == (
+    assert refused.value.as_json()["error"]["review"] == REVIEW
+    assert [step.kind for step in refused.value.next_steps] == ["human", "run"]
+    assert refused.value.next_steps[-1].command == (
         "regents techtree publish run_x --yes --reviewed-on host-agent"
     )
 

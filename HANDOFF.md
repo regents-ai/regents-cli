@@ -23,6 +23,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
 - `src/regents_cli/auth.py`: `regents auth login | status | logout`.
 - `src/regents_cli/doctor.py`: `regents <site> doctor`, the same checks for every site.
 - `src/regents_cli/output.py`: readable output, `--json`, and the shared error shape.
+- `src/regents_cli/next_steps.py`: what every answer and failure says comes next, always one
+  or more of done, run, human or a patchbay.help post (founder, 2026-10-13: 1a 2b 3a).
+  `output.emit` refuses an answer without steps; failures get theirs from `for_failure`, read
+  from the error's status and code, unless the error names its own.
 - `src/regents_cli/errors.py`: the exit codes.
 - `src/regents_cli/platforms/`: each site's pinned files, copied by `make sync` from
   `platforms.lock.json`, read at the pinned commit from the site's checkout beside this one

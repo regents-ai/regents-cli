@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
-from typing import ClassVar
+from collections.abc import Mapping, Sequence
+from typing import Any, ClassVar
 
 from regents_cli.errors import (
     EXIT_AUTH,
@@ -14,6 +14,7 @@ from regents_cli.errors import (
     EXIT_USAGE,
     CommandError,
 )
+from regents_cli.next_steps import Step
 
 
 class TechtreeError(CommandError):
@@ -28,13 +29,16 @@ class TechtreeError(CommandError):
         *,
         code: str | None = None,
         details: Mapping[str, object] | None = None,
+        next_steps: Sequence[Step] = (),
     ) -> None:
         self.details = dict(details or {})
+        fields: dict[str, Any] = {"details": self.details} if self.details else {}
         super().__init__(
             code or self.default_code,
             message,
             exit_code=self.default_exit_code,
-            **({"details": self.details} if self.details else {}),
+            next_steps=next_steps,
+            **fields,
         )
 
     def __str__(self) -> str:

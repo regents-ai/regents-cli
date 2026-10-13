@@ -83,6 +83,7 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) 
     shapes = Counter(re.sub(r"<[^>]+>", "<>", c["command"]) for c in description["commands"])
     problems += [f'two commands have the shape "{shape}"' for shape, n in shapes.items() if n > 1]
 
+    described = {c["command"]: c for c in description["commands"]}
     for entry in description["commands"]:
 
         def say(message: str, entry: dict[str, Any] = entry) -> None:
@@ -134,6 +135,23 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) 
         pagination = entry.get("pagination")
         if pagination and pagination["flag"] not in flag_names:
             say(f"pagination passes the cursor as --{pagination['flag']}, which is not a flag")
+
+        for step in entry.get("next_steps", []):
+            if step["kind"] == "done" and "url" in step:
+                say("next_steps: only a human step names a url")
+            if step["kind"] != "run":
+                continue
+            target = described.get(step["command"])
+            if target is None:
+                say(f"next_steps runs {step['command']}, which is not one of its commands")
+                continue
+            words = [w[1:-1] for w in step["command"].split(" ") if w.startswith("<")]
+            if sorted(step.get("arguments", {})) != sorted(words):
+                say(f"next_steps: arguments must fill exactly the <words> of {step['command']}")
+            if target.get("required_one_of") or any(
+                f.get("required") for f in target.get("flags", [])
+            ):
+                say(f"next_steps runs {step['command']}, which needs flags a step can't fill")
 
         operation = operations.get(entry["operation_id"])
         if operation is None:

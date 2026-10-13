@@ -15,6 +15,7 @@ from eth_utils.crypto import keccak
 
 from regents_cli import siwa
 from regents_cli.errors import EXIT_UNREACHABLE, CommandError
+from regents_cli.next_steps import human
 
 BASE_RPC = "https://mainnet.base.org"
 
@@ -90,7 +91,11 @@ def send(key: siwa.Key, step: dict[str, Any], timeout_ms: int) -> str:
         raise CommandError(
             error.code,
             error.message,
-            hint=f"{sender} sends this transaction and pays its gas, so it needs a little ETH "
-            "on Base.",
+            next_steps=[
+                human(
+                    f"{sender} sends this transaction and pays its gas, so it needs a little ETH "
+                    "on Base. Your person sends some there, then run this again."
+                )
+            ],
         ) from None
     return sent
