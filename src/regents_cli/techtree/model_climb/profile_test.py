@@ -91,11 +91,19 @@ DECIDING_FIXTURE: Final = "invoice-fields"
 VERIFIERS_VERSION: Final = "0.3.2.dev208"
 EGRESS: Final = ("huggingface.co",)
 PLAN_LIFETIME: Final = timedelta(hours=24)
+#: An attempt's folder: the job as submitted, and the month's image-build usage read before it.
+JOB_FILE: Final = "job.json"
+BUILDS_BEFORE_FILE: Final = "builds-before.json"
+#: The provider stops an image build here; it is the only limit on the build (contract 6.1).
 BUILD_TIMEOUT_MINUTES: Final = 60
-#: The adapter's log-probabilities must move by more than this, and by more than this many
-#: times what two identical requests to the base model differ by (contract 7.4).
+#: A grant states its hours in hundredths, which say a whole number of minutes exactly only
+#: when that number is a multiple of this; a plan's minutes are one, so plan, grant and job
+#: name the same figure.
+MINUTE_STEP: Final = 3
 #: What Dockerfile.gpu sets so that a step which tries to install fails instead (contract 6.1).
 PACKAGE_TOOLS: Final[dict[str, str | None]] = {"UV_FROZEN": "1", "UV_NO_INDEX": "1"}
+#: The adapter's log-probabilities must move by more than this, and by more than this many
+#: times what two identical requests to the base model differ by (contract 7.4).
 SIGNAL_FLOOR: Final = 0.01
 SIGNAL_OVER_NOISE: Final = 10
 
@@ -103,13 +111,10 @@ HUB_TOKEN: Final = "none: the pinned model is public, and the job holds no token
 INSTALLS: Final = (
     "Every Python package is the wheel a lock names by sha256, or the git commit it pins: "
     "prime-rl's own lock, and the lock in the image folder for the small program Verifiers "
-    "runs as the model's side of an evaluation. Ubuntu's system packages are not pinned by "
-    "hash: they come from its signed archive into a base image named by digest. Nothing is "
-    "installed while the job runs."
-)
-BUILD: Final = (
-    "The image build is outside the maximum. The provider bills builds after a monthly free "
-    "allowance and publishes neither the allowance nor the rate."
+    "runs as the model's side of an evaluation. Two things are not pinned by hash: the tools "
+    "that build the few packages installed from source, fetched when the image is built, and "
+    "Ubuntu's system packages, which come from its signed archive into a base image named by "
+    "digest. Nothing is installed while the job runs."
 )
 EGRESS_NOTE: Final = "declared and not enforced by the provider"
 LIMITATIONS: Final = (
@@ -219,6 +224,18 @@ def minutes_within(max_cents: int, micros_per_gpu_minute: int, gpu_count: int) -
     return max_cents * MICROS_PER_CENT // (micros_per_gpu_minute * gpu_count)
 
 
+def build_notice(max_cents: int, minutes: int, gpu_count: int) -> str:
+    """What a grant's figure covers and what it does not (contract 6.1)."""
+    figure = f"${max_cents // 100}.{max_cents % 100:02d}"
+    return (
+        f"The {figure} is for GPU time only: {minutes} minutes on {gpu_count} GPUs. Building "
+        "the software image is billed separately by the provider: it stops the build at "
+        f"{BUILD_TIMEOUT_MINUTES} minutes, it is free within the provider's monthly allowance, "
+        "and past that it is charged at a rate the provider does not publish. That charge is "
+        f"not in the {figure}."
+    )
+
+
 def cents_per_gpu_hour(micros_per_gpu_minute: int) -> int:
     return cents(micros_per_gpu_minute * 60)
 
@@ -242,10 +259,11 @@ def draft_plan(
 ) -> Drafted:
     """Write the test's plan and the four objects it names into the store."""
     report_path, report_digest = dry_run_report(store, profile)
-    minutes = minutes_within(max_cents, micros_per_gpu_minute, profile.gpu_count)
+    affordable = minutes_within(max_cents, micros_per_gpu_minute, profile.gpu_count)
+    minutes = affordable - affordable % MINUTE_STEP
     if minutes < 1:
         raise ValidationError(
-            f"{max_cents} cents buys less than one minute on {profile.gpu_count} "
+            f"{max_cents} cents buys less than {MINUTE_STEP} minutes on {profile.gpu_count} "
             f"{profile.gpu_model} GPUs at the rate read now",
             details={"micros_per_gpu_minute": micros_per_gpu_minute},
         )
@@ -777,7 +795,7 @@ def advance(
     if intent_id is None:
         intent_id = _begin(store, provider, profile, plan, grant, context)
     folder = store.attempts_dir / intent_id
-    body = fs.read_json(folder / "job.json")
+    body = fs.read_json(folder / JOB_FILE)
     assert isinstance(body, dict)
     # The use is on the ledger before the job is submitted, never after (contract 6).
     grants.use(store, service, envelope, intent_id=intent_id, now=now)
@@ -862,8 +880,11 @@ def _begin(
             code=BUDGET_EXHAUSTED,
             details={"grant_id": grant.grant_id, "max_cost_usd_micros": ceiling},
         )
+    builds_before = provider.build_usage()
     intent_id = new_id("attempt")
-    fs.atomic_write_json(store.attempts_dir / intent_id / "job.json", body)
+    folder = store.attempts_dir / intent_id
+    fs.atomic_write_json(folder / JOB_FILE, body)
+    fs.atomic_write_json(folder / BUILDS_BEFORE_FILE, builds_before)
     return intent_id
 
 
@@ -913,7 +934,12 @@ def _collect(
         "measured_cost_cents": cents(job.receipt.charged_usd_micros),
         "charged_usd_micros": job.receipt.charged_usd_micros,
         "billed_seconds_per_gpu": job.receipt.billed_seconds,
-        "build_usage": provider.build_usage(),
+        # The month's image-build minutes as the provider's usage gives them, read before the
+        # job was submitted and now; the build of this run is what was added in between.
+        "build_usage": {
+            "before_submit": fs.read_json(store.attempts_dir / intent_id / BUILDS_BEFORE_FILE),
+            "after": provider.build_usage(),
+        },
         "egress": {"declared": [*plan.spec.egress], "enforcement": EGRESS_NOTE},
         "hub_token": HUB_TOKEN,
         "installs": INSTALLS,

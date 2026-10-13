@@ -1,9 +1,10 @@
 """San Francisco Compute's Autoresearch batch jobs, over its HTTP API (contract 6.1).
 
 The engine signs in with the operator's service token, read from `GMN_TOKEN`; it is never
-printed, stored or sent anywhere but that API. Seven calls are all the engine makes: read
-the rate, read whether the operator's mission exists, ask whether a job would be taken, submit
-one job, find a job by its label, read a job, and cancel a job.
+printed, stored or sent anywhere but that API. Eight calls are all the engine makes: read
+the rate, read whether the operator's mission exists, read the month's image-build usage, ask
+whether a job would be taken, submit one job, find a job by its label, read a job, and cancel a
+job.
 
 Autoresearch publishes what each call takes and describes what it answers in prose. The answer
 fields read here are the ones its manual names (read 13 Oct 2026). An answer without one of

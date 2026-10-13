@@ -5,6 +5,7 @@ a machine, and only under a grant a person issued at this machine's terminal."""
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from dataclasses import replace
@@ -315,12 +316,19 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
             code=RUNNER_UNAVAILABLE,
             details={"mission": mission},
         )
+    builds = provider.build_usage()
     drafted = profile_test.draft_plan(
         store, profile, max_cents=max_cents, micros_per_gpu_minute=rate, now=now
     )
     spec = drafted.plan.spec
-    # Hundredths of an hour, never more than the plan's minutes.
-    hours = Decimal(drafted.minutes * 60 // 36) / 100
+    # Exact: a plan's minutes are a multiple of three.
+    hours = Decimal(drafted.minutes) / 60
+    notice = profile_test.build_notice(max_cents, drafted.minutes, spec.compute.gpu_count)
+    builds_line = (
+        "Image builds this month, as the provider's usage gives them: " + json.dumps(builds)
+        if builds is not None
+        else "The provider's usage shows no image builds this month."
+    )
     next_action = (
         f"regents techtree model-climb grant issue --plan {drafted.plan.digest} "
         f"--operation {PROFILE_TEST} --max-usd {_dollars(max_cents)} --max-hours {hours} "
@@ -347,7 +355,8 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
         "max_cents": max_cents,
         "worst_case_cents": drafted.worst_case_cents,
         "enforcement": spec.budget.enforcement,
-        "build": profile_test.BUILD,
+        "build": notice,
+        "build_usage": builds,
         "egress": {"declared": list(spec.egress), "enforcement": profile_test.EGRESS_NOTE},
         "hub_token": profile_test.HUB_TOKEN,
         "installs": profile_test.INSTALLS,
@@ -372,7 +381,8 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
                         f"- Longest run: {drafted.minutes} minutes, which is "
                         f"${_dollars(drafted.worst_case_cents)} at that rate, of the "
                         f"${_dollars(max_cents)} reserved",
-                        f"- {profile_test.BUILD}",
+                        f"- {notice}",
+                        f"- {builds_line}",
                         f"- May reach: {', '.join(spec.egress)} ({profile_test.EGRESS_NOTE})",
                         f"- Hub token: {profile_test.HUB_TOKEN}",
                         f"- Installs: {profile_test.INSTALLS}",
@@ -529,13 +539,21 @@ def grant_issue(
     )
     review = _grant_review(grant)
     dollars = _dollars(grant.max_cents)
+    # What the typed figure covers and what it does not (contract 6.1).
+    covers = (
+        profile_test.build_notice(
+            grant.max_cents, grant.max_wall_time_seconds // 60, grant.gpu_count
+        )
+        if grant.operation == PROFILE_TEST
+        else None
+    )
     if as_json or not (sys.stdin.isatty() and sys.stdout.isatty()):
         raise PolicyError(
             "a grant is issued only by a person at this machine's terminal, who answers for "
             f"the account's spending limit and types the grant's maximum, {dollars}, to "
             "confirm. Show the person the review; they run this command themselves.",
             code=grants.APPROVAL_REQUIRED,
-            details={"review": list(review)},
+            details={"review": list(review), "covers": covers},
         )
     output.show(output.review(review))
     attested: dict[str, bool] = {}
@@ -548,8 +566,10 @@ def grant_issue(
                 "the plan counts on the account's spending limit, and that was not attested, "
                 "so no grant was issued"
             )
+    if covers is not None:
+        output.show(output.report(covers))
     typed = click.prompt(
-        f"Type the most this grant may spend, {dollars}, to issue it",
+        f"Type the most this grant may spend on GPU time, {dollars}, to issue it",
         default="",
         show_default=False,
     )
@@ -627,7 +647,8 @@ def _grant_review(grant: ExecutionGrant) -> list[str]:
         f"  recipe {grant.recipe}",
         f"Compute: {grant.gpu_count} x {grant.gpu_model} at {grant.provider}",
         f"  mission {grant.mission}",
-        f"Spends at most ${_dollars(grant.max_cents)} and runs at most {hours.normalize()} hours",
+        f"Rents GPU time for at most ${_dollars(grant.max_cents)} and runs at most "
+        f"{hours.normalize()} hours",
         f"At most {grant.max_attempts} attempt(s), {grant.max_parallel_jobs} at a time",
         "May reach: " + (", ".join(grant.egress) if grant.egress else "nothing beyond the job"),
         f"Workspace {grant.workspace}; for actor {grant.actor_key_id}",

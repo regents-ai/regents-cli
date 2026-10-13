@@ -5,9 +5,10 @@
 #
 # Every Python package is installed by `uv sync --locked`, so each is the wheel a lock names by
 # sha256 or the git commit it pins: prime-rl's own lock, and chat-program.lock in this folder
-# for the small program Verifiers runs as the model's side of an evaluation. The system packages
-# come from Ubuntu's signed archive into a base image named by digest; they are not pinned by
-# hash. Nothing is installed while the job runs.
+# for the small program Verifiers runs as the model's side of an evaluation. Two things are not
+# pinned by hash: the tools that build the few packages installed from source (uv fetches them
+# when the image is built), and the system packages, which come from Ubuntu's signed archive into
+# a base image named by digest. Nothing is installed while the job runs.
 
 FROM nvidia/cuda:13.0.1-cudnn-devel-ubuntu24.04@sha256:8b2705ea7a8653ad3451b46ab835eced92d77b44e671b9cf3ad4f95fbb2efe5e
 
