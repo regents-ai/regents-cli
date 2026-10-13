@@ -456,20 +456,29 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
             ],
         )
         return
+    document = reached.document
+    measured_cost = document["measured_cost_cents"]
+    cost_line = "Measured cost, from the provider's receipt: " + (
+        "it gave no figure" if measured_cost is None else f"${_dollars(cast(int, measured_cost))}"
+    )
+    builds = cast(dict[str, JsonValue], document["build_usage"])
+    builds_line = profile_test.builds_sentence(builds)
     failed = [check.label for check in reached.checks if check.status == "fail"]
     if failed:
         raise ValidationError(
             f"the {profile.name} paid test found {len(failed)} problem(s); the measured "
-            f"profile is at {reached.path}",
+            f"profile is at {reached.path}. {cost_line}. {builds_line}",
             code="verification_error",
             details={
                 "profile_path": str(reached.path),
                 "profile_digest": reached.digest,
                 "failed_checks": failed,
+                "measured_cost_cents": measured_cost,
+                "charged_usd_micros": document["charged_usd_micros"],
+                "billed_seconds_per_gpu": document["billed_seconds_per_gpu"],
+                "build_usage": builds,
             },
         )
-    document = reached.document
-    measured_cost = document["measured_cost_cents"]
     emit(
         {
             "schema_version": OPERATION_SCHEMA_VERSION,
@@ -491,12 +500,8 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
                         f"- Measured profile: {reached.digest}",
                         f"- File: {reached.path}",
                         f"- Built image: {document['image_digest']}",
-                        "- Measured cost: "
-                        + (
-                            "the provider's receipt gave no figure"
-                            if measured_cost is None
-                            else f"${_dollars(cast(int, measured_cost))}"
-                        ),
+                        f"- {cost_line}",
+                        f"- {builds_line}",
                         f"- Egress: {profile_test.EGRESS_NOTE}",
                     ]
                 )

@@ -865,7 +865,7 @@ def _advance(
         )
     except SubmissionRefusedError:
         # No job exists, so the attempt is over; its use stays spent.
-        _finish(folder, "failed", None, None)
+        _finish(folder, "failed", None, None, None)
         raise
     try:
         return _follow(store, identity, provider, profile, plan, envelope, intent_id, job_id, now)
@@ -1013,7 +1013,8 @@ def _stop(
     ran, and is never filled in when the provider gives no figure (contract 7.4 step 3)."""
     provider.cancel(job_id)
     receipt = provider.job(job_id).receipt
-    _finish(folder, end, None, receipt)
+    builds = _build_usage(provider, folder)
+    _finish(folder, end, None, receipt, builds)
     charged = receipt.charged_usd_micros if receipt else None
     return kind(
         f"job {job_id} was cancelled: {why}. "
@@ -1022,14 +1023,36 @@ def _stop(
             if charged is None
             else f"The provider's receipt shows {cents(charged)} cents charged."
         )
-        + " The grant's use is spent.",
+        + f" {builds_sentence(builds)} The grant's use is spent.",
         code=code,
         details={
             "job_id": job_id,
             "intent_id": intent_id,
             "charged_usd_micros": charged,
+            "build_usage": builds,
             **details,
         },
+    )
+
+
+def _build_usage(provider: Autoresearch, folder: Path) -> dict[str, JsonValue]:
+    """The month's image builds as the provider's usage gives them, read before the job was
+    submitted and now. The build of this attempt is what was added in between, and it is the
+    only price of a build the engine is given (contract 6.1)."""
+    return {
+        "before_submit": fs.read_json(folder / BUILDS_BEFORE_FILE),
+        "after": provider.build_usage(),
+    }
+
+
+def builds_sentence(builds: dict[str, JsonValue]) -> str:
+    before, after = (
+        "none" if builds[name] is None else json.dumps(builds[name])
+        for name in ("before_submit", "after")
+    )
+    return (
+        "Image builds this month, as the provider's usage gives them: "
+        f"{before} before the job was submitted, {after} now."
     )
 
 
@@ -1100,10 +1123,15 @@ def _begin(
 
 
 def _finish(
-    folder: Path, exit_reason: AttemptEnd, profile_path: Path | None, receipt: Receipt | None
+    folder: Path,
+    exit_reason: AttemptEnd,
+    profile_path: Path | None,
+    receipt: Receipt | None,
+    builds: dict[str, JsonValue] | None,
 ) -> None:
     """Close the attempt. The two figures are the provider's receipt's, and null when it gave
-    none: no zero stands in for a figure that was not given."""
+    none: no zero stands in for a figure that was not given. The image builds are null when
+    the provider took no job, so built nothing."""
     fs.atomic_write_json(
         folder / "outcome.json",
         {
@@ -1111,6 +1139,7 @@ def _finish(
             "profile": str(profile_path) if profile_path else None,
             "charged_usd_micros": receipt.charged_usd_micros if receipt else None,
             "billed_seconds_per_gpu": receipt.billed_seconds if receipt else None,
+            "build_usage": builds,
         },
     )
 
@@ -1141,6 +1170,7 @@ def _collect(
     folder = store.attempts_dir / intent_id
     submitted: Any = fs.read_json(folder / JOB_FILE)
     charged = job.receipt.charged_usd_micros
+    builds = _build_usage(provider, folder)
     document: dict[str, JsonValue] = {
         "profile": profile.name,
         "tested_at": now.isoformat(),
@@ -1161,12 +1191,7 @@ def _collect(
         "measured_cost_cents": cents(charged) if charged is not None else None,
         "charged_usd_micros": charged,
         "billed_seconds_per_gpu": job.receipt.billed_seconds,
-        # The month's image-build minutes as the provider's usage gives them, read before the
-        # job was submitted and now; the build of this run is what was added in between.
-        "build_usage": {
-            "before_submit": fs.read_json(folder / BUILDS_BEFORE_FILE),
-            "after": provider.build_usage(),
-        },
+        "build_usage": builds,
         "egress": {"declared": [*plan.spec.egress], "enforcement": EGRESS_NOTE},
         "hub_token": HUB_TOKEN,
         "installs": INSTALLS,
@@ -1188,7 +1213,7 @@ def _collect(
         if job.status.startswith("cancel")
         else "failed"
     )
-    _finish(folder, exit_reason, path, job.receipt)
+    _finish(folder, exit_reason, path, job.receipt, builds)
     return Measured(
         intent_id=intent_id,
         job_id=job.id,
