@@ -18,7 +18,7 @@ from typing import Literal
 from pydantic import TypeAdapter
 from pydantic import ValidationError as PydanticValidationError
 
-from regents_cli.techtree.errors import VerificationError
+from regents_cli.techtree.errors import PolicyError
 from regents_cli.techtree.identity.models import ExecutorIdentity
 from regents_cli.techtree.identity.service import IdentityService, verify_signed_object
 from regents_cli.techtree.model_climb.contracts import ExecutionGrant
@@ -30,7 +30,7 @@ from regents_cli.techtree.models.base import (
     UtcDateTime,
 )
 
-LEDGER_INVALID = "grant_ledger_invalid"
+APPROVAL_REQUIRED = "approval_required"
 
 type Event = Literal["issued", "used", "revoked"]
 
@@ -43,6 +43,10 @@ class LedgerLine(ProtocolModel):
     at: UtcDateTime
     #: The attempt a `used` line spends the grant on; no other line carries one.
     intent_id: NonEmptyString | None = None
+    #: The operator's two answers for the account's spending limit (contract 6.1), kept on the
+    #: `issued` line of a grant whose plan counts on that limit.
+    auto_top_up_off: bool | None = None
+    balance_within_monthly_limit: bool | None = None
 
 
 _LINE = TypeAdapter(ObjectEnvelope[LedgerLine])
@@ -56,6 +60,8 @@ def record(
     *,
     at: datetime,
     intent_id: str | None = None,
+    auto_top_up_off: bool | None = None,
+    balance_within_monthly_limit: bool | None = None,
 ) -> None:
     """Sign one line for `grant` and append it, synced to disk before this returns."""
     line = LedgerLine(
@@ -65,6 +71,8 @@ def record(
         nonce=grant.payload.nonce,
         at=at,
         intent_id=intent_id,
+        auto_top_up_off=auto_top_up_off,
+        balance_within_monthly_limit=balance_within_monthly_limit,
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("ab") as handle:
@@ -97,10 +105,10 @@ def lines(
     return found
 
 
-def _invalid(path: Path, number: int, reason: str) -> VerificationError:
-    return VerificationError(
+def _invalid(path: Path, number: int, reason: str) -> PolicyError:
+    return PolicyError(
         f"line {number} of the grant ledger does not hold: {reason}. No grant is admitted "
-        "while the ledger is in this state.",
-        code=LEDGER_INVALID,
-        details={"path": str(path), "line": number},
+        "until a person has looked at the file.",
+        code=APPROVAL_REQUIRED,
+        details={"reason": "grant_ledger_invalid", "path": str(path), "line": number},
     )

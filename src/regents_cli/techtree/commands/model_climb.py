@@ -19,7 +19,7 @@ from regents_cli.http import Request, send
 from regents_cli.techtree import fs, paths
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes, validate_digest
 from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
-from regents_cli.techtree.errors import PolicyError, ValidationError
+from regents_cli.techtree.errors import NotFoundError, PolicyError, ValidationError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
 from regents_cli.techtree.model_climb import grants, ledger, profiles, proof
@@ -49,11 +49,14 @@ BUILT_OPERATIONS: Final = (
 REPORTS_PATH: Final = "/api/model-climb/v1/reports"
 SUBMIT_TIMEOUT_MS: Final = 60_000
 #: What the operator answers for before a grant on a plan that counts on the account's own
-#: spending limit (contract 6.1). Both must hold.
-ATTESTATIONS: Final = (
-    "Is automatic top-up off on the compute account?",
-    "Is the account's balance no more than its monthly spending limit?",
-)
+#: spending limit (contract 6.1), under the name each answer has on the grant's `issued` ledger
+#: line. Both must hold.
+ATTESTATIONS: Final = {
+    "auto_top_up_off": "Is automatic top-up off on the compute account?",
+    "balance_within_monthly_limit": (
+        "Is the account's balance no more than its monthly spending limit?"
+    ),
+}
 _DURATION: Final = re.compile(r"^(\d+)([mhd])$")
 _UNITS: Final = {"m": "minutes", "h": "hours", "d": "days"}
 
@@ -347,9 +350,12 @@ def grant_issue(
             details={"review": list(review)},
         )
     output.show(output.review(review))
+    attested: dict[str, bool] = {}
     if grants.stored_plan(store, plan_digest).spec.budget.credit_ceiling_attested:
-        attested = all(click.confirm(question, default=False) for question in ATTESTATIONS)
-        if not attested:
+        attested = {
+            name: click.confirm(question, default=False) for name, question in ATTESTATIONS.items()
+        }
+        if not all(attested.values()):
             raise ValidationError(
                 "the plan counts on the account's spending limit, and that was not attested, "
                 "so no grant was issued"
@@ -365,7 +371,15 @@ def grant_issue(
         )
     envelope = service.sign_object(grant)
     path = store.put_grant(envelope)
-    ledger.record(store.ledger_path, service, envelope, "issued", at=grant.issued_at)
+    ledger.record(
+        store.ledger_path,
+        service,
+        envelope,
+        "issued",
+        at=grant.issued_at,
+        auto_top_up_off=attested.get("auto_top_up_off"),
+        balance_within_monthly_limit=attested.get("balance_within_monthly_limit"),
+    )
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
         "operation_id": GRANT_ISSUE,
@@ -390,7 +404,11 @@ def grant_revoke(grant_id: str, as_json: bool) -> None:
     store = _store()
     service = IdentityService(IdentityStore(paths.home()))
     service.ensure()
-    grants.revoke(store, service, store.get_grant(grant_id), now=datetime.now(UTC))
+    try:
+        envelope = store.get_grant(grant_id)
+    except NotFoundError as error:
+        raise ValidationError(error.message, details={"grant_id": grant_id}) from error
+    grants.revoke(store, service, envelope, now=datetime.now(UTC))
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
         "operation_id": GRANT_REVOKE,
