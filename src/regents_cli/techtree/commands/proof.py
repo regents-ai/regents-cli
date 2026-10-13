@@ -25,6 +25,7 @@ from regents_cli.techtree.identity.models import (
     VerificationStatus,
 )
 from regents_cli.techtree.ids import validate_id
+from regents_cli.techtree.model_climb import proof as model_climb_proof
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.publication.downloaded import (
     is_downloaded_bundle,
@@ -46,12 +47,15 @@ _MARK: Final[dict[VerificationStatus, output.CheckStatus]] = {
     "failed": "fail",
 }
 
-type ProofTargetKind = Literal["bundle", "report", "published"]
+type ProofTargetKind = Literal["bundle", "report", "published", "model_climb"]
 
 
 def verify(target: str, as_json: bool) -> None:
     runs_dir = paths.home().runs_dir
     path, kind = resolve_proof_target(target, runs_dir=runs_dir)
+    if kind == "model_climb":
+        verify_model_climb(path, target, as_json)
+        return
     verifier = LocalProofVerifier()
     if kind == "published":
         result = verify_downloaded_bundle(path)
@@ -88,12 +92,53 @@ def verify(target: str, as_json: bool) -> None:
     emit(answer, as_json=as_json, shown=_shown(answer, summary, result))
 
 
+def verify_model_climb(folder: Path, target: str, as_json: bool) -> None:
+    """A Model Climb proof (contract 3.5): the site's eight checks, then `graph` and `schema`."""
+    verified = model_climb_proof.verify(folder)
+    checks: list[JsonValue] = [
+        {"check": name, "status": "pass", "detail": detail}
+        for name, detail in model_climb_proof.CHECKS
+    ]
+    opening = (
+        f"This Model Climb proof holds: all {len(checks)} checks, from the files on this "
+        "machine, with nothing sent anywhere.\n\n"
+        f"Proof: {target}\n\n"
+        f"Report: {verified.report}\n\n"
+        f"Signed by: {verified.signer_key_id}\n\n"
+        f"Objects carried: {verified.objects}"
+    )
+    answer: dict[str, JsonValue] = {
+        "target": target,
+        "kind": "model_climb",
+        "valid": True,
+        "report_digest": verified.report,
+        "signer_key_id": verified.signer_key_id,
+        "objects": verified.objects,
+        "checks": checks,
+        "report": "\n".join(
+            [
+                opening,
+                "",
+                *(f"- **PASS** {name}: {detail}" for name, detail in model_climb_proof.CHECKS),
+            ]
+        ),
+    }
+    shown = [
+        output.report(opening),
+        output.checks(
+            output.Check(name, "pass", detail) for name, detail in model_climb_proof.CHECKS
+        ),
+    ]
+    emit(answer, as_json=as_json, shown=shown)
+
+
 def resolve_proof_target(target: str, *, runs_dir: Path) -> tuple[Path, ProofTargetKind]:
-    """A directory is a bundle; a file is a downloaded Result bundle or a signed report;
-    anything else is a run identifier looked up on this machine."""
+    """A directory is a Model Climb proof when its manifest says so, else a bundle; a file is a
+    downloaded Result bundle or a signed report; anything else is a run identifier looked up
+    on this machine."""
     candidate = Path(target).expanduser()
     if candidate.is_dir():
-        return candidate, "bundle"
+        return candidate, "model_climb" if model_climb_proof.is_proof(candidate) else "bundle"
     if candidate.is_file():
         if candidate.name == BUNDLE_MANIFEST_FILENAME:
             return candidate.parent, "bundle"
@@ -253,7 +298,7 @@ PROOF.add_command(
         "verify",
         callback=verify,
         params=[click.Argument(["target"], metavar="TARGET"), JSON],
-        help="Check a proof: a run identifier, a proof bundle directory, a Result bundle "
-        "downloaded from the run log, or a signed uplift-report file.",
+        help="Check a proof: a run identifier, a proof bundle directory, a Model Climb proof "
+        "folder, a Result bundle downloaded from the run log, or a signed uplift-report file.",
     )
 )

@@ -12,11 +12,19 @@ import json
 import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from regents_cli.app import main
 from regents_cli.techtree import paths
+from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes
+from regents_cli.techtree.crypto import (
+    generate_private_key,
+    public_key_bytes,
+    public_key_to_base64,
+    sign_digest,
+)
 from regents_cli.techtree.errors import PolicyError, TechtreeError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
@@ -363,6 +371,35 @@ def test_a_lookup_that_finds_nothing_submits_nothing(tmp_path: Path) -> None:
 # The proof sent to Techtree (contract 3.5)
 
 
+def report_for(artifact: str, benchmark: str) -> ModelUpliftReportSpec:
+    return ModelUpliftReportSpec(
+        artifact=artifact,
+        benchmark_release=benchmark,
+        evaluator_outputs=[digest("c")],
+        paired_outcomes=PairedOutcomes(
+            cases=4,
+            both_correct=1,
+            base_only_correct=1,
+            candidate_only_correct=1,
+            neither_correct=1,
+            positives=2,
+            negatives=2,
+        ),
+        uncertainty=Uncertainty(
+            method="paired bootstrap", confidence=0.95, interval_low=-0.1, interval_high=0.1
+        ),
+        results=ResultFields(
+            execution="succeeded",
+            integrity="verified",
+            comparison="valid",
+            outcome="tie",
+            release_gate="not_evaluated",
+            attestation="participant",
+        ),
+        limitations=[],
+    )
+
+
 def test_a_proof_missing_an_object_it_reaches_is_never_written(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -371,32 +408,7 @@ def test_a_proof_missing_an_object_it_reaches_is_never_written(
     store.put(benchmark)
     report = seal(
         ModelUpliftReport,
-        ModelUpliftReportSpec(
-            artifact=digest("e"),
-            benchmark_release=benchmark.digest,
-            evaluator_outputs=[digest("c")],
-            paired_outcomes=PairedOutcomes(
-                cases=4,
-                both_correct=1,
-                base_only_correct=1,
-                candidate_only_correct=1,
-                neither_correct=1,
-                positives=2,
-                negatives=2,
-            ),
-            uncertainty=Uncertainty(
-                method="paired bootstrap", confidence=0.95, interval_low=-0.1, interval_high=0.1
-            ),
-            results=ResultFields(
-                execution="succeeded",
-                integrity="verified",
-                comparison="valid",
-                outcome="tie",
-                release_gate="not_evaluated",
-                attestation="participant",
-            ),
-            limitations=[],
-        ),
+        report_for(digest("e"), benchmark.digest),
         Created(created_at=NOW),
     )
     store.put(report)
@@ -414,3 +426,53 @@ def test_a_proof_larger_than_techtree_keeps_is_refused_before_sending(tmp_path: 
     with pytest.raises(TechtreeError) as refused:
         proof.document(tmp_path)
     assert refused.value.details["check"] == "document"
+
+
+def test_a_proof_the_site_accepts_is_refused_when_an_object_it_refers_to_is_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Techtree's eight checks read only the report's own two references; `graph` reads every
+    object's, so a proof leaving out the artifact's plan holds there and is refused here."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    created = {"created_at": "2026-10-13T00:00:00Z"}
+
+    def carried(kind: str, spec: dict[str, Any]) -> dict[str, Any]:
+        body = {"schema_version": proof.OBJECT_SCHEMA_VERSION, "kind": kind, "spec": spec}
+        return {**body, "operational": created, "digest": digest_object(body)}
+
+    benchmark = carried("BenchmarkRelease", benchmark_spec().model_dump(mode="json"))
+    artifact = carried("ModelArtifact", {"plan": digest("9")})
+    report_spec = report_for(str(artifact["digest"]), str(benchmark["digest"]))
+    report = carried("ModelUpliftReport", report_spec.model_dump(mode="json"))
+    key = generate_private_key()
+    public = public_key_bytes(key)
+    payload = {
+        "schema_version": proof.PROOF_SCHEMA_VERSION,
+        "report": report["digest"],
+        "objects": sorted(str(value["digest"]) for value in (benchmark, artifact, report)),
+        "signer": {
+            "kind": "local_ed25519",
+            "algorithm": "ed25519",
+            "key_id": sha256_digest_bytes(public),
+            "public_key": public_key_to_base64(key.public_key()),
+        },
+    }
+    payload_digest = digest_object(payload)
+    signature = sign_digest(key, payload_digest, key_id=sha256_digest_bytes(public))
+    folder = tmp_path / "proof"
+    (folder / "objects").mkdir(parents=True)
+    manifest = {
+        "payload": payload,
+        "payload_digest": payload_digest,
+        "signature": signature.model_dump(mode="json"),
+    }
+    (folder / "manifest.json").write_text(json.dumps(manifest))
+    for value in (benchmark, artifact, report):
+        name = str(value["digest"]).removeprefix("sha256:")
+        (folder / "objects" / f"{name}.json").write_text(json.dumps(value))
+
+    assert main(["techtree", "proof", "verify", str(folder), "--json"]) == 1
+    error = json.loads(capsys.readouterr().out)["error"]
+    assert error["code"] == "validation_error"
+    assert error["details"]["check"] == "graph"
+    assert error["details"]["missing"] == digest("9")
