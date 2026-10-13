@@ -97,8 +97,8 @@ def held(path: Path) -> Iterator[None]:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
             raise ConflictError(
-                "another command on this machine is issuing, revoking or spending a grant "
-                "right now, so this one did nothing. Run it again when that one has answered.",
+                "another command on this machine is spending or revoking a grant right now, so "
+                "this one did nothing. Run it again when that one has answered.",
                 code=IDEMPOTENCY_CONFLICT,
                 details={"reason": "grant_ledger_held", "path": str(path)},
             ) from error

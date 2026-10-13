@@ -310,9 +310,7 @@ def test_a_wrong_confirmation_issues_no_grant(
     store, plan_digest = stored_plan(monkeypatch, tmp_path)
     at_a_terminal(monkeypatch, "y\ny\n35\n")
     assert main(issue(plan_digest)) == 1
-    # The command held the ledger, so the file is there; no grant and no line were written.
-    assert [path.name for path in store.grants_dir.iterdir()] == [store.ledger_path.name]
-    assert store.ledger_path.read_bytes() == b""
+    assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
 
 
 def test_without_a_person_at_a_terminal_no_grant_is_issued(
@@ -323,9 +321,7 @@ def test_without_a_person_at_a_terminal_no_grant_is_issued(
     error = json.loads(capsys.readouterr().out)["error"]
     assert error["code"] == "approval_required"
     assert any(plan_digest in line for line in error["details"]["review"])
-    # The command held the ledger, so the file is there; no grant and no line were written.
-    assert [path.name for path in store.grants_dir.iterdir()] == [store.ledger_path.name]
-    assert store.ledger_path.read_bytes() == b""
+    assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
 
 
 # The coverage check (248 modules), on the module paths the M0 dry run reported

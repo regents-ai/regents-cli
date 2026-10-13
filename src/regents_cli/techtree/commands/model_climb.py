@@ -33,7 +33,7 @@ from regents_cli.techtree.model_climb.contracts import (
 )
 from regents_cli.techtree.model_climb.provider import RUNNER_UNAVAILABLE, Autoresearch
 from regents_cli.techtree.model_climb.store import ModelClimbStore
-from regents_cli.techtree.models.base import Digest, JsonValue
+from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.site import site_base
 
 CAPABILITIES: Final = "model_climb_capabilities"
@@ -546,18 +546,6 @@ def grant_issue(
         expires_in=_duration(expires_in),
     )
     store = _store()
-    # One command at a time has the ledger, from its start to its end (contract 6).
-    with ledger.held(store.ledger_path):
-        _issue(store, plan_digest, granted, limits, as_json)
-
-
-def _issue(
-    store: ModelClimbStore,
-    plan_digest: Digest,
-    granted: GrantedOperation,
-    limits: grants.Limits,
-    as_json: bool,
-) -> None:
     service = IdentityService(IdentityStore(paths.home()))
     identity = service.ensure()
     grant = grants.draft_grant(
