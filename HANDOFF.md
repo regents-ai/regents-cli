@@ -78,6 +78,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
    drafts, account commands, agents status, five public reads) and Patchbay `e186f34` (Agent
    Offer commands, the moved Credits history). 1.9.4 (2026-10-13) pins Keyfleet `087127d` (live
    v42, agent contract 9.0.0) and has `agents pair` ask for the code, hidden, at a terminal.
+   1.10.0 (2026-10-13) ends every answer and failure with `next_steps` (founder 1a 2b 3a) and
+   adds the optional `next_steps` field to the description format.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

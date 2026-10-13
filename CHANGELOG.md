@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.10.0 — 2026-10-13
 
 - Every answer and every failure now says what to do next, as `next_steps` beside the
   answer's fields (or beside `error`) with `--json`, and as a short "Next" block on screen.
@@ -21,6 +21,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - A site's command description may name its own follow-ups in a new optional `next_steps`
   field; `regents-cli`'s check refuses one that names a command the site doesn't describe.
 - A site answer that is JSON but not an object is now an invalid answer.
+- The packaged Techtree release metadata names CLI 1.10.0. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
 
 ## 1.9.4 — 2026-10-13
 
