@@ -165,7 +165,11 @@ def _next(steps: Sequence[Step]) -> RenderableType:
     lines: list[RenderableType] = [Text("Next", style="bold")]
     for step in steps:
         mark, style = STEP_MARKS[step.kind]
-        lines.append(Text.assemble(("  " + mark + " ", style), step.say))
+        said = Table.grid(padding=(0, 1))
+        said.add_column(no_wrap=True)
+        said.add_column()
+        said.add_row(Text(mark, style=style), step.say)
+        lines.append(Padding(said, (0, 0, 0, 2)))
         for exact in (step.command, step.url):
             if exact is not None:
                 lines.append(Text("    " + exact, style="cyan", no_wrap=True, overflow="ignore"))

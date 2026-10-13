@@ -3,6 +3,16 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- A refusal the site gives a reason for (a 4xx with a code) now offers two steps: run it again
+  only after changing something the message names, otherwise take it as the answer. Before,
+  it always said to change something and run it again, even when the site said that would not
+  help.
+- A long step on screen wraps under its own words instead of back to the left edge.
+- Autolaunch is pinned to `230462d` (live v98): `bids quote` on a Robinhood auction answers
+  `estimate_not_offered` ("Bid estimates cover Base auctions only.") instead of not found.
+
 ## 1.10.0 — 2026-10-13
 
 - Every answer and every failure now says what to do next, as `next_steps` beside the

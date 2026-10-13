@@ -171,7 +171,12 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
         ]
     if coded and status < 500:
         return [
-            run(again, f"Change what the message names, then run this again{invocation.piped}.")
+            run(
+                again,
+                "Only if the message names something you sent that you can change: change it, "
+                f"then run this again{invocation.piped}.",
+            ),
+            done("Otherwise that is the site's answer; nothing more to run."),
         ]
     return [run(again, f"Run it once more{invocation.piped}."), _broken(error, status, invocation)]
 
