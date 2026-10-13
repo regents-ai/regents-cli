@@ -9,10 +9,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+import click
 import pytest
 
 from regents_cli import app, runner, siwa
 from regents_cli.http import Request
+from tests.techtree.run_log import Terminal
 
 SIGNATURE = "0x" + "ab" * 65
 
@@ -151,3 +153,23 @@ def test_typed_stdin_keeps_arrays_and_integers_in_both_phases(
             runner.prepared_body(command, request, wrong)
     with pytest.raises(UsageError, match="limit is required"):
         runner.prepared_body(command, request, '{"items":[]}')
+
+
+def test_at_a_terminal_agents_pair_asks_for_the_code_without_showing_it(
+    signed_in: list[Request], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A person pairing by hand types the code where nothing echoes it: it reaches the request
+    and never the screen or the answer."""
+    terminal = Terminal("regents-cli test\nclaude_code\n")
+    monkeypatch.setattr("sys.stdin", terminal)
+    monkeypatch.setattr(click.termui, "hidden_prompt_func", lambda _text: "PAIR-CODE-1234")
+    out, err = io.StringIO(), io.StringIO()
+    monkeypatch.setattr("sys.stdout", out)
+    monkeypatch.setattr("sys.stderr", err)
+    assert app.main(["protocol", "agents", "pair", "--json"]) == 0
+    assert signed_in[0].body == {
+        "code": "PAIR-CODE-1234",
+        "name": "regents-cli test",
+        "harness": "claude_code",
+    }
+    assert "PAIR-CODE-1234" not in out.getvalue() + err.getvalue()

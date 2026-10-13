@@ -24,6 +24,8 @@ from regents_cli.http import Request, base_address, send
 from regents_cli.platforms import Command, Input, Platform
 
 STDIN_LIMIT = 200_000
+#: The one command that asks for its stdin fields when run at a terminal, its code hidden.
+PAIR = ("agents", "pair")
 #: Each stdin field type, as the JSON value it must be and how an error names it.
 STDIN_TYPES: dict[str, tuple[type, str]] = {
     "array": (list, "a list"),
@@ -146,6 +148,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             help_text += f"\n\nPipe {stdin_shape(command)} on stdin" + (
                 ", when you have it." if optional else "."
             )
+        if command.words == PAIR:
+            help_text += " At a terminal it asks for each instead, the code hidden as you type."
 
     def run(as_json: bool, base_url: str | None, timeout_ms: int, **values: Any) -> None:
         phase = values.pop("phase", None)
@@ -224,6 +228,8 @@ def with_stdin_fields(command: Command, request: Request, timeout_ms: int) -> Re
         return request
     shape = stdin_shape(command)
     piped = read_stdin(timeout_ms)
+    if piped is None and command.words == PAIR and sys.stdin.isatty():
+        piped = asked(command)
     piped = {} if piped is None else piped
     if not isinstance(piped, dict):
         raise UsageError(f"stdin must hold {shape}.")
@@ -233,6 +239,14 @@ def with_stdin_fields(command: Command, request: Request, timeout_ms: int) -> Re
         raise UsageError(f"stdin must hold {shape}; {in_words(unknown)} {are}.")
     validate_stdin_fields(command, piped)
     return replace(request, body={**(request.body or {}), **piped})
+
+
+def asked(command: Command) -> dict[str, str]:
+    """Each stdin field typed at the terminal, the pairing code never shown."""
+    return {
+        f.field: click.prompt(f.field.capitalize(), hide_input=f.field == "code", err=True)
+        for f in command.stdin_fields
+    }
 
 
 def validate_stdin_fields(command: Command, piped: dict[str, Any]) -> None:
