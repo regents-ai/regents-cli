@@ -270,9 +270,8 @@ def verify(folder: Path) -> Verified:
     objects = _objects(sent["objects"])
     payload = _manifest(sent["manifest"])
     _signature(sent["manifest"])
-    # The site names this refusal "objects" (Techtree.ModelClimb.Proof.carried/2).
     if sorted(objects) != payload["objects"]:
-        raise _refusal("objects", "the objects carried are not exactly the ones the manifest lists")
+        raise _refusal("carried", "the objects carried are not exactly the ones the manifest lists")
     report = _report(payload, objects)
     _references(report["spec"], objects)
     if report["spec"]["results"]["attestation"] != "participant":
