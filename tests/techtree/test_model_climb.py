@@ -37,6 +37,8 @@ from regents_cli.techtree.model_climb.contracts import (
     ComputeTarget,
     Created,
     DataPolicy,
+    DatasetRelease,
+    DatasetReleaseSpec,
     ExecutionGrant,
     GrantedOperation,
     HarnessProfile,
@@ -52,6 +54,9 @@ from regents_cli.techtree.model_climb.contracts import (
     ResultFields,
     SamplingProtocol,
     SelectionRule,
+    SnapshotOperational,
+    SplitCommitment,
+    SplitCommitments,
     StudyOperational,
     Uncertainty,
     VerifierRef,
@@ -115,13 +120,19 @@ def study() -> ModelStudySpec:
     )
 
 
-def plan(study_digest: str, *, cents: int = 4000) -> ResolvedModelPlan:
+def plan(
+    study_digest: str,
+    *,
+    cents: int = 4000,
+    dataset_release: str = digest("6"),
+    benchmark_release: str = digest("7"),
+) -> ResolvedModelPlan:
     return seal(
         ResolvedModelPlan,
         ResolvedModelPlanSpec(
             study=study_digest,
-            dataset_release=digest("6"),
-            benchmark_release=digest("7"),
+            dataset_release=dataset_release,
+            benchmark_release=benchmark_release,
             recipe=digest("8"),
             compute=ComputeTarget(
                 provider="sfcompute_autoresearch",
@@ -141,6 +152,22 @@ def plan(study_digest: str, *, cents: int = 4000) -> ResolvedModelPlan:
             expires_at=NOW + timedelta(days=7),
         ),
         Created(created_at=NOW),
+    )
+
+
+def dataset_spec() -> DatasetReleaseSpec:
+    split = SplitCommitment(commitment=digest("a"), rows=100)
+    return DatasetReleaseSpec(
+        snapshot_digest=digest("c"),
+        source_lineage=[],
+        rights_class="customer_private",
+        row_schema_digest=digest("e"),
+        transformation_digest=digest("f"),
+        feature_cutoff_rule="none",
+        label_policy="reviewed labels",
+        duplicate_cluster_rule="exact text",
+        splits=SplitCommitments(train=split, validation=split, proving=split, debug=None),
+        exclusions={},
     )
 
 
@@ -205,7 +232,17 @@ def stored_plan(monkeypatch: pytest.MonkeyPatch, home: Path) -> tuple[ModelClimb
     store = ModelClimbStore(paths.home().model_climb_dir)
     sealed_study = study()
     store.put(sealed_study)
-    sealed_plan = plan(sealed_study.digest)
+    dataset = seal(
+        DatasetRelease,
+        dataset_spec(),
+        SnapshotOperational(snapshot_handle="local", created_at=NOW),
+    )
+    store.put(dataset)
+    benchmark = seal(BenchmarkRelease, benchmark_spec(), Created(created_at=NOW))
+    store.put(benchmark)
+    sealed_plan = plan(
+        sealed_study.digest, dataset_release=dataset.digest, benchmark_release=benchmark.digest
+    )
     store.put(sealed_plan)
     return store, sealed_plan.digest
 

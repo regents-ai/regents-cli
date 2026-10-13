@@ -104,13 +104,27 @@
           "$ref": "#/$defs/Digest"
         },
         "qualification_report_digest": {
-          "$ref": "#/$defs/Digest"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "sampling": {
           "$ref": "#/$defs/SamplingProtocol"
         },
         "scorer_test_digest": {
-          "$ref": "#/$defs/Digest"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "verifier": {
           "$ref": "#/$defs/VerifierRef"
@@ -395,7 +409,14 @@
           "$ref": "#/$defs/SplitCommitments"
         },
         "transformation_digest": {
-          "$ref": "#/$defs/Digest"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -710,7 +731,14 @@
       "additionalProperties": false,
       "properties": {
         "decision_policy_digest": {
-          "$ref": "#/$defs/Digest"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "output_schema_digest": {
           "$ref": "#/$defs/Digest"

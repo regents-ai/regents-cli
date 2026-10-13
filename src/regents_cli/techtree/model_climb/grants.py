@@ -28,11 +28,14 @@ from regents_cli.techtree.model_climb import ledger
 from regents_cli.techtree.model_climb.contracts import (
     DIGEST_MISMATCH,
     SCHEMA_VERSION,
+    BenchmarkRelease,
+    DatasetRelease,
     ExecutionGrant,
     GrantAttestation,
     GrantedOperation,
     ModelStudySpec,
     ResolvedModelPlan,
+    ScientificObject,
 )
 from regents_cli.techtree.model_climb.store import ModelClimbStore
 from regents_cli.techtree.models.base import Digest, ObjectEnvelope
@@ -41,6 +44,7 @@ PLAN_CHANGED = "plan_changed"
 APPROVAL_REQUIRED = "approval_required"
 #: The most a plan for the GPU compatibility test may reserve (contract 6.1).
 PROFILE_TEST_MAX_CENTS = 2000
+PROFILE_TEST: GrantedOperation = "model_climb_profile_test"
 
 
 @dataclass(frozen=True)
@@ -90,7 +94,12 @@ def draft_grant(
         )
     budget = plan.spec.budget
     expiry = plan.spec.expires_at.isoformat()
+    empty = [] if operation == PROFILE_TEST else empty_fields(store, plan, study)
     refusals = _failed(
+        (
+            bool(empty),
+            f"{', '.join(empty)} is empty, which only a compatibility test's plan may be",
+        ),
         (
             budget.enforcement == "estimate_only",
             "the plan's spending cap is an estimate only, and a grant needs an enforced cap",
@@ -109,8 +118,7 @@ def draft_grant(
             "the wall-time limit is longer than the study allows",
         ),
         (
-            operation == "model_climb_profile_test"
-            and budget.amount_cents > PROFILE_TEST_MAX_CENTS,
+            operation == PROFILE_TEST and budget.amount_cents > PROFILE_TEST_MAX_CENTS,
             f"the plan reserves {budget.amount_cents} cents, and a compatibility test may "
             f"reserve at most {PROFILE_TEST_MAX_CENTS}",
         ),
@@ -118,7 +126,7 @@ def draft_grant(
     if refusals:
         raise ValidationError(
             f"no grant can be issued: {refusals[0]}",
-            details={"plan": plan_digest, "refusals": refusals},
+            details={"plan": plan_digest, "refusals": refusals, "empty_fields": empty},
         )
     return ExecutionGrant(
         schema_version=SCHEMA_VERSION,
@@ -185,8 +193,45 @@ def admit(
     )
     if refusals:
         raise _refused(grant, refusals)
-    stored_plan(store, plan_digest)
+    plan = stored_plan(store, plan_digest)
+    empty = (
+        [] if operation == PROFILE_TEST else empty_fields(store, plan, store.get(plan.spec.study))
+    )
+    if empty:
+        raise ValidationError(
+            f"the plan cannot be run: {', '.join(empty)} is empty, which only a compatibility "
+            "test's plan may be",
+            details={"plan": plan_digest, "empty_fields": empty},
+        )
     return grant
+
+
+def empty_fields(
+    store: ModelClimbStore, plan: ResolvedModelPlan, study: ScientificObject
+) -> list[str]:
+    """The fields of a plan's objects that say nothing of their kind exists (contract 3.2).
+    Only the compatibility test's plan may hold one."""
+    dataset = store.get(plan.spec.dataset_release)
+    benchmark = store.get(plan.spec.benchmark_release)
+    held: list[tuple[str, object]] = []
+    if isinstance(study, ModelStudySpec):
+        held.append(
+            (
+                "ModelStudySpec harness.decision_policy_digest",
+                study.spec.harness.decision_policy_digest,
+            )
+        )
+    if isinstance(dataset, DatasetRelease):
+        held.append(("DatasetRelease transformation_digest", dataset.spec.transformation_digest))
+    if isinstance(benchmark, BenchmarkRelease):
+        held.append(("BenchmarkRelease scorer_test_digest", benchmark.spec.scorer_test_digest))
+        held.append(
+            (
+                "BenchmarkRelease qualification_report_digest",
+                benchmark.spec.qualification_report_digest,
+            )
+        )
+    return [name for name, value in held if value is None]
 
 
 def use(

@@ -116,7 +116,8 @@ def seal[T: _ScientificObject](cls: type[T], spec: ProtocolModel, operational: P
 class HarnessProfile(ProtocolModel):
     prompt_digest: Digest
     output_schema_digest: Digest
-    decision_policy_digest: Digest
+    #: None where the harness has no decision policy (contract 3.2).
+    decision_policy_digest: Digest | None
 
 
 class SelectionRule(ProtocolModel):
@@ -210,7 +211,8 @@ class DatasetReleaseSpec(ProtocolModel):
     source_lineage: list[LineageStep]
     rights_class: NonEmptyString
     row_schema_digest: Digest
-    transformation_digest: Digest
+    #: None where the rows were not transformed (contract 3.2).
+    transformation_digest: Digest | None
     feature_cutoff_rule: NonEmptyString
     label_policy: NonEmptyString
     duplicate_cluster_rule: NonEmptyString
@@ -251,8 +253,9 @@ class BenchmarkReleaseSpec(ProtocolModel):
     proving_commitment: Digest
     output_schema_digest: Digest
     sampling: SamplingProtocol
-    scorer_test_digest: Digest
-    qualification_report_digest: Digest
+    #: None where no scorer test or qualification report exists (contract 3.2).
+    scorer_test_digest: Digest | None
+    qualification_report_digest: Digest | None
 
 
 class BenchmarkRelease(_ScientificObject):
