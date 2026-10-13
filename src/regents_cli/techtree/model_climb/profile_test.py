@@ -70,6 +70,7 @@ from regents_cli.techtree.model_climb.data import MINIMUM_SALT_BYTES, split_comm
 from regents_cli.techtree.model_climb.provider import (
     BUDGET_EXHAUSTED,
     MICROS_PER_CENT,
+    WAITS_FOR_BALANCE,
     Autoresearch,
     Job,
     SubmissionRefusedError,
@@ -824,6 +825,17 @@ def advance(
             + f", and the grant allows {grant.max_cents}",
             code=BUDGET_EXHAUSTED,
             details={"job_id": job_id, "intent_id": intent_id, "max_cost_usd_micros": ceiling},
+        )
+    if job.waits_for_balance:
+        # Automatic top-up is attested off, so this wait cannot end by itself, and a job that
+        # starts whenever money is next added is not the run that was approved (contract 6.1).
+        provider.cancel(job_id)
+        _finish(folder, "budget_exhausted", None)
+        raise TechtreeError(
+            f"job {job_id} was cancelled before it ran: the provider was holding it because "
+            "the account's balance is empty. The grant's use is spent.",
+            code=BUDGET_EXHAUSTED,
+            details={"job_id": job_id, "intent_id": intent_id, "wait_reason": WAITS_FOR_BALANCE},
         )
     return Waiting(
         intent_id=intent_id, job_id=job_id, status=job.status, max_cost_cents=cents(ceiling)

@@ -34,6 +34,8 @@ RUNNER_UNAVAILABLE: Final = "runner_unavailable"
 BUDGET_EXHAUSTED: Final = "budget_exhausted"
 #: The preflight item that weighs a job's worst case against the workspace's spending cap.
 COST_CAP: Final = "cost-cap"
+#: Why a queued job waits when the account's prepaid balance is empty.
+WAITS_FOR_BALANCE: Final = "balance"
 MICROS_PER_CENT: Final = 10_000
 #: What the free preflight reads of a job; the rest only matters to a real run.
 PREFLIGHT_FIELDS: Final = (
@@ -81,9 +83,16 @@ class Receipt(_Answer):
     billed_seconds: int
 
 
+class Queue(_Answer):
+    """Where a job that has not started stands; `wait_reason` names what holds it."""
+
+    wait_reason: str | None = None
+
+
 class Job(_Answer):
     id: str
     status: str
+    queue: Queue | None = None
     #: The ceiling of one attempt, worked out by the provider from minutes, GPUs and rate.
     max_cost_usd_micros: int | None = None
     #: What the job wrote to $GMN_RESULT_PATH, as it wrote it.
@@ -93,6 +102,10 @@ class Job(_Answer):
     @property
     def ended(self) -> bool:
         return self.receipt is not None
+
+    @property
+    def waits_for_balance(self) -> bool:
+        return self.queue is not None and self.queue.wait_reason == WAITS_FOR_BALANCE
 
 
 class _Jobs(_Answer):
