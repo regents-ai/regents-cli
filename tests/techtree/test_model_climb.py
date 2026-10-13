@@ -236,9 +236,9 @@ def test_a_grant_admits_its_operation_and_nothing_once_a_bound_field_changes(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     store, plan_digest = stored_plan(monkeypatch, tmp_path)
-    at_a_terminal(monkeypatch, plan_digest.removeprefix("sha256:")[:12] + "\n")
+    at_a_terminal(monkeypatch, "y\ny\n35.50\n")
     assert main(issue(plan_digest)) == 0
-    [grant_file] = store.grants_dir.iterdir()
+    [grant_file] = store.grants_dir.glob("*.json")
     envelope = store.get_grant(grant_file.stem)
     identity = IdentityService(IdentityStore(paths.home())).ensure()
     now = datetime.now(UTC)
@@ -271,7 +271,7 @@ def test_a_wrong_confirmation_issues_no_grant(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     store, plan_digest = stored_plan(monkeypatch, tmp_path)
-    at_a_terminal(monkeypatch, "000000000000\n")
+    at_a_terminal(monkeypatch, "y\ny\n35\n")
     assert main(issue(plan_digest)) == 1
     assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
 

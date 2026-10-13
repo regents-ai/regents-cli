@@ -22,7 +22,7 @@ from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
 from regents_cli.techtree.errors import PolicyError, ValidationError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
-from regents_cli.techtree.model_climb import grants, profiles, proof
+from regents_cli.techtree.model_climb import grants, ledger, profiles, proof
 from regents_cli.techtree.model_climb.contracts import (
     CONTRACT,
     OPERATION_SCHEMA_VERSION,
@@ -36,12 +36,24 @@ from regents_cli.techtree.site import site_base
 CAPABILITIES: Final = "model_climb_capabilities"
 PROFILE_CHECK: Final = "model_climb_profile_check"
 GRANT_ISSUE: Final = "model_climb_grant_issue"
+GRANT_REVOKE: Final = "model_climb_grant_revoke"
 REPORT_SUBMIT: Final = "model_climb_report_submit"
 #: The operations from the contract's table this build runs natively.
-BUILT_OPERATIONS: Final = (CAPABILITIES, PROFILE_CHECK, GRANT_ISSUE, REPORT_SUBMIT)
+BUILT_OPERATIONS: Final = (
+    CAPABILITIES,
+    PROFILE_CHECK,
+    GRANT_ISSUE,
+    GRANT_REVOKE,
+    REPORT_SUBMIT,
+)
 REPORTS_PATH: Final = "/api/model-climb/v1/reports"
 SUBMIT_TIMEOUT_MS: Final = 60_000
-CONFIRMATION_LENGTH: Final = 12
+#: What the operator answers for before a grant on a plan that counts on the account's own
+#: spending limit (contract 6.1). Both must hold.
+ATTESTATIONS: Final = (
+    "Is automatic top-up off on the compute account?",
+    "Is the account's balance no more than its monthly spending limit?",
+)
 _DURATION: Final = re.compile(r"^(\d+)([mhd])$")
 _UNITS: Final = {"m": "minutes", "h": "hours", "d": "days"}
 
@@ -325,27 +337,35 @@ def grant_issue(
         now=datetime.now(UTC),
     )
     review = _grant_review(grant)
+    dollars = _dollars(grant.max_cents)
     if as_json or not (sys.stdin.isatty() and sys.stdout.isatty()):
         raise PolicyError(
-            "a grant is issued only by a person at this machine's terminal, who types the "
-            "plan's first 12 characters to confirm. Show the person the review; they run this "
-            "command themselves.",
+            "a grant is issued only by a person at this machine's terminal, who answers for "
+            f"the account's spending limit and types the grant's maximum, {dollars}, to "
+            "confirm. Show the person the review; they run this command themselves.",
             code=grants.APPROVAL_REQUIRED,
             details={"review": list(review)},
         )
     output.show(output.review(review))
-    expected = plan_digest.removeprefix("sha256:")[:CONFIRMATION_LENGTH]
+    if grants.stored_plan(store, plan_digest).spec.budget.credit_ceiling_attested:
+        attested = all(click.confirm(question, default=False) for question in ATTESTATIONS)
+        if not attested:
+            raise ValidationError(
+                "the plan counts on the account's spending limit, and that was not attested, "
+                "so no grant was issued"
+            )
     typed = click.prompt(
-        f"Type the plan's first {CONFIRMATION_LENGTH} characters to issue this grant",
+        f"Type the most this grant may spend, {dollars}, to issue it",
         default="",
         show_default=False,
     )
-    if typed.strip() != expected:
+    if typed.strip() != dollars:
         raise ValidationError(
-            "the typed confirmation did not match the plan, so no grant was issued"
+            "the typed confirmation did not match the grant's maximum, so no grant was issued"
         )
     envelope = service.sign_object(grant)
     path = store.put_grant(envelope)
+    ledger.record(store.ledger_path, service, envelope, "issued", at=grant.issued_at)
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
         "operation_id": GRANT_ISSUE,
@@ -366,8 +386,32 @@ def grant_issue(
     )
 
 
+def grant_revoke(grant_id: str, as_json: bool) -> None:
+    store = _store()
+    service = IdentityService(IdentityStore(paths.home()))
+    service.ensure()
+    grants.revoke(store, service, store.get_grant(grant_id), now=datetime.now(UTC))
+    answer: dict[str, JsonValue] = {
+        "schema_version": OPERATION_SCHEMA_VERSION,
+        "operation_id": GRANT_REVOKE,
+        "grant_id": grant_id,
+        "revoked": True,
+        "next_actions": [],
+    }
+    emit(
+        answer,
+        as_json=as_json,
+        shown=[output.report(f"Grant {grant_id} is revoked. Nothing runs under it again.")],
+    )
+
+
+def _dollars(cents: int) -> str:
+    """An amount as a person types it: 10 for ten dollars, 35.50 for thirty-five fifty."""
+    whole, rest = divmod(cents, 100)
+    return str(whole) if rest == 0 else f"{whole}.{rest:02d}"
+
+
 def _grant_review(grant: ExecutionGrant) -> list[str]:
-    dollars = Decimal(grant.max_cents) / 100
     hours = Decimal(grant.max_wall_time_seconds) / 3600
     return [
         f"Admits one operation: {grant.operation}",
@@ -377,7 +421,7 @@ def _grant_review(grant: ExecutionGrant) -> list[str]:
         f"  recipe {grant.recipe}",
         f"Compute: {grant.gpu_count} x {grant.gpu_model} at {grant.provider}",
         f"  mission {grant.mission}",
-        f"Spends at most ${dollars:.2f} and runs at most {hours.normalize()} hours",
+        f"Spends at most ${_dollars(grant.max_cents)} and runs at most {hours.normalize()} hours",
         f"At most {grant.max_attempts} attempt(s), {grant.max_parallel_jobs} at a time",
         "May reach: " + (", ".join(grant.egress) if grant.egress else "nothing beyond the job"),
         f"Workspace {grant.workspace}; for actor {grant.actor_key_id}",
@@ -475,8 +519,8 @@ GRANT.add_command(
     click.Command(
         "issue",
         callback=grant_issue,
-        help="Issue a grant for one operation on one resolved plan, after you type the plan's "
-        "first 12 characters. Spends nothing itself.",
+        help="Issue a grant for one operation on one resolved plan, after you answer for the "
+        "account's spending limit and type the grant's maximum. Spends nothing itself.",
         params=[
             click.Option(["--plan"], metavar="DIGEST", help="The resolved plan it binds."),
             click.Option(
@@ -490,6 +534,16 @@ GRANT.add_command(
             click.Option(["--expires-in"], metavar="90m|24h|7d", help="How long it lasts."),
             JSON,
         ],
+    )
+)
+
+GRANT.add_command(
+    click.Command(
+        "revoke",
+        callback=grant_revoke,
+        help="End a grant on this machine: nothing is admitted under it again. A job already "
+        "running is not stopped by this.",
+        params=[click.Argument(["grant_id"], metavar="GRANT_ID"), JSON],
     )
 )
 
