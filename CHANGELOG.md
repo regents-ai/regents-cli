@@ -3,6 +3,13 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Techtree release `climb-v0.7.3`: the same Climbs, catalog, engines and starter Skills, named
+  with this version. Releases 1.7.4 to 1.10.1 kept the name `climb-v0.7.2`, which Techtree
+  already uses for 1.7.3, so techtree.sh could not offer any of them; from now on each release
+  has its own.
+
 ## 1.10.1 — 2026-10-13
 
 - A refusal the site gives a reason for (a 4xx with a code) now offers two steps: run it again

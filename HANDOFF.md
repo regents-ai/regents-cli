@@ -66,6 +66,13 @@ behind a site, and never holds one up (founder, 2026-09-28).
    builds the wheel and publishes it through PyPI trusted publishing (environment `pypi`).
    It cannot read private sites, so it checks the copies against the lock's sha256 only; run
    `make release-check` on the founder's machine first to check the lock against the sites.
+   Every release moves `release_id` in `scripts/techtree/release-inputs.json` (the packaged
+   ReleaseCore names the CLI version, so each release is a new ReleaseCore). After it is on
+   PyPI, `uv run scripts/techtree/build_release_record.py --version <v> --previous <Techtree's
+   priv/releases/<last id>> --plugin-revision <commit Techtree names> --out <empty folder>`
+   writes Techtree's release record and catalog snapshot for the Techtree chief to commit; it
+   reproduces `climb-v0.7.2` from 1.7.3 byte for byte. 1.7.4 to 1.10.1 kept `climb-v0.7.2`,
+   which Techtree holds for 1.7.3; 1.10.2 is `climb-v0.7.3`.
 7. 1.8.0 (2026-10-08) signs from the shared SIWA contract `53180b09…6060` (elixir-utils
    `fe3aa1d`); 1.8.1 (2026-10-09, `5479455`, wheel sha256 `e701a2e7…`) explains a bracketed
    IPv6 `NO_PROXY` entry instead of crashing. Changes now wait and ship together, moving the last
