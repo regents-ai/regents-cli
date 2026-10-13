@@ -3,10 +3,15 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.9.4 — 2026-10-13
 
+- `agents pair`, run by a person at a terminal with nothing piped, asks for the code, the name
+  and the harness in turn, and the code is not shown as it is typed. Piping the JSON works as
+  before.
 - Keyfleet's commands follow its agent contract 9.0.0 (Keyfleet `087127d`): a paired agent no
   longer gets the "not backed" refusal, which Keyfleet never sent. No command changed.
+- The packaged Techtree release metadata names CLI 1.9.4. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
 
 ## 1.9.3 — 2026-10-13
 

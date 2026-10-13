@@ -72,8 +72,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
    `0adfa86`), siwa-server's Touch ID page, the key helper's timeout messages and the site help
    that lists each group's commands. 1.9.3 (2026-10-13) pins Autolaunch `1833c5b` (memestock
    drafts, account commands, agents status, five public reads) and Patchbay `e186f34` (Agent
-   Offer commands, the moved Credits history). Unreleased on main: Keyfleet `087127d` (live v42,
-   agent contract 9.0.0).
+   Offer commands, the moved Credits history). 1.9.4 (2026-10-13) pins Keyfleet `087127d` (live
+   v42, agent contract 9.0.0) and has `agents pair` ask for the code, hidden, at a terminal.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
