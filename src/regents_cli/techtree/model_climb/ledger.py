@@ -88,16 +88,17 @@ def record(
 @contextmanager
 def held(path: Path) -> Iterator[None]:
     """Keep every other command on this machine off the ledger until the block ends, so that
-    reading a grant's uses and spending one are a single step. A command that finds the ledger
-    held is refused at once; it never waits, and the lock ends with the process that holds it."""
+    reading a grant's uses and spending one are a single step, and so that a revoke reads a
+    grant's job exactly. A command that finds the ledger held is refused at once; it never
+    waits, and the lock ends with the process that holds it."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("ab") as handle:
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
             raise ConflictError(
-                "another command on this machine is spending or reading a grant right now, so "
-                "this one did nothing. Run it again when that one has answered.",
+                "another command on this machine is issuing, revoking or spending a grant "
+                "right now, so this one did nothing. Run it again when that one has answered.",
                 code=IDEMPOTENCY_CONFLICT,
                 details={"reason": "grant_ledger_held", "path": str(path)},
             ) from error

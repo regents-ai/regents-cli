@@ -105,6 +105,8 @@ PLAN_LIFETIME: Final = timedelta(hours=24)
 #: An attempt's folder: the job as submitted, and the month's image-build usage read before it.
 JOB_FILE: Final = "job.json"
 BUILDS_BEFORE_FILE: Final = "builds-before.json"
+#: Written once the engine has cancelled the attempt's job: how the attempt ends and why.
+CANCEL_FILE: Final = "cancel.json"
 JOURNAL_FILE: Final = "journal.jsonl"
 #: The provider stops an image build here; it is the only limit on the build (contract 6.1).
 BUILD_TIMEOUT_MINUTES: Final = 60
@@ -867,6 +869,15 @@ def _advance(
         # No job exists, so the attempt is over; its use stays spent.
         _finish(folder, "failed", None, None, None)
         raise
+    except ProviderError as error:
+        # Only the look-up after a submission of unknown outcome asks the provider anything.
+        raise TechtreeError(
+            f"the submission for attempt {intent_id} left and no answer said whether a job was "
+            f"created, and the look for it did not finish: {error.message}. A job may have "
+            "been created. Run this command again to look for it; it is never submitted again.",
+            code=error.code,
+            details={**error.details, "intent_id": intent_id},
+        ) from error
     try:
         return _follow(store, identity, provider, profile, plan, envelope, intent_id, job_id, now)
     except ProviderError as error:
@@ -946,6 +957,9 @@ def _follow(
             code=UNSUPPORTED_CAPABILITY,
             details={**error.details, "job_id": job_id, "intent_id": intent_id},
         ) from error
+    if (folder / CANCEL_FILE).exists():
+        # Cancelled at an earlier look, before the provider had its receipt ready.
+        raise _cancelled(provider, folder, intent_id, job)
     if job.ended:
         return _collect(store, provider, profile, plan, grant, intent_id, job, now)
     ceiling = job.max_cost_usd_micros
@@ -984,7 +998,6 @@ def _follow(
             intent_id,
             "cancelled",
             f"grant {grant.grant_id} was revoked while it was going",
-            kind=PolicyError,
             code=grants.APPROVAL_REQUIRED,
         )
     return Waiting(
@@ -1004,20 +1017,41 @@ def _stop(
     end: AttemptEnd,
     why: str,
     *,
-    kind: type[TechtreeError] = TechtreeError,
     code: str = BUDGET_EXHAUSTED,
     **details: JsonValue,
 ) -> TechtreeError:
-    """Cancel the job, close its attempt, and return the refusal that says so. What the job
-    was charged is read from the provider's receipt after the cancel, however little of it
-    ran, and is never filled in when the provider gives no figure (contract 7.4 step 3)."""
+    """Cancel the job and return the refusal that says so. The cancel is written down once
+    the provider has taken it, so a later look closes the attempt instead of cancelling again."""
     provider.cancel(job_id)
-    receipt = provider.job(job_id).receipt
+    fs.atomic_write_json(
+        folder / CANCEL_FILE,
+        {"exit_reason": end, "why": why, "code": code, "details": details},
+    )
+    return _cancelled(provider, folder, intent_id, provider.job(job_id))
+
+
+def _cancelled(provider: Autoresearch, folder: Path, intent_id: str, job: Job) -> TechtreeError:
+    """The refusal for a job the engine cancelled, closing its attempt when the provider's
+    receipt is there. What the job was charged is that receipt's figure, however little of it
+    ran, and is never filled in when the provider gives none (contract 7.4 step 3). Until
+    the receipt is there the attempt stays open, so that the charge is not lost."""
+    cancel: Any = fs.read_json(folder / CANCEL_FILE)
+    code: str = cancel["code"]
+    kind = PolicyError if code == grants.APPROVAL_REQUIRED else TechtreeError
+    told = f"job {job.id} was cancelled: {cancel['why']}."
+    details = {"job_id": job.id, "intent_id": intent_id, **cancel["details"]}
+    if job.receipt is None:
+        return kind(
+            f"{told} The provider has not yet said what it charged; run this command again "
+            "to record that. The grant's use is spent.",
+            code=code,
+            details=details,
+        )
     builds = _build_usage(provider, folder)
-    _finish(folder, end, None, receipt, builds)
-    charged = receipt.charged_usd_micros if receipt else None
+    _finish(folder, cancel["exit_reason"], None, job.receipt, builds)
+    charged = job.receipt.charged_usd_micros
     return kind(
-        f"job {job_id} was cancelled: {why}. "
+        f"{told} "
         + (
             "The provider gave no figure for what it charged."
             if charged is None
@@ -1025,13 +1059,7 @@ def _stop(
         )
         + f" {builds_sentence(builds)} The grant's use is spent.",
         code=code,
-        details={
-            "job_id": job_id,
-            "intent_id": intent_id,
-            "charged_usd_micros": charged,
-            "build_usage": builds,
-            **details,
-        },
+        details={**details, "charged_usd_micros": charged, "build_usage": builds},
     )
 
 

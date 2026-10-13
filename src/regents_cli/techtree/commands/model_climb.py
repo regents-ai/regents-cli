@@ -33,7 +33,7 @@ from regents_cli.techtree.model_climb.contracts import (
 )
 from regents_cli.techtree.model_climb.provider import RUNNER_UNAVAILABLE, Autoresearch
 from regents_cli.techtree.model_climb.store import ModelClimbStore
-from regents_cli.techtree.models.base import JsonValue
+from regents_cli.techtree.models.base import Digest, JsonValue
 from regents_cli.techtree.site import site_base
 
 CAPABILITIES: Final = "model_climb_capabilities"
@@ -546,6 +546,18 @@ def grant_issue(
         expires_in=_duration(expires_in),
     )
     store = _store()
+    # One command at a time has the ledger, from its start to its end (contract 6).
+    with ledger.held(store.ledger_path):
+        _issue(store, plan_digest, granted, limits, as_json)
+
+
+def _issue(
+    store: ModelClimbStore,
+    plan_digest: Digest,
+    granted: GrantedOperation,
+    limits: grants.Limits,
+    as_json: bool,
+) -> None:
     service = IdentityService(IdentityStore(paths.home()))
     identity = service.ensure()
     grant = grants.draft_grant(
@@ -639,16 +651,19 @@ def grant_revoke(grant_id: str, as_json: bool) -> None:
         envelope = store.get_grant(grant_id)
     except NotFoundError as error:
         raise ValidationError(error.message, details={"grant_id": grant_id}) from error
-    grants.revoke(store, service, envelope, now=datetime.now(UTC))
-    # Revoking writes to this machine only. A job already at the provider is cancelled by the
-    # paid test's own command, which is the one that holds the provider's token.
-    cancel = [
-        f"regents techtree model-climb profile test {profile.name} --grant {grant_id}"
-        for profile in profiles.PROFILES.values()
-        if envelope.payload.operation == PROFILE_TEST
-        and profile_test.mission_name(profile) == envelope.payload.mission
-        and profile_test.unfinished(store, identity, envelope) is not None
-    ]
+    # Held, so no paid test is between finding a use left and submitting while this reads
+    # whether the grant has a job: what the answer says about a job is then exact.
+    with ledger.held(store.ledger_path):
+        grants.revoke(store, service, envelope, now=datetime.now(UTC))
+        # Revoking writes to this machine only. A job already at the provider is cancelled by
+        # the paid test's own command, which is the one that holds the provider's token.
+        cancel = [
+            f"regents techtree model-climb profile test {profile.name} --grant {grant_id}"
+            for profile in profiles.PROFILES.values()
+            if envelope.payload.operation == PROFILE_TEST
+            and profile_test.mission_name(profile) == envelope.payload.mission
+            and profile_test.unfinished(store, identity, envelope) is not None
+        ]
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
         "operation_id": GRANT_REVOKE,
