@@ -5,6 +5,18 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- A payment that may have gone through is never offered as a plain rerun. After no answer, an
+  interruption, a site failure or "settlement pending", the next step quotes the site's own
+  description of how to finish it (on Patchbay, `payments complete`) and lists its commands.
+  An answer that took a request without finishing it (202) says the same instead of "done".
+- A rerun never carries an earlier agreement: `--yes` and `--reviewed-on` are left out, so a
+  paid start asks again. A Techtree forge run, plan, build or construction that failed or was
+  stopped now points at `regents techtree forge status <id>` first.
+- A 402 asks for a wallet signature only when it carries x402 payment terms; a 402 about
+  Credits or a used free allowance goes to your person.
+- A rerun shows a contributor address as `<private-address>`, as the approval review does.
+- `techtree run logs` of a run that ended without a result ends there, instead of sending you
+  back to `run status`, which sent you to the logs.
 - Techtree release `climb-v0.7.3`: the same Climbs, catalog, engines and starter Skills, named
   with this version. Releases 1.7.4 to 1.10.1 kept the name `climb-v0.7.2`, which Techtree
   already uses for 1.7.3, so techtree.sh could not offer any of them; from now on each release

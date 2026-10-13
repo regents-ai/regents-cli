@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import click
+import httpx
 import pytest
 
 from regents_cli import app, runner, siwa
@@ -44,11 +45,11 @@ def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[Request]:
     monkeypatch.setenv("SIWA_AGENT_HOME", str(home))
     sent: list[Request] = []
 
-    def send(base: str, request: Request, timeout_ms: int) -> Any:
+    def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
         sent.append(request)
-        return {}
+        return httpx.Response(200, json={})
 
-    monkeypatch.setattr(runner, "send", send)
+    monkeypatch.setattr(runner, "respond", respond)
     return sent
 
 

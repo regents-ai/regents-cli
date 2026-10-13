@@ -129,15 +129,20 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
         platform = next((p for p in platforms if p.site == site), None)
     elif words:
         platform = next((p for p in platforms if p.name == words[0]), None)
-    described = platform is not None and any(
-        c.stdin_fields and (*c.group_words, c.name) == tuple(words[1:]) for c in platform.commands
+    described = (
+        next((c for c in platform.commands if (*c.group_words, c.name) == tuple(words[1:])), None)
+        if platform is not None
+        else None
     )
     return next_steps.Invocation(
         args=tuple(args),
         words=tuple(words),
         site=platform.site if platform is not None else None,
         host=urlsplit(platform.base_url).hostname if platform is not None else None,
-        takes_stdin=described or _value_of("--phase", args) == "send",
+        takes_stdin=bool(described and described.stdin_fields)
+        or _value_of("--phase", args) == "send",
+        effect=described.effect if described is not None else None,
+        description=described.description if described is not None else None,
     )
 
 

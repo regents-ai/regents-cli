@@ -10,6 +10,7 @@ from pathlib import Path
 from pydantic import BaseModel
 from pydantic import ValidationError as ModelValidationError
 
+from regents_cli.next_steps import Step, run
 from regents_cli.techtree.approval import ReviewedOn
 from regents_cli.techtree.errors import NotFoundError, ValidationError
 from regents_cli.techtree.forge.models import FORGE_APPROVAL_SCHEMA_VERSION, ForgeApproval
@@ -43,9 +44,14 @@ def read_optional[M: BaseModel](
         ) from error
 
 
-def inspect_command(record_id: str) -> str:
-    """The command that reads a forge record back, for an error to name."""
-    return f"regents techtree forge status {record_id}"
+def inspect_first(record_id: str) -> Step:
+    """The step after a forge record failed or was stopped: read it back, since starting
+    another makes new calls, and the person who agreed to this one agreed to this one only."""
+    return run(
+        ("regents", "techtree", "forge", "status", record_id),
+        "Read what this recorded before starting another; a new start makes new calls, which "
+        "may be billed to your person, and needs their agreement again.",
+    )
 
 
 def write_approval(

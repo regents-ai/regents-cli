@@ -92,7 +92,8 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
   answer = send once; never retried, redirects never followed
   2xx with JSON      -> print it (readable, or JSON with --json) with next_steps: the next
                         page when entry.pagination says there is one, then entry.next_steps,
-                        else "done"
+                        else "done"; a 202 without entry.next_steps is not done: its step
+                        quotes the entry's description and lists its group's commands
   any other answer   -> the site's {"error": {"code", "message", ...}} as it came, an exit
                         code (401/403 sign-in, 404 not found, 502-504 unreachable, anything
                         else failed) and next_steps read from the status and code
@@ -104,6 +105,14 @@ first) and `patchbay` (a ready post for the site's board on patchbay.help). A po
 suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
 that is not a JSON object), answers with an error without a readable code, or cannot be
 reached. A coded refusal is the agent's to fix, so write `code` and `message` for that.
+
+A rerun leaves out `--yes` and `--reviewed-on`, so a new paid start asks for agreement again,
+and shows `--address` only as `<private-address>`. A 402 asks for a signature only when it
+carries the x402 `payment-required` header; any other 402 goes to a person. A `payment` command
+whose outcome is unsure (no answer, interrupted, a 409, a 5xx, a redirect or an unreadable
+answer) is never offered as a plain rerun: its step quotes the entry's description, so the
+description says how an unsure payment is finished, naming the command that does it, or that a
+repeat never pays twice and how.
 
 ### Naming a command's follow-ups
 

@@ -49,7 +49,7 @@ from regents_cli.techtree.forge.models import (
     proposal_content,
 )
 from regents_cli.techtree.forge.records import (
-    inspect_command,
+    inspect_first,
     read_optional,
     read_record,
     write_approval,
@@ -256,10 +256,10 @@ def start_plan(
         except KeyboardInterrupt as interrupt:
             raise RunError(
                 "planning was stopped with Ctrl-C while the planner was working, so the "
-                "provider may or may not have answered or charged. It is not retried. "
-                f"Inspect: {inspect_command(plan_id)}",
+                "provider may or may not have answered or charged. It is not retried.",
                 code="forge_planning_interrupted",
                 details={"plan_id": plan_id, "path": str(directory)},
+                next_steps=[inspect_first(plan_id)],
             ) from interrupt
     return read_plan_status(paths, plan_id)
 

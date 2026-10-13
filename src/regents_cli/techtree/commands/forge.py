@@ -79,6 +79,7 @@ from regents_cli.techtree.forge.planning import (
     read_proposal_status,
     start_plan,
 )
+from regents_cli.techtree.forge.records import inspect_first
 from regents_cli.techtree.forge.report import (
     FEW_TASKS,
     OUTCOME_WORDS,
@@ -553,6 +554,7 @@ def construct_start(
             "a new construction",
             code="forge_construction_nothing_usable",
             details={"construction_id": construction_id, "path": started.path},
+            next_steps=[inspect_first(construction_id)],
         )
     _emit(_construction_answer(started), as_json=as_json)
 

@@ -88,6 +88,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
    1.10.0 (2026-10-13) ends every answer and failure with `next_steps` (founder 1a 2b 3a) and
    adds the optional `next_steps` field to the description format. 1.10.1 (2026-10-13) makes
    a coded refusal's rerun conditional beside a done step and pins Autolaunch `230462d` (v98).
+   1.10.2 fixes the 1.10.1 review: an unsure payment or an agreed paid start is never offered
+   as a plain rerun, a 402 without x402 terms goes to a person, and reruns hide addresses.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

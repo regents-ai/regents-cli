@@ -112,12 +112,7 @@ def logs(run_id: str, tail: int, variant: str | None, as_json: bool) -> None:
     emit(
         answer,
         as_json=as_json,
-        next_steps=[
-            run(
-                ["regents", "techtree", "run", "status", run_id],
-                "See where the run stands; the logs say what it did, not whether it ended.",
-            )
-        ],
+        next_steps=[after_logs(status_answer(service, run_id))],
         shown=[output.verbatim(str(answer["report"]))],
     )
 
@@ -320,6 +315,14 @@ def after_status(answer: dict[str, JsonValue]) -> Step:
         ["regents", "techtree", "run", "status", run_id, "--timeout-seconds", "30"],
         "It is still going: wait up to 30 seconds for news, and ask again.",
     )
+
+
+def after_logs(standing: dict[str, JsonValue]) -> Step:
+    """After the logs: the result once there is one, the end of a run that stopped without one
+    (its logs said why), or a wait while it goes on."""
+    if standing["terminal"] and not standing["result_available"]:
+        return done("The run ended without a result, and these logs say why; nothing more to run.")
+    return after_status(standing)
 
 
 def _result_report(presentation: UpliftPresentationPayload, answer: dict[str, JsonValue]) -> str:

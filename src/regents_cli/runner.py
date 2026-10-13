@@ -20,8 +20,8 @@ import click
 from regents_cli import output, siwa
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
-from regents_cli.http import Request, base_address, send
-from regents_cli.next_steps import Step, done, pair_first, run_piped
+from regents_cli.http import Request, answer, base_address, respond
+from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped
 from regents_cli.next_steps import run as run_step
 from regents_cli.platforms import Command, Input, Platform
 
@@ -175,10 +175,10 @@ def build_command(platform: Platform, command: Command) -> click.Command:
                 output.emit(ready, as_json=as_json, next_steps=[send_signed(ready, line, shared)])
                 return
             request = replace(request, headers=siwa.sign(request, receipt))
-        answer = send(base, request, timeout_ms)
-        output.emit(
-            answer, as_json=as_json, next_steps=after(platform, command, answer, line, shared)
-        )
+        response = respond(base, request, timeout_ms)
+        told = answer(response)
+        steps = after(platform, command, told, line, shared, finished=response.status_code != 202)
+        output.emit(told, as_json=as_json, next_steps=steps)
 
     return click.Command(command.name, params=params, callback=run, help=help_text)
 
@@ -371,10 +371,17 @@ def send_signed(ready: dict[str, Any], line: list[str], shared: list[str]) -> St
 
 
 def after(
-    platform: Platform, command: Command, answer: dict[str, Any], line: list[str], shared: list[str]
+    platform: Platform,
+    command: Command,
+    answer: dict[str, Any],
+    line: list[str],
+    shared: list[str],
+    *,
+    finished: bool,
 ) -> list[Step]:
     """What follows a site's answer: its next page, the follow-ups the site describes, a check
-    of a new pairing, or nothing more."""
+    of a new pairing, or nothing more. An answer that took the request without finishing it
+    (202) is followed the way the command's description says, and never sent again."""
     steps: list[Step] = []
     if command.pagination is not None:
         cursor = dig(answer, command.pagination.cursor)
@@ -406,7 +413,17 @@ def after(
                 "Check the pairing: it names the account this agent now acts for.",
             )
         )
-    return steps or [done(DONE[command.effect])]
+    if steps:
+        return steps
+    if not finished:
+        return [
+            as_described(
+                (platform.name, *command.group_words),
+                command.description,
+                "The site took this but has not finished it, so don't run it again.",
+            )
+        ]
+    return [done(DONE[command.effect])]
 
 
 #: What a finished answer means, by what the command does.

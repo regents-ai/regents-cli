@@ -166,7 +166,7 @@ def _error_for(response: httpx.Response, body: Any) -> CommandError:
             exit_code=exit_code,
             **{**said, **fields},
         )
-    if status == 402 and isinstance(body, dict):
+    if status == 402 and isinstance(body, dict) and "payment-required" in response.headers:
         return _payment_required(response, body, fields)
     if response.is_redirect:
         return CommandError(
@@ -184,10 +184,8 @@ def _payment_required(
     response: httpx.Response, body: dict[str, Any], fields: dict[str, Any]
 ) -> CommandError:
     """A 402 that offers terms: the whole answer, with the x402 `payment-required` header."""
-    if header := response.headers.get("payment-required"):
-        fields = {**fields, "payment_required": header}
     return CommandError(
         "payment_required",
         "Nothing was paid. Sign payment_terms with your wallet, then send the signature.",
-        **{**body, **fields},
+        **{**body, **fields, "payment_required": response.headers["payment-required"]},
     )

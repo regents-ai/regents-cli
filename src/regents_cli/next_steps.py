@@ -107,6 +107,12 @@ def sign_in(site: str) -> Step:
     return run(("regents", "auth", "login", "--site", site), f"Sign in to {site}.")
 
 
+#: Flags a rerun leaves out: an agreement covers one go, so a rerun asks for a new one.
+AGREEMENT_FLAGS = {"--yes": 0, "--reviewed-on": 1}
+#: Flags whose value a rerun shows only as a placeholder, as the approval review does.
+PRIVATE_FLAGS = {"--address": "<private-address>"}
+
+
 @dataclass(frozen=True, slots=True)
 class Invocation:
     """The command a failure came from, as far as `regents` could read it."""
@@ -118,14 +124,40 @@ class Invocation:
     site: str | None
     host: str | None
     takes_stdin: bool
+    #: What a site's described command does, and its description, when it is one.
+    effect: str | None = None
+    description: str | None = None
 
     @property
     def again(self) -> tuple[str, ...]:
-        return ("regents", *self.args)
+        """The same command, without an earlier agreement and without private values."""
+        kept: list[str] = []
+        skip = 0
+        for arg in self.args:
+            name, has_value, _ = arg.partition("=")
+            if skip:
+                skip -= 1
+            elif name in AGREEMENT_FLAGS:
+                skip = 0 if has_value else AGREEMENT_FLAGS[name]
+            elif name in PRIVATE_FLAGS:
+                kept += [name, PRIVATE_FLAGS[name]]
+                skip = 0 if has_value else 1
+            else:
+                kept.append(arg)
+        return ("regents", *kept)
 
     @property
     def piped(self) -> str:
         return ", piping the same JSON on stdin" if self.takes_stdin else ""
+
+
+def as_described(group: Sequence[str], description: str, why: str) -> Step:
+    """For an outcome only the site's own description says how to follow: its group's help,
+    which lists the command that does, and the description itself."""
+    return run(
+        ("regents", *group, "--help"),
+        f'{why} The site says: "{description}" Its commands are listed here.',
+    )
 
 
 def for_failure(error: CommandError, invocation: Invocation) -> list[Step]:
@@ -133,6 +165,9 @@ def for_failure(error: CommandError, invocation: Invocation) -> list[Step]:
     if error.next_steps:
         return list(error.next_steps)
     status = error.fields.get("status")
+    described = invocation.description
+    if invocation.effect == "payment" and described is not None and _unsure(error, status):
+        return _unsure_payment(error, status, invocation, described)
     if isinstance(status, int):
         return _site_refused(error, status, invocation)
     return _failed(error, invocation)
@@ -146,13 +181,18 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
         return [*pair_first(invocation.words[0]), run(again, "Then run this again.")]
     if status == 401 and invocation.site is not None:
         return [sign_in(invocation.site), run(again, "Then run this again.")]
-    if status == 402:
+    if status == 402 and "payment_required" in error.fields:
         return [
             run(
                 again,
                 "Nothing was paid. Sign payment_terms with your wallet, then run this again "
                 'piping {"payment_signature": "<the signature>"} on stdin.',
             )
+        ]
+    if status == 402:
+        return [
+            human(f"Nothing was paid, and this needs your person first: {error.message}"),
+            done("Otherwise that is the site's answer; nothing more to run."),
         ]
     if status == 403 and coded:
         page = PAIRING_PAGE if error.code.startswith("pairing_") else None
@@ -207,6 +247,30 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
     if error.code == "invalid_response":
         return [_broken(error, None, invocation)]
     return [run(again, f"Do what the message says, then run this again{invocation.piped}.")]
+
+
+def _unsure(error: CommandError, status: object) -> bool:
+    """Whether a request may have reached the site and done its work, unanswered or unclear."""
+    if isinstance(status, int):
+        uncoded = error.code.startswith("http_") or error.code == "redirected"
+        return uncoded or status == 409 or status >= 500
+    return error.exit_code in (EXIT_UNREACHABLE, EXIT_CANCELLED) or error.code == "invalid_response"
+
+
+def _unsure_payment(
+    error: CommandError, status: object, invocation: Invocation, description: str
+) -> list[Step]:
+    """A payment that may have gone through is never sent again; the site says how to finish
+    it. A site that failed is also reported."""
+    finish = as_described(
+        invocation.words[:-1],
+        description,
+        "The payment may have gone through: run this again only if the site says a repeat "
+        "never pays twice, and otherwise finish it the way the site says.",
+    )
+    if error.exit_code == EXIT_CANCELLED or status == 409:
+        return [finish]
+    return [finish, _broken(error, status if isinstance(status, int) else None, invocation)]
 
 
 def _broken(error: CommandError, status: int | None, invocation: Invocation) -> Step:
