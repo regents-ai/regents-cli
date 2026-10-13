@@ -166,8 +166,14 @@ def for_failure(error: CommandError, invocation: Invocation) -> list[Step]:
         return list(error.next_steps)
     status = error.fields.get("status")
     described = invocation.description
-    if invocation.effect == "payment" and described is not None and _unsure(error, status):
-        return _unsure_payment(error, status, invocation, described)
+    if invocation.effect == "payment" and described is not None:
+        if _unsure(error, status):
+            return _unsure_payment(error, status, invocation, described)
+        if _refused_unread(error, status):
+            return [
+                as_described(invocation.words[:-1], described, "The site refused this."),
+                _broken(error, status if isinstance(status, int) else None, invocation),
+            ]
     if isinstance(status, int):
         return _site_refused(error, status, invocation)
     return _failed(error, invocation)
@@ -252,9 +258,13 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
 def _unsure(error: CommandError, status: object) -> bool:
     """Whether a request may have reached the site and done its work, unanswered or unclear."""
     if isinstance(status, int):
-        uncoded = error.code.startswith("http_") or error.code == "redirected"
-        return uncoded or status == 409 or status >= 500
+        return error.code == "redirected" or status == 409 or status >= 500
     return error.exit_code in (EXIT_UNREACHABLE, EXIT_CANCELLED) or error.code == "invalid_response"
+
+
+def _refused_unread(error: CommandError, status: object) -> bool:
+    """A refusal without a readable code, other than the ones `regents` knows how to follow."""
+    return error.code.startswith("http_") and status not in (401, 402, 429)
 
 
 def _unsure_payment(

@@ -141,7 +141,10 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
         host=urlsplit(platform.base_url).hostname if platform is not None else None,
         takes_stdin=bool(described and described.stdin_fields)
         or _value_of("--phase", args) == "send",
-        effect=described.effect if described is not None else None,
+        # --phase prepare sends nothing, so it never pays.
+        effect=described.effect
+        if described is not None and _value_of("--phase", args) != "prepare"
+        else None,
         description=described.description if described is not None else None,
     )
 

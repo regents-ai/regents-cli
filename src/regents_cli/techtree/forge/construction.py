@@ -74,6 +74,7 @@ from regents_cli.techtree.forge.models import (
 from regents_cli.techtree.forge.planning import read_proposal_status
 from regents_cli.techtree.forge.records import (
     inspect_first,
+    read_back_first,
     read_optional,
     read_record,
     write_approval,
@@ -367,9 +368,9 @@ def _pass(
         except KeyboardInterrupt as interrupt:
             end(stopped=True)
             raise interrupted from interrupt
-        except TechtreeError:
+        except TechtreeError as error:
             end(stopped=False)
-            raise
+            raise read_back_first(error, record.construction_id, directory) from error
         # Ctrl-C while a package was being checked is recorded by the build.
         if (
             package is not None

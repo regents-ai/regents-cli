@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import shlex
+from pathlib import Path
 
 import httpx
 import pytest
@@ -18,7 +19,8 @@ from regents_cli.next_steps import Invocation, for_failure
 from regents_cli.platforms import pinned_platforms
 from regents_cli.runner import after
 from regents_cli.techtree.commands.run import after_logs, after_status
-from regents_cli.techtree.forge.records import inspect_first
+from regents_cli.techtree.errors import RunError
+from regents_cli.techtree.forge.records import inspect_first, read_back_first
 from regents_cli.techtree.models.base import JsonValue
 
 SECRET = "my-private-note"
@@ -79,6 +81,19 @@ def test_an_unsure_payment_is_never_sent_again(error: CommandError) -> None:
     assert "payments complete" in steps[0].say and "never pays twice" in steps[0].say
 
 
+def test_a_refused_payment_is_not_called_unsure() -> None:
+    """Sentinel F1: a 4xx without a code means the site refused it, not that it may have paid;
+    a 401 still asks for sign-in, and --phase prepare sends nothing, so it never pays."""
+    (refused, post) = for_failure(CommandError("http_400", "Refused.", status=400), paying())
+    assert refused.say.startswith("The site refused this.") and post.kind == "human"
+    assert "may have gone through" not in refused.say
+    signed_out = for_failure(CommandError("http_401", "Sign in.", status=401), paying())
+    assert signed_out[0].command == "regents auth login --site patchbay"
+    preparing = app.invocation(app.root(), [*PAY, "--phase", "prepare"])
+    timeout = CommandError("timeout", "No answer.", exit_code=EXIT_UNREACHABLE)
+    assert all("may have gone through" not in s.say for s in for_failure(timeout, preparing))
+
+
 def test_a_rerun_asks_for_agreement_again_and_hides_private_values() -> None:
     """Review P1 and P2: a rerun never carries an earlier --yes into a new paid start, and
     never shows a contributor address."""
@@ -133,9 +148,17 @@ def test_a_202_is_followed_as_the_site_describes() -> None:
     assert after(patchbay, execute, {}, line, [], finished=True)[0].kind == "done"
 
 
-def test_a_stopped_forge_start_is_read_back_before_another() -> None:
+def test_a_stopped_forge_start_is_read_back_before_another(tmp_path: Path) -> None:
+    """Sentinel F2: a failure after the agreement was recorded (a rerun is refused as already
+    sent) points at forge status, keeping its own code and message."""
     step = inspect_first("forgerun_1")
     assert step.command == "regents techtree forge status forgerun_1"
+    inner = RunError("hermes could not be started", code="hermes_unusable")
+    failed = read_back_first(inner, "plan_1", tmp_path)
+    assert (failed.code, failed.message) == ("hermes_unusable", "hermes could not be started")
+    assert [s.command for s in for_failure(failed, paying())] == [
+        "regents techtree forge status plan_1"
+    ]
 
 
 def test_a_run_that_ended_without_a_result_ends_at_its_logs() -> None:

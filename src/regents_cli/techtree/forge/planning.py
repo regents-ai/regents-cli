@@ -27,7 +27,13 @@ from pydantic import ValidationError as ModelValidationError
 
 from regents_cli.techtree.approval import ReviewedOn
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes
-from regents_cli.techtree.errors import ConflictError, NotFoundError, RunError, ValidationError
+from regents_cli.techtree.errors import (
+    ConflictError,
+    NotFoundError,
+    RunError,
+    TechtreeError,
+    ValidationError,
+)
 from regents_cli.techtree.forge import calls, skill2env
 from regents_cli.techtree.forge.models import (
     FORGE_PLAN_SCHEMA_VERSION,
@@ -50,6 +56,7 @@ from regents_cli.techtree.forge.models import (
 )
 from regents_cli.techtree.forge.records import (
     inspect_first,
+    read_back_first,
     read_optional,
     read_record,
     write_approval,
@@ -261,6 +268,8 @@ def start_plan(
                 details={"plan_id": plan_id, "path": str(directory)},
                 next_steps=[inspect_first(plan_id)],
             ) from interrupt
+        except TechtreeError as error:
+            raise read_back_first(error, plan_id, directory) from error
     return read_plan_status(paths, plan_id)
 
 
