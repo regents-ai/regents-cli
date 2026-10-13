@@ -26,7 +26,12 @@ from pydantic import ValidationError as PydanticValidationError
 from regents_cli import output
 from regents_cli.techtree import fs
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes
-from regents_cli.techtree.errors import ConflictError, TechtreeError, ValidationError
+from regents_cli.techtree.errors import (
+    ConflictError,
+    PolicyError,
+    TechtreeError,
+    ValidationError,
+)
 from regents_cli.techtree.identity.models import ExecutorIdentity
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.ids import new_id
@@ -70,7 +75,6 @@ from regents_cli.techtree.model_climb.data import MINIMUM_SALT_BYTES, split_comm
 from regents_cli.techtree.model_climb.provider import (
     BUDGET_EXHAUSTED,
     MICROS_PER_CENT,
-    WAITS_FOR_BALANCE,
     Autoresearch,
     Job,
     SubmissionRefusedError,
@@ -826,16 +830,16 @@ def advance(
             code=BUDGET_EXHAUSTED,
             details={"job_id": job_id, "intent_id": intent_id, "max_cost_usd_micros": ceiling},
         )
-    if job.waits_for_balance:
-        # Automatic top-up is attested off, so this wait cannot end by itself, and a job that
-        # starts whenever money is next added is not the run that was approved (contract 6.1).
+    if job.money_wait is not None:
+        # Automatic top-up is off, so this wait cannot end by itself, and a job that starts
+        # whenever money is next added is not the run that was approved (contract 6.1).
         provider.cancel(job_id)
         _finish(folder, "budget_exhausted", None)
         raise TechtreeError(
-            f"job {job_id} was cancelled before it ran: the provider was holding it because "
-            "the account's balance is empty. The grant's use is spent.",
+            f"job {job_id} was cancelled before it ran: the provider was holding it for a "
+            f'reason only money ends ("{job.money_wait}"). The grant\'s use is spent.',
             code=BUDGET_EXHAUSTED,
-            details={"job_id": job_id, "intent_id": intent_id, "wait_reason": WAITS_FOR_BALANCE},
+            details={"job_id": job_id, "intent_id": intent_id, "wait_reason": job.money_wait},
         )
     return Waiting(
         intent_id=intent_id, job_id=job_id, status=job.status, max_cost_cents=cents(ceiling)
@@ -891,6 +895,23 @@ def _begin(
             f"grant allows {grant.max_cents}; nothing was submitted",
             code=BUDGET_EXHAUSTED,
             details={"grant_id": grant.grant_id, "max_cost_usd_micros": ceiling},
+        )
+    billing = provider.billing()
+    if billing.auto_topup.enabled:
+        raise PolicyError(
+            "automatic top-up is on at the compute account, and the grant was issued on the "
+            "operator's word that it is off. Turn it off there and issue a new grant; nothing "
+            "was submitted.",
+            code=grants.APPROVAL_REQUIRED,
+            details={"grant_id": grant.grant_id, "auto_topup": True},
+        )
+    available = billing.balance.available_usd_micros
+    if billing.balance.at_zero or available < ceiling:
+        raise TechtreeError(
+            f"the compute account has {available // MICROS_PER_CENT} cents to spend, and the "
+            f"provider's maximum for this job would be {cents(ceiling)}; nothing was submitted",
+            code=BUDGET_EXHAUSTED,
+            details={"grant_id": grant.grant_id, "available_usd_micros": available},
         )
     builds_before = provider.build_usage()
     intent_id = new_id("attempt")

@@ -317,6 +317,8 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
             details={"mission": mission},
         )
     builds = provider.build_usage()
+    # Read at the test before anything is spent; a token that cannot read it is refused here.
+    provider.billing()
     drafted = profile_test.draft_plan(
         store, profile, max_cents=max_cents, micros_per_gpu_minute=rate, now=now
     )

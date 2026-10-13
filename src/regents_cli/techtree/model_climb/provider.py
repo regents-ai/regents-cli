@@ -1,10 +1,10 @@
 """San Francisco Compute's Autoresearch batch jobs, over its HTTP API (contract 6.1).
 
 The engine signs in with the operator's service token, read from `GMN_TOKEN`; it is never
-printed, stored or sent anywhere but that API. Eight calls are all the engine makes: read
-the rate, read whether the operator's mission exists, read the month's image-build usage, ask
-whether a job would be taken, submit one job, find a job by its label, read a job, and cancel a
-job.
+printed, stored or sent anywhere but that API. Nine calls are all the engine makes: read
+the rate, read whether the operator's mission exists, read the month's image-build usage, read
+the account's balance and whether it tops itself up, ask whether a job would be taken, submit
+one job, find a job by its label, read a job, and cancel a job.
 
 Autoresearch publishes what each call takes and describes what it answers in prose. The answer
 fields read here are the ones its manual names (read 13 Oct 2026). An answer without one of
@@ -34,8 +34,9 @@ RUNNER_UNAVAILABLE: Final = "runner_unavailable"
 BUDGET_EXHAUSTED: Final = "budget_exhausted"
 #: The preflight item that weighs a job's worst case against the workspace's spending cap.
 COST_CAP: Final = "cost-cap"
-#: Why a queued job waits when the account's prepaid balance is empty.
-WAITS_FOR_BALANCE: Final = "balance"
+#: The reasons a queued job waits that only money ends: an empty prepaid balance, a spending
+#: cap reached or with too little room left, and an account past due or suspended.
+MONEY_WAITS: Final = frozenset({"balance", "spend_cap", "spend_cap_headroom", "payment"})
 MICROS_PER_CENT: Final = 10_000
 #: What the free preflight reads of a job; the rest only matters to a real run.
 PREFLIGHT_FIELDS: Final = (
@@ -104,12 +105,30 @@ class Job(_Answer):
         return self.receipt is not None
 
     @property
-    def waits_for_balance(self) -> bool:
-        return self.queue is not None and self.queue.wait_reason == WAITS_FOR_BALANCE
+    def money_wait(self) -> str | None:
+        """The provider's reason this job waits, when it is one only money ends."""
+        reason = self.queue.wait_reason if self.queue else None
+        return reason if reason in MONEY_WAITS else None
 
 
 class _Jobs(_Answer):
     items: list[Job]
+
+
+class Balance(_Answer):
+    at_zero: bool
+    available_usd_micros: int
+
+
+class AutoTopUp(_Answer):
+    enabled: bool
+
+
+class Billing(_Answer):
+    """What the account can spend, and whether it adds money to itself."""
+
+    balance: Balance
+    auto_topup: AutoTopUp
 
 
 @dataclass(frozen=True)
@@ -222,6 +241,9 @@ class Autoresearch:
 
     def cancel(self, job_id: str) -> None:
         self._send("POST", f"/preview/jobs/{job_id}/cancel", body={})
+
+    def billing(self) -> Billing:
+        return _read(Billing, self._send("GET", "/preview/billing"), "the account's billing")
 
     def build_usage(self) -> JsonValue:
         """What this month's usage shows for image builds, as the provider gives it; None
