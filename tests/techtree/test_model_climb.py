@@ -125,7 +125,7 @@ def plan(study_digest: str, *, cents: int = 4000) -> ResolvedModelPlan:
             recipe=digest("8"),
             compute=ComputeTarget(
                 provider="sfcompute_autoresearch",
-                mission="regents-123",
+                mission="sample-mission",
                 gpu_model="H100_80GB",
                 gpu_count=2,
             ),
