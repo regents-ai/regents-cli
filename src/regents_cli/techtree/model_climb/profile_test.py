@@ -900,7 +900,7 @@ def _begin(
     if billing.auto_topup.enabled:
         raise PolicyError(
             "automatic top-up is on at the compute account, and the grant was issued on the "
-            "operator's word that it is off. Turn it off there and issue a new grant; nothing "
+            "operator's word that it is off. Turn it off there and run this again; nothing "
             "was submitted.",
             code=grants.APPROVAL_REQUIRED,
             details={"grant_id": grant.grant_id, "auto_topup": True},
