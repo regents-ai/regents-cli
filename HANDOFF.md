@@ -70,7 +70,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
    site; 1.9.1 (2026-10-10, `d7deae0`, wheel sha256 `a9ad6b3b…462e`) corrected the template's
    help. 1.9.2 (2026-10-12) adds the template's `notes pin` and `notes unpin` (template
    `0adfa86`), siwa-server's Touch ID page, the key helper's timeout messages and the site help
-   that lists each group's commands. The next bundle starts with Autolaunch's main `372881ad`.
+   that lists each group's commands. 1.9.3 (2026-10-13) pins Autolaunch `1833c5b` (memestock
+   drafts, account commands, agents status, five public reads) and Patchbay `e186f34` (Agent
+   Offer commands, the moved Credits history). Keyfleet's contract 9.0.0 re-pin waits for its
+   push to main.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

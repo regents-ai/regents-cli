@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.9.3 — 2026-10-13
 
 - Autolaunch's draft commands are now `drafts memestock show` and `drafts memestock save`; the
   site renamed memestake drafts to memestock, so the old commands got only "unavailable" back.
@@ -20,6 +20,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   when retrying and the site keeps the first save), `offers ask-fit`, and `offers bid`, which
   holds your person's Credits as your own spending within the limits they set. Pinned to
   Patchbay `e186f34`.
+- The packaged Techtree release metadata names CLI 1.9.3. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
 
 ## 1.9.2 — 2026-10-12
 
