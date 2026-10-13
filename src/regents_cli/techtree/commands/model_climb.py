@@ -1,25 +1,28 @@
-"""`regents techtree model-climb …` (contract model-climb-v1, M0): what this machine can run, the
-model-free compatibility check, and local execution grants. None rents a machine, calls a paid
-model or sends anything to the Techtree site."""
+"""`regents techtree model-climb …` (contract model-climb-v1): what this machine can run, the
+model-free compatibility check, local execution grants (M0), and sending a signed proof to the
+person's private Techtree records (M3). None rents a machine or calls a paid model."""
 
 from __future__ import annotations
 
 import re
 import sys
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 from typing import Final, cast, get_args
 
 import click
 
-from regents_cli import output
+from regents_cli import output, siwa
+from regents_cli.http import Request, send
 from regents_cli.techtree import fs, paths
-from regents_cli.techtree.canonical import digest_object, validate_digest
-from regents_cli.techtree.commands.answers import JSON, emit
+from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes, validate_digest
+from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
 from regents_cli.techtree.errors import PolicyError, ValidationError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
-from regents_cli.techtree.model_climb import grants, profiles
+from regents_cli.techtree.model_climb import grants, profiles, proof
 from regents_cli.techtree.model_climb.contracts import (
     CONTRACT,
     OPERATION_SCHEMA_VERSION,
@@ -28,12 +31,16 @@ from regents_cli.techtree.model_climb.contracts import (
 )
 from regents_cli.techtree.model_climb.store import ModelClimbStore
 from regents_cli.techtree.models.base import JsonValue
+from regents_cli.techtree.site import site_base
 
 CAPABILITIES: Final = "model_climb_capabilities"
 PROFILE_CHECK: Final = "model_climb_profile_check"
 GRANT_ISSUE: Final = "model_climb_grant_issue"
-#: The operations from the contract's table this build runs.
-BUILT_OPERATIONS: Final = (CAPABILITIES, PROFILE_CHECK, GRANT_ISSUE)
+REPORT_SUBMIT: Final = "model_climb_report_submit"
+#: The operations from the contract's table this build runs natively.
+BUILT_OPERATIONS: Final = (CAPABILITIES, PROFILE_CHECK, GRANT_ISSUE, REPORT_SUBMIT)
+REPORTS_PATH: Final = "/api/model-climb/v1/reports"
+SUBMIT_TIMEOUT_MS: Final = 60_000
 CONFIRMATION_LENGTH: Final = 12
 _DURATION: Final = re.compile(r"^(\d+)([mhd])$")
 _UNITS: Final = {"m": "minutes", "h": "hours", "d": "days"}
@@ -411,6 +418,43 @@ def _duration(value: str) -> timedelta:
     return timedelta(**{_UNITS[parsed[2]]: int(parsed[1])})
 
 
+# submit
+
+
+def submit(folder: str, base_url: str | None, as_json: bool) -> None:
+    data = proof.document(Path(folder))
+    key = sha256_digest_bytes(data)
+    base = site_base(base_url)
+    request = Request("POST", REPORTS_PATH, headers={"idempotency-key": key}, raw_content=data)
+    receipt = siwa.current("techtree", SUBMIT_TIMEOUT_MS)
+    request = replace(request, headers={**request.headers, **siwa.sign(request, receipt)})
+    answer = send(base, request, SUBMIT_TIMEOUT_MS)
+    report = answer["report"]
+    results = report["results"]
+    emit(
+        answer,
+        as_json=as_json,
+        shown=[
+            output.report(
+                "\n".join(
+                    [
+                        f"Techtree kept report {report['report_digest']} privately for the "
+                        "person this agent is paired with.",
+                        "",
+                        f"- Outcome: {results['outcome']}",
+                        f"- Comparison: {results['comparison']}",
+                        f"- Release gate: {results['release_gate']}",
+                        f"- Signed by: {report['signer_key_id']}",
+                        "",
+                        f"Read it again: regents techtree model-climb report "
+                        f"{report['report_digest']}",
+                    ]
+                )
+            )
+        ],
+    )
+
+
 PROFILE = click.Group("profile", help="Check a compatibility profile on this machine.")
 PROFILE.add_command(
     click.Command(
@@ -451,8 +495,8 @@ GRANT.add_command(
 
 MODEL_CLIMB = click.Group(
     "model-climb",
-    help="Fine-tune an open model privately and measure whether it got better (M0: checks "
-    "and grants only; nothing is rented).",
+    help="Fine-tune an open model privately and measure whether it got better (checks, "
+    "grants and private proofs so far; nothing is rented).",
 )
 MODEL_CLIMB.add_command(
     click.Command(
@@ -460,6 +504,20 @@ MODEL_CLIMB.add_command(
         callback=capabilities,
         help="Show the contract, the profiles this CLI knows, Docker, and the built operations.",
         params=[JSON],
+    )
+)
+MODEL_CLIMB.add_command(
+    click.Command(
+        "submit",
+        callback=submit,
+        help="Send a signed proof folder (manifest.json and objects/) to Techtree, which checks "
+        "it and keeps it privately for the person this agent is paired with. Sending the same "
+        "proof again changes nothing.",
+        params=[
+            click.Argument(["folder"], metavar="PROOF_FOLDER", type=click.Path(file_okay=False)),
+            BASE_URL,
+            JSON,
+        ],
     )
 )
 MODEL_CLIMB.add_command(PROFILE)

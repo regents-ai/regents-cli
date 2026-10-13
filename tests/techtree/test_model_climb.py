@@ -20,8 +20,10 @@ from regents_cli.techtree import paths
 from regents_cli.techtree.errors import PolicyError, TechtreeError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
-from regents_cli.techtree.model_climb import attempts, grants, profiles
+from regents_cli.techtree.model_climb import attempts, grants, profiles, proof
 from regents_cli.techtree.model_climb.contracts import (
+    BenchmarkRelease,
+    BenchmarkReleaseSpec,
     BudgetReservation,
     Budgets,
     ComputeTarget,
@@ -34,10 +36,17 @@ from regents_cli.techtree.model_climb.contracts import (
     ModelRef,
     ModelStudySpec,
     ModelStudySpecSpec,
+    ModelUpliftReport,
+    ModelUpliftReportSpec,
+    PairedOutcomes,
     ResolvedModelPlan,
     ResolvedModelPlanSpec,
+    ResultFields,
+    SamplingProtocol,
     SelectionRule,
     StudyOperational,
+    Uncertainty,
+    VerifierRef,
     seal,
 )
 from regents_cli.techtree.model_climb.store import ModelClimbStore
@@ -124,6 +133,20 @@ def plan(study_digest: str, *, cents: int = 4000) -> ResolvedModelPlan:
             expires_at=NOW + timedelta(days=7),
         ),
         Created(created_at=NOW),
+    )
+
+
+def benchmark_spec() -> BenchmarkReleaseSpec:
+    return BenchmarkReleaseSpec(
+        dataset_release=digest("6"),
+        verifier=VerifierRef(package="verifier", version="1", environment="invoice"),
+        proving_commitment=digest("a"),
+        output_schema_digest=digest("4"),
+        sampling=SamplingProtocol(
+            temperature=0.0, max_output_tokens=256, samples_per_case=1, seed=7
+        ),
+        scorer_test_digest=digest("b"),
+        qualification_report_digest=digest("d"),
     )
 
 
@@ -335,3 +358,59 @@ def test_a_lookup_that_finds_nothing_submits_nothing(tmp_path: Path) -> None:
         attempts.submit_once(journal, provider, "intent-1")
     assert refused.value.code == "job_indeterminate"
     assert provider.submissions == 0
+
+
+# The proof sent to Techtree (contract 3.5)
+
+
+def test_a_proof_missing_an_object_it_reaches_is_never_written(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    store, _ = stored_plan(monkeypatch, tmp_path / "home")
+    benchmark = seal(BenchmarkRelease, benchmark_spec(), Created(created_at=NOW))
+    store.put(benchmark)
+    report = seal(
+        ModelUpliftReport,
+        ModelUpliftReportSpec(
+            artifact=digest("e"),
+            benchmark_release=benchmark.digest,
+            evaluator_outputs=[digest("c")],
+            paired_outcomes=PairedOutcomes(
+                cases=4,
+                both_correct=1,
+                base_only_correct=1,
+                candidate_only_correct=1,
+                neither_correct=1,
+                positives=2,
+                negatives=2,
+            ),
+            uncertainty=Uncertainty(
+                method="paired bootstrap", confidence=0.95, interval_low=-0.1, interval_high=0.1
+            ),
+            results=ResultFields(
+                execution="succeeded",
+                integrity="verified",
+                comparison="valid",
+                outcome="tie",
+                release_gate="not_evaluated",
+                attestation="participant",
+            ),
+            limitations=[],
+        ),
+        Created(created_at=NOW),
+    )
+    store.put(report)
+    service = IdentityService(IdentityStore(paths.home()))
+    folder = tmp_path / "proof"
+    with pytest.raises(TechtreeError) as refused:
+        proof.write(store, service, report.digest, folder)
+    assert refused.value.code == "not_found"
+    assert not folder.exists()
+
+
+def test_a_proof_larger_than_techtree_keeps_is_refused_before_sending(tmp_path: Path) -> None:
+    (tmp_path / "objects").mkdir(parents=True)
+    (tmp_path / "manifest.json").write_text(json.dumps({"padding": "x" * proof.MAX_DOCUMENT_BYTES}))
+    with pytest.raises(TechtreeError) as refused:
+        proof.document(tmp_path)
+    assert refused.value.details["check"] == "document"
