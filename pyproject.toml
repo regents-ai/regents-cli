@@ -82,7 +82,7 @@ files = ["src", "scripts", "tests"]
 mypy_path = ["src"]
 # The engine bundle imports Verifiers, and the Model Climb check imports prime-rl; each lives
 # only in its own environment.
-exclude = ["^src/regents_cli/techtree/resources/", "^scripts/techtree/model-climb-image/"]
+exclude = ["^src/regents_cli/techtree/resources/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

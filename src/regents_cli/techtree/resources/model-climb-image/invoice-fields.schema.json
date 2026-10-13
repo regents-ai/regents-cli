@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "vendor": {"type": "string"},
+    "total_cents": {"type": "integer"},
+    "due_date": {"type": "string"}
+  },
+  "required": ["vendor", "total_cents", "due_date"],
+  "additionalProperties": false
+}

@@ -1,10 +1,11 @@
 """Compatibility profiles (contract section 7): the one tuple each certifies and how it is checked.
 
 M0 is Qwen3.5-9B on prime-rl 1e53181. Its model-free step (7.4 step 1) runs in the image built
-on this machine from `scripts/techtree/model-climb-image` (`make model-climb-image`), with no
-network: prime-rl resolves the training configuration with `--dry-run`, renders the public
-synthetic fixtures and masks their loss, and matches the LoRA targets on the model built on
-PyTorch's meta device, so no weight is downloaded or loaded. Nothing here rents a machine.
+on this machine from `src/regents_cli/techtree/resources/model-climb-image`
+(`make model-climb-image`), with no network: prime-rl resolves the training configuration with
+`--dry-run`, renders the public synthetic fixtures and masks their loss, and matches the LoRA
+targets on the model built on PyTorch's meta device, so no weight is downloaded or loaded.
+Nothing here rents a machine; the paid step (7.4 step 2) is `profile_test`.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from typing import Final, Literal
 
 from pydantic import ValidationError as PydanticValidationError
 
+from regents_cli import output
 from regents_cli.techtree.errors import TechtreeError, ValidationError
 from regents_cli.techtree.model_climb.contracts import ModelRef
 from regents_cli.techtree.models.base import JsonValue, NonEmptyString, ProtocolModel
@@ -31,12 +33,42 @@ CHECK_TIMEOUT_SECONDS: Final = 900
 
 
 @dataclass(frozen=True)
+class Settings:
+    """A profile's training settings: what its recipe pins, and what both the model-free check
+    and the paid step's job resolve."""
+
+    rank: int
+    alpha: int
+    dropout: float
+    learning_rate: float
+    weight_decay: float
+    seed: int
+    max_context_tokens: int
+    batch_size: int
+    micro_batch_size: int
+    max_steps: int
+    #: The one evaluation the training run makes, which is what writes the adapter.
+    eval_max_tokens: int
+    eval_temperature: float
+    #: The Verifiers taskset both that evaluation and the paid step's fixture run use.
+    taskset: str
+
+
+@dataclass(frozen=True)
 class Profile:
     name: str
     model: ModelRef
+    #: The sha256 of each weight file and each tokenizer file at the pinned revision.
+    weight_files: dict[str, str]
+    tokenizer_files: dict[str, str]
     trainer_revision: str
+    #: The sha256 of prime-rl's uv.lock at that revision.
+    trainer_lock_sha256: str
     image: str
     renderer: str
+    settings: Settings
+    gpu_model: str
+    gpu_count: int
     #: The text stack's layers, as the model names them.
     language_layers: str
     #: For each kind of text layer, the block holding its LoRA targets and the targets; then
@@ -53,6 +85,28 @@ class Profile:
         blocks = [*self.layer_targets.values(), self.mlp_targets]
         return [rf"^{layer}{re.escape(block)}\.({'|'.join(leaves)})$" for block, leaves in blocks]
 
+    @property
+    def recipe(self) -> dict[str, JsonValue]:
+        """The settings as the image's scripts take them, one JSON argument."""
+        settings = self.settings
+        return {
+            "rank": settings.rank,
+            "alpha": settings.alpha,
+            "dropout": settings.dropout,
+            "learning_rate": settings.learning_rate,
+            "weight_decay": settings.weight_decay,
+            "seed": settings.seed,
+            "seq_len": settings.max_context_tokens,
+            "batch_size": settings.batch_size,
+            "micro_batch_size": settings.micro_batch_size,
+            "max_steps": settings.max_steps,
+            "eval_max_tokens": settings.eval_max_tokens,
+            "eval_temperature": settings.eval_temperature,
+            "taskset": settings.taskset,
+            "renderer": self.renderer,
+            "targets": [*self.targets],
+        }
+
     def module_names(self, layer_types: Sequence[str]) -> list[str]:
         """Every module the targets must match in a text stack with these layer kinds."""
         return [
@@ -66,9 +120,48 @@ class Profile:
 M0: Final = Profile(
     name="m0-qwen3.5-9b",
     model=ModelRef(model_id="Qwen/Qwen3.5-9B", revision="c202236235762e1c871ad0ccb60c8ee5ba337b9a"),
+    weight_files={
+        "model.safetensors-00001-of-00004.safetensors": (
+            "db6f444b43d318c92f360a13a25561a6a65b10c0631b8ed305a426dbaa6c380e"
+        ),
+        "model.safetensors-00002-of-00004.safetensors": (
+            "31c7d7e2dd5d207840b31cc59083c8f4c4718959149e0358c0364052bb9a0330"
+        ),
+        "model.safetensors-00003-of-00004.safetensors": (
+            "7ec36ba3a4176a44c3c0876ad80c56a2f70c84bf008d82e9501df642f17dadec"
+        ),
+        "model.safetensors-00004-of-00004.safetensors": (
+            "b62b0c4cd7e44edee103ee8f4fe225f246d5e768e07bfd5f25b63a8aa1fdd0c6"
+        ),
+    },
+    tokenizer_files={
+        "tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+        "tokenizer_config.json": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+        "vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+        "merges.txt": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+        "chat_template.jinja": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+    },
     trainer_revision="1e5318108da29d10960e91e54b80305f597de39d",
+    trainer_lock_sha256="0cd6ee3a8b57032852b0e68e34e06ddec1760191d4bbaf25b9ddfa69f9a8c1cb",
     image="regents-model-climb:m0-qwen3.5-9b",
     renderer="qwen3.5",
+    settings=Settings(
+        rank=16,
+        alpha=32,
+        dropout=0.0,
+        learning_rate=1e-4,
+        weight_decay=0.0,
+        seed=0,
+        max_context_tokens=2048,
+        batch_size=4,
+        micro_batch_size=1,
+        max_steps=40,
+        eval_max_tokens=256,
+        eval_temperature=0.0,
+        taskset="model-climb-fixture",
+    ),
+    gpu_model="h100",
+    gpu_count=2,
     language_layers="model.language_model.layers",
     layer_targets={
         "full_attention": ("self_attn", ("q_proj", "k_proj", "v_proj", "o_proj")),
@@ -81,19 +174,6 @@ M0: Final = Profile(
     expected_modules=248,
 )
 PROFILES: Final = {M0.name: M0}
-
-#: The training settings the dry run resolves. They shape no result: M0's paid step reads its
-#: settings from a TrainingRecipe.
-DRY_RUN_RECIPE: Final[dict[str, JsonValue]] = {
-    "rank": 16,
-    "alpha": 32,
-    "dropout": 0.0,
-    "learning_rate": 1e-5,
-    "seq_len": 2048,
-    "batch_size": 1,
-    "micro_batch_size": 1,
-    "max_steps": 1,
-}
 
 
 # What the image prints: one JSON answer, read strictly.
@@ -186,10 +266,17 @@ def run_check(profile: Profile) -> Ran:
             code=UNSUPPORTED_CAPABILITY,
             details={"step": "image", "image": profile.image},
         )
-    recipe = {**DRY_RUN_RECIPE, "renderer": profile.renderer, "targets": profile.targets}
     try:
         ran = subprocess.run(
-            ["docker", "run", "--rm", "--network", "none", profile.image, json.dumps(recipe)],
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--network",
+                "none",
+                profile.image,
+                json.dumps(profile.recipe),
+            ],
             capture_output=True,
             text=True,
             timeout=CHECK_TIMEOUT_SECONDS,
@@ -215,6 +302,40 @@ def run_check(profile: Profile) -> Ran:
 def _last_line(text: str) -> str:
     lines = [line for line in text.splitlines() if line.strip()]
     return lines[-1] if lines else "no output"
+
+
+# What the resolved training configuration must show (contract 7.2 and 7.3).
+
+
+def _setting(resolved: JsonValue, *path: str) -> JsonValue:
+    """One setting of prime-rl's resolved configuration, or None where it has none."""
+    for key in path:
+        resolved = resolved.get(key) if isinstance(resolved, dict) else None
+    return resolved
+
+
+def config_checks(resolved: JsonValue) -> list[output.Check]:
+    unmerged = _setting(resolved, "model", "fusions", "enabled") == []
+    quiet = (
+        _setting(resolved, "dashboard") is False
+        and _setting(resolved, "heartbeat") is None
+        and _setting(resolved, "monitors", "prime") is None
+        and _setting(resolved, "monitors", "wandb") is None
+    )
+    return [
+        output.Check(
+            "Layer merging off",
+            "pass" if unmerged else "fail",
+            "LoRA attaches to the separate projections the coverage check counts",
+        ),
+        output.Check(
+            "Nothing sent anywhere",
+            "pass" if quiet else "fail",
+            "no dashboard, heartbeat, Prime or W&B monitor; metrics stay in a local file"
+            if quiet
+            else "the configuration starts a dashboard, a heartbeat or an online monitor",
+        ),
+    ]
 
 
 # The coverage check (contract 7.2).

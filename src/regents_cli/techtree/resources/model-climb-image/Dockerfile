@@ -53,6 +53,6 @@ allow_patterns=['*.json', '*.jinja', '*.txt', '*.model'], ignore_patterns=['*.sa
     && ! ls "$MODEL_DIR" | grep -E '\.(safetensors|bin|pt)$' \
     && printf '%s\n%s\n' "$MODEL_ID" "$MODEL_REVISION" > "$MODEL_DIR/PINNED"
 
-COPY check.py fixtures.jsonl /opt/m0/
-ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PRL_OUTPUT_DIR=/tmp/prl
+COPY check.py fixtures.jsonl model_climb_fixture.py /opt/m0/
+ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PRL_OUTPUT_DIR=/tmp/prl PYTHONPATH=/opt/m0
 ENTRYPOINT ["/opt/prime-rl/.venv/bin/python", "/opt/m0/check.py"]

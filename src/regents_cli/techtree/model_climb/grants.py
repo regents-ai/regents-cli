@@ -167,15 +167,19 @@ def admit(
     operation: GrantedOperation,
     plan_digest: Digest,
     now: datetime,
+    intent_id: str | None = None,
 ) -> ExecutionGrant:
     """The grant, when it admits `operation` on `plan_digest` now; otherwise `approval_required`.
 
     The signature covers every bound field, so a grant edited after signing never verifies.
-    The ledger must show the grant issued, never revoked, and with a use left.
+    The ledger must show the grant issued, never revoked, and with a use left, unless this is
+    the attempt `intent_id` going on, which already holds its use.
     """
     verdict = verify_signed_object(identity=identity, envelope=envelope, subject="grant")
     grant = envelope.payload
-    events = [line.event for line in ledger.lines(store.ledger_path, identity, envelope)]
+    held = ledger.lines(store.ledger_path, identity, envelope)
+    events = [line.event for line in held]
+    used = [line.intent_id for line in held if line.event == "used"]
     refusals = [failure.detail for failure in verdict.failures] + _failed(
         (grant.operation != operation, f"it admits {grant.operation}, not {operation}"),
         (grant.plan != plan_digest, f"it binds plan {grant.plan}, not {plan_digest}"),
@@ -187,7 +191,7 @@ def admit(
         ("issued" not in events, "the grant ledger has no record that it was issued"),
         ("revoked" in events, "it was revoked"),
         (
-            events.count("used") >= _uses(grant),
+            intent_id not in used and len(used) >= _uses(grant),
             f"all {_uses(grant)} of its uses are spent",
         ),
     )

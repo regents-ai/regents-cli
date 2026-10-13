@@ -242,7 +242,7 @@ CHECKS: Final = (
     ("references", "the report's artifact and benchmark release are carried"),
     ("attestation", "the report claims only participant"),
     ("graph", "every object any carried object refers to is carried"),
-    ("schema", "every object matches the pinned schema 7b38f89a field by field"),
+    ("schema", "every object matches the pinned schema d77f64d6 field by field"),
 )
 
 

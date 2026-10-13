@@ -1,6 +1,7 @@
 """`regents techtree model-climb …` (contract model-climb-v1): what this machine can run, the
-model-free compatibility check, local execution grants (M0), and sending a signed proof to the
-person's private Techtree records (M3). None rents a machine or calls a paid model."""
+model-free compatibility check, the plan and local execution grants for its paid step (M0), and
+sending a signed proof to the person's private Techtree records (M3). Only `profile test` rents
+a machine, and only under a grant a person issued at this machine's terminal."""
 
 from __future__ import annotations
 
@@ -22,19 +23,22 @@ from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
 from regents_cli.techtree.errors import NotFoundError, PolicyError, ValidationError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
-from regents_cli.techtree.model_climb import grants, ledger, profiles, proof
+from regents_cli.techtree.model_climb import grants, ledger, profile_test, profiles, proof
 from regents_cli.techtree.model_climb.contracts import (
     CONTRACT,
     OPERATION_SCHEMA_VERSION,
     ExecutionGrant,
     GrantedOperation,
 )
+from regents_cli.techtree.model_climb.provider import Autoresearch
 from regents_cli.techtree.model_climb.store import ModelClimbStore
 from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.site import site_base
 
 CAPABILITIES: Final = "model_climb_capabilities"
 PROFILE_CHECK: Final = "model_climb_profile_check"
+PROFILE_TEST: Final = "model_climb_profile_test"
+PLAN: Final = "model_climb_plan"
 GRANT_ISSUE: Final = "model_climb_grant_issue"
 GRANT_REVOKE: Final = "model_climb_grant_revoke"
 REPORT_SUBMIT: Final = "model_climb_report_submit"
@@ -42,8 +46,10 @@ REPORT_SUBMIT: Final = "model_climb_report_submit"
 BUILT_OPERATIONS: Final = (
     CAPABILITIES,
     PROFILE_CHECK,
+    PLAN,
     GRANT_ISSUE,
     GRANT_REVOKE,
+    PROFILE_TEST,
     REPORT_SUBMIT,
 )
 REPORTS_PATH: Final = "/api/model-climb/v1/reports"
@@ -120,18 +126,23 @@ def capabilities(as_json: bool) -> None:
 # profile check
 
 
-def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
-    profile = profiles.PROFILES.get(profile_name)
+def _profile(name: str) -> profiles.Profile:
+    profile = profiles.PROFILES.get(name)
     if profile is None:
         known = sorted(profiles.PROFILES)
         raise ValidationError(
-            f"there is no profile {profile_name}; the profiles are {', '.join(known)}",
+            f"there is no profile {name}; the profiles are {', '.join(known)}",
             details={"profiles": known},
         )
+    return profile
+
+
+def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
+    profile = _profile(profile_name)
     if not dry_run:
         raise ValidationError(
-            "M0 runs only the model-free step, so --dry-run is required. The paid step is a "
-            "separate command that needs its own grant."
+            "profile check runs only the model-free step, so --dry-run is required. The paid "
+            "step is profile test, which needs its own grant."
         )
     checked_at = datetime.now(UTC)
     ran = profiles.run_check(profile)
@@ -154,7 +165,9 @@ def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
         "operation_id": PROFILE_CHECK,
         **report,
         "report_path": str(report_path),
-        "next_actions": ["Send the report to Techtree for review (contract 7.4 step 1)."],
+        "next_actions": [
+            f"regents techtree model-climb plan --profile {profile.name} --max-usd 10"
+        ],
     }
     emit(
         answer,
@@ -174,13 +187,6 @@ def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
             output.checks(checks),
         ],
     )
-
-
-def _setting(resolved: JsonValue, *path: str) -> JsonValue:
-    """One setting of prime-rl's resolved configuration, or None where it has none."""
-    for key in path:
-        resolved = resolved.get(key) if isinstance(resolved, dict) else None
-    return resolved
 
 
 def _profile_report(
@@ -224,24 +230,7 @@ def _profile_report(
         fixtures.append(fixture.model_dump(mode="json"))
     resolved = answer.dry_run.resolved
     if resolved is not None:
-        check(
-            "Layer merging off",
-            _setting(resolved, "model", "fusions", "enabled") == [],
-            "LoRA attaches to the separate projections the coverage check counts",
-        )
-        quiet = (
-            _setting(resolved, "dashboard") is False
-            and _setting(resolved, "heartbeat") is None
-            and _setting(resolved, "monitors", "prime") is None
-            and _setting(resolved, "monitors", "wandb") is None
-        )
-        check(
-            "Nothing sent anywhere",
-            quiet,
-            "no dashboard, heartbeat, Prime or W&B monitor; metrics stay in a local file"
-            if quiet
-            else "the configuration starts a dashboard, a heartbeat or an online monitor",
-        )
+        checks.extend(profiles.config_checks(resolved))
     coverage_answer: JsonValue = None
     modules = answer.modules
     if modules is not None:
@@ -272,6 +261,7 @@ def _profile_report(
         "profile": profile.name,
         "checked_at": checked_at.isoformat(),
         "image_id": ran.image_id,
+        "recipe": profile.recipe,
         "model": answer.model.model_dump(mode="json"),
         "environment": answer.environment.model_dump(mode="json"),
         "resolved_config_digest": digest_object(resolved) if resolved is not None else None,
@@ -292,6 +282,195 @@ def _mask_problem(fixture: profiles.CheckFixture) -> str:
     if not fixture.no_prompt_trained:
         return "but a prompt is trained"
     return f"but it also trains {fixture.residue!r}"
+
+
+# plan
+
+
+def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
+    if profile_name is None or max_usd is None:
+        raise ValidationError(
+            "this build plans a compatibility profile's paid test only; give --profile and "
+            "--max-usd"
+        )
+    profile = _profile(profile_name)
+    max_cents = _cents(max_usd)
+    if max_cents > grants.PROFILE_TEST_MAX_CENTS:
+        raise ValidationError(
+            f"a compatibility test may reserve at most "
+            f"${_dollars(grants.PROFILE_TEST_MAX_CENTS)}, and --max-usd is ${_dollars(max_cents)}",
+            details={"max_cents": grants.PROFILE_TEST_MAX_CENTS},
+        )
+    store = _store()
+    # Before the provider is asked anything: a plan stands on a model-free report.
+    profile_test.dry_run_report(store, profile)
+    now = datetime.now(UTC)
+    rate = Autoresearch.signed_in().micros_per_gpu_minute(profile.gpu_model, profile.gpu_count)
+    drafted = profile_test.draft_plan(
+        store, profile, max_cents=max_cents, micros_per_gpu_minute=rate, now=now
+    )
+    spec = drafted.plan.spec
+    # Hundredths of an hour, never more than the plan's minutes.
+    hours = Decimal(drafted.minutes * 60 // 36) / 100
+    next_action = (
+        f"regents techtree model-climb grant issue --plan {drafted.plan.digest} "
+        f"--operation {PROFILE_TEST} --max-usd {_dollars(max_cents)} --max-hours {hours} "
+        "--max-attempts 1 --expires-in 12h"
+    )
+    answer: dict[str, JsonValue] = {
+        "schema_version": OPERATION_SCHEMA_VERSION,
+        "operation_id": PLAN,
+        "profile": profile.name,
+        "plan": drafted.plan.digest,
+        "study": spec.study,
+        "dataset_release": spec.dataset_release,
+        "benchmark_release": spec.benchmark_release,
+        "recipe": spec.recipe,
+        "compatibility_profile": spec.compatibility_profile,
+        "dry_run_report": str(drafted.report_path),
+        "compute": spec.compute.model_dump(mode="json"),
+        "max_duration_minutes": drafted.minutes,
+        "rate": {
+            "usd_micros_per_gpu_minute": rate,
+            "cents_per_gpu_hour": spec.budget.prices[0].cents_per_hour,
+            "read_at": now.isoformat(),
+        },
+        "max_cents": max_cents,
+        "worst_case_cents": drafted.worst_case_cents,
+        "enforcement": spec.budget.enforcement,
+        "build": profile_test.BUILD,
+        "egress": {"declared": list(spec.egress), "enforcement": profile_test.EGRESS_NOTE},
+        "hub_token": profile_test.HUB_TOKEN,
+        "installs": profile_test.INSTALLS,
+        "limitations": list(profile_test.LIMITATIONS),
+        "expires_at": spec.expires_at.isoformat(),
+        "next_actions": [next_action],
+    }
+    emit(
+        answer,
+        as_json=as_json,
+        shown=[
+            output.report(
+                "\n".join(
+                    [
+                        f"Plan {drafted.plan.digest} is written for the {profile.name} paid "
+                        "test. Nothing is rented until a grant is issued and the test is run.",
+                        "",
+                        f"- Compute: {spec.compute.gpu_count} x {spec.compute.gpu_model} at "
+                        f"{spec.compute.provider}, mission {spec.compute.mission}",
+                        f"- Rate read now: {spec.budget.prices[0].cents_per_hour} cents per "
+                        "GPU-hour",
+                        f"- Longest run: {drafted.minutes} minutes, which is "
+                        f"${_dollars(drafted.worst_case_cents)} at that rate, of the "
+                        f"${_dollars(max_cents)} reserved",
+                        f"- {profile_test.BUILD}",
+                        f"- May reach: {', '.join(spec.egress)} ({profile_test.EGRESS_NOTE})",
+                        f"- Hub token: {profile_test.HUB_TOKEN}",
+                        f"- Installs: {profile_test.INSTALLS}",
+                        f"- Stands on the model-free report {drafted.report_path}",
+                        f"- Expires {spec.expires_at.isoformat()}",
+                        "",
+                        f"Next, at this machine's terminal: {next_action}",
+                    ]
+                )
+            )
+        ],
+    )
+
+
+# profile test
+
+
+def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> None:
+    profile = _profile(profile_name)
+    if grant_id is None:
+        raise PolicyError(
+            "the paid test runs only under a grant; give --grant with the id grant issue printed",
+            code=grants.APPROVAL_REQUIRED,
+        )
+    store = _store()
+    service = IdentityService(IdentityStore(paths.home()))
+    try:
+        envelope = store.get_grant(grant_id)
+    except NotFoundError as error:
+        raise PolicyError(
+            error.message, code=grants.APPROVAL_REQUIRED, details={"grant_id": grant_id}
+        ) from error
+    reached = profile_test.advance(
+        store, service, Autoresearch.signed_in(), profile, envelope, now=datetime.now(UTC)
+    )
+    again = f"regents techtree model-climb profile test {profile.name} --grant {grant_id}"
+    if isinstance(reached, profile_test.Waiting):
+        emit(
+            {
+                "schema_version": OPERATION_SCHEMA_VERSION,
+                "operation_id": PROFILE_TEST,
+                "profile": profile.name,
+                "state": "running",
+                "intent_id": reached.intent_id,
+                "job_id": reached.job_id,
+                "job_status": reached.status,
+                "max_cost_cents": reached.max_cost_cents,
+                "next_actions": [again],
+            },
+            as_json=as_json,
+            shown=[
+                output.report(
+                    "\n".join(
+                        [
+                            f"Job {reached.job_id} is {reached.status} at the provider, "
+                            f"which puts its maximum at ${_dollars(reached.max_cost_cents)}. "
+                            "Closing this terminal does not stop it.",
+                            "",
+                            f"Look again: {again}",
+                        ]
+                    )
+                )
+            ],
+        )
+        return
+    failed = [check.label for check in reached.checks if check.status == "fail"]
+    if failed:
+        raise ValidationError(
+            f"the {profile.name} paid test found {len(failed)} problem(s); the measured "
+            f"profile is at {reached.path}",
+            code="verification_error",
+            details={
+                "profile_path": str(reached.path),
+                "profile_digest": reached.digest,
+                "failed_checks": failed,
+            },
+        )
+    document = reached.document
+    emit(
+        {
+            "schema_version": OPERATION_SCHEMA_VERSION,
+            "operation_id": PROFILE_TEST,
+            "state": "measured",
+            "profile_digest": reached.digest,
+            "profile_path": str(reached.path),
+            "measured_profile": document,
+            "next_actions": ["Send the measured profile to Techtree (contract 7.4)."],
+        },
+        as_json=as_json,
+        shown=[
+            output.report(
+                "\n".join(
+                    [
+                        f"The {profile.name} paid test found no problem. It certifies this "
+                        "one tuple and measures no quality.",
+                        "",
+                        f"- Measured profile: {reached.digest}",
+                        f"- File: {reached.path}",
+                        f"- Built image: {document['image_digest']}",
+                        f"- Measured cost: ${_dollars(cast(int, document['measured_cost_cents']))}",
+                        f"- Egress: {profile_test.EGRESS_NOTE}",
+                    ]
+                )
+            ),
+            output.checks(reached.checks),
+        ],
+    )
 
 
 # grant issue
@@ -517,7 +696,9 @@ def submit(folder: str, base_url: str | None, as_json: bool) -> None:
     )
 
 
-PROFILE = click.Group("profile", help="Check a compatibility profile on this machine.")
+PROFILE = click.Group(
+    "profile", help="Check a compatibility profile on this machine, then test it on rented GPUs."
+)
 PROFILE.add_command(
     click.Command(
         "check",
@@ -527,6 +708,23 @@ PROFILE.add_command(
         params=[
             click.Argument(["profile_name"], metavar="PROFILE"),
             click.Option(["--dry-run"], is_flag=True, help="Run the model-free step. Required."),
+            JSON,
+        ],
+    )
+)
+
+PROFILE.add_command(
+    click.Command(
+        "test",
+        callback=profile_test_run,
+        help="Run a profile's paid test under a grant: one batch job on rented GPUs that "
+        "trains a small adapter on four public fixtures, serves it and measures it. It never "
+        "waits: run it again to look at the job, and once more to read what it measured.",
+        params=[
+            click.Argument(["profile_name"], metavar="PROFILE"),
+            click.Option(
+                ["--grant", "grant_id"], metavar="GRANT_ID", help="The grant it runs under."
+            ),
             JSON,
         ],
     )
@@ -567,8 +765,8 @@ GRANT.add_command(
 
 MODEL_CLIMB = click.Group(
     "model-climb",
-    help="Fine-tune an open model privately and measure whether it got better (checks, "
-    "grants and private proofs so far; nothing is rented).",
+    help="Fine-tune an open model privately and measure whether it got better (so far: the "
+    "compatibility profile's check, plan, grant and paid test, and private proofs).",
 )
 MODEL_CLIMB.add_command(
     click.Command(
@@ -588,6 +786,19 @@ MODEL_CLIMB.add_command(
         params=[
             click.Argument(["folder"], metavar="PROOF_FOLDER", type=click.Path(file_okay=False)),
             BASE_URL,
+            JSON,
+        ],
+    )
+)
+MODEL_CLIMB.add_command(
+    click.Command(
+        "plan",
+        callback=plan,
+        help="Write the plan a grant is issued against: what will run, on which GPUs, for how "
+        "long at the rate read now, and the most it can cost. Rents nothing.",
+        params=[
+            click.Option(["--profile", "profile_name"], metavar="PROFILE", help="The profile."),
+            click.Option(["--max-usd"], metavar="DOLLARS", help="The most the test may spend."),
             JSON,
         ],
     )

@@ -25,4 +25,4 @@ sync:
 # Build Model Climb's M0 check image on this machine. It is never pushed: publishing it needs the
 # founder's go.
 model-climb-image:
-	docker build -t regents-model-climb:m0-qwen3.5-9b scripts/techtree/model-climb-image
+	docker build -t regents-model-climb:m0-qwen3.5-9b src/regents_cli/techtree/resources/model-climb-image

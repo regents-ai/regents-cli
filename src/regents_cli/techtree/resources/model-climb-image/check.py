@@ -1,14 +1,15 @@
 """Model Climb's model-free M0 check (contract model-climb-v1, 7.4 step 1), run inside the image.
 
-Takes the recipe's LoRA and data settings as one JSON argument and prints one JSON answer on
-stdout; prime-rl's own log goes to stderr. Every step uses prime-rl's own code at the pinned
-commit: its `sft --dry-run` resolves the configuration, its SFT dataset renders and masks the
-fixtures, and its LoRA target matcher runs over the model built on the meta device, so no
-weight is ever loaded. The image runs with no network.
+Takes the recipe's training settings as one JSON argument, the same one the paid step's job
+is given, and prints one JSON answer on stdout; prime-rl's own log goes to stderr. Every step
+uses prime-rl's own code at the pinned commit: its `sft --dry-run` resolves the configuration,
+its SFT dataset renders and masks the fixtures, and its LoRA target matcher runs over the
+model built on the meta device, so no weight is ever loaded. The image runs with no network.
 """
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 import platform
@@ -21,7 +22,6 @@ PRIME_RL = Path("/opt/prime-rl")
 FIXTURES = Path("/opt/m0/fixtures.jsonl")
 WORK = Path("/tmp/m0")
 THINK_TAGS = ("<think>", "</think>")
-META_BUILD_ATTN = "flash_attention_2"
 
 
 def main() -> None:
@@ -39,7 +39,8 @@ def main() -> None:
     if resolved is not None:
         from prime_rl.configs.sft import SFTConfig
 
-        config = SFTConfig.model_validate(resolved)
+        # Validating fills the evaluation source in place, so it reads a copy.
+        config = SFTConfig.model_validate(copy.deepcopy(resolved))
         answer["fixtures"] = fixtures(config)
         answer["modules"] = modules(config, recipe["targets"])
     json.dump(answer, answer_out)
@@ -74,6 +75,8 @@ def sft_toml(recipe: dict[str, Any], model_dir: Path) -> str:
             "",
             "[model]",
             f"name = {json.dumps(str(model_dir))}",
+            # Named, not "auto": on an H100 "auto" picks a kernel neither image installs.
+            'attn = "flash_attention_2"',
             'optimization_dtype = "bfloat16"',
             'reduce_dtype = "bfloat16"',
             "",
@@ -95,12 +98,35 @@ def sft_toml(recipe: dict[str, Any], model_dir: Path) -> str:
             f"batch_size = {recipe['batch_size']}",
             f"micro_batch_size = {recipe['micro_batch_size']}",
             f"seq_len = {recipe['seq_len']}",
+            f"seed = {recipe['seed']}",
             "",
             "[data.loss_mask]",
             "assistant = true",
             "",
             "[optim]",
             f"lr = {recipe['learning_rate']}",
+            f"weight_decay = {recipe['weight_decay']}",
+            "",
+            # One evaluation, after the last step. With LoRA it is what makes prime-rl write
+            # the adapter in the form vLLM loads (contract 7.3).
+            "[eval]",
+            f"interval = {recipe['max_steps']}",
+            "",
+            "[eval.sampling]",
+            f"max_completion_tokens = {recipe['eval_max_tokens']}",
+            f"temperature = {recipe['eval_temperature']}",
+            "",
+            "[[eval.source]]",
+            f"name = {json.dumps(recipe['taskset'])}",
+            f"env.taskset.id = {json.dumps(recipe['taskset'])}",
+            'env.agent.harness.id = "null"',
+            'env.agent.runtime.type = "subprocess"',
+            "",
+            "[inference]",
+            "",
+            "[deployment]",
+            "num_train_gpus = 1",
+            "num_infer_gpus = 1",
             "",
         ]
     )
@@ -204,11 +230,7 @@ def modules(config: Any, targets: list[str]) -> dict[str, Any]:
     from prime_rl.trainer.model import get_model
     from transformers import AutoConfig
 
-    # On a GPU prime-rl turns attn="auto" into a flash attention kernel for that GPU; with no
-    # GPU it cannot. The kernel decides how attention runs, not which modules exist, so the
-    # meta build names the installed one and the answer records it.
-    meta_config = config.model.model_copy(update={"attn": META_BUILD_ATTN})
-    model = get_model(meta_config, device=torch.device("meta"), dtype=torch.bfloat16)
+    model = get_model(config.model, device=torch.device("meta"), dtype=torch.bfloat16)
     text = AutoConfig.from_pretrained(config.model.name)
     text = getattr(text, "text_config", text)
     layers = [
@@ -221,7 +243,7 @@ def modules(config: Any, targets: list[str]) -> dict[str, Any]:
     ]
     return {
         "model_class": type(model).__name__,
-        "attn": META_BUILD_ATTN,
+        "attn": config.model.attn,
         "language_layers": layers,
         "layer_types": list(text.layer_types),
         "matched": _find_target_modules(model, targets),

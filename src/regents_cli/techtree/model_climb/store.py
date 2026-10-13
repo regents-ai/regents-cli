@@ -2,9 +2,10 @@
 
 `objects/` holds every scientific object in a file named by its digest, written once: an object
 is never edited, and a second write of the same digest must be the same bytes. `grants/` holds
-signed grants by id, and beside them the ledger of what happened to each. Reading an object
-checks it twice: validation recomputes its digest, and that digest must be the one its file is
-named by.
+signed grants by id, and beside them the ledger of what happened to each. `profiles/` holds
+each compatibility profile's reports, and `attempts/` each paid attempt's job, journal and
+outcome. Reading an object checks it twice: validation recomputes its digest, and that digest
+must be the one its file is named by.
 """
 
 from __future__ import annotations
@@ -54,6 +55,10 @@ class ModelClimbStore:
     @property
     def profiles_dir(self) -> Path:
         return self.root / "profiles"
+
+    @property
+    def attempts_dir(self) -> Path:
+        return self.root / "attempts"
 
     def object_path(self, digest: Digest) -> Path:
         return self.objects_dir / f"{validate_digest(digest).replace(':', '-', 1)}.json"

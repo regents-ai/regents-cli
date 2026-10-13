@@ -1,0 +1,50 @@
+# The image Model Climb's paid M0 step runs in (contract model-climb-v1, 7.4 step 2), built by the
+# compute provider from this folder for each job: prime-rl at its pinned commit with its locked
+# dependencies for two GPUs, the job script and the four public fixtures. It holds no model: the
+# job downloads the pinned revision when it starts and nothing after that.
+#
+# Every Python package is installed by `uv sync --locked`, so each is the wheel a lock names by
+# sha256 or the git commit it pins: prime-rl's own lock, and chat-program.lock in this folder
+# for the small program Verifiers runs as the model's side of an evaluation. The system packages
+# come from Ubuntu's signed archive into a base image named by digest; they are not pinned by
+# hash. Nothing is installed while the job runs.
+
+FROM nvidia/cuda:13.0.1-cudnn-devel-ubuntu24.04@sha256:8b2705ea7a8653ad3451b46ab835eced92d77b44e671b9cf3ad4f95fbb2efe5e
+
+COPY --from=ghcr.io/astral-sh/uv:0.12.7@sha256:95f2aa1fe59274951cfe9b0cbc7972e879ff1004bc8945d130a32eb0dbd85945 /uv /uvx /usr/local/bin/
+
+ENV DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git ca-certificates build-essential ninja-build \
+        python3.12 python3.12-venv python3.12-dev libnuma1 \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG PRIME_RL_REVISION=1e5318108da29d10960e91e54b80305f597de39d
+ENV UV_PROJECT_ENVIRONMENT=/opt/prime-rl/.venv UV_LINK_MODE=copy UV_CACHE_DIR=/opt/uv-cache \
+    UV_PYTHON_PREFERENCE=only-system CUDA_HOME=/usr/local/cuda
+WORKDIR /opt/prime-rl
+# Three submodules are named by SSH address; all five repositories are public, so HTTPS reads them.
+RUN git init -q . \
+    && git remote add origin https://github.com/PrimeIntellect-ai/prime-rl \
+    && git fetch -q --depth 1 origin "$PRIME_RL_REVISION" \
+    && git checkout -q FETCH_HEAD \
+    && git config --global url."https://github.com/".insteadOf git@github.com: \
+    && git submodule update -q --init --depth 1 \
+        deps/verifiers deps/renderers deps/pydantic-config deps/prime-envs \
+    && test "$(git rev-parse HEAD)" = "$PRIME_RL_REVISION"
+# `gpu` brings PyTorch and vLLM, `flash-attn` the attention kernel the recipe names, `kernels`
+# the trainer's own, and `disagg` the router prime-rl puts in front of its inference server.
+RUN uv sync --locked --no-cache --no-dev \
+        --extra gpu --extra flash-attn --extra kernels --extra disagg
+
+COPY check.py job.py model_climb_fixture.py fixtures.jsonl invoice-fields.schema.json \
+    chat_program.py chat-program.lock /opt/m0/
+# Verifiers would install its chat program's packages from PyPI the first time a run needs it.
+# It is prepared here instead, and from here on uv can neither resolve nor fetch anything.
+RUN uv sync --locked --no-config --script "$(.venv/bin/python /opt/m0/chat_program.py)"
+ENV UV_FROZEN=1 UV_NO_INDEX=1
+ENV MODEL_DIR=/opt/model PRL_OUTPUT_DIR=/tmp/prl PYTHONPATH=/opt/m0 \
+    PATH=/opt/prime-rl/.venv/bin:/usr/local/cuda/bin:$PATH \
+    HF_HUB_ETAG_TIMEOUT=500 HF_HUB_DOWNLOAD_TIMEOUT=300
+CMD ["/opt/prime-rl/.venv/bin/python", "/opt/m0/job.py"]
