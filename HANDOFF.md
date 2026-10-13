@@ -89,6 +89,11 @@ behind a site, and never holds one up (founder, 2026-09-28).
   `openapi.json` names the old field; no code here reads it. Move the pin, `make sync`, and
   check the copy names `sample_enabled`.
 
+- **Techtree**: `account balances`, `account credits-history` and `account points` answer 404 on
+  techtree.sh (2026-10-13): live v128 is built from `tt/carry-1012`, which predates the signed-agent
+  commits on its main. The Techtree chief keeps them; live gains them in a combined release that
+  needs the founder's go. No re-pin until that release lands and the chief says so.
+
 ## Checks
 
 Run `make check`, and `make release-check` before a release, on its own line: piping it into
