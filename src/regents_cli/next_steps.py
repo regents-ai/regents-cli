@@ -155,7 +155,8 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
             )
         ]
     if status == 403 and coded:
-        return [human(f"Your person has to allow this first: {error.message}", PAIRING_PAGE)]
+        page = PAIRING_PAGE if error.code.startswith("pairing_") else None
+        return [human(f"Ask your person about this first: {error.message}", page)]
     if status == 404 and coded:
         return [done("There is no such record. If the name or id was mistyped, run it again.")]
     if status == 429:
