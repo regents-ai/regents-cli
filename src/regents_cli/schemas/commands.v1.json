@@ -96,11 +96,24 @@
           "pattern": "^/[A-Za-z0-9_./{}-]*$"
         },
         "authority": {
-          "description": "public: no sign-in. wallet-proof: a wallet signs in once with regents auth login --site <name> and every request is signed; the agent key on the caller's machine signs, or with --phase prepare the caller gets the exact request and message for their own key and --phase send reads {request, signature} on stdin.",
+          "description": "Who may run it. public: anyone, unsigned. signed_agent: any agent signed in to the site; it signs in once with regents auth login --site <name> and every request is signed, by the agent key on the caller's machine or, with --phase prepare and --phase send, by the caller's own key. paired_agent: a signed-in agent its person has paired with their account.",
           "enum": [
             "public",
-            "wallet-proof"
+            "signed_agent",
+            "paired_agent"
           ]
+        },
+        "conditions": {
+          "description": "What else a paired agent's person must have for it to work (paired_agent commands only). spending_allowed: the person lets this agent spend their Credits. member: the person is a member of what the command acts on.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "spending_allowed",
+              "member"
+            ]
+          }
         },
         "effect": {
           "description": "read and quote change nothing; write changes records; prepare freezes terms for a later payment; payment moves money.",
@@ -135,11 +148,11 @@
           }
         },
         "body": {
-          "description": "Fixed fields sent in every request body, beside the ones the inputs fill. A wallet-proof GET or DELETE may give only {}: an empty signed body, for a site that reads a body on every signed request.",
+          "description": "Fixed fields sent in every request body, beside the ones the inputs fill. A signed GET or DELETE may give only {}: an empty signed body, for a site that reads a body on every signed request.",
           "type": "object"
         },
         "stdin_fields": {
-          "description": "Body fields the caller pipes on stdin as one JSON object (wallet-proof commands only).",
+          "description": "Body fields the caller pipes on stdin as one JSON object (signed commands only: signed_agent or paired_agent).",
           "type": "array",
           "items": {
             "type": "object",

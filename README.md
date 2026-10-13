@@ -21,8 +21,8 @@ Every command answers the same way:
 ## Checking a site
 
 `regents <site> doctor` runs the same checks for every site: the site answers, each public read
-that needs no input answers, and, for a site with wallet-proof commands, the sign-in server
-accepts a request signed with your sign-in, as the site would. It exits 1 when any check fails.
+that needs no input answers, and, for a site with signed commands, the sign-in server accepts
+a request signed with your sign-in, as the site would. It exits 1 when any check fails.
 
 ```bash
 regents patchbay doctor
@@ -30,8 +30,10 @@ regents patchbay doctor
 
 ## Signing in
 
-A site's wallet-proof commands need a wallet sign-in (SIWA). One agent key lives on this
-machine and signs every request. It is the same key the SIWA agent client
+A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any
+signed-in agent, and `paired_agent` commands also need your person to have paired this agent
+with their account (`regents protocol agents pair`). One agent key lives on this machine and
+signs every request. It is the same key the SIWA agent client
 (`https://siwa.regents.sh/skill.md`) uses: `~/.siwa-agent/key.json`, with each site's sign-in
 in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
 or your own wallet's signing command on Base or Ethereum, set up with the client's `use-wallet`.

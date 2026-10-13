@@ -137,7 +137,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         ),
     ]
     help_text = command.description
-    if command.authority == "wallet-proof":
+    if command.signed:
         params.append(
             click.Option(
                 ["--phase"],
@@ -147,6 +147,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             )
         )
         help_text += f"\n\nSign in first: regents auth login --site {platform.site}."
+        if command.authority == "paired_agent":
+            help_text += " " + needs_pairing(command)
         if command.stdin_fields:
             optional = not any(f.required for f in command.stdin_fields)
             help_text += f"\n\nPipe {stdin_shape(command)} on stdin" + (
@@ -165,9 +167,9 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         request = request_for(command, given)
         line = command_line(platform, command, given)
         shared = [*(["--base-url", base_url] if base_url else []), *(["--json"] if as_json else [])]
-        if command.authority == "wallet-proof" and phase == "send":
+        if command.signed and phase == "send":
             request = signed_by_caller(command, base, request, timeout_ms)
-        elif command.authority == "wallet-proof":
+        elif command.signed:
             request = with_stdin_fields(command, request, timeout_ms)
             receipt = siwa.current(platform.site, timeout_ms)
             if phase == "prepare":
@@ -181,6 +183,20 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         output.emit(told, as_json=as_json, next_steps=steps)
 
     return click.Command(command.name, params=params, callback=run, help=help_text)
+
+
+#: What each condition asks of a paired agent's person, in the help.
+CONDITIONS = {
+    "spending_allowed": "let it spend their Credits",
+    "member": "be a member of what it acts on",
+}
+
+
+def needs_pairing(command: Command) -> str:
+    """The help's line for a paired_agent command: the pairing, then each condition."""
+    asks = ["have paired this agent with their account (regents protocol agents pair)"]
+    asks += [CONDITIONS[c] for c in command.conditions]
+    return f"Your person must {in_words(asks)}."
 
 
 def request_for(command: Command, given: dict[str, Any]) -> Request:

@@ -5,7 +5,8 @@ The agent key and each site's receipt live where the SIWA agent client keeps the
 the client and `regents` share one identity. The key holds a private key, the same key locked
 with a passkey on a Mac (see `passkey`), or names a shell command that signs on Base or
 Ethereum. `regents auth login --site <name>` signs in to that site's
-audience and keeps the receipt; every wallet-proof request is then signed with the key.
+audience and keeps the receipt; every request of a signed_agent or paired_agent command is
+then signed with the key.
 Someone who keeps their own key instead signs the exact messages printed here.
 """
 
