@@ -23,7 +23,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   recent|popular` reads the shared homepage feed and needs no other filter. New public
   `bench matrix` and `bench pair <harness-id> <wallet-id>` read the wallet benchmark.
   `account credits-history` pages by `pagination.next_cursor` sent as `after` on stdin.
-- Regents is pinned to `813cbff` (live v186). `account credits-history --after` takes the
+- Regents is pinned to `884401c` (live v187). `account credits-history --after` takes the
   previous page's `pagination.next_cursor`, and the answer prints the next-page command.
 - Techtree is pinned to `b0d69aa` (live): clearer help for account, pairing and Model Climb
   report commands; no command or answer changed.
