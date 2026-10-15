@@ -3,6 +3,25 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased — candidate 1.10.4
+
+- Include SOCKS proxy support and actionable incomplete-install errors.
+- Read Techtree catalog entries without creating local storage; keep storage refusals for writers.
+- Accept an empty HTTP 204 as successful, with normal next steps.
+- Use the existing public, signed_agent and paired_agent command authorities; replace the
+  former wallet-proof label with a hard cutover. All non-public requests remain signed, and
+  sites enforce pairing, membership and spending permissions. No fallback authority is added.
+- Allow a command to expose only the optional request fields needed for its task. Unknown
+  fields and omitted server-required fields still fail the checker; reference loops still stop.
+- Bundle the published authority-compatible site definitions. Template Credits history uses
+  a body-bound --after flag instead of stdin, and prints its next-page command. Keyfleet
+  rooms send accepts optional quote_request_id and rooms sync accepts optional quotes.
+  Patchbay threads reply no longer accepts reply_kind on stdin. Techtree gains its two
+  existing paired-owner Model Climb report reads; no Model Climb execution code is included.
+  Other command names are unchanged.
+- This local candidate starts from 1.10.2 and excludes the separate 1.10.3 Python-Skill change.
+  Its local Techtree release coordinates are climb-v0.7.5; no release has been published.
+
 ## 1.10.2 — 2026-10-13
 
 - A payment that may have gone through is never offered as a plain rerun. After no answer, an

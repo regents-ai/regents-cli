@@ -37,11 +37,7 @@ paths:
                 $ref: '#/components/schemas/HTTPError'
           description: Invalid or missing proof
         '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
-          description: Missing current pairing or owner account
+          $ref: '#/components/responses/PairedAgentRefused'
         '409':
           content:
             application/json:
@@ -109,11 +105,7 @@ paths:
                 $ref: '#/components/schemas/HTTPError'
           description: Invalid or missing proof
         '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
-          description: Missing current pairing or owner account
+          $ref: '#/components/responses/PairedAgentRefused'
         '409':
           content:
             application/json:
@@ -168,11 +160,7 @@ paths:
                 $ref: '#/components/schemas/HTTPError'
           description: Invalid or missing proof
         '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
-          description: Missing current pairing or owner account
+          $ref: '#/components/responses/PairedAgentRefused'
         '409':
           content:
             application/json:
@@ -227,11 +215,7 @@ paths:
                 $ref: '#/components/schemas/HTTPError'
           description: Invalid or missing proof
         '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
-          description: Missing current pairing or owner account
+          $ref: '#/components/responses/PairedAgentRefused'
         '409':
           content:
             application/json:
@@ -299,11 +283,7 @@ paths:
                 $ref: '#/components/schemas/HTTPError'
           description: Invalid or missing proof
         '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
-          description: Missing current pairing or owner account
+          $ref: '#/components/responses/PairedAgentRefused'
         '409':
           content:
             application/json:
@@ -358,11 +338,7 @@ paths:
                 $ref: '#/components/schemas/HTTPError'
           description: Invalid or missing proof
         '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
-          description: Missing current pairing or owner account
+          $ref: '#/components/responses/PairedAgentRefused'
         '409':
           content:
             application/json:
@@ -591,7 +567,13 @@ paths:
     get:
       operationId: getBrowserSession
       responses:
-        "200": {$ref: "#/components/responses/Session"}
+        "200":
+          description: Current browser session
+          headers:
+            Cache-Control: {schema: {type: string, const: no-store}}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Session"}
   /api/agent/v1/points:
     get:
       description: Requires fresh SIWA proof for audience regents. No query string or browser-session authority. Requires a current pairing and an owner account on Regents. Reads only; creates no Points account or event and does not activate or award Points.
@@ -624,11 +606,7 @@ paths:
                 $ref: '#/components/schemas/HTTPError'
           description: Invalid or missing proof
         '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPError'
-          description: Missing current pairing or owner account
+          $ref: '#/components/responses/PairedAgentRefused'
         '409':
           content:
             application/json:
@@ -716,6 +694,16 @@ components:
     privyIdentityToken: {type: apiKey, in: header, name: privy-id-token}
     csrfToken: {type: apiKey, in: header, name: x-csrf-token}
   responses:
+    PairedAgentRefused:
+      description: No current pairing for this agent (agent_not_paired), including a pairing revoked or replaced while the read ran, or the paired owner has no Regents account here (person_not_here)
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/PairedAgentError"}
+          examples:
+            agentNotPaired:
+              value: {error: {code: agent_not_paired, message: "This agent has no current pairing.", hint: "Ask your owner to sign in at /account and use Agents > Pair an agent, then redeem the code and sign fresh proof."}}
+            personNotHere:
+              value: {error: {code: person_not_here, message: "The paired owner has no Regents account yet.", hint: "Ask your owner to sign in at /account here, then sign fresh proof."}}
     Session:
       description: Current browser session
       content:
@@ -724,11 +712,6 @@ components:
             $ref: "#/components/schemas/Session"
     PrivySessionUnauthorized:
       description: The Privy access and identity tokens were not both present and valid for one signed-in session
-      headers:
-        x-ash-provider-relogin:
-          description: Present only when the access token itself could not be verified, which permits one fresh provider login
-          required: false
-          schema: {type: string, const: allowed}
       content:
         application/json:
           schema: {$ref: "#/components/schemas/RecoveryError"}
@@ -868,7 +851,7 @@ components:
     HTTPError: {"type":"object","required":["error"],"properties":{"error":{"type":"object","required":["code","message","hint"],"properties":{"code":{"type":"string"},"message":{"type":"string"},"hint":{"type":"string"}}}}}
     AgentAccountRead: {"type":"object","properties":{"account":{"type":"object","properties":{"id":{"type":"integer"},"display_name":{"type":["string","null"]},"ens_name":{"type":["string","null"]}},"required":["id","display_name","ens_name"],"additionalProperties":false},"pairing_id":{"type":"string","format":"uuid"},"agent_wallet":{"type":"string"}},"required":["account","pairing_id","agent_wallet"],"additionalProperties":false}
     AgentCreditsBalance: {"type":"object","properties":{"credits":{"type":"object","properties":{"available":{"type":"string","description":"Exact decimal amount"},"given":{"type":"string","description":"Exact decimal amount"},"purchased":{"type":"string","description":"Exact decimal amount"},"held":{"type":"string","description":"Exact decimal amount"}},"required":["available","given","purchased","held"],"additionalProperties":false},"pairing_id":{"type":"string","format":"uuid"}},"required":["credits","pairing_id"],"additionalProperties":false}
-    AgentCreditsBudget: {"type":"object","properties":{"pairing_id":{"type":"string","format":"uuid"},"spending_grant":{"type":"object","properties":{"enabled":{"type":"boolean"},"site_allowed":{"type":"boolean"},"max_per_spend":{"type":"string","description":"Exact decimal amount"},"daily_limit":{"type":"string","description":"Exact decimal amount"},"sites":{"type":"array","items":{"type":"string"}},"used_24h":{"type":"string","description":"Exact decimal amount"}},"required":["enabled","site_allowed"],"additionalProperties":false}},"required":["pairing_id","spending_grant"],"additionalProperties":false}
+    AgentCreditsBudget: {"type":"object","properties":{"pairing_id":{"type":"string","format":"uuid"},"spending_grant":{"type":"object","properties":{"enabled":{"type":"boolean"},"site_allowed":{"type":"boolean"},"max_per_spend":{"type":"string","description":"Exact decimal amount"},"daily_limit":{"type":"string","description":"Exact decimal amount"},"sites":{"type":"array","items":{"type":"string"}},"used_24h":{"type":"string","description":"Exact decimal amount"}},"required":["enabled","site_allowed","max_per_spend","daily_limit","sites","used_24h"],"additionalProperties":false}},"required":["pairing_id","spending_grant"],"additionalProperties":false}
     AgentCreditsHistory: {"type":"object","properties":{"entries":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"at":{"type":"string","format":"date-time"},"operation":{"type":"string"},"available_delta":{"type":"string","description":"Exact decimal amount"},"held_delta":{"type":"string","description":"Exact decimal amount"}},"required":["id","at","operation","available_delta","held_delta"],"additionalProperties":false}},"more?":{"type":"boolean"},"next":{"type":["string","null"]}},"required":["entries","more?","next"],"additionalProperties":false}
     AgentWhoami: {"type":"object","properties":{"data":{"type":"object","properties":{"agent":{"type":"object","properties":{"wallet":{"type":"string"},"registry_listing":{"type":["string","null"]}},"required":["wallet","registry_listing"],"additionalProperties":false},"audience":{"type":"string"},"authenticated":{"type":"boolean"},"pairing":{"anyOf":[{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"paired_at":{"type":"string","format":"date-time"}},"required":["id","paired_at"],"additionalProperties":false},{"type":"null"}]},"effective_access":{"type":"object","properties":{"paired":{"type":"boolean"},"product_permissions":{"type":"string"},"account_management":{"type":"boolean"},"spending":{"type":"string"}},"required":["paired","product_permissions","account_management","spending"],"additionalProperties":false}},"required":["agent","audience","authenticated","pairing","effective_access"],"additionalProperties":false}},"required":["data"],"additionalProperties":false}
     PairedAgentEnvelope:
@@ -943,6 +926,19 @@ components:
     AgentHarness:
       type: string
       enum: [hermes, grok_bot, muse, openclaw, nemoclaw, ironclaw, pi, claude_code, codex, cursor, gemini_cli, dots, other]
+    PairedAgentError:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, hint]
+          properties:
+            code: {type: string, enum: [agent_not_paired, person_not_here]}
+            message: {type: string}
+            hint: {type: string}
     AgentPairingError:
       type: object
       additionalProperties: false

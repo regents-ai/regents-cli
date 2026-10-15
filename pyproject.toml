@@ -1,6 +1,6 @@
 [project]
 name = "regents-cli"
-version = "1.10.2"
+version = "1.10.4"
 description = "The regents command: every Regents Labs site from one command line."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -14,7 +14,7 @@ dependencies = [
   "eth-account>=0.13,<1",
   "eth-utils>=6,<7",
   "filelock>=3.18,<4",
-  "httpx>=0.28,<1",
+  "httpx[socks]>=0.28,<1",
   "markdown-it-py>=4,<5",
   "pydantic>=2.12,<3",
   "pyjwt[crypto]>=2.15,<3",

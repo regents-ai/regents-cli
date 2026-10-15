@@ -101,6 +101,26 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _failed(error, cli, args, as_json)
     except httpx.InvalidURL as error:
         return _failed(unreadable_address(error), cli, args, as_json)
+    except ImportError as error:
+        missing = error.__context__
+        if not isinstance(missing, ModuleNotFoundError) or missing.name != "socksio":
+            raise
+        return _failed(
+            CommandError(
+                "installation_incomplete",
+                "SOCKS proxy support is missing from this CLI installation.",
+                next_steps=[
+                    next_steps.human(
+                        "Repair this CLI environment by installing HTTPX with its SOCKS extra "
+                        "using its package manager. Keep the proxy settings; "
+                        "do not bypass the proxy."
+                    )
+                ],
+            ),
+            cli,
+            args,
+            as_json,
+        )
     except click.ClickException as error:
         return _failed(CommandError("command_error", error.format_message()), cli, args, as_json)
     return EXIT_OK

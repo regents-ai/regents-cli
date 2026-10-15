@@ -99,9 +99,14 @@ def _digest_dirname(digest: Digest) -> str:
     return validate_digest(digest).replace(":", "-", 1)
 
 
+def read_only_home() -> TechtreePaths:
+    """Locate existing state without creating directories or changing permissions."""
+    return TechtreePaths(root=Path.home() / ".regents" / "techtree")
+
+
 def home() -> TechtreePaths:
     """This machine's Techtree home, with its top-level directories made private."""
-    paths = TechtreePaths(root=Path.home() / ".regents" / "techtree")
+    paths = read_only_home()
     try:
         for directory in (
             paths.root,

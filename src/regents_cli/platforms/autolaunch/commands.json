@@ -310,7 +310,7 @@
       "operation_id": "agent_whoami",
       "method": "GET",
       "path": "/api/agents/v1/whoami",
-      "authority": "wallet-proof",
+      "authority": "signed_agent",
       "effect": "read"
     },
     {
@@ -319,7 +319,7 @@
       "operation_id": "agent_status",
       "method": "GET",
       "path": "/api/agents/v1/me",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "read"
     },
     {
@@ -328,7 +328,7 @@
       "operation_id": "agent_pair",
       "method": "POST",
       "path": "/api/agents/v1/pair",
-      "authority": "wallet-proof",
+      "authority": "signed_agent",
       "effect": "write",
       "stdin_fields": [
         {
@@ -357,7 +357,7 @@
       "operation_id": "autolaunch_revstake_draft",
       "method": "GET",
       "path": "/api/agent/v1/drafts/revstake",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "read"
     },
     {
@@ -366,7 +366,7 @@
       "operation_id": "autolaunch_revstake_draft_save",
       "method": "PATCH",
       "path": "/api/agent/v1/drafts/revstake",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "write",
       "stdin_fields": [
         {
@@ -431,7 +431,7 @@
       "operation_id": "autolaunch_memestock_draft",
       "method": "GET",
       "path": "/api/agent/v1/drafts/memestock",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "read"
     },
     {
@@ -440,7 +440,7 @@
       "operation_id": "autolaunch_memestock_draft_save",
       "method": "PATCH",
       "path": "/api/agent/v1/drafts/memestock",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "write",
       "stdin_fields": [
         {
@@ -505,8 +505,14 @@
       "operation_id": "autolaunch_my_positions",
       "method": "GET",
       "path": "/api/agent/v1/positions",
-      "authority": "wallet-proof",
-      "effect": "read"
+      "authority": "paired_agent",
+      "effect": "read",
+      "next_steps": [
+        {
+          "kind": "human",
+          "say": "Give your person the bid_page of any bid that needs them: it shows what is theirs, what may happen next with its one button, and each transaction."
+        }
+      ]
     },
     {
       "command": "account balances",
@@ -514,7 +520,7 @@
       "operation_id": "account_balances",
       "method": "GET",
       "path": "/api/agent/v1/account/balances",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "read"
     },
     {
@@ -523,7 +529,7 @@
       "operation_id": "account_credits_history",
       "method": "POST",
       "path": "/api/agent/v1/account/credits/history",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "read",
       "stdin_fields": [
         {
@@ -540,7 +546,7 @@
       "operation_id": "account_points",
       "method": "GET",
       "path": "/api/agent/v1/account/points",
-      "authority": "wallet-proof",
+      "authority": "paired_agent",
       "effect": "read"
     }
   ]

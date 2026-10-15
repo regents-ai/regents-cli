@@ -164,6 +164,14 @@ def for_failure(error: CommandError, invocation: Invocation) -> list[Step]:
     """The failure's own steps, or the ones its kind calls for."""
     if error.next_steps:
         return list(error.next_steps)
+    if error.code == "techtree_home_unusable":
+        return [
+            human(
+                "This command needs writable local storage at ~/.regents/techtree. "
+                "Ask the runtime owner to provide it, then retry. "
+                "Do not move or replace your signer to fix local storage."
+            )
+        ]
     status = error.fields.get("status")
     described = invocation.description
     if invocation.effect == "payment" and described is not None:

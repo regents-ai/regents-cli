@@ -23,8 +23,9 @@ The regents-cli chief is the only agent that changes this repository or publishe
 2. **Build it in the same commit.** The route, its OpenAPI operation and the
    `cli/commands.json` entry go in together. `make check-cli` checks the entry against the
    format and the OpenAPI documents, including that the body it sends (its body inputs, stdin
-   fields and fixed `body`) names exactly the fields the operation's request body names, and
-   requires exactly the ones it requires.
+   fields and fixed `body`) uses only fields the operation names and always sends every
+   server-required field. A command may expose only a subset of optional fields and require
+   one for its narrower task.
 3. **Ship the route.** The product's own rules decide when it reaches its GitHub main and its
    live site. The command line follows; it never holds a product back.
 4. **Tell the regents-cli chief**, with a command change note (below).
@@ -112,6 +113,7 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
                         page when entry.pagination says there is one, then entry.next_steps,
                         else "done"; a 202 without entry.next_steps is not done: its step
                         quotes the entry's description and lists its group's commands
+  empty 204          -> print an empty object with next_steps; the operation succeeded
   any other answer   -> the site's {"error": {"code", "message", ...}} as it came, an exit
                         code (401/403 sign-in, 404 not found, 502-504 unreachable, anything
                         else failed) and next_steps read from the status and code
@@ -164,7 +166,8 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
 
 - **One OpenAPI operation per command**, with the entry's `operation_id`, method and path, in
   `platform/priv/public/openapi.json` or `platform/priv/static/api-contract.openapiv3.yaml`.
-- **JSON answers.** A 2xx without JSON is reported as an invalid answer.
+- **JSON answers or an empty 204.** An empty 204 No Content is a successful empty object
+  with `next_steps`. Every other 2xx must contain a JSON object.
 - **Errors as `{"error": {"code", "message", "hint"}}`** (`RegentAgentAccess.Recovery` in
   elixir-utils writes this). `code` is stable snake_case that scripts can branch on;
   `message` is shown to a person exactly as written, so write it for one. Use 401 or 403 for

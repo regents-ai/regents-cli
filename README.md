@@ -11,9 +11,14 @@ regents
 
 After installing, run `regents` on its own: it lists the commands and the first few to try.
 
+SOCKS proxy support is included. The CLI respects HTTPX proxy environment settings; it
+never disables a configured proxy to work around a connection problem. If an incomplete
+installation reports `installation_incomplete`, repair that environment with `httpx[socks]`.
+
 Every command answers the same way:
 
-- readable output by default, and `--json` for exactly the site's answer;
+- readable output by default, and `--json` for the site's answer with `next_steps`;
+- an empty HTTP 204 is success, shown as an empty object with `next_steps`;
 - errors as `{"error": {"code": "…", "message": "…"}}`;
 - the same exit codes everywhere (`regents --help` lists them);
 - the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address.

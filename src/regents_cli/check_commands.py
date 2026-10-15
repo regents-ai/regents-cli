@@ -43,15 +43,13 @@ def is_json(kind: str) -> bool:
 
 
 def answers_json(document: Any, operation: dict[str, Any]) -> bool:
-    """Whether every success answer of `operation` can be JSON, the only answer `regents`
-    reads: never 204 No Content, and any content it declares is JSON."""
     shared = (document.get("components") or {}).get("responses") or {}
     for code, response in (operation.get("responses") or {}).items():
-        if str(code) == "204":
-            return False
         if str(code).startswith("2"):
             name = response.get("$ref", "").removeprefix("#/components/responses/")
             content = (shared.get(name, {}) if name else response).get("content") or {}
+            if str(code) == "204" and content:
+                return False
             if not all(map(is_json, content)):
                 return False
     return True
@@ -87,21 +85,22 @@ def followed(document: Any, node: Any) -> Any:
     return node
 
 
-def body_named_in(document: Any, schema: Any) -> Body:
+def body_named_in(document: Any, schema: Any, *, in_all_of: bool = False) -> Body:
     """The named fields of one request-body schema, `allOf` parts merged."""
     schema = followed(document, schema)
-    if "oneOf" in schema or "anyOf" in schema:
-        return Body(None, frozenset())
-    fields = set(schema.get("properties") or {})
     required = set(schema.get("required") or [])
+    fields = set(schema.get("properties") or {})
+    known = "oneOf" not in schema and "anyOf" not in schema
     for part in schema.get("allOf", []):
-        inner = body_named_in(document, part)
+        inner = body_named_in(document, part, in_all_of=True)
         if inner.fields is None:
-            return inner
-        fields |= inner.fields
+            known = False
+        else:
+            fields |= inner.fields
         required |= inner.required
     closed = schema.get("additionalProperties") is False or schema.get("maxProperties") == 0
-    return Body(frozenset(fields) if fields or closed else None, frozenset(required))
+    named = frozenset(fields) if known and (fields or closed or in_all_of) else None
+    return Body(named, frozenset(required))
 
 
 def request_body(document: Any, operation: dict[str, Any]) -> Body | None:
@@ -146,17 +145,11 @@ def body_problems(entry: dict[str, Any], body: Body | None) -> list[str]:
     operation = entry["operation_id"]
     if body is None:
         return [f"sends {named(sent)}, but operation {operation} takes no body"] if sent else []
-    if body.fields is None:
-        return []
     problems = []
-    if unknown := sent - body.fields:
+    if body.fields is not None and (unknown := sent - body.fields):
         problems.append(f"sends {named(unknown)}, which operation {operation}'s body does not name")
-    if unsent := body.fields - sent:
-        problems.append(f"operation {operation}'s body names {named(unsent)}, which it never sends")
     if optional := body.required - always - fixed:
         problems.append(f"operation {operation} requires {named(optional)}, which it may leave out")
-    if stricter := always - body.required:
-        problems.append(f"requires {named(stricter)}, which operation {operation} leaves optional")
     return problems
 
 
@@ -257,7 +250,9 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
                 f"not {entry['method']} {entry['path']}"
             )
         elif not operation.answers_json:
-            say(f"operation {entry['operation_id']} does not answer JSON on success")
+            say(
+                f"operation {entry['operation_id']} does not answer JSON or an empty 204 on success"
+            )
         else:
             for problem in body_problems(entry, operation.body):
                 say(problem)

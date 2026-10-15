@@ -1,7 +1,6 @@
-"""A command's body must be the one its OpenAPI operation takes: a field the site does not name,
-a field the site takes that nothing sends, or a required field the command may leave out, is
-caught by the site's own `make check-cli` instead of by an agent whose signed request the site
-then refuses."""
+"""Refuse unknown body fields and missing server-required fields before a request is signed.
+Optional API fields may be omitted by a command with a narrower purpose.
+"""
 
 from __future__ import annotations
 
@@ -30,7 +29,8 @@ OPENAPI = {
         "schemas": {
             "New": {
                 "allOf": [
-                    {"type": "object", "properties": {"text": {}}, "required": ["text"]},
+                    {"type": "object", "properties": {"text": {}}},
+                    {"required": ["text"]},
                     {"type": "object", "properties": {"pinned": {}}},
                 ]
             }
@@ -80,7 +80,7 @@ def described(**changes: Any) -> dict[str, Any]:
                     }
                 ]
             },
-            "operation createNote's body names pinned, which it never sends",
+            None,
         ),
         (
             {

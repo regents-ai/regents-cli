@@ -137,6 +137,8 @@ def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
 
 
 def answer(response: httpx.Response) -> dict[str, Any]:
+    if response.status_code == 204 and not response.content:
+        return {}
     try:
         body = response.json()
     except ValueError:

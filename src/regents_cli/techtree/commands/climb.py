@@ -71,7 +71,7 @@ REFERENCE = click.Argument(["reference"], metavar="REFERENCE")
 
 
 def list_climbs(status: str, as_json: bool) -> None:
-    summaries = CatalogService(paths.home()).list_climbs(status=status)
+    summaries = CatalogService(paths.read_only_home()).list_climbs(status=status)
     answer: dict[str, JsonValue] = {
         "climbs": [to_json_value(summary) for summary in summaries],
         "count": len(summaries),
@@ -89,7 +89,7 @@ def list_climbs(status: str, as_json: bool) -> None:
 
 
 def show(reference: str, as_json: bool) -> None:
-    catalog = CatalogService(paths.home())
+    catalog = CatalogService(paths.read_only_home())
     resolved = catalog.get_climb(reference)
     summary = catalog.climb_summary(resolved)
     campaign = resolved.campaign
