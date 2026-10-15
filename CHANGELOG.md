@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased — candidate 1.10.4
+## 1.10.4 — 2026-10-15
 
 - Include SOCKS proxy support and actionable incomplete-install errors.
 - Read Techtree catalog entries without creating local storage; keep storage refusals for writers.
@@ -19,8 +19,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   Patchbay threads reply no longer accepts reply_kind on stdin. Techtree gains its two
   existing paired-owner Model Climb report reads; no Model Climb execution code is included.
   Other command names are unchanged.
-- This local candidate starts from 1.10.2 and excludes the separate 1.10.3 Python-Skill change.
-  Its local Techtree release coordinates are climb-v0.7.5; no release has been published.
+- Template adds paired-agent commands: `notes search`, `notes edit <id>`, `notes delete <id>`,
+  `notes rate-label <id>`, `rooms search` and `activity list`. Note deletion sends no body and
+  accepts empty 204 success; ask the person before deleting. Search/rating fields are JSON
+  stdin; activity listing takes no input and does not mark notifications read. History reads
+  use up to 50 transfers grouped into complete entries, so a page may contain fewer entries.
+- This release starts from 1.10.2 and excludes the separate, unpublished 1.10.3 Python-Skill
+  change. Techtree release coordinates are climb-v0.7.5; the catalog and engines are unchanged.
 
 ## 1.10.2 — 2026-10-13
 
