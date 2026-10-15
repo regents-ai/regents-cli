@@ -19,7 +19,7 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "e055673489fb2cb713520256ae77b2704a32f9c1",
+    "commit": "5f0209fbcbfe5ace8adc8f73c2b634204f673541",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",

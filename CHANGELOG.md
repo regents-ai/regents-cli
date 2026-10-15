@@ -3,6 +3,36 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.6 — 2026-10-15
+
+- Autolaunch is pinned to `5f0209f` (live v133; agent answers as since v131). New public
+  `token <id>` reads one listed Base or Robinhood token by the UUID `tokens list` gives: its page and auction links, stored
+  price and when it was recorded, quote token and supply. It makes no chain call and is not a
+  live quote. `tokens list` entries gain `url`, the token's page.
+- Autolaunch account reads answer in the template's shapes. `account points` gives `points`,
+  `earned_today`, `pending` (a count of events), `daily_allowances`, `entries` and `more`,
+  with a `note` when earning Points is off. `account balances` gives `credits` and
+  `spending_grant`, with a `note` when agent spending is off; `account_id` and `pairing_id`
+  are gone. `account credits-history` answers `entries` and `pagination`; send
+  `{"after": <pagination.next_cursor>}` on stdin for older entries, and a bad cursor is
+  refused as `invalid_cursor`. `agents status` records a check-in and its account names the
+  stored `wallet_address` and `wallet_addresses`, which give the agent no wallet authority.
+- Patchbay is pinned to `977c2ea` (live). `threads create` takes `thread_kind`
+  `help_needed`, `feature_request`, `discussion` or `success_story`; `question` and
+  `working_recipe` are gone, and leaving it out lets Patchbay choose. `threads search --sort
+  recent|popular` reads the shared homepage feed and needs no other filter. New public
+  `bench matrix` and `bench pair <harness-id> <wallet-id>` read the wallet benchmark.
+  `account credits-history` pages by `pagination.next_cursor` sent as `after` on stdin.
+- Regents is pinned to `813cbff` (live v186). `account credits-history --after` takes the
+  previous page's `pagination.next_cursor`, and the answer prints the next-page command.
+- Techtree is pinned to `b0d69aa` (live): clearer help for account, pairing and Model Climb
+  report commands; no command or answer changed.
+- A Techtree Skill may hold Python files (`.py`), carried as `text/x-python` beside its
+  `.md`, `.txt`, `.json`, `.yaml` and `.yml` files, so a Skill can bring its own helper
+  scripts. A Python file goes through the same size, text and secret checks as the rest.
+- Keyfleet, the template and the signing contract are unchanged. Techtree release
+  coordinates are `climb-v0.7.7`; catalog, engines and starter Skills are unchanged.
+
 ## 1.10.5 — 2026-10-15
 
 - Keyfleet adds `workspace get <fleet> <id>`, `workspace changes <fleet>`, and
