@@ -3,6 +3,32 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.5 — 2026-10-15
+
+- Keyfleet adds `workspace get <fleet> <id>`, `workspace changes <fleet>`, and
+  `workspace create`, `workspace patch`, `workspace link`, `workspace unlink`,
+  `workspace archive` (each taking `<fleet> <key>`). Reads and writes keep the site's
+  pairing, membership and edit restrictions. Workspace changes pages with `--after-seq`
+  and `--limit`; writes take typed JSON stdin, retain their `command_id`, and use the
+  object's last-read `expected_version` where required. Help explains identical retries
+  with fresh proof and reread/merge after version conflicts. No workspace operation is run
+  by installation or help.
+- Add public Keyfleet `workspace pulse <fleet>` and `treasury get <fleet>` reads.
+  Pulse is a generic public summary; private workspace content stays private. Treasury
+  reports indexed figures and their availability/time, rather than claiming a fresh
+  chain read. An unavailable balance is not zero.
+- Add Keyfleet `code password <fleet>`. It requires pairing and current fleet membership,
+  sends an empty JSON object and creates a short-lived private Git credential. Run it
+  only when authorized; keep its returned password private. Installation, help and
+  request preparation do not mint a password.
+- Refresh the bundled Keyfleet API contract to its existing version 10: the public
+  fleet directory lists General only and omits member wallet addresses and created rooms.
+- Only these ten Keyfleet commands are added. Existing command inputs, all other site
+  pins and runtime signing/transport are unchanged. No dedicated DM, proposal-read or
+  account-history additions are included. No notebook execution is added.
+- Techtree release coordinates are `climb-v0.7.6` for CLI 1.10.5; catalog, engines,
+  starter Skills and signing contracts are unchanged.
+
 ## 1.10.4 — 2026-10-15
 
 - Include SOCKS proxy support and actionable incomplete-install errors.
