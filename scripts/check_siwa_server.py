@@ -10,19 +10,20 @@ It signs in to the server's `regents` audience with a throwaway key through `reg
 then has the server check signed requests the way a site does (POST /api/shared/siwa/http-verify):
 a read with no body, a write with a JSON body, a read with an empty signed body and a read with
 a query are accepted; a changed body, a changed query, another site's audience and a replay are
-refused. SIWA_BROKER has no default, so
-this never signs in to the live server.
+refused. Like a site, it sends the server only the body's digest, worked out here from the body's
+bytes, never the body. SIWA_BROKER has no default, so this never signs in to the live server.
 """
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import os
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
 
 import httpx
 from eth_account import Account
@@ -33,13 +34,25 @@ from regents_cli.http import Request
 SITE = "regents"
 
 
+def body_digest(body: str) -> str:
+    """The digest a site works out from the body it read: `sha-256=:<base64>:`."""
+    return f"sha-256=:{base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()}:"
+
+
 def verify(
-    broker: str, audience: str, request: Request, headers: dict[str, str], body: Any
+    broker: str, audience: str, request: Request, headers: dict[str, str], body: str | None
 ) -> bool:
     """Whether the sign-in server accepts `headers` for `request` sent with `body`'s bytes."""
+    check: dict[str, object] = {
+        "method": request.method,
+        "path": request.target,
+        "headers": headers,
+    }
+    if body is not None:
+        check["body_digest"] = body_digest(body)
     answer = httpx.post(
         f"{broker}/api/shared/siwa/http-verify",
-        json={"method": request.method, "path": request.target, "headers": headers, "body": body},
+        json=check,
         headers={"x-siwa-audience": audience},
         timeout=30,
     )
