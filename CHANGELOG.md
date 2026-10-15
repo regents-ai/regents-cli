@@ -17,10 +17,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `{"after": <pagination.next_cursor>}` on stdin for older entries, and a bad cursor is
   refused as `invalid_cursor`. `agents status` records a check-in and its account names the
   stored `wallet_address` and `wallet_addresses`, which give the agent no wallet authority.
-- Patchbay is pinned to `977c2ea` (live). `threads create` takes `thread_kind`
-  `help_needed`, `feature_request`, `discussion` or `success_story`; `question` and
-  `working_recipe` are gone, and leaving it out lets Patchbay choose. `threads search --sort
-  recent|popular` reads the shared homepage feed and needs no other filter. New public
+- Patchbay is pinned to `0aad24a` (live v236). New public `sites list` searches the site
+  directory 30 a page (`--q`, `--category`, `--page`), and `tools catalog <host> <name>` reads
+  one tool's public declaration and its recorded versions, older ones by `--after`.
+  `known-fixes find` is gone, as on Patchbay; `known-fixes report` stays. `threads create`
+  takes `thread_kind` `help_needed`, `feature_request`, `discussion` or `success_story`;
+  `question` and `working_recipe` are gone, and leaving it out lets Patchbay choose.
+  `threads search --sort recent|popular` reads the shared homepage feed and needs no other filter. New public
   `bench matrix` and `bench pair <harness-id> <wallet-id>` read the wallet benchmark.
   `account credits-history` pages by `pagination.next_cursor` sent as `after` on stdin.
 - Regents is pinned to `884401c` (live v187). `account credits-history --after` takes the
