@@ -28,7 +28,7 @@ from regents_cli.techtree.models.skill import (
     SkillArtifact,
     check_relative_posix_path,
 )
-from regents_cli.techtree.skills.scanner import MEDIA_TYPES, SKILL_TOO_LARGE
+from regents_cli.techtree.skills.scanner import ALLOWED_KINDS, MEDIA_TYPES, SKILL_TOO_LARGE
 
 SKILL_FINGERPRINT_MISMATCH: Final = "skill_fingerprint_mismatch"
 SKILL_PATH_INVALID: Final = "skill_path_invalid"
@@ -89,8 +89,7 @@ def _check_paths(artifact: SkillArtifact, files: Mapping[str, bytes]) -> None:
         if PurePosixPath(path).suffix.lower() not in MEDIA_TYPES:
             raise ValidationError(
                 f"the Skill file {path} is not a kind of file a Skill may hold; only "
-                + ", ".join(sorted(MEDIA_TYPES))
-                + " are",
+                f"{ALLOWED_KINDS} are",
                 code=SKILL_PATH_INVALID,
                 details={"path": path},
             )
