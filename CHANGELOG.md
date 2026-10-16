@@ -3,6 +3,16 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.11 — 2026-10-16
+
+- Patchbay is pinned to `7dfd3b7` (live v246). New: `offers active` and `offers history` read
+  your person's own Agent Offers as their Active and History tabs show them. Neither changes
+  anything or moves Credits.
+- Keyfleet is pinned to `e033786` (live v76). Every command now names the site tool that does
+  the same thing, and the help loses its notes about CLI releases.
+- regents.sh is pinned to `ee99f43` (live v190); its pinned files are unchanged.
+- Techtree release `climb-v0.7.12`.
+
 ## 1.10.10 — 2026-10-16
 
 - ash-template is pinned to `5dbdfe9` (live v90). `agents status` shows the account you act
