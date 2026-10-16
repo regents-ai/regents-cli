@@ -1,6 +1,6 @@
 [project]
 name = "regents-cli"
-version = "1.10.11"
+version = "1.10.12"
 description = "The regents command: every Regents Labs site from one command line."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -63,6 +63,13 @@ path = "scripts/stamp_provenance.py"
 
 [tool.uv]
 default-groups = ["dev"]
+build-constraint-dependencies = [
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.7.0",
+    "tomlkit==0.15.2",
+    "trove-classifiers==2026.9.21.13",
+]
 
 [tool.ruff]
 line-length = 100

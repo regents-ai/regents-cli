@@ -3,6 +3,14 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.12 — 2026-10-16
+
+- Autolaunch is pinned to `901ca8e` (live v141) and ash-template to `9ceaf88` (live v92). Their
+  commands and help are unchanged.
+- The published package is now built with the same build tool version as a local build, so the
+  two are byte for byte the same.
+- Techtree release `climb-v0.7.13`.
+
 ## 1.10.11 — 2026-10-16
 
 - Patchbay is pinned to `7dfd3b7` (live v246). New: `offers active` and `offers history` read
