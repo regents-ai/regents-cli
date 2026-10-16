@@ -10,6 +10,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   names the site tool that does the same thing.
 - Techtree is pinned to `312c486` (live v146). `agents pair` lists the 13 programs an agent may
   say it runs on, and `other` for the rest.
+- `--help` now explains each value a command reads on stdin, as the site describes it, so an
+  agent can see what to send (for example the harness names for `agents pair`).
 
 ## 1.10.9 — 2026-10-16
 

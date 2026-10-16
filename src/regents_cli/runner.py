@@ -156,6 +156,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             )
         if command.words == PAIR:
             help_text += " At a terminal it asks for each instead, the code hidden as you type."
+        help_text += "".join(f"\n\n{f.field}: {f.description}" for f in command.stdin_fields)
 
     def run(as_json: bool, base_url: str | None, timeout_ms: int, **values: Any) -> None:
         phase = values.pop("phase", None)
