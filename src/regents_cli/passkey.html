@@ -698,7 +698,7 @@ const $ = (id) => document.getElementById(id);
 document.title = words[0] + " · Regents";
 $("title").textContent = words[0];
 $("lead").textContent = words[1];
-$("opener").textContent = setup.opener;
+$("opener").textContent = "Opened by " + setup.opener;
 $("address").textContent = setup.address;
 $("copy").onclick = async () => {
   try {

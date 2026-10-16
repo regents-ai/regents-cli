@@ -47,11 +47,7 @@ ASKS = {
     "unlock": "Ask your person to unlock your key: they open this page on this Mac and press "
     "Use Touch ID. They are asked once after each restart.",
 }
-#: Shells and program launchers sit between an agent's app and this command; the page names the app.
-LAUNCHERS = {
-    "sh", "bash", "zsh", "fish", "dash", "env", "login", "sudo", "nohup", "timeout", "script",
-    "tmux", "screen", "sandbox-exec", "uv", "uvx", "node", "npx", "npm", "bun", "deno",
-}  # fmt: skip
+#: Agent apps the Touch ID page names; any other app is shown as "your agent".
 APP_NAMES = {
     "claude": "Claude Code",
     "codex": "Codex",
@@ -61,8 +57,6 @@ APP_NAMES = {
     "hermes": "Hermes",
     "opencode": "OpenCode",
 }
-#: The page's line for an app not in APP_NAMES, or one that can't be found.
-SOME_APP = "[local text to be replaced by: siwa-server's line for an app it does not name]"
 
 
 def _box_cipher(secret: str) -> AESGCM:
@@ -74,26 +68,22 @@ def _box_cipher(secret: str) -> AESGCM:
 
 
 def _opener() -> str:
-    """The page's line naming the app that started this command: the nearest parent process
-    that is not a shell or launcher, as the SIWA agent client finds it. Finding it never stops
-    the Touch ID page."""
+    """The agent app that started this command: the nearest parent process whose program or
+    script is a known agent, found the same way as in the SIWA agent client."""
+    table: dict[int, tuple[int, list[str]]] = {}
+    for line in subprocess.run(
+        ["/bin/ps", "-A", "-o", "pid=,ppid=,args="], capture_output=True, text=True, check=True
+    ).stdout.splitlines():
+        process, parent, *args = line.split()
+        table[int(process)] = (int(parent), [os.path.basename(arg).lower() for arg in args[:2]])
     pid = os.getppid()
-    try:
-        while True:
-            parent, path = subprocess.run(
-                ["/bin/ps", "-o", "ppid=,comm=", "-p", str(pid)],
-                capture_output=True,
-                text=True,
-                check=True,
-            ).stdout.split(None, 1)
-            name = os.path.basename(path.strip()).lower()
-            if name not in LAUNCHERS and not name.startswith("python"):
-                break
-            pid = int(parent)
-    except (OSError, subprocess.CalledProcessError, ValueError):
-        return SOME_APP
-    app = APP_NAMES.get(name)
-    return f"Opened by {app}" if app else SOME_APP
+    while pid > 1 and pid in table:
+        ppid, names = table[pid]
+        for name in names:
+            if name in APP_NAMES:
+                return APP_NAMES[name]
+        pid = ppid
+    return "your agent"
 
 
 def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[str, str]:
