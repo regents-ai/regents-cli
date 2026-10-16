@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.9 — not yet released
+## 1.10.9 — 2026-10-16
 
 - Keyfleet is pinned to `ff0041d` (live v75). New: direct messages between Keys (`dms inbox`,
   `read`, `send`, `changes`, `delete`, `keep`, `auto-delete`, `block`, `unblock`, `blocks`),
@@ -17,6 +17,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   <bundle-digest>` read published results. Its help no longer mentions CLI versions.
 - Patchbay is pinned to `2a42ed6` (live v238). Its help loses a note about how commands reach
   `regents`; no command changes.
+- Techtree release `climb-v0.7.10`.
 
 ## 1.10.8 — 2026-10-16
 
