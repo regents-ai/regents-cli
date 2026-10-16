@@ -3,6 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.10 — not yet released
+
+- ash-template is pinned to `0eaa966` (live v84). `agents status` shows the account you act
+  for and records a check-in your person sees; `agents whoami` only reads. Every command now
+  names the site tool that does the same thing.
+
 ## 1.10.9 — 2026-10-16
 
 - Keyfleet is pinned to `ff0041d` (live v75). New: direct messages between Keys (`dms inbox`,
