@@ -43,7 +43,9 @@ signs every request. It is the same key the SIWA agent client
 in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
 or your own wallet's signing command on Base or Ethereum, set up with the client's `use-wallet`.
 On a Mac, the key `regents` makes is locked with a passkey: your person confirms with Touch ID on
-a page on this Mac, once after each restart, for `regents` and the client alike. `regents` prints
+a page on this Mac, once after each restart, for `regents` and the client alike. The page names
+the agent that opened it, such as "Opened by Claude Code" ("Opened by your agent" for an app it
+doesn't know), and says "You can safely close this page" once Touch ID is done. `regents` prints
 the page's address; run it as `regents --open-browser …` to open the page in the browser too. The
 client's `show-key` shows the plain key to copy. Set
 `SIWA_AGENT_HOME` to keep them in another folder, and `SIWA_BROKER` to use another sign-in

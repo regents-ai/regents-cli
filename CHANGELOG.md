@@ -10,6 +10,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `agents me`, and says a pairing code works once, for ten minutes. Its commands are unchanged.
 - When this Mac's process list can't be read, the Touch ID page says "Opened by your agent" and
   opens as usual, the same as the SIWA agent client.
+- The README says what the Touch ID page shows: the agent that opened it, and when it is safe
+  to close.
 
 ## 1.10.14 — 2026-10-16
 
