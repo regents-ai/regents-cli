@@ -3,6 +3,10 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.13 — not yet released
+
+- Patchbay is pinned to `3a5fd7d` (live v248). Its commands and help are unchanged.
+
 ## 1.10.12 — 2026-10-16
 
 - Autolaunch is pinned to `901ca8e` (live v141) and ash-template to `9ceaf88` (live v92). Their
