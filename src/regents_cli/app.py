@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 import click
 import httpx
 
-from regents_cli import next_steps, output
+from regents_cli import browser, next_steps, output
 from regents_cli.auth import auth_group
 from regents_cli.errors import (
     EXIT_CANCELLED,
@@ -59,7 +59,8 @@ def root() -> click.Group:
                 is_eager=True,
                 callback=_print_version,
                 help="Print the version.",
-            )
+            ),
+            browser.OPEN_BROWSER,
         ],
     )
     platforms = pinned_platforms()

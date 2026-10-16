@@ -3,6 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.7 — not yet released
+
+- `regents` no longer opens a browser on its own. The Touch ID page for the agent key and the
+  ChatGPT sign-in print their address for the person to open. Run `regents --open-browser …`
+  to open the page in this computer's browser as well.
+
 ## 1.10.6 — 2026-10-15
 
 - Autolaunch is pinned to `5f0209f` (live v133; agent answers as since v131). New public

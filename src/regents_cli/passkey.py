@@ -32,9 +32,9 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
+from regents_cli import browser
 from regents_cli.errors import EXIT_AUTH, CommandError
 from regents_cli.next_steps import human
-from regents_cli.output import stderr
 
 BOX_INFO = b"agent key box"
 PASSKEY_WAIT_SECONDS = 300
@@ -42,10 +42,10 @@ HELPER_START_SECONDS = 10
 #: The helper only signs, which takes milliseconds; one that is silent this long is stuck.
 HELPER_ANSWER_SECONDS = 10
 ASKS = {
-    "lock": "Ask your person to lock your new key: they press Use Touch ID on the page that "
-    "just opened on this Mac.",
-    "unlock": "Ask your person to unlock your key: they press Use Touch ID on the page that "
-    "just opened on this Mac. They are asked once after each restart.",
+    "lock": "Ask your person to lock your new key: they open this page on this Mac and press "
+    "Use Touch ID.",
+    "unlock": "Ask your person to unlock your key: they open this page on this Mac and press "
+    "Use Touch ID. They are asked once after each restart.",
 }
 
 
@@ -58,7 +58,7 @@ def _box_cipher(secret: str) -> AESGCM:
 
 
 def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[str, str]:
-    """Open a page on this Mac where the person confirms with Touch ID; answer the passkey's id
+    """Serve a page on this Mac where the person confirms with Touch ID; answer the passkey's id
     and secret."""
     token = secrets.token_urlsafe(24)
     setup = json.dumps({"mode": mode, "address": address, "credentialId": credential_id})
@@ -94,14 +94,13 @@ def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Page)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     url = f"http://localhost:{server.server_port}/{token}"
-    stderr.print(f"{ASKS[mode]} {url}", soft_wrap=True)
-    subprocess.run(["open", url], check=False)
+    browser.offer(ASKS[mode], url)
     try:
         if not answered.wait(PASSKEY_WAIT_SECONDS):
             raise CommandError(
                 "no_touch_id",
                 f"No Touch ID within {PASSKEY_WAIT_SECONDS // 60} minutes. Run the command again "
-                "and ask your person to confirm on the page it opens.",
+                "and ask your person to confirm on the page it names.",
                 exit_code=EXIT_AUTH,
             )
     finally:

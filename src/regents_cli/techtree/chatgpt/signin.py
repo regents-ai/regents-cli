@@ -22,7 +22,6 @@ import hmac
 import secrets
 import time
 import uuid
-import webbrowser
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -37,7 +36,7 @@ import pydantic
 from filelock import FileLock, Timeout
 from pydantic import BaseModel, ConfigDict, Field
 
-from regents_cli import output
+from regents_cli import browser
 from regents_cli.errors import EXIT_UNREACHABLE, CommandError
 from regents_cli.techtree.errors import (
     AuthenticationError,
@@ -239,14 +238,9 @@ def login(home: Path) -> SignedIn:
             # OpenAI wants the name only on first registration; the person can rename it there.
             query["agent_name_hint"] = AGENT_NAME
         address = f"{AUTHORIZE_URL}?{urlencode(query, quote_via=quote)}"
-        if webbrowser.open(address):
-            output.stderr.print("Finish signing in to ChatGPT in the browser window that opened.")
-        else:
-            output.stderr.print(
-                "No browser opened. Open this address in a browser on this machine to sign in "
-                f"to ChatGPT:\n{address}",
-                soft_wrap=True,
-            )
+        browser.offer(
+            "Open this address in a browser on this machine to sign in to ChatGPT:", address
+        )
         answer = server.wait(_CALLBACK_WAIT_SECONDS)
     issued_client_id = _issued_client_id(answer, state=state, kept=kept)
     with _client() as client:

@@ -111,7 +111,8 @@ MODEL.add_command(
     click.Command(
         "login",
         callback=login,
-        help="Sign in to your ChatGPT plan in the browser. Needs ChatGPT Plus or Pro.",
+        help="Sign in to your ChatGPT plan in the browser. Needs ChatGPT Plus or Pro. It prints "
+        "the sign-in address; regents --open-browser techtree model login opens it too.",
         params=[JSON],
     )
 )

@@ -60,7 +60,8 @@ def auth_group(sites: list[str]) -> click.Group:
                 JSON,
                 TIMEOUT,
             ],
-            help="Sign in to a site. Creates the agent key on first use.",
+            help="Sign in to a site. Creates the agent key on first use. On a Mac it prints the "
+            "address of the Touch ID page; regents --open-browser auth login opens it too.",
         )
     )
     group.add_command(
