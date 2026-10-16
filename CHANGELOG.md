@@ -5,6 +5,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.15 — not yet released
 
+- Patchbay is pinned to `4bbb5ca` (live v250). Its commands and help are unchanged.
 - Keyfleet is pinned to `4fd899a` (live v77). Its commands and help are unchanged.
 - regents.sh is pinned to `ec0f209` (live v191). Its API description lists `person_not_here` on
   `agents me`, and says a pairing code works once, for ten minutes. Its commands are unchanged.
