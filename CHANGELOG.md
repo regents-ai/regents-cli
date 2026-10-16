@@ -3,6 +3,10 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.15 — not yet released
+
+- Keyfleet is pinned to `4fd899a` (live v77). Its commands and help are unchanged.
+
 ## 1.10.14 — 2026-10-16
 
 - The Touch ID page says which agent opened it at the top, such as "Opened by Claude Code", the
