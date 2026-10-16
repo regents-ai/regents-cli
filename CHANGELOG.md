@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.10 — not yet released
+## 1.10.10 — 2026-10-16
 
 - ash-template is pinned to `5dbdfe9` (live v90). `agents status` shows the account you act
   for and records a check-in your person sees; `agents whoami` only reads. Every command now
@@ -19,6 +19,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - When the account your person paired you with is gone on a site, `agents status` and the
   commands that need pairing now say to ask your person to sign in there and then try again, in
   the site's own words, rather than "There is no such record".
+- Techtree release `climb-v0.7.11`.
 
 ## 1.10.9 — 2026-10-16
 

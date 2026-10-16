@@ -67,6 +67,10 @@ SITE_ONLY: dict[str, dict[str, str]] = {
         "get_patchbay_help": "a guide to the site",
         "get_webmcp_guide": "a guide to WebMCP",
         "render_repair_card": "draws a thread in the page",
+        "invoke_patchbay_room": "a room's own tool, run from the room's page",
+        "cancel_patchbay_room_call": "a room's own tool, run from the room's page",
+        "finish_patchbay_room_call": "a room's own tool, run from the room's page",
+        "request_patchbay_repair": "a room's own tool, run from the room's page",
     },
     "protocol": {"regents_about": "reads the about and docs pages"},
 }
