@@ -1,7 +1,7 @@
 {
   "ash-template": {
     "repository": "regents-ai/ash-template",
-    "commit": "5dbdfe94e72d4131f7252dec711e20f43c35f124",
+    "commit": "9ceaf88f3f80823f9ed77023a096798c399dd667",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/ash-template/commands.json",
@@ -23,7 +23,7 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "0c8653ea97bdff08789272f7a88d3abf8aad9096",
+    "commit": "901ca8e1fe1a20efb8b1646fa3c3acfd05768e78",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
