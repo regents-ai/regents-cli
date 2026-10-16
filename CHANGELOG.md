@@ -8,9 +8,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `regents` no longer opens a browser on its own. The Touch ID page for the agent key and the
   ChatGPT sign-in print their address for the person to open. Run `regents --open-browser …`
   to open the page in this computer's browser as well.
-- Each site's list of agent tools is now pinned beside its commands. The release check prints
-  which tools have no command and which commands have no tool, site by site. It never stops a
-  release. Site pins are unchanged.
+- Each site's list of agent tools is now pinned with regents-cli's source (not in the package).
+  The release check prints which tools have no command and which commands have no tool, site by
+  site. It never stops a release. Site pins are unchanged.
 - Techtree release `climb-v0.7.8`.
 
 ## 1.10.6 — 2026-10-15

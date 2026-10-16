@@ -1,5 +1,8 @@
 """Compare each site's WebMCP tools with its `regents` commands, from the pinned copies.
 
+The tool lists are pinned in tool_manifests/ and never ship; the command lists ship in the
+package under src/regents_cli/platforms/.
+
 A command and a tool do the same thing when the command names the tool (`webmcp`), or when
 both call the same route (method and path, whatever the path's placeholders are called). The
 report lists, for each site, the tools no command does, the commands no tool does, and the
@@ -21,6 +24,7 @@ from rich.table import Table
 
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
+TOOL_MANIFESTS = ROOT / "tool_manifests"
 
 #: Tools whose job `regents` does with its own commands rather than a site command.
 COVERED_BY_CLI: dict[str, dict[str, str]] = {
@@ -45,7 +49,7 @@ def routes(text: str | None) -> set[str]:
 
 def compare(name: str) -> dict[str, Any]:
     commands = json.loads((PLATFORMS / name / "commands.json").read_text("utf-8"))["commands"]
-    tools = json.loads((PLATFORMS / name / "tool_manifest.json").read_text("utf-8"))["tools"]
+    tools = json.loads((TOOL_MANIFESTS / f"{name}.json").read_text("utf-8"))["tools"]
     covered = {**COVERED_BY_CLI["*"], **COVERED_BY_CLI.get(name, {})}
     tool_names = {tool["name"] for tool in tools}
     tool_routes = {tool["name"]: routes(tool.get("route")) for tool in tools}
@@ -77,11 +81,7 @@ def compare(name: str) -> dict[str, Any]:
 
 
 def main() -> int:
-    sites = [
-        compare(folder.name)
-        for folder in sorted(PLATFORMS.iterdir())
-        if (folder / "tool_manifest.json").is_file()
-    ]
+    sites = [compare(manifest.stem) for manifest in sorted(TOOL_MANIFESTS.glob("*.json"))]
     summary = Table(title="WebMCP tools and regents commands, from the pinned copies")
     for column in ("Site", "Tools", "Commands", "Tools with no command", "Commands with no tool"):
         summary.add_column(column, justify="left" if column == "Site" else "right")
