@@ -6,6 +6,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.13 — not yet released
 
 - Patchbay is pinned to `3a5fd7d` (live v248). Its commands and help are unchanged.
+- ash-template is pinned to `3f51871` (live v93). `agents pair` says your person makes the code
+  with Pair Agent in the side panel, on any page of the site.
+- When the person you are paired with hasn't signed in on a site yet, the next step is to ask
+  them to sign in there once and then run the command again, in the site's own words.
 
 ## 1.10.12 — 2026-10-16
 
