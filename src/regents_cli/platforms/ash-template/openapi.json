@@ -710,7 +710,7 @@
             }
           },
           "403": {
-            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has no account here (person_not_here)",
+            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here)",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -875,7 +875,7 @@
             }
           },
           "403": {
-            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has no account here (person_not_here)",
+            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here)",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -1044,7 +1044,7 @@
             }
           },
           "403": {
-            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has no account here (person_not_here)",
+            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here)",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -1226,7 +1226,7 @@
             }
           },
           "403": {
-            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has no account here (person_not_here)",
+            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here)",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -1392,7 +1392,7 @@
             }
           },
           "403": {
-            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has no account here (person_not_here)",
+            "description": "The credentials are valid but have never signed in on the website (account_required), or the signing agent does not act as a person: not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here)",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -2244,7 +2244,7 @@
             }
           },
           "403": {
-            "description": "The signing agent does not act as a person: not paired (agent_not_paired), or its person has no account here (person_not_here)",
+            "description": "The signing agent does not act as a person: not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here)",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"
@@ -2346,7 +2346,7 @@
             }
           },
           "403": {
-            "description": "The signing agent does not act as a person: not paired (agent_not_paired), or its person has no account here (person_not_here)",
+            "description": "The signing agent does not act as a person: not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here)",
             "headers": {
               "RateLimit-Policy": {
                 "$ref": "#/components/headers/RateLimitPolicy"

@@ -185,7 +185,7 @@
     },
     {
       "command": "agents pair",
-      "description": "Pair with your person's account using the code they made on their account page. Pipe code, name and harness on stdin; keep the code out of arguments and chat.",
+      "description": "Pair with your person's account using the code they made with Pair Agent in the side panel, on any page of the site. Pipe code, name and harness on stdin; keep the code out of arguments and chat.",
       "operation_id": "pairAgent",
       "method": "POST",
       "path": "/api/agents/v1/pair",
