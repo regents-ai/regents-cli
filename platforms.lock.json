@@ -67,7 +67,7 @@
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "3a5fd7d09e67be144350ae8c915629dab09f8457",
+    "commit": "f9dabea7649c4604ae2f68b4c652e09743e430af",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
@@ -75,7 +75,7 @@
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/openapi.json",
-        "sha256": "296a0938ecac6fac51d15e9abcad721ef09ed86137b4d279cd3474bc2a87399b"
+        "sha256": "ad0edf297921c5ffd9890ca7a41974e1a07eddd49e53a4355b5fe6e8a1e28f39"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/patchbay.json",

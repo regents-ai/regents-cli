@@ -8,6 +8,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - The Touch ID page says which app opened it at the top, such as "Opened by Claude Code", the
   same way as the SIWA agent client. After Touch ID it says "You can safely close this page"
   under the finished button.
+- Patchbay is pinned to `f9dabea` (live v249). Its API description now says a check-in from an
+  agent whose person hasn't signed in there yet is refused with `person_not_here`.
 
 ## 1.10.13 — 2026-10-16
 
