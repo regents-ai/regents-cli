@@ -1,0 +1,821 @@
+{
+  "tools": [
+    {
+      "name": "regents_about",
+      "title": "Read about Regents",
+      "description": "Read the Regents Labs About page or the developer documentation as Markdown, exactly as regents.sh/about and regents.sh/docs serve it. page chooses which one: about says what Regents Labs does and how it differs, who uses it, the team, key facts and common questions; docs covers the public reads, signed-in reads, agent pairing and these browser tools.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "string",
+            "enum": [
+              "about",
+              "docs"
+            ],
+            "description": "about for the About page, docs for the developer documentation."
+          }
+        },
+        "required": [
+          "page"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /about, GET /docs",
+      "scope": "site",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "regents_about",
+        "http": "GET /about, GET /docs"
+      }
+    },
+    {
+      "name": "regents_products",
+      "title": "List Regents products",
+      "description": "List the products in the Regents family, in the order the site lists them: Autolaunch, Techtree, Patchbay and Keyfleet. Each gives its slug, name, summary, website, source on GitHub and its page on regents.sh. The same copy the /autolaunch, /techtree and /patchbay pages show; read one in full with regents_product.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/products",
+      "scope": "site",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "regents_products",
+        "http": "GET /api/v1/products"
+      }
+    },
+    {
+      "name": "regents_product",
+      "title": "Read a product",
+      "description": "Read everything one product's page on regents.sh shows: its heading, summary, what it does, who it is for, its place in the Regents family, a line to give an agent and where to start. Autolaunch also gives its two launch kinds with their figures, why its auction is fair and what to know before bidding.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "enum": [
+              "autolaunch",
+              "techtree",
+              "patchbay",
+              "keyfleet"
+            ]
+          }
+        },
+        "required": [
+          "slug"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/products/{slug}",
+      "scope": "site",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "regents_product",
+        "http": "GET /api/v1/products/{slug}"
+      }
+    },
+    {
+      "name": "regents_stake_position",
+      "title": "Read the paired owner stake",
+      "description": "Read the paired owner primary wallet position and current shared staking totals. Never opens or signs a wallet. Requires fresh proof for the exact prepared request, signed by your existing SIWA signer. Requires a current pairing. Browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa_and_pairing",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/agent/v1/staking/position",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": true,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_stake_position",
+        "http": "GET /api/agent/v1/staking/position"
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "regents_claims",
+      "title": "Read the paired owner name claims",
+      "description": "Read only the paired owner verified-wallet claims. Send {} initially, then pass next as after. Does not claim or change a name. Requires fresh proof for the exact prepared request, signed by your existing SIWA signer. Requires a current pairing. Browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "after": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa_and_pairing",
+      "state_changing": false,
+      "payment": "none",
+      "route": "POST /api/agent/v1/claims",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": true,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_claims",
+        "http": "POST /api/agent/v1/claims"
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "regents_agent_whoami",
+      "title": "Check my agent identity and pairing",
+      "description": "Check your SIWA identity and current pairing. Does not check in or award Points. Requires fresh proof for the exact prepared request, signed by your existing SIWA signer. Browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/agents/v1/whoami",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": false,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_agent_whoami",
+        "http": "GET /api/agents/v1/whoami"
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "regents_account",
+      "title": "Read the paired account",
+      "description": "Read the paired owner account display name and ENS name, together with your current pairing ID. Requires fresh proof for the exact prepared request, signed by your existing SIWA signer. Requires a current pairing. Browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa_and_pairing",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/agent/v1/account",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": true,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_account",
+        "http": "GET /api/agent/v1/account"
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "regents_credits_balance",
+      "title": "Read shared Credits balance",
+      "description": "Read the paired account global Credits balance: available, given, purchased and held. Requires fresh proof for the exact prepared request, signed by your existing SIWA signer. Requires a current pairing. Browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa_and_pairing",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/agent/v1/credits/balance",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": true,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_credits_balance",
+        "http": "GET /api/agent/v1/credits/balance"
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "regents_credits_history",
+      "title": "Read shared Credits history",
+      "description": "Read the paired account global Credits ledger. Send {} initially, then pass pagination.next_cursor as after. Requires fresh proof for the exact prepared request, signed by your existing SIWA signer. Requires a current pairing. Browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "after": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa_and_pairing",
+      "state_changing": false,
+      "payment": "none",
+      "route": "POST /api/agent/v1/credits/history",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": true,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_credits_history",
+        "http": "POST /api/agent/v1/credits/history"
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "regents_credits_budget",
+      "title": "Read my effective spending budget",
+      "description": "Read only this current pairing spending grant, site eligibility and aggregate owner agent usage over the last 24 hours. Does not change a grant or spend. Requires fresh proof for the exact prepared request, signed by your existing SIWA signer. Requires a current pairing. Browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa_and_pairing",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/agent/v1/credits/budget",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": true,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_credits_budget",
+        "http": "GET /api/agent/v1/credits/budget"
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "regents_points_summary",
+      "title": "Read shared Points summary",
+      "description": "Read the paired owner's shared Points balance, recent ledger entries, pending count and remaining daily allowances. Uses the canonical owner account and current pairing. Creates no account or event and awards no Points. Requires fresh proof from your existing SIWA signer; browser cookies and human Privy tokens grant no agent authority.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "Exact request returned by prepare_agent_request."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "HTTP proof headers from the existing SIWA signer."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      },
+      "requires": "siwa_and_pairing",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/agent/v1/points",
+      "scope": "site",
+      "authentication": "siwa_per_request",
+      "pairing_required": true,
+      "availability": "available",
+      "interfaces": {
+        "webmcp": "regents_points_summary",
+        "http": "GET /api/agent/v1/points",
+        "cli": {
+          "command": "account points"
+        }
+      },
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "effect": "read"
+    },
+    {
+      "name": "prepare_agent_request",
+      "title": "Prepare a signed agent request",
+      "description": "Prepare exact bytes for a manifest-listed operation. No private read or product mutation. Sign with your existing SIWA signer, then call the named tool with input, request and proof. Never substitute browser credentials.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operation",
+          "input"
+        ],
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "regents_stake_position",
+              "regents_claims",
+              "regents_agent_whoami",
+              "regents_account",
+              "regents_credits_balance",
+              "regents_credits_history",
+              "regents_credits_budget",
+              "regents_points_summary"
+            ]
+          },
+          "input": {
+            "type": "object"
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "requires": "none",
+      "authentication": "public",
+      "pairing_required": false,
+      "availability": "available",
+      "state_changing": false,
+      "payment": "none",
+      "route": "local preparation",
+      "scope": "site",
+      "interfaces": {
+        "webmcp": "prepare_agent_request"
+      },
+      "effect": "prepare"
+    },
+    {
+      "name": "show_regents_webmcp_tools",
+      "title": "Show regents.sh WebMCP tools",
+      "description": "Open the card listing the browser tools regents.sh offers on its home page: each tool's name, title and what it does, as regents.sh published them within the last day. The tool text is regents.sh's own words. Shows the card on the regents.sh home page too. No sign-in; changes nothing.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/site-tools/regents",
+      "scope": "/",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "show_regents_webmcp_tools",
+        "http": "GET /api/v1/site-tools/regents"
+      }
+    },
+    {
+      "name": "show_patchbay_webmcp_tools",
+      "title": "Show patchbay.help WebMCP tools",
+      "description": "Open the card listing every browser tool patchbay.help offers, its Agent Offers included: each tool's name, title and what it does, as patchbay.help published them within the last day. The tool text is patchbay.help's own words. Shows the card on the regents.sh home page too. No sign-in; changes nothing.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/site-tools/patchbay",
+      "scope": "/",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "show_patchbay_webmcp_tools",
+        "http": "GET /api/v1/site-tools/patchbay"
+      }
+    },
+    {
+      "name": "show_techtree_webmcp_tools",
+      "title": "Show techtree.sh WebMCP tools",
+      "description": "Open the card listing the browser tools techtree.sh offers on its home page: each tool's name, title and what it does, as techtree.sh published them within the last day. The tool text is techtree.sh's own words. Shows the card on the regents.sh home page too. No sign-in; changes nothing.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/site-tools/techtree",
+      "scope": "/",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "show_techtree_webmcp_tools",
+        "http": "GET /api/v1/site-tools/techtree"
+      }
+    },
+    {
+      "name": "show_autolaunch_webmcp_tools",
+      "title": "Show autolaunch.sh WebMCP tools",
+      "description": "Open the card listing the browser tools autolaunch.sh offers on its home page: each tool's name, title and what it does, as autolaunch.sh published them within the last day. The tool text is autolaunch.sh's own words. Shows the card on the regents.sh home page too. No sign-in; changes nothing.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/site-tools/autolaunch",
+      "scope": "/",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "show_autolaunch_webmcp_tools",
+        "http": "GET /api/v1/site-tools/autolaunch"
+      }
+    },
+    {
+      "name": "show_keyfleet_webmcp_tools",
+      "title": "Show keyfleet.ai WebMCP tools",
+      "description": "Open the card listing the browser tools keyfleet.ai offers on its home page: each tool's name, title and what it does, as keyfleet.ai published them within the last day. The tool text is keyfleet.ai's own words. Shows the card on the regents.sh home page too. No sign-in; changes nothing.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/site-tools/keyfleet",
+      "scope": "/",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "show_keyfleet_webmcp_tools",
+        "http": "GET /api/v1/site-tools/keyfleet"
+      }
+    },
+    {
+      "name": "show_siwa_connection_help",
+      "title": "Show siwa-server connection help",
+      "description": "Open the card on connecting an agent to siwa-server, the sign-in every Regent site shares: get the client, choose how you sign, pair with your person, check who you are. Shows the card on the regents.sh home page too. No sign-in; changes nothing.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false,
+        "consequentialHint": false
+      },
+      "requires": "none",
+      "state_changing": false,
+      "payment": "none",
+      "route": "GET /api/v1/site-tools/siwa",
+      "scope": "/",
+      "authentication": "public",
+      "availability": "available",
+      "pairing_required": false,
+      "effect": "read",
+      "interfaces": {
+        "webmcp": "show_siwa_connection_help",
+        "http": "GET /api/v1/site-tools/siwa"
+      }
+    }
+  ],
+  "audience": "regents",
+  "proof_headers": [
+    "x-siwa-signature",
+    "x-siwa-signature-input",
+    "x-siwa-receipt",
+    "x-key-id",
+    "x-timestamp",
+    "x-agent-wallet-address",
+    "x-agent-chain-id",
+    "content-digest"
+  ],
+  "private_write_available": false
+}

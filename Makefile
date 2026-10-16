@@ -13,8 +13,11 @@ check:
 # Before each release, on the founder's machine: every gate, and the lock's sha256 for each
 # platform copy matches its pinned commit in the site's checkout beside this one. Some sites'
 # repositories are private, so the publish workflow checks the copies against the lock only.
+# Last, the WebMCP report lists each site's tools and commands that have no partner; it never
+# fails.
 release-check: check
 	uv run scripts/sync_platforms.py --check
+	uv run scripts/webmcp_parity.py
 
 # Copy the files platforms.lock.json pins into src/regents_cli/platforms/, from the sites'
 # checkouts beside this one, and record each copy's sha256 in the lock.
