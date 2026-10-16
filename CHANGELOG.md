@@ -3,6 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.8 — not yet released
+
+- Autolaunch is pinned to `0c8653e` (live v136). Its commands read more plainly in `regents`
+  help, for example "Check my identity and pairing" and "Read Credits". No command, route or
+  answer changes.
+
 ## 1.10.7 — 2026-10-16
 
 - `regents` no longer opens a browser on its own. The Touch ID page for the agent key and the
