@@ -3,11 +3,15 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.7 — not yet released
+## 1.10.7 — 2026-10-16
 
 - `regents` no longer opens a browser on its own. The Touch ID page for the agent key and the
   ChatGPT sign-in print their address for the person to open. Run `regents --open-browser …`
   to open the page in this computer's browser as well.
+- Each site's list of agent tools is now pinned beside its commands. The release check prints
+  which tools have no command and which commands have no tool, site by site. It never stops a
+  release. Site pins are unchanged.
+- Techtree release `climb-v0.7.8`.
 
 ## 1.10.6 — 2026-10-15
 
