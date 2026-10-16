@@ -1,8 +1,9 @@
 name: Publish to PyPI
 
-# Publishes the wheel for the version in pyproject.toml. Run by hand, on main, with the founder's
-# go. PyPI trusts this workflow and the `pypi` environment directly, so no token is stored.
-# Wheel only: the build stamps its source commit from git, which a source archive would lack.
+# Publishes the wheel for the version in pyproject.toml, then tags the published commit
+# `v<version>` (Techtree's release record reads the CLI from that tag). Run by hand, on main, with
+# the founder's go. PyPI trusts this workflow and the `pypi` environment directly, so no token is
+# stored. Wheel only: the build stamps its source commit from git, which a source archive would lack.
 on:
   workflow_dispatch:
 
@@ -34,3 +35,17 @@ jobs:
           name: wheel
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  tag:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          version=$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$version" -m "regents-cli $version" "$GITHUB_SHA"
+          git push origin "v$version"

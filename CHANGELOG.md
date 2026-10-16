@@ -8,6 +8,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Autolaunch is pinned to `0c8653e` (live v136). Its commands read more plainly in `regents`
   help, for example "Check my identity and pairing" and "Read Credits". No command, route or
   answer changes.
+- Each release is now tagged `v<version>` on GitHub on the commit published to PyPI, so
+  Techtree can build its release record from it.
 
 ## 1.10.7 — 2026-10-16
 
