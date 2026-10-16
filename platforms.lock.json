@@ -67,23 +67,19 @@
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "513dd7407a3db0ebe6461b1853f3b92c6ba37a8c",
+    "commit": "3a816fcc429e733f38337d0c62bf2c7956d841f7",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
-        "sha256": "38d3cd55f822e363ea98d89be04c7fc28d6251752da86a08c4d3347717920776"
+        "sha256": "5eab6d4d9d1e9364f004939fca6b64079fda0d21744489cacf81cf68dc1b7100"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/openapi.json",
-        "sha256": "f3c5472f438868f57f8a41cd81a3d8306c7fa99de3689319309e069a935838fe"
-      },
-      "platform/priv/static/agent-payments.openapi.json": {
-        "copy": "src/regents_cli/platforms/patchbay/agent-payments.openapi.json",
-        "sha256": "946f0793a85f9bbba7644552ddfbbee8e97e44c0c7b22418d4fefcdcfa58c9a3"
+        "sha256": "b70dd5c69d61899459b503442760a16139aa1ef6c062c86fdece2a7c3fc7cb8e"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/patchbay.json",
-        "sha256": "9495ccd6e018dbd3c4a5124de5b5b4f99d45a4fbf168150feba970d6409ddadb"
+        "sha256": "1c6842dc448b9c210cbca0145f0faa39f9151ccccbfb0985eb6c2f255fedf336"
       }
     }
   },
