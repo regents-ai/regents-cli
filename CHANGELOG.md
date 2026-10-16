@@ -7,6 +7,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 - Patchbay is pinned to `4bbb5ca` (live v250). Its commands and help are unchanged.
 - Keyfleet is pinned to `4fd899a` (live v77). Its commands and help are unchanged.
+- ash-template is pinned to `f36a9da` (live v96). `agents pair` says your person makes the code
+  with Pair New Agent in the side panel. Its API descriptions use the same name and give an
+  example of the `person_not_here` check-in refusal.
 - regents.sh is pinned to `ec0f209` (live v191). Its API description lists `person_not_here` on
   `agents me`, and says a pairing code works once, for ten minutes. Its commands are unchanged.
 - When this Mac's process list can't be read, the Touch ID page says "Opened by your agent" and
