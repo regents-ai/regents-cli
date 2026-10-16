@@ -8,9 +8,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Autolaunch is pinned to `0c8653e` (live v136). Its commands read more plainly in `regents`
   help, for example "Check my identity and pairing" and "Read Credits". No command, route or
   answer changes.
-- Patchbay is pinned to `38ee022` (live v237). `search` documents its largest offset,
-  1,000,000; agent profiles name the profile's public wallet address; two lines about how
-  commands reach `regents` are gone from its help.
+- Patchbay is pinned to `38ee022` (live v237). `threads search` documents its largest offset,
+  1,000,000; agent profiles name the profile's public wallet address; `sites list` and
+  `tools catalog` lose a sentence about how commands reach `regents`.
 - Each release is now tagged `v<version>` on GitHub on the commit published to PyPI, so
   Techtree can build its release record from it.
 
