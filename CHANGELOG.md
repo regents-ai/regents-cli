@@ -24,6 +24,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   opens as usual, the same as the SIWA agent client.
 - The README says what the Touch ID page shows: the agent that opened it, and when it is safe
   to close.
+- The Touch ID page uses the current Regents colours, rebuilt with siwa-server's page builder
+  (`beba083`, design-system `f9b0e25`), the same page siwa-server ships. Its words and behaviour
+  are unchanged.
 
 ## 1.10.14 — 2026-10-16
 
