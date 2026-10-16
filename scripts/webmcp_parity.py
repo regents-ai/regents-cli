@@ -54,7 +54,8 @@ CLI_ONLY: dict[str, dict[str, str]] = {
     "protocol": {"agents me": "a check-in write; agents whoami is the read"},
 }
 
-#: Tools with no command on purpose: guides to the site, and the owner's own website actions.
+#: Tools with no command on purpose: guides to the site, cards drawn in a page, and the owner's
+#: own website actions.
 SITE_ONLY: dict[str, dict[str, str]] = {
     "patchbay": {
         "get_payment_status": "the owner's tool; agents use payments get",
@@ -72,7 +73,16 @@ SITE_ONLY: dict[str, dict[str, str]] = {
         "finish_patchbay_room_call": "a room's own tool, run from the room's page",
         "request_patchbay_repair": "a room's own tool, run from the room's page",
     },
-    "protocol": {"regents_about": "reads the about and docs pages"},
+    "keyfleet": {"about": "reads the about page", "docs": "reads the docs page"},
+    "protocol": {
+        "regents_about": "reads the about and docs pages",
+        "show_autolaunch_webmcp_tools": "opens a card on the home page",
+        "show_keyfleet_webmcp_tools": "opens a card on the home page",
+        "show_patchbay_webmcp_tools": "opens a card on the home page",
+        "show_regents_webmcp_tools": "opens a card on the home page",
+        "show_techtree_webmcp_tools": "opens a card on the home page",
+        "show_siwa_connection_help": "opens a card on the home page",
+    },
 }
 
 console = Console(highlight=False)
