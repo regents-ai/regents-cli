@@ -85,7 +85,7 @@
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "ee99f43d2cf885874c3869f1d3dd0c918fa596b9",
+    "commit": "ec0f2094355c97063457aef749076ff165ac4d88",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",
@@ -93,11 +93,11 @@
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/protocol/openapi.json",
-        "sha256": "2ac8007cf0daadc13d381b5af0ddf5f7623b36303559516cddfe1d700551aeb2"
+        "sha256": "ecbf73a39231593e1dfc8f64dd4bbc7133ab9942715a2dab60cf5b1f0dfe3062"
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/protocol/api-contract.openapiv3.yaml",
-        "sha256": "527b97c30f7bd31a7c5d9502bb33158f94c30601e40420b9361ff592be084e9b"
+        "sha256": "4933cff0de0a88a27c4849e56bdd40031dbad3bee3ad2c71e68372de7f529637"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/protocol.json",

@@ -6,6 +6,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.15 — not yet released
 
 - Keyfleet is pinned to `4fd899a` (live v77). Its commands and help are unchanged.
+- regents.sh is pinned to `ec0f209` (live v191). Its API description lists `person_not_here` on
+  `agents me`, and says a pairing code works once, for ten minutes. Its commands are unchanged.
 - When this Mac's process list can't be read, the Touch ID page says "Opened by your agent" and
   opens as usual, the same as the SIWA agent client.
 
