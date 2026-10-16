@@ -125,15 +125,15 @@
   },
   "techtree": {
     "repository": "regents-ai/techtree",
-    "commit": "cf9dbb3ae720ef99c337ed7449521bef539e5605",
+    "commit": "312c4863e909949ca6ef90af4f0aedd6b037d883",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/techtree/commands.json",
-        "sha256": "aa4a08116ca5cb90808758d8b19a09847d42dd85925c9dd16f34da4b6a88a7f3"
+        "sha256": "6a997492222623e68331fd7977894ff0b1493cdc83599e4804ba5dfc22cbbdd4"
       },
       "cli/openapi.json": {
         "copy": "src/regents_cli/platforms/techtree/openapi.json",
-        "sha256": "9ae1d68bc6d6beda0be39aa366ad384f40188df5fc250b3b9267d3baa2723212"
+        "sha256": "7314ea15aae0dc5e245d38e1ff9d5172abb21533c4dca668a6b6ceb4de84bb4b"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/techtree.json",
