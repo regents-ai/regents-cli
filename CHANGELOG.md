@@ -5,7 +5,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.15 — not yet released
 
-- Patchbay is pinned to `979d38a` (live v251). Its commands and help are unchanged. When a
+- Patchbay is pinned to `5578041` (live v252). Its commands and help are unchanged. When a
   check-in finds no person, it now says "Ask your person to sign in on this site once, then send
   the request again.", and `regents` shows that line as the step to take.
 - Keyfleet is pinned to `602443c` (live v78). Its commands and help are unchanged. Its API
