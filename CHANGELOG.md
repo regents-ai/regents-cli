@@ -13,7 +13,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - ash-template is pinned to `f36a9da` (live v96). `agents pair` says your person makes the code
   with Pair New Agent in the side panel. Its API descriptions use the same name and give an
   example of the `person_not_here` check-in refusal.
-- regents.sh is pinned to `01a9f9a` (live v194). Its API description lists `person_not_here` on
+- regents.sh is pinned to `0d23601` (live v195). Its API description lists `person_not_here` on
   `agents me`, and says a pairing code works once, for ten minutes. `regents protocol --help` and
   the site's hints now say your person makes the code with Pair New Agent in the side panel, on
   any page of the site. Its commands are unchanged.
