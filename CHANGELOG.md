@@ -3,13 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.14 — not yet released
+## 1.10.14 — 2026-10-16
 
-- The Touch ID page says which app opened it at the top, such as "Opened by Claude Code", the
-  same way as the SIWA agent client. After Touch ID it says "You can safely close this page"
-  under the finished button.
+- The Touch ID page says which agent opened it at the top, such as "Opened by Claude Code", the
+  same way as the SIWA agent client. It names Claude Code, Codex, Cursor, Gemini CLI, Hermes and
+  OpenCode, and says "Opened by your agent" for anything else. After Touch ID it says "You can
+  safely close this page" under the finished button.
 - Patchbay is pinned to `f9dabea` (live v249). Its API description now says a check-in from an
   agent whose person hasn't signed in there yet is refused with `person_not_here`.
+- ash-template is pinned to `84e6ef5` (live v95). Its API descriptions list `person_not_here` on
+  the check-in, and its pairing refusals say your person pairs you with Pair Agent in the side
+  panel.
+- Techtree release `climb-v0.7.15`.
 
 ## 1.10.13 — 2026-10-16
 

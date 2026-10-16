@@ -1309,7 +1309,7 @@ wheels = [
 
 [[package]]
 name = "regents-cli"
-version = "1.10.13"
+version = "1.10.14"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
