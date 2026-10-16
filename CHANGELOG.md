@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.8 — not yet released
+## 1.10.8 — 2026-10-16
 
 - Autolaunch is pinned to `0c8653e` (live v136). Its commands read more plainly in `regents`
   help, for example "Check my identity and pairing" and "Read Credits". No command, route or
@@ -14,6 +14,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Uses the latest releases of its libraries, including filelock 4 and pydantic 2.14.
 - Each release is now tagged `v<version>` on GitHub on the commit published to PyPI, so
   Techtree can build its release record from it.
+- Techtree release `climb-v0.7.9`.
 
 ## 1.10.7 — 2026-10-16
 
