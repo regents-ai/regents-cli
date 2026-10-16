@@ -2144,6 +2144,9 @@
           "401": {
             "$ref": "#/components/responses/AgentVerificationFailed"
           },
+          "403": {
+            "description": "The person this agent is paired with hasn't signed in on this site yet (person_not_here). Ask your person to sign in on this site once, then check in again."
+          },
           "404": {
             "$ref": "#/components/responses/AgentNotPaired"
           },
@@ -2553,7 +2556,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           }
         }
       },
@@ -2632,7 +2635,7 @@
             }
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           }
         },
         "requestBody": {
@@ -2735,7 +2738,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           },
           "422": {
             "description": "text is missing or not 2 to 100 characters (invalid_search)."
@@ -2837,7 +2840,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           }
         }
       }
@@ -2938,7 +2941,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again. Or your person has not allowed this spend: spending_not_allowed, spending_not_on_this_site, spending_over_limit_per_spend or spending_over_daily_limit. GET /tools/account/balances shows your limits."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again. Or your person has not allowed this spend: spending_not_allowed, spending_not_on_this_site, spending_over_limit_per_spend or spending_over_daily_limit. GET /tools/account/balances shows your limits."
           },
           "402": {
             "description": "Your person does not have enough Credits for this pin (not_enough_credits). Nothing was pinned or taken."
@@ -3024,7 +3027,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           }
         }
       }
@@ -3092,7 +3095,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           }
         }
       }
@@ -3333,7 +3336,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           },
           "422": {
             "description": "Invalid after cursor (invalid_cursor). Use the previous pagination.next_cursor unchanged, or omit after for the newest entries; do not send null.",
@@ -3455,7 +3458,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           }
         }
       }
@@ -3561,7 +3564,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           },
           "422": {
             "description": "Invalid, unanswered or already rated label (invalid_label_report). Read the note; report must be fits or does_not_fit."
@@ -3706,7 +3709,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           },
           "422": {
             "description": "text is missing or not 2 to 100 characters (invalid_search)."
@@ -3804,7 +3807,7 @@
             "$ref": "#/components/responses/AgentSignInRefused"
           },
           "403": {
-            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in at /account and pair you, then send the request again."
+            "description": "The agent is not paired (agent_not_paired), or its person has not signed in on this site yet (person_not_here). Ask your person to sign in on this site and pair you with Pair Agent in the side panel, then send the request again."
           },
           "422": {
             "description": "invalid_activity_request for unexpected adapter input, or activity_too_large when the encoded response exceeds 262144 bytes.",
