@@ -193,6 +193,8 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     coded = not (error.code.startswith("http_") or error.code == "redirected")
     if error.code in ("not_paired", "agent_not_paired") and invocation.words:
         return [*pair_first(invocation.words[0]), run(again, "Then run this again.")]
+    if error.code == "account_missing":
+        return [human(error.fields["hint"]), run(again, "Then run this again.")]
     if status == 401 and invocation.site is not None:
         return [sign_in(invocation.site), run(again, "Then run this again.")]
     if status == 402 and "payment_required" in error.fields:
