@@ -70,10 +70,14 @@ def _box_cipher(secret: str) -> AESGCM:
 def _opener() -> str:
     """The agent app that started this command: the nearest parent process whose program or
     script is a known agent, found the same way as in the SIWA agent client."""
+    try:
+        processes = subprocess.run(
+            ["/bin/ps", "-A", "-o", "pid=,ppid=,args="], capture_output=True, text=True, check=True
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return "your agent"
     table: dict[int, tuple[int, list[str]]] = {}
-    for line in subprocess.run(
-        ["/bin/ps", "-A", "-o", "pid=,ppid=,args="], capture_output=True, text=True, check=True
-    ).stdout.splitlines():
+    for line in processes.splitlines():
         process, parent, *args = line.split()
         table[int(process)] = (int(parent), [os.path.basename(arg).lower() for arg in args[:2]])
     pid = os.getppid()

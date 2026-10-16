@@ -6,6 +6,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.15 — not yet released
 
 - Keyfleet is pinned to `4fd899a` (live v77). Its commands and help are unchanged.
+- When this Mac's process list can't be read, the Touch ID page says "Opened by your agent" and
+  opens as usual, the same as the SIWA agent client.
 
 ## 1.10.14 — 2026-10-16
 
