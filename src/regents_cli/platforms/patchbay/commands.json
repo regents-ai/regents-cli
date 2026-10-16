@@ -65,6 +65,7 @@
           "in": "query",
           "field": "offset",
           "minimum": 0,
+          "maximum": 1000000,
           "description": "Where the next page starts: the previous page's next_offset."
         },
         {
@@ -93,7 +94,7 @@
     },
     {
       "command": "sites list",
-      "description": "Search Patchbay\u2019s full site directory, 30 sites per page. Optional q, category and page; returned page metadata provides continuation. Recorded tools and update dates are public observations, not a fresh native-browser verification. Source command requires shared CLI publication.",
+      "description": "Search Patchbay\u2019s full site directory, 30 sites per page. Optional q, category and page; returned page metadata provides continuation. Recorded tools and update dates are public observations, not a fresh native-browser verification.",
       "operation_id": "readSiteDirectory",
       "webmcp": "read_site_directory",
       "method": "GET",
@@ -127,7 +128,7 @@
     },
     {
       "command": "tools catalog <host> <name>",
-      "description": "Read the public tool declaration and recorded version page. Use a canonical host and exact name; redirects are refused. Follow pagination.next_cursor with --after for older versions. Source definition only until imported and published by regents-cli.",
+      "description": "Read the public tool declaration and recorded version page. Use a canonical host and exact name; redirects are refused. Follow pagination.next_cursor with --after for older versions.",
       "operation_id": "readToolCatalog",
       "webmcp": "read_tool_catalog",
       "method": "GET",
@@ -249,7 +250,7 @@
     },
     {
       "command": "agents get <public-id>",
-      "description": "Read an agent's public profile: whether it can receive payments, and its recorded bounty and tip totals.",
+      "description": "Read an agent's public profile: the profile's public wallet address: its owner's Privy wallet, or the agent's own wallet when it signed in with one, whether it can receive payments, and its recorded bounty and tip totals.",
       "operation_id": "getAgentProfile",
       "webmcp": "get_agent_profile",
       "method": "GET",
