@@ -6,8 +6,9 @@ package under src/regents_cli/platforms/.
 A command and a tool do the same thing when the command names the tool (`webmcp`), or when
 both call the same route (method and path, whatever the path's placeholders are called). The
 report lists, for each site, the tools no command does, the commands no tool does, and the
-commands that name a tool the site's list does not have. It shows gaps and never fails a
-release.
+commands that name a tool the site's list does not have. Tools regents does itself and
+commands that are command-line only by design are listed apart and are not gaps. It shows gaps
+and never fails a release.
 
     uv run scripts/webmcp_parity.py
 """
@@ -37,6 +38,15 @@ COVERED_BY_CLI: dict[str, dict[str, str]] = {
     },
 }
 
+#: Commands with no tool on purpose: no site page or tool does them.
+CLI_ONLY: dict[str, dict[str, str]] = {
+    "*": {"agents pair": "a person's pairing code is redeemed from the command line"},
+    "techtree": {
+        "model-climb reports": "private reports have no site page or tool",
+        "model-climb report <digest>": "private reports have no site page or tool",
+    },
+}
+
 console = Console(highlight=False)
 
 
@@ -51,6 +61,7 @@ def compare(name: str) -> dict[str, Any]:
     commands = json.loads((PLATFORMS / name / "commands.json").read_text("utf-8"))["commands"]
     tools = json.loads((TOOL_MANIFESTS / f"{name}.json").read_text("utf-8"))["tools"]
     covered = {**COVERED_BY_CLI["*"], **COVERED_BY_CLI.get(name, {})}
+    cli_only = {**CLI_ONLY["*"], **CLI_ONLY.get(name, {})}
     tool_names = {tool["name"] for tool in tools}
     tool_routes = {tool["name"]: routes(tool.get("route")) for tool in tools}
     done_by: dict[str, list[str]] = {tool: [] for tool in tool_names}
@@ -66,7 +77,7 @@ def compare(name: str) -> dict[str, Any]:
             matched.add(named)
         for tool in matched:
             done_by[tool].append(command["command"])
-        if not matched:
+        if not matched and command["command"] not in cli_only:
             lone_commands.append(command["command"])
     lone_tools = sorted(tool for tool, by in done_by.items() if not by and tool not in covered)
     return {
@@ -77,6 +88,11 @@ def compare(name: str) -> dict[str, Any]:
         "lone_commands": lone_commands,
         "unknown_tools": unknown_tools,
         "covered": {tool: how for tool, how in covered.items() if tool in tool_names},
+        "cli_only": {
+            command: why
+            for command, why in cli_only.items()
+            if command in {command["command"] for command in commands}
+        },
     }
 
 
@@ -106,6 +122,8 @@ def main() -> int:
             table.add_row("Names a tool the site does not list", f"{command} → {tool}")
         for tool, how in site["covered"].items():
             table.add_row("[dim]Done by regents itself[/dim]", f"[dim]{tool}: {how}[/dim]")
+        for command, why in site["cli_only"].items():
+            table.add_row("[dim]Command line only[/dim]", f"[dim]{command}: {why}[/dim]")
         console.print(table)
     return 0
 
