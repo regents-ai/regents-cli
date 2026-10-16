@@ -67,15 +67,15 @@
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "2a42ed6d158a7441c4ccec7c5547d68f5e0dd184",
+    "commit": "513dd7407a3db0ebe6461b1853f3b92c6ba37a8c",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
-        "sha256": "b27e9ed0a3fb4f4835ea09178d40ab11fc3821232288fd1d1190d5442779ddec"
+        "sha256": "38d3cd55f822e363ea98d89be04c7fc28d6251752da86a08c4d3347717920776"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/openapi.json",
-        "sha256": "0995169c1a059f9058fab2331b78a6d60f642d1d13b80dbeccf29e5ca9607dd4"
+        "sha256": "f3c5472f438868f57f8a41cd81a3d8306c7fa99de3689319309e069a935838fe"
       },
       "platform/priv/static/agent-payments.openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/agent-payments.openapi.json",
