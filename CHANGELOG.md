@@ -3,6 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.14 — not yet released
+
+- The Touch ID page says which app opened it at the top, such as "Opened by Claude Code", the
+  same way as the SIWA agent client. After Touch ID it says "You can safely close this page"
+  under the finished button.
+
 ## 1.10.13 — 2026-10-16
 
 - Patchbay is pinned to `3a5fd7d` (live v248). Its commands and help are unchanged.

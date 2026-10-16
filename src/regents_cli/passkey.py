@@ -47,6 +47,22 @@ ASKS = {
     "unlock": "Ask your person to unlock your key: they open this page on this Mac and press "
     "Use Touch ID. They are asked once after each restart.",
 }
+#: Shells and program launchers sit between an agent's app and this command; the page names the app.
+LAUNCHERS = {
+    "sh", "bash", "zsh", "fish", "dash", "env", "login", "sudo", "nohup", "timeout", "script",
+    "tmux", "screen", "sandbox-exec", "uv", "uvx", "node", "npx", "npm", "bun", "deno",
+}  # fmt: skip
+APP_NAMES = {
+    "claude": "Claude Code",
+    "codex": "Codex",
+    "cursor": "Cursor",
+    "cursor-agent": "Cursor",
+    "gemini": "Gemini CLI",
+    "hermes": "Hermes",
+    "opencode": "OpenCode",
+}
+#: The page's line for an app not in APP_NAMES, or one that can't be found.
+SOME_APP = "[local text to be replaced by: siwa-server's line for an app it does not name]"
 
 
 def _box_cipher(secret: str) -> AESGCM:
@@ -57,11 +73,37 @@ def _box_cipher(secret: str) -> AESGCM:
     return AESGCM(derived)
 
 
+def _opener() -> str:
+    """The page's line naming the app that started this command: the nearest parent process
+    that is not a shell or launcher, as the SIWA agent client finds it. Finding it never stops
+    the Touch ID page."""
+    pid = os.getppid()
+    try:
+        while True:
+            parent, path = subprocess.run(
+                ["/bin/ps", "-o", "ppid=,comm=", "-p", str(pid)],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.split(None, 1)
+            name = os.path.basename(path.strip()).lower()
+            if name not in LAUNCHERS and not name.startswith("python"):
+                break
+            pid = int(parent)
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return SOME_APP
+    app = APP_NAMES.get(name)
+    return f"Opened by {app}" if app else SOME_APP
+
+
 def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[str, str]:
     """Serve a page on this Mac where the person confirms with Touch ID; answer the passkey's id
     and secret."""
     token = secrets.token_urlsafe(24)
-    setup = json.dumps({"mode": mode, "address": address, "credentialId": credential_id})
+    # Written inside the page's script: "<" is escaped so no value can end the script early.
+    setup = json.dumps(
+        {"mode": mode, "address": address, "credentialId": credential_id, "opener": _opener()}
+    ).replace("<", "\\u003c")
     page = (
         files("regents_cli").joinpath("passkey.html").read_text("utf-8").replace("__SETUP__", setup)
     ).encode("utf-8")
