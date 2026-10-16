@@ -13,8 +13,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - ash-template is pinned to `f36a9da` (live v96). `agents pair` says your person makes the code
   with Pair New Agent in the side panel. Its API descriptions use the same name and give an
   example of the `person_not_here` check-in refusal.
-- regents.sh is pinned to `ec0f209` (live v191). Its API description lists `person_not_here` on
-  `agents me`, and says a pairing code works once, for ten minutes. Its commands are unchanged.
+- regents.sh is pinned to `01a9f9a` (live v194). Its API description lists `person_not_here` on
+  `agents me`, and says a pairing code works once, for ten minutes. `regents protocol --help` and
+  the site's hints now say your person makes the code with Pair New Agent in the side panel, on
+  any page of the site. Its commands are unchanged.
+- When an agent isn't paired yet, `regents` now says "Your person makes a pairing code on any page
+  of regents.sh" and links https://regents.sh, because the Account page no longer makes codes.
+  The README says the same.
 - When this Mac's process list can't be read, the Touch ID page says "Opened by your agent" and
   opens as usual, the same as the SIWA agent client.
 - The README says what the Touch ID page shows: the agent that opened it, and when it is safe
