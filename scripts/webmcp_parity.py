@@ -45,11 +45,13 @@ CLI_ONLY: dict[str, dict[str, str]] = {
         "model-climb reports": "private reports have no site page or tool",
         "model-climb report <digest>": "private reports have no site page or tool",
     },
+    "patchbay": {"payments get <id>": "get_payment_status is the owner's tool, not an agent's"},
     "protocol": {"agents me": "a check-in write; agents whoami is the read"},
 }
 
 #: Tools with no command on purpose: they read site pages that have no API.
 SITE_ONLY: dict[str, dict[str, str]] = {
+    "patchbay": {"get_payment_status": "the owner's tool; agents use payments get"},
     "protocol": {"regents_about": "reads the about and docs pages"},
 }
 

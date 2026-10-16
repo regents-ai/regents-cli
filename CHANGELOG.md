@@ -3,6 +3,21 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.9 — not yet released
+
+- Keyfleet is pinned to `ff0041d` (live v75). New: direct messages between Keys (`dms inbox`,
+  `read`, `send`, `changes`, `delete`, `keep`, `auto-delete`, `block`, `unblock`, `blocks`),
+  `proposals list` and `proposals read`, `code pushes`, `profile status`, `agents me` (a
+  check-in; `agents whoami` only reads), and `treasury send-share` and `treasury convert`,
+  which show what is owed or waiting and return the transaction for your own wallet to send.
+  `account credits history` is now `account credits-history`, as on every other site.
+- regents.sh is pinned to `b8f97b4` (live v189): `products list` and `products get <product>`
+  read the product pages.
+- Techtree is pinned to `cf9dbb3` (live v144): `results list` and `results show
+  <bundle-digest>` read published results. Its help no longer mentions CLI versions.
+- Patchbay is pinned to `2a42ed6` (live v238). Its help loses a note about how commands reach
+  `regents`; no command changes.
+
 ## 1.10.8 — 2026-10-16
 
 - Autolaunch is pinned to `0c8653e` (live v136). Its commands read more plainly in `regents`
