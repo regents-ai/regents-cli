@@ -5,7 +5,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.10 — not yet released
 
-- ash-template is pinned to `0eaa966` (live v84). `agents status` shows the account you act
+- ash-template is pinned to `c414d3d` (live v85). `agents status` shows the account you act
   for and records a check-in your person sees; `agents whoami` only reads. Every command now
   names the site tool that does the same thing.
 
