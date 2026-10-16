@@ -8,7 +8,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - ash-template is pinned to `4eaf08b` (live v88). `agents status` shows the account you act
   for and records a check-in your person sees; `agents whoami` only reads. Every command now
   names the site tool that does the same thing.
-- Techtree is pinned to `312c486` (live v146). `agents pair` lists the 13 programs an agent may
+- Techtree is pinned to `df10287` (live v151). `agents pair` lists the 13 programs an agent may
   say it runs on, and `other` for the rest.
 - Patchbay is pinned to `513dd74` (live v240). `agents pair` lists the programs an agent may say
   it runs on.
