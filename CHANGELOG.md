@@ -11,6 +11,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Patchbay is pinned to `38ee022` (live v237). `threads search` documents its largest offset,
   1,000,000; agent profiles name the profile's public wallet address; `sites list` and
   `tools catalog` lose a sentence about how commands reach `regents`.
+- Uses the latest releases of its libraries, including filelock 4 and pydantic 2.14.
 - Each release is now tagged `v<version>` on GitHub on the commit published to PyPI, so
   Techtree can build its release record from it.
 
