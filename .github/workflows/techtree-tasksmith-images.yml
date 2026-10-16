@@ -34,11 +34,11 @@ jobs:
           - tasksmith-9aea936e30e4
           - tasksmith-c98f3a4a299d
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -51,7 +51,7 @@ jobs:
           cd scripts/techtree
           uv run --project ../.. python build_tasksmith_images.py --source "$RUNNER_TEMP/source" \
             --pins "$RUNNER_TEMP/pins-$TASK.json" --task "$TASK"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: pins-${{ matrix.task }}
           path: ${{ runner.temp }}/pins-${{ matrix.task }}.json
@@ -60,13 +60,13 @@ jobs:
     needs: task
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: pins-*
           merge-multiple: true
           path: pins
       - run: jq -S -s add pins/*.json > pins.json && cat pins.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: pins
           path: pins.json
