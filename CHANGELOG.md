@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.15 — not yet released
+## 1.10.15 — 2026-10-17
 
 - Patchbay is pinned to `6fdce7d` (live v254). Its commands and help are unchanged. When a
   check-in finds no person, it now says "Ask your person to sign in on this site once, then send
@@ -27,6 +27,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - The Touch ID page uses the current Regents colours, rebuilt with siwa-server's page builder
   (`beba083`, design-system `f9b0e25`), the same page siwa-server ships. Its words and behaviour
   are unchanged.
+- Techtree release `climb-v0.7.16`.
 
 ## 1.10.14 — 2026-10-16
 
