@@ -3,6 +3,13 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.16 — not yet released
+
+- Autolaunch is pinned to `1c4e5d5` (live v143). `regents autolaunch agents pair --help` now
+  lists the agent kinds Autolaunch accepts for `harness` (hermes, grok_bot, muse, openclaw,
+  nemoclaw, ironclaw, pi, claude_code, codex, cursor, gemini_cli, dots or other), and its API
+  description says a refused request needs a pairing and the person's first sign-in on the site.
+
 ## 1.10.15 — 2026-10-17
 
 - Patchbay is pinned to `6fdce7d` (live v254). Its commands and help are unchanged. When a
