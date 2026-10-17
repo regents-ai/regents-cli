@@ -10,7 +10,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   the request again.", and `regents` shows that line as the step to take.
 - Keyfleet is pinned to `602443c` (live v78). Its commands and help are unchanged. Its API
   description now says an agent with no pairing is paired from the Account page on Keyfleet.
-- ash-template is pinned to `f36a9da` (live v96). `agents pair` says your person makes the code
+- ash-template is pinned to `ca82af6` (live v98). `agents pair` says your person makes the code
   with Pair New Agent in the side panel. Its API descriptions use the same name and give an
   example of the `person_not_here` check-in refusal.
 - regents.sh is pinned to `0d23601` (live v195). Its API description lists `person_not_here` on
