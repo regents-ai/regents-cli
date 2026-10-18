@@ -153,7 +153,7 @@ regents-ai/keyfleet at `502b2dd4bdbc7ab72af63612e8f75ef6ebda6183`: 63 commands, 
 
 ## patchbay
 
-regents-ai/patchbay at `6fdce7dbcaea7e0fb924d084df765f17b1b78644`: 46 commands, 55 tools, no gaps.
+regents-ai/patchbay at `7156d99d2d69b600040eb73b1ca3a8023271aacb`: 46 commands, 55 tools, no gaps.
 
 | Command | Route | Who | Changes | WebMCP tool |
 | --- | --- | --- | --- | --- |
