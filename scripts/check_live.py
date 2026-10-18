@@ -345,6 +345,17 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int, list[str]
 
 def main() -> int:
     version = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))["project"]["version"]
+    git = ["git", "-C", str(ROOT)]
+    head = subprocess.run([*git, "rev-parse", "HEAD"], capture_output=True, text=True, check=True)
+    changed = subprocess.run(
+        [*git, "status", "--porcelain"], capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    console.print(f"Commit {head.stdout.strip()}")
+    console.print(
+        "[green]✓[/green] The tree is clean."
+        if not changed
+        else "[yellow]! The tree has changes:[/yellow] " + escape(", ".join(changed))
+    )
     with tempfile.TemporaryDirectory() as scratch:
         work = Path(scratch)
         home, dist, venv = work / "home", work / "dist", work / "venv"

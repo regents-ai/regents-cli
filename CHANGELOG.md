@@ -30,7 +30,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   every site against the live site, and checks each answer, or each expected refusal, against
   the site's pinned API description. `regents` runs with only PATH and an empty home, so nothing
   is signed and nothing of the machine's own setup reaches it. A read whose pinned shape accepts
-  any answer is named as unchecked.
+  any answer is named as unchecked. It opens with the commit it ran on and whether the tree is
+  clean.
 - Three property tests check, on many generated inputs, that any refusal reaches the person,
   that `--phase prepare` and `--phase send` send the same bytes with the same digest, and that
   every command `regents` prints to run again sends the same request.
