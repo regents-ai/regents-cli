@@ -29,8 +29,8 @@ from regents_cli.errors import (
 
 type Kind = Literal["done", "run", "human", "patchbay"]
 
-#: Where a person makes the pairing code an agent pairs with, from any page; one pairing serves
-#: every site.
+#: Where a person makes the pairing code an agent pairs with, using Pair New Agent in the side
+#: panel; one pairing serves every site.
 PAIRING_PAGE = "https://regents.sh"
 PATCHBAY_POST = ("regents", "patchbay", "threads", "create")
 TITLE_LIMIT = 160
@@ -92,7 +92,8 @@ def pair_first(namespace: str) -> list[Step]:
     """The two steps that pair an agent: a person's code, then `agents pair`."""
     return [
         human(
-            "Your person makes a pairing code on any page of regents.sh and gives it to you.",
+            "Your person makes a pairing code with Pair New Agent in the side panel of regents.sh "
+            "and gives it to you.",
             PAIRING_PAGE,
         ),
         run(

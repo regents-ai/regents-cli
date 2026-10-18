@@ -69,8 +69,8 @@ to sign, and `--phase send` reads `{"request": …, "signature": …}` and sends
 The prepared request names the signing contract it was built under; a `regents` that signs under
 another one refuses it, so prepare it again.
 
-On regents.sh, a person pairs the agent with their account: they make a code on any page of
-the site, and the agent supplies string `code`, `name` and `harness` fields through private
+On regents.sh, a person pairs the agent with their account: they make a code with Pair New
+Agent in the site's side panel, and the agent supplies string `code`, `name` and `harness` fields through private
 JSON stdin to `regents protocol agents pair`.
 `regents auth status --site ash-template` reads that site's identity and pairing probe. It
 never sends the legacy check-in or awards Points. Its `pairing_status` answer includes the

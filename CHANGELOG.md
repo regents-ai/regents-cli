@@ -3,30 +3,40 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.16 — not yet released
+## 1.10.15 — not yet released
 
-- Autolaunch is pinned to `1c4e5d5` (live v143). `regents autolaunch agents pair --help` now
-  lists the agent kinds Autolaunch accepts for `harness` (hermes, grok_bot, muse, openclaw,
-  nemoclaw, ironclaw, pi, claude_code, codex, cursor, gemini_cli, dots or other), and its API
-  description says a refused request needs a pairing and the person's first sign-in on the site.
+- Keyfleet is pinned to `502b2dd`, live as v87. It adds three commands for a fleet's notebooks:
+  - `regents keyfleet notebooks list <fleet>` lists the fleet's newest notebooks and the last run
+    an agent started in each.
+  - `notebooks run <fleet> <notebook> --idempotency-key …` starts a background run. Sending the
+    same key again answers the run it already started.
+  - `notebooks result <fleet> <notebook> <run>` reads how the run stands and, once it finishes,
+    where its page is kept.
 
-## 1.10.15 — 2026-10-17
-
-- Patchbay is pinned to `6fdce7d` (live v254). Its commands and help are unchanged. When a
+  Elsewhere in its help, Keys are written with a capital K, and the proposal and treasury reads
+  are reworded.
+- Autolaunch is pinned to `960fcd7`, live as v151. It has one Regent account, the same on every
+  Regent site:
+  - `regents autolaunch agents status` returns that account's name, ENS name and wallets, and no
+    longer says whether the person signed in on Autolaunch.
+  - A request is refused only when the agent isn't paired. An agent's bids and tokens answer
+    `wallet_required` when the account has no wallet yet.
+  - `agents pair --help` lists the agent kinds Autolaunch accepts for `harness`: hermes, grok_bot,
+    muse, openclaw, nemoclaw, ironclaw, pi, claude_code, codex, cursor, gemini_cli, dots or other.
+- Techtree is pinned to `b9cd7a0`, live as v166. Its check-in returns the person's name, ENS name
+  and wallets. It answers `person_not_here` (403), no longer `account_missing` (404), when the
+  person hasn't signed in there yet.
+- regents.sh is pinned to `b14705c`, live as v202. Its help and hints say your person makes the
+  code with Pair New Agent in the side panel. Its commands are unchanged.
+- Patchbay is pinned to `6fdce7d`, live as v254. Its commands and help are unchanged. When a
   check-in finds no person, it now says "Ask your person to sign in on this site once, then send
-  the request again.", and `regents` shows that line as the step to take.
-- Keyfleet is pinned to `602443c` (live v78). Its commands and help are unchanged. Its API
-  description now says an agent with no pairing is paired from the Account page on Keyfleet.
-- ash-template is pinned to `ca82af6` (live v98). `agents pair` says your person makes the code
+  the request again." `regents` shows that line as the step to take.
+- ash-template is pinned to `ca82af6`, live as v98. `agents pair` says your person makes the code
   with Pair New Agent in the side panel. Its API descriptions use the same name and give an
   example of the `person_not_here` check-in refusal.
-- regents.sh is pinned to `0d23601` (live v195). Its API description lists `person_not_here` on
-  `agents me`, and says a pairing code works once, for ten minutes. `regents protocol --help` and
-  the site's hints now say your person makes the code with Pair New Agent in the side panel, on
-  any page of the site. Its commands are unchanged.
-- When an agent isn't paired yet, `regents` now says "Your person makes a pairing code on any page
-  of regents.sh" and links https://regents.sh, because the Account page no longer makes codes.
-  The README says the same.
+- When an agent isn't paired yet, `regents` now says "Your person makes a pairing code with Pair
+  New Agent in the side panel of regents.sh" and links https://regents.sh, because the Account
+  page no longer makes codes. The README says the same.
 - When this Mac's process list can't be read, the Touch ID page says "Opened by your agent" and
   opens as usual, the same as the SIWA agent client.
 - The README says what the Touch ID page shows: the agent that opened it, and when it is safe
