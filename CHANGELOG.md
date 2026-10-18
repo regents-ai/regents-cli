@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.15 — not yet released
+## 1.10.15 — 2026-10-18
 
 - Keyfleet is pinned to `502b2dd`, live as v87. It adds three commands for a fleet's notebooks:
   - `regents keyfleet notebooks list <fleet>` lists the fleet's newest notebooks and the last run
