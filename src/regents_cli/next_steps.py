@@ -11,6 +11,7 @@ fields or beside `error`, and on screen as a short "Next" block at the bottom.
 from __future__ import annotations
 
 import json
+import re
 import shlex
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -304,4 +305,8 @@ def _broken(error: CommandError, status: int | None, invocation: Invocation) -> 
 
 def _wait(error: CommandError) -> str:
     seconds = error.fields.get("retry_after")
-    return f"{seconds} seconds" if isinstance(seconds, str) and seconds.isdigit() else "a minute"
+    return (
+        f"{seconds} seconds"
+        if isinstance(seconds, str) and re.fullmatch("[0-9]+", seconds)
+        else "a minute"
+    )

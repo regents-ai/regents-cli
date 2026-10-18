@@ -649,7 +649,7 @@ def _oauth_error(response: httpx.Response) -> str | None:
     """The OAuth `error` code (RFC 6749) of a refused token request, when it carries one."""
     try:
         body = response.json()
-    except ValueError:
+    except (ValueError, RecursionError):
         return None
     error = body.get("error") if isinstance(body, dict) else None
     return error if isinstance(error, str) else None

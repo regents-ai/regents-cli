@@ -2,14 +2,16 @@
 reads from it against the live sites.
 
 Each public read runs twice, readable and with --json, and both must exit as expected. A --json
-answer must have the shape every pinned OpenAPI document gives its operation's success answer,
-with `next_steps` beside it; an expected refusal must be one error with its code. Reads that take
-an id take it from an earlier read's answer, so they follow live records. Every command's --help
-must print. The check fails when a site's description has a public read with no run here, so a
-new read is checked from the release that adds it.
+answer must have the shape every pinned OpenAPI document gives its route's success answer, with
+`next_steps` beside it; an expected refusal must be one error with its code and status, in the
+shape the documents give that status. Reads that take an id take it from an earlier read's answer,
+so they follow live records. Every command's --help must print. The check fails when a site's
+description has a public read with no run here, so a new read is checked from the release that
+adds it. A read whose pinned shape accepts any object is shown as unchecked, by name.
 
-Nothing signed runs: the environment has no key and no sign-in, so nothing is signed, paid or
-changed. It reads the live sites, so it runs before each release, not in the publish workflow.
+Nothing signed runs: `regents` runs with only PATH, an empty home and an empty agent home, so
+nothing is signed, paid or changed, and nothing of this machine's own setup reaches it. It reads
+the live sites, so it runs before each release, not in the publish workflow.
 
     uv run scripts/check_live.py
 """
@@ -26,7 +28,7 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 import yaml
 from jsonschema import Draft202012Validator
@@ -35,6 +37,9 @@ from referencing.jsonschema import DRAFT202012
 from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
+
+from regents_cli.check_commands import METHODS
+from regents_cli.http import exit_code_for
 
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
@@ -47,11 +52,11 @@ console = Console(highlight=False)
 class Run:
     """One public read: the command line after `regents <site>`, each `<input>` in it taken from
     an earlier run's answer (that run's line, and a dotted path into its answer) or given as it
-    is, and the error code it answers with when it is expected to refuse."""
+    is, and the error code and status it answers with when it is expected to refuse."""
 
     line: str
     inputs: dict[str, tuple[str, str] | str] = field(default_factory=dict)
-    refuses: str | None = None
+    refuses: tuple[str, int] | None = None
 
 
 THREADS = "threads search --sort recent"
@@ -71,7 +76,7 @@ RUNS: dict[str, list[Run]] = {
         Run(
             "treasury security <address>",
             {"address": ("auctions list", "data.0.address")},
-            refuses="not_found",
+            refuses=("not_found", 404),
         ),
     ],
     "keyfleet": [
@@ -160,10 +165,27 @@ def pointer(*parts: str) -> str:
     return "".join("/" + part.replace("~", "~0").replace("/", "~1") for part in parts)
 
 
-def answer_shapes(site: str) -> dict[str, list[Draft202012Validator]]:
-    """For each operation, a validator per pinned OpenAPI document that describes it: its first
-    success answer's JSON schema, with the document's own references."""
-    shapes: dict[str, list[Draft202012Validator]] = {}
+def referred(document: Any, node: Any, where: tuple[str, ...]) -> tuple[Any, tuple[str, ...]]:
+    """`node` at `where`, or what its local `$ref` points to, followed to the end."""
+    while "$ref" in node:
+        where = tuple(
+            unquote(part).replace("~1", "/").replace("~0", "~")
+            for part in node["$ref"].removeprefix("#/").split("/")
+        )
+        node = document
+        for part in where:
+            node = node[part]
+    return node, where
+
+
+#: A route's answers by status ("success" is its first 2xx), each a validator per pinned document.
+Shapes = dict[tuple[str, str], dict[str, list[Draft202012Validator]]]
+
+
+def answer_shapes(site: str) -> Shapes:
+    """For each route, the JSON schema every pinned OpenAPI document gives each of its answers,
+    with the document's own references."""
+    shapes: Shapes = {}
     for path in sorted((PLATFORMS / site).iterdir()):
         if path.name == "commands.json" or path.suffix not in (".json", ".yaml"):
             continue
@@ -173,72 +195,76 @@ def answer_shapes(site: str) -> dict[str, list[Draft202012Validator]]:
             uri, Resource.from_contents(document, default_specification=DRAFT202012)
         )
         for route, item in (document.get("paths") or {}).items():
-            for method, operation in (item or {}).items():
-                if not isinstance(operation, dict) or "operationId" not in operation:
-                    continue
-                success = sorted(str(c) for c in operation["responses"] if str(c).startswith("2"))
-                if not success:
-                    continue
-                code = success[0]
-                where = ("paths", route, method, "responses", str(code))
-                response = operation["responses"].get(code) or operation["responses"][int(code)]
-                if "$ref" in response:
-                    where = tuple(response["$ref"].removeprefix("#/").split("/"))
-                    response = dig(document, ".".join(where))
-                if "application/json" not in (response.get("content") or {}):
-                    continue
-                at = pointer(*where, "content", "application/json", "schema")
-                validator = Draft202012Validator(
-                    {"$ref": f"{uri}#{quote(at, safe='/~')}"}, registry=registry
-                )
-                shapes.setdefault(operation["operationId"], []).append(validator)
+            for method in METHODS:
+                responses = ((item or {}).get(method) or {}).get("responses") or {}
+                success = min((code for code in responses if code.startswith("2")), default=None)
+                for code, response in responses.items():
+                    if code.startswith("2") and code != success:
+                        continue
+                    where: tuple[str, ...] = ("paths", route, method, "responses", code)
+                    response, where = referred(document, response, where)
+                    if "application/json" not in (response.get("content") or {}):
+                        continue
+                    at = pointer(*where, "content", "application/json", "schema")
+                    validator = Draft202012Validator(
+                        {"$ref": f"{uri}#{quote(at, safe='/~')}"}, registry=registry
+                    )
+                    kind = "success" if code == success else code
+                    shapes.setdefault((method.upper(), route), {}).setdefault(kind, []).append(
+                        validator
+                    )
     return shapes
 
 
+def bare(home: Path) -> dict[str, str]:
+    """All `regents` runs with: PATH, and an empty home and agent home."""
+    return {"PATH": os.environ["PATH"], "HOME": str(home), "SIWA_AGENT_HOME": str(home)}
+
+
 def regents(venv: Path, home: Path, words: list[str]) -> subprocess.CompletedProcess[str]:
-    environment = {
-        name: value
-        for name, value in os.environ.items()
-        if not name.endswith("_BASE_URL") and not name.startswith("SIWA_")
-    }
-    environment["SIWA_AGENT_HOME"] = str(home)
     return subprocess.run(
         [str(venv / "bin/regents"), *words],
         capture_output=True,
         text=True,
         cwd=home,
-        env=environment,
+        env=bare(home),
         timeout=120,
         check=False,
     )
 
 
-def problems_with(
-    run: Run, command: dict[str, Any], shapes: list[Draft202012Validator], told: Any
-) -> list[str]:
-    if not isinstance(told, dict) or not isinstance(told.get("next_steps"), list):
-        return ["the answer has no next_steps"]
-    if not told["next_steps"]:
-        return ["next_steps is empty"]
-    if run.refuses is not None:
-        error = told.get("error")
-        if not isinstance(error, dict) or error.get("code") != run.refuses:
-            return [f"expected the {run.refuses} refusal"]
-        return [] if isinstance(error.get("message"), str) else ["the refusal has no message"]
-    if "error" in told:
-        return [f"refused: {told['error'].get('code')}: {told['error'].get('message')}"]
-    answer = {key: value for key, value in told.items() if key != "next_steps"}
-    if not shapes:
-        return [f"no pinned document describes {command['operation_id']}'s answer"]
+def mismatches(validators: list[Draft202012Validator], value: Any) -> list[str]:
     found = []
-    for validator in shapes:
-        for error in sorted(validator.iter_errors(answer), key=lambda e: list(e.absolute_path))[:3]:
+    for validator in validators:
+        for error in sorted(validator.iter_errors(value), key=lambda e: list(e.absolute_path))[:3]:
             at = ".".join(map(str, error.absolute_path)) or "the answer"
             found.append(f"{at}: {error.message[:160]}")
     return found
 
 
-def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int]:
+def problems_with(run: Run, route: dict[str, list[Draft202012Validator]], told: Any) -> list[str]:
+    if not isinstance(told, dict) or not isinstance(told.get("next_steps"), list):
+        return ["the answer has no next_steps"]
+    if not told["next_steps"]:
+        return ["next_steps is empty"]
+    error = told.get("error")
+    if run.refuses is not None:
+        code, status = run.refuses
+        if not isinstance(error, dict) or (error.get("code"), error.get("status")) != run.refuses:
+            return [f"expected the {code} refusal ({status})"]
+        if str(status) not in route:
+            return [f"no pinned document describes this route's {status} answer"]
+        # The site's own body: the error, less the status and wait regents adds to it.
+        said = {key: value for key, value in error.items() if key not in ("status", "retry_after")}
+        return mismatches(route[str(status)], {"error": said})
+    if error is not None:
+        return [f"refused: {error.get('code')}: {error.get('message')}"]
+    if "success" not in route:
+        return ["no pinned document describes this route's answer"]
+    return mismatches(route["success"], {k: v for k, v in told.items() if k != "next_steps"})
+
+
+def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int, list[str]]:
     description = json.loads((PLATFORMS / site / "commands.json").read_text("utf-8"))
     commands = {c["command"]: c for c in description["commands"]}
     public_reads = {
@@ -249,6 +275,7 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int]:
     for column in ("Read", "Answer", "Shape"):
         table.add_column(column)
     failures = 0
+    unchecked = []
     ran: dict[str, Any] = {}
     covered = set()
     shapes = answer_shapes(site)
@@ -263,7 +290,10 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int]:
             key: given if isinstance(given, str) else dig(ran.get(given[0]), given[1])
             for key, given in run.inputs.items()
         }
-        if any(not isinstance(v, str | int) or not str(v) for v in values.values()):
+        if any(
+            isinstance(v, bool) or not isinstance(v, str | int) or not str(v)
+            for v in values.values()
+        ):
             table.add_row(run.line, "[red]✗ an earlier answer had no value to read with[/red]", "")
             failures += 1
             continue
@@ -271,7 +301,7 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int]:
             str(values[word[1:-1]]) if PLACEHOLDER.fullmatch(word) else word
             for word in run.line.split(" ")
         ]
-        expected = 4 if run.refuses == "not_found" else 1 if run.refuses else 0
+        expected = exit_code_for(run.refuses[1]) if run.refuses else 0
         readable = regents(venv, home, [site, *words])
         machine = regents(venv, home, [site, *words, "--json"])
         try:
@@ -284,22 +314,33 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int]:
             for how, done in (("readable", readable), ("--json", machine))
             if done.returncode != expected
         ]
-        if not readable.stdout.strip() and not readable.stderr.strip():
+        if not (readable.stderr if run.refuses else readable.stdout).strip():
             exits.append("the readable answer printed nothing")
-        found = exits + problems_with(
-            run, commands[name], shapes.get(commands[name]["operation_id"], []), told
-        )
+        route = shapes.get((commands[name]["method"], commands[name]["path"]), {})
+        found = exits + problems_with(run, route, told)
         shown = " ".join(words)
-        answer = f"refused {run.refuses}, as expected" if run.refuses else "answered"
         if found:
             failures += 1
             table.add_row(shown, "[red]✗[/red] " + escape("; ".join(found)), "")
+        elif run.refuses:
+            table.add_row(
+                shown,
+                f"[green]✓[/green] refused {run.refuses[0]} ({run.refuses[1]}), as expected",
+                "[green]✓[/green] refusal as pinned; no live record has an answer to read",
+            )
+        elif all(validator.is_valid({}) for validator in route["success"]):
+            unchecked.append(f"{site} {name}")
+            table.add_row(
+                shown,
+                "[green]✓[/green] answered",
+                "[yellow]! the site pins no shape for it[/yellow]",
+            )
         else:
-            table.add_row(shown, f"[green]✓[/green] {answer}", "[green]✓[/green] as pinned")
+            table.add_row(shown, "[green]✓[/green] answered", "[green]✓[/green] as pinned")
     for name in sorted(public_reads - covered):
         table.add_row(name, "[red]✗ public read with no run in scripts/check_live.py[/red]", "")
         failures += 1
-    return table, failures
+    return table, failures, unchecked
 
 
 def main() -> int:
@@ -330,6 +371,7 @@ def main() -> int:
             capture_output=True,
             text=True,
             cwd=home,
+            env=bare(home),
             check=False,
         )
         helped = json.loads(walked.stdout) if walked.returncode == 0 else None
@@ -339,20 +381,29 @@ def main() -> int:
             failures += 1
         else:
             console.print(f"[green]✓[/green] --help prints for all {helped['commands']} commands")
+        unchecked: list[str] = []
         for site in sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json")):
             with console.status(f"Reading {site}"):
-                table, failed_here = check_site(site, venv, home)
+                table, failed_here, unchecked_here = check_site(site, venv, home)
             console.print(table)
             failures += failed_here
+            unchecked += unchecked_here
     if failures:
         console.print(
             f"[bold red]{failures} live check{'s' if failures > 1 else ''} failed.[/bold red]"
         )
         return 1
-    console.print(
-        f"[bold green]regents {version}, installed from its wheel, reads every live site "
-        "as pinned.[/bold green]"
-    )
+    if unchecked:
+        console.print(
+            f"[bold green]regents {version}, installed from its wheel, reads every live site "
+            "as pinned,[/bold green] [yellow]except where the site pins no shape:[/yellow] "
+            + escape(", ".join(unchecked))
+        )
+    else:
+        console.print(
+            f"[bold green]regents {version}, installed from its wheel, reads every live site "
+            "as pinned.[/bold green]"
+        )
     return 0
 
 

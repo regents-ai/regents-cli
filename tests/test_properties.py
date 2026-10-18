@@ -18,6 +18,7 @@ import hashlib
 import io
 import json
 import shlex
+import unicodedata
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
@@ -25,11 +26,11 @@ from urllib.parse import unquote
 import click
 import httpx
 import pytest
-from hypothesis import HealthCheck, given, settings
+from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 
 from regents_cli import app, output, runner, siwa
-from regents_cli.errors import EXIT_CODES, CommandError
+from regents_cli.errors import CommandError
 from regents_cli.http import Request, answer
 from regents_cli.next_steps import Step, for_failure
 from regents_cli.platforms import Command, Input, Platform, pinned_platforms
@@ -39,8 +40,9 @@ PLATFORMS = {platform.name: platform for platform in pinned_platforms()}
 COMMANDS = [(platform, command) for platform in PLATFORMS.values() for command in platform.commands]
 SIGNATURE = "0x" + "ab" * 65
 
-#: A value a person or agent types: any text but a NUL, and not starting with "-", which every
-#: command line reads as a flag.
+#: A value a person or agent types: any text but a NUL, and not starting with "-". A printed
+#: command puts no `--` before its values yet, so one starting with "-" reads as a flag when it
+#: runs again (docs/backlogs/regents-cli.md in the workspace).
 TYPED = (
     st.text(st.characters(blacklist_categories=["Cs"], blacklist_characters="\x00"), min_size=1)
     | st.text(st.sampled_from("/?#%&=+ ;:@.~_'\"aZ09é"), min_size=1)
@@ -70,19 +72,41 @@ def value_for(spec: Input) -> st.SearchStrategy[Any]:
     return TYPED
 
 
+#: The exit code each refusal's status calls for; any other status exits 1.
+EXITS = {401: 3, 403: 3, 404: 4, 502: 5, 503: 5, 504: 5}
+
+
 @st.composite
 def site_refusals(draw: st.DrawFn) -> httpx.Response:
     error = draw(st.dictionaries(FIELD, JSON, max_size=4))
     if draw(st.booleans()):
         error["code"] = draw(st.text(min_size=1, max_size=20))
     body = draw(JSON | st.dictionaries(FIELD, JSON, max_size=3) | st.just({"error": error}))
-    headers = draw(
-        st.dictionaries(
-            st.sampled_from(["retry-after", "payment-required"]),
-            st.text(st.characters(min_codepoint=32, max_codepoint=126), max_size=20),
-        )
+    header = st.text(st.characters(min_codepoint=32, max_codepoint=126), max_size=20)
+    headers = draw(st.dictionaries(st.sampled_from(["retry-after", "payment-required"]), header))
+    status = draw(
+        st.sampled_from([400, 401, 402, 403, 404, 409, 429, 500, 502]) | st.integers(300, 599)
     )
-    return httpx.Response(draw(st.integers(300, 599)), json=body, headers=headers)
+    if status == 402 and draw(st.booleans()):
+        headers["payment-required"] = draw(header)
+    return httpx.Response(status, json=body, headers=headers)
+
+
+def read_json(content: bytes) -> Any:
+    """A body as JSON reads it: NaN and Infinity are not JSON, nor is a body nested too deep."""
+
+    def refuse(constant: str) -> Any:
+        raise ValueError(constant)
+
+    try:
+        return json.loads(content, parse_constant=refuse) if content else None
+    except (ValueError, RecursionError):
+        return None
+
+
+def shown(text: str) -> str:
+    """Text as a terminal shows it, without the spaces and line breaks it wraps at."""
+    return "".join(c for c in text if not c.isspace() and unicodedata.category(c)[0] != "C")
 
 
 @given(
@@ -97,6 +121,30 @@ def site_refusals(draw: st.DrawFn) -> httpx.Response:
     ),
     st.booleans(),
 )
+@example(
+    httpx.Response(409, json={"error": {"code": "x", "review": [1], "exit_code": 0}}),
+    ["keyfleet", "fleets", "get", "regents_club"],
+    False,
+)
+@example(
+    httpx.Response(
+        402,
+        json={"code": 7, "message": None, "exit_code": 0, "next_steps": [1], "review": [5]},
+        headers={"payment-required": "terms"},
+    ),
+    ["patchbay", "assist", "request"],
+    False,
+)
+@example(
+    httpx.Response(500, content=b"[" * 100_000 + b"]" * 100_000),
+    ["protocol", "agents", "whoami"],
+    True,
+)
+@example(
+    httpx.Response(400, content=b'{"error": {"code": "x", "limit": NaN}}'),
+    ["protocol", "agents", "whoami"],
+    True,
+)
 @settings(deadline=None)
 def test_any_refusal_reaches_the_person(
     response: httpx.Response, args: list[str], as_json: bool
@@ -104,20 +152,36 @@ def test_any_refusal_reaches_the_person(
     with pytest.raises(CommandError) as raised:
         answer(response)
     error = raised.value
+    body = read_json(response.content)
+    said_code = body.get("error", {}).get("code") if isinstance(body, dict) else None
+    if (
+        isinstance(body, dict)
+        and isinstance(body.get("error"), dict)
+        and isinstance(said_code, str)
+    ):
+        assert error.code == said_code
+    elif (
+        response.status_code == 402
+        and isinstance(body, dict)
+        and "payment-required" in response.headers
+    ):
+        assert error.code == "payment_required"
+    assert error.exit_code == EXITS.get(response.status_code, 1)
+    assert not error.review
     steps = for_failure(error, app.invocation(ROOT, args))
     assert steps
     assert all(isinstance(step, Step) for step in steps)
-    assert error.exit_code in EXIT_CODES
-    shown, said = io.StringIO(), io.StringIO()
-    with contextlib.redirect_stdout(shown), contextlib.redirect_stderr(said):
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
         output.emit_error(error, steps, as_json=as_json)
     if as_json:
-        printed = json.loads(shown.getvalue())
+        printed = json.loads(out.getvalue())
         assert printed["error"]["code"] == error.code
         assert printed["error"]["message"] == error.message
         assert printed["next_steps"] == [step.as_json() for step in steps]
     else:
-        assert said.getvalue().strip()
+        assert shown(error.message) in shown(err.getvalue())
+        assert shown(error.code) in shown(err.getvalue())
 
 
 @pytest.fixture

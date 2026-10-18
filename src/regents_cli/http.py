@@ -136,12 +136,17 @@ def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
         ) from None
 
 
+def _not_json(constant: str) -> Any:
+    """NaN and Infinity are not JSON; an answer holding one is an unreadable answer."""
+    raise ValueError(f"{constant} is not JSON")
+
+
 def answer(response: httpx.Response) -> dict[str, Any]:
     if response.status_code == 204 and not response.content:
         return {}
     try:
-        body = response.json()
-    except ValueError:
+        body = json.loads(response.content, parse_constant=_not_json)
+    except (ValueError, RecursionError):
         body = None
     if response.is_success and isinstance(body, dict):
         return body
@@ -150,23 +155,27 @@ def answer(response: httpx.Response) -> dict[str, Any]:
     raise _error_for(response, body)
 
 
+def exit_code_for(status: int) -> int:
+    """The exit code a refusal with this status ends `regents` with."""
+    if status in (502, 503, 504):
+        return EXIT_UNREACHABLE
+    return {401: EXIT_AUTH, 403: EXIT_AUTH, 404: EXIT_NOT_FOUND}.get(status, EXIT_FAILED)
+
+
 def _error_for(response: httpx.Response, body: Any) -> CommandError:
     status = response.status_code
-    exit_code = {401: EXIT_AUTH, 403: EXIT_AUTH, 404: EXIT_NOT_FOUND}.get(status, EXIT_FAILED)
-    if status in (502, 503, 504):
-        exit_code = EXIT_UNREACHABLE
+    exit_code = exit_code_for(status)
     fields: dict[str, Any] = {"status": status}
     if retry_after := response.headers.get("retry-after"):
         fields["retry_after"] = retry_after
     error = body.get("error") if isinstance(body, dict) else None
     if isinstance(error, dict) and isinstance(error.get("code"), str):
         message = error.get("message")
-        said = {key: value for key, value in error.items() if key not in ("code", "message")}
         return CommandError.refused(
             error["code"],
             message if isinstance(message, str) else f"The site refused the request ({status}).",
             exit_code=exit_code,
-            fields={**said, **fields},
+            fields={**error, **fields},
         )
     if status == 402 and isinstance(body, dict) and "payment-required" in response.headers:
         return _payment_required(response, body, fields)

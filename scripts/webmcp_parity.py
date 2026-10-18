@@ -124,6 +124,7 @@ def compare(name: str) -> dict[str, Any]:
     lone_commands: list[str] = []
     unknown_tools: list[tuple[str, str]] = []
     rows: list[dict[str, Any]] = []
+    untooled: set[str] = set()
     for command in commands:
         route = routes(f"{command['method']} {command['path']}")
         named = command.get("webmcp")
@@ -135,11 +136,14 @@ def compare(name: str) -> dict[str, Any]:
         for tool in matched:
             done_by[tool].append(command["command"])
         rows.append({**command, "tools": sorted(matched)})
+        if not matched:
+            untooled.add(command["command"])
         if not matched and command["command"] not in cli_only:
             lone_commands.append(command["command"])
     lone_tools = sorted(
         tool for tool, by in done_by.items() if not by and tool not in covered | site_only
     )
+    unserved = {tool for tool, by in done_by.items() if not by}
     return {
         "name": name,
         "tools": len(tools),
@@ -156,7 +160,30 @@ def compare(name: str) -> dict[str, Any]:
             for command, why in cli_only.items()
             if command in {command["command"] for command in commands}
         },
+        # The allowlist entries this site needs: a tool or command that has no partner.
+        "needs": {("COVERED_BY_CLI", tool) for tool in covered if tool in unserved}
+        | {("SITE_ONLY", tool) for tool in site_only if tool in unserved}
+        | {("CLI_ONLY", command) for command in cli_only if command in untooled},
     }
+
+
+def stale(sites: list[dict[str, Any]]) -> list[str]:
+    """Allowlist entries no site needs: a tool that now has a command, a command that now has
+    a tool, or a name no site has."""
+    found = []
+    for table, entries in (
+        ("COVERED_BY_CLI", COVERED_BY_CLI),
+        ("CLI_ONLY", CLI_ONLY),
+        ("SITE_ONLY", SITE_ONLY),
+    ):
+        for scope, names in entries.items():
+            within = [site for site in sites if scope in ("*", site["name"])]
+            found += [
+                f"{table}[{scope!r}] {name!r}"
+                for name in names
+                if not any((table, name) in site["needs"] for site in within)
+            ]
+    return found
 
 
 def command_state(site: dict[str, Any], row: dict[str, Any]) -> str:
@@ -249,7 +276,12 @@ def main(args: list[str]) -> int:
     if args not in ([], ["--write"], ["--check"]):
         console.print(f"[red]unknown arguments:[/red] {' '.join(args)}")
         return 2
-    sites = [compare(manifest.stem) for manifest in sorted(TOOL_MANIFESTS.glob("*.json"))]
+    names = sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json"))
+    missing = [name for name in names if not (TOOL_MANIFESTS / f"{name}.json").is_file()]
+    if missing:
+        console.print(f"[red]Pinned sites with no tool manifest:[/red] {', '.join(missing)}")
+        return 1
+    sites = [compare(name) for name in names]
     if not args:
         report(sites)
         return 0
@@ -258,6 +290,9 @@ def main(args: list[str]) -> int:
         FEATURE_MAP.write_text(written, "utf-8")
         console.print(f"wrote {FEATURE_MAP.relative_to(ROOT)}")
         return 0
+    if unneeded := stale(sites):
+        console.print(f"[red]Allowlist entries no site needs:[/red] {', '.join(unneeded)}")
+        return 1
     if not FEATURE_MAP.is_file() or FEATURE_MAP.read_text("utf-8") != written:
         console.print(
             f"[red]{FEATURE_MAP.relative_to(ROOT)} is not the map of the pinned copies.[/red] "

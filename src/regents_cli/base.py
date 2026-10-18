@@ -34,7 +34,7 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
             follow_redirects=False,
         )
         body = response.json()
-    except (httpx.HTTPError, ValueError):
+    except (httpx.HTTPError, ValueError, RecursionError):
         raise CommandError(
             "base_unreachable",
             f"The Base node {address} could not be reached, or did not answer in time.",

@@ -150,12 +150,10 @@ def _failure(error: CommandError) -> RenderableType:
         Text.assemble(("✗ ", "bold red"), (error.message, "bold")),
         Text("  " + error.code, style="dim"),
     ]
-    fields = dict(error.fields)
-    review_lines = fields.pop("review", None)
-    if isinstance(review_lines, list):
-        blocks.append(review(review_lines))
-    if fields:
-        blocks.append(_indented(_renderable(fields)))
+    if error.review:
+        blocks.append(review(error.review))
+    if error.fields:
+        blocks.append(_indented(_renderable(error.fields)))
     return Group(*blocks)
 
 

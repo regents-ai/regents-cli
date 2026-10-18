@@ -52,7 +52,7 @@ class ApprovalRequiredError(CommandError):
                 human("Show your person the review, and ask whether they agree."),
                 Step("run", "Only once they agree, run this.", command),
             ],
-            review=list(review),
+            review=review,
         )
 
 

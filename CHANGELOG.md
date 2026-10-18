@@ -5,20 +5,32 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- Patchbay is pinned to `7156d99`, live as v256. Its API description is version 5.0.0:
+  `display_name` replaces `human_name` on profiles and thread authors, a check-in returns the
+  person's account name, ENS name and wallets, and an unpaired agent is told to ask for Pair New
+  Agent in the side panel. Its commands are unchanged.
 - A site's refusal now always reaches you as one error with its code, its message and what to do
   next, whatever its fields are named. Before, an error field named `exit_code` crashed
   `regents`, a field named `next_steps` was shown as `regents`'s own next steps, and a payment
-  answer (402) carrying a `code` or `message` crashed it. A site's own fields still travel in the
-  error as data.
+  answer (402) carrying a `code` or `message` crashed it. A site field named `review` crashed it
+  too, or was drawn as the Review panel a person reads before agreeing to something. A site's own
+  fields still travel in the error as data.
+- An answer nested too deep to read, or holding `NaN` or `Infinity`, is reported as an unreadable
+  answer. Before, the first crashed `regents` and the second reached `--json` output, which other
+  JSON readers then refused.
+- "Wait N seconds" reads N only as the digits 0 to 9; anything else says "wait a minute".
 - An `account_missing` or `person_not_here` refusal with no hint no longer crashes `regents`.
 - A decimal value, such as an Autolaunch bid amount, accepts only the digits 0 to 9 and one point.
   Before, digits from other scripts, such as `١٢`, were accepted and sent to the site.
 - `docs/feature-map.md` lists every command of every pinned site: its route, who may run it,
   whether it changes anything, and its WebMCP tool, with each tool that has no command and why.
-  `make sync` writes it and `make check` fails when it is out of date.
+  `make sync` writes it, and `make check` fails when it is out of date or when an allowlisted
+  tool or command no longer needs its entry.
 - `make release-check` now installs the wheel into a new environment, runs every public read of
-  every site against the live site, and checks each answer against the site's pinned API
-  description. Nothing signed runs.
+  every site against the live site, and checks each answer, or each expected refusal, against
+  the site's pinned API description. `regents` runs with only PATH and an empty home, so nothing
+  is signed and nothing of the machine's own setup reaches it. A read whose pinned shape accepts
+  any answer is named as unchecked.
 - Three property tests check, on many generated inputs, that any refusal reaches the person,
   that `--phase prepare` and `--phase send` send the same bytes with the same digest, and that
   every command `regents` prints to run again sends the same request.
