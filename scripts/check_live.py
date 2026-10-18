@@ -1,0 +1,360 @@
+"""Install the wheel this tree builds into a new, empty environment, and run every site's public
+reads from it against the live sites.
+
+Each public read runs twice, readable and with --json, and both must exit as expected. A --json
+answer must have the shape every pinned OpenAPI document gives its operation's success answer,
+with `next_steps` beside it; an expected refusal must be one error with its code. Reads that take
+an id take it from an earlier read's answer, so they follow live records. Every command's --help
+must print. The check fails when a site's description has a public read with no run here, so a
+new read is checked from the release that adds it.
+
+Nothing signed runs: the environment has no key and no sign-in, so nothing is signed, paid or
+changed. It reads the live sites, so it runs before each release, not in the publish workflow.
+
+    uv run scripts/check_live.py
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import tomllib
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+from urllib.parse import quote
+
+import yaml
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
+from referencing.jsonschema import DRAFT202012
+from rich.console import Console
+from rich.markup import escape
+from rich.table import Table
+
+ROOT = Path(__file__).resolve().parent.parent
+PLATFORMS = ROOT / "src/regents_cli/platforms"
+PLACEHOLDER = re.compile(r"<([^>]+)>")
+
+console = Console(highlight=False)
+
+
+@dataclass(frozen=True)
+class Run:
+    """One public read: the command line after `regents <site>`, each `<input>` in it taken from
+    an earlier run's answer (that run's line, and a dotted path into its answer) or given as it
+    is, and the error code it answers with when it is expected to refuse."""
+
+    line: str
+    inputs: dict[str, tuple[str, str] | str] = field(default_factory=dict)
+    refuses: str | None = None
+
+
+THREADS = "threads search --sort recent"
+
+RUNS: dict[str, list[Run]] = {
+    "ash-template": [
+        Run("health"),
+        Run("rooms list"),
+        Run("rooms messages <room>", {"room": ("rooms list", "rooms.0.slug")}),
+    ],
+    "autolaunch": [
+        Run("auctions list"),
+        Run("tokens list"),
+        Run("auction <id>", {"id": ("auctions list", "data.0.id")}),
+        Run("token <id>", {"id": ("tokens list", "data.0.id")}),
+        # No launch has a treasury yet, so this reads the not-found answer.
+        Run(
+            "treasury security <address>",
+            {"address": ("auctions list", "data.0.address")},
+            refuses="not_found",
+        ),
+    ],
+    "keyfleet": [
+        Run("fleets list"),
+        Run("fleets get <fleet>", {"fleet": ("fleets list", "fleets.0.id")}),
+        # The one fleet with Keys sold; a fleet still to come has no treasury, pulse or proposals.
+        Run("treasury get <fleet>", {"fleet": "regents_club"}),
+        Run("workspace pulse <fleet>", {"fleet": "regents_club"}),
+        Run("proposals list <fleet>", {"fleet": "regents_club"}),
+    ],
+    "patchbay": [
+        Run("health"),
+        Run("sites list"),
+        Run("offers slots"),
+        Run("bench matrix"),
+        Run(THREADS),
+        Run("threads get <id>", {"id": (THREADS, "results.0.id")}),
+        Run("agents get <public-id>", {"public-id": (THREADS, "results.0.author.profile_id")}),
+        Run(
+            "tools history --origin <origin> --tool-name <tool>",
+            {"origin": (THREADS, "results.0.site"), "tool": (THREADS, "results.0.tools.0")},
+        ),
+        Run(
+            "tools catalog <host> <name>",
+            {"host": (THREADS, "results.0.site"), "name": (THREADS, "results.0.tools.0")},
+        ),
+        Run(
+            "bench pair <harness-id> <wallet-id>",
+            {
+                "harness-id": ("bench matrix", "squares.0.harness_id"),
+                "wallet-id": ("bench matrix", "squares.0.wallet_id"),
+            },
+        ),
+    ],
+    "protocol": [
+        Run("products list"),
+        Run("products get <product>", {"product": ("products list", "products.0.slug")}),
+    ],
+    "techtree": [
+        Run("results list"),
+        Run(
+            "results show <bundle-digest>",
+            {"bundle-digest": ("results list", "entries.0.bundle_digest")},
+        ),
+    ],
+}
+
+#: Run inside the new environment: every command's --help, one process for all of them.
+HELP_WALK = """
+import contextlib, io, json, click
+from regents_cli.app import main, root
+def walk(command, words):
+    yield words
+    if isinstance(command, click.Group):
+        for name, child in command.commands.items():
+            yield from walk(child, [*words, name])
+lines = list(walk(root(), []))
+failed = []
+for words in lines:
+    shown = io.StringIO()
+    with contextlib.redirect_stdout(shown), contextlib.redirect_stderr(shown):
+        code = main([*words, "--help"])
+    if code != 0 or not shown.getvalue().strip():
+        failed.append(" ".join(["regents", *words]))
+print(json.dumps({"commands": len(lines), "failed": failed}))
+"""
+
+
+def dig(value: Any, dotted: str) -> Any:
+    for key in dotted.split("."):
+        if isinstance(value, list) and key.isdigit() and int(key) < len(value):
+            value = value[int(key)]
+        elif isinstance(value, dict):
+            value = value.get(key)
+        else:
+            return None
+    return value
+
+
+def read_document(path: Path) -> Any:
+    text = path.read_text("utf-8")
+    return yaml.safe_load(text) if path.suffix == ".yaml" else json.loads(text)
+
+
+def pointer(*parts: str) -> str:
+    return "".join("/" + part.replace("~", "~0").replace("/", "~1") for part in parts)
+
+
+def answer_shapes(site: str) -> dict[str, list[Draft202012Validator]]:
+    """For each operation, a validator per pinned OpenAPI document that describes it: its first
+    success answer's JSON schema, with the document's own references."""
+    shapes: dict[str, list[Draft202012Validator]] = {}
+    for path in sorted((PLATFORMS / site).iterdir()):
+        if path.name == "commands.json" or path.suffix not in (".json", ".yaml"):
+            continue
+        document = read_document(path)
+        uri = f"urn:regents-cli:{site}:{path.name}"
+        registry = Registry().with_resource(
+            uri, Resource.from_contents(document, default_specification=DRAFT202012)
+        )
+        for route, item in (document.get("paths") or {}).items():
+            for method, operation in (item or {}).items():
+                if not isinstance(operation, dict) or "operationId" not in operation:
+                    continue
+                success = sorted(str(c) for c in operation["responses"] if str(c).startswith("2"))
+                if not success:
+                    continue
+                code = success[0]
+                where = ("paths", route, method, "responses", str(code))
+                response = operation["responses"].get(code) or operation["responses"][int(code)]
+                if "$ref" in response:
+                    where = tuple(response["$ref"].removeprefix("#/").split("/"))
+                    response = dig(document, ".".join(where))
+                if "application/json" not in (response.get("content") or {}):
+                    continue
+                at = pointer(*where, "content", "application/json", "schema")
+                validator = Draft202012Validator(
+                    {"$ref": f"{uri}#{quote(at, safe='/~')}"}, registry=registry
+                )
+                shapes.setdefault(operation["operationId"], []).append(validator)
+    return shapes
+
+
+def regents(venv: Path, home: Path, words: list[str]) -> subprocess.CompletedProcess[str]:
+    environment = {
+        name: value
+        for name, value in os.environ.items()
+        if not name.endswith("_BASE_URL") and not name.startswith("SIWA_")
+    }
+    environment["SIWA_AGENT_HOME"] = str(home)
+    return subprocess.run(
+        [str(venv / "bin/regents"), *words],
+        capture_output=True,
+        text=True,
+        cwd=home,
+        env=environment,
+        timeout=120,
+        check=False,
+    )
+
+
+def problems_with(
+    run: Run, command: dict[str, Any], shapes: list[Draft202012Validator], told: Any
+) -> list[str]:
+    if not isinstance(told, dict) or not isinstance(told.get("next_steps"), list):
+        return ["the answer has no next_steps"]
+    if not told["next_steps"]:
+        return ["next_steps is empty"]
+    if run.refuses is not None:
+        error = told.get("error")
+        if not isinstance(error, dict) or error.get("code") != run.refuses:
+            return [f"expected the {run.refuses} refusal"]
+        return [] if isinstance(error.get("message"), str) else ["the refusal has no message"]
+    if "error" in told:
+        return [f"refused: {told['error'].get('code')}: {told['error'].get('message')}"]
+    answer = {key: value for key, value in told.items() if key != "next_steps"}
+    if not shapes:
+        return [f"no pinned document describes {command['operation_id']}'s answer"]
+    found = []
+    for validator in shapes:
+        for error in sorted(validator.iter_errors(answer), key=lambda e: list(e.absolute_path))[:3]:
+            at = ".".join(map(str, error.absolute_path)) or "the answer"
+            found.append(f"{at}: {error.message[:160]}")
+    return found
+
+
+def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int]:
+    description = json.loads((PLATFORMS / site / "commands.json").read_text("utf-8"))
+    commands = {c["command"]: c for c in description["commands"]}
+    public_reads = {
+        name for name, c in commands.items() if c["authority"] == "public" and c["effect"] == "read"
+    }
+    runs = RUNS.get(site, [])
+    table = Table(title=site, title_justify="left")
+    for column in ("Read", "Answer", "Shape"):
+        table.add_column(column)
+    failures = 0
+    ran: dict[str, Any] = {}
+    covered = set()
+    shapes = answer_shapes(site)
+    for run in runs:
+        name = next((n for n in commands if run.line == n or run.line.startswith(n + " ")), None)
+        if name is None or name not in public_reads:
+            table.add_row(run.line, "[red]✗ not a public read in the pinned description[/red]", "")
+            failures += 1
+            continue
+        covered.add(name)
+        values = {
+            key: given if isinstance(given, str) else dig(ran.get(given[0]), given[1])
+            for key, given in run.inputs.items()
+        }
+        if any(not isinstance(v, str | int) or not str(v) for v in values.values()):
+            table.add_row(run.line, "[red]✗ an earlier answer had no value to read with[/red]", "")
+            failures += 1
+            continue
+        words = [
+            str(values[word[1:-1]]) if PLACEHOLDER.fullmatch(word) else word
+            for word in run.line.split(" ")
+        ]
+        expected = 4 if run.refuses == "not_found" else 1 if run.refuses else 0
+        readable = regents(venv, home, [site, *words])
+        machine = regents(venv, home, [site, *words, "--json"])
+        try:
+            told = json.loads(machine.stdout)
+        except json.JSONDecodeError:
+            told = None
+        ran[run.line] = told
+        exits = [
+            f"{how} exited {done.returncode}, not {expected}"
+            for how, done in (("readable", readable), ("--json", machine))
+            if done.returncode != expected
+        ]
+        if not readable.stdout.strip() and not readable.stderr.strip():
+            exits.append("the readable answer printed nothing")
+        found = exits + problems_with(
+            run, commands[name], shapes.get(commands[name]["operation_id"], []), told
+        )
+        shown = " ".join(words)
+        answer = f"refused {run.refuses}, as expected" if run.refuses else "answered"
+        if found:
+            failures += 1
+            table.add_row(shown, "[red]✗[/red] " + escape("; ".join(found)), "")
+        else:
+            table.add_row(shown, f"[green]✓[/green] {answer}", "[green]✓[/green] as pinned")
+    for name in sorted(public_reads - covered):
+        table.add_row(name, "[red]✗ public read with no run in scripts/check_live.py[/red]", "")
+        failures += 1
+    return table, failures
+
+
+def main() -> int:
+    version = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))["project"]["version"]
+    with tempfile.TemporaryDirectory() as scratch:
+        work = Path(scratch)
+        home, dist, venv = work / "home", work / "dist", work / "venv"
+        home.mkdir()
+        with console.status("Building the wheel and installing it into a new environment"):
+            subprocess.run(
+                ["uv", "build", "--wheel", "--out-dir", str(dist), "-q"], cwd=ROOT, check=True
+            )
+            [wheel] = dist.glob("*.whl")
+            subprocess.run(["uv", "venv", "-q", "--python", "3.12", str(venv)], check=True)
+            subprocess.run(
+                ["uv", "pip", "install", "-q", "--python", str(venv / "bin/python"), str(wheel)],
+                check=True,
+            )
+        failures = 0
+        shown = regents(venv, home, ["--version"]).stdout.strip()
+        if shown != f"regents {version}":
+            console.print(
+                f"[red]✗[/red] --version printed {escape(shown)!r}, not regents {version}"
+            )
+            failures += 1
+        walked = subprocess.run(
+            [str(venv / "bin/python"), "-I", "-c", HELP_WALK],
+            capture_output=True,
+            text=True,
+            cwd=home,
+            check=False,
+        )
+        helped = json.loads(walked.stdout) if walked.returncode == 0 else None
+        if helped is None or helped["failed"]:
+            failed = helped["failed"] if helped else [walked.stderr.strip()[-400:]]
+            console.print(f"[red]✗ --help failed:[/red] {escape(', '.join(failed))}")
+            failures += 1
+        else:
+            console.print(f"[green]✓[/green] --help prints for all {helped['commands']} commands")
+        for site in sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json")):
+            with console.status(f"Reading {site}"):
+                table, failed_here = check_site(site, venv, home)
+            console.print(table)
+            failures += failed_here
+    if failures:
+        console.print(
+            f"[bold red]{failures} live check{'s' if failures > 1 else ''} failed.[/bold red]"
+        )
+        return 1
+    console.print(
+        f"[bold green]regents {version}, installed from its wheel, reads every live site "
+        "as pinned.[/bold green]"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

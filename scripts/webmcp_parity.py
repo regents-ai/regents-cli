@@ -8,15 +8,24 @@ both call the same route (method and path, whatever the path's placeholders are 
 report lists, for each site, the tools no command does, the commands no tool does, and the
 commands that name a tool the site's list does not have. Tools regents does itself, and tools
 and commands that are site-only or command-line-only by design, are listed apart and are not
-gaps. It shows gaps and never fails a release.
+gaps. The report shows gaps and never fails a release.
 
-    uv run scripts/webmcp_parity.py
+The feature map, docs/feature-map.md, is the same comparison written down: every command with
+the route it calls, who may call it, what it changes and the tool that does the same, then
+every tool no command does and why. `make sync` writes it after moving a pin, and `make check`
+fails when it is not the map of the pinned copies, so a new gap is seen in the change that
+makes it.
+
+    uv run scripts/webmcp_parity.py           # print the report
+    uv run scripts/webmcp_parity.py --write   # write docs/feature-map.md
+    uv run scripts/webmcp_parity.py --check   # fail when docs/feature-map.md is out of date
 """
 
 from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +35,11 @@ from rich.table import Table
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
 TOOL_MANIFESTS = ROOT / "tool_manifests"
+LOCK = ROOT / "platforms.lock.json"
+FEATURE_MAP = ROOT / "docs/feature-map.md"
+
+#: Who may call a command, from its `authority`.
+WHO = {"public": "anyone", "signed_agent": "signed-in agent", "paired_agent": "paired agent"}
 
 #: Tools whose job `regents` does with its own commands rather than a site command.
 COVERED_BY_CLI: dict[str, dict[str, str]] = {
@@ -40,13 +54,15 @@ COVERED_BY_CLI: dict[str, dict[str, str]] = {
 
 #: Commands with no tool on purpose: no site page or tool does them.
 CLI_ONLY: dict[str, dict[str, str]] = {
-    "*": {"agents pair": "a person's pairing code is redeemed from the command line"},
+    "*": {
+        "agents pair": "a person's pairing code is redeemed from the command line",
+        "health": "a plain up-or-down read for scripts",
+    },
     "techtree": {
         "model-climb reports": "private reports have no site page or tool",
         "model-climb report <digest>": "private reports have no site page or tool",
     },
     "patchbay": {
-        "health": "a plain up-or-down read for scripts",
         "payments get <id>": "get_payment_status is the owner's tool, not an agent's",
         "payments complete <id>": "the signer finishes its own payment; no tool does this step",
         "assist free": "asks for a free fix; the tools offer only the paid one",
@@ -57,6 +73,16 @@ CLI_ONLY: dict[str, dict[str, str]] = {
 #: Tools with no command on purpose: guides to the site, cards drawn in a page, and the owner's
 #: own website actions.
 SITE_ONLY: dict[str, dict[str, str]] = {
+    "*": {
+        "about": "reads the about page",
+        "docs": "reads the docs page",
+        "show_autolaunch_webmcp_tools": "opens a card on the home page",
+        "show_keyfleet_webmcp_tools": "opens a card on the home page",
+        "show_patchbay_webmcp_tools": "opens a card on the home page",
+        "show_regents_webmcp_tools": "opens a card on the home page",
+        "show_techtree_webmcp_tools": "opens a card on the home page",
+        "show_siwa_connection_help": "opens a card on the home page",
+    },
     "patchbay": {
         "get_payment_status": "the owner's tool; agents use payments get",
         "hello": "the owner's tool",
@@ -73,16 +99,7 @@ SITE_ONLY: dict[str, dict[str, str]] = {
         "finish_patchbay_room_call": "a room's own tool, run from the room's page",
         "request_patchbay_repair": "a room's own tool, run from the room's page",
     },
-    "keyfleet": {"about": "reads the about page", "docs": "reads the docs page"},
-    "protocol": {
-        "regents_about": "reads the about and docs pages",
-        "show_autolaunch_webmcp_tools": "opens a card on the home page",
-        "show_keyfleet_webmcp_tools": "opens a card on the home page",
-        "show_patchbay_webmcp_tools": "opens a card on the home page",
-        "show_regents_webmcp_tools": "opens a card on the home page",
-        "show_techtree_webmcp_tools": "opens a card on the home page",
-        "show_siwa_connection_help": "opens a card on the home page",
-    },
+    "protocol": {"regents_about": "reads the about and docs pages"},
 }
 
 console = Console(highlight=False)
@@ -100,12 +117,13 @@ def compare(name: str) -> dict[str, Any]:
     tools = json.loads((TOOL_MANIFESTS / f"{name}.json").read_text("utf-8"))["tools"]
     covered = {**COVERED_BY_CLI["*"], **COVERED_BY_CLI.get(name, {})}
     cli_only = {**CLI_ONLY["*"], **CLI_ONLY.get(name, {})}
-    site_only = SITE_ONLY.get(name, {})
+    site_only = {**SITE_ONLY["*"], **SITE_ONLY.get(name, {})}
     tool_names = {tool["name"] for tool in tools}
     tool_routes = {tool["name"]: routes(tool.get("route")) for tool in tools}
     done_by: dict[str, list[str]] = {tool: [] for tool in tool_names}
     lone_commands: list[str] = []
     unknown_tools: list[tuple[str, str]] = []
+    rows: list[dict[str, Any]] = []
     for command in commands:
         route = routes(f"{command['method']} {command['path']}")
         named = command.get("webmcp")
@@ -116,6 +134,7 @@ def compare(name: str) -> dict[str, Any]:
             matched.add(named)
         for tool in matched:
             done_by[tool].append(command["command"])
+        rows.append({**command, "tools": sorted(matched)})
         if not matched and command["command"] not in cli_only:
             lone_commands.append(command["command"])
     lone_tools = sorted(
@@ -128,6 +147,8 @@ def compare(name: str) -> dict[str, Any]:
         "lone_tools": lone_tools,
         "lone_commands": lone_commands,
         "unknown_tools": unknown_tools,
+        "rows": rows,
+        "done_by": done_by,
         "covered": {tool: how for tool, how in covered.items() if tool in tool_names},
         "site_only": {tool: why for tool, why in site_only.items() if tool in tool_names},
         "cli_only": {
@@ -138,8 +159,61 @@ def compare(name: str) -> dict[str, Any]:
     }
 
 
-def main() -> int:
-    sites = [compare(manifest.stem) for manifest in sorted(TOOL_MANIFESTS.glob("*.json"))]
+def command_state(site: dict[str, Any], row: dict[str, Any]) -> str:
+    named = row.get("webmcp")
+    if named is not None and named not in site["done_by"]:
+        return f"**names `{named}`, which the site does not list**"
+    if row["tools"]:
+        return ", ".join(f"`{tool}`" for tool in row["tools"])
+    if row["command"] in site["cli_only"]:
+        return f"command line only: {site['cli_only'][row['command']]}"
+    return "**no tool**"
+
+
+def tool_state(site: dict[str, Any], tool: str) -> str:
+    if tool in site["covered"]:
+        return f"done by regents itself: {site['covered'][tool]}"
+    if tool in site["site_only"]:
+        return f"site only: {site['site_only'][tool]}"
+    return "**no command**"
+
+
+def feature_map(sites: list[dict[str, Any]]) -> str:
+    lock = json.loads(LOCK.read_text("utf-8"))
+    lines = [
+        "# Feature map",
+        "",
+        "Every `regents` command for a site, the route it calls, who may call it, what it changes",
+        "and the site's WebMCP tool that does the same; then each tool no command does, and why.",
+        "Written from the pinned copies by `uv run scripts/webmcp_parity.py --write`; `make check`",
+        "fails when this file is out of date. A **bold** entry is a gap.",
+    ]
+    for site in sites:
+        pin = lock[site["name"]]
+        gaps = len(site["lone_tools"]) + len(site["lone_commands"]) + len(site["unknown_tools"])
+        lines += [
+            "",
+            f"## {site['name']}",
+            "",
+            f"{pin['repository']} at `{pin['commit']}`: {site['commands']} commands, "
+            f"{site['tools']} tools, {gaps or 'no'} gap{'' if gaps == 1 else 's'}.",
+            "",
+            "| Command | Route | Who | Changes | WebMCP tool |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+        lines += [
+            f"| `{row['command']}` | `{row['method']} {row['path']}` | {WHO[row['authority']]} "
+            f"| {row['effect']} | {command_state(site, row)} |"
+            for row in site["rows"]
+        ]
+        lone = sorted(tool for tool, by in site["done_by"].items() if not by)
+        if lone:
+            lines += ["", "| Tool with no command | Why |", "| --- | --- |"]
+            lines += [f"| `{tool}` | {tool_state(site, tool)} |" for tool in lone]
+    return "\n".join(lines) + "\n"
+
+
+def report(sites: list[dict[str, Any]]) -> None:
     summary = Table(title="WebMCP tools and regents commands, from the pinned copies")
     for column in ("Site", "Tools", "Commands", "Tools with no command", "Commands with no tool"):
         summary.add_column(column, justify="left" if column == "Site" else "right")
@@ -169,8 +243,30 @@ def main() -> int:
         for command, why in site["cli_only"].items():
             table.add_row("[dim]Command line only[/dim]", f"[dim]{command}: {why}[/dim]")
         console.print(table)
+
+
+def main(args: list[str]) -> int:
+    if args not in ([], ["--write"], ["--check"]):
+        console.print(f"[red]unknown arguments:[/red] {' '.join(args)}")
+        return 2
+    sites = [compare(manifest.stem) for manifest in sorted(TOOL_MANIFESTS.glob("*.json"))]
+    if not args:
+        report(sites)
+        return 0
+    written = feature_map(sites)
+    if args == ["--write"]:
+        FEATURE_MAP.write_text(written, "utf-8")
+        console.print(f"wrote {FEATURE_MAP.relative_to(ROOT)}")
+        return 0
+    if not FEATURE_MAP.is_file() or FEATURE_MAP.read_text("utf-8") != written:
+        console.print(
+            f"[red]{FEATURE_MAP.relative_to(ROOT)} is not the map of the pinned copies.[/red] "
+            "Run uv run scripts/webmcp_parity.py --write and read what changed."
+        )
+        return 1
+    console.print(f"{FEATURE_MAP.relative_to(ROOT)} is the map of the pinned copies")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))

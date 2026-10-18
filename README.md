@@ -204,4 +204,10 @@ uv run regents --help
 make check
 ```
 
+`make check` runs the linters, the type checker, the tests and the wheel check, and fails when
+[docs/feature-map.md](docs/feature-map.md), the map of every site's commands and WebMCP tools, is
+out of date; `make sync` rewrites it. Before a release, `make release-check` also installs the
+wheel into a new environment and runs every public read against the live sites, checking each
+answer against the site's pinned API description.
+
 MIT licensed.

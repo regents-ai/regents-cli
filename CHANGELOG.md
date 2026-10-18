@@ -13,6 +13,12 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - An `account_missing` or `person_not_here` refusal with no hint no longer crashes `regents`.
 - A decimal value, such as an Autolaunch bid amount, accepts only the digits 0 to 9 and one point.
   Before, digits from other scripts, such as `١٢`, were accepted and sent to the site.
+- `docs/feature-map.md` lists every command of every pinned site: its route, who may run it,
+  whether it changes anything, and its WebMCP tool, with each tool that has no command and why.
+  `make sync` writes it and `make check` fails when it is out of date.
+- `make release-check` now installs the wheel into a new environment, runs every public read of
+  every site against the live site, and checks each answer against the site's pinned API
+  description. Nothing signed runs.
 - Three property tests check, on many generated inputs, that any refusal reaches the person,
   that `--phase prepare` and `--phase send` send the same bytes with the same digest, and that
   every command `regents` prints to run again sends the same request.
