@@ -60,7 +60,7 @@ TYPES: dict[str, click.ParamType[Any]] = {
     "address": Pattern(
         "an address", r"0x[0-9a-fA-F]{40}", "0x4200000000000000000000000000000000000006"
     ),
-    "decimal": Pattern("a decimal number", r"\d+(\.\d+)?", "1.25"),
+    "decimal": Pattern("a decimal number", r"[0-9]+(\.[0-9]+)?", "1.25"),
 }
 
 

@@ -3,6 +3,20 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- A site's refusal now always reaches you as one error with its code, its message and what to do
+  next, whatever its fields are named. Before, an error field named `exit_code` crashed
+  `regents`, a field named `next_steps` was shown as `regents`'s own next steps, and a payment
+  answer (402) carrying a `code` or `message` crashed it. A site's own fields still travel in the
+  error as data.
+- An `account_missing` or `person_not_here` refusal with no hint no longer crashes `regents`.
+- A decimal value, such as an Autolaunch bid amount, accepts only the digits 0 to 9 and one point.
+  Before, digits from other scripts, such as `١٢`, were accepted and sent to the site.
+- Three property tests check, on many generated inputs, that any refusal reaches the person,
+  that `--phase prepare` and `--phase send` send the same bytes with the same digest, and that
+  every command `regents` prints to run again sends the same request.
+
 ## 1.10.15 — 2026-10-18
 
 - Keyfleet is pinned to `502b2dd`, live as v87. It adds three commands for a fleet's notebooks:

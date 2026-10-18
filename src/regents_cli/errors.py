@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Final
 
 if TYPE_CHECKING:
@@ -49,6 +49,17 @@ class CommandError(Exception):
         self.exit_code = exit_code
         self.next_steps = tuple(next_steps)
         self.fields = fields
+
+    @classmethod
+    def refused(
+        cls, code: str, message: str, *, exit_code: int, fields: Mapping[str, Any]
+    ) -> CommandError:
+        """A site's refusal. The site's fields travel in the error whatever they are named, as
+        data: one named exit_code or next_steps changes nothing, and code and message are always
+        these."""
+        error = cls(code, message, exit_code=exit_code)
+        error.fields = {k: v for k, v in fields.items() if k not in ("code", "message")}
+        return error
 
     def as_json(self) -> dict[str, Any]:
         return {"error": {"code": self.code, "message": self.message, **self.fields}}
