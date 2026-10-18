@@ -238,30 +238,43 @@ def regents(monkeypatch: pytest.MonkeyPatch, args: list[str], stdin: str) -> str
     return shown.getvalue()
 
 
-SIGNED = [
-    (PLATFORMS["ash-template"], "rooms post <room>"),
-    (PLATFORMS["keyfleet"], "rooms sync <fleet>"),
-    (PLATFORMS["keyfleet"], "polls vote <fleet> <poll> <choice>"),
-]
+SIGNED = [(platform, command) for platform, command in COMMANDS if command.signed]
 
 
-@given(st.data())
+def flags_for(command: Command, data: st.DataObject) -> list[str]:
+    """Each flag the command needs, and any of the others, as typed."""
+    given = {
+        spec.name: data.draw(value_for(spec) if spec.required else st.none() | value_for(spec))
+        for spec in command.flags
+    }
+    if command.required_one_of and all(given[name] is None for name in command.required_one_of):
+        name = data.draw(st.sampled_from(command.required_one_of))
+        given[name] = data.draw(value_for(next(f for f in command.flags if f.name == name)))
+    return [
+        part
+        for name, value in given.items()
+        if value is not None
+        for part in (f"--{name}", str(value))
+    ]
+
+
+@pytest.mark.parametrize(
+    "pair", SIGNED, ids=lambda pair: f"{pair[0].name} {' '.join(pair[1].words)}"
+)
+@given(data=st.data())
 @settings(
-    deadline=None, max_examples=60, suppress_health_check=[HealthCheck.function_scoped_fixture]
+    deadline=None, max_examples=8, suppress_health_check=[HealthCheck.function_scoped_fixture]
 )
 def test_what_is_prepared_is_what_is_sent(
-    signed_in: list[Request], monkeypatch: pytest.MonkeyPatch, data: st.DataObject
+    pair: tuple[Platform, Command],
+    signed_in: list[Request],
+    monkeypatch: pytest.MonkeyPatch,
+    data: st.DataObject,
 ) -> None:
-    platform, name = data.draw(st.sampled_from(SIGNED))
-    [command] = [c for c in platform.commands if " ".join(c.words) == name]
+    platform, command = pair
     filled = {spec.name: str(data.draw(value_for(spec))) for spec in command.arguments}
     words = [filled[word[1:-1]] if word.startswith("<") else word for word in command.words]
-    flags = [
-        part
-        for spec in command.flags
-        if (value := data.draw(st.none() | value_for(spec))) is not None
-        for part in (f"--{spec.name}", str(value))
-    ]
+    flags = flags_for(command, data)
     args = [platform.name, *words, *flags]
     stdin = json.dumps(data.draw(stdin_for(command)))
     signed_in.clear()
@@ -275,12 +288,17 @@ def test_what_is_prepared_is_what_is_sent(
     )
 
     [sent] = signed_in
-    body = ready["body"].encode("utf-8")
     assert sent.target == ready["path"]
-    assert sent.content == body
     assert {k: v for k, v in sent.headers.items() if k in ready["headers"]} == ready["headers"]
-    digest = base64.b64encode(hashlib.sha256(body).digest()).decode()
-    assert sent.headers["content-digest"] == f"sha-256=:{digest}:"
+    if "body" in ready:
+        body = ready["body"].encode("utf-8")
+        assert sent.content == body
+        digest = base64.b64encode(hashlib.sha256(body).digest()).decode()
+        assert sent.headers["content-digest"] == f"sha-256=:{digest}:"
+    else:
+        body = b""
+        assert sent.content is None
+        assert "content-digest" not in sent.headers
     wire = httpx.Request(sent.method, platform.base_url + sent.target, content=body)
     assert wire.url.raw_path == sent.target.encode("ascii")
     assert wire.content == body

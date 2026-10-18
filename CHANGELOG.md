@@ -33,8 +33,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   any answer is named as unchecked. It opens with the commit it ran on and whether the tree is
   clean.
 - Three property tests check, on many generated inputs, that any refusal reaches the person,
-  that `--phase prepare` and `--phase send` send the same bytes with the same digest, and that
-  every command `regents` prints to run again sends the same request.
+  that `--phase prepare` and `--phase send` send the same bytes with the same digest on every
+  one of the 142 signed commands, and that every command `regents` prints to run again sends
+  the same request.
 
 ## 1.10.15 — 2026-10-18
 
