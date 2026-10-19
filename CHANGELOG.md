@@ -19,6 +19,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   answer. Before, the first crashed `regents` and the second reached `--json` output, which other
   JSON readers then refused.
 - "Wait N seconds" reads N only as the digits 0 to 9; anything else says "wait a minute".
+- A command `regents` prints for you to run next works when one of its values starts with "-":
+  it puts `--` before the values then. Before, the next page of
+  `regents patchbay tools catalog -- -a b` was printed as
+  `regents patchbay tools catalog -a b --after c1`, which failed as an unknown option. The flags
+  `regents` adds, such as `--phase send` and `--json`, always come before the values.
 - An `account_missing` or `person_not_here` refusal with no hint no longer crashes `regents`.
 - A decimal value, such as an Autolaunch bid amount, accepts only the digits 0 to 9 and one point.
   Before, digits from other scripts, such as `١٢`, were accepted and sent to the site.
@@ -32,10 +37,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   is signed and nothing of the machine's own setup reaches it. A read whose pinned shape accepts
   any answer is named as unchecked. It opens with the commit it ran on and whether the tree is
   clean.
-- Three property tests check, on many generated inputs, that any refusal reaches the person,
-  that `--phase prepare` and `--phase send` send the same bytes with the same digest on every
-  one of the 142 signed commands, and that every command `regents` prints to run again sends
-  the same request.
+- Tests now try many made-up inputs and check three things. A site's refusal always reaches
+  you. On every one of the 142 signed commands, the send command `regents` prints after
+  `--phase prepare` sends exactly what was prepared, with every value you gave in its place.
+  Every command `regents` prints for you to run again, including a next page and a site's
+  follow-up, runs with the same values.
 
 ## 1.10.15 — 2026-10-18
 

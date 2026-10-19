@@ -141,11 +141,11 @@ def test_a_202_is_followed_as_the_site_describes() -> None:
     finish it."""
     patchbay = next(p for p in pinned_platforms() if p.name == "patchbay")
     execute = next(c for c in patchbay.commands if c.words[:2] == ("payments", "execute"))
-    line = ["regents", "patchbay", "payments", "execute", "x"]
-    (unfinished,) = after(patchbay, execute, {"status": "settled"}, line, [], finished=False)
+    given = {spec.name: "x" if spec.required else None for spec in execute.inputs}
+    (unfinished,) = after(patchbay, execute, {"status": "settled"}, given, [], finished=False)
     assert unfinished.command == "regents patchbay payments --help"
     assert "payments complete" in unfinished.say
-    assert after(patchbay, execute, {}, line, [], finished=True)[0].kind == "done"
+    assert after(patchbay, execute, {}, given, [], finished=True)[0].kind == "done"
 
 
 def test_a_stopped_forge_start_is_read_back_before_another(tmp_path: Path) -> None:

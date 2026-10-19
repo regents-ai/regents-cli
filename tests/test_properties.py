@@ -19,9 +19,10 @@ import io
 import json
 import shlex
 import unicodedata
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote
+from urllib.parse import parse_qsl, unquote
 
 import click
 import httpx
@@ -29,24 +30,24 @@ import pytest
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 
-from regents_cli import app, output, runner, siwa
+from regents_cli import app, output, runner
 from regents_cli.errors import CommandError
-from regents_cli.http import Request, answer
+from regents_cli.http import answer
 from regents_cli.next_steps import Step, for_failure
-from regents_cli.platforms import Command, Input, Platform, pinned_platforms
+from regents_cli.platforms import Command, FollowUp, Input, Platform, pinned_platforms
 
 ROOT = app.root()
 PLATFORMS = {platform.name: platform for platform in pinned_platforms()}
 COMMANDS = [(platform, command) for platform in PLATFORMS.values() for command in platform.commands]
 SIGNATURE = "0x" + "ab" * 65
 
-#: A value a person or agent types: any text but a NUL, and not starting with "-". A printed
-#: command puts no `--` before its values yet, so one starting with "-" reads as a flag when it
-#: runs again (docs/backlogs/regents-cli.md in the workspace).
+#: A value a person or agent types: any text but a NUL, including text that starts with "-".
 TYPED = (
     st.text(st.characters(blacklist_categories=["Cs"], blacklist_characters="\x00"), min_size=1)
     | st.text(st.sampled_from("/?#%&=+ ;:@.~_'\"aZ09é"), min_size=1)
-).filter(lambda text: not text.startswith("-") and text not in (".", ".."))
+    | st.text(st.sampled_from("-ah"), min_size=1).map(lambda text: "-" + text)
+    | st.sampled_from(["-", "--", "--json", "--phase", "--base-url", "--timeout-ms", "--help"])
+).filter(lambda text: text not in (".", ".."))
 JSON = st.recursive(
     st.none()
     | st.booleans()
@@ -185,8 +186,9 @@ def test_any_refusal_reaches_the_person(
 
 
 @pytest.fixture
-def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[Request]:
-    """An agent home signed in to every site, and the requests sent instead of reaching one."""
+def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[httpx.Request]:
+    """An agent home signed in to every site, and each request exactly as it leaves for the
+    site, which none reaches."""
     home = tmp_path / "agent"
     (home / "receipts").mkdir(parents=True, mode=0o700)
     home.chmod(0o700)
@@ -206,13 +208,15 @@ def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[Request]:
         (home / name).write_text(json.dumps(content), "utf-8")
         (home / name).chmod(0o600)
     monkeypatch.setenv("SIWA_AGENT_HOME", str(home))
-    sent: list[Request] = []
+    sent: list[httpx.Request] = []
 
-    def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
-        sent.append(request)
+    def request(method: str, url: str, **sending: Any) -> httpx.Response:
+        sent.append(
+            httpx.Request(method, url, content=sending["content"], headers=sending["headers"])
+        )
         return httpx.Response(200, json={})
 
-    monkeypatch.setattr(runner, "respond", respond)
+    monkeypatch.setattr(httpx, "request", request)
     return sent
 
 
@@ -233,7 +237,7 @@ def regents(monkeypatch: pytest.MonkeyPatch, args: list[str], stdin: str) -> str
     monkeypatch.setattr("sys.stdin", io.StringIO(stdin))
     shown = io.StringIO()
     with contextlib.redirect_stdout(shown), contextlib.redirect_stderr(io.StringIO()):
-        code = app.main([*args, "--json"])
+        code = app.main(args)
     assert code == 0, shown.getvalue()
     return shown.getvalue()
 
@@ -241,8 +245,8 @@ def regents(monkeypatch: pytest.MonkeyPatch, args: list[str], stdin: str) -> str
 SIGNED = [(platform, command) for platform, command in COMMANDS if command.signed]
 
 
-def flags_for(command: Command, data: st.DataObject) -> list[str]:
-    """Each flag the command needs, and any of the others, as typed."""
+def flags_for(command: Command, data: st.DataObject) -> dict[str, Any]:
+    """Each flag the command needs, and any of the others."""
     given = {
         spec.name: data.draw(value_for(spec) if spec.required else st.none() | value_for(spec))
         for spec in command.flags
@@ -250,12 +254,7 @@ def flags_for(command: Command, data: st.DataObject) -> list[str]:
     if command.required_one_of and all(given[name] is None for name in command.required_one_of):
         name = data.draw(st.sampled_from(command.required_one_of))
         given[name] = data.draw(value_for(next(f for f in command.flags if f.name == name)))
-    return [
-        part
-        for name, value in given.items()
-        if value is not None
-        for part in (f"--{name}", str(value))
-    ]
+    return given
 
 
 @pytest.mark.parametrize(
@@ -267,49 +266,68 @@ def flags_for(command: Command, data: st.DataObject) -> list[str]:
 )
 def test_what_is_prepared_is_what_is_sent(
     pair: tuple[Platform, Command],
-    signed_in: list[Request],
+    signed_in: list[httpx.Request],
     monkeypatch: pytest.MonkeyPatch,
     data: st.DataObject,
 ) -> None:
     platform, command = pair
-    filled = {spec.name: str(data.draw(value_for(spec))) for spec in command.arguments}
-    words = [filled[word[1:-1]] if word.startswith("<") else word for word in command.words]
-    flags = flags_for(command, data)
-    args = [platform.name, *words, *flags]
+    values = {spec.name: data.draw(value_for(spec)) for spec in command.arguments}
+    values |= flags_for(command, data)
+    names = [word for word in command.words if not word.startswith("<")]
+    flags = [
+        part
+        for spec in command.flags
+        if values[spec.name] is not None
+        for part in (f"--{spec.name}", str(values[spec.name]))
+    ]
     stdin = json.dumps(data.draw(stdin_for(command)))
     signed_in.clear()
 
-    ready = json.loads(regents(monkeypatch, [*args, "--phase", "prepare"], stdin))
-    ready.pop("next_steps")
-    regents(
-        monkeypatch,
-        [*args, "--phase", "send"],
-        json.dumps({"request": ready, "signature": SIGNATURE}),
-    )
+    prepare = [
+        platform.name,
+        *names,
+        *flags,
+        "--phase",
+        "prepare",
+        "--json",
+        "--",
+        *(str(values[spec.name]) for spec in command.arguments),
+    ]
+    ready = json.loads(regents(monkeypatch, prepare, stdin))
+    # The send step `regents` prints, as an agent runs it, with its own signature on stdin.
+    [step] = ready.pop("next_steps")
+    printed = shlex.split(step["command"])
+    send = printed[printed.index("|") + 2 :]
+    regents(monkeypatch, send, json.dumps({"request": ready, "signature": SIGNATURE}))
 
-    [sent] = signed_in
-    assert sent.target == ready["path"]
-    assert {k: v for k, v in sent.headers.items() if k in ready["headers"]} == ready["headers"]
-    if "body" in ready:
-        body = ready["body"].encode("utf-8")
-        assert sent.content == body
-        digest = base64.b64encode(hashlib.sha256(body).digest()).decode()
-        assert sent.headers["content-digest"] == f"sha-256=:{digest}:"
-    else:
-        body = b""
-        assert sent.content is None
-        assert "content-digest" not in sent.headers
-    wire = httpx.Request(sent.method, platform.base_url + sent.target, content=body)
-    assert wire.url.raw_path == sent.target.encode("ascii")
+    [wire] = signed_in
+    assert wire.url.raw_path == ready["path"].encode("ascii")
+    assert {name: wire.headers[name] for name in ready["headers"]} == ready["headers"]
+    body = ready["body"].encode("utf-8") if "body" in ready else b""
     assert wire.content == body
-    # Each value lands whole in its own segment of the route's path.
-    fields = {spec.field: filled[spec.name] for spec in command.arguments}
+    if body:
+        digest = base64.b64encode(hashlib.sha256(body).digest()).decode()
+        assert wire.headers["content-digest"] == f"sha-256=:{digest}:"
+    else:
+        assert "content-digest" not in wire.headers
+    # Each value reaches the site: whole in its own segment of the path, in the query or in
+    # the body.
     route = command.path.split("/")
     segments = wire.url.raw_path.decode().split("?")[0].split("/")
     assert len(segments) == len(route)
+    in_path = {
+        spec.field: str(values[spec.name]) for spec in command.inputs if spec.location == "path"
+    }
     for part, segment in zip(route, segments, strict=True):
-        assert unquote(segment) == fields[part[1:-1]] if part.startswith("{") else segment == part
-    assert siwa.rebuild(sent, ready["headers"])[1] == ready["message"]
+        assert unquote(segment) == in_path[part[1:-1]] if part.startswith("{") else segment == part
+    query = dict(parse_qsl(wire.url.query.decode("ascii"), keep_blank_values=True))
+    fields = json.loads(body) if body else {}
+    for spec in command.inputs:
+        value = values[spec.name]
+        if value is not None and spec.location == "query":
+            assert query[spec.field] == str(value)
+        elif value is not None and spec.location != "path":
+            assert fields[spec.field] == value
 
 
 def click_command(words: list[str]) -> tuple[click.Command, list[str]]:
@@ -322,6 +340,24 @@ def click_command(words: list[str]) -> tuple[click.Command, list[str]]:
     return command, words[at:]
 
 
+def read_back(printed: str) -> dict[str, Any]:
+    """What a printed command gives its command when it runs."""
+    parsed, rest = click_command(shlex.split(printed))
+    return parsed.make_context(parsed.name or "", rest).params
+
+
+def put(tree: dict[str, Any], dotted: str, value: Any) -> None:
+    """Set the value at a dotted path such as "pagination.next_cursor"."""
+    *parents, last = dotted.split(".")
+    for name in parents:
+        tree = tree.setdefault(name, {})
+    tree[last] = value
+
+
+#: The flags `regents` adds to each command it prints.
+SHARED = ["--base-url", "https://example.com", "--json"]
+
+
 @pytest.mark.parametrize(
     "pair", COMMANDS, ids=lambda pair: f"{pair[0].name} {' '.join(pair[1].words)}"
 )
@@ -331,13 +367,41 @@ def test_a_printed_command_runs_the_same_request(
     pair: tuple[Platform, Command], data: st.DataObject
 ) -> None:
     platform, command = pair
-    typed = {spec.name: data.draw(value_for(spec)) for spec in command.arguments}
-    typed |= {
+    values = {spec.name: data.draw(value_for(spec)) for spec in command.arguments}
+    values |= {
         spec.name: data.draw(value_for(spec) if spec.required else st.none() | value_for(spec))
         for spec in command.flags
     }
-    printed = shlex.join(runner.command_line(platform, command, typed))
-    parsed, rest = click_command(shlex.split(printed))
-    read = parsed.make_context(parsed.name or "", rest).params
-    again = {spec.name: read[spec.name.replace("-", "_")] for spec in command.inputs}
-    assert runner.request_for(command, again) == runner.request_for(command, typed)
+    # Each command `regents` prints, with the values it should run with: after --phase prepare,
+    # the next page, and a site's follow-up.
+    send = ["--phase", "send"] if command.signed else []
+    printed = [(runner.command_line(platform, command, values, [*SHARED, *send]), values)]
+    if command.pagination is not None:
+        flag = next(spec for spec in command.flags if spec.name == command.pagination.flag)
+        cursor = data.draw(value_for(flag))
+        page: dict[str, Any] = {}
+        put(page, command.pagination.has_more, True)
+        put(page, command.pagination.cursor, cursor)
+        step = runner.after(platform, command, page, values, SHARED, finished=True)[0]
+        printed.append((shlex.split(step.command or ""), {**values, flag.name: cursor}))
+    if not command.required_one_of and not any(spec.required for spec in command.flags):
+        # A site's follow-up that runs this same command, filled from its answer.
+        again = FollowUp(
+            "run",
+            "Run it again.",
+            " ".join(command.words),
+            {spec.name: f"again.{spec.name}" for spec in command.arguments},
+            None,
+        )
+        told = {"again": {spec.name: data.draw(value_for(spec)) for spec in command.arguments}}
+        follows = replace(command, next_steps=(again,))
+        step = runner.after(platform, follows, told, values, SHARED, finished=True)[0]
+        filled = {spec.name: None for spec in command.flags} | told["again"]
+        printed.append((shlex.split(step.command or ""), filled))
+    for line, expected in printed:
+        read = read_back(shlex.join(line))
+        read_values = {spec.name: read[spec.name.replace("-", "_")] for spec in command.inputs}
+        assert read_values == expected
+        assert (read["base_url"], read["as_json"]) == ("https://example.com", True)
+    phase = read_back(shlex.join(printed[0][0])).get("phase")
+    assert phase == ("send" if command.signed else None)

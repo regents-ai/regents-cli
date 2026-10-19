@@ -10,6 +10,7 @@ import json
 import re
 import sys
 import threading
+from collections.abc import Sequence
 from copy import deepcopy
 from dataclasses import replace
 from typing import Any
@@ -166,7 +167,6 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             raise UsageError("Give at least one of " + ", ".join(f"--{n}" for n in missing) + ".")
         base = base_address(base_url, platform.env_var, platform.base_url)
         request = request_for(command, given)
-        line = command_line(platform, command, given)
         shared = [*(["--base-url", base_url] if base_url else []), *(["--json"] if as_json else [])]
         if command.signed and phase == "send":
             request = signed_by_caller(command, base, request, timeout_ms)
@@ -175,12 +175,13 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             receipt = siwa.current(platform.site, timeout_ms)
             if phase == "prepare":
                 ready = prepared(base, request, receipt)
-                output.emit(ready, as_json=as_json, next_steps=[send_signed(ready, line, shared)])
+                again = command_line(platform, command, given, ["--phase", "send", *shared])
+                output.emit(ready, as_json=as_json, next_steps=[send_signed(ready, again)])
                 return
             request = replace(request, headers=siwa.sign(request, receipt))
         response = respond(base, request, timeout_ms)
         told = answer(response)
-        steps = after(platform, command, told, line, shared, finished=response.status_code != 202)
+        steps = after(platform, command, told, given, shared, finished=response.status_code != 202)
         output.emit(told, as_json=as_json, next_steps=steps)
 
     return click.Command(command.name, params=params, callback=run, help=help_text)
@@ -366,22 +367,34 @@ def prepared_body(command: Command, request: Request, text: Any) -> dict[str, An
     return body
 
 
-def command_line(platform: Platform, command: Command, given: dict[str, Any]) -> list[str]:
-    """The command as typed, from the values it was given."""
-    line = ["regents", platform.name]
-    line += [str(given[word[1:-1]]) if word.startswith("<") else word for word in command.words]
-    for spec in command.flags:
-        if given[spec.name] is not None:
-            line += [f"--{spec.name}", str(given[spec.name])]
-    return line
+def command_line(
+    platform: Platform, command: Command, given: dict[str, Any], extra: Sequence[str]
+) -> list[str]:
+    """The command, from the values it was given: its words, its flags and the extra flags,
+    then its values."""
+    names = [word for word in command.words if not word.startswith("<")]
+    flags = [
+        part
+        for spec in command.flags
+        if given[spec.name] is not None
+        for part in (f"--{spec.name}", str(given[spec.name]))
+    ]
+    values = [str(given[spec.name]) for spec in command.arguments]
+    return typed(["regents", platform.name, *names, *flags, *extra], values)
 
 
-def send_signed(ready: dict[str, Any], line: list[str], shared: list[str]) -> Step:
+def typed(words: Sequence[str], values: Sequence[str]) -> list[str]:
+    """Words and flags, then values: after `--` when one starts with "-", so none reads as a
+    flag."""
+    return [*words, *(["--"] if any(value.startswith("-") for value in values) else []), *values]
+
+
+def send_signed(ready: dict[str, Any], line: list[str]) -> Step:
     """After --phase prepare: the prepared request back, with the signature of its message."""
     piped = json.dumps({"request": ready, "signature": "<signature of message>"})
     return run_piped(
         piped,
-        [*line, "--phase", "send", *shared],
+        line,
         "Sign message with your own key, put the signature in place of <signature of message>, "
         "and send it.",
     )
@@ -391,7 +404,7 @@ def after(
     platform: Platform,
     command: Command,
     answer: dict[str, Any],
-    line: list[str],
+    given: dict[str, Any],
     shared: list[str],
     *,
     finished: bool,
@@ -405,7 +418,9 @@ def after(
         if dig(answer, command.pagination.has_more) is True and cursor is not None:
             steps.append(
                 run_step(
-                    [*with_flag(line, command.pagination.flag, str(cursor)), *shared],
+                    command_line(
+                        platform, command, {**given, command.pagination.flag: cursor}, shared
+                    ),
                     "Read the next page, if you need more than this one.",
                 )
             )
@@ -413,13 +428,12 @@ def after(
         if follow_up.kind != "run" or follow_up.command is None:
             steps.append(Step(follow_up.kind, follow_up.say, url=follow_up.url))
             continue
-        filled = [
-            dig(answer, follow_up.arguments[word[1:-1]]) if word.startswith("<") else word
-            for word in follow_up.command.split(" ")
-        ]
-        if all(isinstance(word, str | int) and str(word) for word in filled):
-            words = [str(word) for word in filled]
-            steps.append(run_step(["regents", platform.name, *words, *shared], follow_up.say))
+        words = follow_up.command.split(" ")
+        filled = [dig(answer, follow_up.arguments[w[1:-1]]) for w in words if w.startswith("<")]
+        if all(isinstance(value, str | int) and str(value) for value in filled):
+            names = [word for word in words if not word.startswith("<")]
+            line = typed(["regents", platform.name, *names, *shared], [str(v) for v in filled])
+            steps.append(run_step(line, follow_up.say))
     if command.words == WHOAMI and unpaired(answer.get("data")):
         steps += pair_first(platform.name)
     whoami = any(c.words == WHOAMI for c in platform.commands)
@@ -456,15 +470,6 @@ DONE = {
 def unpaired(identity: Any) -> bool:
     """Whether an `agents whoami` answer's data says no person's account is paired."""
     return isinstance(identity, dict) and "pairing" in identity and identity["pairing"] is None
-
-
-def with_flag(line: list[str], flag: str, value: str) -> list[str]:
-    """The command line with --flag set to value, in place of any value it had."""
-    name = f"--{flag}"
-    if name in line:
-        at = line.index(name)
-        return [*line[: at + 1], value, *line[at + 2 :]]
-    return [*line, name, value]
 
 
 def dig(value: Any, dotted: str) -> Any:
