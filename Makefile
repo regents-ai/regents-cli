@@ -1,5 +1,11 @@
 .PHONY: check release-check sync
 
+# The seed for the tests that try many made-up inputs; a failed run replays with
+# `make check SEED=<the seed it printed>`.
+ifndef SEED
+SEED := $(shell od -An -N4 -tu4 /dev/urandom | tr -d ' ')
+endif
+
 # Every gate, run here before each commit and by the publish workflow before it builds.
 check:
 	uv run ruff format --check
@@ -8,7 +14,8 @@ check:
 	uv run scripts/sync_platforms.py --copies
 	uv run python -m regents_cli.check_commands
 	uv run scripts/features.py --check
-	uv run pytest -q
+	@echo "Made-up inputs from seed $(SEED)"
+	uv run pytest -q --hypothesis-seed=$(SEED)
 	uv run scripts/check_wheel.py
 
 # Before each release, on the founder's machine: every gate, and the lock's sha256 for each

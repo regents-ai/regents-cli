@@ -209,9 +209,10 @@ uv run regents --help
 make check
 ```
 
-`make check` runs the linters, the type checker, the tests and the wheel check. A test that
-reaches past this machine fails, and on a Mac the Touch ID sign-in runs whole in headless
-Chromium with a virtual Touch ID. It also fails when
+`make check` runs the linters, the type checker, the tests and the wheel check. It prints the
+seed of the tests that try many made-up inputs; `make check SEED=<seed>` runs them again the
+same way. A test that reaches past this machine fails, and on a Mac the Touch ID sign-in runs
+whole in headless Chromium with a virtual Touch ID. It also fails when
 [verification/features.yml](verification/features.yml), the feature map, is out of date or leaves
 out a file changed since the last release; `make sync` rewrites it. The map lists each feature
 with who uses it, how much is at stake, its files, its proofs and its known gaps, and every site

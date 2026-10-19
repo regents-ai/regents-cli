@@ -5,6 +5,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.15 — 2026-10-19
 
+Evidence: level protected; features sign-in, signed-requests, touch-id-key,
+techtree-model-sign-in and release-gates; 506 tests; 5 known gaps in verification/features.yml.
+
 - `regents auth register` builds the agent's registry listing itself and signs only that: a call
   to `register` on the agent registry `0x8004a169fb4a3325136eb29fa0ceb6d2e539a432` on Base,
   listing the agent's profile, with no ETH sent beyond gas. When the sign-in server's step
@@ -29,6 +32,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - The Touch ID page is the live sign-in server's own page, byte for byte (siwa-server
   `e436b61`). `make release-check` fails when they differ. Its titles are new, the message for
   your agent is shorter and hidden once you have finished, and an error reads as one plain line.
+- `make check` prints the seed of the tests that try many made-up inputs, and
+  `make check SEED=<seed>` runs them again the same way.
 - Tests can no longer reach past this machine: a test that connects anywhere but this machine
   fails, even when the code it runs catches the refusal or a proxy on this machine is named.
 - `regents auth login` on a Mac is tested whole in a headless browser with a virtual Touch ID:
