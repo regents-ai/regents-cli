@@ -205,9 +205,13 @@ make check
 ```
 
 `make check` runs the linters, the type checker, the tests and the wheel check, and fails when
-[docs/feature-map.md](docs/feature-map.md), the map of every site's commands and WebMCP tools, is
-out of date; `make sync` rewrites it. Before a release, `make release-check` also installs the
-wheel into a new environment and runs every public read against the live sites, checking each
-answer against the site's pinned API description.
+[verification/features.yml](verification/features.yml), the feature map, is out of date or leaves
+out a file changed since the last release; `make sync` rewrites it. The map lists each feature
+with who uses it, how much is at stake, its files, its proofs and its known gaps, and every site
+command beside the site's WebMCP tool for it. Before a release, `make release-check` also installs
+the wheel into a new environment, runs every public read against the live sites, checking each
+answer against the site's pinned API description, and fails when a protected feature the release
+touches has no property test or no end-to-end test. `uv run scripts/record_replays.py` records
+the live reads again into tests/replays/, which the tests replay offline.
 
 MIT licensed.

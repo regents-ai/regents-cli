@@ -25,6 +25,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -156,6 +157,28 @@ def dig(value: Any, dotted: str) -> Any:
     return value
 
 
+def words_for(run: Run, ran: dict[str, Any]) -> list[str] | None:
+    """The words of `run` after `regents <site>`, each `<input>` filled in from `ran`, the earlier
+    runs' answers by line; None when an earlier answer has no value for one."""
+    values = {
+        key: given if isinstance(given, str) else dig(ran.get(given[0]), given[1])
+        for key, given in run.inputs.items()
+    }
+    if any(
+        isinstance(v, bool) or not isinstance(v, str | int) or not str(v) for v in values.values()
+    ):
+        return None
+    return [
+        str(values[word[1:-1]]) if PLACEHOLDER.fullmatch(word) else word
+        for word in run.line.split(" ")
+    ]
+
+
+def command_for(run: Run, commands: Iterable[str]) -> str | None:
+    """The described command `run` runs: its line, or the start of it."""
+    return next((n for n in commands if run.line == n or run.line.startswith(n + " ")), None)
+
+
 def read_document(path: Path) -> Any:
     text = path.read_text("utf-8")
     return yaml.safe_load(text) if path.suffix == ".yaml" else json.loads(text)
@@ -280,27 +303,17 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int, list[str]
     covered = set()
     shapes = answer_shapes(site)
     for run in runs:
-        name = next((n for n in commands if run.line == n or run.line.startswith(n + " ")), None)
+        name = command_for(run, commands)
         if name is None or name not in public_reads:
             table.add_row(run.line, "[red]✗ not a public read in the pinned description[/red]", "")
             failures += 1
             continue
         covered.add(name)
-        values = {
-            key: given if isinstance(given, str) else dig(ran.get(given[0]), given[1])
-            for key, given in run.inputs.items()
-        }
-        if any(
-            isinstance(v, bool) or not isinstance(v, str | int) or not str(v)
-            for v in values.values()
-        ):
+        words = words_for(run, ran)
+        if words is None:
             table.add_row(run.line, "[red]✗ an earlier answer had no value to read with[/red]", "")
             failures += 1
             continue
-        words = [
-            str(values[word[1:-1]]) if PLACEHOLDER.fullmatch(word) else word
-            for word in run.line.split(" ")
-        ]
         expected = exit_code_for(run.refuses[1]) if run.refuses else 0
         readable = regents(venv, home, [site, *words])
         machine = regents(venv, home, [site, *words, "--json"])

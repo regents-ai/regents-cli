@@ -1,0 +1,408 @@
+[
+  {
+    "command": "results list",
+    "words": [
+      "results",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://techtree.sh/api/v1/publications",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "entries": [
+          {
+            "accepted_at": "2026-10-04T23:26:20.112618Z",
+            "bundle_digest": "sha256:3ddbd9d6bcef109e87a668e4d49de2978dc0ca83eb303c64af7d2b904154c612",
+            "campaign_name": "HF Tasksmith",
+            "campaign_spec_digest": "sha256:e4c5943f9bb0f03340ad3ae2709a9329318dac3b4529f3029ef558d7f11e403a",
+            "checks": {
+              "passed": 18,
+              "run": 18
+            },
+            "claims": {
+              "independently_reproduced": false,
+              "integrity_checked": true,
+              "participant_attested": true
+            },
+            "climb": "tasksmith-climb@1",
+            "data_policy_digest": "sha256:eebb0cc785d857f47c2f0f918486aac9aba6880b992f489bc077c0fb7b5efe97",
+            "decision": "accepted",
+            "entry_url": "https://techtree.sh/results/sha256:3ddbd9d6bcef109e87a668e4d49de2978dc0ca83eb303c64af7d2b904154c612",
+            "log_sequence": 9,
+            "participant": {
+              "key_id": "sha256:bb25e94d220ba4714aa7e80f765ad3dde18d89cbdbc5da21ac47dad712cde9c2",
+              "kind": "local_ed25519",
+              "public_key": "BlY16UMYyKRRlCVl4q6F5hm6Fep62FqErQNPmkKrRU0="
+            },
+            "proof_grade": "P1",
+            "rerun_of": null,
+            "result": {
+              "absolute_delta": 0.3333333333333333,
+              "baseline_mean": 0,
+              "candidate_mean": 0.3333333333333333,
+              "losses": 0,
+              "task_count": 6,
+              "ties": 4,
+              "wins": 2
+            },
+            "run_id": "run_4293178c2f9c4712a5fd16bd03de7545",
+            "skill_digest": "sha256:974fafc5bce1d489fe332c7bdc8e9b9ecb38b873d407ac7d38c70f098362b595",
+            "skill_github_url": null,
+            "skill_name": "tasksmith-starter-v1",
+            "statuses": {
+              "comparison": "controlled_with_warnings",
+              "evidence": "complete",
+              "execution": "completed",
+              "publication": "not_requested",
+              "score": "valid"
+            },
+            "subject": {
+              "harness": "hermes-agent",
+              "harness_version": "v2026.9.24",
+              "model": "openai/gpt-6-luna",
+              "provider": "prime"
+            },
+            "withdrawn_at": null
+          },
+          {
+            "accepted_at": "2026-09-29T21:45:49.491201Z",
+            "bundle_digest": "sha256:345e4151ce3039f01537a1a77bc5b8954c42c37e17e7f95f8ca3a177475e2155",
+            "campaign_name": "Frontier-CS Open-Ended",
+            "campaign_spec_digest": "sha256:7a170f9634b4d9407d1c3817189f4f8c69f0ba314d1cbce41fd8e66571e48c83",
+            "checks": {
+              "passed": 18,
+              "run": 18
+            },
+            "claims": {
+              "independently_reproduced": false,
+              "integrity_checked": true,
+              "participant_attested": true
+            },
+            "climb": "frontier-cs-open-ended-climb@1",
+            "data_policy_digest": "sha256:36d2689f1e0971456f98b65b2bf853f742f596e8559c611ba406683ad7b0315f",
+            "decision": "rejected",
+            "entry_url": "https://techtree.sh/results/sha256:345e4151ce3039f01537a1a77bc5b8954c42c37e17e7f95f8ca3a177475e2155",
+            "log_sequence": 8,
+            "participant": {
+              "key_id": "sha256:bb25e94d220ba4714aa7e80f765ad3dde18d89cbdbc5da21ac47dad712cde9c2",
+              "kind": "local_ed25519",
+              "public_key": "BlY16UMYyKRRlCVl4q6F5hm6Fep62FqErQNPmkKrRU0="
+            },
+            "proof_grade": "P1",
+            "rerun_of": null,
+            "result": {
+              "absolute_delta": -0.03085673590000001,
+              "baseline_mean": 0.1311713659,
+              "candidate_mean": 0.10031462999999999,
+              "losses": 3,
+              "task_count": 10,
+              "ties": 5,
+              "wins": 2
+            },
+            "run_id": "run_202665f4d7654e5f9ee59058dd69b4e7",
+            "skill_digest": "sha256:e2a6c529459c265e7470ed5bbf168d6ab3e1ee82ae0abfcd8b3abdf4c53e3087",
+            "skill_github_url": null,
+            "skill_name": "frontier-cs-v2",
+            "statuses": {
+              "comparison": "controlled_with_warnings",
+              "evidence": "complete",
+              "execution": "completed",
+              "publication": "not_requested",
+              "score": "valid"
+            },
+            "subject": {
+              "harness": "hermes-agent",
+              "harness_version": "v2026.7.20",
+              "model": "qwen/qwen3.7-flash",
+              "provider": "prime"
+            },
+            "withdrawn_at": null
+          },
+          {
+            "accepted_at": "2026-09-29T21:16:49.975399Z",
+            "bundle_digest": "sha256:403e8c9ed26f63bbcfbe563bf84fa3e7b943a9d102f0777d68cc694f38938fab",
+            "campaign_name": "Frontier-CS Open-Ended",
+            "campaign_spec_digest": "sha256:7a170f9634b4d9407d1c3817189f4f8c69f0ba314d1cbce41fd8e66571e48c83",
+            "checks": {
+              "passed": 18,
+              "run": 18
+            },
+            "claims": {
+              "independently_reproduced": false,
+              "integrity_checked": true,
+              "participant_attested": true
+            },
+            "climb": "frontier-cs-open-ended-climb@1",
+            "data_policy_digest": "sha256:36d2689f1e0971456f98b65b2bf853f742f596e8559c611ba406683ad7b0315f",
+            "decision": "rejected",
+            "entry_url": "https://techtree.sh/results/sha256:403e8c9ed26f63bbcfbe563bf84fa3e7b943a9d102f0777d68cc694f38938fab",
+            "log_sequence": 7,
+            "participant": {
+              "key_id": "sha256:bb25e94d220ba4714aa7e80f765ad3dde18d89cbdbc5da21ac47dad712cde9c2",
+              "kind": "local_ed25519",
+              "public_key": "BlY16UMYyKRRlCVl4q6F5hm6Fep62FqErQNPmkKrRU0="
+            },
+            "proof_grade": "P1",
+            "rerun_of": null,
+            "result": {
+              "absolute_delta": -0.0851512235,
+              "baseline_mean": 0.1282240635,
+              "candidate_mean": 0.04307284,
+              "losses": 3,
+              "task_count": 10,
+              "ties": 6,
+              "wins": 1
+            },
+            "run_id": "run_d00e64f937d44497883b95e6ab48f377",
+            "skill_digest": "sha256:2beb0cd9b67aa14ee281248b5a7f3a0151db4727f84d86b6f4e5d52e06665548",
+            "skill_github_url": null,
+            "skill_name": "frontier-cs-v1",
+            "statuses": {
+              "comparison": "controlled_with_warnings",
+              "evidence": "complete",
+              "execution": "completed",
+              "publication": "not_requested",
+              "score": "valid"
+            },
+            "subject": {
+              "harness": "hermes-agent",
+              "harness_version": "v2026.7.20",
+              "model": "qwen/qwen3.7-flash",
+              "provider": "prime"
+            },
+            "withdrawn_at": null
+          },
+          {
+            "accepted_at": "2026-08-29T00:31:02.769939Z",
+            "bundle_digest": "sha256:d02a650d2e918fbb82dcfd95ca56dfe0f0d1d41fad96d76780c5fc94ac1256b2",
+            "campaign_name": "Techtree Hello World",
+            "campaign_spec_digest": "sha256:ebf029abb266ca74c2def50eb23030511bab0e929c6bf4a68691f9b5afd554b1",
+            "checks": {
+              "passed": 17,
+              "run": 17
+            },
+            "claims": {
+              "independently_reproduced": false,
+              "integrity_checked": true,
+              "participant_attested": true
+            },
+            "climb": "hello-world-climb@1",
+            "data_policy_digest": "sha256:6c532a43d595286a08260481890bbbffa16d1b4dd89465d1cc8395099d9ebcf9",
+            "decision": "accepted",
+            "entry_url": "https://techtree.sh/results/sha256:d02a650d2e918fbb82dcfd95ca56dfe0f0d1d41fad96d76780c5fc94ac1256b2",
+            "log_sequence": 4,
+            "participant": {
+              "key_id": "sha256:7ad52b9a82937eb6823ef20f928716500ac6548c867ab951da9041c8d217ca79",
+              "kind": "local_ed25519",
+              "public_key": "LzyC8qPEYZZQkiK5YAfSsscoMVp+WJk9mwUmy16F/jE="
+            },
+            "proof_grade": "P1",
+            "rerun_of": null,
+            "result": {
+              "absolute_delta": 0.6111111111111112,
+              "baseline_mean": 0,
+              "candidate_mean": 0.6111111111111112,
+              "losses": 0,
+              "task_count": 36,
+              "ties": 14,
+              "wins": 22
+            },
+            "run_id": "run_8febb11b30ab4152bdd8ea3b8dea7a6c",
+            "skill_digest": "sha256:596d1368ac157975accce7ceff835eed6bfb789eaf68528a0aefa25a68793b0b",
+            "skill_github_url": null,
+            "skill_name": "hello-world-v1",
+            "statuses": {
+              "comparison": "controlled_with_warnings",
+              "evidence": "complete",
+              "execution": "completed",
+              "publication": "not_requested",
+              "score": "valid"
+            },
+            "subject": {
+              "harness": "hermes-agent",
+              "harness_version": "0.19.0",
+              "model": "qwen/qwen3.7-flash",
+              "provider": "prime"
+            },
+            "withdrawn_at": null
+          },
+          {
+            "accepted_at": "2026-08-28T23:05:28.482232Z",
+            "bundle_digest": "sha256:e8ef7cb4f906a3ca75310415dbeed2302d8e9d195ce7ed044d83ba7f4480ac91",
+            "campaign_name": "Techtree Hello World",
+            "campaign_spec_digest": "sha256:ebf029abb266ca74c2def50eb23030511bab0e929c6bf4a68691f9b5afd554b1",
+            "checks": {
+              "passed": 17,
+              "run": 17
+            },
+            "claims": {
+              "independently_reproduced": false,
+              "integrity_checked": true,
+              "participant_attested": true
+            },
+            "climb": "hello-world-climb@1",
+            "data_policy_digest": "sha256:6c532a43d595286a08260481890bbbffa16d1b4dd89465d1cc8395099d9ebcf9",
+            "decision": "accepted",
+            "entry_url": "https://techtree.sh/results/sha256:e8ef7cb4f906a3ca75310415dbeed2302d8e9d195ce7ed044d83ba7f4480ac91",
+            "log_sequence": 1,
+            "participant": {
+              "key_id": "sha256:df8995a3fc63184344b2ebff31ecf1ebfa4358a1b747d69263838d1dfbd67dee",
+              "kind": "local_ed25519",
+              "public_key": "Mp88G3OGlWAo2pAa0pUgImcG6e1hcGioMDRamLxYNqA="
+            },
+            "proof_grade": "P1",
+            "rerun_of": null,
+            "result": {
+              "absolute_delta": 0.6666666666666666,
+              "baseline_mean": 0,
+              "candidate_mean": 0.6666666666666666,
+              "losses": 0,
+              "task_count": 36,
+              "ties": 12,
+              "wins": 24
+            },
+            "run_id": "run_86bb7176135d49e3a0577630e952c7f3",
+            "skill_digest": "sha256:596d1368ac157975accce7ceff835eed6bfb789eaf68528a0aefa25a68793b0b",
+            "skill_github_url": null,
+            "skill_name": "hello-world-v1",
+            "statuses": {
+              "comparison": "controlled_with_warnings",
+              "evidence": "complete",
+              "execution": "completed",
+              "publication": "not_requested",
+              "score": "valid"
+            },
+            "subject": {
+              "harness": "hermes-agent",
+              "harness_version": "0.19.0",
+              "model": "qwen/qwen3.7-flash",
+              "provider": "prime"
+            },
+            "withdrawn_at": null
+          }
+        ],
+        "next_before_sequence": null,
+        "schema_version": "techtree.publication-log.v1alpha1"
+      }
+    }
+  },
+  {
+    "command": "results show <bundle-digest>",
+    "words": [
+      "results",
+      "show",
+      "sha256:3ddbd9d6bcef109e87a668e4d49de2978dc0ca83eb303c64af7d2b904154c612"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://techtree.sh/api/v1/publications/sha256%3A3ddbd9d6bcef109e87a668e4d49de2978dc0ca83eb303c64af7d2b904154c612",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json",
+      "body": {
+        "accepted_at": "2026-10-04T23:26:20.112618Z",
+        "bundle_digest": "sha256:3ddbd9d6bcef109e87a668e4d49de2978dc0ca83eb303c64af7d2b904154c612",
+        "campaign_name": "HF Tasksmith",
+        "campaign_spec_digest": "sha256:e4c5943f9bb0f03340ad3ae2709a9329318dac3b4529f3029ef558d7f11e403a",
+        "checks": {
+          "passed": 18,
+          "run": 18
+        },
+        "claims": {
+          "independently_reproduced": false,
+          "integrity_checked": true,
+          "participant_attested": true
+        },
+        "climb": "tasksmith-climb@1",
+        "data_policy_digest": "sha256:eebb0cc785d857f47c2f0f918486aac9aba6880b992f489bc077c0fb7b5efe97",
+        "decision": "accepted",
+        "entry_url": "https://techtree.sh/results/sha256:3ddbd9d6bcef109e87a668e4d49de2978dc0ca83eb303c64af7d2b904154c612",
+        "log_sequence": 9,
+        "participant": {
+          "key_id": "sha256:bb25e94d220ba4714aa7e80f765ad3dde18d89cbdbc5da21ac47dad712cde9c2",
+          "kind": "local_ed25519",
+          "public_key": "BlY16UMYyKRRlCVl4q6F5hm6Fep62FqErQNPmkKrRU0="
+        },
+        "proof_grade": "P1",
+        "receipt": {
+          "key_id": "sha256:84ea8ffad2b0fc59f9db9f14b7d97f25c060e71b644dec316ecd582ac040b966",
+          "payload_digest": "sha256:fca5b937f8cba70378d08cfbaa2371e66aa914660538ab2809d6c342c5588fcc"
+        },
+        "rerun_of": null,
+        "result": {
+          "absolute_delta": 0.3333333333333333,
+          "baseline_mean": 0,
+          "candidate_mean": 0.3333333333333333,
+          "losses": 0,
+          "task_count": 6,
+          "ties": 4,
+          "wins": 2
+        },
+        "run_id": "run_4293178c2f9c4712a5fd16bd03de7545",
+        "schema_version": "techtree.publication-entry.v1alpha1",
+        "skill_digest": "sha256:974fafc5bce1d489fe332c7bdc8e9b9ecb38b873d407ac7d38c70f098362b595",
+        "skill_github_url": null,
+        "skill_name": "tasksmith-starter-v1",
+        "statuses": {
+          "comparison": "controlled_with_warnings",
+          "evidence": "complete",
+          "execution": "completed",
+          "publication": "not_requested",
+          "score": "valid"
+        },
+        "subject": {
+          "harness": "hermes-agent",
+          "harness_version": "v2026.9.24",
+          "model": "openai/gpt-6-luna",
+          "provider": "prime"
+        },
+        "task_deltas": [
+          {
+            "baseline_reward": 0,
+            "candidate_reward": 0,
+            "delta": 0,
+            "task_hash": "sha256:51f066212751aa35a41995037a817131aea30f54d395ce2d33f2de47021cc011"
+          },
+          {
+            "baseline_reward": 0,
+            "candidate_reward": 1,
+            "delta": 1,
+            "task_hash": "sha256:cbd58f4675f62d1358fdcf360bf81109c818e3cdfbb919a3aba42bcd57e3ff10"
+          },
+          {
+            "baseline_reward": 0,
+            "candidate_reward": 0,
+            "delta": 0,
+            "task_hash": "sha256:b8c080e896550a4b6c9504b4ea6d05ef796f317e94115ffa6e9054ac80eb25f0"
+          },
+          {
+            "baseline_reward": 0,
+            "candidate_reward": 0,
+            "delta": 0,
+            "task_hash": "sha256:969c48aff0fdd2339642d5fc8fb9cf7779e440f3f7adb36e8b7279099f3e7270"
+          },
+          {
+            "baseline_reward": 0,
+            "candidate_reward": 1,
+            "delta": 1,
+            "task_hash": "sha256:a4b59f42e77d8a6d1f21c82ff887e675360bc1dd404d5e8f5c0c2901a7c7d1b9"
+          },
+          {
+            "baseline_reward": 0,
+            "candidate_reward": 0,
+            "delta": 0,
+            "task_hash": "sha256:ef45de02c5ede37259d285b9b8660a6bcb68dcc3b6202ff597e2359376b1e6e3"
+          }
+        ],
+        "withdrawn_at": null
+      }
+    }
+  }
+]

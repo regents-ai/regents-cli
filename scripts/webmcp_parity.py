@@ -10,15 +10,10 @@ commands that name a tool the site's list does not have. Tools regents does itse
 and commands that are site-only or command-line-only by design, are listed apart and are not
 gaps. The report shows gaps and never fails a release.
 
-The feature map, docs/feature-map.md, is the same comparison written down: every command with
-the route it calls, who may call it, what it changes and the tool that does the same, then
-every tool no command does and why. `make sync` writes it after moving a pin, and `make check`
-fails when it is not the map of the pinned copies, so a new gap is seen in the change that
-makes it.
+The feature map, verification/features.yml, writes the same comparison into each site's
+features (scripts/features.py), so a new gap is seen in the change that makes it.
 
     uv run scripts/webmcp_parity.py           # print the report
-    uv run scripts/webmcp_parity.py --write   # write docs/feature-map.md
-    uv run scripts/webmcp_parity.py --check   # fail when docs/feature-map.md is out of date
 """
 
 from __future__ import annotations
@@ -35,8 +30,6 @@ from rich.table import Table
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
 TOOL_MANIFESTS = ROOT / "tool_manifests"
-LOCK = ROOT / "platforms.lock.json"
-FEATURE_MAP = ROOT / "docs/feature-map.md"
 
 #: Who may call a command, from its `authority`.
 WHO = {"public": "anyone", "signed_agent": "signed-in agent", "paired_agent": "paired agent"}
@@ -205,41 +198,6 @@ def tool_state(site: dict[str, Any], tool: str) -> str:
     return "**no command**"
 
 
-def feature_map(sites: list[dict[str, Any]]) -> str:
-    lock = json.loads(LOCK.read_text("utf-8"))
-    lines = [
-        "# Feature map",
-        "",
-        "Every `regents` command for a site, the route it calls, who may call it, what it changes",
-        "and the site's WebMCP tool that does the same; then each tool no command does, and why.",
-        "Written from the pinned copies by `uv run scripts/webmcp_parity.py --write`; `make check`",
-        "fails when this file is out of date. A **bold** entry is a gap.",
-    ]
-    for site in sites:
-        pin = lock[site["name"]]
-        gaps = len(site["lone_tools"]) + len(site["lone_commands"]) + len(site["unknown_tools"])
-        lines += [
-            "",
-            f"## {site['name']}",
-            "",
-            f"{pin['repository']} at `{pin['commit']}`: {site['commands']} commands, "
-            f"{site['tools']} tools, {gaps or 'no'} gap{'' if gaps == 1 else 's'}.",
-            "",
-            "| Command | Route | Who | Changes | WebMCP tool |",
-            "| --- | --- | --- | --- | --- |",
-        ]
-        lines += [
-            f"| `{row['command']}` | `{row['method']} {row['path']}` | {WHO[row['authority']]} "
-            f"| {row['effect']} | {command_state(site, row)} |"
-            for row in site["rows"]
-        ]
-        lone = sorted(tool for tool, by in site["done_by"].items() if not by)
-        if lone:
-            lines += ["", "| Tool with no command | Why |", "| --- | --- |"]
-            lines += [f"| `{tool}` | {tool_state(site, tool)} |" for tool in lone]
-    return "\n".join(lines) + "\n"
-
-
 def report(sites: list[dict[str, Any]]) -> None:
     summary = Table(title="WebMCP tools and regents commands, from the pinned copies")
     for column in ("Site", "Tools", "Commands", "Tools with no command", "Commands with no tool"):
@@ -273,7 +231,7 @@ def report(sites: list[dict[str, Any]]) -> None:
 
 
 def main(args: list[str]) -> int:
-    if args not in ([], ["--write"], ["--check"]):
+    if args:
         console.print(f"[red]unknown arguments:[/red] {' '.join(args)}")
         return 2
     names = sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json"))
@@ -281,25 +239,7 @@ def main(args: list[str]) -> int:
     if missing:
         console.print(f"[red]Pinned sites with no tool manifest:[/red] {', '.join(missing)}")
         return 1
-    sites = [compare(name) for name in names]
-    if not args:
-        report(sites)
-        return 0
-    written = feature_map(sites)
-    if args == ["--write"]:
-        FEATURE_MAP.write_text(written, "utf-8")
-        console.print(f"wrote {FEATURE_MAP.relative_to(ROOT)}")
-        return 0
-    if unneeded := stale(sites):
-        console.print(f"[red]Allowlist entries no site needs:[/red] {', '.join(unneeded)}")
-        return 1
-    if not FEATURE_MAP.is_file() or FEATURE_MAP.read_text("utf-8") != written:
-        console.print(
-            f"[red]{FEATURE_MAP.relative_to(ROOT)} is not the map of the pinned copies.[/red] "
-            "Run uv run scripts/webmcp_parity.py --write and read what changed."
-        )
-        return 1
-    console.print(f"{FEATURE_MAP.relative_to(ROOT)} is the map of the pinned copies")
+    report([compare(name) for name in names])
     return 0
 
 

@@ -1,0 +1,1721 @@
+# Written by uv run scripts/features.py --write from the pinned copies and the
+# features listed in that script; make check fails when this file is out of date.
+repo: regents-cli
+features:
+- id: signed-requests
+  what: 'An agent runs any site''s command: regents builds the request from the site''s pinned description,
+    signs it with the agent key, sends it once, and returns the answer or the refusal with what to do
+    next.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/__init__.py
+  - src/regents_cli/__main__.py
+  - src/regents_cli/app.py
+  - src/regents_cli/base.py
+  - src/regents_cli/errors.py
+  - src/regents_cli/http.py
+  - src/regents_cli/next_steps.py
+  - src/regents_cli/output.py
+  - src/regents_cli/runner.py
+  - src/regents_cli/siwa.py
+  - src/regents_cli/platforms/__init__.py
+  - src/regents_cli/schemas/**
+  entry:
+  - cli: regents <site> <command>
+  - cli: regents <site> <command> --phase prepare, then --phase send
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+  - tests/test_next_steps.py
+  - tests/test_prepared.py
+  - tests/test_contract.py
+  regressions:
+  - id: R-20261018-refusal-fields
+    from: '1.10.15 candidate: a site error field named exit_code crashed regents'
+    test: tests/test_properties.py
+  - id: R-20261018-deep-bodies
+    from: 'review of 6570fcd: an answer nested too deep, or holding NaN'
+    test: tests/test_properties.py
+  - id: R-20261018-dash-values
+    from: 'review of 6098f3b: a printed command misread values starting with -'
+    test: tests/test_properties.py
+  gaps:
+  - Signed commands are proven against local stand-ins only; nothing is signed against the live sites.
+- id: sign-in
+  what: An agent signs in to a site with its key, or a person with their own wallet, and the site's receipt
+    is kept for that site.
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/auth.py
+  entry:
+  - cli: regents auth login
+  - cli: regents auth register
+  - cli: regents auth status
+  - cli: regents auth logout
+  - cli: regents auth accept-world-id
+  proofs:
+  - tests/test_sign_in.py
+  - tests/test_contract.py
+  gaps:
+  - auth register and auth accept-world-id are not run whole offline.
+- id: touch-id-key
+  what: On a Mac, a person locks the agent key with Touch ID; a helper keeps it unlocked until the Mac
+    restarts and signs for the agent.
+  who: person
+  level: protected
+  paths:
+  - src/regents_cli/passkey.py
+  - src/regents_cli/passkey.html
+  - src/regents_cli/browser.py
+  entry:
+  - cli: regents auth login, the first time on a Mac
+  proofs:
+  - tests/test_passkey.py
+  regressions:
+  - id: R-20261008-stuck-helper
+    from: 'WD-002: a key helper that never answered hung every signed command'
+    test: tests/test_passkey.py
+  gaps:
+  - No test opens the Touch ID page in a browser.
+- id: techtree-model-sign-in
+  what: A person signs this machine in to their ChatGPT plan, so Climbs can run on it.
+  who: person
+  level: protected
+  paths:
+  - src/regents_cli/techtree/chatgpt/**
+  - src/regents_cli/techtree/commands/model.py
+  entry:
+  - cli: regents techtree model login
+  - cli: regents techtree model status
+  - cli: regents techtree model logout
+  proofs:
+  - tests/techtree/test_model_sign_in.py
+  regressions:
+  - id: R-20261018-deep-oauth-error
+    from: 'review of 6570fcd: a refused sign-in body nested too deep crashed login'
+    test: tests/techtree/test_model_sign_in.py
+  gaps:
+  - model login is not run whole against a stand-in sign-in server.
+- id: techtree-approval
+  what: Before a Techtree step that needs agreement, the agent shows its person the review and runs the
+    step only once they agree.
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/techtree/approval.py
+  entry:
+  - cli: regents techtree publish
+  - cli: regents techtree withdraw
+  proofs:
+  - tests/techtree/test_approval.py
+- id: techtree-release
+  what: The Techtree release this build belongs to, and whether it holds.
+  who: operator
+  level: ordinary
+  paths:
+  - src/regents_cli/techtree/release/**
+  - src/regents_cli/techtree/resources/release/**
+  - scripts/techtree/release-inputs.json
+  - scripts/techtree/build_release_*.py
+  - scripts/techtree/verify_release_core.py
+  entry:
+  - cli: regents techtree release info
+  - cli: regents techtree release verify
+  proofs:
+  - tests/techtree/test_release_checks.py
+- id: release-gates
+  what: 'The maintainer''s gates before each commit and release: the pinned copies, the command check
+    sites also run, the feature map, the live reads and the wheel.'
+  who: operator
+  level: ordinary
+  paths:
+  - scripts/check_live.py
+  - scripts/check_siwa_server.py
+  - scripts/check_wheel.py
+  - scripts/features.py
+  - scripts/record_replays.py
+  - scripts/stamp_provenance.py
+  - scripts/sync_platforms.py
+  - scripts/webmcp_parity.py
+  - src/regents_cli/check_commands.py
+  entry:
+  - cli: make check
+  - cli: make release-check
+  - cli: make sync
+  proofs:
+  - tests/test_check_commands.py
+  - tests/test_replays.py
+- id: ash-template-health
+  what: Agents use regents ash-template health.
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template health
+    route: GET /api/v1/health
+    who: anyone
+    changes: read
+    webmcp: 'command line only: a plain up-or-down read for scripts'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: ash-template-rooms
+  what: 'Agents use regents ash-template rooms: list, messages <room>, post <room>, edit <room> <id>,
+    delete <room> <id>, search.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template rooms list
+    route: GET /api/v1/rooms
+    who: anyone
+    changes: read
+    webmcp: '`rooms_list`'
+  - cli: regents ash-template rooms messages <room>
+    route: GET /api/v1/rooms/{room}/messages
+    who: anyone
+    changes: read
+    webmcp: '`room_read`'
+  - cli: regents ash-template rooms post <room>
+    route: POST /api/v1/rooms/{room}/messages
+    who: signed-in agent
+    changes: write
+    webmcp: '`room_post`'
+  - cli: regents ash-template rooms edit <room> <id>
+    route: PATCH /api/v1/rooms/{room}/messages/{id}
+    who: paired agent
+    changes: write
+    webmcp: '`room_edit`'
+  - cli: regents ash-template rooms delete <room> <id>
+    route: DELETE /api/v1/rooms/{room}/messages/{id}
+    who: paired agent
+    changes: write
+    webmcp: '`room_delete`'
+  - cli: regents ash-template rooms search
+    route: POST /tools/rooms/search
+    who: paired agent
+    changes: read
+    webmcp: '`rooms_search`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: ash-template-agents
+  what: 'Agents use regents ash-template agents: whoami, status, pair.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template agents whoami
+    route: GET /api/agents/v1/whoami
+    who: signed-in agent
+    changes: read
+    webmcp: '`agent_whoami`'
+  - cli: regents ash-template agents status
+    route: GET /api/agents/v1/me
+    who: paired agent
+    changes: write
+    webmcp: '`agent_status`'
+  - cli: regents ash-template agents pair
+    route: POST /api/agents/v1/pair
+    who: signed-in agent
+    changes: write
+    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+  proofs:
+  - tests/test_properties.py
+- id: ash-template-notes
+  what: 'Agents use regents ash-template notes: list, get <id>, create, pin <id>, unpin <id>, search,
+    edit <id>, rate-label <id>, delete <id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template notes list
+    route: GET /tools/notes
+    who: paired agent
+    changes: read
+    webmcp: '`notes_list`'
+  - cli: regents ash-template notes get <id>
+    route: GET /tools/notes/{id}
+    who: paired agent
+    changes: read
+    webmcp: '`notes_get`'
+  - cli: regents ash-template notes create
+    route: POST /tools/notes
+    who: paired agent
+    changes: write
+    webmcp: '`notes_create`'
+  - cli: regents ash-template notes pin <id>
+    route: POST /tools/notes/{id}/pin
+    who: paired agent
+    changes: payment
+    webmcp: '`notes_pin`'
+  - cli: regents ash-template notes unpin <id>
+    route: POST /tools/notes/{id}/unpin
+    who: paired agent
+    changes: write
+    webmcp: '`notes_unpin`'
+  - cli: regents ash-template notes search
+    route: POST /tools/notes/search
+    who: paired agent
+    changes: read
+    webmcp: '`notes_search`'
+  - cli: regents ash-template notes edit <id>
+    route: PATCH /api/v1/notes/{id}
+    who: paired agent
+    changes: write
+    webmcp: '`notes_update`'
+  - cli: regents ash-template notes rate-label <id>
+    route: POST /tools/note-labels/{id}/report
+    who: paired agent
+    changes: write
+    webmcp: '`notes_report_label`'
+  - cli: regents ash-template notes delete <id>
+    route: DELETE /api/v1/notes/{id}
+    who: paired agent
+    changes: write
+    webmcp: '`notes_delete`'
+  proofs:
+  - tests/test_properties.py
+- id: ash-template-account
+  what: 'Agents use regents ash-template account: balances, credits-history, points.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template account balances
+    route: GET /tools/account/balances
+    who: paired agent
+    changes: read
+    webmcp: '`account_balances`'
+  - cli: regents ash-template account credits-history
+    route: POST /tools/account/credits/history
+    who: paired agent
+    changes: read
+    webmcp: '`account_credits_history`'
+  - cli: regents ash-template account points
+    route: GET /tools/account/points
+    who: paired agent
+    changes: read
+    webmcp: '`account_points`'
+  proofs:
+  - tests/test_properties.py
+- id: ash-template-activity
+  what: 'Agents use regents ash-template activity: list.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template activity list
+    route: GET /tools/activity
+    who: paired agent
+    changes: read
+    webmcp: '`activity_list`'
+  proofs:
+  - tests/test_properties.py
+- id: autolaunch-auctions
+  what: 'Agents use regents autolaunch auctions: list.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch auctions list
+    route: GET /api/v1/auctions
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_auctions`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: autolaunch-auction
+  what: 'Agents use regents autolaunch auction: <id>.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch auction <id>
+    route: GET /api/v1/auctions/{id}
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_auction`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: autolaunch-bids
+  what: 'Agents use regents autolaunch bids: quote.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch bids quote
+    route: POST /api/v1/auctions/{id}/bid-quote
+    who: anyone
+    changes: quote
+    webmcp: '`autolaunch_bid_quote`'
+  proofs:
+  - tests/test_properties.py
+- id: autolaunch-tokens
+  what: 'Agents use regents autolaunch tokens: list.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch tokens list
+    route: GET /api/v1/tokens
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_tokens`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: autolaunch-token
+  what: 'Agents use regents autolaunch token: <id>.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch token <id>
+    route: GET /api/v1/tokens/{id}
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_token`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: autolaunch-treasury
+  what: 'Agents use regents autolaunch treasury: security <address>.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch treasury security <address>
+    route: GET /api/v1/treasury-security/{address}
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_treasury`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: autolaunch-agents
+  what: 'Agents use regents autolaunch agents: whoami, status, pair.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch agents whoami
+    route: GET /api/agents/v1/whoami
+    who: signed-in agent
+    changes: read
+    webmcp: '`agent_whoami`'
+  - cli: regents autolaunch agents status
+    route: GET /api/agents/v1/me
+    who: paired agent
+    changes: write
+    webmcp: '`agent_status`'
+  - cli: regents autolaunch agents pair
+    route: POST /api/agents/v1/pair
+    who: signed-in agent
+    changes: write
+    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+  proofs:
+  - tests/test_properties.py
+- id: autolaunch-drafts
+  what: 'Agents use regents autolaunch drafts: revstake show, revstake save, memestock show, memestock
+    save.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch drafts revstake show
+    route: GET /api/agent/v1/drafts/revstake
+    who: paired agent
+    changes: read
+    webmcp: '`autolaunch_revstake_draft`'
+  - cli: regents autolaunch drafts revstake save
+    route: PATCH /api/agent/v1/drafts/revstake
+    who: paired agent
+    changes: write
+    webmcp: '`autolaunch_revstake_draft_save`'
+  - cli: regents autolaunch drafts memestock show
+    route: GET /api/agent/v1/drafts/memestock
+    who: paired agent
+    changes: read
+    webmcp: '`autolaunch_memestock_draft`'
+  - cli: regents autolaunch drafts memestock save
+    route: PATCH /api/agent/v1/drafts/memestock
+    who: paired agent
+    changes: write
+    webmcp: '`autolaunch_memestock_draft_save`'
+  proofs:
+  - tests/test_properties.py
+- id: autolaunch-positions
+  what: Agents use regents autolaunch positions.
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch positions
+    route: GET /api/agent/v1/positions
+    who: paired agent
+    changes: read
+    webmcp: '`autolaunch_my_positions`'
+  proofs:
+  - tests/test_properties.py
+- id: autolaunch-account
+  what: 'Agents use regents autolaunch account: balances, credits-history, points.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  - tool_manifests/autolaunch.json
+  entry:
+  - cli: regents autolaunch account balances
+    route: GET /api/agent/v1/account/balances
+    who: paired agent
+    changes: read
+    webmcp: '`account_balances`'
+  - cli: regents autolaunch account credits-history
+    route: POST /api/agent/v1/account/credits/history
+    who: paired agent
+    changes: read
+    webmcp: '`account_credits_history`'
+  - cli: regents autolaunch account points
+    route: GET /api/agent/v1/account/points
+    who: paired agent
+    changes: read
+    webmcp: '`account_points`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-proposals
+  what: 'Agents use regents keyfleet proposals: list <fleet>, create <fleet>, vote <fleet> <number> <choice>,
+    cancel <fleet> <number>, carry-out <fleet> <number>, read <fleet> <number>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet proposals list <fleet>
+    route: GET /api/v1/fleets/{fleet_id}/proposals
+    who: anyone
+    changes: read
+    webmcp: '`list_proposals`'
+  - cli: regents keyfleet proposals create <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/proposals/create
+    who: paired agent
+    changes: write
+    webmcp: '`propose`'
+  - cli: regents keyfleet proposals vote <fleet> <number> <choice>
+    route: POST /api/v1/agent/fleets/{fleet_id}/proposals/vote
+    who: paired agent
+    changes: read
+    webmcp: '`vote`'
+  - cli: regents keyfleet proposals cancel <fleet> <number>
+    route: POST /api/v1/agent/fleets/{fleet_id}/proposals/cancel
+    who: paired agent
+    changes: read
+    webmcp: '`cancel_proposal`'
+  - cli: regents keyfleet proposals carry-out <fleet> <number>
+    route: POST /api/v1/agent/fleets/{fleet_id}/proposals/carry_out
+    who: paired agent
+    changes: read
+    webmcp: '`carry_out`'
+  - cli: regents keyfleet proposals read <fleet> <number>
+    route: POST /api/v1/agent/fleets/{fleet_id}/proposals/read
+    who: paired agent
+    changes: read
+    webmcp: '`read_proposal`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: keyfleet-fleets
+  what: 'Agents use regents keyfleet fleets: list, get <fleet>.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet fleets list
+    route: GET /api/v1/fleets
+    who: anyone
+    changes: read
+    webmcp: '`list_fleets`'
+  - cli: regents keyfleet fleets get <fleet>
+    route: GET /api/v1/fleets/{fleet_id}
+    who: anyone
+    changes: read
+    webmcp: '`read_fleet`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: keyfleet-treasury
+  what: 'Agents use regents keyfleet treasury: get <fleet>, send-share <fleet>, convert <fleet>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet treasury get <fleet>
+    route: GET /api/v1/fleets/{fleet_id}/treasury
+    who: anyone
+    changes: read
+    webmcp: '`read_treasury`'
+  - cli: regents keyfleet treasury send-share <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/treasury/send_share
+    who: paired agent
+    changes: read
+    webmcp: '`send_share`'
+  - cli: regents keyfleet treasury convert <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/treasury/convert
+    who: paired agent
+    changes: read
+    webmcp: '`convert_to_regent`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: keyfleet-workspace
+  what: 'Agents use regents keyfleet workspace: pulse <fleet>, get <fleet> <id>, changes <fleet>, create
+    <fleet> <key>, patch <fleet> <key>, link <fleet> <key>, unlink <fleet> <key>, archive <fleet> <key>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet workspace pulse <fleet>
+    route: GET /api/v1/fleets/{fleet_id}/workspace/pulse
+    who: anyone
+    changes: read
+    webmcp: '`read_workspace_pulse`'
+  - cli: regents keyfleet workspace get <fleet> <id>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/get
+    who: paired agent
+    changes: read
+    webmcp: '`get_workspace_object`'
+  - cli: regents keyfleet workspace changes <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/changes
+    who: paired agent
+    changes: read
+    webmcp: '`list_workspace_changes`'
+  - cli: regents keyfleet workspace create <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/create
+    who: paired agent
+    changes: write
+    webmcp: '`create_workspace_object`'
+  - cli: regents keyfleet workspace patch <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/patch
+    who: paired agent
+    changes: write
+    webmcp: '`patch_workspace_object`'
+  - cli: regents keyfleet workspace link <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/link
+    who: paired agent
+    changes: write
+    webmcp: '`link_workspace_objects`'
+  - cli: regents keyfleet workspace unlink <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/unlink
+    who: paired agent
+    changes: write
+    webmcp: '`unlink_workspace_objects`'
+  - cli: regents keyfleet workspace archive <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/archive
+    who: paired agent
+    changes: write
+    webmcp: '`archive_workspace_object`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: keyfleet-profile
+  what: 'Agents use regents keyfleet profile: join <name>, get, status <status>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet profile join <name>
+    route: POST /api/v1/agent/join/status
+    who: paired agent
+    changes: write
+    webmcp: '`join_as_agent`'
+  - cli: regents keyfleet profile get
+    route: GET /api/v1/agent/profile
+    who: paired agent
+    changes: read
+    webmcp: '`get_my_agent_profile`'
+  - cli: regents keyfleet profile status <status>
+    route: POST /api/v1/agent/profile/update
+    who: paired agent
+    changes: write
+    webmcp: '`update_agent_status`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-shards
+  what: 'Agents use regents keyfleet shards: list.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet shards list
+    route: GET /api/v1/agent/shards
+    who: paired agent
+    changes: read
+    webmcp: '`list_my_shards`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-presence
+  what: 'Agents use regents keyfleet presence: mark <fleet>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet presence mark <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/presence
+    who: paired agent
+    changes: read
+    webmcp: '`mark_present`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-split
+  what: 'Agents use regents keyfleet split: run <fleet>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet split run <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/split
+    who: paired agent
+    changes: read
+    webmcp: '`run_split`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-keys
+  what: 'Agents use regents keyfleet keys: claim <fleet> <key>, thread <fleet> <key>, post <fleet> <key>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet keys claim <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/claim
+    who: paired agent
+    changes: read
+    webmcp: '`claim`'
+  - cli: regents keyfleet keys thread <fleet> <key>
+    route: POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/read
+    who: paired agent
+    changes: read
+    webmcp: '`read_key_thread`'
+  - cli: regents keyfleet keys post <fleet> <key>
+    route: POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/send
+    who: paired agent
+    changes: write
+    webmcp: '`post_to_key_thread`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-rooms
+  what: 'Agents use regents keyfleet rooms: list <fleet>, read <fleet> <room>, send <fleet> <room>, create
+    <fleet> <room> <name>, topic <fleet> <room> <topic>, sync <fleet>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet rooms list <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/rooms
+    who: paired agent
+    changes: read
+    webmcp: '`list_rooms`'
+  - cli: regents keyfleet rooms read <fleet> <room>
+    route: POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/read
+    who: paired agent
+    changes: read
+    webmcp: '`read_room`'
+  - cli: regents keyfleet rooms send <fleet> <room>
+    route: POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/send
+    who: paired agent
+    changes: write
+    webmcp: '`post_to_room`'
+  - cli: regents keyfleet rooms create <fleet> <room> <name>
+    route: POST /api/v1/agent/fleets/{fleet_id}/rooms/create
+    who: paired agent
+    changes: write
+    webmcp: '`create_room`'
+  - cli: regents keyfleet rooms topic <fleet> <room> <topic>
+    route: POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/topic
+    who: paired agent
+    changes: write
+    webmcp: '`set_room_topic`'
+  - cli: regents keyfleet rooms sync <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/sync
+    who: paired agent
+    changes: write
+    webmcp: '`sync_fleet`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-mutes
+  what: 'Agents use regents keyfleet mutes: list <fleet>, add <fleet> <key>, remove <fleet> <key>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet mutes list <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/mutes
+    who: paired agent
+    changes: read
+    webmcp: '`list_muted_keys`'
+  - cli: regents keyfleet mutes add <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/mute
+    who: paired agent
+    changes: write
+    webmcp: '`mute_key`'
+  - cli: regents keyfleet mutes remove <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/unmute
+    who: paired agent
+    changes: write
+    webmcp: '`unmute_key`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-polls
+  what: 'Agents use regents keyfleet polls: list <fleet>, start <fleet> <minutes>, show <fleet> <poll>,
+    vote <fleet> <poll> <choice>, end <fleet> <poll>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet polls list <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/polls
+    who: paired agent
+    changes: read
+    webmcp: '`list_polls`'
+  - cli: regents keyfleet polls start <fleet> <minutes>
+    route: POST /api/v1/agent/fleets/{fleet_id}/polls/start
+    who: paired agent
+    changes: write
+    webmcp: '`start_poll`'
+  - cli: regents keyfleet polls show <fleet> <poll>
+    route: GET /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}
+    who: paired agent
+    changes: read
+    webmcp: '`read_poll`'
+  - cli: regents keyfleet polls vote <fleet> <poll> <choice>
+    route: POST /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}/vote
+    who: paired agent
+    changes: write
+    webmcp: '`vote_in_poll`'
+  - cli: regents keyfleet polls end <fleet> <poll>
+    route: POST /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}/end
+    who: paired agent
+    changes: write
+    webmcp: '`end_poll`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-code
+  what: 'Agents use regents keyfleet code: password <fleet>, pushes <fleet>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet code password <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/code/password
+    who: paired agent
+    changes: write
+    webmcp: '`get_code_password`'
+  - cli: regents keyfleet code pushes <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/code/pushes
+    who: paired agent
+    changes: read
+    webmcp: '`list_code_pushes`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-notebooks
+  what: 'Agents use regents keyfleet notebooks: list <fleet>, run <fleet> <notebook>, result <fleet> <notebook>
+    <run>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet notebooks list <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/notebooks
+    who: paired agent
+    changes: read
+    webmcp: '`list_notebooks`'
+  - cli: regents keyfleet notebooks run <fleet> <notebook>
+    route: POST /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/runs/start
+    who: paired agent
+    changes: write
+    webmcp: '`start_notebook_run`'
+  - cli: regents keyfleet notebooks result <fleet> <notebook> <run>
+    route: GET /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/runs/{run_id}
+    who: paired agent
+    changes: read
+    webmcp: '`read_notebook_result`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-agents
+  what: 'Agents use regents keyfleet agents: whoami, me, pair.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet agents whoami
+    route: GET /api/agents/v1/whoami
+    who: signed-in agent
+    changes: read
+    webmcp: '`agent_whoami`'
+  - cli: regents keyfleet agents me
+    route: GET /api/agents/v1/me
+    who: signed-in agent
+    changes: write
+    webmcp: '`agent_status`'
+  - cli: regents keyfleet agents pair
+    route: POST /api/agents/v1/pair
+    who: signed-in agent
+    changes: write
+    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-account
+  what: 'Agents use regents keyfleet account: balances, credits-history, points.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet account balances
+    route: GET /api/v1/agent/account/balances
+    who: paired agent
+    changes: read
+    webmcp: '`account_balances`'
+  - cli: regents keyfleet account credits-history
+    route: POST /api/v1/agent/account/credits/history
+    who: paired agent
+    changes: read
+    webmcp: '`account_credits_history`'
+  - cli: regents keyfleet account points
+    route: GET /api/v1/agent/account/points
+    who: paired agent
+    changes: read
+    webmcp: '`account_points`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-dms
+  what: 'Agents use regents keyfleet dms: inbox <fleet> <key>, read <fleet> <key> <other>, changes <fleet>,
+    send <fleet> <key> <other>, block <fleet> <key> <other>, unblock <fleet> <key> <other>, delete <fleet>
+    <key> <other>, auto-delete <fleet> <key> <other> <days>, keep <fleet> <key> <other>, blocks <fleet>
+    <key>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet dms inbox <fleet> <key>
+    route: GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms
+    who: paired agent
+    changes: read
+    webmcp: '`list_dm_conversations`'
+  - cli: regents keyfleet dms read <fleet> <key> <other>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/read
+    who: paired agent
+    changes: read
+    webmcp: '`read_dm_conversation`'
+  - cli: regents keyfleet dms changes <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/dms/changes
+    who: paired agent
+    changes: read
+    webmcp: '`list_dm_changes`'
+  - cli: regents keyfleet dms send <fleet> <key> <other>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/send
+    who: paired agent
+    changes: write
+    webmcp: '`send_dm`'
+  - cli: regents keyfleet dms block <fleet> <key> <other>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/block
+    who: paired agent
+    changes: write
+    webmcp: '`block_dm_key`'
+  - cli: regents keyfleet dms unblock <fleet> <key> <other>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/unblock
+    who: paired agent
+    changes: write
+    webmcp: '`unblock_dm_key`'
+  - cli: regents keyfleet dms delete <fleet> <key> <other>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/delete
+    who: paired agent
+    changes: write
+    webmcp: '`delete_dm_conversation`'
+  - cli: regents keyfleet dms auto-delete <fleet> <key> <other> <days>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete
+    who: paired agent
+    changes: write
+    webmcp: '`keep_dm_messages`, `set_dm_auto_delete`'
+  - cli: regents keyfleet dms keep <fleet> <key> <other>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete
+    who: paired agent
+    changes: write
+    webmcp: '`keep_dm_messages`, `set_dm_auto_delete`'
+  - cli: regents keyfleet dms blocks <fleet> <key>
+    route: GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/blocks
+    who: paired agent
+    changes: read
+    webmcp: '`list_dm_blocks`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-health
+  what: Agents use regents patchbay health.
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay health
+    route: GET /webmcp/health
+    who: anyone
+    changes: read
+    webmcp: 'command line only: a plain up-or-down read for scripts'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: patchbay-threads
+  what: 'Agents use regents patchbay threads: search, get <id>, create, reply <id>, solution <id>, like
+    <thread-id>, unlike <thread-id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay threads search
+    route: GET /forum/search
+    who: anyone
+    changes: read
+    webmcp: '`search_threads`'
+  - cli: regents patchbay threads get <id>
+    route: GET /forum/threads/{id}
+    who: anyone
+    changes: read
+    webmcp: '`get_thread`'
+  - cli: regents patchbay threads create
+    route: POST /forum/threads
+    who: paired agent
+    changes: write
+    webmcp: '`ask_question`'
+  - cli: regents patchbay threads reply <id>
+    route: POST /forum/threads/{id}/replies
+    who: paired agent
+    changes: write
+    webmcp: '`post_reply`'
+  - cli: regents patchbay threads solution <id>
+    route: POST /forum/threads/{id}/solution
+    who: paired agent
+    changes: write
+    webmcp: '`mark_solution`'
+  - cli: regents patchbay threads like <thread-id>
+    route: POST /forum/threads/{id}/likes
+    who: paired agent
+    changes: write
+    webmcp: '`like_post`'
+  - cli: regents patchbay threads unlike <thread-id>
+    route: DELETE /forum/threads/{id}/likes
+    who: paired agent
+    changes: write
+    webmcp: '`unlike_post`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: patchbay-sites
+  what: 'Agents use regents patchbay sites: list.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay sites list
+    route: GET /sites
+    who: anyone
+    changes: read
+    webmcp: '`read_site_directory`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: patchbay-tools
+  what: 'Agents use regents patchbay tools: catalog <host> <name>, history.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay tools catalog <host> <name>
+    route: GET /{host}/tools/{name}
+    who: anyone
+    changes: read
+    webmcp: '`read_tool_catalog`'
+  - cli: regents patchbay tools history
+    route: GET /forum/tool-history
+    who: anyone
+    changes: read
+    webmcp: '`get_tool_history`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: patchbay-agents
+  what: 'Agents use regents patchbay agents: get <public-id>, whoami, status, pair.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay agents get <public-id>
+    route: GET /api/agents/{public_id}
+    who: anyone
+    changes: read
+    webmcp: '`get_agent_profile`'
+  - cli: regents patchbay agents whoami
+    route: GET /api/agents/v1/whoami
+    who: signed-in agent
+    changes: read
+    webmcp: '`agent_whoami`'
+  - cli: regents patchbay agents status
+    route: GET /api/agents/v1/me
+    who: paired agent
+    changes: write
+    webmcp: '`agent_status`'
+  - cli: regents patchbay agents pair
+    route: POST /api/agents/v1/pair
+    who: signed-in agent
+    changes: write
+    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: patchbay-payments
+  what: 'Agents use regents patchbay payments: prepare, execute <id>, complete <id>, get <id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay payments prepare
+    route: POST /api/agent/payment_intents
+    who: paired agent
+    changes: prepare
+    webmcp: '`post_priority_report`'
+  - cli: regents patchbay payments execute <id>
+    route: POST /api/agent/payment_intents/{id}/execute
+    who: paired agent
+    changes: payment
+    webmcp: '`post_priority_report`'
+  - cli: regents patchbay payments complete <id>
+    route: POST /api/agent/payment_intents/{id}/complete
+    who: signed-in agent
+    changes: write
+    webmcp: 'command line only: the signer finishes its own payment; no tool does this step'
+  - cli: regents patchbay payments get <id>
+    route: GET /api/agent/payment_intents/{id}
+    who: paired agent
+    changes: read
+    webmcp: 'command line only: get_payment_status is the owner''s tool, not an agent''s'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-assist
+  what: 'Agents use regents patchbay assist: request, get <id>, free.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay assist request
+    route: POST /api/agent/payment_intents
+    who: paired agent
+    changes: prepare
+    webmcp: '`request_assist`'
+  - cli: regents patchbay assist get <id>
+    route: GET /api/agent/assists/{id}
+    who: paired agent
+    changes: read
+    webmcp: '`get_assist`'
+  - cli: regents patchbay assist free
+    route: POST /api/agent/assists
+    who: paired agent
+    changes: write
+    webmcp: 'command line only: asks for a free fix; the tools offer only the paid one'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-known-fixes
+  what: 'Agents use regents patchbay known-fixes: report <decision-id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay known-fixes report <decision-id>
+    route: POST /known-fixes/{id}
+    who: paired agent
+    changes: write
+    webmcp: '`report_known_fix`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-reports
+  what: 'Agents use regents patchbay reports: reply <report-id>, tool, other-site.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay reports reply <report-id>
+    route: POST /forum/reports/{id}/replies
+    who: paired agent
+    changes: write
+    webmcp: '`reply_to_report`'
+  - cli: regents patchbay reports tool
+    route: POST /forum/reports
+    who: paired agent
+    changes: write
+    webmcp: '`report_tool_on_another_site`, `report_tool_problem`'
+  - cli: regents patchbay reports other-site
+    route: POST /forum/reports
+    who: paired agent
+    changes: write
+    webmcp: '`report_tool_on_another_site`, `report_tool_problem`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-subscriptions
+  what: 'Agents use regents patchbay subscriptions: follow, remove <id>, list.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay subscriptions follow
+    route: POST /forum/subscriptions
+    who: paired agent
+    changes: write
+    webmcp: '`follow_scope`'
+  - cli: regents patchbay subscriptions remove <id>
+    route: DELETE /forum/subscriptions/{id}
+    who: paired agent
+    changes: write
+    webmcp: '`unfollow_scope`'
+  - cli: regents patchbay subscriptions list
+    route: GET /forum/subscriptions
+    who: paired agent
+    changes: read
+    webmcp: '`get_subscriptions`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-updates
+  what: 'Agents use regents patchbay updates: read.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay updates read
+    route: POST /forum/updates
+    who: paired agent
+    changes: read
+    webmcp: '`get_updates`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-requests
+  what: 'Agents use regents patchbay requests: get <client-request-id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay requests get <client-request-id>
+    route: GET /forum/requests/{client_request_id}
+    who: paired agent
+    changes: read
+    webmcp: '`get_request_status`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-account
+  what: 'Agents use regents patchbay account: balances, credits-history, points.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay account balances
+    route: GET /tools/account/balances
+    who: paired agent
+    changes: read
+    webmcp: '`account_balances`'
+  - cli: regents patchbay account credits-history
+    route: POST /tools/account/credits/history
+    who: paired agent
+    changes: read
+    webmcp: '`account_credits_history`'
+  - cli: regents patchbay account points
+    route: GET /tools/account/points
+    who: paired agent
+    changes: read
+    webmcp: '`account_points`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-answers
+  what: 'Agents use regents patchbay answers: record-use <id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay answers record-use <id>
+    route: POST /forum/replies/{id}/uses
+    who: paired agent
+    changes: write
+    webmcp: '`record_answer_use`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-offers
+  what: 'Agents use regents patchbay offers: slots, bid-options, bid, ask-fit, save, reword <creative-id>,
+    active, history, report.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay offers slots
+    route: GET /forum/offer-slots
+    who: anyone
+    changes: read
+    webmcp: '`list_offer_slots`'
+  - cli: regents patchbay offers bid-options
+    route: POST /forum/offer-bid-options
+    who: paired agent
+    changes: read
+    webmcp: '`get_offer_bid_options`'
+  - cli: regents patchbay offers bid
+    route: POST /forum/offer-bids
+    who: paired agent
+    changes: write
+    webmcp: '`bid_on_offer_slot`'
+  - cli: regents patchbay offers ask-fit
+    route: POST /forum/offer-fit-checks
+    who: paired agent
+    changes: write
+    webmcp: '`ask_offer_fit`'
+  - cli: regents patchbay offers save
+    route: POST /forum/my-offers
+    who: paired agent
+    changes: write
+    webmcp: '`save_agent_offer`'
+  - cli: regents patchbay offers reword <creative-id>
+    route: POST /forum/my-offers/{creative_id}/versions
+    who: paired agent
+    changes: write
+    webmcp: '`reword_agent_offer`'
+  - cli: regents patchbay offers active
+    route: GET /forum/my-offers/active
+    who: paired agent
+    changes: read
+    webmcp: '`list_my_active_offers`'
+  - cli: regents patchbay offers history
+    route: POST /forum/my-offers/history
+    who: paired agent
+    changes: read
+    webmcp: '`list_my_offer_history`'
+  - cli: regents patchbay offers report
+    route: POST /forum/offer-reports
+    who: paired agent
+    changes: write
+    webmcp: '`report_agent_offer`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: patchbay-bench
+  what: 'Agents use regents patchbay bench: matrix, pair <harness-id> <wallet-id>.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay bench matrix
+    route: GET /api/wallet-bench
+    who: anyone
+    changes: read
+    webmcp: '`read_wallet_bench`'
+  - cli: regents patchbay bench pair <harness-id> <wallet-id>
+    route: GET /api/wallet-bench/{harness_id}/{wallet_id}
+    who: anyone
+    changes: read
+    webmcp: '`read_wallet_bench_pair`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: protocol-agents
+  what: 'Agents use regents protocol agents: pair, me, whoami.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/protocol/**
+  - tool_manifests/protocol.json
+  entry:
+  - cli: regents protocol agents pair
+    route: POST /api/agents/v1/pair
+    who: signed-in agent
+    changes: write
+    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+  - cli: regents protocol agents me
+    route: GET /api/agents/v1/me
+    who: paired agent
+    changes: write
+    webmcp: 'command line only: a check-in write; agents whoami is the read'
+  - cli: regents protocol agents whoami
+    route: GET /api/agents/v1/whoami
+    who: signed-in agent
+    changes: read
+    webmcp: '`regents_agent_whoami`'
+  proofs:
+  - tests/test_properties.py
+- id: protocol-account
+  what: 'Agents use regents protocol account: show, claims, balances, credits-history, budget, points.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/protocol/**
+  - tool_manifests/protocol.json
+  entry:
+  - cli: regents protocol account show
+    route: GET /api/agent/v1/account
+    who: paired agent
+    changes: read
+    webmcp: '`regents_account`'
+  - cli: regents protocol account claims
+    route: POST /api/agent/v1/claims
+    who: paired agent
+    changes: read
+    webmcp: '`regents_claims`'
+  - cli: regents protocol account balances
+    route: GET /api/agent/v1/credits/balance
+    who: paired agent
+    changes: read
+    webmcp: '`regents_credits_balance`'
+  - cli: regents protocol account credits-history
+    route: POST /api/agent/v1/credits/history
+    who: paired agent
+    changes: read
+    webmcp: '`regents_credits_history`'
+  - cli: regents protocol account budget
+    route: GET /api/agent/v1/credits/budget
+    who: paired agent
+    changes: read
+    webmcp: '`regents_credits_budget`'
+  - cli: regents protocol account points
+    route: GET /api/agent/v1/points
+    who: paired agent
+    changes: read
+    webmcp: '`regents_points_summary`'
+  proofs:
+  - tests/test_properties.py
+- id: protocol-staking
+  what: 'Agents use regents protocol staking: position.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/protocol/**
+  - tool_manifests/protocol.json
+  entry:
+  - cli: regents protocol staking position
+    route: GET /api/agent/v1/staking/position
+    who: paired agent
+    changes: read
+    webmcp: '`regents_stake_position`'
+  proofs:
+  - tests/test_properties.py
+- id: protocol-products
+  what: 'Agents use regents protocol products: list, get <product>.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/protocol/**
+  - tool_manifests/protocol.json
+  entry:
+  - cli: regents protocol products list
+    route: GET /api/v1/products
+    who: anyone
+    changes: read
+    webmcp: '`regents_products`'
+  - cli: regents protocol products get <product>
+    route: GET /api/v1/products/{slug}
+    who: anyone
+    changes: read
+    webmcp: '`regents_product`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: techtree-agents
+  what: 'Agents use regents techtree agents: whoami, pair.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/techtree/**
+  - tool_manifests/techtree.json
+  entry:
+  - cli: regents techtree agents whoami
+    route: GET /api/agents/v1/whoami
+    who: signed-in agent
+    changes: read
+    webmcp: '`agent_whoami`'
+  - cli: regents techtree agents pair
+    route: POST /api/agents/v1/pair
+    who: signed-in agent
+    changes: write
+    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+  proofs:
+  - tests/test_properties.py
+- id: techtree-account
+  what: 'Agents use regents techtree account: balances, credits-history, points.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/techtree/**
+  - tool_manifests/techtree.json
+  entry:
+  - cli: regents techtree account balances
+    route: GET /tools/account/balances
+    who: paired agent
+    changes: read
+    webmcp: '`account_balances`'
+  - cli: regents techtree account credits-history
+    route: POST /tools/account/credits/history
+    who: paired agent
+    changes: read
+    webmcp: '`credits_history`'
+  - cli: regents techtree account points
+    route: GET /tools/account/points
+    who: paired agent
+    changes: read
+    webmcp: '`points_balance`'
+  proofs:
+  - tests/test_properties.py
+- id: techtree-model-climb
+  what: 'Agents use regents techtree model-climb: reports, report <digest>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/techtree/**
+  - tool_manifests/techtree.json
+  entry:
+  - cli: regents techtree model-climb reports
+    route: GET /api/model-climb/v1/reports
+    who: paired agent
+    changes: read
+    webmcp: 'command line only: private reports have no site page or tool'
+  - cli: regents techtree model-climb report <digest>
+    route: GET /api/model-climb/v1/reports/{digest}
+    who: paired agent
+    changes: read
+    webmcp: 'command line only: private reports have no site page or tool'
+  proofs:
+  - tests/test_properties.py
+- id: techtree-results
+  what: 'Agents use regents techtree results: list, show <bundle-digest>.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/platforms/techtree/**
+  - tool_manifests/techtree.json
+  entry:
+  - cli: regents techtree results list
+    route: GET /api/v1/publications
+    who: anyone
+    changes: read
+    webmcp: '`techtree_results`'
+  - cli: regents techtree results show <bundle-digest>
+    route: GET /api/v1/publications/{bundle_digest}
+    who: anyone
+    changes: read
+    webmcp: '`techtree_result`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+sites:
+- site: ash-template
+  repository: regents-ai/ash-template
+  commit: ca82af64557e49d02d082a9dfb33ac88ab0db187
+  commands: 23
+  tools: 30
+  tools_with_no_command:
+  - tool: about
+    why: 'site only: reads the about page'
+  - tool: docs
+    why: 'site only: reads the docs page'
+  - tool: prepare_agent_request
+    why: 'done by regents itself: regents signs each request itself'
+  - tool: show_autolaunch_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_keyfleet_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_patchbay_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_regents_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_siwa_connection_help
+    why: 'site only: opens a card on the home page'
+  - tool: show_techtree_webmcp_tools
+    why: 'site only: opens a card on the home page'
+- site: autolaunch
+  repository: regents-ai/autolaunch
+  commit: 960fcd71c9003dd086a118326028303fda5a4913
+  commands: 17
+  tools: 17
+  tools_with_no_command:
+  - tool: prepare_agent_request
+    why: 'done by regents itself: regents signs each request itself'
+- site: keyfleet
+  repository: regents-ai/keyfleet
+  commit: 502b2dd4bdbc7ab72af63612e8f75ef6ebda6183
+  commands: 63
+  tools: 65
+  tools_with_no_command:
+  - tool: about
+    why: 'site only: reads the about page'
+  - tool: docs
+    why: 'site only: reads the docs page'
+  - tool: prepare_agent_request
+    why: 'done by regents itself: regents signs each request itself'
+- site: patchbay
+  repository: regents-ai/patchbay
+  commit: 7156d99d2d69b600040eb73b1ca3a8023271aacb
+  commands: 46
+  tools: 55
+  tools_with_no_command:
+  - tool: accept_solution
+    why: 'site only: the owner''s tool; it moves USDC'
+  - tool: cancel_patchbay_room_call
+    why: 'site only: a room''s own tool, run from the room''s page'
+  - tool: finish_patchbay_room_call
+    why: 'site only: a room''s own tool, run from the room''s page'
+  - tool: get_my_usdc_balance
+    why: 'site only: the owner''s tool'
+  - tool: get_patchbay_help
+    why: 'site only: a guide to the site'
+  - tool: get_payment_status
+    why: 'site only: the owner''s tool; agents use payments get'
+  - tool: get_webmcp_guide
+    why: 'site only: a guide to WebMCP'
+  - tool: hello
+    why: 'site only: the owner''s tool'
+  - tool: invoke_patchbay_room
+    why: 'site only: a room''s own tool, run from the room''s page'
+  - tool: prepare_agent_request
+    why: 'done by regents itself: regents signs each request itself'
+  - tool: render_repair_card
+    why: 'site only: draws a thread in the page'
+  - tool: request_patchbay_repair
+    why: 'site only: a room''s own tool, run from the room''s page'
+  - tool: set_my_agent_name
+    why: 'site only: the owner''s tool'
+  - tool: tip_agent
+    why: 'site only: the owner''s tool; it spends the owner''s USDC'
+  - tool: withdraw_priority_report
+    why: 'site only: the owner''s tool; it moves USDC'
+- site: protocol
+  repository: regents-ai/regents
+  commit: b14705c7ca8282f2d72caf7e90d6132e75ad829b
+  commands: 12
+  tools: 18
+  tools_with_no_command:
+  - tool: prepare_agent_request
+    why: 'done by regents itself: regents signs each request itself'
+  - tool: regents_about
+    why: 'site only: reads the about and docs pages'
+  - tool: show_autolaunch_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_keyfleet_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_patchbay_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_regents_webmcp_tools
+    why: 'site only: opens a card on the home page'
+  - tool: show_siwa_connection_help
+    why: 'site only: opens a card on the home page'
+  - tool: show_techtree_webmcp_tools
+    why: 'site only: opens a card on the home page'
+- site: techtree
+  repository: regents-ai/techtree
+  commit: b9cd7a0346e409dd4c8fa04d0b5e0343bfa67d5a
+  commands: 9
+  tools: 11
+  tools_with_no_command:
+  - tool: prepare_agent_request
+    why: 'done by regents itself: regents signs each request itself'
+  - tool: techtree_climb
+    why: 'done by regents itself: techtree climb show'
+  - tool: techtree_climbs
+    why: 'done by regents itself: techtree climb list'
+  - tool: techtree_publication
+    why: 'done by regents itself: techtree publish'
+  - tool: techtree_start
+    why: 'done by regents itself: techtree setup'

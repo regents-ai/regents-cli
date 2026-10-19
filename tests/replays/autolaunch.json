@@ -1,0 +1,429 @@
+[
+  {
+    "command": "auctions list",
+    "words": [
+      "auctions",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/auctions",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": [
+          {
+            "id": "2c2d3ccf-4545-4cc1-a045-fb3d46d1218c",
+            "state": "graduated",
+            "address": "0x2e732eab36178c27ffa747341ef6413aebe96468",
+            "title": "SANDY",
+            "kind": "memestock",
+            "unavailable": {},
+            "url": "https://autolaunch.sh/auctions/SANDY/96468",
+            "summary": "SANDY on Robinhood",
+            "chain_id": 4663,
+            "featured": false,
+            "chain": "robinhood",
+            "token_symbol": "SANDY",
+            "bid_volume": "0.431051634406938743",
+            "bid_volume_usd": "574.86179357452156435781865681",
+            "currency_raised": "0.431051634406938742",
+            "estimated_end_at": "2026-10-14T16:41:58.000000Z",
+            "minimum_reached": true,
+            "opened_at": "2026-10-13T16:41:58.000000Z",
+            "clearing_price": "0.00000000086804729766948459859685544180163400489780062448119668516710589756257832050323486328125",
+            "percent_met": 100,
+            "token_allocation": "497500000",
+            "quote_token": {
+              "decimals": 18,
+              "address": "0xb90a19ff0af67f7779aff50a882a9cff42446400",
+              "symbol": "SNDK"
+            },
+            "minimum_raise": "0.000000000026969531",
+            "record_updated_at": "2026-10-19T02:58:13.490959Z",
+            "treasury_security": null
+          },
+          {
+            "id": "62d69bba-758b-47d9-b02d-de5e7019c11f",
+            "state": "graduated",
+            "address": "0xa23f1128631b53a9fa17727e4345b128e5085e71",
+            "title": "AI FROG",
+            "kind": "memestock",
+            "unavailable": {},
+            "url": "https://autolaunch.sh/auctions/AIFROG/85e71",
+            "summary": "It's an AI FROG",
+            "chain_id": 8453,
+            "featured": false,
+            "chain": "base",
+            "token_symbol": "AIFROG",
+            "bid_volume": "1.71799654",
+            "bid_volume_usd": "372.2795948438140548",
+            "currency_raised": "1.71799653",
+            "estimated_end_at": "2026-10-14T14:41:27.000000Z",
+            "minimum_reached": true,
+            "opened_at": "2026-10-13T14:41:27.000000Z",
+            "clearing_price": "0.00000000345514798428796834353521111779834079115458767006430207402445375919342041015625",
+            "percent_met": 100,
+            "token_allocation": "497500000",
+            "quote_token": {
+              "decimals": 8,
+              "address": "0xb20000000000000000000078ee7ce2fe4908108c",
+              "symbol": "NVDAc"
+            },
+            "minimum_raise": "0.26969531",
+            "record_updated_at": "2026-10-19T03:05:11.913484Z",
+            "treasury_security": null
+          },
+          {
+            "id": "cf4cea6c-221b-4774-a12e-e890110e41c8",
+            "state": "failed",
+            "address": "0xd4cecfbf6d1e4afb46b054d1b7a284f450551140",
+            "title": "Artificial Grok Investor",
+            "kind": "memestock",
+            "unavailable": {},
+            "url": "https://autolaunch.sh/auctions/AGI/51140",
+            "summary": "Artificial Grok Investor",
+            "chain_id": 8453,
+            "featured": false,
+            "chain": "base",
+            "token_symbol": "AGI",
+            "bid_volume": "0",
+            "bid_volume_usd": "0.000000",
+            "currency_raised": "0",
+            "estimated_end_at": "2026-09-26T17:57:01.000000Z",
+            "minimum_reached": false,
+            "opened_at": "2026-09-25T17:57:01.000000Z",
+            "clearing_price": "0.000000009999999998199587477372609628178631337169779413898140774108469486236572265625",
+            "percent_met": 0,
+            "token_allocation": "800000000",
+            "quote_token": {
+              "decimals": 8,
+              "address": "0xb2000000000000000000007b9fcbd005511acbd5",
+              "symbol": "SPCXc"
+            },
+            "minimum_raise": "0.00001001",
+            "record_updated_at": "2026-10-19T03:05:10.922931Z",
+            "treasury_security": null
+          },
+          {
+            "id": "ab5e6021-d9ed-4e16-b958-c82cebc6c509",
+            "state": "graduated",
+            "address": "0x251747889606e844383dd0801d21a8db3a5c8793",
+            "title": "JollyBoi",
+            "kind": "memestock",
+            "unavailable": {},
+            "url": "https://autolaunch.sh/auctions/JollyB/c8793",
+            "summary": "Jolly (Meta mascot) - Zuck send us to outer space.",
+            "chain_id": 8453,
+            "featured": false,
+            "chain": "base",
+            "token_symbol": "JollyB",
+            "bid_volume": "0.07983953",
+            "bid_volume_usd": "57.0060814322666948",
+            "currency_raised": "0.07983952",
+            "estimated_end_at": "2026-09-26T14:33:23.000000Z",
+            "minimum_reached": true,
+            "opened_at": "2026-09-25T14:33:23.000000Z",
+            "clearing_price": "0.000000009999999998199587477372609628178631337169779413898140774108469486236572265625",
+            "percent_met": 100,
+            "token_allocation": "800000000",
+            "quote_token": {
+              "decimals": 8,
+              "address": "0xb2000000000000000000008bc8786b856e61707c",
+              "symbol": "METAc"
+            },
+            "minimum_raise": "0.00001001",
+            "record_updated_at": "2026-10-19T03:05:09.957414Z",
+            "treasury_security": null
+          },
+          {
+            "id": "a6f06d47-12a2-42fc-9343-47735eaa601f",
+            "state": "graduated",
+            "address": "0xd525e751c610029d24ec1f684f4007c9cfd80be8",
+            "title": "First Bite",
+            "kind": "memestock",
+            "unavailable": {},
+            "url": "https://autolaunch.sh/auctions/BITE/80be8",
+            "summary": "Memestock auction on Base for testing the autolaunch.sh site.",
+            "chain_id": 8453,
+            "featured": false,
+            "chain": "base",
+            "token_symbol": "BITE",
+            "bid_volume": "129.27906679",
+            "bid_volume_usd": "44517.5128709331593112",
+            "currency_raised": "109.05727688",
+            "estimated_end_at": "2026-09-25T16:15:23.000000Z",
+            "minimum_reached": true,
+            "opened_at": "2026-09-24T16:15:23.000000Z",
+            "clearing_price": "0.00000015833990919455422282092917151435809523796205411372284288518130779266357421875",
+            "percent_met": 100,
+            "token_allocation": "800000000",
+            "quote_token": {
+              "decimals": 8,
+              "address": "0xb200000000000000000000c2e324d24d7eecd1fb",
+              "symbol": "AAPLc"
+            },
+            "minimum_raise": "0.00010001",
+            "record_updated_at": "2026-10-19T03:05:13.904384Z",
+            "treasury_security": null
+          },
+          {
+            "id": "fae9616d-ee71-446c-b1ff-3ebfbbe2ada6",
+            "state": "graduated",
+            "address": "0x92d9196e50e0318ac93a6923ff7259b7da99ad00",
+            "title": "RDOG",
+            "kind": "memestock",
+            "unavailable": {},
+            "url": "https://autolaunch.sh/auctions/RDOG/9ad00",
+            "summary": "RDOG",
+            "chain_id": 4663,
+            "featured": false,
+            "chain": "robinhood",
+            "token_symbol": "RDOG",
+            "bid_volume": "55.042608231604116578",
+            "bid_volume_usd": "8129.44946995034794664071792990",
+            "currency_raised": "55.042608231604116577",
+            "estimated_end_at": "2026-09-26T00:48:33.000000Z",
+            "minimum_reached": true,
+            "opened_at": "2026-09-25T00:48:33.000000Z",
+            "clearing_price": "0.000009999999999999999999999501397498738055857385128612213609500258826301433145999908447265625",
+            "percent_met": 100,
+            "token_allocation": "800000000",
+            "quote_token": {
+              "decimals": 18,
+              "address": "0x4a0e65a3eccec6dbe60ae065f2e7bb85fae35eea",
+              "symbol": "SPCX"
+            },
+            "minimum_raise": "2.000000000000000001",
+            "record_updated_at": "2026-10-19T02:58:12.490434Z",
+            "treasury_security": null
+          }
+        ],
+        "pagination": {
+          "has_more": false,
+          "next_cursor": null
+        },
+        "robinhood_unavailable": false
+      }
+    }
+  },
+  {
+    "command": "tokens list",
+    "words": [
+      "tokens",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/tokens",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": [
+          {
+            "id": "eb6bf931-01b3-4919-9a77-e545a61ace7c",
+            "name": "SANDY",
+            "address": "0x35f7ecf22a6fba3845b2df4f740c558cccbffa6b",
+            "symbol": "SANDY",
+            "url": "https://autolaunch.sh/tokens/SANDY/96468",
+            "summary": "SANDY on Robinhood",
+            "subject_id": null,
+            "chain_id": 4663,
+            "chain": "robinhood",
+            "auction_id": "2c2d3ccf-4545-4cc1-a045-fb3d46d1218c",
+            "graduated_at": "2026-10-14T15:04:16.160628Z",
+            "top_rank": null,
+            "treasury_security": null
+          },
+          {
+            "id": "f54d6675-319c-46a5-8372-5f1eb480c503",
+            "name": "AI FROG",
+            "address": "0x345fc59ac4fd786c3c2f49e7778e1f14e2e335cf",
+            "symbol": "AIFROG",
+            "url": "https://autolaunch.sh/tokens/AIFROG/85e71",
+            "summary": "It's an AI FROG",
+            "subject_id": null,
+            "chain_id": 8453,
+            "chain": "base",
+            "auction_id": "62d69bba-758b-47d9-b02d-de5e7019c11f",
+            "graduated_at": "2026-10-14T14:46:14.306902Z",
+            "top_rank": null,
+            "treasury_security": null
+          },
+          {
+            "id": "228eef20-74f3-442a-92ce-073348f154fe",
+            "name": "JollyBoi",
+            "address": "0x6355047bb3c0254d050e886038f4b366c273551c",
+            "symbol": "JollyB",
+            "url": "https://autolaunch.sh/tokens/JollyB/c8793",
+            "summary": "Jolly (Meta mascot) - Zuck send us to outer space.",
+            "subject_id": null,
+            "chain_id": 8453,
+            "chain": "base",
+            "auction_id": "ab5e6021-d9ed-4e16-b958-c82cebc6c509",
+            "graduated_at": "2026-09-26T19:52:16.501944Z",
+            "top_rank": null,
+            "treasury_security": null
+          },
+          {
+            "id": "f5f67b36-e68a-4faf-9d46-264e56c5e78f",
+            "name": "First Bite",
+            "address": "0xad84e438a82a9a234f4b92cb43a22d938dffa2d2",
+            "symbol": "BITE",
+            "url": "https://autolaunch.sh/tokens/BITE/80be8",
+            "summary": "Memestock auction on Base for testing the autolaunch.sh site.",
+            "subject_id": null,
+            "chain_id": 8453,
+            "chain": "base",
+            "auction_id": "a6f06d47-12a2-42fc-9343-47735eaa601f",
+            "graduated_at": "2026-09-25T16:19:58.493728Z",
+            "top_rank": null,
+            "treasury_security": null
+          },
+          {
+            "id": "57b01d54-79c6-46a4-9199-ee13f9303087",
+            "name": "RDOG",
+            "address": "0x20b30cd8c8841d5f4a69071dac7dd27cb8b401d7",
+            "symbol": "RDOG",
+            "url": "https://autolaunch.sh/tokens/RDOG/9ad00",
+            "summary": "RDOG",
+            "subject_id": null,
+            "chain_id": 4663,
+            "chain": "robinhood",
+            "auction_id": "fae9616d-ee71-446c-b1ff-3ebfbbe2ada6",
+            "graduated_at": "2026-09-25T15:40:13.944539Z",
+            "top_rank": null,
+            "treasury_security": null
+          }
+        ],
+        "pagination": {
+          "has_more": false,
+          "next_cursor": null
+        },
+        "robinhood_unavailable": false
+      }
+    }
+  },
+  {
+    "command": "auction <id>",
+    "words": [
+      "auction",
+      "2c2d3ccf-4545-4cc1-a045-fb3d46d1218c"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/auctions/2c2d3ccf-4545-4cc1-a045-fb3d46d1218c",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": {
+          "id": "2c2d3ccf-4545-4cc1-a045-fb3d46d1218c",
+          "state": "graduated",
+          "address": "0x2e732eab36178c27ffa747341ef6413aebe96468",
+          "title": "SANDY",
+          "kind": "memestock",
+          "unavailable": {},
+          "url": "https://autolaunch.sh/auctions/SANDY/96468",
+          "summary": "SANDY on Robinhood",
+          "chain_id": 4663,
+          "featured": false,
+          "chain": "robinhood",
+          "token_symbol": "SANDY",
+          "bid_volume": "0.431051634406938743",
+          "bid_volume_usd": "574.86179357452156435781865681",
+          "currency_raised": "0.431051634406938742",
+          "estimated_end_at": "2026-10-14T16:41:58.000000Z",
+          "minimum_reached": true,
+          "opened_at": "2026-10-13T16:41:58.000000Z",
+          "clearing_price": "0.00000000086804729766948459859685544180163400489780062448119668516710589756257832050323486328125",
+          "percent_met": 100,
+          "token_allocation": "497500000",
+          "quote_token": {
+            "decimals": 18,
+            "address": "0xb90a19ff0af67f7779aff50a882a9cff42446400",
+            "symbol": "SNDK"
+          },
+          "minimum_raise": "0.000000000026969531",
+          "record_updated_at": "2026-10-19T02:58:13.490959Z",
+          "treasury_security": null
+        },
+        "robinhood_unavailable": false
+      }
+    }
+  },
+  {
+    "command": "token <id>",
+    "words": [
+      "token",
+      "eb6bf931-01b3-4919-9a77-e545a61ace7c"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/tokens/eb6bf931-01b3-4919-9a77-e545a61ace7c",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": {
+          "id": "eb6bf931-01b3-4919-9a77-e545a61ace7c",
+          "name": "SANDY",
+          "address": "0x35f7ecf22a6fba3845b2df4f740c558cccbffa6b",
+          "symbol": "SANDY",
+          "url": "https://autolaunch.sh/tokens/SANDY/96468",
+          "summary": "SANDY on Robinhood",
+          "subject_id": null,
+          "chain_id": 4663,
+          "chain": "robinhood",
+          "auction_id": "2c2d3ccf-4545-4cc1-a045-fb3d46d1218c",
+          "price_quote": "0.000000000506151444",
+          "price_updated_at": "2026-10-15T23:48:51.159498Z",
+          "token_supply": "1000000000",
+          "quote_token": {
+            "decimals": 18,
+            "address": "0xb90a19ff0af67f7779aff50a882a9cff42446400",
+            "symbol": "SNDK"
+          },
+          "graduated_at": "2026-10-14T15:04:16.160628Z",
+          "top_rank": null,
+          "auction_url": "https://autolaunch.sh/auctions/SANDY/96468",
+          "treasury_security": null
+        }
+      }
+    }
+  },
+  {
+    "command": "treasury security <address>",
+    "words": [
+      "treasury",
+      "security",
+      "0x2e732eab36178c27ffa747341ef6413aebe96468"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/treasury-security/0x2e732eab36178c27ffa747341ef6413aebe96468",
+      "content": null
+    },
+    "response": {
+      "status": 404,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "error": {
+          "code": "not_found",
+          "message": "Treasury report not found.",
+          "hint": "List what exists with GET https://autolaunch.sh/api/v1/auctions or GET https://autolaunch.sh/api/v1/tokens. Every endpoint is described at https://autolaunch.sh/openapi.json. Sending the same request again will not help."
+        }
+      }
+    }
+  }
+]

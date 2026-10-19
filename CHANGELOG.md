@@ -16,7 +16,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   too, or was drawn as the Review panel a person reads before agreeing to something. A site's own
   fields still travel in the error as data.
 - An answer nested too deep to read, or holding `NaN` or `Infinity`, is reported as an unreadable
-  answer. Before, the first crashed `regents` and the second reached `--json` output, which other
+  answer, and a ChatGPT sign-in refusal nested too deep is read as having no error code. Before, the first crashed `regents` and the second reached `--json` output, which other
   JSON readers then refused.
 - "Wait N seconds" reads N only as the digits 0 to 9; anything else says "wait a minute".
 - A command `regents` prints for you to run next works when one of its values starts with "-":
@@ -27,10 +27,21 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - An `account_missing` or `person_not_here` refusal with no hint no longer crashes `regents`.
 - A decimal value, such as an Autolaunch bid amount, accepts only the digits 0 to 9 and one point.
   Before, digits from other scripts, such as `١٢`, were accepted and sent to the site.
-- `docs/feature-map.md` lists every command of every pinned site: its route, who may run it,
-  whether it changes anything, and its WebMCP tool, with each tool that has no command and why.
-  `make sync` writes it, and `make check` fails when it is out of date or when an allowlisted
-  tool or command no longer needs its entry.
+- `verification/features.yml` is the feature map. It lists each feature of `regents` and one per
+  command group of every pinned site: who uses it, whether it is protected, its files, the tests
+  that prove it and its known gaps, and for each command its route, who may run it, whether it
+  changes anything and its WebMCP tool. `make sync` writes it. `make check` fails when it is out
+  of date, when an allowlisted tool or command no longer needs its entry, when a proof it names is
+  missing, or when a file changed since the last release is in no feature. `make release-check`
+  also fails when a protected feature the release touches has no property test or no end-to-end
+  test. It replaces `docs/feature-map.md`.
+- Every public read of every site is recorded from the live site in `tests/replays/` and replayed
+  offline: `regents` must send exactly the recorded request and pass the answer on whole, as
+  `--json` and as readable text. `uv run scripts/record_replays.py` records them again.
+- New tests try many made-up inputs on signing in, on the Touch ID key and on the ChatGPT sign-in.
+  `regents auth login` signs exactly the message the sign-in server issued, for its own address
+  and site, and keeps the receipt for that site only. A locked key opens only with its own
+  passkey for its own address, and the helper signs exactly the transaction it is given.
 - `make release-check` now installs the wheel into a new environment, runs every public read of
   every site against the live site, and checks each answer, or each expected refusal, against
   the site's pinned API description. `regents` runs with only PATH and an empty home, so nothing

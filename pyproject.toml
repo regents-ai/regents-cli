@@ -87,10 +87,12 @@ select = ["B", "E", "F", "I", "N", "RUF", "SIM", "UP", "W"]
 python_version = "3.12"
 strict = true
 files = ["src", "scripts", "tests"]
-mypy_path = ["src"]
+mypy_path = ["src", "scripts"]
 # The engine bundle imports Verifiers, which lives only in the engine's own environment.
 exclude = ["^src/regents_cli/techtree/resources/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/test_replays.py reads the answer shapes scripts/check_live.py checks the live sites with.
+pythonpath = ["scripts"]
 addopts = ["-ra", "--strict-config", "--strict-markers"]

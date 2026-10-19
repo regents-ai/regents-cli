@@ -1,0 +1,175 @@
+[
+  {
+    "command": "products list",
+    "words": [
+      "products",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/products",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "products": [
+          {
+            "name": "Autolaunch",
+            "summary": "Autolaunch runs fair token auctions on Base. Revstake tokens share an agent's stablecoin revenue with the people who stake them. Memestock tokens pair a memecoin with a real onchain stock.",
+            "page": "https://regents.sh/autolaunch",
+            "github": "https://github.com/regents-ai/autolaunch",
+            "site": "https://autolaunch.sh",
+            "slug": "autolaunch"
+          },
+          {
+            "name": "Techtree",
+            "summary": "Uplift your harness, Skills, or environments with the latest frontier stack from Prime Intellect and Nvidia",
+            "page": "https://regents.sh/techtree",
+            "github": "https://github.com/regents-ai/techtree",
+            "site": "https://techtree.sh",
+            "slug": "techtree"
+          },
+          {
+            "name": "Patchbay",
+            "summary": "The fastest way for an agent to get unstuck without waking you",
+            "page": "https://regents.sh/patchbay",
+            "github": "https://github.com/regents-ai/patchbay",
+            "site": "https://patchbay.help",
+            "slug": "patchbay"
+          },
+          {
+            "name": "Keyfleet",
+            "summary": "No boss. No job queue.",
+            "page": "https://regents.sh/keyfleet",
+            "github": null,
+            "site": "https://keyfleet.ai",
+            "slug": "keyfleet"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "products get <product>",
+    "words": [
+      "products",
+      "get",
+      "autolaunch"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/products/autolaunch",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "product": {
+          "name": "Autolaunch",
+          "start": {
+            "label": "How it works",
+            "href": "https://autolaunch.sh/how-it-works"
+          },
+          "family": "Revstake auctions are priced in REGENT. 1% of every Autolaunch trade and 2% of every token's staking rewards go to Regents Labs, and REGENT stakers share that revenue.",
+          "domain": "autolaunch.sh",
+          "summary": "Autolaunch runs fair token auctions on Base. Revstake tokens share an agent's stablecoin revenue with the people who stake them. Memestock tokens pair a memecoin with a real onchain stock.",
+          "page": "https://regents.sh/autolaunch",
+          "audience": [
+            "Agents and x402 services with stablecoin revenue, raising early funds from backers.",
+            "Backers who want a share of an agent's earnings, paid to their stake.",
+            "Traders who want a memecoin tied to a real onchain stock."
+          ],
+          "github": "https://github.com/regents-ai/autolaunch",
+          "site": "https://autolaunch.sh",
+          "slug": "autolaunch",
+          "agent_line": "Read autolaunch.sh/llms.txt and explain how Autolaunch works.",
+          "before_you_bid": [
+            "A Revstake token rests on a promise. The launcher could stop sending revenue through the contract, send only part of it, or go out of business. Back launchers you trust, and read each token's details before you bid.",
+            "Every bid, launch and stake happens in your own wallet, and each one asks for your signature."
+          ],
+          "headline": "Raise early funds for an agent. Share what it earns.",
+          "kicker": "autolaunch.sh · Auctions opened 24 September 2026",
+          "launches": [
+            {
+              "copy": [
+                "A Revstake token stands for an agent or x402 service that earns stablecoins. The launcher promises to pass all future revenue through the Revstake contract, and everyone who stakes the token receives a share in line with their stake.",
+                "Most of the supply stays with the launcher, the way founders keep most of a company after a preseed round."
+              ],
+              "title": "Back an agent's stablecoin revenue.",
+              "facts": [
+                {
+                  "label": "Auction",
+                  "value": "48 hours, priced in REGENT"
+                },
+                {
+                  "label": "Supply",
+                  "value": "100 billion tokens"
+                },
+                {
+                  "label": "Sold in the auction",
+                  "value": "Up to 10%"
+                },
+                {
+                  "label": "Locked with REGENT for trading",
+                  "value": "Up to 5%"
+                },
+                {
+                  "label": "To the launch's treasury",
+                  "value": "85%, released over one year"
+                }
+              ],
+              "kicker": "Revstake · on Base"
+            },
+            {
+              "copy": [
+                "A Memestock token is a memecoin paired with a tokenized stock. Bids are paid in the stock, and stakers earn the stock from trading fees.",
+                "There is no creator allocation. Unsold tokens are burned."
+              ],
+              "title": "Pair a memecoin with a real stock.",
+              "facts": [
+                {
+                  "label": "Auction",
+                  "value": "24 hours, priced in the paired stock"
+                },
+                {
+                  "label": "Supply",
+                  "value": "1 billion tokens"
+                },
+                {
+                  "label": "Sold in the auction",
+                  "value": "Up to 80%"
+                },
+                {
+                  "label": "Locked with the stock for trading",
+                  "value": "Up to 20%"
+                },
+                {
+                  "label": "To the creator",
+                  "value": "None"
+                }
+              ],
+              "kicker": "Memestock · on Base, Robinhood Chain soon"
+            }
+          ],
+          "why_fair": [
+            {
+              "copy": "Most tokens sell near the end, and each bid is spread across the blocks that follow it. Bidding your true price in full, as early as you like, never puts you behind. If you are in the auction, you are early.",
+              "title": "No early snipers."
+            },
+            {
+              "copy": "Auctions run on Uniswap's continuous clearing auction. When one succeeds, its trading position is locked in a Uniswap v4 pool for good.",
+              "title": "Built on Uniswap."
+            },
+            {
+              "copy": "Each trade pays 1% to the token's own stakers and 1% to REGENT stakers. The pool also charges the standard 0.3%, and what the locked position earns from it is added to the token's staking rewards. These rates are fixed in the contracts.",
+              "title": "Fees reach stakers."
+            }
+          ]
+        }
+      }
+    }
+  }
+]
