@@ -87,11 +87,11 @@ An agent may also list itself in the ERC-8004 agent registry on Base. It is opti
 never needs it. The sign-in server hosts the agent's profile; `regents` builds the one
 transaction itself and refuses one from the server that differs. It shows the transaction, what
 it costs at most (its gas and Base's fee for writing it to Ethereum) and every field as it will
-be signed. Then the agent key on this machine signs it, `regents` checks the signed bytes say
-the same, sends it and pays its gas, so it needs a little ETH on Base (`SIWA_BASE_RPC` names
-another Base node than `https://mainnet.base.org`). Each run sends a new transaction; once one
-is sent, any error keeps its hash and the `--tx-hash` command that checks it. Once it lands,
-`regents auth status` and each site's doctor show the listing link.
+be signed. Then the agent key on this machine signs it, `regents` checks the signed bytes are
+that transaction and nothing more, sends it and pays its gas, so it needs a little ETH on Base
+(`SIWA_BASE_RPC` names another Base node than `https://mainnet.base.org`). Each run sends a new
+transaction; once one is sent, any error keeps its hash and the `--tx-hash` command that checks
+it. Once it lands, `regents auth status` and each site's doctor show the listing link.
 
 ```bash
 regents auth register --name "Astra" --description "What I do, in a sentence"

@@ -2,7 +2,7 @@
 - regents builds the registration itself, the same transaction the live sign-in server builds;
 - a registration the server alters in any way is refused before anything is signed or sent;
 - with the agent key, what regents shows before signing is exactly what it signs and sends, once,
-  and bytes the key helper signs differently are never sent;
+  and bytes the key helper signs differently, or as another kind of transaction, are never sent;
 - the most it can cost counts the gas and Base's fee for writing it to Ethereum, and a wallet
   without that much ETH is told the exact amount, and nothing is signed;
 - a node number regents cannot read stops it before anything is signed;
@@ -30,7 +30,7 @@ from hexbytes import HexBytes
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from regents_cli import app, base, siwa
+from regents_cli import app, base, passkey, siwa
 
 KEY = "0x" + "00" * 31 + "07"
 ADDRESS = Account.from_key(KEY).address.lower()
@@ -345,6 +345,61 @@ def test_bytes_the_key_helper_signs_differently_are_never_sent(tamper: str) -> N
         monkeypatch.setattr(siwa, "sign_transaction", helper)
         code, out, _ = register(stand, profile, Path(folder), monkeypatch, "--json")
     assert (code, json.loads(out)["error"]["code"]) == (3, "signed_transaction_differs")
+    assert stand.sent() == []
+
+
+def other_kind(kind: str, transaction: dict[str, str]) -> dict[str, Any]:
+    """`transaction`, with all it shows unchanged, as a kind of transaction the agent key never
+    signs."""
+    fields = passkey.dynamic_fee(transaction)
+    if kind == "access list":
+        held = [
+            {"address": "0x" + f"{n:040x}", "storageKeys": ["0x" + "00" * 32]} for n in range(40)
+        ]
+        return {**fields, "accessList": held}
+    if kind == "delegation":
+        handed = Account.sign_authorization(
+            {
+                "chainId": fields["chainId"],
+                "address": "0x" + "de" * 20,
+                "nonce": fields["nonce"] + 1,
+            },
+            KEY,
+        )
+        return {**fields, "type": 4, "authorizationList": [handed]}
+    fee = {"gasPrice": fields.pop("maxFeePerGas")}
+    del fields["maxPriorityFeePerGas"], fields["accessList"], fields["type"]
+    return {**fields, **fee, **({"type": 1, "accessList": []} if kind == "type 1" else {})}
+
+
+@pytest.mark.parametrize("kind", ["access list", "delegation", "type 1", "legacy"])
+def test_another_kind_of_transaction_the_key_helper_signs_is_never_sent(
+    kind: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {"name": "Probe", "description": "A test agent."}
+    stand = Stand(built(profile), plenty())
+
+    def helper(_key: siwa.Key, transaction: dict[str, str]) -> str:
+        signed = Account.sign_transaction(other_kind(kind, transaction), KEY)
+        return "0x" + bytes(signed.raw_transaction).hex()
+
+    monkeypatch.setattr(siwa, "sign_transaction", helper)
+    code, out, err = register(stand, profile, tmp_path, monkeypatch, "--json")
+    assert (code, json.loads(out)["error"]["code"]) == (3, "signed_transaction_differs"), err
+    assert stand.sent() == []
+
+
+def test_the_shown_transaction_signed_by_another_key_is_never_sent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {"name": "Probe", "description": "A test agent."}
+    stand = Stand(built(profile), plenty())
+    other = "0x" + "00" * 31 + "08"
+    monkeypatch.setattr(
+        siwa, "sign_transaction", lambda _key, t: passkey.sign_transaction_with(other, t)
+    )
+    code, out, err = register(stand, profile, tmp_path, monkeypatch, "--json")
+    assert (code, json.loads(out)["error"]["code"]) == (3, "signed_transaction_differs"), err
     assert stand.sent() == []
 
 

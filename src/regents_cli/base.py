@@ -19,7 +19,7 @@ from eth_account.typed_transactions.typed_transaction import TypedTransaction
 from eth_utils.crypto import keccak
 from hexbytes import HexBytes
 
-from regents_cli import siwa
+from regents_cli import passkey, siwa
 from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError
 from regents_cli.next_steps import Step, human
 
@@ -178,25 +178,17 @@ def send(key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int
 
 
 def signs(raw: Any, address: str, transaction: dict[str, str]) -> bool:
-    """Whether `raw` is `transaction` signed by `address`, and nothing else."""
+    """Whether `raw` is `transaction` signed by `address`, and nothing else. The signing hash
+    covers every field and the kind of transaction, so it must be the hash of `transaction` as
+    the one kind the agent key signs: EIP-1559, with no access list."""
     try:
-        return as_signed(raw) == (address.lower(), transaction)
+        signed = HexBytes(raw)
+        return (
+            TypedTransaction.from_bytes(signed).hash()
+            == TypedTransaction.from_dict(passkey.dynamic_fee(transaction)).hash()
+            and Account.recover_transaction(signed).lower() == address.lower()
+        )
     except Exception:
         # Bytes the helper wrote can fail to read in many ways; each means it signed something
         # other than what was shown.
         return False
-
-
-def as_signed(raw: str) -> tuple[str, dict[str, str]]:
-    """Who signed `raw`, and the transaction it holds, in the fields `priced` gives."""
-    signed = TypedTransaction.from_bytes(HexBytes(raw)).as_dict()
-    return Account.recover_transaction(raw).lower(), {
-        "chainId": hex(signed["chainId"]),
-        "nonce": hex(signed["nonce"]),
-        "to": "0x" + bytes(signed["to"]).hex(),
-        "data": "0x" + bytes(signed["data"]).hex(),
-        "value": hex(signed["value"]),
-        "gas": hex(signed["gas"]),
-        "maxFeePerGas": hex(signed["maxFeePerGas"]),
-        "maxPriorityFeePerGas": hex(signed["maxPriorityFeePerGas"]),
-    }

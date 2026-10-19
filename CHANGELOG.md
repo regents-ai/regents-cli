@@ -6,7 +6,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.15 — 2026-10-19
 
 Evidence: level protected; features sign-in, signed-requests, touch-id-key,
-techtree-model-sign-in and release-gates; 506 tests; 5 known gaps in verification/features.yml.
+techtree-model-sign-in and release-gates; 511 tests; 5 known gaps in verification/features.yml.
 
 - `regents auth register` builds the agent's registry listing itself and signs only that: a call
   to `register` on the agent registry `0x8004a169fb4a3325136eb29fa0ceb6d2e539a432` on Base,
@@ -15,7 +15,9 @@ techtree-model-sign-in and release-gates; 506 tests; 5 known gaps in verificatio
   wallet that signs and pays, the chain, the registry, the profile's address, the amount, the
   most the gas can cost, and every field exactly as signed; with `--json` it writes the same to
   stderr as `signing`: `from`, `agentUri`, `most_it_costs` and the `transaction`. It then checks
-  the signed bytes hold exactly that transaction from that wallet, and sends nothing otherwise.
+  the signed bytes are exactly that transaction from that wallet, with no access list and no
+  other kind of transaction (such as one handing the wallet's account to a contract), and sends
+  nothing otherwise.
   Before, it signed the server's step as it came, without showing it.
 - The most the gas can cost counts Base's fee for writing the transaction to Ethereum, read from
   Base at the latest block. A wallet without that much ETH on Base is told how much it holds,

@@ -79,6 +79,10 @@ features:
     from: 'review of 026fda3: the cost left out Base''s fee for writing to Ethereum, node numbers were
       read loosely, and the helper''s signed bytes went unchecked'
     test: tests/test_register.py
+  - id: R-20261019-register-signing-hash
+    from: 'Sentinel read of 37063e8: the signed-bytes check compared only the shown fields, so an access
+      list or an EIP-7702 delegation signed by the helper went out'
+    test: tests/test_register.py
   gaps:
   - auth accept-world-id is not run whole offline.
   - auth register is proven against a stand-in Base node; nothing is sent on Base.

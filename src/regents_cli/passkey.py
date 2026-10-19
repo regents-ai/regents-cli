@@ -265,21 +265,25 @@ def sign_message_with(private_key: str, text: str) -> str:
 def sign_transaction_with(private_key: str, transaction: dict[str, str]) -> str:
     """Sign a transaction given as 0x quantities (chainId, nonce, value, gas, fees) and 0x hex
     (to, data), the shape the helper takes."""
-    signed = Account.sign_transaction(
-        {
-            "type": 2,
-            "chainId": int(transaction["chainId"], 16),
-            "nonce": int(transaction["nonce"], 16),
-            "to": bytes.fromhex(transaction["to"].removeprefix("0x")),
-            "data": transaction["data"],
-            "value": int(transaction["value"], 16),
-            "gas": int(transaction["gas"], 16),
-            "maxFeePerGas": int(transaction["maxFeePerGas"], 16),
-            "maxPriorityFeePerGas": int(transaction["maxPriorityFeePerGas"], 16),
-        },
-        private_key=private_key,
-    )
+    signed = Account.sign_transaction(dynamic_fee(transaction), private_key=private_key)
     return "0x" + bytes(signed.raw_transaction).hex()
+
+
+def dynamic_fee(transaction: dict[str, str]) -> dict[str, Any]:
+    """`transaction`, in the helper's 0x shape, as the one kind of transaction the agent key
+    signs: EIP-1559, with no access list."""
+    return {
+        "type": 2,
+        "chainId": int(transaction["chainId"], 16),
+        "nonce": int(transaction["nonce"], 16),
+        "to": bytes.fromhex(transaction["to"].removeprefix("0x")),
+        "data": transaction["data"],
+        "value": int(transaction["value"], 16),
+        "gas": int(transaction["gas"], 16),
+        "maxFeePerGas": int(transaction["maxFeePerGas"], 16),
+        "maxPriorityFeePerGas": int(transaction["maxPriorityFeePerGas"], 16),
+        "accessList": [],
+    }
 
 
 def _serve(path: str) -> None:
