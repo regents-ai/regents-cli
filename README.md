@@ -84,10 +84,11 @@ Authentication does not imply that a site exposes private commands or that its l
 are open. See each site's `/agents.md` before performing work.
 
 An agent may also list itself in the ERC-8004 agent registry on Base. It is optional; sign-in
-never needs it. The sign-in server builds the one transaction and hosts the agent's profile;
-the agent key on this machine sends it and pays its gas, so it needs a little ETH on Base
-(`SIWA_BASE_RPC` names another Base node than `https://mainnet.base.org`). Each run sends a new
-transaction. Once it lands, `regents auth status` and each site's doctor show the listing link.
+never needs it. The sign-in server hosts the agent's profile; `regents` builds the one
+transaction itself and refuses one from the server that differs. It shows the transaction, what
+it costs at most and every field as it will be signed, then the agent key on this machine signs
+it, sends it and pays its gas, so it needs a little ETH on Base (`SIWA_BASE_RPC` names another
+Base node than `https://mainnet.base.org`). Each run sends a new transaction. Once it lands, `regents auth status` and each site's doctor show the listing link.
 
 ```bash
 regents auth register --name "Astra" --description "What I do, in a sentence"
@@ -200,18 +201,22 @@ regents techtree forge inspect-skill <Skill folder>
 
 ```bash
 uv sync --all-extras
+uv run playwright install chromium
 uv run regents --help
 make check
 ```
 
-`make check` runs the linters, the type checker, the tests and the wheel check, and fails when
+`make check` runs the linters, the type checker, the tests and the wheel check. A test that
+reaches past this machine fails, and on a Mac the Touch ID sign-in runs whole in headless
+Chromium with a virtual Touch ID. It also fails when
 [verification/features.yml](verification/features.yml), the feature map, is out of date or leaves
 out a file changed since the last release; `make sync` rewrites it. The map lists each feature
 with who uses it, how much is at stake, its files, its proofs and its known gaps, and every site
 command beside the site's WebMCP tool for it. Before a release, `make release-check` also installs
 the wheel into a new environment, runs every public read against the live sites, checking each
-answer against the site's pinned API description, and fails when a protected feature the release
-touches has no property test or no end-to-end test. `uv run scripts/record_replays.py` records
+answer against the site's pinned API description, and fails when the Touch ID page differs from
+the live sign-in server's or a protected feature the release touches has no property test or no
+end-to-end test. `uv run scripts/record_replays.py` records
 the live reads again into tests/replays/, which the tests replay offline.
 
 MIT licensed.

@@ -11,6 +11,7 @@ keywords = ["regents", "cli", "agents"]
 dependencies = [
   "click>=8.2,<9",
   "cryptography>=50.0.2,<51",
+  "eth-abi>=6,<7",
   "eth-account>=0.13,<1",
   "eth-utils>=6,<7",
   "filelock>=4.2,<5",
@@ -47,6 +48,7 @@ dev = [
   "types-jsonschema>=4.25,<5",
   "hatchling>=1.27,<2",
   "hypothesis>=6.140,<7",
+  "playwright>=1.64,<1.65",
 ]
 
 [build-system]

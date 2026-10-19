@@ -650,33 +650,38 @@ header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
 .local { margin-left: auto; font-size: 12px; color: var(--color-muted); }
 main { border: 1px solid var(--color-border); background: var(--color-surface); }
 .content { padding: 32px; }
-#opener { margin: 0 0 16px; font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
-#state { margin: 0 0 24px; color: var(--color-muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+#opener { margin: 0 0 24px; color: var(--color-muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; overflow-wrap: anywhere; }
 h1 { font-family: var(--font-family-title); font-weight: 400; font-size: clamp(28px, 6vw, 36px); line-height: 1.2; min-height: 1.2em; margin: 0 0 16px; outline: none; }
-#lead { min-height: 3em; margin: 0 0 24px; color: var(--color-muted); line-height: 1.5; }
+/* Both sentences share one cell, so finishing never changes the page's height. */
+.lead { display: grid; margin: 0 0 24px; color: var(--color-muted); line-height: 1.5; }
+.lead > p { grid-area: 1 / 1; margin: 0; }
+.lead > p[data-hidden] { visibility: hidden; }
 button { width: 100%; min-height: 48px; padding: 12px 16px; border: 1px solid var(--color-fg); border-radius: 0; background: var(--color-fg); color: var(--color-bg); font: inherit; cursor: pointer; }
 button:hover { background: var(--color-bg); color: var(--color-fg); }
 button:disabled { cursor: wait; opacity: .65; }
 button[data-complete] { cursor: default; opacity: 1; color: var(--color-muted); background: transparent; border-color: var(--color-border); }
 button:focus-visible, a:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 4px; }
-#done { margin: 16px 0 0; font-size: 18px; font-weight: 600; visibility: hidden; }
+/* The finished line and an error share one reserved line, so nothing below moves. */
+.after { display: grid; min-height: 3em; margin: 16px 0 0; line-height: 1.5; }
+.after > p { grid-area: 1 / 1; margin: 0; }
+#done { font-weight: 600; visibility: hidden; }
 #done[data-shown] { visibility: visible; }
-#note { min-height: 4.5em; margin: 16px 0 0; color: var(--color-error); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+#note { color: var(--color-error); font-size: 14px; }
 .identity { border-top: 1px solid var(--color-border); padding: 20px 32px; }
 .label { display: block; color: var(--color-muted); font-size: 12px; margin-bottom: 8px; }
 code { font-family: var(--font-family-mono); font-size: 12px; overflow-wrap: anywhere; }
-.share { margin-top: 24px; border: 1px solid var(--color-border); padding: 24px 32px; }
-.share h2 { margin: 0 0 12px; font-size: 12px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
-.message { margin: 0 0 16px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; user-select: all; }
-button.secondary { background: transparent; color: var(--color-fg); }
-button.secondary:hover { background: var(--color-fg); color: var(--color-bg); }
 footer { padding-top: 24px; color: var(--color-muted); font-size: 13px; line-height: 1.6; }
 footer p { margin: 0 0 8px; }
-.why { color: var(--color-fg); }
+.share { margin-top: 24px; border-top: 1px solid var(--color-border); padding-top: 24px; }
+.share[hidden] { display: none; }
+.share h2 { margin: 0 0 12px; font-size: 12px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; }
+.message { margin: 0 0 16px; color: var(--color-fg); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; user-select: all; }
+button.secondary { background: transparent; color: var(--color-fg); }
+button.secondary:hover { background: var(--color-fg); color: var(--color-bg); }
 a { color: inherit; text-underline-offset: 3px; }
 @media (prefers-color-scheme: light) { .mark-dark { display: none; } .mark-light { display: block; } }
-@media (max-width: 420px) { body { padding: 24px 16px; } .shell { margin-top: 24px; } .content { padding: 24px; } h1 { min-height: 2.4em; } #lead { min-height: 7.5em; } .identity { padding: 20px 24px; } .share { padding: 20px 24px; } header { gap: 8px; } .brand { font-size: 22px; } }
-@media (forced-colors: active) { main, .identity, .share, button { border-color: CanvasText; } button { background: ButtonFace; color: ButtonText; } }
+@media (max-width: 420px) { body { padding: 24px 16px; } .shell { margin-top: 24px; } .content { padding: 24px; } h1 { min-height: 2.4em; } .after { min-height: 4.5em; } .identity { padding: 20px 24px; } header { gap: 8px; } .brand { font-size: 22px; } }
+@media (forced-colors: active) { main, .identity, button { border-color: CanvasText; } button { background: ButtonFace; color: ButtonText; } }
 </style>
 </head>
 <body>
@@ -690,39 +695,54 @@ a { color: inherit; text-underline-offset: 3px; }
   <main>
     <div class="content">
       <p id="opener"></p>
-      <p id="state">Agent key · Touch ID</p>
-      <h1 id="title" tabindex="-1">Protect your agent key</h1>
-      <p id="lead" role="status">Return to your agent if this page does not finish loading.</p>
+      <h1 id="title" tabindex="-1">Agent key</h1>
+      <div class="lead">
+        <p id="lead">If this page doesn’t finish loading, go back to your agent.</p>
+        <p id="lead-done" data-hidden></p>
+      </div>
       <button id="go" type="button">Use Touch ID</button>
-      <p id="done">You can safely close this page</p>
-      <p id="note" role="alert"></p>
-      <noscript>JavaScript is required to use Touch ID on this page.</noscript>
+      <div class="after">
+        <p id="done">You can safely close this page</p>
+        <p id="note" role="alert"></p>
+      </div>
+      <noscript>Turn on JavaScript to use Touch ID on this page.</noscript>
     </div>
     <div class="identity"><span class="label">Agent address</span><code id="address"></code></div>
   </main>
-  <section class="share" aria-labelledby="share-title">
-    <h2 id="share-title">Message for your agent</h2>
-    <p id="message" class="message">I’m on the Regents Touch ID page you opened. Its address is localhost because it runs on my Mac, not on a website. Touch ID there protects your agent key with my fingerprint, and the secret that unlocks it never leaves this computer. It does not pair you with my account: once I’m done, run your client’s “me” command to check pairing. Agent guide: https://siwa.regents.sh/skill.md. Questions: https://patchbay.help</p>
-    <button id="copy" type="button" class="secondary">Copy message</button>
-  </section>
   <footer>
-    <p class="why"><strong>Why localhost?</strong> This page runs on your Mac, not on a website. The secret that unlocks your agent’s key never leaves this computer, so no website ever holds it.</p>
-    <p class="why">This step protects or unlocks the agent’s key; your agent confirms account pairing separately.</p>
     <p><a href="https://patchbay.help" target="_blank" rel="noopener noreferrer">Questions? Ask on patchbay.help ↗</a></p>
     <p><a href="https://siwa.regents.sh/skill.md" target="_blank" rel="noopener noreferrer">Regents agent guide ↗</a></p>
+    <section class="share" id="share" aria-labelledby="share-title">
+      <h2 id="share-title">Message for your agent</h2>
+      <p id="message" class="message">I’m on the Regents Touch ID page you opened on my Mac. When I’m done, check that you’re paired with my account. Guide: https://siwa.regents.sh/skill.md</p>
+      <button id="copy" type="button" class="secondary">Copy message</button>
+    </section>
   </footer>
 </div>
 <script>
 const setup = __SETUP__;
-const words = {
-  lock: ["Secure your agent key", "Create a passkey with Touch ID to protect your agent’s key."],
-  unlock: ["Unlock your agent key", "Use Touch ID to let your agent sign in. Asked once after each Mac restart."],
-  show: ["Reveal your agent key", "Use Touch ID to reveal the private key in your terminal. Only continue if you requested it."],
+// Each step's title and sentence, before Touch ID and after it.
+const [words, result] = {
+  lock: [
+    ["Protect your agent key", "Confirm with Touch ID to keep your agent’s key safe."],
+    ["Agent key protected", "Go back to your agent to finish setting up."],
+  ],
+  unlock: [
+    ["Unlock your agent key", "Confirm with Touch ID so your agent can sign in. You’re asked once after each Mac restart."],
+    ["Agent key unlocked", "Go back to your agent to continue."],
+  ],
+  show: [
+    ["Show your agent key", "Confirm with Touch ID to show the key in the window where you asked for it. Only continue if you asked."],
+    ["Touch ID confirmed", "Go back to the window where you asked for the key."],
+  ],
 }[setup.mode];
 const $ = (id) => document.getElementById(id);
+// A message written for the person; any other error shows one plain line.
+class Plain extends Error {}
 document.title = words[0] + " · Regents";
 $("title").textContent = words[0];
 $("lead").textContent = words[1];
+$("lead-done").textContent = result[1];
 $("opener").textContent = "Opened by " + setup.opener;
 $("address").textContent = setup.address;
 $("copy").onclick = async () => {
@@ -730,7 +750,7 @@ $("copy").onclick = async () => {
     await navigator.clipboard.writeText($("message").textContent);
     $("copy").textContent = "✓ Copied";
   } catch {
-    $("copy").textContent = "Couldn’t copy. Select the message and copy it.";
+    $("copy").textContent = "Couldn’t copy. Select the message instead.";
   }
 };
 const hex = (bytes) => [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -747,7 +767,7 @@ async function secretOf(credentialId) {
     extensions: { prf: { eval: { first: await salt() } } },
   } });
   const first = credential.getClientExtensionResults().prf?.results?.first;
-  if (!first) throw new Error("This browser can't open the passkey. Open this page in Safari or Chrome.");
+  if (!first) throw new Plain("This browser can’t use Touch ID here. Open this page in Safari or Chrome.");
   return { credential_id: credentialId, secret: hex(first) };
 }
 
@@ -773,25 +793,27 @@ $("go").onclick = async () => {
   try {
     const answer = setup.mode === "lock" ? await makePasskey() : await secretOf(setup.credentialId);
     const sent = await fetch(location.pathname, { method: "POST", body: JSON.stringify(answer) }).catch(() => null);
-    if (!sent?.ok) throw new Error("Your agent stopped waiting. Run its command again.");
-    const result = {
-      lock: ["Passkey created", "Return to your agent to finish setup and pairing."],
-      unlock: ["Touch ID confirmed", "Return to your agent to continue."],
-      show: ["Touch ID confirmed", "Return to your terminal to view the key."],
-    }[setup.mode];
+    if (!sent?.ok) throw new Plain("Your agent stopped waiting. Ask it to try again.");
     $("title").textContent = result[0];
-    $("lead").textContent = result[1];
+    $("lead").setAttribute("data-hidden", "");
+    $("lead-done").removeAttribute("data-hidden");
+    $("title").setAttribute("aria-describedby", "lead-done");
     document.title = result[0] + " · Regents";
-    $("state").textContent = "✓ Confirmed";
-    $("go").textContent = "✓ Touch ID complete";
+    $("go").textContent = "✓ Done";
     $("go").setAttribute("data-complete", "");
     $("done").setAttribute("data-shown", "");
+    $("share").hidden = true;
     $("go").setAttribute("aria-busy", "false");
     $("title").focus();
   } catch (error) {
-    $("note").textContent = error.name === "NotAllowedError"
-      ? "Touch ID was cancelled or timed out. Try again when you’re ready."
-      : error.message;
+    if (error.name === "NotAllowedError") {
+      $("note").textContent = "Touch ID was cancelled or timed out. Try again when you’re ready.";
+    } else if (error instanceof Plain) {
+      $("note").textContent = error.message;
+    } else {
+      console.error(error);
+      $("note").textContent = "Touch ID couldn’t finish. Try again, or open this page in Safari or Chrome.";
+    }
     $("go").disabled = false;
     $("go").textContent = "Use Touch ID";
     $("go").setAttribute("aria-busy", "false");

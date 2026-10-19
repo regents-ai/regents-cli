@@ -107,6 +107,12 @@ OWN: list[dict[str, Any]] = [
                 "from": "review of 6098f3b: a printed command misread values starting with -",
                 "test": "tests/test_properties.py",
             },
+            {
+                "id": "R-20261019-node-words",
+                "from": "1.10.15 hold: a Base node's own refusal reached the screen, and a short "
+                "wallet was not told how much it needed",
+                "test": "tests/test_register.py",
+            },
         ],
         "gaps": [
             "Signed commands are proven against local stand-ins only; nothing is signed against "
@@ -127,8 +133,25 @@ OWN: list[dict[str, Any]] = [
             {"cli": "regents auth logout"},
             {"cli": "regents auth accept-world-id"},
         ],
-        "proofs": ["tests/test_sign_in.py", "tests/test_contract.py"],
-        "gaps": ["auth register and auth accept-world-id are not run whole offline."],
+        "proofs": ["tests/test_sign_in.py", "tests/test_register.py", "tests/test_contract.py"],
+        "regressions": [
+            {
+                "id": "R-20261019-register-signs-server-step",
+                "from": "1.10.15 hold: auth register signed the step the sign-in server sent "
+                "without building it, and showed nothing before signing",
+                "test": "tests/test_register.py",
+            },
+            {
+                "id": "R-20261019-register-answer",
+                "from": "1.10.15 hold: a registration answer missing a listing field crashed "
+                "auth register",
+                "test": "tests/test_register.py",
+            },
+        ],
+        "gaps": [
+            "auth accept-world-id is not run whole offline.",
+            "auth register is proven against a stand-in Base node; nothing is sent on Base.",
+        ],
     },
     {
         "id": "touch-id-key",
@@ -142,7 +165,7 @@ OWN: list[dict[str, Any]] = [
             "src/regents_cli/browser.py",
         ],
         "entry": [{"cli": "regents auth login, the first time on a Mac"}],
-        "proofs": ["tests/test_passkey.py"],
+        "proofs": ["tests/test_passkey.py", "tests/test_touch_id_page.py"],
         "regressions": [
             {
                 "id": "R-20261008-stuck-helper",
@@ -150,7 +173,11 @@ OWN: list[dict[str, Any]] = [
                 "test": "tests/test_passkey.py",
             }
         ],
-        "gaps": ["No test opens the Touch ID page in a browser."],
+        "gaps": [
+            "The page is run in headless Chromium with a virtual Touch ID, not Safari, and on a "
+            "Mac only: the publish workflow's Linux run skips it, and make release-check runs it. "
+            "scripts/check_live.py checks it is the live sign-in server's page."
+        ],
     },
     {
         "id": "techtree-model-sign-in",
@@ -174,7 +201,7 @@ OWN: list[dict[str, Any]] = [
                 "test": "tests/techtree/test_model_sign_in.py",
             }
         ],
-        "gaps": ["model login is not run whole against a stand-in sign-in server."],
+        "gaps": ["model login, status and logout are proven against a stand-in for OpenAI only."],
     },
     {
         "id": "techtree-approval",
@@ -222,7 +249,18 @@ OWN: list[dict[str, Any]] = [
             "src/regents_cli/check_commands.py",
         ],
         "entry": [{"cli": "make check"}, {"cli": "make release-check"}, {"cli": "make sync"}],
-        "proofs": ["tests/test_check_commands.py", "tests/test_replays.py"],
+        "proofs": [
+            "tests/test_check_commands.py",
+            "tests/test_replays.py",
+            "tests/test_network_guard.py",
+        ],
+        "regressions": [
+            {
+                "id": "R-20261019-tests-stay-local",
+                "from": "1.10.15 hold: nothing stopped a test reaching a live site",
+                "test": "tests/test_network_guard.py",
+            }
+        ],
     },
 ]
 

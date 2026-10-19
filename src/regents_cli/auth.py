@@ -341,8 +341,10 @@ def register(
                 f"not transactions. Send it from that wallet: --wallet-address {wallet}.",
                 exit_code=EXIT_AUTH,
             )
+        transaction = base.priced(step, timeout_ms)
+        show_signing(step, transaction, as_json)
         try:
-            tx_hash = base.send(key, step, timeout_ms)
+            tx_hash = base.send(key, transaction, timeout_ms)
         except CommandError as error:
             if error.code != "base_send_unclear":
                 raise
@@ -354,12 +356,12 @@ def register(
                 next_steps=[run([*again, "--tx-hash", sent], "Check it before sending another.")],
                 tx_hash=sent,
             ) from None
-    outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
+    listed = siwa.registration_outcome(profile, tx_hash, timeout_ms)
     deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
-    while outcome["code"] == "registration_pending" and time.monotonic() < deadline:
+    while listed is None and time.monotonic() < deadline:
         time.sleep(REGISTRATION_POLL_SECONDS)
-        outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
-    if outcome["code"] == "registration_pending":
+        listed = siwa.registration_outcome(profile, tx_hash, timeout_ms)
+    if listed is None:
         output.emit(
             {"wallet_address": wallet.lower(), "tx_hash": tx_hash, "listed": False},
             as_json=as_json,
@@ -371,7 +373,6 @@ def register(
             ],
         )
         return
-    listed = outcome["data"]
     output.emit(
         {
             "wallet_address": listed["walletAddress"],
@@ -383,6 +384,30 @@ def register(
         },
         as_json=as_json,
         next_steps=[done("The agent is listed; nothing more to run.")],
+    )
+
+
+def show_signing(step: dict[str, Any], transaction: dict[str, str], as_json: bool) -> None:
+    """What the agent key is about to sign, on stderr, before it signs: the sender, the chain, the
+    registry, the amount and the most the gas can cost, then the transaction exactly as signed."""
+    if as_json:
+        output.stderr.out(json.dumps({"signing": transaction}), highlight=False)
+        return
+    sender = step["from"]
+    gas = base.most_it_costs(transaction) - int(transaction["value"], 16)
+    output.show(
+        output.review(
+            [
+                f"{sender}, the agent key on this machine, signs and sends this on Base "
+                f"(chain {step['chainId']}).",
+                f"It calls register on the agent registry {step['to']}, listing the profile at "
+                f"{step['agentUri']}.",
+                f"Amount: {base.eth(int(transaction['value'], 16))} ETH. Gas: at most "
+                f"{base.eth(gas)} ETH, paid by {sender}.",
+                "Signed exactly as:",
+                *(f"  {field}: {value}" for field, value in transaction.items()),
+            ]
+        )
     )
 
 

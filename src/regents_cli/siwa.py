@@ -28,7 +28,9 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from eth_abi import abi
 from eth_account import Account
+from eth_utils.crypto import keccak
 
 from regents_cli import passkey
 from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError, UsageError
@@ -41,6 +43,20 @@ BROKER = "https://siwa.regents.sh"
 #: platforms.lock.json: the headers, covered components, signature parameters and lifetime every
 #: SIWA signer and verifier follows. Its sha-256 is the contract id.
 CONTRACT = Path(__file__).parent / "platforms" / "siwa" / "contract.json"
+#: The ERC-8004 agent registry on Base, where `regents auth register` lists an agent.
+REGISTRY = "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432"
+REGISTRY_CHAIN = 8453
+#: The fields of a listing `regents auth register` shows.
+LISTING = ("walletAddress", "agentId", "registryUrl", "profileUrl", "txHash")
+JSON_ESCAPES = {
+    "\b": "\\b",
+    "\t": "\\t",
+    "\n": "\\n",
+    "\f": "\\f",
+    "\r": "\\r",
+    '"': '\\"',
+    "\\": "\\\\",
+}
 RENEW_MARGIN_SECONDS = 60
 SIGNER_TIMEOUT_SECONDS = 300
 ADDRESS = re.compile(r"0x[0-9a-fA-F]{40}")
@@ -499,20 +515,81 @@ def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
 
 
 def registration_step(profile: dict[str, str], timeout_ms: int) -> dict[str, Any]:
-    """The one transaction that lists `profile` in the agent registry, for its wallet to send."""
-    step: dict[str, Any] = _post("/api/shared/siwa/agent/register-step", profile, timeout_ms)[
-        "data"
+    """The one transaction that lists `profile` in the agent registry, for its wallet to send.
+
+    regents builds it itself, and the sign-in server must offer exactly the same one: anything
+    else is refused before anything is signed or shown to send."""
+    built = registration_transaction(profile)
+    offered = _post("/api/shared/siwa/agent/register-step", profile, timeout_ms).get("data")
+    if offered != built:
+        raise CommandError(
+            "registration_step_differs",
+            "The sign-in server offered a registration transaction other than the one regents "
+            f"builds for this profile: register on the agent registry {REGISTRY} on Base, "
+            "sending no ETH. Nothing was signed or sent.",
+            exit_code=EXIT_AUTH,
+        )
+    return built
+
+
+def registration_transaction(profile: dict[str, str]) -> dict[str, Any]:
+    """`register(agentURI)` on the Base agent registry, sending no ETH, built as the sign-in
+    server builds it. The URI is the profile's page on the sign-in server, named by a digest of
+    the wallet, name, description and image, so sending it consents to exactly that profile."""
+    fields = [
+        profile["wallet_address"].lower(),
+        profile["name"],
+        profile["description"],
+        profile.get("image", ""),
     ]
-    return step
+    listed = "[" + ",".join(_json_string(field) for field in fields) + "]"
+    uri = f"{broker()}/agent-profiles/{hashlib.sha256(listed.encode()).digest()[:16].hex()}"
+    call = keccak(text="register(string)")[:4] + abi.encode(["string"], [uri])
+    return {
+        "chainId": REGISTRY_CHAIN,
+        "from": fields[0],
+        "to": REGISTRY,
+        "data": "0x" + call.hex(),
+        "value": "0x0",
+        "agentUri": uri,
+    }
 
 
-def registration_outcome(profile: dict[str, str], tx_hash: str, timeout_ms: int) -> dict[str, Any]:
+def _json_string(text: str) -> str:
+    """`text` as the sign-in server writes it in JSON: control characters as upper-case \\u00XX,
+    everything else as itself."""
+    return (
+        '"'
+        + "".join(
+            JSON_ESCAPES.get(char) or (f"\\u{ord(char):04X}" if ord(char) < 0x20 else char)
+            for char in text
+        )
+        + '"'
+    )
+
+
+def registration_outcome(
+    profile: dict[str, str], tx_hash: str, timeout_ms: int
+) -> dict[str, Any] | None:
     """What the sign-in server read of the registration sent as `tx_hash`, at the latest block:
-    `registration_pending` until it lands, then `agent_registered` with the listing."""
-    outcome: dict[str, Any] = _post(
+    None until it lands, then the listing."""
+    outcome = _post(
         "/api/shared/siwa/agent/registered", {**profile, "tx_hash": tx_hash}, timeout_ms
     )
-    return outcome
+    listed = outcome.get("data")
+    if outcome.get("code") == "registration_pending":
+        return None
+    if (
+        outcome.get("code") == "agent_registered"
+        and isinstance(listed, dict)
+        and all(isinstance(listed.get(field), str) for field in LISTING)
+    ):
+        return listed
+    raise CommandError(
+        "registration_answer_unreadable",
+        f"The sign-in server answered about the registration {tx_hash} in a way regents cannot "
+        "read. Check it again with the same --tx-hash in a minute.",
+    )
 
 
 def signer_name(key: Key) -> str:

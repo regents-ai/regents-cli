@@ -5,9 +5,11 @@ Each public read runs twice, readable and with --json, and both must exit as exp
 answer must have the shape every pinned OpenAPI document gives its route's success answer, with
 `next_steps` beside it; an expected refusal must be one error with its code and status, in the
 shape the documents give that status. Reads that take an id take it from an earlier read's answer,
-so they follow live records. Every command's --help must print. The check fails when a site's
-description has a public read with no run here, so a new read is checked from the release that
-adds it. A read whose pinned shape accepts any object is shown as unchecked, by name.
+so they follow live records. Every command's --help must print, and the Touch ID page the wheel
+serves must be the live sign-in server's own, byte for byte (the page its agent client,
+/agent/siwa_agent.py, serves). The check fails when a site's description has a public read
+with no run here, so a new read is checked from the release that adds it. A read whose pinned
+shape accepts any object is shown as unchecked, by name.
 
 Nothing signed runs: `regents` runs with only PATH, an empty home and an empty agent home, so
 nothing is signed, paid or changed, and nothing of this machine's own setup reaches it. It reads
@@ -18,6 +20,7 @@ the live sites, so it runs before each release, not in the publish workflow.
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 import re
@@ -31,6 +34,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, unquote
 
+import httpx
 import yaml
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
@@ -41,6 +45,7 @@ from rich.table import Table
 
 from regents_cli.check_commands import METHODS
 from regents_cli.http import exit_code_for
+from regents_cli.siwa import BROKER
 
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
@@ -356,6 +361,22 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int, list[str]
     return table, failures, unchecked
 
 
+def live_touch_id_page() -> str:
+    """The Touch ID page the live sign-in server's agent client serves, read from its source
+    without running it."""
+    source = httpx.get(f"{BROKER}/agent/siwa_agent.py", timeout=30).raise_for_status().text
+    [page] = [
+        node.value.value
+        for node in ast.parse(source).body
+        if isinstance(node, ast.Assign)
+        and [target.id for target in node.targets if isinstance(target, ast.Name)]
+        == ["PASSKEY_PAGE"]
+        and isinstance(node.value, ast.Constant)
+    ]
+    assert isinstance(page, str)
+    return page
+
+
 def main() -> int:
     version = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))["project"]["version"]
     git = ["git", "-C", str(ROOT)]
@@ -405,6 +426,12 @@ def main() -> int:
             failures += 1
         else:
             console.print(f"[green]✓[/green] --help prints for all {helped['commands']} commands")
+        [served] = venv.glob("lib/python*/site-packages/regents_cli/passkey.html")
+        if served.read_text("utf-8") == live_touch_id_page():
+            console.print(f"[green]✓[/green] The Touch ID page is the one {BROKER} serves")
+        else:
+            console.print(f"[red]✗ The Touch ID page differs from the one {BROKER} serves[/red]")
+            failures += 1
         unchecked: list[str] = []
         for site in sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json")):
             with console.status(f"Reading {site}"):

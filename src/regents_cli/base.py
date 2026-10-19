@@ -1,8 +1,9 @@
 """Sending one transaction on Base from the agent key on this machine.
 
-The transaction comes whole from the server that built it; this signs it with the agent key,
-prices it at the latest block, and hands it to a Base node once. The agent's wallet pays the
-gas. `SIWA_BASE_RPC` names the node, shared with the SIWA agent client.
+`priced` prices a transaction at the latest block; the caller shows it, and `send` signs exactly
+that and hands it to a Base node once. The agent's wallet pays the gas, so `send` first checks it
+holds enough for the most the transaction can cost. `SIWA_BASE_RPC` names the node, shared with
+the SIWA agent client. A node's own words never reach the screen.
 """
 
 from __future__ import annotations
@@ -18,6 +19,11 @@ from regents_cli.errors import EXIT_UNREACHABLE, CommandError
 from regents_cli.next_steps import human
 
 BASE_RPC = "https://mainnet.base.org"
+#: What it means when the node refuses each call.
+REFUSED = {
+    "eth_estimateGas": "The Base node says this transaction would fail",
+    "eth_sendRawTransaction": "The Base node refused the signed transaction",
+}
 
 
 def rpc_address() -> str:
@@ -42,60 +48,92 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
         ) from None
     if isinstance(body, dict) and "result" in body:
         return body["result"]
-    error = body.get("error") if isinstance(body, dict) else None
-    said = error.get("message") if isinstance(error, dict) else None
     raise CommandError(
         "base_refused",
-        f"The Base node refused {method}: {said or f'answer {response.status_code}'}.",
+        REFUSED.get(method, f"The Base node {address} would not price this transaction")
+        + ", so nothing was sent.",
     )
 
 
-def send(key: siwa.Key, step: dict[str, Any], timeout_ms: int) -> str:
-    """Sign `step` (from, to, data, value, chainId) with `key`, send it once, answer its hash.
-
-    When the node does not confirm the send, the transaction may still be on its way: the error
-    carries its hash as `tx_hash`, so the caller can check it rather than send a second one."""
+def priced(step: dict[str, Any], timeout_ms: int) -> dict[str, str]:
+    """`step` (from, to, data, value, chainId) priced at the latest block, as the 0x fields the
+    key signs."""
     sender = step["from"]
     fields = {"from": sender, "to": step["to"], "data": step["data"], "value": step["value"]}
+    estimate = call("eth_estimateGas", [fields], timeout_ms)
+    tip = call("eth_maxPriorityFeePerGas", [], timeout_ms)
+    latest = call("eth_getBlockByNumber", ["latest", False], timeout_ms)
+    nonce = call("eth_getTransactionCount", [sender, "pending"], timeout_ms)
     try:
-        gas = int(call("eth_estimateGas", [fields], timeout_ms), 16) * 6 // 5
-        tip = int(call("eth_maxPriorityFeePerGas", [], timeout_ms), 16)
-        latest = call("eth_getBlockByNumber", ["latest", False], timeout_ms)
-        transaction = {
+        gas, fee = int(estimate, 16) * 6 // 5, int(tip, 16)
+        return {
             "chainId": hex(step["chainId"]),
-            "nonce": call("eth_getTransactionCount", [sender, "pending"], timeout_ms),
+            "nonce": hex(int(nonce, 16)),
             "to": step["to"],
             "data": step["data"],
             "value": step["value"],
             "gas": hex(gas),
-            "maxFeePerGas": hex(int(latest["baseFeePerGas"], 16) * 2 + tip),
-            "maxPriorityFeePerGas": hex(tip),
+            "maxFeePerGas": hex(int(latest["baseFeePerGas"], 16) * 2 + fee),
+            "maxPriorityFeePerGas": hex(fee),
         }
-        raw = siwa.sign_transaction(key, transaction)
-        tx_hash = "0x" + keccak(hexstr=raw).hex()
-        try:
-            sent: str = call("eth_sendRawTransaction", [raw], timeout_ms)
-        except CommandError as error:
-            if error.code != "base_unreachable":
-                raise
-            raise CommandError(
-                "base_send_unclear",
-                f"The Base node {rpc_address()} did not confirm the send, so the transaction "
-                f"may be on its way: {tx_hash}.",
-                exit_code=EXIT_UNREACHABLE,
-                tx_hash=tx_hash,
-            ) from None
-    except CommandError as error:
-        if error.code != "base_refused":
-            raise
+    except (KeyError, TypeError, ValueError):
+        raise unreadable() from None
+
+
+def unreadable() -> CommandError:
+    return CommandError(
+        "base_answer_unreadable",
+        f"The Base node {rpc_address()} answered in a way regents cannot read, so nothing was "
+        "sent.",
+    )
+
+
+def most_it_costs(transaction: dict[str, str]) -> int:
+    """The most `transaction` can take from its sender, in wei: its value and all its gas."""
+    gas, fee, value = (int(transaction[f], 16) for f in ("gas", "maxFeePerGas", "value"))
+    return gas * fee + value
+
+
+def eth(wei: int) -> str:
+    """Wei as ETH, every digit kept: 1500000000000000 is 0.0015."""
+    whole, part = divmod(wei, 10**18)
+    return f"{whole}.{part:018d}".rstrip("0").rstrip(".")
+
+
+def send(key: siwa.Key, transaction: dict[str, str], timeout_ms: int) -> str:
+    """Sign exactly `transaction` with `key`, send it once, answer its hash.
+
+    When the node does not confirm the send, the transaction may still be on its way: the error
+    carries its hash as `tx_hash`, so the caller can check it rather than send a second one."""
+    needs = most_it_costs(transaction)
+    try:
+        holds = int(call("eth_getBalance", [key.address, "latest"], timeout_ms), 16)
+    except (TypeError, ValueError):
+        raise unreadable() from None
+    if holds < needs:
         raise CommandError(
-            error.code,
-            error.message,
+            "base_needs_eth",
+            f"{key.address} holds {eth(holds)} ETH on Base, and this transaction can take up to "
+            f"{eth(needs)} ETH with its gas. Nothing was signed or sent.",
             next_steps=[
                 human(
-                    f"{sender} sends this transaction and pays its gas, so it needs a little ETH "
-                    "on Base. Your person sends some there, then run this again."
+                    f"Your person sends at least {eth(needs - holds)} ETH on Base to "
+                    f"{key.address}, then run this again."
                 )
             ],
+        )
+    raw = siwa.sign_transaction(key, transaction)
+    tx_hash = "0x" + keccak(hexstr=raw).hex()
+    try:
+        call("eth_sendRawTransaction", [raw], timeout_ms)
+    except CommandError as error:
+        if error.code != "base_unreachable":
+            raise
+        raise CommandError(
+            "base_send_unclear",
+            f"The Base node {rpc_address()} did not confirm the send, so the transaction may be "
+            f"on its way: {tx_hash}.",
+            exit_code=EXIT_UNREACHABLE,
+            tx_hash=tx_hash,
         ) from None
-    return sent
+    return tx_hash

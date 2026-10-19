@@ -3,8 +3,30 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.10.15 — 2026-10-19
 
+- `regents auth register` builds the agent's registry listing itself and signs only that: a call
+  to `register` on the agent registry `0x8004a169fb4a3325136eb29fa0ceb6d2e539a432` on Base,
+  listing the agent's profile, with no ETH sent beyond gas. When the sign-in server's step
+  differs from the one `regents` builds, nothing is signed or sent. Before it signs, it shows the
+  wallet that signs and pays, the chain, the registry, the profile's address, the amount, the
+  most the gas can cost, and every field exactly as signed; with `--json` the same fields go to
+  stderr as `signing`. Before, it signed the server's step as it came, without showing it.
+- A wallet without enough ETH on Base is told how much it holds, how much the transaction can
+  take with its gas, and how much to send, and nothing is signed. A Base node's refusal is told
+  in `regents`'s own words; the node's own text no longer reaches the screen.
+- A registration answer missing a field of the listing is reported as an unreadable answer.
+  Before, it crashed `regents auth register`.
+- The Touch ID page is the live sign-in server's own page, byte for byte (siwa-server
+  `e436b61`). `make release-check` fails when they differ.
+- Tests can no longer reach past this machine: a test that connects anywhere but this machine
+  fails, even when the code it runs catches the refusal.
+- `regents auth login` on a Mac is tested whole in a headless browser with a virtual Touch ID:
+  the new key is locked on the page, the key file keeps only the locked key, and the next
+  sign-in opens it again on the page and signs with the same key. `regents techtree model login`,
+  `status` and `logout` are tested whole against a stand-in for OpenAI: the tokens are kept in a
+  private file and never shown, a sign-in answer meant for another attempt saves nothing, and
+  logout revokes the sign-in and keeps this machine's host id.
 - Patchbay is pinned to `7156d99`, live as v256. Its API description is version 5.0.0:
   `display_name` replaces `human_name` on profiles and thread authors, a check-in returns the
   person's account name, ENS name and wallets, and an unpaired agent is told to ask for Pair New
@@ -16,8 +38,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   too, or was drawn as the Review panel a person reads before agreeing to something. A site's own
   fields still travel in the error as data.
 - An answer nested too deep to read, or holding `NaN` or `Infinity`, is reported as an unreadable
-  answer, and a ChatGPT sign-in refusal nested too deep is read as having no error code. Before, the first crashed `regents` and the second reached `--json` output, which other
-  JSON readers then refused.
+  answer, and a ChatGPT sign-in refusal nested too deep is read as having no error code. Before,
+  the first crashed `regents` and the second reached `--json` output, which other JSON readers
+  then refused.
 - "Wait N seconds" reads N only as the digits 0 to 9; anything else says "wait a minute".
 - A command `regents` prints for you to run next works when one of its values starts with "-":
   it puts `--` before the values then. Before, the next page of
@@ -53,9 +76,6 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `--phase prepare` sends exactly what was prepared, with every value you gave in its place.
   Every command `regents` prints for you to run again, including a next page and a site's
   follow-up, runs with the same values.
-
-## 1.10.15 — 2026-10-18
-
 - Keyfleet is pinned to `502b2dd`, live as v87. It adds three commands for a fleet's notebooks:
   - `regents keyfleet notebooks list <fleet>` lists the fleet's newest notebooks and the last run
     an agent started in each.
