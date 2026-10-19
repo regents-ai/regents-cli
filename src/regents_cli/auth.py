@@ -107,9 +107,10 @@ def auth_group(sites: list[str]) -> click.Group:
                 TIMEOUT,
             ],
             help="List the agent in the agent registry on Base (optional; sign-in never needs "
-            "it). The agent key on this machine sends the one transaction and pays its gas, so "
-            f"it needs a little ETH on Base; {base.BASE_RPC} carries it unless SIWA_BASE_RPC "
-            "names another Base node. Each run sends a new transaction.",
+            "it). regents builds the one transaction, shows it and what it can cost, then the "
+            "agent key on this machine signs and sends it and pays its gas, so it needs a little "
+            f"ETH on Base; {base.BASE_RPC} carries it unless SIWA_BASE_RPC names another Base "
+            "node. Each run sends a new transaction.",
         )
     )
     group.add_command(
@@ -313,6 +314,10 @@ def register(
             "--site <site>, or list your own wallet with --wallet-address.",
             exit_code=EXIT_AUTH,
         )
+    for flag, value in (("--name", name), ("--description", description), ("--image", image)):
+        # Bytes that are not UTF-8 reach Python as lone surrogates, which no JSON or digest takes.
+        if value is not None and any("\ud800" <= char <= "\udfff" for char in value):
+            raise UsageError(f"{flag} holds bytes that are not text. Give it as plain text.")
     profile = {"wallet_address": wallet, "name": name, "description": description}
     if image is not None:
         profile["image"] = image
@@ -341,10 +346,10 @@ def register(
                 f"not transactions. Send it from that wallet: --wallet-address {wallet}.",
                 exit_code=EXIT_AUTH,
             )
-        transaction = base.priced(step, timeout_ms)
-        show_signing(step, transaction, as_json)
+        transaction, needs = base.priced(step, timeout_ms)
+        show_signing(step, transaction, needs, as_json)
         try:
-            tx_hash = base.send(key, transaction, timeout_ms)
+            tx_hash = base.send(key, transaction, needs, timeout_ms)
         except CommandError as error:
             if error.code != "base_send_unclear":
                 raise
@@ -356,11 +361,12 @@ def register(
                 next_steps=[run([*again, "--tx-hash", sent], "Check it before sending another.")],
                 tx_hash=sent,
             ) from None
-    listed = siwa.registration_outcome(profile, tx_hash, timeout_ms)
+    check_again = run([*again, "--tx-hash", tx_hash], "Check it before sending another.")
+    listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
     deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
     while listed is None and time.monotonic() < deadline:
         time.sleep(REGISTRATION_POLL_SECONDS)
-        listed = siwa.registration_outcome(profile, tx_hash, timeout_ms)
+        listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
     if listed is None:
         output.emit(
             {"wallet_address": wallet.lower(), "tx_hash": tx_hash, "listed": False},
@@ -387,14 +393,23 @@ def register(
     )
 
 
-def show_signing(step: dict[str, Any], transaction: dict[str, str], as_json: bool) -> None:
-    """What the agent key is about to sign, on stderr, before it signs: the sender, the chain, the
-    registry, the amount and the most the gas can cost, then the transaction exactly as signed."""
+def show_signing(
+    step: dict[str, Any], transaction: dict[str, str], needs: int, as_json: bool
+) -> None:
+    """What the agent key is about to sign, before it signs: the sender, the chain, the registry,
+    the profile, the amount and the most the gas can cost, then the transaction exactly as signed.
+    A person reads it on stdout; with --json it goes to stderr, so stdout keeps one answer."""
     if as_json:
-        output.stderr.out(json.dumps({"signing": transaction}), highlight=False)
+        signing = {
+            "from": step["from"],
+            "agentUri": step["agentUri"],
+            "most_it_costs": base.eth(needs),
+            "transaction": transaction,
+        }
+        output.stderr.out(json.dumps({"signing": signing}), highlight=False)
         return
     sender = step["from"]
-    gas = base.most_it_costs(transaction) - int(transaction["value"], 16)
+    gas = needs - int(transaction["value"], 16)
     output.show(
         output.review(
             [

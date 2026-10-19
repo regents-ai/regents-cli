@@ -116,8 +116,8 @@ def verbatim(text: str) -> RenderableType:
 
 
 def review(lines: Sequence[str]) -> RenderableType:
-    """What a person reads before they are asked to agree to something: one point per line,
-    each marked, with a line that starts with spaces continuing the point before it."""
+    """What a person reads before they agree to something, or before the agent key signs it: one
+    point per line, each marked, with a line that starts with spaces continuing the point before."""
     grid = Table.grid(padding=(0, 1))
     grid.add_column(no_wrap=True)
     grid.add_column(overflow="fold")

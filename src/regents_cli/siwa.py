@@ -35,6 +35,7 @@ from eth_utils.crypto import keccak
 from regents_cli import passkey
 from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError, UsageError
 from regents_cli.http import Request, answer, origin
+from regents_cli.next_steps import Step, human
 
 BASE = 8453
 CHAINS = (BASE, 1)
@@ -528,6 +529,12 @@ def registration_step(profile: dict[str, str], timeout_ms: int) -> dict[str, Any
             f"builds for this profile: register on the agent registry {REGISTRY} on Base, "
             "sending no ETH. Nothing was signed or sent.",
             exit_code=EXIT_AUTH,
+            next_steps=[
+                human(
+                    "Send nothing. Tell your person regents and the sign-in server disagree on "
+                    "this registration, so regents needs an update before it can register."
+                )
+            ],
         )
     return built
 
@@ -569,13 +576,24 @@ def _json_string(text: str) -> str:
 
 
 def registration_outcome(
-    profile: dict[str, str], tx_hash: str, timeout_ms: int
+    profile: dict[str, str], tx_hash: str, check_again: Step, timeout_ms: int
 ) -> dict[str, Any] | None:
     """What the sign-in server read of the registration sent as `tx_hash`, at the latest block:
-    None until it lands, then the listing."""
-    outcome = _post(
-        "/api/shared/siwa/agent/registered", {**profile, "tx_hash": tx_hash}, timeout_ms
-    )
+    None until it lands, then the listing. When the server cannot say, the error keeps the hash
+    and `check_again`, so nobody sends a second registration in its place."""
+    try:
+        outcome = _post(
+            "/api/shared/siwa/agent/registered", {**profile, "tx_hash": tx_hash}, timeout_ms
+        )
+    except CommandError as error:
+        raise CommandError(
+            "registration_unchecked",
+            f"The sign-in server could not say whether the registration {tx_hash} is listed. It "
+            "may still land on Base.",
+            exit_code=error.exit_code,
+            next_steps=[check_again],
+            tx_hash=tx_hash,
+        ) from None
     listed = outcome.get("data")
     if outcome.get("code") == "registration_pending":
         return None
@@ -586,9 +604,11 @@ def registration_outcome(
     ):
         return listed
     raise CommandError(
-        "registration_answer_unreadable",
+        "registration_unchecked",
         f"The sign-in server answered about the registration {tx_hash} in a way regents cannot "
-        "read. Check it again with the same --tx-hash in a minute.",
+        "read. It may still land on Base.",
+        next_steps=[check_again],
+        tx_hash=tx_hash,
     )
 
 

@@ -10,27 +10,40 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   listing the agent's profile, with no ETH sent beyond gas. When the sign-in server's step
   differs from the one `regents` builds, nothing is signed or sent. Before it signs, it shows the
   wallet that signs and pays, the chain, the registry, the profile's address, the amount, the
-  most the gas can cost, and every field exactly as signed; with `--json` the same fields go to
-  stderr as `signing`. Before, it signed the server's step as it came, without showing it.
-- A wallet without enough ETH on Base is told how much it holds, how much the transaction can
-  take with its gas, and how much to send, and nothing is signed. A Base node's refusal is told
-  in `regents`'s own words; the node's own text no longer reaches the screen.
-- A registration answer missing a field of the listing is reported as an unreadable answer.
+  most the gas can cost, and every field exactly as signed; with `--json` it writes the same to
+  stderr as `signing`: `from`, `agentUri`, `most_it_costs` and the `transaction`. It then checks
+  the signed bytes hold exactly that transaction from that wallet, and sends nothing otherwise.
+  Before, it signed the server's step as it came, without showing it.
+- The most the gas can cost counts Base's fee for writing the transaction to Ethereum, read from
+  Base at the latest block. A wallet without that much ETH on Base is told how much it holds,
+  how much the transaction can take, and how much to send, and nothing is signed. A Base node's
+  refusal, or a number it writes in a way `regents` cannot read, is told in `regents`'s own
+  words with what to do next; the node's own text no longer reaches the screen.
+- Once the registration is sent, its hash is always kept. When the sign-in server cannot say
+  whether it is listed, or answers in a way `regents` cannot read, the error is
+  `registration_unchecked`, carries `tx_hash`, and gives the `regents auth register … --tx-hash`
+  command that checks it, so nobody sends a second one. Before, a listing answer missing a field
+  crashed `regents auth register`, and a sign-in server error after sending lost the hash.
+- A `--name`, `--description` or `--image` holding bytes that are not text is a usage error.
   Before, it crashed `regents auth register`.
 - The Touch ID page is the live sign-in server's own page, byte for byte (siwa-server
-  `e436b61`). `make release-check` fails when they differ.
+  `e436b61`). `make release-check` fails when they differ. Its titles are new, the message for
+  your agent is shorter and hidden once you have finished, and an error reads as one plain line.
 - Tests can no longer reach past this machine: a test that connects anywhere but this machine
-  fails, even when the code it runs catches the refusal.
+  fails, even when the code it runs catches the refusal or a proxy on this machine is named.
 - `regents auth login` on a Mac is tested whole in a headless browser with a virtual Touch ID:
   the new key is locked on the page, the key file keeps only the locked key, and the next
   sign-in opens it again on the page and signs with the same key. `regents techtree model login`,
   `status` and `logout` are tested whole against a stand-in for OpenAI: the tokens are kept in a
-  private file and never shown, a sign-in answer meant for another attempt saves nothing, and
-  logout revokes the sign-in and keeps this machine's host id.
+  private file and never shown, a sign-in answer or ID token meant for another attempt saves
+  nothing, and logout revokes the sign-in at OpenAI's revocation address and keeps this machine's
+  host id.
 - Patchbay is pinned to `7156d99`, live as v256. Its API description is version 5.0.0:
   `display_name` replaces `human_name` on profiles and thread authors, a check-in returns the
   person's account name, ENS name and wallets, and an unpaired agent is told to ask for Pair New
-  Agent in the side panel. Its commands are unchanged.
+  Agent in the side panel. When a check-in finds no person, it says "Ask your person to sign in
+  on this site once, then send the request again." `regents` shows that line as the step to
+  take. Its commands are unchanged.
 - A site's refusal now always reaches you as one error with its code, its message and what to do
   next, whatever its fields are named. Before, an error field named `exit_code` crashed
   `regents`, a field named `next_steps` was shown as `regents`'s own next steps, and a payment
@@ -99,9 +112,6 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   person hasn't signed in there yet.
 - regents.sh is pinned to `b14705c`, live as v202. Its help and hints say your person makes the
   code with Pair New Agent in the side panel. Its commands are unchanged.
-- Patchbay is pinned to `6fdce7d`, live as v254. Its commands and help are unchanged. When a
-  check-in finds no person, it now says "Ask your person to sign in on this site once, then send
-  the request again." `regents` shows that line as the step to take.
 - ash-template is pinned to `ca82af6`, live as v98. `agents pair` says your person makes the code
   with Pair New Agent in the side panel. Its API descriptions use the same name and give an
   example of the `person_not_here` check-in refusal.

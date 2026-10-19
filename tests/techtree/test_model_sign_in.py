@@ -1,7 +1,8 @@
 """`regents techtree model login`, `status` and `logout`, run whole against a stand-in for
 OpenAI's sign-in: the browser step asks for the plan with PKCE and this machine's host id, the
-tokens are kept in a private file and never shown, an ID token issued for another attempt saves
-nothing, and logout revokes the sign-in and keeps the host id. A refused sign-in step is read for
+tokens are kept in a private file and never shown, an answer or ID token for another attempt
+saves nothing, and logout revokes the sign-in at OpenAI's revocation address and keeps the host
+id. A refused sign-in step is read for
 its OAuth error code whatever the body holds, and never crashes login
 (R-20261018-deep-oauth-error: a body nested deeper than Python reads raised RecursionError
 instead of answering).
@@ -58,9 +59,14 @@ class OpenAi:
     CLIENT_ID = "client-regents-1"
     EMAIL = "person@example.com"
 
-    def __init__(self, *, nonce_for: Callable[[str], str] = lambda nonce: nonce) -> None:
+    def __init__(
+        self,
+        *,
+        nonce_for: Callable[[str], str] = lambda nonce: nonce,
+        state_for: Callable[[str], str] = lambda state: state,
+    ) -> None:
         self.key = ec.generate_private_key(ec.SECP256R1())
-        self.nonce_for = nonce_for
+        self.nonce_for, self.state_for = nonce_for, state_for
         self.authorized: dict[str, str] = {}
         self.forms: list[dict[str, str]] = []
         self.callbacks: list[threading.Thread] = []
@@ -69,7 +75,11 @@ class OpenAi:
         """The person opens the address and allows Regents; OpenAI sends the browser back."""
         self.authorized = dict(parse_qsl(urlsplit(address).query))
         back = urlencode(
-            {"code": "code-1", "state": self.authorized["state"], "client_id": self.CLIENT_ID}
+            {
+                "code": "code-1",
+                "state": self.state_for(self.authorized["state"]),
+                "client_id": self.CLIENT_ID,
+            }
         )
         callback = threading.Thread(
             target=httpx.get, args=(f"{self.authorized['redirect_uri']}?{back}",)
@@ -169,6 +179,7 @@ def test_model_login_status_and_logout_run_whole_and_never_show_a_token(tmp_path
     [exchange] = openai.forms
     assert exchange["client_id"] == OpenAi.CLIENT_ID
     assert signin._pkce_challenge(exchange["code_verifier"]) == asked["code_challenge"]
+    assert asked["code_challenge_method"] == "S256"
     kept = root / signin.CREDENTIALS_FILE
     assert kept.stat().st_mode & 0o777 == 0o600
     assert json.loads(kept.read_text())["client_id"] == OpenAi.CLIENT_ID
@@ -180,17 +191,27 @@ def test_model_login_status_and_logout_run_whole_and_never_show_a_token(tmp_path
     logged_out, said_logout = regents(["logout"], openai, tmp_path)
     assert logged_out == 0, said_logout
     assert json.loads(said_logout)["revocation_confirmed"] is True
-    assert openai.forms[-1]["token"] == "refresh-1"
+    revoked = openai.forms[-1]
+    assert (revoked["url"], revoked["token"]) == ("https://auth.openai.com/revoke", "refresh-1")
     assert not kept.exists()
     assert (root / signin.HOST_ID_FILE).exists()
     for token in ("access-1", "refresh-1", "code-1"):
         assert token not in said + said_status + said_logout
 
 
-def test_an_id_token_for_another_attempt_is_refused_and_nothing_is_saved(tmp_path: Path) -> None:
-    openai = OpenAi(nonce_for=lambda nonce: nonce + "-other")
+@pytest.mark.parametrize(
+    "openai",
+    [
+        pytest.param(lambda: OpenAi(nonce_for=lambda nonce: nonce + "-other"), id="ID token"),
+        pytest.param(lambda: OpenAi(state_for=lambda state: state + "-other"), id="answer"),
+    ],
+)
+def test_an_answer_for_another_attempt_is_refused_and_nothing_is_saved(
+    openai: Callable[[], OpenAi], tmp_path: Path
+) -> None:
+    stand_in = openai()
 
-    logged_in, said = regents(["login"], openai, tmp_path)
+    logged_in, said = regents(["login"], stand_in, tmp_path)
 
     assert logged_in != 0
     assert json.loads(said)["error"]["code"] == signin.MODEL_SIGN_IN_FAILED

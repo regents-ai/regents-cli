@@ -15,8 +15,9 @@ check:
 # platform copy matches its pinned commit in the site's checkout beside this one. Some sites'
 # repositories are private, so the publish workflow checks the copies against the lock only.
 # Every protected feature the change since the last release touches must have a property and an
-# end-to-end proof (verification/features.yml). Then the wheel, installed into a new environment, runs every public read against the live
-# sites and each answer must have its pinned shape; nothing signed runs. Last, the WebMCP report
+# end-to-end proof (verification/features.yml). Then the wheel, installed into a new environment,
+# runs every public read against the live sites and each answer must have its pinned shape;
+# nothing signed runs. Last, the WebMCP report
 # lists each site's tools and commands that have no partner; it never fails.
 release-check: check
 	uv run scripts/sync_platforms.py --check

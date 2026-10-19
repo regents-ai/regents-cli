@@ -147,6 +147,19 @@ OWN: list[dict[str, Any]] = [
                 "auth register",
                 "test": "tests/test_register.py",
             },
+            {
+                "id": "R-20261019-register-keeps-hash",
+                "from": "review of 026fda3: a sign-in server error after sending lost the "
+                "transaction hash, inviting a second registration",
+                "test": "tests/test_register.py",
+            },
+            {
+                "id": "R-20261019-register-signed-bytes",
+                "from": "review of 026fda3: the cost left out Base's fee for writing to "
+                "Ethereum, node numbers were read loosely, and the helper's signed bytes went "
+                "unchecked",
+                "test": "tests/test_register.py",
+            },
         ],
         "gaps": [
             "auth accept-world-id is not run whole offline.",
@@ -199,7 +212,13 @@ OWN: list[dict[str, Any]] = [
                 "id": "R-20261018-deep-oauth-error",
                 "from": "review of 6570fcd: a refused sign-in body nested too deep crashed login",
                 "test": "tests/techtree/test_model_sign_in.py",
-            }
+            },
+            {
+                "id": "R-20261019-model-sign-in-state",
+                "from": "review of 026fda3: nothing checked an answer for another attempt or "
+                "where logout revokes",
+                "test": "tests/techtree/test_model_sign_in.py",
+            },
         ],
         "gaps": ["model login, status and logout are proven against a stand-in for OpenAI only."],
     },
@@ -259,7 +278,13 @@ OWN: list[dict[str, Any]] = [
                 "id": "R-20261019-tests-stay-local",
                 "from": "1.10.15 hold: nothing stopped a test reaching a live site",
                 "test": "tests/test_network_guard.py",
-            }
+            },
+            {
+                "id": "R-20261019-guard-proxy",
+                "from": "review of 026fda3: a proxy on this machine carried a test past the "
+                "guard, and its proof needed the network",
+                "test": "tests/test_network_guard.py",
+            },
         ],
     },
 ]
