@@ -13,6 +13,7 @@ dependencies = [
   "cryptography>=50.0.2,<51",
   "eth-abi>=6,<7",
   "eth-account>=0.13,<1",
+  "eth-keys>=0.8,<1",
   "eth-utils>=6,<7",
   "filelock>=4.2,<5",
   "httpx[socks]>=0.28,<1",

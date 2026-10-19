@@ -2,7 +2,8 @@
 - regents builds the registration itself, the same transaction the live sign-in server builds;
 - a registration the server alters in any way is refused before anything is signed or sent;
 - with the agent key, what regents shows before signing is exactly what it signs and sends, once,
-  and bytes the key helper signs differently, or as another kind of transaction, are never sent;
+  and bytes the key helper signs differently, as another kind of transaction or in another form
+  are never sent;
 - the most it can cost counts the gas and Base's fee for writing it to Ethereum, and a wallet
   without that much ETH is told the exact amount, and nothing is signed;
 - a node number regents cannot read stops it before anything is signed;
@@ -25,6 +26,7 @@ import httpx
 import pytest
 from eth_account import Account
 from eth_account.typed_transactions.typed_transaction import TypedTransaction
+from eth_keys.constants import SECPK1_N
 from eth_utils.crypto import keccak
 from hexbytes import HexBytes
 from hypothesis import given, settings
@@ -207,6 +209,8 @@ def test_what_regents_shows_before_signing_is_what_it_signs_and_sends(
     shown = signing["transaction"]
     [raw] = stand.sent()
     signed = TypedTransaction.from_bytes(HexBytes(raw)).as_dict()
+    # A plain EIP-1559 transaction: nothing signed beyond what is shown.
+    assert (raw[:4], signed["accessList"], "authorizationList" in signed) == ("0x02", (), False)
     as_signed = {
         "chainId": hex(signed["chainId"]),
         "nonce": hex(signed["nonce"]),
@@ -401,6 +405,56 @@ def test_the_shown_transaction_signed_by_another_key_is_never_sent(
     code, out, err = register(stand, profile, tmp_path, monkeypatch, "--json")
     assert (code, json.loads(out)["error"]["code"]) == (3, "signed_transaction_differs"), err
     assert stand.sent() == []
+
+
+def another_form(form: str, transaction: dict[str, str]) -> Any:
+    """`transaction` signed by the agent key, written in a form Base refuses or that is not the
+    bytes regents would send."""
+    raw = passkey.sign_transaction_with(KEY, transaction)
+    y_parity, r, s = TypedTransaction.from_bytes(HexBytes(raw)).vrs()
+    resigned = {
+        "high s": (1 - y_parity, r, SECPK1_N - s),
+        "v of 27": (27 + y_parity, r, s),
+        "chain v": (35 + 2 * 8453 + y_parity, r, s),
+    }
+    if form in resigned:
+        v, r, s = resigned[form]
+        fields = {**passkey.dynamic_fee(transaction), "v": v, "r": r, "s": s}
+        return "0x" + bytes(TypedTransaction.from_dict(fields).encode()).hex()
+    return {
+        "0X": "0X" + raw[2:],
+        "no 0x": raw[2:],
+        "upper case": "0x" + raw[2:].upper(),
+        "odd length": "0x" + raw[3:],
+        "newline": raw + "\n",
+        "a number": int(raw, 16),
+    }[form]
+
+
+@pytest.mark.parametrize(
+    "form",
+    [
+        "high s",
+        "v of 27",
+        "chain v",
+        "0X",
+        "no 0x",
+        "upper case",
+        "odd length",
+        "newline",
+        "a number",
+    ],
+)
+def test_the_shown_transaction_in_another_form_is_never_sent(
+    form: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {"name": "Probe", "description": "A test agent."}
+    stand = Stand(built(profile), plenty())
+    monkeypatch.setattr(siwa, "sign_transaction", lambda _key, t: another_form(form, t))
+    code, out, err = register(stand, profile, tmp_path, monkeypatch, "--json")
+    assert (code, json.loads(out)["error"]["code"]) == (3, "signed_transaction_differs"), err
+    assert stand.sent() == []
+    assert "Traceback" not in err
 
 
 @pytest.mark.parametrize("raw", ["0x", "0x02c0", "not hex", 7, None], ids=repr)

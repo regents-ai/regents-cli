@@ -16,6 +16,7 @@ from typing import Any
 import httpx
 from eth_account import Account
 from eth_account.typed_transactions.typed_transaction import TypedTransaction
+from eth_keys.constants import SECPK1_N
 from eth_utils.crypto import keccak
 from hexbytes import HexBytes
 
@@ -37,6 +38,8 @@ UNSIGNED_OVERHEAD = 167
 #: A number as a node writes it, and a 32-byte answer of a contract call.
 QUANTITY = re.compile(r"0x(0|[1-9a-fA-F][0-9a-fA-F]*)")
 WORD = re.compile(r"0x[0-9a-fA-F]{64}")
+#: A signed EIP-1559 transaction as the key helper writes one.
+SIGNED = re.compile(r"0x02(?:[0-9a-f]{2})+")
 
 
 def rpc_address() -> str:
@@ -178,15 +181,18 @@ def send(key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int
 
 
 def signs(raw: Any, address: str, transaction: dict[str, str]) -> bool:
-    """Whether `raw` is `transaction` signed by `address`, and nothing else. The signing hash
-    covers every field and the kind of transaction, so it must be the hash of `transaction` as
-    the one kind the agent key signs: EIP-1559, with no access list."""
+    """Whether `raw` is, byte for byte, `transaction` as the one kind of transaction the agent key
+    signs (EIP-1559, with no access list), signed by `address` in the one form Base accepts."""
+    if not (isinstance(raw, str) and SIGNED.fullmatch(raw)):
+        return False
     try:
-        signed = HexBytes(raw)
+        y_parity, r, s = TypedTransaction.from_bytes(HexBytes(raw)).vrs()
+        shown = {**passkey.dynamic_fee(transaction), "v": y_parity, "r": r, "s": s}
         return (
-            TypedTransaction.from_bytes(signed).hash()
-            == TypedTransaction.from_dict(passkey.dynamic_fee(transaction)).hash()
-            and Account.recover_transaction(signed).lower() == address.lower()
+            y_parity in (0, 1)
+            and 0 < s <= SECPK1_N // 2
+            and TypedTransaction.from_dict(shown).encode() == HexBytes(raw)
+            and Account.recover_transaction(raw).lower() == address.lower()
         )
     except Exception:
         # Bytes the helper wrote can fail to read in many ways; each means it signed something

@@ -163,7 +163,8 @@ OWN: list[dict[str, Any]] = [
             {
                 "id": "R-20261019-register-signing-hash",
                 "from": "Sentinel read of 37063e8: the signed-bytes check compared only the shown "
-                "fields, so an access list or an EIP-7702 delegation signed by the helper went out",
+                "fields, so an access list or an EIP-7702 delegation signed by the helper went "
+                "out; review of 9ff97a5: other signature forms and spellings of the bytes passed",
                 "test": "tests/test_register.py",
             },
         ],
