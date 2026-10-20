@@ -34,7 +34,7 @@ from eth_utils.crypto import keccak
 
 from regents_cli import passkey
 from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError, UsageError
-from regents_cli.http import Request, answer, origin
+from regents_cli.http import Request, answer, data_with, holds, origin, unreadable
 from regents_cli.next_steps import Step, human
 
 BASE = 8453
@@ -310,7 +310,7 @@ def challenge(site: str, wallet_address: str, timeout_ms: int) -> dict[str, str]
         {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address), "audience": site},
         timeout_ms,
     )
-    data = issued["data"]
+    data = data_with(issued, "nonce", "message")
     return {
         "wallet_address": wallet_address.lower(),
         "nonce": data["nonce"],
@@ -325,7 +325,7 @@ def verify(site: str, signed: dict[str, str], timeout_ms: int) -> Receipt:
         {"chain_id": chain_for(signed["wallet_address"]), "audience": site, **signed},
         timeout_ms,
     )
-    data = verified["data"]
+    data = data_with(verified, "walletAddress", "receipt", "receiptExpiresAt", "keyId")
     receipt = Receipt(
         address=data["walletAddress"],
         audience=site,
@@ -333,6 +333,13 @@ def verify(site: str, signed: dict[str, str], timeout_ms: int) -> Receipt:
         receipt_expires_at=data["receiptExpiresAt"],
         key_id=data["keyId"],
     )
+    # A receipt that can't be read back would break every later command for the site.
+    if not all(isinstance(value, str) for value in asdict(receipt).values()):
+        raise unreadable()
+    try:
+        receipt.fresh()
+    except ValueError:
+        raise unreadable() from None
     _write_private(receipt_file(site), asdict(receipt))
     return receipt
 
@@ -511,7 +518,12 @@ def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
             f"The sign-in server did not accept a request signed for {site}.",
             exit_code=EXIT_AUTH,
         )
-    told: dict[str, Any] = checked["data"]
+    told = data_with(checked, "agentRegistration", "agentBook")
+    listing, person = told["agentRegistration"], told["agentBook"]
+    if (listing and not holds(listing, "registryUrl")) or (
+        person and not holds(person, "humanId", "agentCount")
+    ):
+        raise unreadable()
     return told
 
 
@@ -624,11 +636,17 @@ def agent_book_challenge(wallet_address: str, timeout_ms: int) -> dict[str, Any]
     signs to accept them."""
     if not ADDRESS.fullmatch(wallet_address):
         raise UsageError(f"{wallet_address!r} is not an address.")
-    data = _post(
-        "/api/shared/siwa/agent-book/challenge",
-        {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address)},
-        timeout_ms,
-    )["data"]
+    data = data_with(
+        _post(
+            "/api/shared/siwa/agent-book/challenge",
+            {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address)},
+            timeout_ms,
+        ),
+        "walletAddress",
+        "humanId",
+        "nonce",
+        "message",
+    )
     return {
         "wallet_address": data["walletAddress"],
         "human_id": data["humanId"],
@@ -641,10 +659,14 @@ def accept_agent_book(
     signed: dict[str, str], signer: str | None, timeout_ms: int
 ) -> dict[str, Any]:
     """Hand the signed challenge back; the sign-in server keeps the person for good."""
-    data = _post(
-        "/api/shared/siwa/agent-book/accept",
-        {"chain_id": chain_for(signed["wallet_address"]), **signed},
-        timeout_ms,
-        headers={"x-agent-signer": signer} if signer is not None else None,
-    )["data"]
+    data = data_with(
+        _post(
+            "/api/shared/siwa/agent-book/accept",
+            {"chain_id": chain_for(signed["wallet_address"]), **signed},
+            timeout_ms,
+            headers={"x-agent-signer": signer} if signer is not None else None,
+        ),
+        "walletAddress",
+        "humanId",
+    )
     return {"wallet_address": data["walletAddress"], "human_id": data["humanId"]}

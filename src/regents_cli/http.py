@@ -155,6 +155,25 @@ def answer(response: httpx.Response) -> dict[str, Any]:
     raise _error_for(response, body)
 
 
+def holds(value: Any, *fields: str) -> bool:
+    """Whether `value` is a JSON object with each of `fields`."""
+    return isinstance(value, dict) and all(field in value for field in fields)
+
+
+def unreadable() -> CommandError:
+    return CommandError(
+        "invalid_response", "The answer is JSON, but not in the shape regents reads."
+    )
+
+
+def data_with(answered: dict[str, Any], *fields: str) -> dict[str, Any]:
+    """An answer's `data` object, holding each of `fields`; any other answer is unreadable."""
+    data = answered.get("data")
+    if isinstance(data, dict) and holds(data, *fields):
+        return data
+    raise unreadable()
+
+
 def exit_code_for(status: int) -> int:
     """The exit code a refusal with this status ends `regents` with."""
     if status in (502, 503, 504):

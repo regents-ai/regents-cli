@@ -144,3 +144,39 @@ def test_a_person_signs_the_issued_message_with_their_own_wallet(
             "signature": signature,
         }
         assert not (home / "key.json").exists()
+
+
+@pytest.mark.parametrize(
+    "verified",
+    [
+        {},
+        {"data": {"walletAddress": ADDRESS, "receiptExpiresAt": "2999-01-01T00:00:00Z"}},
+        {"data": {"walletAddress": ADDRESS, "receipt": "r", "receiptExpiresAt": 0, "keyId": "k"}},
+        {
+            "data": {
+                "walletAddress": ADDRESS,
+                "receipt": "r",
+                "receiptExpiresAt": "soon",
+                "keyId": "k",
+            }
+        },
+    ],
+)
+def test_a_receipt_regents_cannot_read_is_never_kept(
+    verified: dict[str, Any], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A kept receipt that can't be read back breaks every later command for the site, until
+    the person logs out; one that can't be read is refused before it is kept."""
+    home = agent_home(tmp_path, monkeypatch, with_key=True)
+
+    def post(url: str, **_: Any) -> httpx.Response:
+        issued = {"nonce": "abcdef0123", "message": "Sign in"}
+        return httpx.Response(200, json={"data": issued} if url.endswith("/nonce") else verified)
+
+    monkeypatch.setattr(httpx, "post", post)
+    shown = io.StringIO()
+    with contextlib.redirect_stdout(shown), contextlib.redirect_stderr(io.StringIO()):
+        failed = app.main(["auth", "login", "--site", "patchbay", "--json"])
+    assert failed != 0
+    assert json.loads(shown.getvalue())["error"]["code"] == "invalid_response"
+    assert not list(home.glob("receipts/*.json"))

@@ -12,7 +12,7 @@ import click
 
 from regents_cli import base, output, siwa
 from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
-from regents_cli.http import Request, base_address, send
+from regents_cli.http import Request, base_address, data_with, send
 from regents_cli.next_steps import Step, done, human, pair_first, run, run_piped
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform, pinned_platforms
 from regents_cli.runner import read_stdin, unpaired
@@ -261,7 +261,7 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
             told = send(
                 base_address(None, platform.env_var, platform.base_url), request, timeout_ms
             )
-            answer["pairing_status"] = {"site": selected, **told["data"]}
+            answer["pairing_status"] = {"site": selected, **data_with(told)}
     output.emit(answer, as_json=as_json, next_steps=after_status(answer, receipts))
 
 

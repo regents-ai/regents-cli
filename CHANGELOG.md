@@ -11,6 +11,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - When a command that reads JSON on stdin must run again after a step first (pairing, signing
   in, your person, or waiting out too many requests), the rerun step now says to pipe the same
   JSON on stdin. Before, only reruns after a site fault or a cancel said so.
+- When the sign-in server, or a site's pairing check in `regents auth status`, answers in a shape
+  `regents` cannot read, the error is `invalid_response` with what to do next. Before,
+  `auth login`, `auth status`, `auth accept-world-id` and `<site> doctor` could stop with a
+  Python error. A sign-in receipt that could not be read back, such as one whose expiry is not a
+  date, is no longer kept, so it can't break the site's later commands.
 
 ## 1.10.15 — 2026-10-19
 
