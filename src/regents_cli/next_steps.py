@@ -189,6 +189,11 @@ def for_failure(error: CommandError, invocation: Invocation) -> list[Step]:
     return _failed(error, invocation)
 
 
+#: Refusals only the person can clear, in the site's own words (its `hint`): sign in there
+#: once, or unpair an agent when the account has as many as it may.
+HINTED = ("account_missing", "person_not_here", "agent_limit")
+
+
 def _site_refused(error: CommandError, status: int, invocation: Invocation) -> list[Step]:
     """A site answered with an error: `status` is its HTTP status."""
     again = invocation.again
@@ -196,8 +201,8 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     if error.code in ("not_paired", "agent_not_paired") and invocation.words:
         return [*pair_first(invocation.words[0]), run(again, "Then run this again.")]
     hint = error.fields.get("hint")
-    if error.code in ("account_missing", "person_not_here") and isinstance(hint, str):
-        return [human(hint), run(again, "Then run this again.")]
+    if error.code in HINTED and isinstance(hint, str):
+        return [human(hint), run(again, f"Then run this again{invocation.piped}.")]
     if status == 401 and invocation.site is not None:
         return [sign_in(invocation.site), run(again, "Then run this again.")]
     if status == 402 and "payment_required" in error.fields:

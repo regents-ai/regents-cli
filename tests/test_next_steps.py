@@ -94,6 +94,20 @@ def test_a_refused_payment_is_not_called_unsure() -> None:
     assert all("may have gone through" not in s.say for s in for_failure(timeout, preparing))
 
 
+def test_a_full_account_asks_the_person_to_unpair_in_the_sites_words() -> None:
+    """An agent told to change what it sent and retry would retry a pairing that only its
+    person can clear; the step is the site's hint, then the same pair with the same JSON."""
+    hint = "Ask your person to unpair an agent on their Regents account page, then pair again."
+    refusal = httpx.Response(409, json={"error": {"code": "agent_limit", "hint": hint}})
+    with pytest.raises(CommandError) as raised:
+        answer(refusal)
+    pairing = app.invocation(app.root(), ["protocol", "agents", "pair", "--json"])
+    person, again = for_failure(raised.value, pairing)
+    assert person.kind == "human" and person.say == hint
+    assert again.command == "regents protocol agents pair --json"
+    assert again.say == "Then run this again, piping the same JSON on stdin."
+
+
 def test_a_rerun_asks_for_agreement_again_and_hides_private_values() -> None:
     """Review P1 and P2: a rerun never carries an earlier --yes into a new paid start, and
     never shows a contributor address."""

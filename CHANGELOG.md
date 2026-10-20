@@ -3,6 +3,15 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.16 — not yet released
+
+- When `agents pair` is refused with `agent_limit` because the account already has as many
+  agents as it may, the next step is to ask your person to unpair one, in the site's own words,
+  and then run it again. Before, the agent was told to change what it sent.
+- When a site asks for your person first (`account_missing`, `person_not_here` or
+  `agent_limit`), the rerun step now says to pipe the same JSON on stdin when the command reads
+  it.
+
 ## 1.10.15 — 2026-10-19
 
 Evidence: level protected; features sign-in, signed-requests, touch-id-key,
