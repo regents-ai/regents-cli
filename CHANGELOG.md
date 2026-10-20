@@ -16,6 +16,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `auth login`, `auth status`, `auth accept-world-id` and `<site> doctor` could stop with a
   Python error. A sign-in receipt that could not be read back, such as one whose expiry is not a
   date, is no longer kept, so it can't break the site's later commands.
+- The Next block shows each step's words as written. A step that carries a site's hint or
+  description lost words in square brackets, such as "[optional]", and one with "[/x]" stopped
+  `regents` with an error before it showed the answer. `--json` was not affected.
 
 ## 1.10.15 — 2026-10-19
 

@@ -166,7 +166,7 @@ def _next(steps: Sequence[Step]) -> RenderableType:
         said = Table.grid(padding=(0, 1))
         said.add_column(no_wrap=True)
         said.add_column()
-        said.add_row(Text(mark, style=style), step.say)
+        said.add_row(Text(mark, style=style), Text(step.say))
         lines.append(Padding(said, (0, 0, 0, 2)))
         for exact in (step.command, step.url):
             if exact is not None:

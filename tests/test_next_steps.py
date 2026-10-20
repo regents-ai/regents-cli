@@ -12,10 +12,10 @@ from pathlib import Path
 import httpx
 import pytest
 
-from regents_cli import app
+from regents_cli import app, output
 from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import answer
-from regents_cli.next_steps import Invocation, for_failure
+from regents_cli.next_steps import Invocation, for_failure, human
 from regents_cli.platforms import pinned_platforms
 from regents_cli.runner import after
 from regents_cli.techtree.commands.run import after_logs, after_status
@@ -106,6 +106,14 @@ def test_a_full_account_asks_the_person_to_unpair_in_the_sites_words() -> None:
     assert person.kind == "human" and person.say == hint
     assert again.command == "regents protocol agents pair --json"
     assert again.say == "Then run this again, piping the same JSON on stdin."
+
+
+def test_a_step_shows_the_sites_words_as_written(capsys: pytest.CaptureFixture[str]) -> None:
+    """A step often carries a site's hint or description. Read as styling, "[optional]" was
+    dropped, and "[/x]" stopped regents with an error before it showed anything."""
+    said = "Pipe a list [optional] here; close [/x] as written."
+    output.emit({"read": True}, as_json=False, next_steps=[human(said)])
+    assert said in " ".join(capsys.readouterr().out.split())
 
 
 @pytest.mark.parametrize(
