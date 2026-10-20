@@ -285,7 +285,7 @@ def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> l
     pairing = answer.get("pairing_status")
     if isinstance(pairing, dict) and unpaired(pairing):
         platform = next(p for p in pinned_platforms() if p.site == pairing["site"])
-        steps += pair_first(platform.name)
+        steps += pair_first(platform.name, platform.host)
     return steps or [done("Signed in and nothing waits; nothing more to run.")]
 
 

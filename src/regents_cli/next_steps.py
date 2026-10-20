@@ -30,9 +30,6 @@ from regents_cli.errors import (
 
 type Kind = Literal["done", "run", "human", "patchbay"]
 
-#: Where a person makes the pairing code an agent pairs with, using Pair New Agent in the side
-#: panel; one pairing serves every site.
-PAIRING_PAGE = "https://regents.sh"
 PATCHBAY_POST = ("regents", "patchbay", "threads", "create")
 TITLE_LIMIT = 160
 
@@ -89,20 +86,31 @@ def patchbay(host: str, words: Sequence[str], code: str, message: str, status: i
     )
 
 
-def pair_first(namespace: str) -> list[Step]:
-    """The two steps that pair an agent: a person's code, then `agents pair`."""
+def account_page(host: str) -> str:
+    """A site's Account page, where a person starts the code that pairs an agent with that
+    site: each site pairs its own agents."""
+    return f"https://{host}/account"
+
+
+def pair_first(namespace: str, host: str) -> list[Step]:
+    """The two steps that pair an agent with one site: a person's code from it, then
+    `agents pair`."""
     return [
         human(
-            "Your person makes a pairing code with Pair New Agent in the side panel of regents.sh "
+            f"Your person signs in on {host}, makes a pairing code there from their Account page "
             "and gives it to you.",
-            PAIRING_PAGE,
+            account_page(host),
         ),
-        run(
-            ("regents", namespace, "agents", "pair"),
-            'Pair with that code: pipe {"code": …, "name": …, "harness": …}, or run it at a '
-            "terminal and it asks.",
-        ),
+        redeem(namespace),
     ]
+
+
+def redeem(namespace: str) -> Step:
+    return run(
+        ("regents", namespace, "agents", "pair"),
+        'Pair with that code: pipe {"code": …, "name": …, "harness": …}, or run it at a '
+        "terminal and it asks.",
+    )
 
 
 def sign_in(site: str) -> Step:
@@ -198,12 +206,13 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     """A site answered with an error: `status` is its HTTP status."""
     again = invocation.again
     coded = not (error.code.startswith("http_") or error.code == "redirected")
-    if error.code in ("not_paired", "agent_not_paired") and invocation.words:
+    hint = error.fields.get("hint")
+    if error.code == "agent_not_paired" and isinstance(hint, str) and invocation.host:
         return [
-            *pair_first(invocation.words[0]),
+            human(hint, account_page(invocation.host)),
+            redeem(invocation.words[0]),
             run(again, f"Then run this again{invocation.piped}."),
         ]
-    hint = error.fields.get("hint")
     if error.code in HINTED and isinstance(hint, str):
         return [human(hint), run(again, f"Then run this again{invocation.piped}.")]
     if status == 401 and invocation.site is not None:
@@ -222,7 +231,11 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
             done("Otherwise that is the site's answer; nothing more to run."),
         ]
     if status == 403 and coded:
-        page = PAIRING_PAGE if error.code.startswith("pairing_") else None
+        page = (
+            account_page(invocation.host)
+            if error.code.startswith("pairing_") and invocation.host
+            else None
+        )
         return [human(f"Ask your person about this first: {error.message}", page)]
     if status == 404 and coded:
         return [done("There is no such record. If the name or id was mistyped, run it again.")]

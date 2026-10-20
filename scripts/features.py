@@ -113,6 +113,12 @@ OWN: list[dict[str, Any]] = [
                 "wallet was not told how much it needed",
                 "test": "tests/test_register.py",
             },
+            {
+                "id": "R-20261020-pairing-page",
+                "from": "16 Oct review: an unpaired agent on any site was sent to regents.sh to "
+                "pair, though each site pairs its own agents",
+                "test": "tests/test_next_steps.py",
+            },
         ],
         "gaps": [
             "Signed commands are proven against local stand-ins only; nothing is signed against "

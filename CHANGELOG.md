@@ -19,6 +19,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - The Next block shows each step's words as written. A step that carries a site's hint or
   description lost words in square brackets, such as "[optional]", and one with "[/x]" stopped
   `regents` with an error before it showed the answer. `--json` was not affected.
+- An agent that is not paired is sent to pair on the site it called. A refusal with
+  `agent_not_paired` shows that site's own words and links its Account page, such as
+  https://keyfleet.ai/account, then gives `regents <site> agents pair`; `agents whoami` and
+  `regents auth status` do the same when they find no pairing. Before, every site sent the agent
+  to regents.sh, though each site pairs its own agents.
 
 ## 1.10.15 — 2026-10-19
 

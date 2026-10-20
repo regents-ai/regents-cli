@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 from collections.abc import Sequence
 from importlib.metadata import version
-from urllib.parse import urlsplit
 
 import click
 import httpx
@@ -159,7 +158,7 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
         args=tuple(args),
         words=tuple(words),
         site=platform.site if platform is not None else None,
-        host=urlsplit(platform.base_url).hostname if platform is not None else None,
+        host=platform.host if platform is not None else None,
         takes_stdin=bool(described and described.stdin_fields)
         or _value_of("--phase", args) == "send",
         # --phase prepare sends nothing, so it never pays.

@@ -10,6 +10,7 @@ import json
 from dataclasses import dataclass
 from importlib.resources import files
 from typing import Any, Final, Literal
+from urllib.parse import urlsplit
 
 type Authority = Literal["public", "signed_agent", "paired_agent"]
 type Condition = Literal["spending_allowed", "member"]
@@ -167,6 +168,11 @@ class Platform:
     def site(self) -> str:
         """The site this command tree signs in to."""
         return SIGN_IN_SITES.get(self.name, self.name)
+
+    @property
+    def host(self) -> str:
+        """The site's host, such as keyfleet.ai."""
+        return urlsplit(self.base_url).netloc
 
     @property
     def env_var(self) -> str:

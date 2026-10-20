@@ -16,7 +16,7 @@ from regents_cli import app, output
 from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import answer
 from regents_cli.next_steps import Invocation, for_failure, human
-from regents_cli.platforms import pinned_platforms
+from regents_cli.platforms import Platform, pinned_platforms
 from regents_cli.runner import after
 from regents_cli.techtree.commands.run import after_logs, after_status
 from regents_cli.techtree.errors import RunError
@@ -52,6 +52,35 @@ def test_a_coded_refusal_is_for_the_agent_to_fix() -> None:
     error = CommandError("site_busy", "Try again soon.", status=503, retry_after="30")
     (step,) = for_failure(error, invocation("keyfleet", "keyfleet.ai"))
     assert step.kind == "run" and "30 seconds" in step.say
+
+
+SITES = pinned_platforms()
+
+
+@pytest.mark.parametrize("platform", SITES, ids=lambda platform: platform.name)
+def test_an_unpaired_agent_is_sent_to_the_site_it_called(platform: Platform) -> None:
+    """Pairing is per site (each site's agent_not_paired hint says "on this site"): the
+    refusal keeps the site's own hint and links that site's Account page, never regents.sh's
+    for every site."""
+    hint = "Ask your person to sign in on this site and pair you with Pair New Agent."
+    refused = httpx.Response(
+        403, json={"error": {"code": "agent_not_paired", "message": "Not paired.", "hint": hint}}
+    )
+    called = app.invocation(app.root(), [platform.name, "agents", "whoami", "--json"])
+    person, redeem, again = for_failure(_raised(refused), called)
+    assert (person.kind, person.say) == ("human", hint)
+    assert person.url == f"https://{platform.host}/account"
+    assert redeem.command == f"regents {platform.name} agents pair"
+    assert again.command == shlex.join(called.again)
+
+
+@pytest.mark.parametrize("platform", SITES, ids=lambda platform: platform.name)
+def test_whoami_with_no_pairing_points_at_that_sites_account_page(platform: Platform) -> None:
+    whoami = next(c for c in platform.commands if c.words == ("agents", "whoami"))
+    person, redeem, *_ = after(platform, whoami, {"data": {"pairing": None}}, {}, [], finished=True)
+    assert person.kind == "human" and platform.host in person.say
+    assert person.url == f"https://{platform.host}/account"
+    assert redeem.command == f"regents {platform.name} agents pair"
 
 
 PAY = ["patchbay", "payments", "execute", "00000000-0000-0000-0000-000000000001", "--json"]
@@ -119,7 +148,9 @@ def test_a_step_shows_the_sites_words_as_written(capsys: pytest.CaptureFixture[s
 @pytest.mark.parametrize(
     "error",
     [
-        CommandError("agent_not_paired", "Not paired.", status=403),
+        CommandError(
+            "agent_not_paired", "Not paired.", status=403, hint="Ask your person for a code."
+        ),
         CommandError("http_401", "Sign in.", status=401),
         CommandError("rate_limited", "Slow down.", status=429),
         CommandError("not_signed_in", "Sign in first."),

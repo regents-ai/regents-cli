@@ -435,7 +435,7 @@ def after(
             line = typed(["regents", platform.name, *names, *shared], [str(v) for v in filled])
             steps.append(run_step(line, follow_up.say))
     if command.words == WHOAMI and unpaired(answer.get("data")):
-        steps += pair_first(platform.name)
+        steps += pair_first(platform.name, platform.host)
     whoami = any(c.words == WHOAMI for c in platform.commands)
     if command.words == PAIR and whoami:
         steps.append(
