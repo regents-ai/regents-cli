@@ -23,6 +23,8 @@ writes the changelog and releases. `docs/site-commands.md` is the guide for site
 - Command names, flags and answers are a public contract. They change only through a release
   whose notes name every changed shape.
 - Hard cutover: no aliases, fallbacks, old command names or dual shapes.
+- "ash-template" is internal phrasing only, never for public use (founder, 2026-10-20). Keep it
+  out of public text: the README, the changelog, help, errors and next steps.
 - Automated tests stay few; each names the costly failure it protects against. No smoke tests.
 
 ## Protected actions
