@@ -108,6 +108,24 @@ def test_a_full_account_asks_the_person_to_unpair_in_the_sites_words() -> None:
     assert again.say == "Then run this again, piping the same JSON on stdin."
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        CommandError("agent_not_paired", "Not paired.", status=403),
+        CommandError("http_401", "Sign in.", status=401),
+        CommandError("rate_limited", "Slow down.", status=429),
+        CommandError("not_signed_in", "Sign in first."),
+    ],
+)
+def test_every_rerun_of_a_piped_command_pipes_the_same_json(error: CommandError) -> None:
+    """A rerun without its JSON asks again at a terminal, or sends a write without the
+    operation id it must keep, so a second one may be made."""
+    posting = app.invocation(app.root(), ["ash-template", "rooms", "post", "general"])
+    assert posting.takes_stdin
+    *_, again = for_failure(error, posting)
+    assert again.kind == "run" and again.say.endswith(", piping the same JSON on stdin.")
+
+
 def test_a_rerun_asks_for_agreement_again_and_hides_private_values() -> None:
     """Review P1 and P2: a rerun never carries an earlier --yes into a new paid start, and
     never shows a contributor address."""

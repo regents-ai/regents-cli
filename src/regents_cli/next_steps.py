@@ -199,12 +199,15 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     again = invocation.again
     coded = not (error.code.startswith("http_") or error.code == "redirected")
     if error.code in ("not_paired", "agent_not_paired") and invocation.words:
-        return [*pair_first(invocation.words[0]), run(again, "Then run this again.")]
+        return [
+            *pair_first(invocation.words[0]),
+            run(again, f"Then run this again{invocation.piped}."),
+        ]
     hint = error.fields.get("hint")
     if error.code in HINTED and isinstance(hint, str):
         return [human(hint), run(again, f"Then run this again{invocation.piped}.")]
     if status == 401 and invocation.site is not None:
-        return [sign_in(invocation.site), run(again, "Then run this again.")]
+        return [sign_in(invocation.site), run(again, f"Then run this again{invocation.piped}.")]
     if status == 402 and "payment_required" in error.fields:
         return [
             run(
@@ -224,7 +227,12 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     if status == 404 and coded:
         return [done("There is no such record. If the name or id was mistyped, run it again.")]
     if status == 429:
-        return [run(again, f"Too many requests: wait {_wait(error)}, then run this again.")]
+        return [
+            run(
+                again,
+                f"Too many requests: wait {_wait(error)}, then run this again{invocation.piped}.",
+            )
+        ]
     if coded and status in (502, 503, 504):
         return [
             run(
@@ -249,7 +257,7 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
     """A failure `regents` found itself, before or without a site's error answer."""
     again = invocation.again
     if error.code in ("not_signed_in", "sign_in_expired", "no_agent_key") and invocation.site:
-        return [sign_in(invocation.site), run(again, "Then run this again.")]
+        return [sign_in(invocation.site), run(again, f"Then run this again{invocation.piped}.")]
     if error.exit_code == EXIT_USAGE:
         return [
             run(

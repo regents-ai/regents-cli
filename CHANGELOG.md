@@ -8,9 +8,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - When `agents pair` is refused with `agent_limit` because the account already has as many
   agents as it may, the next step is to ask your person to unpair one, in the site's own words,
   and then run it again. Before, the agent was told to change what it sent.
-- When a site asks for your person first (`account_missing`, `person_not_here` or
-  `agent_limit`), the rerun step now says to pipe the same JSON on stdin when the command reads
-  it.
+- When a command that reads JSON on stdin must run again after a step first (pairing, signing
+  in, your person, or waiting out too many requests), the rerun step now says to pipe the same
+  JSON on stdin. Before, only reruns after a site fault or a cancel said so.
 
 ## 1.10.15 — 2026-10-19
 
