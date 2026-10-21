@@ -1,193 +1,193 @@
 {
   "tasksmith-0d2d1e298e86": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:b6425ee9d5512122d1fcdc4f465849fb81c52709a48d3b266c269d2b68e59b49",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:b670bf2253529da091789bf351ba9f5d046d496f85e97617caf1d898e72ac5e1",
       "platform_digests": {
-        "linux/amd64": "sha256:1e603248dcba97c2fd24dabfa9b403bad28bcc5d1a4bdaed2444e46dc1273ac4",
-        "linux/arm64": "sha256:a9a0d24c69099d3a8670c5f03f201d36d23f73a5fee5c665c7ff0bf6282e2403"
+        "linux/amd64": "sha256:712183b87301d64e816282a2d268f865641aca2c51224edf134f2465fc9233a0",
+        "linux/arm64": "sha256:c4af64ec23fec54c6306eb46d2a2f424a375c416c7ef35dd2034ca29d73306eb"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:e76502673d91bf2261f3e9f4892f23e9e22902c89632e8c6e31300d84c8827aa",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:a2630b073f6cd2b9abb1db46a42bdc5c11e61c7c782cbd52aaaaa9bc65a251d0",
       "platform_digests": {
-        "linux/amd64": "sha256:fd0695dbc24d1375094bb8b331a7aabd32753b10c965812ce121a26b85a0fb21",
-        "linux/arm64": "sha256:ab8fc9e671eacd906b443cce5c41ba291a71b8eeb1095506f5df4e2d56b55e70"
+        "linux/amd64": "sha256:f36aadc96308cda434e404529faa55abcbad7070e9eb85e80c3e218ebe679ba5",
+        "linux/arm64": "sha256:70a990c3c9c399c9cea5c90ac4565c0d9e180b1573a1d46c9d0ae713a01606ea"
       }
     }
   },
   "tasksmith-0df9b3cd6191": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:694c4525e372bdd314ca36028977058eae28ba63965db66e78feddb405900139",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:3c77404ad768dfae0b422c63e4ad36142ea17eb20d5af6d13dfa488da0ecd323",
       "platform_digests": {
-        "linux/amd64": "sha256:dac2a61aad41d48a73bb3d71d2f3417604cc9743c7d2b760a03a47e9ce33ef40",
-        "linux/arm64": "sha256:6d9133bfa26d39d9b8942e5aad8e5394aa9f1e4f4fecd399902413b6d8810845"
+        "linux/amd64": "sha256:b453a4c81bf3967aaaa4ac60f57fb164990588eceb7a6d5daadd312b6de6a848",
+        "linux/arm64": "sha256:8de408127e6423a8c5e1d8311aa09d2ce6600a1ff656ced74a4b99f2e990c778"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:ed1340461c0e5e24fa6e5708615c135ced64aeedc8308c4b51d4733ce1be967e",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:b1298fd68c9de4981d29a7c610c464ae85a4b4e530f204389263296da15d092b",
       "platform_digests": {
-        "linux/amd64": "sha256:af51a78569845dfa654b69e9b6d08676009c06c8e88ae50b72cd1f2098942e10",
-        "linux/arm64": "sha256:de2c7e3993aa72408f9d0dff80425ff79b0f9b3277e79350f16f573c63c72e33"
+        "linux/amd64": "sha256:b6c41cb0c7199cfe07447287dc10e39b1c0675c90cd68fde75f5d94d60ddfeac",
+        "linux/arm64": "sha256:9f2103746fafa0ac08f311d334fdf3264140fb533a92124ae695220f1e097c4e"
       }
     }
   },
   "tasksmith-0ea2241cceeb": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:0ef23048795c6a35d155470cfd453c10fe3c5386856798966bf4bddb860f7317",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:e599e23b1b50f710d2ece1a54772f62fd4674123732610238448ddb74874c23b",
       "platform_digests": {
-        "linux/amd64": "sha256:e7b86cacd273b5e003ea4721329a3130d96a3e45ef1ed9e543ada0539b17a83f",
-        "linux/arm64": "sha256:9e1b0150edda544308f02216390997c2eb5233a8f77a5d985d7b3a8b4d673899"
+        "linux/amd64": "sha256:86a11218c5056349b624a630adc261df2fd0d54b6f6fd7e9438d2767a1893db7",
+        "linux/arm64": "sha256:1b9ffa053244d9816557e0f7b1a556ab0f25dbafcd59a8c1b7ed93fb8976ea7e"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:4ba112600db8712280d2eedd57b81eadb2b676310151af9cd4a4d52aa77c68f5",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:5819896dded535591a640839ad8995f984ec897a6620aad195f89fa532ab70cb",
       "platform_digests": {
-        "linux/amd64": "sha256:7f1db5e2b5a8b369ff0459e2f838d016719ca0789bcd4a9d79a9bb50e51ca684",
-        "linux/arm64": "sha256:7952b1ac5289d04072b7ed74b034d1ad22e652aad28b7cf51928abe4aea7fd41"
+        "linux/amd64": "sha256:9f709780cf815d20b69cc54672d74b35ac9cbe5c9410fea28c4e624a0f657d39",
+        "linux/arm64": "sha256:de421e65110e2d65665c67a844d551b61b4bd6dd6b5bdd2520f076834d59f778"
       }
     }
   },
   "tasksmith-1c5704b1f07f": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:3a93126842c8d9a529c4bb47e674f2b9509296fc76f46db1cde266052996c19e",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:02d0d78d7555c75c3169eefdc9fc29aadaa50a60f9e16fc1fe6e3f0d68a33ed4",
       "platform_digests": {
-        "linux/amd64": "sha256:30c45ed154db13a58d8470e07c6b301712c4339d363d3684baa7ce22510434b2",
-        "linux/arm64": "sha256:c95788fb48feca107b5cf69dc87124e2911199904f61b070acd31846763ab5bc"
+        "linux/amd64": "sha256:1069d6c5fb3fcd7885c0ef0dbaf2961a1096d51f5e7ba3ed929d2200267ccc6d",
+        "linux/arm64": "sha256:dda09b7e2609d0ef48444b1398de60e23530d594440604ebbc24315c1ada742c"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:c59e680ddfb5b9c5a32d1926678cf39009422afb4e685ad4e4cb8380ea2ebd4b",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:5fbacc8c34c7b9cad2e78bbdd6c351e8920b2b9eb41046be76c6125b59cd346d",
       "platform_digests": {
-        "linux/amd64": "sha256:7d9110c28dc59a714acc55f26569fd7fa5e5b96e30e743da4fc6c2bf7808c08d",
-        "linux/arm64": "sha256:88c1372c4f1bec4c3752594f4ca18e7f8cbf4807dc847e04d4497aaadf7fa583"
+        "linux/amd64": "sha256:55a524744c259621c3413e43adf94dca5d096b5671d7f0bb0fc5c3e5b81f5315",
+        "linux/arm64": "sha256:241ce749c2b14c2cc3e0d92f69b879086af4410de63a725ea301d4b1d3a86cc1"
       }
     }
   },
   "tasksmith-35c1a487454c": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:5dea2dad3530951b996c36b6d9083fcfe3538b5202ad8f70b03842a36b9b1a96",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:3077a60742af536700ef2c83a5d9c2d5fa238716dbf0c088db4139238cfb634b",
       "platform_digests": {
-        "linux/amd64": "sha256:12d96e803e815db634c7ce24902d5eeeaede8c8ca9e38fd51ef230c7e596ce28",
-        "linux/arm64": "sha256:47924735ad297bea4e5f98f55138cd96115962657c8ff0ab63bf165ff20df7d3"
+        "linux/amd64": "sha256:875c8e28274ce70db7c22d6fed1d99c435a2233b5a16030636c5462a2f83bf0d",
+        "linux/arm64": "sha256:5e97799ea5bb59543d722486e4b39bf2bf0168bd4fbfe464a57b1ea5605896da"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:43820bc79efb0e182fea2f0dea84433e3ee35790d201c8c8d02cc3aa75f0bebc",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:2ad29fe7e14bad1affcc84c03ea17a04f72c2fb859b8271ecd78d7e1fd5f378c",
       "platform_digests": {
-        "linux/amd64": "sha256:9b882cc5ee2e614da2ec53f22961410773419dea563793f131859a0e6c503393",
-        "linux/arm64": "sha256:1c9825f5aacab392773e4164daa9691b5dd9f6be395d3888a49f7def947dee90"
+        "linux/amd64": "sha256:3362ce9511429cc53e239776167fa0c2fe9e26b68c79b2a77d0e4672a35fd253",
+        "linux/arm64": "sha256:bc6b6da1eff47844971bccc9f37961685bfa4d74034463497fcc7c669636faa7"
       }
     }
   },
   "tasksmith-5dd11b34cce1": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:5f285375a3a307cbc19468b63f7c9facef0872b84bdea3cb7064fd7f5d20f33b",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:11f282ba5ca30b2afbc910367463db2be9f66cdd1f9f251decf8222bcb16b949",
       "platform_digests": {
-        "linux/amd64": "sha256:37a6dfe6e67ea4cd12e4259b89c9745cc22651a869753e64a3613610cf5805d2",
-        "linux/arm64": "sha256:feb9ccdefd02829dbdd4911764801faaabf0ad73e024da3b3c96b7c916264f13"
+        "linux/amd64": "sha256:8d2ef71366f19ba6a90d59947ea30db3aac2b23ee7d3a6ee52bb730790c2bb0c",
+        "linux/arm64": "sha256:b80ed8d341fdc6658e98edaded154c71e855061760001aeb0e43cf6a5573061e"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:cae1da55c43030f41df9bee874bc1e2be3781f0fa4b646b06f5f9ce0ea002adb",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:fdce046558dfc23b7b049275982a056b0e50aab82f9aed07186f41be6da69922",
       "platform_digests": {
-        "linux/amd64": "sha256:987b3d6cb7e2bb1317bc0d44920038a67eef83005d302b08603891ee3e976a01",
-        "linux/arm64": "sha256:a9d9f6b49c0ccd2571c881ae41348960f8dc9e2ccc533ea4b176bde5d3088713"
+        "linux/amd64": "sha256:7aeb2332b6220ad1c2eac8ab1882f2a10aab237ab7aad186e80a499f084cb9e2",
+        "linux/arm64": "sha256:7ba6473f6f4af849252c5c3b38afc746535ed94bf6dba2af993d7e16f0827260"
       }
     }
   },
   "tasksmith-7bc616ce49d7": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:9151a207fe78b63c3e67150dbee499af9a1dd1e98ffaf70b930d86fb3f1ddec9",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:66b2b562204135d9644e9a2564e726b41bc9710e8a97278eb3fcc467d912a623",
       "platform_digests": {
-        "linux/amd64": "sha256:ec485e1baeb043033d55fa8cbcda36de9196ee65e91b42b5bf870b1c680e800a",
-        "linux/arm64": "sha256:00487852d83e70407d74b5df3b5a7f7fdce06047bb1c2ec8043dca4e087e9d46"
+        "linux/amd64": "sha256:e1a6a84d5f57b4aaa507d3937ea5c41a6c8e5abb08278796d141eec3020f53cb",
+        "linux/arm64": "sha256:80e36a088ef27ba63a684e07b639150c8fc57ba762b96f9c2a9e331e5bddf52f"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:4a62fdba3463a277856fbe036975c2a559fb0e6200c8b65f161f74174f1c0968",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:af7412cf98435ec47398766c3f667479695082a4fc24938c920a0c96bf143e7b",
       "platform_digests": {
-        "linux/amd64": "sha256:ca716c2e6f0e2c8a8ae1d958bf9d035bfec935f92a921dc98b937880987dc220",
-        "linux/arm64": "sha256:8d9af60b9c06c407ea16b7f263fce68a2bb39f4b7746439d5e65b7a4e830ccf7"
+        "linux/amd64": "sha256:9fff9353d64dac4a8502ac92d2a7d210caead63de62c1781f81a84f746acc3a2",
+        "linux/arm64": "sha256:ca316c0b8272424d0f2f02d87a1d52d3a57c43c8ef78e3b3f8a40a708481d900"
       }
     }
   },
   "tasksmith-9aea936e30e4": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:85740c29c5fa66c6fec405f136722beeeef629eaf89a86dd1d2c5f70a00e15c5",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:6e19c900d48d4afc03dfd4d091d8193c5ed3df711b38e75ba1c628461e23040c",
       "platform_digests": {
-        "linux/amd64": "sha256:b1af06681aa312ee1c194cb2e4c91879a3c9a86985410a6b7f1c6f6a54bd337d",
-        "linux/arm64": "sha256:026b12a4959462ecbf6aacce5805bf2d2ec0f4f94b56ae866ae634cb1b35b29f"
+        "linux/amd64": "sha256:a8d8a13a5269e6e96e0dbf2f1245e8ae3e38fd15bbe9fb6dc9ea6b6d8c38e8b4",
+        "linux/arm64": "sha256:eee156d0a7235ec3188e087460163bcd5f58d28b633d16e913613b42c202fc70"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:fc815cf3b02722bfd1cdd27636a8a48197acd7ee8dbf1ac3ea7fdd3aa82bc13d",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:7af70f6876b353d1f8911d728aedcb11859b6a04b714f88b56c411661be8cba5",
       "platform_digests": {
-        "linux/amd64": "sha256:1ce6cad74b247e7172b3c8af23438ac904e474330addd8ca1962308a286073c0",
-        "linux/arm64": "sha256:100a1cfc79754f7ba96c90eb25163f3fb1958c30c8e14141e135b53882cbeac9"
+        "linux/amd64": "sha256:f4296b0fb373442f286104e3874a3e575e84a535f34d498c11d4bbd6697efce1",
+        "linux/arm64": "sha256:b27a8b82ed70b04ca33ae6d7e7c5857e33b110d2c2a01c5cc579bb70cdc0adda"
       }
     }
   },
   "tasksmith-9f3fb07e5766": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:4f3c9b94179ae550f7a6c60297bdd7db5d76f2bacff9cd0fb7c307a513cf67e4",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:2348d7be51639f1fd9e96f21de643dcd2933c5874bec4c336c012ae70306e962",
       "platform_digests": {
-        "linux/amd64": "sha256:9f9d472fff1bbe02ee2304446f98c7d4a5a86eeab4e57d9eb9dac18d7310ac17",
-        "linux/arm64": "sha256:9fb6fee22f41cc229b810d40a0b0b7e53eb40dcaed33bec42e6a659228c33087"
+        "linux/amd64": "sha256:ff9b537c095e865bd72d2094c5042249cd924237456c2dc7f7b22408d26c3430",
+        "linux/arm64": "sha256:8ba4eaa546c782383163123177b068a81b37c7148628c1bb9b327858617c7bb0"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:b4de5c2e0c1b2a83b8c0a9927b53f6d586bf5ea4fa006d84487de2bd0985699c",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:d96fd4fa7292a1500fffc205bda24ecaec3717a464b5cf48da701606e1e35038",
       "platform_digests": {
-        "linux/amd64": "sha256:9505ce37fe5fef20f108c0ef4b140fbf1bacf76557f5ece6f5a1cda9664851b6",
-        "linux/arm64": "sha256:0678c7accf9015fa0ec2026a9519c32cba31e8c373882ea6596f0aaa5fd43894"
+        "linux/amd64": "sha256:9266ddcf7d3dec8c17e17a3af51176e97fa3de1f5df2679d15802001a0e95139",
+        "linux/arm64": "sha256:4ab782f9d39d0950658479f1dfba59c347e5ee13c64527c8d85db916cd8273a4"
       }
     }
   },
   "tasksmith-c488fc138ba1": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:b499356ba08485bd456839d032399ededf770368c571c1001b5656b78f0ef5ad",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:ec46d7699e9dc0ba049d49e434b2c649f35e7f9a96d6d2e5fa8e93e61caa6345",
       "platform_digests": {
-        "linux/amd64": "sha256:a085339bf0b594668474f30f11b3e26553c2ee0f77e7f09bcbc4ded202a13a52",
-        "linux/arm64": "sha256:b8a69d466a12a60b57f660f052c1ff3a0660683252eee3299351098087ca2f08"
+        "linux/amd64": "sha256:351455f7756de8778c50fe06314b8beb41edc68118b8e25f5ce22f21756a3f60",
+        "linux/arm64": "sha256:3a52d29bc96c1b12575899e3f4d788b0b07e30c8970ec7062bffd93eadc8ea7c"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:f2c81997be59d589d615fba778a101eca79d8c814cba80326d3b3040fb8386f6",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:3ad8ed92613955cb23c4cab915a24314e1c968127a026f84a8305ff5bf232fb9",
       "platform_digests": {
-        "linux/amd64": "sha256:da9a2d71b379cedf0e75db531f0ce4e46311a1412cf6f89d5f77e5bad1bc368d",
-        "linux/arm64": "sha256:37f4e309f947b894997466003633143c057c4c84afb35310b39f8e7c144205e9"
+        "linux/amd64": "sha256:50e94d6528d1e99ab76eedc9282483c8d243bc116452d93b9304dde19b8bf22c",
+        "linux/arm64": "sha256:f27c57ff64bedeae8b587a0198f37597e55ec2180d7c39eda81cdddae41146a4"
       }
     }
   },
   "tasksmith-c98f3a4a299d": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:a09990596df5a270ac4a4bc54535b4087613020f8ce15742b1c8cad96859aa22",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:aa6dbf7f476f38c3d87c2da61e9e504d1d587a8db6fc7c1af6980fbf4e7067f0",
       "platform_digests": {
-        "linux/amd64": "sha256:50def3d69567df7154f9a44779302590d36db85372fcf011a5be714a1c82a7b6",
-        "linux/arm64": "sha256:25003a2acaccf74fe7d3f9b442dd3d13cc02f1d6be6e5201aa23c556c1319153"
+        "linux/amd64": "sha256:73a1842f329a5c0ca325160cfc5cef932818f0bcee7ddabd161a806bede8e557",
+        "linux/arm64": "sha256:1df77b07a72313ae9358a87e9e966c50e84fe73f0cb9858023150e7b120c4996"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:535678fe51a24c55553eea2a95075b3431e45118c895c0e9a0a8bc8ee2636eb9",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:4a8f4d3e3b24ac70ee6a3bdf74ea7ab00dcdacbfc09895751e4e81b2e7e6367a",
       "platform_digests": {
-        "linux/amd64": "sha256:323fb143a687ef8f262a16fad3f45514389b63586dc873a5e994a1747948cb3b",
-        "linux/arm64": "sha256:fe6ba88735d126b79c66ed72bd91e51582f4d86900b724018ca795385fbd9b5a"
+        "linux/amd64": "sha256:5073e2bc500f5a9664853ff55f56db192dfcd22e623c7ba29aa83b1813364c74",
+        "linux/arm64": "sha256:a5f919efd4e74c16cd7805bfa63ae842a526410e092ac6eec261a45fcd0182a4"
       }
     }
   },
   "tasksmith-ecb1931929df": {
     "agent": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:626658b8e65a1f8ea61a69183180a14def3a24527d05718c2bc1e20b99c8415b",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:4d0a7fb0bf2c6c8386e7aa67c829a96e04b19f7022d79dd862574d16c43f4947",
       "platform_digests": {
-        "linux/amd64": "sha256:09003e1c887ffd169b831a0eeff4d5f9453d0b78d9119ce4cbe926a8886a4e17",
-        "linux/arm64": "sha256:0cdcff4f99b8c2797a471dda94d73f91292d4439bdf497a7f737634051cb6b7f"
+        "linux/amd64": "sha256:5a364de897a55e6bd54b310fb34265fbccc3b50825b82f859d665e5350118c44",
+        "linux/arm64": "sha256:307939716192af541bacd62495be4f343529de6408a316c43cb167bd7a2b73d3"
       }
     },
     "grader": {
-      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:45afad838d6da0fcfb6a7206b1fac0d82cdf77de42fc99b74648e2caa7180f5a",
+      "image": "ghcr.io/regents-ai/techtree-tasksmith@sha256:d330c0a352f225e08881ca9a1b1aa10f5b7e5b5cc7769ff0295f35c9f6f59bd8",
       "platform_digests": {
-        "linux/amd64": "sha256:67fa51c7e7f2b3e6fc1e8e4c7caca2d3367159819afe6315812ea97696f8bf7b",
-        "linux/arm64": "sha256:7db07b4646c5e8bf52ea3c7f9e414195e38ba8e3af05c4d02a97686efeedba4d"
+        "linux/amd64": "sha256:594d2522a152882cb06211032e837027817656de7f3aa9568763396c75688263",
+        "linux/arm64": "sha256:10dd33ded6f1ed35ae4d2fbc3884be31e23c7dac7c642274f21cb4134852cb18"
       }
     }
   }

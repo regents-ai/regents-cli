@@ -219,14 +219,14 @@ HELLO_WORLD: Final = ClimbDefinition(
         images=CampaignImage(
             image=(
                 "ghcr.io/regents-ai/techtree-subject"
-                "@sha256:76ebb4a9390b80bfd5a6584d4229512fea1c858d4a0b73153a25cf1495cca155"
+                "@sha256:8268cae0a92661e797d8ff711397f9fcb9dfc8ea03c53e7dc1f13f5479f62a88"
             ),
             platform_digests={
                 "linux/amd64": (
-                    "sha256:0ee8a49c691251f31533972d6bb15079208c74089b231c4d9d7a215f2efb1fc5"
+                    "sha256:ab05ed8ae8b637624a9aef7cab403b0161b0dc90aa70a9e586d8306b5f52c858"
                 ),
                 "linux/arm64": (
-                    "sha256:a41b2e5c0675a0d0706cc8ae41bc3e2c974d8d693d450c604a73cbfbf69c3320"
+                    "sha256:b52d44b812b8a4b48603c991c932c665f35a4e70bc9ad15715daf0edd5f7e9b4"
                 ),
             },
         ),
@@ -267,14 +267,14 @@ FRONTIER_CS: Final = ClimbDefinition(
         images=CampaignImage(
             image=(
                 "ghcr.io/regents-ai/techtree-subject"
-                "@sha256:27d04c85a88cb52eae8f6f9ed379769ed9ed3b8d7b12d9e1b33b12f5ac95dab8"
+                "@sha256:9ae666721fd1222924d503bce603be2742b1b6df3e1b8d2971bf3a5213bcf417"
             ),
             platform_digests={
                 "linux/amd64": (
-                    "sha256:38a69ff50f77768339b929ad9c47238bef72dacd5985e7d64ee094a7b6c6fe10"
+                    "sha256:1958b83cf9375c6d6d4d7f3a9f3ca006aec1f0ccd2aa2711d8bafece7dd3fd97"
                 ),
                 "linux/arm64": (
-                    "sha256:fa56b14ceeebe858a6a39e591fb810766f41004019bfa6b0a5ff6548805e21ae"
+                    "sha256:a1ca999b2294fcb1ded1921d321a3ea503bf22965d10615314722b7f9cae84c0"
                 ),
             },
         ),
