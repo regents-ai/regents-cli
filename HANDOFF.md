@@ -102,7 +102,12 @@ behind a site, and never holds one up (founder, 2026-09-28).
    `build_fixture_catalog.py` and regenerate the catalog, goldens, schemas and ReleaseCore; remake
    the sample proof in `tests/techtree/fixtures/run/proof` from a stand-in run (until then
    `test_proof`, `test_publish_command` and `test_published_skill` fail on `upstream_setup`);
-   `make check`; main; the paid re-certification runs; the Techtree catalog; PyPI.
+   `make check`; main; the paid runs; the Techtree catalog; PyPI. The paid run plan lists three
+   parts, each with its count and cost and each on its own go: reruns of the five published
+   Results (same Skill, model and settings, new result IDs, replacing the old ones, founder
+   2026-10-21 "3 b"), the Climb re-certification runs, and the second independent rerun of each
+   comparison. The Techtree catalog and PyPI wait until Techtree's stable channel is on 1.10.15
+   (founder 2026-10-21 "2 a", done on the Techtree side).
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
