@@ -1,15 +1,15 @@
 {
-  "campaign_spec_digest": "sha256:7a856fc9a5d1d1ccd6feb52daaa35bc4188e437cef81667fcf19e37454c8a3fd",
+  "campaign_spec_digest": "sha256:272d2eeec064fd691a38bedf6d61fea9bc86f25d064f2fe990f5d74e450cd1c6",
   "candidate_skill_visibility": "public",
-  "climb_digest": "sha256:6f6b71b5322b39a886b60b57f57cc7a68c2cdca52351fab2ce9e3096c6f7072f",
+  "climb_digest": "sha256:0503c05ff07d0f69527eb9a237be93cdd9c06eafb769f3e8b81493d10505a176",
   "compatibility": {
     "compatible": false,
     "engine_status": "not_installed",
     "evaluation_engine_digest": "sha256:0337fb26178a12a267b7dd3fe4fe7ab67190a454e118b47b4794553b08091b92",
-    "evaluation_engine_source_commit": "fc73e02ea99594407bf7579c53f7711f7434635a",
+    "evaluation_engine_source_commit": "6e69354ffe1b445603b493b722d0ecffbca6686d",
     "execution_backend_kind": "local",
     "execution_backend_supported": true,
-    "execution_plan_digest": "sha256:01cb3af651c0c4c61686554c762a58d00734e5feeae7d9bc8cc09b197ea90d3b",
+    "execution_plan_digest": "sha256:05dc6e435f47900628f5419136145076d5e73e2d87b75321fd857e3f1f248a77",
     "host_platform": "darwin/arm64",
     "host_supported": true,
     "issues": [

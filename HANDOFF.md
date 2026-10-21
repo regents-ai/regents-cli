@@ -90,6 +90,19 @@ behind a site, and never holds one up (founder, 2026-09-28).
    a coded refusal's rerun conditional beside a done step and pins Autolaunch `230462d` (v98).
    1.10.2 (2026-10-13) fixes the 1.10.1 review and Sentinel's two findings: an unsure payment or an agreed paid start is never offered
    as a plain rerun, a 402 without x402 terms goes to a person, and reruns hide addresses.
+7b. Verifiers 0.4.0 (founder, 2026-10-20 and 2026-10-21 "1. a"): branch `cli/pi-stack-1021`
+   moves every engine to commit `6e69354`, the eval config to `select.limit`, validation to the
+   gold and noop checks (`upstream_noop`), the image runner checksum to `b05b20d1…`, and
+   `hf-tasksmith-v1` to 0.2.0. Checked here: Hello World 36/36 and Frontier-CS 10/10 valid, the
+   Tasksmith taskset 12/12, two stand-in Hello World episodes on a locally built subject image
+   read by `normalize_eval_output.py`. Still to do, each with the founder's go and in order:
+   push; run `techtree-subject-image.yml`, then the cpp subject image FROM its digest, then
+   `techtree-tasksmith-images.yml` and `pins.json`; publish `hf-tasksmith-v1` 0.2.0 to the Hub
+   and pin it in `build_engine_bundle.py`; rebuild the tasksmith engine; move the image digests in
+   `build_fixture_catalog.py` and regenerate the catalog, goldens, schemas and ReleaseCore; remake
+   the sample proof in `tests/techtree/fixtures/run/proof` from a stand-in run (until then
+   `test_proof`, `test_publish_command` and `test_published_skill` fail on `upstream_setup`);
+   `make check`; main; the paid re-certification runs; the Techtree catalog; PyPI.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

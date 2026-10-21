@@ -3,6 +3,17 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Techtree Climbs run on Verifiers 0.4.0 (commit `6e69354`), which Prime Intellect released as
+  ready for v1. Each engine, the subject image and the Tasksmith agent images move to it.
+- A taskset's check now grades each task twice: with its reference answer, which must score 1,
+  and untouched, which must score below 1. Its receipt names the second check `upstream_noop`;
+  the earlier `upstream_setup` check is gone, so a proof made before this release, including a
+  rerun of a published result, no longer verifies.
+- The Tasksmith taskset (`hf-tasksmith-v1` 0.2.0) grades an untouched task in a fresh grader
+  box, as it grades an episode.
+
 ## 1.10.15 — 2026-10-19
 
 Evidence: level protected; features sign-in, signed-requests, touch-id-key,

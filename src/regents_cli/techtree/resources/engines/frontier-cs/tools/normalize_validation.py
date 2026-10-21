@@ -6,7 +6,7 @@ same rows in different orders. Every row carries an elapsed time. The log
 carries wall-clock timestamps and the output directory is a temporary path.
 
 The scientific claim inside all that is small and stable: for each task, in
-membership order, did the gold check and the setup check pass, and why. This
+membership order, did the gold check and the noop check pass, and why. This
 helper extracts exactly that into ``validation-evidence.json``, which is the
 artifact a ``TasksetValidationReceipt`` points at, ships publicly, and is
 byte-compared between the publisher and a participant.
@@ -198,7 +198,7 @@ def _task_record(row: dict[str, Any]) -> dict[str, Any]:
         "position": position,
         "task_hash": f"sha256:{task_key}",
         "gold": _outcome(row, "gold", position),
-        "setup": _outcome(row, "setup", position),
+        "noop": _outcome(row, "noop", position),
     }
 
 

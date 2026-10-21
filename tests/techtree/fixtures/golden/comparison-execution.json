@@ -10,7 +10,7 @@
     "elapsed_seconds": 612.0,
     "episode_count": 20,
     "exit_code": 0,
-    "experiment_manifest_digest": "sha256:54bb3813b5469edbddc80224e33f9969a54adc645631f52c304666c1d849b209",
+    "experiment_manifest_digest": "sha256:1b3c6f7b65580862bb2112f15374bec27d60f7c6c2e797bf0f0d60f449d0e138",
     "finished_at": "2026-01-01T00:10:12Z",
     "max_concurrent": 2,
     "normalized_episodes_digest": "sha256:0b4bd43e1d22a5e85443443fdb6388f59e1026543e73142cd201f7cfa95a3309",
@@ -30,7 +30,7 @@
     "variant": "baseline"
   },
   "campaign_max_concurrent": 4,
-  "campaign_spec_digest": "sha256:7a856fc9a5d1d1ccd6feb52daaa35bc4188e437cef81667fcf19e37454c8a3fd",
+  "campaign_spec_digest": "sha256:272d2eeec064fd691a38bedf6d61fea9bc86f25d064f2fe990f5d74e450cd1c6",
   "candidate": {
     "argv_digest": "sha256:bb7c5a050f3c02f847398a8678250801fcf48c7b728d2c0da276a675c6bebebd",
     "cancelled": false,
@@ -42,7 +42,7 @@
     "elapsed_seconds": 598.0,
     "episode_count": 20,
     "exit_code": 0,
-    "experiment_manifest_digest": "sha256:31f7376c763b97b915928c46268c801b78c34a22989af80c2b7f28c18a9275e8",
+    "experiment_manifest_digest": "sha256:aada407bf7a0a51f249ef4f4edb1af3856222c11e766a06e90c97e1f096d60b6",
     "finished_at": "2026-01-01T00:09:58Z",
     "max_concurrent": 2,
     "normalized_episodes_digest": "sha256:bb3310f7eb89275b0aa425c9d3285562d43948a4ab6900dd29d90385f52a0131",

@@ -29,6 +29,7 @@ from verifiers.v1.tasksets.harbor.taskset import HarborConfig, parse_task, verif
 from verifiers.v1.trace import Trace, TraceTask
 from verifiers.v1.utils.artifacts import collect, restore
 from verifiers.v1.utils.compile import resolve_runtime_config
+from verifiers.v1.utils.decorators import reward
 
 __all__ = [
     "WORKDIR",
@@ -65,17 +66,25 @@ class TasksmithConfig(HarborConfig):
 
 class TasksmithTask(HarborTask):
     async def validate(self, runtime: Runtime) -> bool:
-        """The gold check: untouched, the task scores 0; with its reference answer, 1.
+        """The gold check: with its reference answer, the task scores 1.
 
-        Both gradings happen the way an episode's does, in a fresh grader box that receives only
-        the files the task lists.
+        Graded the way an episode is, in a fresh grader box that receives only the files the task
+        lists.
         """
-        untouched = await self._grade(runtime)
         reference = TASKS / self.data.name.removeprefix("repo2rlenv/") / "solution" / "reference"
         for path in sorted(p for p in reference.rglob("*") if p.is_file()):
             await runtime.write(f"{WORKDIR}/{path.relative_to(reference)}", path.read_bytes())
-        answered = await self._grade(runtime)
-        return untouched == 0.0 and answered == 1.0
+        return await self._grade(runtime) == 1.0
+
+    @reward(weight=1.0)
+    async def solved(self, runtime: Runtime, trace: Trace) -> float | dict[str, float]:
+        """An episode is graded in the grader box the Harbor env staged. The validator's
+        untouched-task check scores the agent's box directly, so there the task grades it in a
+        fresh grader box, as an episode would.
+        """
+        if self.verifier_staged:
+            return await super().solved(runtime, trace)
+        return await self._grade(runtime)
 
     async def _grade(self, runtime: Runtime) -> float:
         artifacts = await collect(
@@ -96,7 +105,8 @@ class TasksmithTask(HarborTask):
             await restore(box, artifacts)
             await grader.stage_tests(box, wipe=True)
             await box.prepare_execution([])
-            return await grader.run_verifier(box, trace)
+            scores = await grader.run_verifier(box, trace)
+            return scores[grader.config.reward_key]
 
 
 class TasksmithTaskset(HarborTaskset, vf.Taskset[TasksmithTask, TasksmithConfig]):

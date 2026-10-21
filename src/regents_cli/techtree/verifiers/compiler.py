@@ -39,6 +39,7 @@ from regents_cli.techtree.verifiers.config import (
     HarborEnvToml,
     HermesHarnessToml,
     SamplingToml,
+    SelectToml,
     SingleAgentEnvToml,
     SubjectAgentToml,
     TaskImagesToml,
@@ -191,7 +192,7 @@ def compile_variant_config(
         client=EvalClientToml(api_key_var=endpoint.api_key_var, base_url=endpoint.base_url),
         sampling=SamplingToml(reasoning_effort=subject.sampling.reasoning_effort),
         env=env,
-        num_tasks=taskset.selection.num_tasks,
+        select=SelectToml(limit=taskset.selection.num_tasks),
         max_concurrent=variant_max_concurrent,
         output_dir=str(output_dir),
     )
@@ -366,7 +367,7 @@ def compile_plans(
             verifiers_input_config_path=str(run_paths.variant_input_config(variant)),
             verifiers_output_dir=str(Path(config.output_dir) / EVAL_RUN_NAME),
             skill_paths=list(config.env.seat.harness.skills),
-            task_count=config.num_tasks,
+            task_count=config.select.limit,
             max_concurrent=config.max_concurrent,
         )
     return plans[VariantName.BASELINE], plans[VariantName.CANDIDATE]

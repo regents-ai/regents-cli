@@ -258,6 +258,29 @@ OWN: list[dict[str, Any]] = [
         "proofs": ["tests/techtree/test_release_checks.py"],
     },
     {
+        "id": "techtree-evaluation-engine",
+        "what": "A Climb's tasks are checked, and its runs scored, by the pinned Verifiers engine "
+        "in the pinned images.",
+        "who": "operator",
+        "level": "ordinary",
+        "paths": [
+            "src/regents_cli/techtree/verifiers/**",
+            "src/regents_cli/techtree/models/validation.py",
+            "src/regents_cli/techtree/resources/engines/**",
+            "scripts/techtree/build_engine_bundle.py",
+            "scripts/techtree/build_goldens.py",
+            "scripts/techtree/tasksets.py",
+            "scripts/techtree/subject-image/**",
+            "scripts/techtree/tasksmith-image/**",
+        ],
+        "entry": [{"cli": "regents techtree climb start"}],
+        "proofs": [
+            "tests/techtree/test_golden.py",
+            "tests/techtree/test_verifiers_child.py",
+            "tests/techtree/test_proof.py",
+        ],
+    },
+    {
         "id": "release-gates",
         "what": "The maintainer's gates before each commit and release: the pinned copies, the "
         "command check sites also run, the feature map, the live reads and the wheel.",
