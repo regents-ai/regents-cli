@@ -149,7 +149,9 @@ def plan(
                 credit_ceiling_attested=True,
                 prices=[],
             ),
-            expires_at=NOW + timedelta(days=7),
+            # Grant issue refuses an expired plan by the real clock, so the plan expires
+            # a week from now rather than a week from the fixed NOW.
+            expires_at=datetime.now(UTC) + timedelta(days=7),
         ),
         Created(created_at=NOW),
     )
