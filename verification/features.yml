@@ -1751,7 +1751,7 @@ sites:
     why: 'site only: opens a card on the home page'
 - site: techtree
   repository: regents-ai/techtree
-  commit: b9cd7a0346e409dd4c8fa04d0b5e0343bfa67d5a
+  commit: 436d2b15bbc16d959c13ed38a9ad10b46e37cc41
   commands: 9
   tools: 11
   tools_with_no_command:
