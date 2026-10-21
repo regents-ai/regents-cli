@@ -106,8 +106,15 @@ behind a site, and never holds one up (founder, 2026-09-28).
    parts, each with its count and cost and each on its own go: reruns of the five published
    Results (same Skill, model and settings, new result IDs, replacing the old ones, founder
    2026-10-21 "3 b"), the Climb re-certification runs, and the second independent rerun of each
-   comparison. The Techtree catalog and PyPI wait until Techtree's stable channel is on 1.10.15
-   (founder 2026-10-21 "2 a", done on the Techtree side).
+   comparison. Before any model call the plan runs the checks that need none (membership and
+   order, deterministic grading, generated configs, proof verification), and a failure is kept as
+   evidence, never dropped. Techtree records each rerun's link to the comparison it replaces on
+   the site; the proof format does not change. The rebuilt tasksmith engine must resolve the
+   same Verifiers 0.4.0, harbor 0.24.0 and prime-sandboxes 0.5.0 as the other two (a scratch
+   lock of `hf-tasksmith-v1` 0.2.0 does). Model Climb's trainer keeps Verifiers `e888a719`: prime-rl
+   0.10.0's packed sampling masks need it. Techtree's stable channel is on 1.10.15 since
+   2026-10-21 10:21Z (founder "2 a"), so the Techtree catalog and PyPI no longer wait on it.
+   Images published 2026-10-21 from this branch: subject `8268cae0…`, cpp `9ae66672…`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
