@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "procedure-transfer-v1",
-      "source_digest": "sha256:2fb7213a1b485659246e0840ead1716005078667e8430588197c51ccb8e44805",
+      "source_digest": "sha256:8dba945814066ac3a5e4e87162f0abc63e0ea440812bce8ab25e907ab3475d6f",
       "version": "0.1.0"
     }
   ],
@@ -15,6 +15,6 @@
     "linux/amd64",
     "linux/arm64"
   ],
-  "verifiers_revision": "fc73e02ea99594407bf7579c53f7711f7434635a",
-  "verifiers_version": "0.3.2.dev147"
+  "verifiers_revision": "6e69354ffe1b445603b493b722d0ecffbca6686d",
+  "verifiers_version": "0.4.0"
 }

@@ -117,8 +117,8 @@ out.
 sed -e 's/^\[env\.taskset/[taskset/' -e 's/^\[env\.agent\.runtime\]/[runtime]/' \
   tasksmith.toml > validate.toml
 
-# Model-free: for each task, grade the untouched repository (must score 0), then the
-# reference answer (must score 1), each in a fresh grader box
+# Model-free: for each task, grade the reference answer (must score 1), then the untouched
+# repository (must score below 1), each in a fresh grader box
 uv run vf-validate @ validate.toml
 
 # Check the configuration without starting anything
@@ -143,11 +143,11 @@ taskset. `tasksmith-5dd11b34cce1` hands the grader all of `src/transformers`, so
 
 | Check | Result |
 |---|---|
-| `vf-validate`, Docker runtime, Verifiers commit `fc73e02` | 12 of 12 valid: every task scores 0 untouched and 1 with its reference answer |
+| `vf-validate`, Docker runtime, Verifiers 0.4.0 (`6e69354`) | 12 of 12 valid: every task scores 0 untouched and 1 with its reference answer |
 
 ## Dependencies
 
-`verifiers[harbor]==0.3.2.dev147` (Verifiers commit `fc73e02`). No API keys or environment
+`verifiers[harbor]==0.4.0` (Verifiers commit `6e69354`). No API keys or environment
 variables of its own.
 
 ## Licences

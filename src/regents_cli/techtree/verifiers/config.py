@@ -8,11 +8,13 @@ values, because "wrong" and "cannot be spelled" are different guarantees:
 and subject replies included, to the Prime platform. `rich: Literal[None]` — the dashboard is
 the whole output when it is on; upstream's `rich` is a table, null is the only spelling that
 turns it off, and an omitted key resolves to the dashboard on with log lines suppressed, so
-`emitted_document` writes this one null explicitly. `shuffle: Literal[False]` and
+`emitted_document` writes this one null explicitly. `select.shuffle: Literal[False]` and
 `num_rollouts: Literal[1]` — there is no seed in the protocol, so a shuffled run could not be
 reproduced. `use_bundled_skill: Literal[False]` — a bundled catalogue is an uncontrolled
-second difference. `disabled_tools` is absent by construction: the harness accepts it at config
-time and refuses it mid-run, after Docker is provisioned.
+second difference. `network_notice: Literal[False]` — upstream defaults to writing the runtime's
+network rules into the subject's prompt, which would change every task's prompt from the one the
+Campaign was built on. `disabled_tools` is absent by construction: the harness accepts it at
+config time and refuses it mid-run, after Docker is provisioned.
 
 The emitted document is JSON because TOML has no null literal and so cannot say "no dashboard".
 """
@@ -140,6 +142,7 @@ class SubjectAgentToml(TomlModel):
     max_output_tokens: int | None = Field(default=None, ge=1)
     max_total_tokens: int | None = Field(default=None, ge=1)
     timeout: TimeoutToml = Field(default_factory=TimeoutToml)
+    network_notice: Literal[False] = False
 
 
 class TaskImagesToml(TomlModel):
@@ -263,6 +266,13 @@ def runtime_images(env: EnvToml) -> list[str]:
     return [image for pins in env.taskset.images.values() for image in (pins.agent, pins.grader)]
 
 
+class SelectToml(TomlModel):
+    """Which tasks run: the first `limit` in the taskset's load order, never shuffled."""
+
+    limit: int = Field(ge=1)
+    shuffle: Literal[False] = False
+
+
 class EvalToml(TomlModel):
     """One resolved Techtree experiment as a Verifiers evaluation."""
 
@@ -270,9 +280,8 @@ class EvalToml(TomlModel):
     client: EvalClientToml
     sampling: SamplingToml
     env: EnvToml
-    num_tasks: int = Field(ge=1)
+    select: SelectToml
     num_rollouts: Literal[1] = 1
-    shuffle: Literal[False] = False
     max_concurrent: int = Field(ge=1)
     rich: Literal[None] = None
     push: Literal[False] = False

@@ -67,7 +67,7 @@ def load_tasks(
 
     taskset_id = str(document["id"])
     taskset = vf.load_taskset(taskset_config_type(taskset_id).model_validate(document))
-    tasks = list(taskset.head(num_tasks))
+    tasks = list(taskset.take(num_tasks))
 
     if len(tasks) != num_tasks:
         raise SystemExit(

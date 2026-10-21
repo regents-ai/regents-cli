@@ -23,13 +23,13 @@ RUN mkdir -p "$HERMES_DIR" \
     && uv sync --project "$HERMES_DIR" --locked --no-dev --extra acp --extra mcp \
     && touch "$HERMES_DIR/.ready"
 
-ADD --checksum=sha256:ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73 \
-    https://raw.githubusercontent.com/PrimeIntellect-ai/verifiers/fc73e02ea99594407bf7579c53f7711f7434635a/verifiers/v1/acp/runner.py \
-    /tmp/vf-scripts/ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73.py
+ADD --checksum=sha256:b05b20d148167838e98e285e8d489d215db24daa558f5029d1c0d368492d8e42 \
+    https://raw.githubusercontent.com/PrimeIntellect-ai/verifiers/6e69354ffe1b445603b493b722d0ecffbca6686d/verifiers/v1/acp/runner.py \
+    /tmp/vf-scripts/b05b20d148167838e98e285e8d489d215db24daa558f5029d1c0d368492d8e42.py
 # The lock beside the script lets uv check the environment without asking the package index,
 # which it otherwise does once its cached index answers are ten minutes old.
-RUN uv lock --script /tmp/vf-scripts/ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73.py -q \
-    && uv sync --script /tmp/vf-scripts/ccfa3ed995e614c990721843ee737395952b69b1b4f6a881be907aeca5469b73.py -q --no-config
+RUN uv lock --script /tmp/vf-scripts/b05b20d148167838e98e285e8d489d215db24daa558f5029d1c0d368492d8e42.py -q \
+    && uv sync --script /tmp/vf-scripts/b05b20d148167838e98e285e8d489d215db24daa558f5029d1c0d368492d8e42.py -q --no-config
 
 RUN chown -R learner:learner "$HERMES_DIR" /tmp/vf-scripts /opt/uv
 USER learner
