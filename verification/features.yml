@@ -1751,12 +1751,16 @@ sites:
     why: 'site only: opens a card on the home page'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 436d2b15bbc16d959c13ed38a9ad10b46e37cc41
+  commit: c748ab365d9298b39d5d033691c009cae3fe3ebb
   commands: 9
-  tools: 11
+  tools: 15
   tools_with_no_command:
   - tool: prepare_agent_request
     why: 'done by regents itself: regents signs each request itself'
+  - tool: results_bundle
+    why: no command
+  - tool: skills_show
+    why: no command
   - tool: techtree_climb
     why: 'done by regents itself: techtree climb show'
   - tool: techtree_climbs
@@ -1765,3 +1769,7 @@ sites:
     why: 'done by regents itself: techtree publish'
   - tool: techtree_start
     why: 'done by regents itself: techtree setup'
+  - tool: wallet_bench_list
+    why: no command
+  - tool: wallet_bench_show
+    why: no command
