@@ -21,7 +21,7 @@ RUN apt-get update \
         python3.12 python3.12-venv python3.12-dev libnuma1 \
     && rm -rf /var/lib/apt/lists/*
 
-ARG PRIME_RL_REVISION=1e5318108da29d10960e91e54b80305f597de39d
+ARG PRIME_RL_REVISION=9e15490dcab1d506ce3462e69b8aa5dde45c6b3a
 ENV UV_PROJECT_ENVIRONMENT=/opt/prime-rl/.venv UV_LINK_MODE=copy UV_CACHE_DIR=/opt/uv-cache \
     UV_PYTHON_PREFERENCE=only-system CUDA_HOME=/usr/local/cuda
 WORKDIR /opt/prime-rl

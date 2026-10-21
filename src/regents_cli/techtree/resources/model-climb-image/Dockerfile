@@ -17,7 +17,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-ARG PRIME_RL_REVISION=1e5318108da29d10960e91e54b80305f597de39d
+ARG PRIME_RL_REVISION=9e15490dcab1d506ce3462e69b8aa5dde45c6b3a
 ENV UV_PROJECT_ENVIRONMENT=/opt/prime-rl/.venv UV_LINK_MODE=copy UV_NO_CACHE=1
 WORKDIR /opt/prime-rl
 # Three submodules are named by SSH address; all five repositories are public, so HTTPS reads them.

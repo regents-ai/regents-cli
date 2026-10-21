@@ -1,7 +1,7 @@
 """Compatibility profiles (contract section 7): the one tuple each certifies and how it is checked.
 
-M0 is Qwen3.5-9B on prime-rl 1e53181. Its model-free step (7.4 step 1) runs in the image built
-on this machine from `src/regents_cli/techtree/resources/model-climb-image`
+M0 is Qwen3.5-9B on prime-rl v0.10.0 (9e15490). Its model-free step (7.4 step 1) runs in the
+image built on this machine from `src/regents_cli/techtree/resources/model-climb-image`
 (`make model-climb-image`), with no network: prime-rl resolves the training configuration with
 `--dry-run`, renders the public synthetic fixtures and masks their loss, and matches the LoRA
 targets on the model built on PyTorch's meta device, so no weight is downloaded or loaded.
@@ -141,8 +141,8 @@ M0: Final = Profile(
         "merges.txt": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
         "chat_template.jinja": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
     },
-    trainer_revision="1e5318108da29d10960e91e54b80305f597de39d",
-    trainer_lock_sha256="0cd6ee3a8b57032852b0e68e34e06ddec1760191d4bbaf25b9ddfa69f9a8c1cb",
+    trainer_revision="9e15490dcab1d506ce3462e69b8aa5dde45c6b3a",
+    trainer_lock_sha256="d3ba57d0b68d01924b1a5c0882c7e8dccda13fdcbd527d7c8913f77d36014919",
     image="regents-model-climb:m0-qwen3.5-9b",
     renderer="qwen3.5",
     settings=Settings(
@@ -319,6 +319,7 @@ def config_checks(resolved: JsonValue) -> list[output.Check]:
     quiet = (
         _setting(resolved, "dashboard") is False
         and _setting(resolved, "heartbeat") is None
+        and _setting(resolved, "control") is None
         and _setting(resolved, "monitors", "prime") is None
         and _setting(resolved, "monitors", "wandb") is None
     )
@@ -331,9 +332,11 @@ def config_checks(resolved: JsonValue) -> list[output.Check]:
         output.Check(
             "Nothing sent anywhere",
             "pass" if quiet else "fail",
-            "no dashboard, heartbeat, Prime or W&B monitor; metrics stay in a local file"
+            "no dashboard, heartbeat, run control port, Prime or W&B monitor; metrics stay in "
+            "a local file"
             if quiet
-            else "the configuration starts a dashboard, a heartbeat or an online monitor",
+            else "the configuration starts a dashboard, a heartbeat, a run control port or an "
+            "online monitor",
         ),
     ]
 

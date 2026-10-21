@@ -364,6 +364,47 @@ def test_the_anchored_targets_match_exactly_the_248_text_modules() -> None:
     assert extra.unexpected == ["model.visual.blocks.0.mlp.up_proj"]
 
 
+# Admission: the resolved training configuration sends nothing anywhere and takes no requests
+
+
+def quiet_configuration() -> dict[str, Any]:
+    return {
+        "dashboard": False,
+        "heartbeat": None,
+        "control": None,
+        "monitors": {"prime": None, "wandb": None},
+        "model": {"fusions": {"enabled": []}},
+    }
+
+
+def sent_nothing(resolved: dict[str, Any]) -> str:
+    [check] = [c for c in profiles.config_checks(resolved) if c.label == "Nothing sent anywhere"]
+    return check.status
+
+
+@pytest.mark.parametrize(
+    ("path", "value"),
+    [
+        (("dashboard",), True),
+        (("heartbeat",), {"url": "https://example.invalid"}),
+        (("control",), {"host": "0.0.0.0", "port": 8040}),
+        (("monitors", "prime"), {}),
+        (("monitors", "wandb"), {}),
+    ],
+)
+def test_admission_fails_when_the_trainer_would_talk_to_anyone(
+    path: tuple[str, ...], value: Any
+) -> None:
+    assert sent_nothing(quiet_configuration()) == "pass"
+    resolved = quiet_configuration()
+    *parents, leaf = path
+    target = resolved
+    for key in parents:
+        target = target[key]
+    target[leaf] = value
+    assert sent_nothing(resolved) == "fail"
+
+
 # The indeterminate rule: look up, never resubmit
 
 
