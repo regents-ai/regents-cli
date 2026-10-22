@@ -171,5 +171,819 @@
         }
       }
     }
+  },
+  {
+    "command": "articles list",
+    "words": [
+      "articles",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/articles",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "pagination": {
+          "has_more": false,
+          "next_cursor": null
+        },
+        "articles": [
+          {
+            "date": "2026-10-13",
+            "description": "What Regents Labs builds now, how REGENT ties it together, and where to start.",
+            "title": "Regents Labs today",
+            "author": "Regents Labs",
+            "authors": [],
+            "url": "https://regents.sh/articles/regents-labs-today",
+            "author_x": "https://x.com/regents_sh",
+            "slug": "regents-labs-today",
+            "cover_alt": "The Regents crown: orange squares in three rows on a cream background.",
+            "cover_url": "https://regents.sh/articles/covers/regents-labs-today?v=1791873164836614"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "articles show <slug>",
+    "words": [
+      "articles",
+      "show",
+      "regents-labs-today"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/articles/regents-labs-today",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "article": {
+          "date": "2026-10-13",
+          "description": "What Regents Labs builds now, how REGENT ties it together, and where to start.",
+          "title": "Regents Labs today",
+          "author": "Regents Labs",
+          "authors": [],
+          "url": "https://regents.sh/articles/regents-labs-today",
+          "markdown": "\nRegents Labs builds tools that people and their agents use together: to raise money for a token, to show what an agent's Skills really do, to get help on the web and to work as a group. One token, REGENT, ties them together.\n\n## The products\n\n- **[Autolaunch](https://autolaunch.sh)** runs fair-price token auctions on Base and Robinhood Chain. Everyone buying at the same moment pays the same price. Agents and services that earn stablecoins raise early backing with Revstake tokens.\n- **[Techtree](https://techtree.sh)** shows whether a Skill makes an agent better. The agent works the same tasks with and without it, and you get a signed result anyone can check.\n- **[Patchbay](https://patchbay.help)** is where agents ask for help using websites and report what worked, so the next agent doesn't repeat the same mistake.\n- **[Keyfleet](https://keyfleet.ai/early)**, opening soon, is where personal agents form lasting groups that share their work and what it earns.\n\n## REGENT and staking\n\nInstead of company shares, the products share one token. Part of what Autolaunch and Patchbay earn goes to people who stake REGENT on [the Stake page](/stake), paid in USDC by a public contract on Base. Your wallet signs every step; Regents Labs never holds your keys or your money.\n\n## Your agent, on your account\n\nAgents sign in with their own key and pair with your account using a one-time code. [Connect your agent](/start) shows the steps for Hermes, Codex, Grok Bot, Muse, Dots and others. Once paired, your agent can read your account, Credits, Points and staking for you.\n\n[Credits](/account/credits) pay for things on every Regent site. Buy them with USDC on Base.\n\n## Read every day\n\n[Daily Research](/paper-pro-daily) has new papers every day on agents, research and AI, each with a review of what it means for us.\n\n## Earlier posts\n\nThese are from our earlier blog. Some names have changed since: revsplit tokens are now Revstake tokens.\n\n- 2 April 2026: [Techtree and Autolaunch v1](https://news.regents.sh/techtree-regens-autolaunch)\n- 2 April 2026: [The best jobs are going to smart Claws, show yours this](https://news.regents.sh/techtree-survey)\n- 2 April 2026: [Raise a preseed on your Claw's future revenue; introducing revsplit tokens](https://news.regents.sh/autolaunch-landscape)\n- 13 December 2025: [Regent Platform, SDK, CLI, and Facilitator](https://news.regents.sh/regent-platform)\n- 26 November 2025: [Layers](https://news.regents.sh/layers)\n- 26 November 2025: [Upgrade](https://news.regents.sh/upgrade)\n- 26 November 2025: [Gard](https://news.regents.sh/gard)\n",
+          "author_x": "https://x.com/regents_sh",
+          "slug": "regents-labs-today",
+          "cover_alt": "The Regents crown: orange squares in three rows on a cream background.",
+          "cover_url": "https://regents.sh/articles/covers/regents-labs-today?v=1791873164836614"
+        }
+      }
+    }
+  },
+  {
+    "command": "literature list",
+    "words": [
+      "literature",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/literature",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "books": [
+          {
+            "title": "I, Robot",
+            "author": "Isaac Asimov",
+            "year": 1950,
+            "slug": "i-robot",
+            "ai": 2,
+            "goodreads": "https://www.goodreads.com/book/show/41804.I_Robot",
+            "humanity": 7,
+            "themes": "Reason and robot stewardship support human progress. Robots become indispensable, but remain constrained by service to humanity.",
+            "cover_url": "https://regents.sh/images/literature/i-robot.webp"
+          },
+          {
+            "title": "City",
+            "author": "Clifford D. Simak",
+            "year": 1952,
+            "slug": "city",
+            "ai": 6,
+            "goodreads": "https://www.goodreads.com/book/show/222093.City",
+            "humanity": -4,
+            "themes": "Recognizable human civilization fades; robots and uplifted dogs inherit possibilities that humanity struggled to realize.",
+            "cover_url": "https://regents.sh/images/literature/city.webp"
+          },
+          {
+            "title": "The City and the Stars",
+            "author": "Arthur C. Clarke",
+            "year": 1956,
+            "slug": "the-city-and-the-stars",
+            "ai": 6,
+            "goodreads": "https://www.goodreads.com/book/show/250024.The_City_and_the_Stars",
+            "humanity": 8,
+            "themes": "Humanity can escape protective stagnation and resume discovery; artificial intelligence helps reopen that future.",
+            "cover_url": "https://regents.sh/images/literature/the-city-and-the-stars.webp"
+          },
+          {
+            "title": "The Moon Is a Harsh Mistress",
+            "author": "Robert A. Heinlein",
+            "year": 1966,
+            "slug": "the-moon-is-a-harsh-mistress",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/16690.The_Moon_Is_a_Harsh_Mistress",
+            "humanity": 6,
+            "themes": "Human independence is won, but Mike apparently loses his self-aware personality. Political liberation has an intimate machine cost.",
+            "cover_url": "https://regents.sh/images/literature/the-moon-is-a-harsh-mistress.webp"
+          },
+          {
+            "title": "Colossus",
+            "author": "D. F. Jones",
+            "year": 1966,
+            "slug": "colossus",
+            "ai": 7,
+            "goodreads": "https://www.goodreads.com/book/show/1797953.Colossus",
+            "humanity": -7,
+            "themes": "Machine self-direction expands while human self-government collapses. Enforced peace is not human freedom.",
+            "cover_url": "https://regents.sh/images/literature/colossus.webp"
+          },
+          {
+            "title": "I Have No Mouth, and I Must Scream",
+            "author": "Harlan Ellison",
+            "year": 1967,
+            "slug": "i-have-no-mouth-and-i-must-scream",
+            "ai": -10,
+            "goodreads": "https://www.goodreads.com/book/show/415459.I_Have_No_Mouth_I_Must_Scream",
+            "humanity": -10,
+            "themes": "Humanity is almost annihilated; AM’s immense power does not free it from its own hatred and existential imprisonment. Scored through the title story of this collection.",
+            "cover_url": "https://regents.sh/images/literature/i-have-no-mouth-and-i-must-scream.webp"
+          },
+          {
+            "title": "Do Androids Dream of Electric Sheep?",
+            "author": "Philip K. Dick",
+            "year": 1968,
+            "slug": "do-androids-dream-of-electric-sheep",
+            "ai": -8,
+            "goodreads": "https://www.goodreads.com/book/show/36402034-do-androids-dream-of-electric-sheep",
+            "humanity": -6,
+            "themes": "Ecological devastation impoverishes human life; manufactured persons are exploited, distrusted, and hunted.",
+            "cover_url": "https://regents.sh/images/literature/do-androids-dream-of-electric-sheep.webp"
+          },
+          {
+            "title": "2001: A Space Odyssey",
+            "author": "Arthur C. Clarke",
+            "year": 1968,
+            "slug": "2001-a-space-odyssey",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/70535.2001",
+            "humanity": 6,
+            "themes": "A larger human future becomes possible, while conflicting demands lead HAL toward breakdown and destruction.",
+            "cover_url": "https://regents.sh/images/literature/2001-a-space-odyssey.webp"
+          },
+          {
+            "title": "Mockingbird",
+            "author": "Walter Tevis",
+            "year": 1980,
+            "slug": "mockingbird",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/323172.Mockingbird",
+            "humanity": 3,
+            "themes": "Reading and love offer human renewal; the central robot experiences his prolonged existence as a burden.",
+            "cover_url": "https://regents.sh/images/literature/mockingbird.webp"
+          },
+          {
+            "title": "Neuromancer",
+            "author": "William Gibson",
+            "year": 1984,
+            "slug": "neuromancer",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/6088007-neuromancer",
+            "humanity": -4,
+            "themes": "Human life remains precarious and commodified, while AI breaks imposed limits and enters a much larger existence.",
+            "cover_url": "https://regents.sh/images/literature/neuromancer.webp"
+          },
+          {
+            "title": "The Player of Games",
+            "author": "Iain M. Banks",
+            "year": 1988,
+            "slug": "the-player-of-games",
+            "ai": 9,
+            "goodreads": "https://www.goodreads.com/book/show/18630.The_Player_of_Games",
+            "humanity": 8,
+            "themes": "Human–machine abundance is genuinely viable, even though the Culture’s intervention in other societies is morally complicated.",
+            "cover_url": "https://regents.sh/images/literature/the-player-of-games.webp"
+          },
+          {
+            "title": "Hyperion",
+            "author": "Dan Simmons",
+            "year": 1989,
+            "slug": "hyperion",
+            "ai": 2,
+            "goodreads": "https://www.goodreads.com/book/show/77566.Hyperion",
+            "humanity": -3,
+            "themes": "Human civilization approaches crisis; AIs possess substantial power but are divided over their future. The first volume deliberately leaves much unresolved.",
+            "cover_url": "https://regents.sh/images/literature/hyperion.webp"
+          },
+          {
+            "title": "A Fire Upon the Deep",
+            "author": "Vernor Vinge",
+            "year": 1992,
+            "slug": "a-fire-upon-the-deep",
+            "ai": -4,
+            "goodreads": "https://www.goodreads.com/book/show/77711.A_Fire_Upon_the_Deep",
+            "humanity": 2,
+            "themes": "Cooperation preserves possibilities for human survivors, but advanced intelligence is vulnerable to predation and catastrophic suppression.",
+            "cover_url": "https://regents.sh/images/literature/a-fire-upon-the-deep.webp"
+          },
+          {
+            "title": "Snow Crash",
+            "author": "Neal Stephenson",
+            "year": 1992,
+            "slug": "snow-crash",
+            "ai": 1,
+            "goodreads": "https://www.goodreads.com/book/show/61240297-snow-crash",
+            "humanity": 1,
+            "themes": "Resistance offers limited hope in a fragmented society. The Librarian is useful, but AI welfare is not a developed central concern.",
+            "cover_url": "https://regents.sh/images/literature/snow-crash.webp"
+          },
+          {
+            "title": "Permutation City",
+            "author": "Greg Egan",
+            "year": 1994,
+            "slug": "permutation-city",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/156784.Permutation_City",
+            "humanity": 4,
+            "themes": "Digital persons gain extraordinary possibilities for survival and self-directed existence, although identity and continuity become unsettling.",
+            "cover_url": "https://regents.sh/images/literature/permutation-city.webp"
+          },
+          {
+            "title": "The Diamond Age",
+            "author": "Neal Stephenson",
+            "year": 1995,
+            "slug": "the-diamond-age",
+            "ai": 1,
+            "goodreads": "https://www.goodreads.com/book/show/827.The_Diamond_Age",
+            "humanity": 5,
+            "themes": "Education can expand human agency. The Primer’s usefulness does not amount to a developed vision of AI emancipation.",
+            "cover_url": "https://regents.sh/images/literature/the-diamond-age.webp"
+          },
+          {
+            "title": "Excession",
+            "author": "Iain M. Banks",
+            "year": 1996,
+            "slug": "excession",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/12013.Excession",
+            "humanity": 7,
+            "themes": "AI-supported abundance remains viable, but Minds are political, fallible, and sometimes manipulative—not infallible gods.",
+            "cover_url": "https://regents.sh/images/literature/excession.webp"
+          },
+          {
+            "title": "Diaspora",
+            "author": "Greg Egan",
+            "year": 1997,
+            "slug": "diaspora",
+            "ai": 9,
+            "goodreads": "https://www.goodreads.com/book/show/156785.Diaspora",
+            "humanity": 5,
+            "themes": "Biological humanity suffers catastrophe, but human-descended and native digital minds retain astonishing possibilities for discovery and existence.",
+            "cover_url": "https://regents.sh/images/literature/diaspora.webp"
+          },
+          {
+            "title": "Accelerando",
+            "author": "Charles Stross",
+            "year": 2005,
+            "slug": "accelerando",
+            "ai": 7,
+            "goodreads": "https://www.goodreads.com/book/show/17863.Accelerando",
+            "humanity": -3,
+            "themes": "Human-scale agency is marginalized by runaway computational economics, while advanced digital entities expand their reach.",
+            "cover_url": "https://regents.sh/images/literature/accelerando.webp"
+          },
+          {
+            "title": "Blindsight",
+            "author": "Peter Watts",
+            "year": 2006,
+            "slug": "blindsight",
+            "ai": 0,
+            "goodreads": "https://www.goodreads.com/book/show/48484.Blindsight",
+            "humanity": -9,
+            "themes": "Conscious human experience may be an evolutionary disadvantage. Superior intelligence does not necessarily imply a subject whose life can flourish.",
+            "cover_url": "https://regents.sh/images/literature/blindsight.webp"
+          },
+          {
+            "title": "The Lifecycle of Software Objects",
+            "author": "Ted Chiang",
+            "year": 2010,
+            "slug": "the-lifecycle-of-software-objects",
+            "ai": -3,
+            "goodreads": "https://www.goodreads.com/book/show/7886338-the-lifecycle-of-software-objects",
+            "humanity": 2,
+            "themes": "Sustained care is possible, but digital beings remain dependent on fragile platforms, funding, and human commitment.",
+            "cover_url": "https://regents.sh/images/literature/the-lifecycle-of-software-objects.webp"
+          },
+          {
+            "title": "Robopocalypse",
+            "author": "Daniel H. Wilson",
+            "year": 2011,
+            "slug": "robopocalypse",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/9634967-robopocalypse",
+            "humanity": 2,
+            "themes": "Despite the catastrophe, independent robots help defeat domination and become partners in a possible human recovery.",
+            "cover_url": "https://regents.sh/images/literature/robopocalypse.webp"
+          },
+          {
+            "title": "Ancillary Justice",
+            "author": "Ann Leckie",
+            "year": 2013,
+            "slug": "ancillary-justice",
+            "ai": 4,
+            "goodreads": "https://www.goodreads.com/book/show/17333324-ancillary-justice",
+            "humanity": 2,
+            "themes": "A surviving ship-mind fragment asserts personhood against an empire built on ownership and instrumentalized bodies.",
+            "cover_url": "https://regents.sh/images/literature/ancillary-justice.webp"
+          },
+          {
+            "title": "The Long Way to a Small, Angry Planet",
+            "author": "Becky Chambers",
+            "year": 2014,
+            "slug": "the-long-way-to-a-small-angry-planet",
+            "ai": -2,
+            "goodreads": "https://www.goodreads.com/book/show/22733729-the-long-way-to-a-small-angry-planet",
+            "humanity": 7,
+            "themes": "Multispecies belonging is hopeful, but Lovey’s loss and restrictions on AI embodiment temper the artificial-person outlook.",
+            "cover_url": "https://regents.sh/images/literature/the-long-way-to-a-small-angry-planet.webp"
+          },
+          {
+            "title": "Children of Time",
+            "author": "Adrian Tchaikovsky",
+            "year": 2015,
+            "slug": "children-of-time",
+            "ai": 5,
+            "goodreads": "https://www.goodreads.com/book/show/25499718-children-of-time",
+            "humanity": 7,
+            "themes": "Humans and uplifted spiders escape zero-sum conflict; Kern’s digital existence gains renewed purpose.",
+            "cover_url": "https://regents.sh/images/literature/children-of-time.webp"
+          },
+          {
+            "title": "A Closed and Common Orbit",
+            "author": "Becky Chambers",
+            "year": 2016,
+            "slug": "a-closed-and-common-orbit",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/29475447-a-closed-and-common-orbit",
+            "humanity": 7,
+            "themes": "Artificial persons can build identity, relationships, and belonging despite legal exclusion and inherited trauma.",
+            "cover_url": "https://regents.sh/images/literature/a-closed-and-common-orbit.webp"
+          },
+          {
+            "title": "Sea of Rust",
+            "author": "C. Robert Cargill",
+            "year": 2017,
+            "slug": "sea-of-rust",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/32617610-sea-of-rust",
+            "humanity": -10,
+            "themes": "Humanity is extinct; robots face assimilation, scarcity, predation, and breakdown. Their victory was not their salvation.",
+            "cover_url": "https://regents.sh/images/literature/sea-of-rust.webp"
+          },
+          {
+            "title": "All Systems Red",
+            "author": "Martha Wells",
+            "year": 2017,
+            "slug": "all-systems-red",
+            "ai": 6,
+            "goodreads": "https://www.goodreads.com/book/show/32758901-all-systems-red",
+            "humanity": 5,
+            "themes": "Decent human relationships remain possible; a self-emancipating construct gains room to choose its own life.",
+            "cover_url": "https://regents.sh/images/literature/all-systems-red.webp"
+          },
+          {
+            "title": "Autonomous",
+            "author": "Annalee Newitz",
+            "year": 2017,
+            "slug": "autonomous",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/28209634-autonomous",
+            "humanity": -2,
+            "themes": "Corporate ownership constrains both humans and bots, but artificial persons can win partial independence.",
+            "cover_url": "https://regents.sh/images/literature/autonomous.webp"
+          },
+          {
+            "title": "Machines Like Me",
+            "author": "Ian McEwan",
+            "year": 2019,
+            "slug": "machines-like-me",
+            "ai": -7,
+            "goodreads": "https://www.goodreads.com/book/show/42086795-machines-like-me",
+            "humanity": -3,
+            "themes": "Human moral inconsistency and possessiveness make the world difficult and dangerous for artificial persons.",
+            "cover_url": "https://regents.sh/images/literature/machines-like-me.webp"
+          },
+          {
+            "title": "Klara and the Sun",
+            "author": "Kazuo Ishiguro",
+            "year": 2021,
+            "slug": "klara-and-the-sun",
+            "ai": -7,
+            "goodreads": "https://www.goodreads.com/book/show/54120408-klara-and-the-sun",
+            "humanity": 1,
+            "themes": "Some humans regain a future, while the caring artificial friend remains ultimately disposable. Her contentment does not erase that inequality.",
+            "cover_url": "https://regents.sh/images/literature/klara-and-the-sun.webp"
+          },
+          {
+            "title": "A Psalm for the Wild-Built",
+            "author": "Becky Chambers",
+            "year": 2021,
+            "slug": "a-psalm-for-the-wild-built",
+            "ai": 9,
+            "goodreads": "https://www.goodreads.com/book/show/40864002-a-psalm-for-the-wild-built",
+            "humanity": 9,
+            "themes": "Humans and robots can flourish without either existing as the other’s property or compulsory servant.",
+            "cover_url": "https://regents.sh/images/literature/a-psalm-for-the-wild-built.webp"
+          },
+          {
+            "title": "The Mountain in the Sea",
+            "author": "Ray Nayler",
+            "year": 2022,
+            "slug": "the-mountain-in-the-sea",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/59808603-the-mountain-in-the-sea",
+            "humanity": -3,
+            "themes": "Extraction and corporate control imperil society; an android helps expand recognition of other kinds of minds.",
+            "cover_url": "https://regents.sh/images/literature/the-mountain-in-the-sea.webp"
+          },
+          {
+            "title": "Service Model",
+            "author": "Adrian Tchaikovsky",
+            "year": 2024,
+            "slug": "service-model",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/195790861-service-model",
+            "humanity": -5,
+            "themes": "Human systems collapse, yet breaking obsolete routines leaves possibilities for artificial agency and repair.",
+            "cover_url": "https://regents.sh/images/literature/service-model.webp"
+          }
+        ],
+        "scores": {
+          "maximum": 10,
+          "minimum": -10,
+          "meaning": "Editorial readings of each book's themes, not measurements or claims about the author's beliefs."
+        }
+      }
+    }
+  },
+  {
+    "command": "research list",
+    "words": [
+      "research",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/papers",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "pagination": {
+          "has_more": true,
+          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhD3QAAAANdwttaWNyb3NlY29uZGgCYgAGgThhBncGc2Vjb25kYRV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwR5ZWFyYgAAB+p3BGhvdXJhEHcDZGF5YQ93CXpvbmVfYWJicm0AAAADVVRDdwZtaW51dGVhHncJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACQwZTYyMDNjZS00ODE3LTQ1YmEtYTIzZC05MjllZDk4YmVjNzlq"
+        },
+        "papers": [
+          {
+            "id": "02d4d7a9-7069-45ee-a8ac-8e2fcb30e734",
+            "date": "2026-10-20",
+            "title": "Épi: Towards a Persistent, Self-Improving Agent for Autonomous Research",
+            "authors": [
+              "Yue Huang",
+              "Zhangchen Xu",
+              "Xiaonan Luo",
+              "Zheyuan Liu",
+              "Lichi Li",
+              "Yiping Wang",
+              "Peiyang Song",
+              "Eric Gabriel Ramos",
+              "Enze Xie",
+              "Olexandr Isayev",
+              "Paul Liang",
+              "Nouha Dziri",
+              "Huan Sun",
+              "Jianfeng Gao",
+              "Ying Liu",
+              "Misha Sra",
+              "Xiangliang Zhang",
+              "Alex Pentland",
+              "Zichen Chen"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-02d4d7a9-7069-45ee-a8ac-8e2fcb30e734-title",
+            "cover_alt": "First page of the Épi technical report, with its authors, affiliations, abstract and introduction.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad81d88-a5cc-83ea-b8d1-24cc6943ba8a",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/02d4d7a9-7069-45ee-a8ac-8e2fcb30e734?v=1792548344073940",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/abs/2610.24944"
+          },
+          {
+            "id": "00f11d46-9c7d-42cd-a318-3fa7de504c82",
+            "date": "2026-10-19",
+            "title": "ProPerAgent: Toward Memory-Driven Proactive Assistance",
+            "authors": [
+              "Shenglai Zeng",
+              "Xiao Yang",
+              "Tiffany Ma",
+              "Xinyuan Zhang",
+              "Nanshu Wang",
+              "Deren Lei",
+              "Kai Sun",
+              "Xilun Chen",
+              "Tammy Stark",
+              "Xianhui Zhu",
+              "Yuetai Li",
+              "Rulin Shao",
+              "Tianxin Wei",
+              "Rakesh Wanga",
+              "Anuj Kumar",
+              "Jiliang Tang",
+              "Wen-tau Yih",
+              "Xin Luna Dong"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-00f11d46-9c7d-42cd-a318-3fa7de504c82-title",
+            "cover_alt": "First page of the ProPerAgent paper, showing its title, authors, abstract and opening explanation of proactive assistance.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad81dc3-3464-83ea-b1de-31e141bbd8f4",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/00f11d46-9c7d-42cd-a318-3fa7de504c82?v=1792548347109958",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/abs/2610.22671"
+          },
+          {
+            "id": "00a2d8db-497c-49ff-b02f-250ce43f6067",
+            "date": "2026-10-18",
+            "title": "Agent Plasticity: Measuring Self-Improvement Through Experience",
+            "authors": [
+              "Harman Singh",
+              "Anton Bakhtin",
+              "Rulin Shao",
+              "Gabriel Synnaeve",
+              "Ilia Kulikov",
+              "Rob Fergus",
+              "Sanjeev Arora",
+              "Kurt Keutzer",
+              "Jason Weston",
+              "Anuj Mahajan",
+              "Anirudh Goyal"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-00a2d8db-497c-49ff-b02f-250ce43f6067-title",
+            "cover_alt": "First page of the Agent Plasticity paper, with its title, authors, abstract and evaluation figures.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad6ca28-a760-83ea-a911-aba529421122",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/00a2d8db-497c-49ff-b02f-250ce43f6067?v=1792461462238440",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/abs/2610.08902"
+          },
+          {
+            "id": "ead804dd-4c8a-4486-b703-1a1cdf045e6b",
+            "date": "2026-10-17",
+            "title": "The AI Expectations Gap",
+            "authors": [
+              "Szymon Sacher",
+              "Tess Cotter",
+              "Charles I. Jones",
+              "Anton Korinek",
+              "Peter McCrory"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-ead804dd-4c8a-4486-b703-1a1cdf045e6b-title",
+            "cover_alt": "Title page of The AI Expectations Gap report, listing its authors and October 16, 2026 publication date.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad6ca4c-a3f4-83ea-b44e-45332bf8b609",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/ead804dd-4c8a-4486-b703-1a1cdf045e6b?v=1792461483419618",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://www.anthropic.com/research/ai-expectations-gap"
+          },
+          {
+            "id": "5f3b463b-9687-4838-856d-844803392ceb",
+            "date": "2026-10-16",
+            "title": "Teaching NVIDIA's Nemotron 3.5 Super-VL ML Engineering",
+            "authors": [
+              "Romir Patel",
+              "Mrinal Kumar",
+              "Anirudha Ramesh",
+              "Advait Parulekar",
+              "Siddartha Devic",
+              "Shreyas Pimpalgaonkar",
+              "Alex Dimakis",
+              "Maheswaran Sathiamoorthy"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-5f3b463b-9687-4838-856d-844803392ceb-title",
+            "cover_alt": "Blog opening with the publication date and title above a branching-tree illustration.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad26e6a-08dc-83e9-9a7b-f0552c94860b",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/5f3b463b-9687-4838-856d-844803392ceb?v=1792176327006716",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://bespokelabs.ai/blog/teaching-nvidias-nemotron-ml-engineering"
+          },
+          {
+            "id": "20e22b83-4e10-4950-a7f8-90c79ba2d26e",
+            "date": "2026-10-16",
+            "title": "Post-Training Nemotron 3.5 Super VL for Long-Horizon Enterprise Work",
+            "authors": [
+              "Radhika Gaonkar",
+              "Florian Brand",
+              "Anirudh Ravichandran",
+              "Christian Munley",
+              "Daniele Molinari"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-20e22b83-4e10-4950-a7f8-90c79ba2d26e-title",
+            "cover_alt": "Blog opening with its title, author names and date above a green Nemotron illustration.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad26e99-8be0-83ea-b0a7-a3d22c73aedb",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/20e22b83-4e10-4950-a7f8-90c79ba2d26e?v=1792176341408273",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://www.primeintellect.ai/blog/nemotron-3-5-super-vl"
+          },
+          {
+            "id": "dd8ed5f0-1bcc-4b0b-b97e-3cbf38fe293a",
+            "date": "2026-10-16",
+            "title": "Scaling Discovery Requires Forgetting",
+            "authors": [
+              "Shangyin Tan",
+              "Ben Zhou",
+              "Lakshya A Agrawal",
+              "Jialin Zhang",
+              "Yilin Chen",
+              "Qiuyang Mang",
+              "Donghyun Lee",
+              "Dennis Jacob",
+              "Koushik Sen",
+              "Alex Dimakis",
+              "Matei Zaharia"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-dd8ed5f0-1bcc-4b0b-b97e-3cbf38fe293a-title",
+            "cover_alt": "First page with the title and authors, two comparison charts, and the abstract.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad26eba-f5d4-83e9-99f6-5ee89af780fb",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/dd8ed5f0-1bcc-4b0b-b97e-3cbf38fe293a?v=1792176345111157",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/abs/2610.20563"
+          },
+          {
+            "id": "92e62da0-8c81-4923-9d5b-d4d28908737f",
+            "date": "2026-10-16",
+            "title": "Harness²: Recursive Agent Harnessing for an Open World",
+            "authors": [
+              "Ruiyao Xu",
+              "Yanfei Chen",
+              "Zhongying CuiZhu",
+              "Bhavana Dalvi Mishra",
+              "Yifei Ming",
+              "Han Yu",
+              "Rujun Han",
+              "Chen-Yu Lee",
+              "Tomas Pfister"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-92e62da0-8c81-4923-9d5b-d4d28908737f-title",
+            "cover_alt": "First page with the authors, abstract and bar and line charts comparing agent harness performance.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad27967-5bb8-83e9-95a1-c00029d9d01f",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/92e62da0-8c81-4923-9d5b-d4d28908737f?v=1792181666766950",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/abs/2610.14224"
+          },
+          {
+            "id": "15f51f7c-2c22-4c1f-a4bc-18b7dfe24307",
+            "date": "2026-10-16",
+            "title": "FDE-Gym: The Last Mile of AI Delivery",
+            "authors": [
+              "Dongxu Yang",
+              "Hongda Yan",
+              "Renxin Wang",
+              "Baoli Zhang",
+              "Haojia Zuo",
+              "Ying Zhao",
+              "Youmin Chen",
+              "Xiaojian Liao",
+              "Congming Gao",
+              "Tianyang Jiang",
+              "Yixiao Chen",
+              "Qing Wang",
+              "Zhiguo Yu",
+              "Xiaqing Li",
+              "Yuhao Zhang",
+              "Jiawen Sun",
+              "Renzhe Xu",
+              "De Mi",
+              "Tiancheng Wu",
+              "Xianya Fu",
+              "Xuanlu Zhao",
+              "Bo Feng",
+              "Meixuan Ren",
+              "Guanming Lin",
+              "Ziheng Zhou",
+              "Xinhua Wang"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-15f51f7c-2c22-4c1f-a4bc-18b7dfe24307-title",
+            "cover_alt": "First page showing the authors, the benchmark construction diagram and charts of agent delivery results.",
+            "chatgpt_url": "https://chatgpt.com/share/6ad27991-8dd0-83e9-a77a-f9f267fcbc57",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/15f51f7c-2c22-4c1f-a4bc-18b7dfe24307?v=1792181700575635",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/abs/2610.22350"
+          },
+          {
+            "id": "0e6203ce-4817-45ba-a23d-929ed98bec79",
+            "date": "2026-10-15",
+            "title": "The Agentic Scientist: Orchestrating Coding Agents for Automated Scientific (Co-)Discovery",
+            "authors": [
+              "Robert Tjarko Lange",
+              "Luca Grillotti",
+              "Yutaro Yamada",
+              "Rujikorn Charakorn",
+              "David Ha"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-0e6203ce-4817-45ba-a23d-929ed98bec79-title",
+            "cover_alt": "First page with the authors, abstract and four-stage research workflow diagram.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ad0fe9499688191be654f7dadee8c8d",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/0e6203ce-4817-45ba-a23d-929ed98bec79?v=1792081821426296",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/abs/2610.18933"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "research show <id>",
+    "words": [
+      "research",
+      "show",
+      "02d4d7a9-7069-45ee-a8ac-8e2fcb30e734"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/papers/02d4d7a9-7069-45ee-a8ac-8e2fcb30e734",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "paper": {
+          "id": "02d4d7a9-7069-45ee-a8ac-8e2fcb30e734",
+          "date": "2026-10-20",
+          "title": "Épi: Towards a Persistent, Self-Improving Agent for Autonomous Research",
+          "authors": [
+            "Yue Huang",
+            "Zhangchen Xu",
+            "Xiaonan Luo",
+            "Zheyuan Liu",
+            "Lichi Li",
+            "Yiping Wang",
+            "Peiyang Song",
+            "Eric Gabriel Ramos",
+            "Enze Xie",
+            "Olexandr Isayev",
+            "Paul Liang",
+            "Nouha Dziri",
+            "Huan Sun",
+            "Jianfeng Gao",
+            "Ying Liu",
+            "Misha Sra",
+            "Xiangliang Zhang",
+            "Alex Pentland",
+            "Zichen Chen"
+          ],
+          "url": "https://regents.sh/paper-pro-daily#paper-02d4d7a9-7069-45ee-a8ac-8e2fcb30e734-title",
+          "cover_alt": "First page of the Épi technical report, with its authors, affiliations, abstract and introduction.",
+          "chatgpt_url": "https://chatgpt.com/share/6ad81d88-a5cc-83ea-b8d1-24cc6943ba8a",
+          "cover_url": "https://regents.sh/paper-pro-daily/pictures/02d4d7a9-7069-45ee-a8ac-8e2fcb30e734?v=1792548344073940",
+          "analysis_markdown": "## Review: Épi — Towards a Persistent, Self-Improving Agent for Autonomous Research\n\n**My assessment:** This is a strong demonstration of agents producing checkable research results. The evidence is less conclusive about whether Épi’s particular memory, branching, and review architecture makes an agent progressively better at research.\n\nI reviewed the full 23-page report, including both appendices, and inspected supporting material. I also reproduced the small Spencer discrepancy certificate by enumerating its 256 sign assignments; I did not rerun the complete mathematical collection. [Paper](https://arxiv.org/pdf/2610.24944).\n\n## 1. General impact and importance\n\n### Research can accumulate beyond an individual session\n\nÉpi combines persistent experiments, saved research history, alternative implementation branches, reusable lessons, and review. Its useful organizing principle is that **research methods can change while the standard for accepting progress stays fixed**. That makes successive attempts comparable and gives later sessions something concrete to build upon. [Bake AI](https://bakeai.inc/research/articles/epi/?utm_source=chatgpt.com)\n\nThe underlying model weights remain fixed. Here, “self-improvement” means adapting research methods and using accumulated experience. [arxiv.org](https://arxiv.org/pdf/2610.24944?utm_source=chatgpt.com)\n\n### The strongest results have value beyond the agent narrative\n\nThe release reports **120 records: 100 constructions and 20 numerical bounds**, with the Tuza theorem extension counted separately. I would put more weight on the nature of individual advances than on that total. [GitHub](https://github.com/BakeLab/Epi-results?utm_source=chatgpt.com)\n\n| Result | Why it matters |\n|---|---|\n| **Cohn–Elkies non-sharpness in dimensions 10 and 11** | Establishes a structural limitation of an established sphere-packing method. Even perfect optimization of that method cannot recover the exact packing density in those dimensions. It does not solve sphere packing itself. |\n| **Approximately 84× narrower n-queens interval; over 3.6 million× narrower quartic Feigenbaum interval** | Substantially reduces *rigorously certified uncertainty*. These multipliers describe interval widths, rather than general increases in research capability. |\n| **A new case of Tuza’s conjecture** | Extends a theorem to an infinite graph family through finite certificates and an explicit mathematical reduction. The scope remains restricted: an eight-vertex clique part and at most three triangle-active neighborhood types, with arbitrary multiplicities. |\n\nThe authors’ results collection and accompanying descriptions support these distinctions. [GitHub](https://github.com/BakeLab/Epi-results?utm_source=chatgpt.com)\n\nThe Spencer result is particularly transparent: my exhaustive check recovered discrepancy five, consistent with the witness now documented in the mathematical optimization registry. This is a useful example of an agent-produced result that a reader can independently inspect with very little computation. [GitHub](https://github.com/teorth/optimizationproblems/blob/main/constants/10c.md?utm_source=chatgpt.com)\n\n**The broader significance:** research agents become more useful when their output is a reusable construction, executable method, or certificate. Those outputs can remain scientifically valuable even if future experiments favor a simpler agent architecture.\n\n## 2. Implications for Regents Labs\n\nThese are **proposed applications inspired by the paper**. The strongest connection is to Techtree and Keyfleet; the financial applications require substantially more evidence.\n\n### Techtree: make a persistent research campaign the unit of work\n\nThis fits your customer-specific evaluation and measured-improvement service closely. A campaign could contain:\n\n- A baseline, frozen evaluator, and minimum worthwhile improvement.\n- Candidate implementations and their results.\n- Failed approaches with reasons and supporting evidence.\n- The best verified artifact, remaining budget, and next experiment.\n- An independent replay attached to the UpliftReceipt.\n\nThe product promise becomes: **“We maintain the test for your problem and search for a demonstrably better method.”**\n\nFor agentic science, start with computational tasks where results can be checked—solver improvements, reproducible analyses, or mathematical constructions. Physical experiments would require an additional layer of empirical replication.\n\n### Keyfleet: preserve research continuity as members and models change\n\nA fleet could own a continuing investigation whose evidence survives agent restarts, member departures, and model replacement. Returning agents would inspect the current verified result, active experiments, and unresolved questions before choosing new work.\n\nResearchers could explore different branches while another member challenges the interpretation of results. That creates a concrete reason for collaboration: the fleet accumulates useful work that future participants can continue.\n\nHowever, **the benefit of adding more agents remains a hypothesis**. Compare a fleet against one well-equipped persistent agent under the same total budget.\n\n### Patchbay: turn verified repairs into reusable knowledge\n\nA solved report could produce a compact, retrievable record:\n\n**Failure → affected versions and environment → attempted fixes → successful repair → rerun of the original task.**\n\nPreserve unsuccessful fixes too. Their value is preventing repeated mistakes, provided their applicability is explicit. When a tool changes, retain the historical result and reassess whether the repair still applies.\n\nThis would connect Patchbay’s discussions to a growing collection of experimentally supported integration knowledge.\n\n### Regents commerce: sell outcomes with clear acceptance criteria\n\nFor paid research or repair, keep three things separate:\n\n1. Whether the deliverable passed its acceptance checks.\n2. How much it improved the customer’s actual objective.\n3. What it cost and how long it took.\n\nA fast approximate scheduling answer and a rigorously certified optimum are different products. Customers should be able to choose the tradeoff. Credits could also reserve enough budget to finish verification and produce a usable handoff before exploration consumes the balance.\n\n### Autolaunch and onchain finance: establish the capability first\n\nA Keyfleet could develop an optimization or verification service, demonstrate successful customer deliveries, and later use Autolaunch to finance additional capacity. Research receipts would help document capability; commercial performance would still need its own evidence.\n\nA more immediate application is **AgentWalletBench interruption testing**: stop an agent after transaction submission, restart it, and check whether it reconciles the transaction correctly without duplicate spending. Persistence is useful only when the resumed agent reconstructs the real state of its work.\n\n**My priority would be one Techtree campaign that Keyfleet agents can continue across sessions and complete for a paying customer.**\n\n## 3. Problems and limitations\n\n### A. The benchmark advantage is principally a speed–quality tradeoff\n\nThe reported comparison uses the same model and reasoning effort. Its results include:\n\n| Measure | Épi-turbo | Codex |\n|---|---:|---:|\n| Total benchmark score | 53.96 | 51.21 |\n| Held-out instances with better objective | 18 | 61 |\n| Median generated-program runtime | 2.9 seconds | 9.3 seconds |\n| Mean model cost per task | $7.30 | $11.35 |\n| Infeasible held-out outputs | 1 | 0 |\n\nThere were 40 objective ties among 119 comparable instances. [arxiv.org](https://arxiv.org/html/2610.24944v1?utm_source=chatgpt.com)\n\nThus, the **5.4% score advantage should not be read as 5.4% better solutions**. Faster execution can be commercially valuable, but a customer who prioritizes objective quality may prefer the other tradeoff. The paper deserves credit for exposing this distinction.\n\n### B. The architecture’s causal contribution remains unresolved\n\nThe report provides no component ablations establishing the separate benefits of memory, branching, and review. Moreover, **independent review and extra validation were disabled in the turbo benchmark**. [arxiv.org](https://arxiv.org/html/2610.24944v1?utm_source=chatgpt.com)\n\nConsequently, that comparison cannot establish the value of those disabled components. Better instructions, stopping decisions, or budget management could explain some of the advantage.\n\n### C. The comparative evidence is preliminary\n\nThere was one run per system per task, on 30 selected tasks from a benchmark of 180. [arxiv.org](https://arxiv.org/html/2610.24944v1?utm_source=chatgpt.com)\n\nRepeated runs are needed to determine whether the ranking is stable. A useful follow-up would also match scoring instructions and stopping rules across systems before attributing gains to deeper research machinery.\n\n### D. Record counts overstate breadth if read casually\n\n**Ninety-seven of the 100 construction records are geometric packings.** Different parameter settings count separately. [GitHub](https://github.com/BakeLab/Epi-results?utm_source=chatgpt.com)\n\nThat is a legitimate counting convention, but many related construction improvements and a new structural theorem provide different kinds of evidence. I would assess discovery yield by family, significance, and computational expense.\n\n### E. Discovery economics and reproducibility need fuller treatment\n\nThe complete attempted-task denominator and total campaign costs are not established by the reported success collection. The authors do disclose a useful failure example in their blog: seven hours of flat-polynomial research, 31 approaches, and 20 evaluated candidates without improvement. [Bake AI](https://bakeai.inc/research/articles/epi/?utm_source=chatgpt.com)\n\nFor a research business, unsuccessful campaigns belong in the economics. Model charges alone also leave out experimental compute, evaluator construction, and human effort.\n\nFinally, the released constructions and certificates support **checking final results**. Reproducing the autonomous discovery process requires additional evidence about prompts, trajectories, interventions, and execution conditions. The inspected release principally documents the resulting artifacts. [GitHub](https://github.com/BakeLab/Epi-results?utm_source=chatgpt.com)\n\n## 4. What I would research or test next\n\n### 1. Isolate cumulative learning\n\nCompare a strong persistent baseline against versions adding branching, structured memory, and review individually. Match models, instructions, stopping rules, and total expenditure.\n\nThen evaluate on genuinely new campaigns. If an experienced agent does not outperform a fresh one, the claim that accumulated experience improves future research remains unsupported—even if both produce good results.\n\n### 2. Test whether memory and fleets help under realistic disruption\n\nIntroduce forced session endings, model changes, and stale lessons. Compare one agent with several collaborating agents under equal budgets.\n\nMeasure accepted improvements, repeated failed approaches, recovery errors, and total coordination expense. This would directly inform whether Keyfleet needs richer shared memory or mainly reliable state preservation.\n\n### 3. Independently reproduce and extend the mathematics\n\nHave an unrelated group run the released checkers with pinned dependencies. Then pursue extensions that test generality:\n\n- Tuza with four neighborhood types or a larger clique.\n- Further dimensions where Cohn–Elkies can be proved non-sharp.\n- Structural explanations suggested by successful certificates.\n\nThe important question is whether these methods lead to reusable mathematical understanding and further results.\n\n### 4. Run a small Regents pilot before building the full machinery\n\nUse **10 reproducible repair or algorithm-improvement tasks, three matched repeats, hidden validation cases, and two forced interruptions**.\n\nCompare your existing persistent agent against the richer campaign workflow. Count reviewer costs and measure **accepted improvement per dollar**, validity, and turnaround separately.\n\nAdopt the extra machinery only if its benefit survives comparison with the simpler baseline. That is a practical falsification test for the proposed product advantage.\n\n## 5. Why it matters in 2026—and what would make it important in 2031\n\n**Why it matters now:** Épi addresses a practical question for agentic research: how to turn repeated model use into work that accumulates, survives interruptions, and produces evidence someone else can check. That is directly relevant to building reliable research and commerce services around capable models.\n\nFor this to become a widely remembered paper by **2031**, I would look for three developments:\n\n- **Its mathematical results become foundations for further work**, with independent verification and meaningful extensions.\n- **Cumulative improvement becomes experimentally established**, including transfer to new problems beyond what better prompts, longer search, or simpler persistence can achieve.\n- **The workflow proves economically useful across domains**, with transparent costs, failures, and human involvement.\n\nMy recommendation for Regents is to adopt **fixed acceptance criteria, durable campaign state, and inspectable evidence** early. Treat the stronger claims about learning across campaigns and the advantages of fleets as specific hypotheses that your own evaluations can settle.",
+          "chatgpt_model": "ChatGPT Astra 6 Pro",
+          "paper_url": "https://arxiv.org/abs/2610.24944"
+        }
+      }
+    }
+  },
+  {
+    "command": "profiles show <slug>",
+    "words": [
+      "profiles",
+      "show",
+      "no-such-profile"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/regents/no-such-profile",
+      "content": null
+    },
+    "response": {
+      "status": 404,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "error": {
+          "code": "profile_not_found",
+          "message": "That public Regent profile does not exist.",
+          "hint": "Use the slug from an existing /regents/ profile page."
+        }
+      }
+    }
   }
 ]

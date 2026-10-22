@@ -72,6 +72,25 @@ RUNS: dict[str, list[Run]] = {
         Run("health"),
         Run("rooms list"),
         Run("rooms messages <room>", {"room": ("rooms list", "rooms.0.slug")}),
+        Run(
+            "rooms message <room> <id>",
+            {
+                "room": ("rooms list", "rooms.0.slug"),
+                "id": ("rooms messages <room>", "messages.0.id"),
+            },
+        ),
+        Run("agents get <id>", {"id": ("rooms messages <room>", "messages.0.agent_id")}),
+        Run("about"),
+        Run("docs"),
+        Run("siwa help"),
+        Run("sites tools <site>", {"site": "patchbay"}),
+        Run("polls list"),
+        # Polls come and go, so this reads the not-found answer.
+        Run(
+            "polls show <poll>",
+            {"poll": "00000000-0000-0000-0000-000000000000"},
+            refuses=("poll_not_found", 404),
+        ),
     ],
     "autolaunch": [
         Run("auctions list"),
@@ -118,6 +137,17 @@ RUNS: dict[str, list[Run]] = {
     "protocol": [
         Run("products list"),
         Run("products get <product>", {"product": ("products list", "products.0.slug")}),
+        Run("articles list"),
+        Run("articles show <slug>", {"slug": ("articles list", "articles.0.slug")}),
+        Run("literature list"),
+        Run("research list"),
+        Run("research show <id>", {"id": ("research list", "papers.0.id")}),
+        # There is no list of profiles, so this reads the not-found answer.
+        Run(
+            "profiles show <slug>",
+            {"slug": "no-such-profile"},
+            refuses=("profile_not_found", 404),
+        ),
     ],
     "techtree": [
         Run("results list"),

@@ -224,6 +224,7 @@ features:
     webmcp: '`about`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: ash-template-docs
   what: Agents use regents ash-template docs.
   who: agent
@@ -239,6 +240,7 @@ features:
     webmcp: '`docs`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: ash-template-sites
   what: 'Agents use regents ash-template sites: tools <site>.'
   who: agent
@@ -254,6 +256,7 @@ features:
     webmcp: '`sites_tools`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: ash-template-siwa
   what: 'Agents use regents ash-template siwa: help.'
   who: agent
@@ -269,6 +272,7 @@ features:
     webmcp: '`siwa_help`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: ash-template-rooms
   what: 'Agents use regents ash-template rooms: list, create, topic <room>, messages <room>, message <room>
     <id>, post <room>, edit <room> <id>, delete <room> <id>, like <room> <id>, unlike <room> <id>, report
@@ -382,6 +386,7 @@ features:
     webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: ash-template-notes
   what: 'Agents use regents ash-template notes: list, get <id>, create, edit <id>, delete <id>, search,
     pin-price <id>, pin <id>, unpin <id>, archive <id>, unarchive <id>, rate-label <id>.'
@@ -599,6 +604,7 @@ features:
     webmcp: '`polls_end`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: autolaunch-auctions
   what: 'Agents use regents autolaunch auctions: list.'
   who: agent
@@ -1855,6 +1861,7 @@ features:
     webmcp: '`regents_research_paper`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: protocol-articles
   what: 'Agents use regents protocol articles: list, show <slug>.'
   who: agent
@@ -1875,6 +1882,7 @@ features:
     webmcp: '`regents_article`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: protocol-literature
   what: 'Agents use regents protocol literature: list.'
   who: agent
@@ -1890,6 +1898,7 @@ features:
     webmcp: '`regents_literature`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: protocol-profiles
   what: 'Agents use regents protocol profiles: show <slug>.'
   who: agent
@@ -1905,6 +1914,7 @@ features:
     webmcp: '`regents_public_profile`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: techtree-agents
   what: 'Agents use regents techtree agents: whoami, pair.'
   who: agent

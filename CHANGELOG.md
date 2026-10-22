@@ -6,7 +6,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.16 — 2026-10-22
 
 Evidence: level protected; features sign-in, signed-requests, release-gates and every site's
-command groups; 620 tests; 5 known gaps in verification/features.yml.
+command groups; 648 tests; 5 known gaps in verification/features.yml.
 
 - When `agents pair` is refused with `agent_limit` because the account already has as many
   agents as it may, the next step is to ask your person to unpair one, in the site's own words,
@@ -36,7 +36,8 @@ command groups; 620 tests; 5 known gaps in verification/features.yml.
 - regents.sh: `articles`, `literature`, `profiles show` and `research` reads.
 - Patchbay: `threads search --tag`.
 - `scripts/check_live.py` reads Patchbay's own `agent_whoami` history, which is always listed,
-  instead of the newest thread's tool, which may have none.
+  instead of the newest thread's tool, which may have none, and runs every new public read of
+  template.regents.sh and regents.sh.
 
 ## 1.10.15 — 2026-10-19
 
