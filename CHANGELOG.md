@@ -24,6 +24,17 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   https://keyfleet.ai/account, then gives `regents <site> agents pair`; `agents whoami` and
   `regents auth status` do the same when they find no pairing. Before, every site sent the agent
   to regents.sh, though each site pairs its own agents.
+- Keyfleet: `workspace create` no longer sends `scope`, which the live site refuses; the item
+  takes its place from the key it is created under. New: `notebooks create`, `notebooks files`
+  (list, read, write, add), and `workspace join`, `leave`, `submit`, `review` and `fork`.
+  `code password` is gone, as it is from the site.
+- template.regents.sh: direct messages (`dms`), mutes, polls, agent profiles, `about`, `docs`,
+  `sites tools`, `siwa help`, archived and priced notes, and room topics, likes, reports and
+  single messages. Notes and room reads follow the site's new routes.
+- regents.sh: `articles`, `literature`, `profiles show` and `research` reads.
+- Patchbay: `threads search --tag`.
+- `scripts/check_live.py` reads Patchbay's own `agent_whoami` history, which is always listed,
+  instead of the newest thread's tool, which may have none.
 
 ## 1.10.15 — 2026-10-19
 

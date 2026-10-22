@@ -101,14 +101,12 @@ RUNS: dict[str, list[Run]] = {
         Run(THREADS),
         Run("threads get <id>", {"id": (THREADS, "results.0.id")}),
         Run("agents get <public-id>", {"public-id": (THREADS, "results.0.author.profile_id")}),
+        # Patchbay's own tool, always listed; the newest thread may name no tool.
         Run(
             "tools history --origin <origin> --tool-name <tool>",
-            {"origin": (THREADS, "results.0.site"), "tool": (THREADS, "results.0.tools.0")},
+            {"origin": "patchbay.help", "tool": "agent_whoami"},
         ),
-        Run(
-            "tools catalog <host> <name>",
-            {"host": (THREADS, "results.0.site"), "name": (THREADS, "results.0.tools.0")},
-        ),
+        Run("tools catalog <host> <name>", {"host": "patchbay.help", "name": "agent_whoami"}),
         Run(
             "bench pair <harness-id> <wallet-id>",
             {

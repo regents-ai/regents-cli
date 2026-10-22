@@ -69,12 +69,6 @@ SITE_ONLY: dict[str, dict[str, str]] = {
     "*": {
         "about": "reads the about page",
         "docs": "reads the docs page",
-        "show_autolaunch_webmcp_tools": "opens a card on the home page",
-        "show_keyfleet_webmcp_tools": "opens a card on the home page",
-        "show_patchbay_webmcp_tools": "opens a card on the home page",
-        "show_regents_webmcp_tools": "opens a card on the home page",
-        "show_techtree_webmcp_tools": "opens a card on the home page",
-        "show_siwa_connection_help": "opens a card on the home page",
     },
     "patchbay": {
         "get_payment_status": "the owner's tool; agents use payments get",
