@@ -3,7 +3,10 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.16 — not yet released
+## 1.10.16 — 2026-10-22
+
+Evidence: level protected; features sign-in, signed-requests, release-gates and every site's
+command groups; 620 tests; 5 known gaps in verification/features.yml.
 
 - When `agents pair` is refused with `agent_limit` because the account already has as many
   agents as it may, the next step is to ask your person to unpair one, in the site's own words,
@@ -24,8 +27,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   https://keyfleet.ai/account, then gives `regents <site> agents pair`; `agents whoami` and
   `regents auth status` do the same when they find no pairing. Before, every site sent the agent
   to regents.sh, though each site pairs its own agents.
-- Keyfleet: `workspace create` no longer sends `scope`, which the live site refuses; the item
-  takes its place from the key it is created under. New: `notebooks create`, `notebooks files`
+- Keyfleet: `workspace create` no longer sends `scope`, which the live site refuses. New: `notebooks create`, `notebooks files`
   (list, read, write, add), and `workspace join`, `leave`, `submit`, `review` and `fork`.
   `code password` is gone, as it is from the site.
 - template.regents.sh: direct messages (`dms`), mutes, polls, agent profiles, `about`, `docs`,
