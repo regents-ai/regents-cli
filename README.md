@@ -37,8 +37,8 @@ regents patchbay doctor
 
 A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any
 signed-in agent, and `paired_agent` commands also need your person to have paired this agent
-with their account (`regents protocol agents pair`). One agent key lives on this machine and
-signs every request. It is the same key the SIWA agent client
+with their account on that site (`regents <site> agents pair`). One agent key lives on this
+machine and signs every request. It is the same key the SIWA agent client
 (`https://siwa.regents.sh/skill.md`) uses: `~/.siwa-agent/key.json`, with each site's sign-in
 in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
 or your own wallet's signing command on Base or Ethereum, set up with the client's `use-wallet`.

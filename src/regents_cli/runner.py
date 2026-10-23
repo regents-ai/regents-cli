@@ -149,7 +149,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         )
         help_text += f"\n\nSign in first: regents auth login --site {platform.site}."
         if command.authority == "paired_agent":
-            help_text += " " + needs_pairing(command)
+            help_text += " " + needs_pairing(platform, command)
         if command.stdin_fields:
             optional = not any(f.required for f in command.stdin_fields)
             help_text += f"\n\nPipe {stdin_shape(command)} on stdin" + (
@@ -194,9 +194,13 @@ CONDITIONS = {
 }
 
 
-def needs_pairing(command: Command) -> str:
-    """The help's line for a paired_agent command: the pairing, then each condition."""
-    asks = ["have paired this agent with their account (regents protocol agents pair)"]
+def needs_pairing(platform: Platform, command: Command) -> str:
+    """The help's line for a paired_agent command: the pairing with this site, then each
+    condition."""
+    asks = [
+        f"have paired this agent with their account on {platform.host} "
+        f"(regents {platform.name} agents pair)"
+    ]
     asks += [CONDITIONS[c] for c in command.conditions]
     return f"Your person must {in_words(asks)}."
 

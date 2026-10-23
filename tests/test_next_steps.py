@@ -9,6 +9,7 @@ import json
 import shlex
 from pathlib import Path
 
+import click
 import httpx
 import pytest
 
@@ -81,6 +82,19 @@ def test_whoami_with_no_pairing_points_at_that_sites_account_page(platform: Plat
     assert person.kind == "human" and platform.host in person.say
     assert person.url == f"https://{platform.host}/account"
     assert redeem.command == f"regents {platform.name} agents pair"
+
+
+@pytest.mark.parametrize("platform", SITES, ids=lambda platform: platform.name)
+def test_a_paired_commands_help_pairs_on_that_site(platform: Platform) -> None:
+    """1.10.16's help still told every site's agents to pair with regents.sh."""
+    paired = [c for c in platform.commands if c.authority == "paired_agent"]
+    for command in paired:
+        shown: click.Command = app.root().commands[platform.name]
+        for word in (w for w in command.words if not w.startswith("<")):
+            assert isinstance(shown, click.Group)
+            shown = shown.commands[word]
+        assert shown.help is not None
+        assert f"on {platform.host} (regents {platform.name} agents pair)" in shown.help
 
 
 PAY = ["patchbay", "payments", "execute", "00000000-0000-0000-0000-000000000001", "--json"]
