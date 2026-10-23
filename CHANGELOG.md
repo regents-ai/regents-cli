@@ -3,6 +3,14 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.17 — not yet released
+
+- The help of a command that needs a pairing names that site's own pairing, such as "on
+  keyfleet.ai (regents keyfleet agents pair)". Before, it named `regents protocol agents pair` on
+  every site, which 1.10.16's pairing change missed.
+- Keyfleet: `keys claim-all <fleet>` gets the transactions that claim what every Key your wallet
+  holds in the fleet has earned, for your wallet to send.
+
 ## 1.10.16 — 2026-10-22
 
 Evidence: level protected; features sign-in, signed-requests, release-gates and every site's
