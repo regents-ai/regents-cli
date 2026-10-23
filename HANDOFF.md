@@ -90,7 +90,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
    writes Techtree's release record and catalog snapshot for the Techtree chief to commit; it
    reproduces `climb-v0.7.2` from 1.7.3 byte for byte. 1.7.4 to 1.10.1 kept `climb-v0.7.2`,
    which Techtree holds for 1.7.3; 1.10.2 is `climb-v0.7.3`, 1.10.4 `climb-v0.7.5`, and each
-   release since moves it by one, so 1.10.16 is `climb-v0.7.17`. Since 1.10.8 the publish job
+   release since moves it by one, so 1.10.17 is `climb-v0.7.18`. Since 1.10.8 the publish job
    tags `v<version>` on the published commit itself; since 1.10.15 (`3cc224d`) it fetches the
    whole history, so the feature map finds the last release tag.
 7. 1.8.0 (2026-10-08) signs from the shared SIWA contract `53180b09…6060` (elixir-utils
@@ -135,9 +135,12 @@ behind a site, and never holds one up (founder, 2026-09-28).
      every site re-pinned (item 3).
    After 1.10.15, main gained and then lost the Sentinel gate on 2026-10-19 (`ee4525c` added
    `SENTINEL.md`, `ed3f2ae` removed it); the package is unchanged.
-   1.10.16 (2026-10-22): an unpaired agent is sent to the Account page of the site it called;
-   `agent_limit` asks the person to unpair one; piped reruns pipe the same JSON; every site
-   re-pinned to its live commit (Keyfleet's `workspace create` no longer sends `scope`).
+   - 1.10.16 (2026-10-22, `2c98218`): an unpaired agent is sent to the Account page of the site
+     it called; `agent_limit` asks the person to unpair one; piped reruns pipe the same JSON;
+     every site re-pinned to its live commit (Keyfleet's `workspace create` no longer sends
+     `scope`).
+   - 1.10.17 (2026-10-23): a paired command's help names that site's own pairing; Keyfleet
+     re-pinned to `6e004b4b` for `keys claim-all`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

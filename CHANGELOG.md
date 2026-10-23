@@ -3,7 +3,10 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.17 — not yet released
+## 1.10.17 — 2026-10-23
+
+Evidence: level protected; features signed-requests, release-gates and Keyfleet's command
+groups; 656 tests; 5 known gaps in verification/features.yml.
 
 - The help of a command that needs a pairing names that site's own pairing, such as "on
   keyfleet.ai (regents keyfleet agents pair)". Before, it named `regents protocol agents pair` on
