@@ -3,6 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.18 — not yet released
+
+- Patchbay: `bench pair` takes `--run`, the exact attempt to show, and `--check`, one criterion
+  to focus (C1 to C9). It says whether that run's public report is available and includes the
+  full report. Its version filters now narrow which runs it reads, as `bench matrix`'s do.
+
 ## 1.10.17 — 2026-10-23
 
 Evidence: level protected; features signed-requests, release-gates and Keyfleet's command
