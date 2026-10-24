@@ -12,6 +12,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   each chain, as the auctions page does. `tokens list` and `token` now include each token's price
   and market cap, in its quote token and in US dollars, its bid volume, and when the price was
   last updated.
+- Keyfleet: a fleet's answer lists its rooms, including the new People and agents room
+  (`people`), where anyone signed in can write. A post written without a Key shows no Key.
+  `rooms sync` takes up to 111 rooms.
 
 ## 1.10.17 — 2026-10-23
 
