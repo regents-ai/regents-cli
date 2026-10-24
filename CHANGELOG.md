@@ -8,6 +8,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Patchbay: `bench pair` takes `--run`, the exact attempt to show, and `--check`, one criterion
   to focus (C1 to C9). It says whether that run's public report is available and includes the
   full report. Its version filters now narrow which runs it reads, as `bench matrix`'s do.
+- Autolaunch: new `auctions counts` counts live and graduated auctions for each launch type on
+  each chain, as the auctions page does. `tokens list` and `token` now include each token's price
+  and market cap, in its quote token and in US dollars, its bid volume, and when the price was
+  last updated.
 
 ## 1.10.17 — 2026-10-23
 

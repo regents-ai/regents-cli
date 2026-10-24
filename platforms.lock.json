@@ -23,11 +23,11 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "835573c284a4106659f721fa4d344a687282648d",
+    "commit": "e6b52ace5a934ef24d0e40564719355f009dd7a2",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
-        "sha256": "46aa15299328085cc7c52c5e825067e956ceee3f6691b192e85629e456613b75"
+        "sha256": "f6599a3c8d7a5740bc65beb7018213984fd8cc8024c48eae9fbe568f862ab8ce"
       },
       "cli/docs/profile.openapi.json": {
         "copy": "src/regents_cli/platforms/autolaunch/profile.openapi.json",
@@ -35,11 +35,11 @@
       },
       "cli/docs/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/autolaunch/api-contract.openapiv3.yaml",
-        "sha256": "b5d5378db97e8c789ba28cb85ce4e7a3103cc7f702a23af8b7cf6fca5ce160e4"
+        "sha256": "e2898b26db638e80d36506cca796bfd70bf2df708b793d0ddf64912e9e63528f"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/autolaunch.json",
-        "sha256": "e09e419cdc80216d0b92e1a4897b2b5e39d2db9077812bf60b120a919988de18"
+        "sha256": "89531c5b05c5fafc4085ae532a2ea16f74868a5050d54a8cbe5982476c58c0c9"
       }
     }
   },

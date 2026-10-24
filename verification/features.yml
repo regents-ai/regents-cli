@@ -606,7 +606,7 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: autolaunch-auctions
-  what: 'Agents use regents autolaunch auctions: list.'
+  what: 'Agents use regents autolaunch auctions: list, counts.'
   who: agent
   level: ordinary
   paths:
@@ -618,6 +618,11 @@ features:
     who: anyone
     changes: read
     webmcp: '`autolaunch_auctions`'
+  - cli: regents autolaunch auctions counts
+    route: GET /api/v1/auction-counts
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_auction_counts`'
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
@@ -2018,9 +2023,9 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 835573c284a4106659f721fa4d344a687282648d
-  commands: 17
-  tools: 17
+  commit: e6b52ace5a934ef24d0e40564719355f009dd7a2
+  commands: 18
+  tools: 18
   tools_with_no_command:
   - tool: prepare_agent_request
     why: 'done by regents itself: regents signs each request itself'

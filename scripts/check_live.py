@@ -94,6 +94,7 @@ RUNS: dict[str, list[Run]] = {
     ],
     "autolaunch": [
         Run("auctions list"),
+        Run("auctions counts"),
         Run("tokens list"),
         Run("auction <id>", {"id": ("auctions list", "data.0.id")}),
         Run("token <id>", {"id": ("tokens list", "data.0.id")}),
