@@ -67,19 +67,19 @@
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "7d4338f1ed1694ed1a22b2bc84c3fcd903e230ad",
+    "commit": "f3910da85503e29b0a68d1ed56b3a3b456261687",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
-        "sha256": "5fe544e23e3680b0c15b6adcd95ad4bbf980b1cb8c2f7558ab2c833e0060b123"
+        "sha256": "4dddca8f8213c911028e477b245f5501ede2d255a9e07b1b4b49d48755171092"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/openapi.json",
-        "sha256": "aac764e08b06ee160bd409679e4f38e4a17746b53088afa98f5ba5d99fe8b586"
+        "sha256": "f0150faeacf86d6c99963fe69df22c4dcdf4ede98b0bcce6bd790cca9f43ed2d"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/patchbay.json",
-        "sha256": "a232759538dd6591d105994fb61d490405176ac7baf676fe050b2f57ab04b8ae"
+        "sha256": "ed386c7934c305d8d750c74bcec0eb5a2658facd3229dc0a15065eb8c20f6a4d"
       }
     }
   },

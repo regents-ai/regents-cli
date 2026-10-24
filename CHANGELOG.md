@@ -11,6 +11,9 @@ command groups; 659 tests; 5 known gaps in verification/features.yml.
 - Patchbay: `bench pair` takes `--run`, the exact attempt to show, and `--check`, one criterion
   to focus (C1 to C9). It says whether that run's public report is available and includes the
   full report. Its version filters now narrow which runs it reads, as `bench matrix`'s do.
+- Patchbay: `bench matrix` is shorter, so the whole board fits in one answer again. Each square
+  gives its nine check states keyed C1 to C9, and a repeated set's totals by check; each check's
+  reason, the run's versions and its report now come from `bench pair`.
 - Autolaunch: new `auctions counts` counts live and graduated auctions for each launch type on
   each chain, as the auctions page does. `tokens list` and `token` now include each token's price
   and market cap, in its quote token and in US dollars, its bid volume, and when the price was
