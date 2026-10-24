@@ -62,10 +62,11 @@ behind a site, and never holds one up (founder, 2026-09-28).
 ## Where the steps stand
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
-3. Every site is pinned. In 1.10.15 (`platforms.lock.json`): Patchbay `7156d99` (live v256),
-   Keyfleet `502b2dd` (v87), Autolaunch `960fcd7` (v151), Techtree `b9cd7a0` (v166), regents.sh
-   `b14705c` (v202), ash-template `ca82af6` (v98), and the signing contract from elixir-utils
-   `fe3aa1d`. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
+3. Every site is pinned to its live commit. In 1.10.18 (`platforms.lock.json`): Patchbay
+   `7d4338f1` (live v270), Keyfleet `7ef25d59` (v343/v344), Autolaunch `e6b52ace`, Techtree
+   `5bddfad4` (v182), regents.sh `25600003`, ash-template `a993f2d6` (v105), and the signing
+   contract from elixir-utils `fe3aa1d5`. `make release-check` reads every public read live
+   against these copies. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
    is the one command tree named apart from its site (`SIGN_IN_SITES` in
    `platforms/__init__.py`): it is regents.sh. `auth status` reads the site's `agents whoami`,
    never the check-in (`agents me` or `agents status`), which records a contact.
@@ -90,7 +91,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
    writes Techtree's release record and catalog snapshot for the Techtree chief to commit; it
    reproduces `climb-v0.7.2` from 1.7.3 byte for byte. 1.7.4 to 1.10.1 kept `climb-v0.7.2`,
    which Techtree holds for 1.7.3; 1.10.2 is `climb-v0.7.3`, 1.10.4 `climb-v0.7.5`, and each
-   release since moves it by one, so 1.10.17 is `climb-v0.7.18`. Since 1.10.8 the publish job
+   release since moves it by one, so 1.10.18 is `climb-v0.7.19`. Since 1.10.8 the publish job
    tags `v<version>` on the published commit itself; since 1.10.15 (`3cc224d`) it fetches the
    whole history, so the feature map finds the last release tag.
 7. 1.8.0 (2026-10-08) signs from the shared SIWA contract `53180b09…6060` (elixir-utils
@@ -139,8 +140,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
      it called; `agent_limit` asks the person to unpair one; piped reruns pipe the same JSON;
      every site re-pinned to its live commit (Keyfleet's `workspace create` no longer sends
      `scope`).
-   - 1.10.17 (2026-10-23): a paired command's help names that site's own pairing; Keyfleet
-     re-pinned to `6e004b4b` for `keys claim-all`.
+   - 1.10.17 (2026-10-23, `773f8a6`): a paired command's help names that site's own pairing;
+     Keyfleet re-pinned to `6e004b4b` for `keys claim-all`.
+   - 1.10.18 (2026-10-24): Patchbay (`bench pair` run and check), Autolaunch (`auctions counts`,
+     token prices) and Keyfleet (the People and agents room) re-pinned to their live commits.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

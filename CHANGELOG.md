@@ -3,7 +3,10 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.18 — not yet released
+## 1.10.18 — 2026-10-24
+
+Evidence: level protected; features release-gates and the Patchbay, Autolaunch and Keyfleet
+command groups; 659 tests; 5 known gaps in verification/features.yml.
 
 - Patchbay: `bench pair` takes `--run`, the exact attempt to show, and `--check`, one criterion
   to focus (C1 to C9). It says whether that run's public report is available and includes the
