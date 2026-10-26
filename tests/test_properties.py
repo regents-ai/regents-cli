@@ -1,4 +1,4 @@
-"""Three promises `regents` makes for any input, checked on many generated ones.
+"""Four promises `regents` makes for any input, checked on many generated ones.
 
 - Any refusal a site sends reaches the person as one error with its code and what to do next;
   none crashes `regents`, whatever its fields are named (1.10.15 crashed on a site error field
@@ -8,6 +8,8 @@
   signed request.
 - Every command `regents` prints for an agent to run again, for every command every pinned site
   describes, runs the same request again.
+- Every request names the release and the command that sent it in `x-regent-client`, and
+  nothing a person or agent typed after the command's words.
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ import json
 import shlex
 import unicodedata
 from dataclasses import replace
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, unquote
@@ -302,6 +305,9 @@ def test_what_is_prepared_is_what_is_sent(
 
     [wire] = signed_in
     assert wire.url.raw_path == ready["path"].encode("ascii")
+    assert wire.headers["x-regent-client"] == (
+        f"regents-cli/{version('regents-cli')} {platform.name} {' '.join(names)}"
+    )
     assert {name: wire.headers[name] for name in ready["headers"]} == ready["headers"]
     body = ready["body"].encode("utf-8") if "body" in ready else b""
     assert wire.content == body

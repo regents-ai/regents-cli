@@ -9,11 +9,12 @@ from __future__ import annotations
 import json
 import shlex
 from base64 import b64decode
+from importlib.metadata import version
 from pathlib import Path
 
 import pytest
 
-from regents_cli.app import main
+from regents_cli import app
 from regents_cli.techtree.publication.models import PublicationSubmission
 from tests.techtree.run_log import (
     BUNDLE_DIGEST,
@@ -48,7 +49,7 @@ def test_saying_no_at_the_prompt_sends_nothing(
 ) -> None:
     _, stdout = at_a_terminal(monkeypatch, "n\n")
 
-    assert main(PUBLISH) == 1
+    assert app.main(PUBLISH) == 1
 
     assert "Publish this run to the public log?" in stdout.getvalue()
     assert log.requests == []
@@ -60,7 +61,7 @@ def test_a_machine_that_cannot_be_asked_is_told_which_flag_to_pass(
     log: RunLog, run_dir: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     private_address = "0x" + "1" * 40
-    assert main([*PUBLISH, "--address", private_address, "--json"]) == 1
+    assert app.main([*PUBLISH, "--address", private_address, "--json"]) == 1
 
     shown = capsys.readouterr().out
     assert private_address not in shown
@@ -96,7 +97,7 @@ def test_a_proof_that_does_not_verify_is_refused_before_anything_is_asked(
     receipt.write_bytes(bytes(raw))
     stdin, stdout = at_a_terminal(monkeypatch, "y\ny\n")
 
-    assert main(PUBLISH) == 1
+    assert app.main(PUBLISH) == 1
 
     assert "proof_bundle_invalid" in capsys.readouterr().err
     assert stdin.tell() == 0, "a yes was waiting and nothing read it"
@@ -107,7 +108,7 @@ def test_a_proof_that_does_not_verify_is_refused_before_anything_is_asked(
 def test_a_machine_publishing_without_the_option_sends_no_address(
     log: RunLog, run_dir: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    assert main(APPROVED) == 0
+    assert app.main(APPROVED) == 0
 
     [request] = log.requests
     assert request.method == "POST"
@@ -116,6 +117,11 @@ def test_a_machine_publishing_without_the_option_sends_no_address(
     assert request.headers["x-techtree-skill-name"] == SKILL_NAME
     assert request.headers["x-siwa-signature"] == "test-only"
     assert "x-techtree-skill-github-url" not in request.headers
+    # The command's words, never the run it publishes.
+    assert (
+        request.headers["x-regent-client"]
+        == f"regents-cli/{version('regents-cli')} techtree publish"
+    )
     submission = PublicationSubmission.model_validate_json(request.content)
     assert submission.run_id == RUN_ID
     assert submission.bundle_digest == BUNDLE_DIGEST
@@ -140,6 +146,6 @@ def test_a_yes_with_a_value_is_a_usage_error_and_sends_nothing(
     log: RunLog, run_dir: Path, misspelt: list[str]
 ) -> None:
     """`--yes false` must never read as yes: it is refused, and nothing leaves the machine."""
-    assert main([*PUBLISH, *misspelt, "--json"]) == 2
+    assert app.main([*PUBLISH, *misspelt, "--json"]) == 2
     assert log.requests == []
     assert not (run_dir / "publication.jsonl").exists()

@@ -18,7 +18,7 @@ import httpx
 
 from regents_cli import siwa
 from regents_cli.errors import CommandError
-from regents_cli.http import Request
+from regents_cli.http import Request, client_header
 from regents_cli.techtree.errors import AuthenticationError, TechtreeError, ValidationError
 from regents_cli.techtree.release.models import PublicationCoordinates
 
@@ -80,7 +80,7 @@ class HttpsPublicationTransport:
                 "Protected publication also requires a current account pairing.",
                 code=error.code,
             ) from None
-        headers = {"Content-Type": _MEDIA_TYPE, "Accept": _MEDIA_TYPE}
+        headers = {"Content-Type": _MEDIA_TYPE, "Accept": _MEDIA_TYPE, **client_header()}
         if contributor_address is not None:
             headers[CONTRIBUTOR_ADDRESS_HEADER] = contributor_address
         if skill_name is not None:

@@ -8,6 +8,8 @@ from unittest.mock import Mock
 
 import httpx
 import pytest
+from hypothesis import HealthCheck, example, given, settings
+from hypothesis import strategies as st
 
 from regents_cli import siwa
 from regents_cli.http import Request
@@ -19,11 +21,13 @@ from regents_cli.techtree.publication.transport import (
 )
 
 
+@given(body=st.binary(max_size=4096))
+# Whitespace and number spelling must survive: a JSON decode/encode changes these bytes.
+@example(body=b'{ "proof": {"amount":1e-8}, "signature":"unchanged-ed25519-proof" }\n')
+@settings(deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_signed_bytes_stay_immutable_and_retries_get_fresh_proof(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, body: bytes
 ) -> None:
-    # Whitespace and number spelling must survive: a JSON decode/encode changes these bytes.
-    body = b'{ "proof": {"amount":1e-8}, "signature":"unchanged-ed25519-proof" }\n'
     receipt = siwa.Receipt("0x" + "1" * 40, "techtree", "test-only", "2099-01-01T00:00:00Z", "test")
     calls: list[Request] = []
     sent: list[httpx.Request] = []

@@ -21,7 +21,9 @@ Every command answers the same way:
 - an empty HTTP 204 is success, shown as an empty object with `next_steps`;
 - errors as `{"error": {"code": "…", "message": "…"}}`;
 - the same exit codes everywhere (`regents --help` lists them);
-- the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address.
+- the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address;
+- each request names the release and the command's words in `x-regent-client`, such as
+  `regents-cli/1.10.18 patchbay rooms list`, never what was typed after them.
 
 ## Checking a site
 

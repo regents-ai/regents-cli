@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
+from importlib.metadata import version
 from typing import Any
 from urllib.parse import urlencode, urlsplit
 
+import click
 import httpx
 
 from regents_cli.errors import (
@@ -107,10 +109,22 @@ def unreadable_address(error: httpx.InvalidURL) -> CommandError:
     )
 
 
+def client_header() -> dict[str, str]:
+    """`x-regent-client`: this release and the words of the command being run, such as
+    `regents-cli/1.10.18 patchbay rooms list`, so a site can count its calls by command. Click
+    builds the words from command names alone, so no argument or flag value is ever in it. A
+    signature does not cover it. Nothing when no command is running."""
+    context = click.get_current_context(silent=True)
+    if context is None:
+        return {}
+    words = context.command_path.split(" ")[1:]
+    return {"x-regent-client": f"regents-cli/{version('regents-cli')} {' '.join(words)}"}
+
+
 def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
     """Send once and never follow a redirect."""
     content = request.content
-    headers = {"accept": "application/json", **request.headers}
+    headers = {"accept": "application/json", **client_header(), **request.headers}
     if content is not None:
         headers["content-type"] = "application/json"
     try:

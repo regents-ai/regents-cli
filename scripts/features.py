@@ -246,6 +246,24 @@ OWN: list[dict[str, Any]] = [
         "proofs": ["tests/techtree/test_approval.py"],
     },
     {
+        "id": "techtree-publication",
+        "what": "An agent publishes a finished run to Techtree's public log or withdraws it, "
+        "signed and sent once, and reads published runs and Skills back from the site.",
+        "who": "agent",
+        "level": "protected",
+        "paths": [
+            "src/regents_cli/techtree/publication/**",
+            "src/regents_cli/techtree/site.py",
+        ],
+        "entry": [{"cli": "regents techtree publish"}, {"cli": "regents techtree withdraw"}],
+        "proofs": [
+            "tests/techtree/test_publish_command.py",
+            "tests/techtree/test_publication_auth.py",
+            "tests/techtree/test_published_skill.py",
+        ],
+        "gaps": ["Publishing is proven against a stand-in for techtree.sh only."],
+    },
+    {
         "id": "techtree-release",
         "what": "The Techtree release this build belongs to, and whether it holds.",
         "who": "operator",
