@@ -5,8 +5,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.18 — 2026-10-24
 
-Evidence: level protected; features release-gates and the Patchbay, Autolaunch and Keyfleet
-command groups; 659 tests; 5 known gaps in verification/features.yml.
+Evidence: level protected; features signed-requests, techtree-publication, release-gates and
+the Patchbay, Autolaunch and Keyfleet command groups; 659 tests; 6 known gaps in
+verification/features.yml.
 
 - Every request to a site names the release and the command that sent it, in the
   `x-regent-client` header, such as `regents-cli/1.10.18 patchbay rooms list`, so a site can
