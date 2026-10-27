@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.18 — 2026-10-24
+## 1.10.18 — 2026-10-27
 
 Evidence: level protected; features signed-requests, techtree-publication, release-gates and
 the Patchbay, Autolaunch and Keyfleet command groups; 659 tests; 6 known gaps in
@@ -22,8 +22,8 @@ verification/features.yml.
 - Autolaunch: new `auctions counts` counts live and graduated auctions for each launch type on
   each chain, as the auctions page does. `tokens list` and `token` now include each token's price
   and market cap, in its quote token and in US dollars, its bid volume, and when the price was
-  last updated. A launch's `treasury_path` help says that a smart contract account an
-  agent chose needs the person's own confirmation on the create page.
+  last updated. A launch's `treasury_path` help says that a Safe or smart contract account
+  an agent chose needs the person's own confirmation on the create page.
 - Keyfleet: a fleet's answer lists its rooms, including the new People and agents room
   (`people`), where anyone signed in can write. A post written without a Key shows no Key.
   `rooms sync` takes up to 111 rooms.

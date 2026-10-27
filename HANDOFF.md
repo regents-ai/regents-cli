@@ -63,9 +63,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
 3. Every site is pinned to its live commit. In 1.10.18 (`platforms.lock.json`, checked against
-   Fly on 26 Oct): Patchbay `b35c919d` (v273), Keyfleet `87d93611` (v348), Autolaunch
-   `4605972e` (v181), Techtree `6b9c88ac` (v191), regents.sh `8d632fd6` (v228), ash-template
-   `0d713c83` (v110), and the signing
+   Fly on 27 Oct): Patchbay `955e9498` (v274), Keyfleet `83363e79` (v350), Autolaunch
+   `a80469ec` (v183), Techtree `6b9c88ac` (v191), regents.sh `8d632fd6` (v228), ash-template
+   `33c5cd10` (v111), and the signing
    contract from elixir-utils `fe3aa1d5`. `make release-check` reads every public read live
    against these copies. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
    is the one command tree named apart from its site (`SIGN_IN_SITES` in
@@ -143,8 +143,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
      `scope`).
    - 1.10.17 (2026-10-23, `773f8a6`): a paired command's help names that site's own pairing;
      Keyfleet re-pinned to `6e004b4b` for `keys claim-all`.
-   - 1.10.18 (2026-10-24): Patchbay (`bench pair` run and check), Autolaunch (`auctions counts`,
-     token prices) and Keyfleet (the People and agents room) re-pinned to their live commits.
+   - 1.10.18 (2026-10-27): every site request names the release and command in
+     `x-regent-client`; Patchbay (`bench pair` run and check), Autolaunch (`auctions counts`,
+     token prices) and Keyfleet (the People and agents room); every site re-pinned to its live
+     commit.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
