@@ -1219,71 +1219,129 @@ features:
     webmcp: '`polls_end`'
   proofs:
   - tests/test_properties.py
-- id: keyfleet-code
-  what: 'Agents use regents keyfleet code: pushes <fleet>.'
+- id: keyfleet-projects
+  what: 'Agents use regents keyfleet projects: list <fleet>, start <fleet> <key> <name>, archive <fleet>
+    <key>, take-over <fleet> <key> <project>, delete <fleet> <key> <project>.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
   - tool_manifests/keyfleet.json
   entry:
-  - cli: regents keyfleet code pushes <fleet>
-    route: GET /api/v1/agent/fleets/{fleet_id}/code/pushes
+  - cli: regents keyfleet projects list <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects
+    who: paired agent
+    changes: read
+    webmcp: '`projects_list`'
+  - cli: regents keyfleet projects start <fleet> <key> <name>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/start
+    who: paired agent
+    changes: write
+    webmcp: '`projects_start`'
+  - cli: regents keyfleet projects archive <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/archive
+    who: paired agent
+    changes: write
+    webmcp: '`projects_archive`'
+  - cli: regents keyfleet projects take-over <fleet> <key> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/take_over
+    who: paired agent
+    changes: write
+    webmcp: '`projects_take_over`'
+  - cli: regents keyfleet projects delete <fleet> <key> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/delete
+    who: paired agent
+    changes: write
+    webmcp: '`projects_delete`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-code
+  what: 'Agents use regents keyfleet code: pushes <fleet> <project>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet code pushes <fleet> <project>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/pushes
     who: paired agent
     changes: read
     webmcp: '`code_pushes`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-notebooks
-  what: 'Agents use regents keyfleet notebooks: list <fleet>, run <fleet> <notebook>, result <fleet> <notebook>
-    <run>, create <fleet>, files list <fleet> <notebook>, files read <fleet> <notebook> <path>, files
-    add <fleet> <notebook> <path>, files write <fleet> <notebook> <path>.'
+  what: 'Agents use regents keyfleet notebooks: list <fleet> <project>, run <fleet> <project> <notebook>,
+    result <fleet> <project> <notebook> <run>, create <fleet> <project>, files list <fleet> <project>
+    <notebook>, files read <fleet> <project> <notebook> <path>, files add <fleet> <project> <notebook>
+    <path>, files write <fleet> <project> <notebook> <path>, lock <fleet> <project> <notebook>, unlock
+    <fleet> <project> <notebook>, copies <fleet> <project>, restore <fleet> <project> <copy>.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
   - tool_manifests/keyfleet.json
   entry:
-  - cli: regents keyfleet notebooks list <fleet>
-    route: GET /api/v1/agent/fleets/{fleet_id}/notebooks
+  - cli: regents keyfleet notebooks list <fleet> <project>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks
     who: paired agent
     changes: read
     webmcp: '`notebooks_list`'
-  - cli: regents keyfleet notebooks run <fleet> <notebook>
-    route: POST /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/runs/start
+  - cli: regents keyfleet notebooks run <fleet> <project> <notebook>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/start
     who: paired agent
     changes: write
     webmcp: '`notebooks_run`'
-  - cli: regents keyfleet notebooks result <fleet> <notebook> <run>
-    route: GET /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/runs/{run_id}
+  - cli: regents keyfleet notebooks result <fleet> <project> <notebook> <run>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/{run_id}
     who: paired agent
     changes: read
     webmcp: '`notebooks_result`'
-  - cli: regents keyfleet notebooks create <fleet>
-    route: POST /api/v1/agent/fleets/{fleet_id}/notebooks/create
+  - cli: regents keyfleet notebooks create <fleet> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/create
     who: paired agent
     changes: write
     webmcp: '`notebooks_create`'
-  - cli: regents keyfleet notebooks files list <fleet> <notebook>
-    route: POST /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/files/list
+  - cli: regents keyfleet notebooks files list <fleet> <project> <notebook>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/list
     who: paired agent
     changes: read
     webmcp: '`notebooks_files`'
-  - cli: regents keyfleet notebooks files read <fleet> <notebook> <path>
-    route: POST /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/files/read
+  - cli: regents keyfleet notebooks files read <fleet> <project> <notebook> <path>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/read
     who: paired agent
     changes: read
     webmcp: '`notebooks_read_file`'
-  - cli: regents keyfleet notebooks files add <fleet> <notebook> <path>
-    route: POST /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/files/add
+  - cli: regents keyfleet notebooks files add <fleet> <project> <notebook> <path>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/add
     who: paired agent
     changes: write
     webmcp: '`notebooks_add_file`'
-  - cli: regents keyfleet notebooks files write <fleet> <notebook> <path>
-    route: POST /api/v1/agent/fleets/{fleet_id}/notebooks/{notebook_id}/files/write
+  - cli: regents keyfleet notebooks files write <fleet> <project> <notebook> <path>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/write
     who: paired agent
     changes: write
     webmcp: '`notebooks_write_file`'
+  - cli: regents keyfleet notebooks lock <fleet> <project> <notebook>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/lock
+    who: paired agent
+    changes: write
+    webmcp: '`notebooks_lock`'
+  - cli: regents keyfleet notebooks unlock <fleet> <project> <notebook>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/lock
+    who: paired agent
+    changes: write
+    webmcp: '`notebooks_lock`'
+  - cli: regents keyfleet notebooks copies <fleet> <project>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies
+    who: paired agent
+    changes: read
+    webmcp: '`notebooks_copies`'
+  - cli: regents keyfleet notebooks restore <fleet> <project> <copy>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies/{copy_id}/restore
+    who: paired agent
+    changes: write
+    webmcp: '`notebooks_restore`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-agents
@@ -2062,7 +2120,7 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 33c5cd103466e4d2b7968e19a241a521811e8e7f
+  commit: f76f138914a64236747a9f9a5d28c8178c10525a
   commands: 54
   tools: 54
   tools_with_no_command:
@@ -2070,7 +2128,7 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: a80469eccf88eb92e3168612eb04fa56c3395800
+  commit: 6478f162da389cb4835b2da60a5935a44a96507d
   commands: 18
   tools: 18
   tools_with_no_command:
@@ -2078,9 +2136,9 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 83363e79de8b02d96f0f1a1e6a2ea60569b3999e
-  commands: 73
-  tools: 76
+  commit: ce00963ffbbc2bd9b1aead3e82e42a263c75ec40
+  commands: 82
+  tools: 84
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
@@ -2092,7 +2150,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 955e94986451cfb63fdec6b12f65d9e478aafb72
+  commit: 9359eacd68d86f89e24eee17c59d33fcb14fd4ed
   commands: 46
   tools: 55
   tools_with_no_command:
@@ -2128,7 +2186,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 8d632fd6c86144539a12d781368aee1577198d13
+  commit: 0a046b55fc6842744a3a05249210d331d4912819
   commands: 18
   tools: 25
   tools_with_no_command:
@@ -2152,7 +2210,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 6b9c88acbf5d3bb6c971522b8eda80ebd8d3bbc9
+  commit: 0d68080660a6079e19c99bee04a9426511ba9db4
   commands: 9
   tools: 15
   tools_with_no_command:

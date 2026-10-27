@@ -93,6 +93,21 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
   20 provider "502"s by retrying them. Frontier-CS 1 (`run_e7b22e46920742f9aa0106f97ee8372f`)
   finished all 20 episodes, candidate mean 0.539 against 0.531, 6 wins and 3 losses, about
   $0.48, proof verified (147 checks).
+  Tasksmith (`run_6a4b4b5ed5e14ac1921baaf279258c9e`) finished all 12 episodes: candidate 1 of
+  6 against baseline 2 of 6, one loss and five ties, $0.92, proof verified (115 checks).
+  Tasksmith held-out (`run_10f7ba0bc8da47149e5870fb6da0f4ab`): candidate 4 of 6 against 5 of 6,
+  one loss and five ties, $0.78, proof verified (115 checks). The starter Skill does not help on
+  Tasksmith; a losing result is a valid run. Three earlier Hello World 1 attempts and the
+  first Tasksmith attempt above ended unusable. The six runs and those attempts cost $3.68 of
+  the $5.50 approved.
+
+- 2026-10-27, repeat runs on the same release: Hello World 4
+  (`run_d2e7e61d709d416b893f11aa912d7246`) 24 of 36 against 0, $0.14, 355 checks; Frontier-CS 2
+  (`run_d59aa9f77ec44dc09a5a16efa73f1378`) 0.512 against 0.499, 8 wins and 1 loss, $0.49, 147
+  checks; Tasksmith 2 (`run_e883bb256d904fa38b302213efc44bc5`) and Tasksmith held-out 2
+  (`run_76239b312a964872908f57c44bc1b910`) repeated the first runs' scores exactly (1 of 6 against
+  2 of 6, and 4 of 6 against 5 of 6), $0.81 and $0.73, 115 checks each. Every proof verified.
+  The four cost $2.17 of the $4.70 approved.
 
 - 2026-10-27, why the two runs below lost tasks. Verifiers relayed every failed provider call to
   Hermes labelled as a bad request, and Hermes never retries a bad request, so one "502" ended

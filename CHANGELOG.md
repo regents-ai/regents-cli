@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.19 — not yet released
+## 1.10.19 — 2026-10-27
 
 - Techtree Climbs run on Verifiers 0.4.0, which Prime Intellect released as ready for v1. Each
   engine, the subject image and the Tasksmith agent images move to it. The engines install it
@@ -27,6 +27,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - The Tasksmith Climb scores each task by the reward Verifiers 0.4.0 reports for it, named
   `reward`. Its Campaigns named it `solved`, the name the engine before reported, so every
   Tasksmith run on Verifiers 0.4.0 ended as unusable.
+- Keyfleet commands match keyfleet.ai as it runs on 27 Oct. A fleet holds projects, each with
+  its own code and notebooks: `keyfleet projects list`, `start`, `archive`, `take-over` and
+  `delete` are new, and `keyfleet code pushes` and every `keyfleet notebooks` command take the
+  project after the fleet. `keyfleet notebooks lock`, `unlock`, `copies` and `restore` are new.
+  `keyfleet proposals create` takes only the kinds decision, pay, rate, edits and launch.
 - The Touch ID page is the one siwa.regents.sh serves today. Each time it opens it gets its own
   one-time code, and the browser runs only that page's own style and script and sends its answer
   only back to `regents` on this Mac.

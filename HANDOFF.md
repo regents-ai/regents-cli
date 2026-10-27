@@ -62,10 +62,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
 ## Where the steps stand
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
-3. Every site is pinned to its live commit. In 1.10.18 (`platforms.lock.json`, checked against
-   Fly on 27 Oct): Patchbay `955e9498` (v274), Keyfleet `83363e79` (v350), Autolaunch
-   `a80469ec` (v183), Techtree `6b9c88ac` (v191), regents.sh `8d632fd6` (v228), ash-template
-   `33c5cd10` (v111), and the signing
+3. Every site is pinned to its live commit. In 1.10.19 (`platforms.lock.json`, checked against
+   Fly on 27 Oct): Patchbay `9359eacd` (v277), Keyfleet `ce00963f` (v366), Autolaunch
+   `6478f162` (v187), Techtree `0d680806` (v193), regents.sh `0a046b55` (v235), ash-template
+   `f76f1389` (v116), and the signing
    contract from elixir-utils `fe3aa1d5`. `make release-check` reads every public read live
    against these copies. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
    is the one command tree named apart from its site (`SIGN_IN_SITES` in
@@ -92,7 +92,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
    writes Techtree's release record and catalog snapshot for the Techtree chief to commit; it
    reproduces `climb-v0.7.2` from 1.7.3 byte for byte. 1.7.4 to 1.10.1 kept `climb-v0.7.2`,
    which Techtree holds for 1.7.3; 1.10.2 is `climb-v0.7.3`, 1.10.4 `climb-v0.7.5`, and each
-   release since moves it by one, so 1.10.18 is `climb-v0.7.19`. Since 1.10.8 the publish job
+   release since moves it by one, so 1.10.19 is `climb-v0.7.20`. Since 1.10.8 the publish job
    tags `v<version>` on the published commit itself; since 1.10.15 (`3cc224d`) it fetches the
    whole history, so the feature map finds the last release tag.
 7. 1.8.0 (2026-10-08) signs from the shared SIWA contract `53180b09…6060` (elixir-utils
