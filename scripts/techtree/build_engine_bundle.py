@@ -35,8 +35,8 @@ ROOT: Final = Path(__file__).resolve().parents[2]
 ENGINES_ROOT: Final = ROOT / "src/regents_cli/techtree/resources/engines"
 
 #: An exact commit, never a branch, tag or range.
-VERIFIERS_REPOSITORY: Final = "https://github.com/PrimeIntellect-ai/verifiers"
-VERIFIERS_REVISION: Final = "6e69354ffe1b445603b493b722d0ecffbca6686d"
+VERIFIERS_REPOSITORY: Final = "https://github.com/regents-ai/verifiers"
+VERIFIERS_REVISION: Final = "04dfb708dbb162700e3b678a6c78ff5d4de49b94"
 PYTHON_SERIES: Final = "3.12"
 
 HUB_API: Final = "https://api.primeintellect.ai/api/v1/environmentshub"

@@ -56,7 +56,7 @@
     "retry_limit": 0,
     "timeout_seconds": 1800
   },
-  "execution_plan_digest": "sha256:05dc6e435f47900628f5419136145076d5e73e2d87b75321fd857e3f1f248a77",
+  "execution_plan_digest": "sha256:a51eb5e4e8e9e86abb51050d192266bbf54d8afdd454183fd2f4f17996aa4e0c",
   "kind": "Campaign",
   "metadata": {
     "id": "campaign_86ef6c41c286cf83d368ea84bcc2bdd2",
@@ -133,6 +133,6 @@
       "shuffle": false
     },
     "task_images": null,
-    "validation_receipt_digest": "sha256:fc5cbf94d4ba04811410cd5370ed6aaee3f51966df46de746592c7047533a214"
+    "validation_receipt_digest": "sha256:11370b593f9369a76e0a26af287f7359210994dab7e2ae9c4bbc1c1b1e9eadcc"
   }
 }

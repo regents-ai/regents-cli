@@ -3,8 +3,8 @@
     "api_generation": "v1",
     "engine_digest": "sha256:0337fb26178a12a267b7dd3fe4fe7ab67190a454e118b47b4794553b08091b92",
     "kind": "verifiers",
-    "package_version": "0.4.0",
-    "source_commit": "6e69354ffe1b445603b493b722d0ecffbca6686d"
+    "package_version": "0.4.0+regents.1",
+    "source_commit": "04dfb708dbb162700e3b678a6c78ff5d4de49b94"
   },
   "evidence": {
     "coverage_profile_digest": null,

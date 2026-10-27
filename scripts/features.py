@@ -306,6 +306,20 @@ OWN: list[dict[str, Any]] = [
             "tests/techtree/test_verifiers_child.py",
             "tests/techtree/test_proof.py",
         ],
+        "regressions": [
+            {
+                "id": "R-20261027-provider-retry",
+                "from": "1.10.19 paid runs: one provider 502 made a whole run unusable, because "
+                "no task was ever rerun",
+                "test": "tests/techtree/test_compiled_config.py",
+            },
+            {
+                "id": "R-20261027-provider-cut-off",
+                "from": "1.10.19 paid runs: a task the provider cut off partway was scored as "
+                "the subject's result",
+                "test": "tests/techtree/test_provider_failure.py",
+            },
+        ],
     },
     {
         "id": "release-gates",

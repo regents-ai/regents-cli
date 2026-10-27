@@ -7,15 +7,15 @@
       "timeout": 0,
       "token_limit": 0
     },
-    "baseline_manifest_digest": "sha256:1b3c6f7b65580862bb2112f15374bec27d60f7c6c2e797bf0f0d60f449d0e138",
-    "campaign_spec_digest": "sha256:272d2eeec064fd691a38bedf6d61fea9bc86f25d064f2fe990f5d74e450cd1c6",
+    "baseline_manifest_digest": "sha256:61bf5e1e571b64c015a1f9191ddffebb891d8db23ccaece5e8294c4fe90d34b5",
+    "campaign_spec_digest": "sha256:d5501072559eba3eccbe1c932d7e026ff656125799564dc388e78d819e521866",
     "candidate_endings": {
       "call_limit": 0,
       "completed": 19,
       "timeout": 0,
       "token_limit": 1
     },
-    "candidate_manifest_digest": "sha256:aada407bf7a0a51f249ef4f4edb1af3856222c11e766a06e90c97e1f096d60b6",
+    "candidate_manifest_digest": "sha256:123a76672e6eb33b5eff195920784d78447b553caeb009e027b1373068565e7e",
     "cost_provenance": "provider_reported",
     "created_at": "2026-01-01T00:00:00Z",
     "data_policy_digest": "sha256:f61fff0ff5941205fca8fc044c81e7a56aed9017539f6927ab9df0e81f70f88b",
@@ -23,14 +23,14 @@
     "execution_location": {
       "kind": "local"
     },
-    "execution_plan_digest": "sha256:05dc6e435f47900628f5419136145076d5e73e2d87b75321fd857e3f1f248a77",
+    "execution_plan_digest": "sha256:a51eb5e4e8e9e86abb51050d192266bbf54d8afdd454183fd2f4f17996aa4e0c",
     "id": "uplift_1d01f7cca88df7f7f41845bdfddfbdde",
     "manifest_comparison": {
       "allowed_differences": [
         "/agents/subject/harness/skills"
       ],
-      "baseline_configuration_digest": "sha256:99b87c3f506f2c8c07eb624c1f604738843f3d9cdc81a4ddc995056c657ea4b7",
-      "candidate_configuration_digest": "sha256:7cbd8e0dba7a3ef1889383a6ef105ee8c3b5b2da782d9705e8752482dae34d43",
+      "baseline_configuration_digest": "sha256:0a0197f373173e6c6b6e734be266f7c41b37d3b116c86206da787587b9c57c84",
+      "candidate_configuration_digest": "sha256:272e259ceb6b2cec9fcdf8b3151bb6bfd1acbd383e618e65911ae3a4b4358107",
       "controlled": true,
       "differences": [
         {
@@ -54,7 +54,7 @@
     "program_ref": null,
     "proof_grade": "P1",
     "public_context": {
-      "climb_digest": "sha256:0503c05ff07d0f69527eb9a237be93cdd9c06eafb769f3e8b81493d10505a176",
+      "climb_digest": "sha256:59e847f0e9539a8633cadbbd0ebe404de9e1236adc296ca276e2169d44d664c3",
       "kind": "climb"
     },
     "publication_eligible": true,
@@ -190,12 +190,12 @@
         "task_hash": "sha256:331ddd7dd1e56ccb23b6358980e142b0d0dd912646f9a546454e281e312a6fb5"
       }
     ],
-    "taskset_validation_receipt_digest": "sha256:fc5cbf94d4ba04811410cd5370ed6aaee3f51966df46de746592c7047533a214"
+    "taskset_validation_receipt_digest": "sha256:11370b593f9369a76e0a26af287f7359210994dab7e2ae9c4bbc1c1b1e9eadcc"
   },
-  "payload_digest": "sha256:683e481662e9ee6e15bee4205002fe3949e73fd2071f129aa4558aec4dacffb4",
+  "payload_digest": "sha256:47328f62d6c51578feeaf1b03a28fd95cea9178e429c0bf38befd92276f75261",
   "signature": {
     "algorithm": "ed25519",
     "key_id": "sha256:cb1636de7059dc2a939fb3e53590a8373911d5613540d1c00eeaf7d37a10d38f",
-    "signature": "OctJ+FOTwLEGw4TQCh/24Z4JVr+L9Dk6v73Atf2sBmrZ+MimW3IvDN8sz4lX5gaTBtX4Dt9afMhtVgO3yfa8AA=="
+    "signature": "subhknsjAl8xJfp7HJOv8oidpfcdmUUqBJTqB6JH4D013+B+pPaObVysJN0HNHDiad9eRVm6FGzHATlOBF+uAQ=="
   }
 }

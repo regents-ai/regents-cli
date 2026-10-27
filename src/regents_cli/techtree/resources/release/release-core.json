@@ -1,19 +1,19 @@
 {
-  "catalog_digest": "sha256:902f66361e427eee4f095ad6dc64623a93814c4e4e8c8c4e1612beb5b9df0d2c",
+  "catalog_digest": "sha256:ec1fccd020676599a8fb735205ecdeb7ee7af7adfab9b28c5b275db325fe7a28",
   "cli_version": "1.10.19",
   "climbs": {
     "frontier-cs-open-ended-climb@3": {
-      "engine_digest": "sha256:67102952f1f5b9f5648731fc2e0870774bb875a7697c2248f02b2f206916ef36",
+      "engine_digest": "sha256:b97c5454a7b03dfe01e505b11c4aaab72394352fd3a68d1861316a13e02786bf",
       "starter_skill_digest": "sha256:c93c985b1017d976408239b2583bff7248507032cb32c7aeb20edd685fbc86a6",
       "starter_skill_object_url": "https://techtree.sh/api/v1/objects/sha256:c09dbdd7d5baf7ffa2ab79cf568c14d0f4c83f95cb83dc099ab4bc73b819f669"
     },
     "hello-world-climb@3": {
-      "engine_digest": "sha256:b3cacae51acdfd359ae3ac636fb611d3809beacf3a698cdb4036bfd96ba6663f",
+      "engine_digest": "sha256:75583fa66112b9a55e9999e74c66ddde364089eaca2b8b99c68f5faaeb23a675",
       "starter_skill_digest": "sha256:596d1368ac157975accce7ceff835eed6bfb789eaf68528a0aefa25a68793b0b",
       "starter_skill_object_url": "https://techtree.sh/api/v1/objects/sha256:2aff27070177d9f37b99d5bef6fa372586887e78180005195cb808971ae55a4c"
     },
     "tasksmith-climb@2": {
-      "engine_digest": "sha256:7749f9b8f4febb73f8d4914b9b7981164e45e7f74c84d0d12bcadf3702cceb3e",
+      "engine_digest": "sha256:8ffec10531aa07008aaeaec357dd91b521a49b6ee8913ccfb351e2e51e62869b",
       "starter_skill_digest": "sha256:974fafc5bce1d489fe332c7bdc8e9b9ecb38b873d407ac7d38c70f098362b595",
       "starter_skill_object_url": "https://techtree.sh/api/v1/objects/sha256:6e36be766e6d2ac16f5d8feda3a09f5b1337a6d9f7d1b306cdd44dbe456377d4"
     }

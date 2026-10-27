@@ -134,6 +134,25 @@ class TimeoutToml(TomlModel):
     scoring: float | None = Field(default=None, gt=0.0)
 
 
+class ProviderErrorRetryToml(TomlModel):
+    """Rerun a task, up to `max_retries` times, whose provider failed with a server error.
+    The engine reruns only an attempt with no answered model call and keeps its error on
+    the trace. `message` is written as the null the engine resolves it to, so the compiled and
+    resolved rules compare equal."""
+
+    type: Literal["ProviderError"] = "ProviderError"
+    status_code: list[Literal["5xx"]] = ["5xx"]
+    message: Literal[None] = None
+    max_retries: int = Field(ge=0)
+
+
+class RetriesToml(TomlModel):
+    """No error is rerun unless a rule names it."""
+
+    max_retries: Literal[0] = 0
+    rules: list[ProviderErrorRetryToml]
+
+
 class SubjectAgentToml(TomlModel):
     harness: HermesHarnessToml
     runtime: DockerRuntimeToml
@@ -142,6 +161,7 @@ class SubjectAgentToml(TomlModel):
     max_output_tokens: int | None = Field(default=None, ge=1)
     max_total_tokens: int | None = Field(default=None, ge=1)
     timeout: TimeoutToml = Field(default_factory=TimeoutToml)
+    retries: RetriesToml
     network_notice: Literal[False] = False
 
 

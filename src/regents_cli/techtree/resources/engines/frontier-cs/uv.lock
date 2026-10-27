@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.12.*"
 
 [[package]]
@@ -1330,7 +1330,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "frontier-cs-open-ended-v1", editable = "packages/frontier-cs-open-ended-v1" },
-    { name = "verifiers", git = "https://github.com/PrimeIntellect-ai/verifiers?rev=6e69354ffe1b445603b493b722d0ecffbca6686d" },
+    { name = "verifiers", git = "https://github.com/regents-ai/verifiers?rev=04dfb708dbb162700e3b678a6c78ff5d4de49b94" },
 ]
 
 [[package]]
@@ -1516,8 +1516,8 @@ wheels = [
 
 [[package]]
 name = "verifiers"
-version = "0.4.0"
-source = { git = "https://github.com/PrimeIntellect-ai/verifiers?rev=6e69354ffe1b445603b493b722d0ecffbca6686d#6e69354ffe1b445603b493b722d0ecffbca6686d" }
+version = "0.4.0+regents.1"
+source = { git = "https://github.com/regents-ai/verifiers?rev=04dfb708dbb162700e3b678a6c78ff5d4de49b94#04dfb708dbb162700e3b678a6c78ff5d4de49b94" }
 dependencies = [
     { name = "aiohttp" },
     { name = "anthropic" },

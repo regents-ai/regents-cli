@@ -38,6 +38,8 @@ from regents_cli.techtree.verifiers.config import (
     EvalToml,
     HarborEnvToml,
     HermesHarnessToml,
+    ProviderErrorRetryToml,
+    RetriesToml,
     SamplingToml,
     SelectToml,
     SingleAgentEnvToml,
@@ -173,6 +175,9 @@ def compile_variant_config(
         # timeout_seconds bounds one subject rollout; the variant's own bound is the
         # supervisor's hard deadline.
         timeout=TimeoutToml(rollout=float(campaign.execution.timeout_seconds)),
+        retries=RetriesToml(
+            rules=[ProviderErrorRetryToml(max_retries=campaign.execution.retry_limit)]
+        ),
     )
     env: EnvToml
     match experiment.configuration.environment.id:

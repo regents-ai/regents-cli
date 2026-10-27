@@ -5,8 +5,19 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.19 — not yet released
 
-- Techtree Climbs run on Verifiers 0.4.0 (commit `6e69354`), which Prime Intellect released as
-  ready for v1. Each engine, the subject image and the Tasksmith agent images move to it.
+- Techtree Climbs run on Verifiers 0.4.0, which Prime Intellect released as ready for v1. Each
+  engine, the subject image and the Tasksmith agent images move to it. The engines install it
+  from Regents' copy (`regents-ai/verifiers`, version `0.4.0+regents.1`, commit `04dfb70`),
+  which carries two fixes.
+- When the model provider fails a call with a server error, the subject agent now retries it, as
+  it does any brief outage; before, the error reached the agent labelled as a malformed request,
+  so it gave up on the task at once.
+- Each Climb reruns a task up to twice when the provider fails before answering any of its model
+  calls. The failed attempt's error stays in the task's record. A task is never rerun once a
+  model call was answered, so nothing that cost money is dropped from the record.
+- A task whose run ended because the provider stopped answering is no longer scored as the
+  subject's result: it is recorded as not finished, with the provider's error, and the run is not
+  usable. Before, such a task was scored as a wrong answer.
 - A taskset's check now grades each task twice: with its reference answer, which must score 1,
   and untouched, which must score below 1. Its receipt names the second check `upstream_noop`;
   the earlier `upstream_setup` check is gone, so a proof made before this release, including a

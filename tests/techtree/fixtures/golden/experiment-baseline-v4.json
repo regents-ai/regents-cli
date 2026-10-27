@@ -1,5 +1,5 @@
 {
-  "campaign_spec_digest": "sha256:272d2eeec064fd691a38bedf6d61fea9bc86f25d064f2fe990f5d74e450cd1c6",
+  "campaign_spec_digest": "sha256:d5501072559eba3eccbe1c932d7e026ff656125799564dc388e78d819e521866",
   "configuration": {
     "access": "prime_key",
     "agents": {
@@ -55,7 +55,7 @@
       "retry_limit": 0,
       "timeout_seconds": 1800
     },
-    "execution_plan_digest": "sha256:05dc6e435f47900628f5419136145076d5e73e2d87b75321fd857e3f1f248a77",
+    "execution_plan_digest": "sha256:a51eb5e4e8e9e86abb51050d192266bbf54d8afdd454183fd2f4f17996aa4e0c",
     "mutation_contract": {
       "allowed_differences": [
         "/agents/subject/harness/skills"
@@ -126,15 +126,15 @@
         "shuffle": false
       },
       "task_images": null,
-      "validation_receipt_digest": "sha256:fc5cbf94d4ba04811410cd5370ed6aaee3f51966df46de746592c7047533a214"
+      "validation_receipt_digest": "sha256:11370b593f9369a76e0a26af287f7359210994dab7e2ae9c4bbc1c1b1e9eadcc"
     }
   },
-  "configuration_digest": "sha256:99b87c3f506f2c8c07eb624c1f604738843f3d9cdc81a4ddc995056c657ea4b7",
+  "configuration_digest": "sha256:0a0197f373173e6c6b6e734be266f7c41b37d3b116c86206da787587b9c57c84",
   "created_at": "2026-01-01T00:00:00Z",
   "id": "receipt_eacd73ec8d019d049121b88c9ca8602f",
   "program_ref": null,
   "public_context": {
-    "climb_digest": "sha256:0503c05ff07d0f69527eb9a237be93cdd9c06eafb769f3e8b81493d10505a176",
+    "climb_digest": "sha256:59e847f0e9539a8633cadbbd0ebe404de9e1236adc296ca276e2169d44d664c3",
     "kind": "climb"
   },
   "schema_version": "techtree.experiment.v4",

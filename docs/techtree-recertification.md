@@ -70,6 +70,22 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-10-27, why the two runs below lost tasks. Verifiers relayed every failed provider call to
+  Hermes labelled as a bad request, and Hermes never retries a bad request, so one "502" ended
+  the task. When that happened on a task's first model call the task ended as an error and the
+  run was unusable. When it happened later, Hermes stopped cleanly, Verifiers counted the
+  failure as handled and the task was scored on what was left, without any error on the record.
+  regents-cli 1.10.19 installs Regents' copy of Verifiers (`regents-ai/verifiers`, version
+  `0.4.0+regents.1`), which labels a provider's server errors as server errors, so Hermes
+  retries them, and reruns a task, up to twice, whose provider failed before answering any
+  model call. Every Climb now sets `retry_limit` to 2. A task whose last model call failed on
+  the provider's side is recorded as not finished, so a run can no longer score it silently.
+  Read with that rule, the saved records of Hello World run 3
+  (`run_5f49476ae32c435bb01060e8a60babc9`) and the hill-climb's third run
+  (`run_fb2a75504ca24b31b7acce2c4bd7f133`) each hold one task that was scored this way: one
+  baseline task in each, cut off by a "502" after 3 and 5 model calls. Both stay published as
+  they are (founder, "3 a"); neither result changes direction.
+
 - 2026-10-27, two paid Hello World runs on `hello-world-climb@3` (`climb-v0.7.20`, Verifiers
   0.4.0, Prime-key route, billed to Regents Labs) stopped as unusable because Prime answered
   some model calls with "502 Service temporarily unavailable. Please retry.":

@@ -114,7 +114,9 @@ SUBJECT_ACCESS: Final[list[ModelAccess]] = ["chatgpt_plan", "prime_key"]
 SUBJECT_REASONING_EFFORT: Final = "high"
 
 CAMPAIGN_MAX_CONCURRENT: Final = 4
-CAMPAIGN_RETRY_LIMIT: Final = 0
+#: A task whose provider fails before answering any model call is rerun up to this many times
+#: (founder, RECERT-RETRY "1 a", 2026-10-27).
+CAMPAIGN_RETRY_LIMIT: Final = 2
 
 INDEX_FILENAME: Final = "catalog.json"
 #: Written by build_tasksmith_images.py from the published images.

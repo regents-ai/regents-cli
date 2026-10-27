@@ -148,7 +148,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
      token prices) and Keyfleet (the People and agents room); every site re-pinned to its live
      commit.
 7b. Verifiers 0.4.0 (founder, 2026-10-20 and 2026-10-21 "1. a"), on main for 1.10.19: moves
-   every engine to commit `6e69354`, the eval config to `select.limit`, validation to the gold and
+   every engine to Verifiers 0.4.0, the eval config to `select.limit`, validation to the gold and
    noop checks (`upstream_noop`), the image runner checksum to `b05b20d1…`, and `hf-tasksmith-v1`
    to 0.2.0. Checked here: Hello World 36/36 and Frontier-CS 10/10 valid, the Tasksmith taskset
    12/12, two stand-in Hello World episodes on a locally built subject image read by
@@ -173,6 +173,31 @@ behind a site, and never holds one up (founder, 2026-09-28).
    Verifiers `e888a719`: prime-rl 0.10.0's packed sampling masks need it. Techtree's stable channel
    is on 1.10.15 since 2026-10-21 10:21Z (founder "2 a"), so the Techtree catalog and PyPI no
    longer wait on it.
+7c. Provider errors (founder RECERT-RETRY "1 a", 2026-10-27). The first two paid Hello World runs
+   lost tasks to Prime 502s because Verifiers relayed every provider failure labelled
+   `invalid_request_error`, which Hermes reads as a malformed request and never retries; a
+   failure on a later call was then scored as a wrong answer. The engines now install Verifiers
+   from `regents-ai/verifiers`, tag `v0.4.0+regents.1` (commit `04dfb70`, branch
+   `regents-provider-retry`, on top of upstream `6e69354`): a relayed 5xx is labelled
+   `server_error` (`api_error` for Anthropic), so Hermes retries it, and a whole-rollout rerun
+   never follows an attempt that had an answered call, so no paid call drops off the trace. The
+   tag must stay on that commit: the engine's version comes from it, and the Tasksmith package
+   needs `verifiers==0.4.0`, which `0.4.0+regents.1` meets. Each Campaign's `retry_limit` (now
+   2) compiles into the subject seat's `retries` as one rule, `ProviderError` with a 5xx status.
+   `normalize_eval_output.py` projects a trace whose last call failed on the provider's side (no
+   status, 429 or 5xx) as not ok, with that error appended to its errors. The subject and
+   Tasksmith images are unchanged: the ACP runner they stage is the same file in both commits.
+   Moving back to an upstream commit needs both changes there, or a Campaign `retry_limit` of 0.
+   The references stay `hello-world-climb@3`, `frontier-cs-open-ended-climb@3` and
+   `tasksmith-climb@2` with new digests (catalog `sha256:ec1fccd0…7a28`, all four Campaigns valid
+   36/10/6/6, ReleaseCore `sha256:5c3120cc…9ceb`); Techtree's chief checked that snapshot against
+   Techtree main `0b588ba7` (bundle verify and a rolled-back stable import) and accepted it on
+   2026-10-27. The sample proof is now `run_1b2289a1…` (free stand-in run, 72 episodes, 355
+   checks). Checked with a local stand-in provider: a 502 on the first call, and four 502s in a
+   row, both recover inside the task; a provider that never answers ends the task after two
+   reruns as a ProviderError with all three errors kept. Read with the new rule, the records of
+   `run_5f49476a…` and `run_fb2a7550…` each show one baseline task scored after a 502 cut it
+   off; both stay published (founder "3 a").
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

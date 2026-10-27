@@ -36,7 +36,7 @@
     "kind": "verifiers_validate",
     "mode": "all",
     "runtime": "subprocess",
-    "validator_revision": "6e69354ffe1b445603b493b722d0ecffbca6686d"
+    "validator_revision": "04dfb708dbb162700e3b678a6c78ff5d4de49b94"
   },
   "normalized_evidence": {
     "digest": "sha256:a78c5222a25780b442b7b6e6d64eebcf9e435cbc71a5684270cf5a5575b24347",
