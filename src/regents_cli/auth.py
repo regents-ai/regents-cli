@@ -62,8 +62,8 @@ def auth_group(sites: list[str]) -> click.Group:
             ],
             help="Sign in to a site. Ask your person first: the first time it makes this "
             "machine's agent key, and on a Mac it prints a Touch ID page your person opens and "
-            "confirms, then and once after each restart; regents --open-browser auth login "
-            "opens the page too.",
+            "confirms. After each restart, the first signed command prints that page again; "
+            "regents --open-browser opens it too.",
         )
     )
     group.add_command(
@@ -282,8 +282,9 @@ def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> l
         return [
             run(
                 ["regents", "auth", "login", "--site", "<site>"],
-                "Sign in to the site you need, such as patchbay. On a Mac, after a restart, your "
-                "person confirms a Touch ID page once, so ask them first.",
+                "Sign in to the site you need, such as patchbay. On a Mac, the first signed "
+                "command after a restart prints a Touch ID page your person confirms, so ask them "
+                "first.",
             )
         ]
     steps = [

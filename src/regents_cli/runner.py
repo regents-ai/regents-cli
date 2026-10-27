@@ -481,25 +481,35 @@ def after(
                 "The site took this but has not finished it, so don't run it again.",
             )
         ]
-    said = answer.get("next_step") or dig(answer, "data.next_step")
+    said = answer.get("next_step")
     if isinstance(said, str) and said.strip():
-        return [site_says(platform, said)]
+        return site_says(platform, command.effect, said)
     return [done(DONE[command.effect])]
 
 
 #: An HTTP route named in a site's own words, such as "POST /forum/threads".
-ROUTE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE) (/[^\s,;)`'\"]*)")
+ROUTE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE) (/[^\s,;)`'\"?#]*)")
 
 
-def site_says(platform: Platform, said: str) -> Step:
-    """The site's own next step, as it wrote it, with the help of the command for the first
-    route it names that is exactly one of the site's commands."""
+def site_says(platform: Platform, effect: str, said: str) -> list[Step]:
+    """The site's own next step, as it wrote it: with the help of the command for the first
+    route it names that is one of the site's commands, or else beside what the answer means."""
     for method, path in ROUTE.findall(said):
-        matching = [c for c in platform.commands if c.method == method and routed(c.path, path)]
-        if len(matching) == 1:
-            named = [w for w in matching[0].words if not w.startswith("<")]
-            return run_step(["regents", platform.name, *named, "--help"], said)
-    return done(said)
+        command = routed_command(platform, method, path.rstrip("."))
+        if command is not None:
+            named = [w for w in command.words if not w.startswith("<")]
+            follow = run_step(["regents", platform.name, *named, "--help"], said)
+            return [follow] if effect == "read" else [done(DONE[effect]), follow]
+    return [done(f"{DONE[effect]} The site adds: {said}")]
+
+
+def routed_command(platform: Platform, method: str, path: str) -> Command | None:
+    """The one command whose route is exactly `path`, or else the one whose route takes it with
+    a value in each {placeholder}."""
+    same = [c for c in platform.commands if c.method == method]
+    exact = [c for c in same if c.path == path]
+    matching = exact or [c for c in same if routed(c.path, path)]
+    return matching[0] if len(matching) == 1 else None
 
 
 def routed(template: str, path: str) -> bool:
@@ -507,7 +517,7 @@ def routed(template: str, path: str) -> bool:
     pattern = "/".join(
         "[^/]+" if part.startswith("{") else re.escape(part) for part in template.split("/")
     )
-    return re.fullmatch(pattern, path.rstrip(".")) is not None
+    return re.fullmatch(pattern, path) is not None
 
 
 #: What a finished answer means, by what the command does.

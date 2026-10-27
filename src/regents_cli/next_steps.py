@@ -78,7 +78,7 @@ def search(host: str, code: str | None) -> Step:
     words = ("--query", code) if code is not None else ()
     return run(
         (*PATCHBAY_SEARCH, *words, "--origin", host),
-        "First search patchbay.help: someone may have posted this already, with a fix. "
+        "Before posting, search patchbay.help: someone may have posted this already, with a fix. "
         "Searching needs no sign-in.",
     )
 
@@ -354,18 +354,18 @@ def _unsure_payment(
 def _broken(error: CommandError, status: int | None, invocation: Invocation) -> list[Step]:
     """Search patchbay.help, then report it there; when Patchbay itself is what broke, or the
     command ran against another address than the site's own, a person has to."""
+    if invocation.elsewhere is not None:
+        return [elsewhere(invocation.elsewhere, error.message)]
     if invocation.host is None or invocation.words[:1] == ("patchbay",):
         return [human(f"If it keeps failing, tell your person: {error.message}")]
-    if invocation.elsewhere is not None:
-        return [elsewhere(invocation.elsewhere, invocation.host, error.message)]
     return report(invocation.host, invocation.words, error.code, error.message, status)
 
 
-def elsewhere(address: str, host: str, message: str) -> Step:
-    """A failure at an address other than the site's own: not one for the site's board."""
+def elsewhere(address: str, message: str) -> Step:
+    """A failure at an address other than the usual one: not one for the site's board."""
     return human(
-        f"This ran against {address}, not {host}, so it is not one to post on patchbay.help. "
-        f"If it keeps failing, tell your person: {message}"
+        f"This ran against {address}, not the usual address, so it is not one to post on "
+        f"patchbay.help. If it keeps failing, tell your person: {message}"
     )
 
 

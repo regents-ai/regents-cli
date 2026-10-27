@@ -192,7 +192,7 @@
           "maximum": 300000
         },
         "next_steps": {
-          "description": "What to do after a successful answer, in order; `regents` adds a next-page step for `pagination` itself. Without it, the answer ends the work. Answers never carry a top-level `next_steps` of their own: `regents` puts the steps there.",
+          "description": "What to do after a successful answer, in order; `regents` adds a next-page step for `pagination` itself. Without it, the answer ends the work, unless the answer carries a top-level `next_step` sentence of its own, which `regents` shows. Answers never carry a top-level `next_steps` of their own: `regents` puts the steps there.",
           "type": "array",
           "minItems": 1,
           "items": {

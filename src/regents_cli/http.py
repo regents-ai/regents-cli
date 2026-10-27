@@ -44,6 +44,17 @@ def origin(value: str, source: str) -> str:
     return f"{parts.scheme}://{parts.netloc}"
 
 
+def same_origin(one: str, other: str) -> bool:
+    """Whether two addresses are one origin: the same scheme, host and port, written either way."""
+    return _origin_key(one) == _origin_key(other)
+
+
+def _origin_key(value: str) -> tuple[str, str, str]:
+    parts = urlsplit(value.strip())
+    host, _, port = parts.netloc.lower().rpartition("@")[2].partition(":")
+    return parts.scheme, host, port or {"https": "443", "http": "80"}.get(parts.scheme, "")
+
+
 def base_address(flag: str | None, env_var: str, site: str) -> str:
     """--base-url, then <PLATFORM>_BASE_URL, then the site's own address."""
     if flag is not None:

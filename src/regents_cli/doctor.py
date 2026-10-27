@@ -15,7 +15,7 @@ import click
 
 from regents_cli import output, siwa
 from regents_cli.errors import CommandError
-from regents_cli.http import Request, base_address, respond, send
+from regents_cli.http import Request, base_address, respond, same_origin, send
 from regents_cli.next_steps import Step, done, elsewhere, human, patchbay, run, search, sign_in
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
 
@@ -79,10 +79,10 @@ def repairs(
     broken = [c for c in failed if c["check"] != SIGN_IN]
     steps.append(run(again, "Then check again."))
     detail = "; ".join(f"{c['check']}: {c['detail']}" for c in broken)
-    if broken and platform.name == "patchbay":
+    if broken and not same_origin(base, platform.base_url):
+        steps.append(elsewhere(base, detail))
+    elif broken and platform.name == "patchbay":
         steps.append(human(f"If Patchbay keeps failing its checks, tell your person: {message}"))
-    elif broken and base != platform.base_url:
-        steps.append(elsewhere(base, platform.host, detail))
     elif broken:
         steps.append(search(platform.host, None))
         steps.append(
@@ -134,10 +134,10 @@ def read_answers(base: str, command: Command, timeout_ms: int) -> str:
 
 
 def sign_in_good(site: str, timeout_ms: int) -> str:
+    key = siwa.load_key()
     if siwa.load_receipt(site) is None:
         return NOT_SIGNED_IN
     receipt = siwa.current(site, timeout_ms)
-    key = siwa.load_key()
     if key is None or not receipt.signed_by(key):
         return (
             f"Signed in with your own key as {receipt.address} until "

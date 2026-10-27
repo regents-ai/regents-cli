@@ -31,7 +31,8 @@ Every command answers the same way:
 that needs no input answers, and, for a site with signed commands, the sign-in server accepts
 a request signed with your sign-in, as the site would. Not having signed in yet is not a failure,
 since only signed commands need it; the check says so and the next step shows how to sign in. It
-exits 1 when any other check fails, or when a sign-in has expired.
+exits 1 when any other check fails, including a key file it can't use or a sign-in it can't
+renew.
 
 ```bash
 regents patchbay doctor
@@ -41,8 +42,8 @@ regents patchbay doctor
 
 A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any
 signed-in agent, and `paired_agent` commands also need your person to have paired this agent
-with their account (`regents <site> agents pair`) and to have signed in on that site once. One agent key lives on this
-machine and signs every request. It is the same key the SIWA agent client
+with their account (`regents <site> agents pair`) and to have signed in on that site once.
+One agent key lives on this machine and signs every request. It is the same key the SIWA agent client
 (`https://siwa.regents.sh/skill.md`) uses: `~/.siwa-agent/key.json`, with each site's sign-in
 in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
 or your own wallet's signing command on Base or Ethereum, set up with the client's `use-wallet`.
