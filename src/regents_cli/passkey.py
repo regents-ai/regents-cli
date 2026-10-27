@@ -47,6 +47,13 @@ ASKS = {
     "unlock": "Ask your person to unlock your key: they open this page on this Mac and press "
     "Use Touch ID. They are asked once after each restart.",
 }
+#: The page may run only its own style and script, show only its embedded pictures and fonts,
+#: and send its answer only back to this helper. The same policy as the SIWA agent client.
+PASSKEY_POLICY = (
+    "default-src 'none'; script-src 'nonce-{nonce}'; style-src 'nonce-{nonce}'; "
+    "img-src data:; font-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; "
+    "frame-ancestors 'none'"
+)
 #: Agent apps the Touch ID page names; any other app is shown as "your agent".
 APP_NAMES = {
     "claude": "Claude Code",
@@ -94,12 +101,17 @@ def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[
     """Serve a page on this Mac where the person confirms with Touch ID; answer the passkey's id
     and secret."""
     token = secrets.token_urlsafe(24)
+    nonce = secrets.token_urlsafe(18)
     # Written inside the page's script: "<" is escaped so no value can end the script early.
     setup = json.dumps(
         {"mode": mode, "address": address, "credentialId": credential_id, "opener": _opener()}
     ).replace("<", "\\u003c")
     page = (
-        files("regents_cli").joinpath("passkey.html").read_text("utf-8").replace("__SETUP__", setup)
+        files("regents_cli")
+        .joinpath("passkey.html")
+        .read_text("utf-8")
+        .replace("__NONCE__", nonce)
+        .replace("__SETUP__", setup)
     ).encode("utf-8")
     answer: dict[str, str] = {}
     answered = threading.Event()
@@ -112,6 +124,7 @@ def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[
             self.send_response(200)
             self.send_header("content-type", "text/html; charset=utf-8")
             self.send_header("cache-control", "no-store")
+            self.send_header("content-security-policy", PASSKEY_POLICY.format(nonce=nonce))
             self.end_headers()
             self.wfile.write(page)
 

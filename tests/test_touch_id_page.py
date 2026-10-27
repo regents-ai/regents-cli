@@ -1,7 +1,8 @@
 """`regents auth login` on a Mac with no agent key yet, run whole in headless Chromium with a
 virtual Touch ID: the new key is locked on the page `regents` serves, the file keeps only the
 locked key, and the agent signs in with it. With the helper stopped, the next sign-in opens the
-key again on the page and signs with the same key.
+key again on the page and signs with the same key. Each page comes with its own nonce and the
+policy that lets only that page's style and script run, and the browser refuses nothing.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ import contextlib
 import io
 import json
 import queue
+import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -63,11 +65,18 @@ def sign_in(asked: list[dict[str, Any]]) -> dict[str, Any]:
     return answer
 
 
-def confirm(page: Page, offered: queue.Queue[str]) -> None:
-    """Open the page `regents` offers and confirm with Touch ID."""
-    page.goto(offered.get(timeout=10))
+def confirm(page: Page, offered: queue.Queue[str]) -> str:
+    """Open the page `regents` offers, confirm with Touch ID, and return the page's nonce once
+    its policy header is checked against it."""
+    response = page.goto(offered.get(timeout=10))
+    assert response is not None
+    nonces: set[str] = set(re.findall(r'nonce="([^"]+)"', response.text()))
+    assert len(nonces) == 1
+    (nonce,) = nonces
+    assert response.headers["content-security-policy"] == passkey.PASSKEY_POLICY.format(nonce=nonce)
     page.get_by_role("button", name="Use Touch ID").click()
     expect(page.locator("#done")).to_have_text("You can safely close this page")
+    return nonce
 
 
 def stop_helper(home: Path) -> None:
@@ -104,6 +113,13 @@ def test_a_new_key_is_locked_on_the_page_and_opens_again_on_it(
     with sync_playwright() as playwright, ThreadPoolExecutor(1) as waiting:
         chromium = playwright.chromium.launch()
         page = chromium.new_page()
+        refused: list[str] = []
+        page.on(
+            "console",
+            lambda message: (
+                refused.append(message.text) if "Content Security Policy" in message.text else None
+            ),
+        )
         touch_id = page.context.new_cdp_session(page)
         touch_id.send("WebAuthn.enable")
         touch_id.send(
@@ -122,11 +138,11 @@ def test_a_new_key_is_locked_on_the_page_and_opens_again_on_it(
         )
         try:
             first = waiting.submit(sign_in, asked)
-            confirm(page, offered)
+            first_nonce = confirm(page, offered)
             created = first.result(timeout=30)
             stop_helper(home)
             again = waiting.submit(sign_in, asked)
-            confirm(page, offered)
+            second_nonce = confirm(page, offered)
             signed_in_again = again.result(timeout=30)
         finally:
             stop_helper(home)
@@ -140,3 +156,5 @@ def test_a_new_key_is_locked_on_the_page_and_opens_again_on_it(
     assert created["wallet_address"] == signed_in_again["wallet_address"] == stored["address"]
     assert [signer(signed) for signed in asked] == [stored["address"], stored["address"]]
     assert offered.empty()
+    assert first_nonce != second_nonce
+    assert refused == []

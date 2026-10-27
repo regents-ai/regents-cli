@@ -179,7 +179,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
 
 - **Touch ID page**: `src/regents_cli/passkey.html` is built by siwa-server's
   `scripts/build_agent_page.py` from design-system; never edit it here. Current page: the one
-  live siwa-server `e436b61` serves (1.10.15, sha256 `e968fe03…`); `make release-check` fails
+  live siwa-server v66 serves (main `2776992`, built from design-system `5dd12626`, sha256
+  `f1765bff…`); its two `__NONCE__` marks get a fresh nonce per page, and the page server sends
+  `passkey.PASSKEY_POLICY` with it, as siwa-server's helpers do; `make release-check` fails
   when the wheel's page differs from the live one. To take a new one, run that script from a
   siwa-server checkout with `--design-system <checkout> --cli <this checkout>`, then again with
   `--check`.

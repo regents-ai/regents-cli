@@ -13,6 +13,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   rerun of a published result, no longer verifies.
 - The Tasksmith taskset (`hf-tasksmith-v1` 0.2.0) grades an untouched task in a fresh grader
   box, as it grades an episode.
+- The Touch ID page is the one siwa.regents.sh serves today. Each time it opens it gets its own
+  one-time code, and the browser runs only that page's own style and script and sends its answer
+  only back to `regents` on this Mac.
 
 ## 1.10.18 — 2026-10-27
 
