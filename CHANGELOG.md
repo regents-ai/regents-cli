@@ -3,6 +3,22 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.20 — 2026-10-28
+
+- Security updates for the libraries Techtree Climbs install. Each Climb's evaluation engine
+  now locks the fixed releases of Pillow (13.0.0), aiohttp (3.14.4), filelock (4.2.1),
+  opentelemetry-api (1.45.1) and certifi (2026.10.18), which no longer trusts the withdrawn
+  emSign certificates. The Hello World engine also moves PyJWT to 2.15.0, urllib3 to 2.8.0,
+  multidict to 6.9.1 and yarl to 1.25.1. Nothing else in an engine changed: the same Verifiers,
+  the same tasks and the same scoring.
+- Because the engines changed, every Climb's engine has a new fingerprint and the Climb catalog
+  that names them is new. The Climbs keep their names (`hello-world-climb@3`,
+  `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). Every taskset was checked again on
+  the new engines: Hello World 36 of 36, Frontier-CS 10 of 10, Tasksmith 6 of 6 and its held-out 6 of 6.
+- `regents` itself needs filelock 4.2.1 or later, so an install never picks the flagged 4.2.0.
+- One flagged library could not move yet: mcp stays at 2.0.0 in every engine, because the
+  Verifiers release the Climbs use asks for exactly that version.
+
 ## 1.10.19 — 2026-10-27
 
 Evidence: level protected; features touch-id-key, techtree-release,
