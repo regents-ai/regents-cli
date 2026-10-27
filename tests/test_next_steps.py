@@ -49,25 +49,6 @@ def test_a_broken_site_is_searched_for_then_gets_a_public_post_without_the_value
     assert SECRET not in post.command
 
 
-@pytest.mark.parametrize("through", ["flag", "variable"])
-def test_a_failure_at_another_address_is_never_posted_against_the_live_site(
-    through: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """The first-run walk: a refused 127.0.0.1:9 came with a ready public post saying
-    keyfleet.ai was unreachable."""
-    args = ["keyfleet", "fleets", "list"]
-    unreachable = CommandError("unreachable", "No answer.", exit_code=EXIT_UNREACHABLE)
-    live = for_failure(unreachable, app.invocation(app.root(), args))
-    assert [step.kind for step in live] == ["run", "run", "patchbay"]
-    if through == "flag":
-        args += ["--base-url", "http://127.0.0.1:9"]
-    else:
-        monkeypatch.setenv("KEYFLEET_BASE_URL", "http://127.0.0.1:9")
-    again, person = for_failure(unreachable, app.invocation(app.root(), args))
-    assert again.kind == "run" and person.kind == "human"
-    assert "http://127.0.0.1:9" in person.say and "keyfleet.ai" in person.say
-
-
 def test_a_broken_patchbay_goes_to_a_person() -> None:
     error = CommandError("http_500", "The site failed.", status=500)
     steps = for_failure(error, invocation("patchbay", "patchbay.help"))

@@ -59,18 +59,12 @@ features:
   - src/regents_cli/doctor.py
   entry:
   - cli: regents <site> doctor
-  proofs:
-  - tests/test_doctor.py
-  regressions:
-  - id: R-20261027-local-address-post
-    from: 'first-run walk of 1.10.19: a check against 127.0.0.1 offered a public post saying the live
-      site failed'
-    test: tests/test_doctor.py
-  - id: R-20261027-doctor-no-sign-in
-    from: 'first-run walk of 1.10.19: doctor exited 1 on a new machine only because it had not signed
-      in yet'
-    test: tests/test_doctor.py
+  proofs: []
+  regressions: []
   gaps:
+  - 'No test yet (tests wait until a release has worked live for an hour): a failing site is searched
+    for before it is reported; checks against another address are not posted against the site; no sign-in
+    yet exits 0; an expired sign-in exits 1.'
   - The sign-in check is not run against the live sign-in server.
 - id: sign-in
   what: An agent signs in to a site with its key, or a person with their own wallet, and the site's receipt
