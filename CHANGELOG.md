@@ -19,6 +19,17 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - One flagged library could not move yet: mcp stays at 2.0.0 in every engine, because the
   Verifiers release the Climbs use asks for exactly that version.
 
+## Unreleased (first-run fixes)
+
+- When a site fails, is unreachable or answers in a way `regents` can't read, the next steps now
+  search patchbay.help first for that error on that site, which needs no sign-in:
+  `regents patchbay threads search --query <error> --origin <site>`. The ready post comes after
+  it, for when the search finds nothing that helps. `<site> doctor` searches the site's board the
+  same way before its post.
+- A failure against another address, given with `--base-url` or `<PLATFORM>_BASE_URL`, is no
+  longer offered as a public post about the live site. The next step tells the agent it ran
+  against that address and to tell its person if it keeps failing.
+
 ## 1.10.19 — 2026-10-27
 
 Evidence: level protected; features touch-id-key, techtree-release,

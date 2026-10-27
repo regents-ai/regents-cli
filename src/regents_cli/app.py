@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from collections.abc import Sequence
 from importlib.metadata import version
@@ -166,7 +167,17 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
         if described is not None and _value_of("--phase", args) != "prepare"
         else None,
         description=described.description if described is not None else None,
+        elsewhere=_elsewhere(platform, args),
     )
+
+
+def _elsewhere(platform: Platform | None, args: list[str]) -> str | None:
+    """The address the command ran against, when --base-url or the site's variable names
+    another than the site's own."""
+    if platform is None:
+        return None
+    named = _value_of("--base-url", args) or os.environ.get(platform.env_var)
+    return named if named and named.rstrip("/") != platform.base_url else None
 
 
 def _value_of(flag: str, args: list[str]) -> str | None:

@@ -9,14 +9,13 @@ from __future__ import annotations
 from collections.abc import Callable
 from functools import partial
 from typing import Any
-from urllib.parse import urlsplit
 
 import click
 
 from regents_cli import output, siwa
 from regents_cli.errors import CommandError
 from regents_cli.http import Request, base_address, respond, send
-from regents_cli.next_steps import Step, done, human, patchbay, run, sign_in
+from regents_cli.next_steps import Step, done, elsewhere, human, patchbay, run, search, sign_in
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
 
 SIGN_IN = "sign-in"
@@ -43,7 +42,7 @@ def doctor_command(platform: Platform) -> click.Command:
             raise CommandError(
                 "doctor_found_problems",
                 message,
-                next_steps=repairs(platform, failed, message, again),
+                next_steps=repairs(platform, base, failed, message, again),
                 **found,
             )
         output.emit(
@@ -70,21 +69,26 @@ def doctor_command(platform: Platform) -> click.Command:
 
 
 def repairs(
-    platform: Platform, failed: list[dict[str, Any]], message: str, again: list[str]
+    platform: Platform, base: str, failed: list[dict[str, Any]], message: str, again: list[str]
 ) -> list[Step]:
-    """Sign in again for a failed sign-in; report a site that failed its own checks."""
+    """Sign in again for a failed sign-in; search patchbay.help about a site that failed its own
+    checks, then report it there, unless the checks ran against another address."""
     steps: list[Step] = []
     if any(c["check"] == SIGN_IN for c in failed):
         steps.append(sign_in(platform.site))
     broken = [c for c in failed if c["check"] != SIGN_IN]
     steps.append(run(again, "Then check again."))
+    detail = "; ".join(f"{c['check']}: {c['detail']}" for c in broken)
     if broken and platform.name == "patchbay":
         steps.append(human(f"If Patchbay keeps failing its checks, tell your person: {message}"))
+    elif broken and base != platform.base_url:
+        steps.append(elsewhere(base, platform.host, detail))
     elif broken:
-        detail = "; ".join(f"{c['check']}: {c['detail']}" for c in broken)
-        host = urlsplit(platform.base_url).hostname or platform.base_url
+        steps.append(search(platform.host, None))
         steps.append(
-            patchbay(host, (platform.name, "doctor"), "doctor_found_problems", detail, None)
+            patchbay(
+                platform.host, (platform.name, "doctor"), "doctor_found_problems", detail, None
+            )
         )
     return steps
 

@@ -1,7 +1,8 @@
-"""What comes after a failure. A site's own fault ends in a ready patchbay.help post that names
-the command but none of the values it was given, because the post is public; when Patchbay
-itself is what broke, a person is told instead. A payment or a paid start is never repeated
-blind (the 1.10.1 review)."""
+"""What comes after a failure. A site's own fault ends in a public search of patchbay.help, then
+a ready post there that names the command but none of the values it was given, because the post
+is public; when Patchbay itself is what broke, or the command ran against another address than
+the site's own, a person is told instead. A payment or a paid start is never repeated blind (the
+1.10.1 review)."""
 
 from __future__ import annotations
 
@@ -32,15 +33,39 @@ def invocation(namespace: str, host: str) -> Invocation:
     return Invocation(args, (namespace, "threads", "get"), namespace, host, takes_stdin=False)
 
 
-def test_a_broken_site_gets_a_public_post_without_the_values() -> None:
+def test_a_broken_site_is_searched_for_then_gets_a_public_post_without_the_values() -> None:
+    """The first-run walk (27 Oct): a stranger with no sign-in was only ever handed a post it
+    could not make, never the search it could."""
     error = CommandError("http_500", "The site failed.", status=500)
     failed = invocation("keyfleet", "keyfleet.ai")
-    again, post = for_failure(error, failed)
+    again, search, post = for_failure(error, failed)
     assert again.kind == "run" and again.command == shlex.join(failed.again)
+    assert search.command == (
+        "regents patchbay threads search --query http_500 --origin keyfleet.ai"
+    )
     assert post.kind == "patchbay" and post.command is not None
     piped = shlex.split(post.command)[2]
     assert json.loads(piped)["site"] == "keyfleet.ai"
     assert SECRET not in post.command
+
+
+@pytest.mark.parametrize("through", ["flag", "variable"])
+def test_a_failure_at_another_address_is_never_posted_against_the_live_site(
+    through: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The first-run walk: a refused 127.0.0.1:9 came with a ready public post saying
+    keyfleet.ai was unreachable."""
+    args = ["keyfleet", "fleets", "list"]
+    unreachable = CommandError("unreachable", "No answer.", exit_code=EXIT_UNREACHABLE)
+    live = for_failure(unreachable, app.invocation(app.root(), args))
+    assert [step.kind for step in live] == ["run", "run", "patchbay"]
+    if through == "flag":
+        args += ["--base-url", "http://127.0.0.1:9"]
+    else:
+        monkeypatch.setenv("KEYFLEET_BASE_URL", "http://127.0.0.1:9")
+    again, person = for_failure(unreachable, app.invocation(app.root(), args))
+    assert again.kind == "run" and person.kind == "human"
+    assert "http://127.0.0.1:9" in person.say and "keyfleet.ai" in person.say
 
 
 def test_a_broken_patchbay_goes_to_a_person() -> None:

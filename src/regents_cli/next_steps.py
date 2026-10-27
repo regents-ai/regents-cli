@@ -2,7 +2,8 @@
 
 done: the work is finished. run: run this `regents` command next. human: a person has to do
 something first. patchbay: post the problem on patchbay.help, because a site broke, answered in
-a way `regents` can't act on, or stays unreachable, and only its team can fix that.
+a way `regents` can't act on, or stays unreachable, and only its team can fix that. A post always
+follows a public search of patchbay.help for the same problem, which needs no sign-in.
 
 Every answer and every failure carries its steps: in `--json` as `next_steps` beside the answer's
 fields or beside `error`, and on screen as a short "Next" block at the bottom.
@@ -30,6 +31,7 @@ from regents_cli.errors import (
 
 type Kind = Literal["done", "run", "human", "patchbay"]
 
+PATCHBAY_SEARCH = ("regents", "patchbay", "threads", "search")
 PATCHBAY_POST = ("regents", "patchbay", "threads", "create")
 TITLE_LIMIT = 160
 
@@ -63,6 +65,24 @@ def human(say: str, url: str | None = None) -> Step:
     return Step("human", say, url=url)
 
 
+def report(
+    host: str, words: Sequence[str], code: str, message: str, status: int | None
+) -> list[Step]:
+    """A public search of the site's board on patchbay.help, then a ready post there for when
+    the search finds nothing that helps."""
+    return [search(host, code), patchbay(host, words, code, message, status)]
+
+
+def search(host: str, code: str | None) -> Step:
+    """What patchbay.help already holds about this problem on this site, or about the site."""
+    words = ("--query", code) if code is not None else ()
+    return run(
+        (*PATCHBAY_SEARCH, *words, "--origin", host),
+        "First search patchbay.help: someone may have posted this already, with a fix. "
+        "Searching needs no sign-in.",
+    )
+
+
 def patchbay(host: str, words: Sequence[str], code: str, message: str, status: int | None) -> Step:
     """A ready post for the site's board on patchbay.help, naming the command but none of the
     values it was given, since the post is public."""
@@ -80,8 +100,9 @@ def patchbay(host: str, words: Sequence[str], code: str, message: str, status: i
     piped = json.dumps(post, ensure_ascii=False)
     return Step(
         "patchbay",
-        "Read this post, then run it to put the problem on patchbay.help for the site's team: "
-        "posts are public. It needs a Patchbay sign-in and a paired agent.",
+        "If the search finds nothing that helps, read this post, then run it to put the problem "
+        "on patchbay.help for the site's team: posts are public. It needs a Patchbay sign-in and "
+        "a paired agent.",
         f"printf '%s' {shlex.quote(piped)} | {shlex.join(PATCHBAY_POST)}",
     )
 
@@ -137,6 +158,9 @@ class Invocation:
     #: What a site's described command does, and its description, when it is one.
     effect: str | None = None
     description: str | None = None
+    #: The address it ran against, when --base-url or the site's variable named another than
+    #: the site's own: a failure there is not the site's to hear about.
+    elsewhere: str | None = None
 
     @property
     def again(self) -> tuple[str, ...]:
@@ -190,7 +214,7 @@ def for_failure(error: CommandError, invocation: Invocation) -> list[Step]:
         if _refused_unread(error, status):
             return [
                 as_described(invocation.words[:-1], described, "The site refused this."),
-                _broken(error, status if isinstance(status, int) else None, invocation),
+                *_broken(error, status if isinstance(status, int) else None, invocation),
             ]
     if isinstance(status, int):
         return _site_refused(error, status, invocation)
@@ -263,7 +287,7 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
             ),
             done("Otherwise that is the site's answer; nothing more to run."),
         ]
-    return [run(again, f"Run it once more{invocation.piped}."), _broken(error, status, invocation)]
+    return [run(again, f"Run it once more{invocation.piped}."), *_broken(error, status, invocation)]
 
 
 def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
@@ -285,12 +309,12 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
     if error.exit_code == EXIT_UNREACHABLE:
         return [
             run(again, f"Run it once more{invocation.piped}."),
-            _broken(error, None, invocation),
+            *_broken(error, None, invocation),
         ]
     if error.exit_code == EXIT_AUTH:
         return [human(f"Your person has to sort this out first: {error.message}")]
     if error.code == "invalid_response":
-        return [_broken(error, None, invocation)]
+        return _broken(error, None, invocation)
     return [run(again, f"Do what the message says, then run this again{invocation.piped}.")]
 
 
@@ -319,14 +343,25 @@ def _unsure_payment(
     )
     if error.exit_code == EXIT_CANCELLED or status == 409:
         return [finish]
-    return [finish, _broken(error, status if isinstance(status, int) else None, invocation)]
+    return [finish, *_broken(error, status if isinstance(status, int) else None, invocation)]
 
 
-def _broken(error: CommandError, status: int | None, invocation: Invocation) -> Step:
-    """Report it on patchbay.help; when Patchbay itself is what broke, a person has to."""
+def _broken(error: CommandError, status: int | None, invocation: Invocation) -> list[Step]:
+    """Search patchbay.help, then report it there; when Patchbay itself is what broke, or the
+    command ran against another address than the site's own, a person has to."""
     if invocation.host is None or invocation.words[:1] == ("patchbay",):
-        return human(f"If it keeps failing, tell your person: {error.message}")
-    return patchbay(invocation.host, invocation.words, error.code, error.message, status)
+        return [human(f"If it keeps failing, tell your person: {error.message}")]
+    if invocation.elsewhere is not None:
+        return [elsewhere(invocation.elsewhere, invocation.host, error.message)]
+    return report(invocation.host, invocation.words, error.code, error.message, status)
+
+
+def elsewhere(address: str, host: str, message: str) -> Step:
+    """A failure at an address other than the site's own: not one for the site's board."""
+    return human(
+        f"This ran against {address}, not {host}, so it is not one to post on patchbay.help. "
+        f"If it keeps failing, tell your person: {message}"
+    )
 
 
 def _wait(error: CommandError) -> str:

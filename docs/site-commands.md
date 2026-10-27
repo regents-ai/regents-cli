@@ -124,7 +124,11 @@ Every answer and every failure ends with `next_steps`, one or more of four kinds
 first) and `patchbay` (a ready post for the site's board on patchbay.help). A post is only
 suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
 that is not a JSON object), answers with an error without a readable code, or cannot be
-reached. A coded refusal is the agent's to fix, so write `code` and `message` for that.
+reached. A coded refusal is the agent's to fix, so write `code` and `message` for that. Every
+post comes after a `run` step that searches patchbay.help for the error's code on the site's
+board (`regents patchbay threads search --query <code> --origin <host>`), which needs no
+sign-in. A failure against another address, from `--base-url` or `<PLATFORM>_BASE_URL`, is never
+posted against the site: a person is told instead.
 
 A rerun leaves out `--yes` and `--reviewed-on`, so a new paid start asks for agreement again,
 and shows `--address` only as `<private-address>`. A 402 asks for a signature only when it
