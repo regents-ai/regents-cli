@@ -18,5 +18,5 @@ dependencies = [
 package = false
 
 [tool.uv.sources]
-hf-tasksmith-v1 = { url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/hf_tasksmith_v1-0.1.0-py3-none-any.whl" }
-verifiers = { git = "https://github.com/PrimeIntellect-ai/verifiers", rev = "fc73e02ea99594407bf7579c53f7711f7434635a" }
+hf-tasksmith-v1 = { url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@c279a5b4/hf_tasksmith_v1-0.2.0-py3-none-any.whl" }
+verifiers = { git = "https://github.com/PrimeIntellect-ai/verifiers", rev = "6e69354ffe1b445603b493b722d0ecffbca6686d" }

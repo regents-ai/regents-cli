@@ -3,8 +3,8 @@
   "packages": [
     {
       "name": "hf-tasksmith-v1",
-      "source_digest": "sha256:3c7d549f89d77bcf047a8b0252a745ab6d4c46b7a783c530799fb2fa04cbbaf3",
-      "version": "0.1.0"
+      "source_digest": "sha256:b7175513d33b7e9db88217d7106bb31bc87eff1ee7da78dba1e06dfc27c4f151",
+      "version": "0.2.0"
     }
   ],
   "python_version": "3.12",
@@ -15,6 +15,6 @@
     "linux/amd64",
     "linux/arm64"
   ],
-  "verifiers_revision": "fc73e02ea99594407bf7579c53f7711f7434635a",
-  "verifiers_version": "0.3.2.dev147"
+  "verifiers_revision": "6e69354ffe1b445603b493b722d0ecffbca6686d",
+  "verifiers_version": "0.4.0"
 }

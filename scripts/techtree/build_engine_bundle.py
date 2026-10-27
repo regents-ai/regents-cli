@@ -106,11 +106,11 @@ ENGINES: Final = (
         verifiers_extras=("harbor",),
         hub=HubPackage(
             name="techtree/hf-tasksmith-v1",
-            version="0.1.0",
-            content_hash="d0f95ca8af13821fc0c1a215ca4bac60afe1d7c56db3adb53951c75294516d22",
-            wheel_url="https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/"
-            "hf_tasksmith_v1-0.1.0-py3-none-any.whl",
-            wheel_sha256="3c7d549f89d77bcf047a8b0252a745ab6d4c46b7a783c530799fb2fa04cbbaf3",
+            version="0.2.0",
+            content_hash="c279a5b47013d453c46301d9a5bd6bef02c1dcf5f5102b1b0c99b33ea3d03941",
+            wheel_url="https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@c279a5b4/"
+            "hf_tasksmith_v1-0.2.0-py3-none-any.whl",
+            wheel_sha256="b7175513d33b7e9db88217d7106bb31bc87eff1ee7da78dba1e06dfc27c4f151",
         ),
     ),
 )
