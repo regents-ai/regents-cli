@@ -291,6 +291,7 @@ OWN: list[dict[str, Any]] = [
             "src/regents_cli/techtree/verifiers/**",
             "src/regents_cli/techtree/models/validation.py",
             "src/regents_cli/techtree/resources/engines/**",
+            "src/regents_cli/techtree/resources/catalog/**",
             "scripts/techtree/build_engine_bundle.py",
             "scripts/techtree/build_fixture_catalog.py",
             "scripts/techtree/build_goldens.py",

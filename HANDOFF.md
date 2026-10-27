@@ -147,7 +147,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
      `x-regent-client`; Patchbay (`bench pair` run and check), Autolaunch (`auctions counts`,
      token prices) and Keyfleet (the People and agents room); every site re-pinned to its live
      commit.
-7b. Verifiers 0.4.0 (founder, 2026-10-20 and 2026-10-21 "1. a"): branch `cli/pi-stack-1021` moves
+7b. Verifiers 0.4.0 (founder, 2026-10-20 and 2026-10-21 "1. a"), on main for 1.10.19: moves
    every engine to commit `6e69354`, the eval config to `select.limit`, validation to the gold and
    noop checks (`upstream_noop`), the image runner checksum to `b05b20d1…`, and `hf-tasksmith-v1`
    to 0.2.0. Checked here: Hello World 36/36 and Frontier-CS 10/10 valid, the Tasksmith taskset
@@ -155,11 +155,13 @@ behind a site, and never holds one up (founder, 2026-09-28).
    `normalize_eval_output.py`. Done since: the images (subject `8268cae0…`, cpp `9ae66672…`, twelve
    Tasksmith agent images in `pins.json`); `hf-tasksmith-v1` 0.2.0 on the Hub (2026-10-27, content
    hash `c279a5b4…`) pinned in `build_engine_bundle.py`; the tasksmith engine rebuilt; the catalog
-   regenerated with all four Campaigns valid (36, 10, 6 and 6). Still to do, in order: goldens,
-   schemas and ReleaseCore; the sample proof in `tests/techtree/fixtures/run/proof` from a stand-in
-   run (until then `test_proof`, `test_publish_command` and `test_published_skill` fail on
-   `upstream_setup`); `make check`; main; the paid runs; the Techtree catalog; PyPI, each with the
-   founder's go. The paid run plan lists three parts, each with its count and cost and each on its
+   regenerated with all four Campaigns valid (36, 10, 6 and 6); version 1.10.19 and release
+   `climb-v0.7.20`; the sample proof in `tests/techtree/fixtures/run/proof` remade from a free
+   stand-in run on 2026-10-27 (`run_5ff0437b…`, 72 episodes, 355 checks); `make check` clean
+   (659 tests). Still to do, in order: the paid runs; the Techtree catalog; PyPI, each with the
+   founder's go. Paid runs use the Prime sign-in of team Regents Labs (`~/.prime/config.json`
+   `team_id`, sent as `X-Prime-Team-ID`); a `PRIME_API_KEY` in the shell overrides it, so the
+   runs start with it unset. The paid run plan lists three parts, each with its count and cost and each on its
    own go: reruns of the five published Results (same Skill, model and settings, new result IDs,
    replacing the old ones, founder 2026-10-21 "3 b"), the Climb re-certification runs, and the
    second independent rerun of each comparison. Before any model call the plan runs the checks that
