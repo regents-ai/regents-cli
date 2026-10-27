@@ -70,6 +70,15 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-10-27, two paid Hello World runs on `hello-world-climb@3` (`climb-v0.7.20`, Verifiers
+  0.4.0, Prime-key route, billed to Regents Labs) stopped as unusable because Prime answered
+  some model calls with "502 Service temporarily unavailable. Please retry.":
+  `run_df7a4732ee6a4108b9b2b9d38479258e` lost 2 of 72 tasks (about $0.13) and
+  `run_807eb67afc874cf6a4750c82266fea6d` lost 4 (about $0.12). No model call is retried, in
+  this engine or the one before it, and every Climb sets `retry_limit` to 0, so one such answer
+  makes a run unusable. An earlier attempt at 03:35Z found the Regents Labs wallet empty and
+  cost nothing.
+
 - 2026-10-27, a free run against a local stand-in model on `hello-world-climb@3`
   (`climb-v0.7.20`, Verifiers 0.4.0, Prime-key route): all 72 episodes finished and the proof
   verifies offline (355 checks). That run's proof is now the test fixture in
