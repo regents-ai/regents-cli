@@ -60,8 +60,10 @@ def auth_group(sites: list[str]) -> click.Group:
                 JSON,
                 TIMEOUT,
             ],
-            help="Sign in to a site. Creates the agent key on first use. On a Mac it prints the "
-            "address of the Touch ID page; regents --open-browser auth login opens it too.",
+            help="Sign in to a site. Ask your person first: the first time it makes this "
+            "machine's agent key, and on a Mac it prints a Touch ID page your person opens and "
+            "confirms, then and once after each restart; regents --open-browser auth login "
+            "opens the page too.",
         )
     )
     group.add_command(
@@ -267,11 +269,21 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
 
 def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> list[Step]:
     """Sign in where there is no fresh sign-in, pair where the site says it is not paired."""
+    if not receipts and answer.get("agent_key") is None:
+        return [
+            run(
+                ["regents", "auth", "login", "--site", "<site>"],
+                "Ask your person first. This makes this machine's agent key, then signs in to the "
+                "site you need, such as patchbay. On a Mac it prints a Touch ID page your person "
+                "opens and confirms within 5 minutes.",
+            )
+        ]
     if not receipts:
         return [
             run(
                 ["regents", "auth", "login", "--site", "<site>"],
-                "Sign in to the site you need, such as patchbay; the first time makes the key.",
+                "Sign in to the site you need, such as patchbay. On a Mac, after a restart, your "
+                "person confirms a Touch ID page once, so ask them first.",
             )
         ]
     steps = [

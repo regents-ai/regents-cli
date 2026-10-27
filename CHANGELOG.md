@@ -42,6 +42,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   the next step shows the site's words instead of "That is the answer; nothing more to run."
   When those words name a route that is one of the site's commands, the step adds that
   command's help, such as `regents patchbay threads create --help` for `POST /forum/threads`.
+- Signing in now says plainly, in `auth status`, `auth login --help` and every sign-in step,
+  that the agent asks its person first: the first sign-in makes this machine's agent key, and
+  on a Mac it prints a Touch ID page the person opens and confirms within 5 minutes, then once
+  after each restart.
 
 ## 1.10.19 — 2026-10-27
 

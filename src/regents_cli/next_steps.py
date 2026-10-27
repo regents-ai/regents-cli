@@ -136,7 +136,11 @@ def redeem(namespace: str) -> Step:
 
 
 def sign_in(site: str) -> Step:
-    return run(("regents", "auth", "login", "--site", site), f"Sign in to {site}.")
+    return run(
+        ("regents", "auth", "login", "--site", site),
+        f"Sign in to {site}. On a Mac your person may need to confirm a Touch ID page, so ask "
+        "them first.",
+    )
 
 
 #: Flags a rerun leaves out: an agreement covers one go, so a rerun asks for a new one.
