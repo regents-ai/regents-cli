@@ -499,7 +499,7 @@ def site_says(platform: Platform, said: str) -> Step:
         if len(matching) == 1:
             named = [w for w in matching[0].words if not w.startswith("<")]
             return run_step(["regents", platform.name, *named, "--help"], said)
-    return Step("run", said)
+    return done(said)
 
 
 def routed(template: str, path: str) -> bool:
