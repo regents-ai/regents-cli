@@ -66,8 +66,9 @@ SITES = pinned_platforms()
 
 @pytest.mark.parametrize("platform", SITES, ids=lambda platform: platform.name)
 def test_an_unpaired_agent_is_sent_to_the_site_it_called(platform: Platform) -> None:
-    """Pairing is per site (each site's agent_not_paired hint says "on this site"): the
-    refusal keeps the site's own hint and links that site's Account page, never regents.sh's
+    """The pairing is shared by every Regent site, but the person makes the code signed in on
+    the site the agent called (each site's agent_not_paired hint says "on this site"): the
+    refusal keeps the site's own hint and links that site's Pair New Agent, never regents.sh's
     for every site."""
     hint = "Ask your person to sign in on this site and pair you with Pair New Agent."
     refused = httpx.Response(
@@ -76,17 +77,17 @@ def test_an_unpaired_agent_is_sent_to_the_site_it_called(platform: Platform) -> 
     called = app.invocation(app.root(), [platform.name, "agents", "whoami", "--json"])
     person, redeem, again = for_failure(_raised(refused), called)
     assert (person.kind, person.say) == ("human", hint)
-    assert person.url == f"https://{platform.host}/account"
+    assert person.url == f"https://{platform.host}/account#shell-pairing"
     assert redeem.command == f"regents {platform.name} agents pair"
     assert again.command == shlex.join(called.again)
 
 
 @pytest.mark.parametrize("platform", SITES, ids=lambda platform: platform.name)
-def test_whoami_with_no_pairing_points_at_that_sites_account_page(platform: Platform) -> None:
+def test_whoami_with_no_pairing_points_at_that_sites_pair_new_agent(platform: Platform) -> None:
     whoami = next(c for c in platform.commands if c.words == ("agents", "whoami"))
     person, redeem, *_ = after(platform, whoami, {"data": {"pairing": None}}, {}, [], finished=True)
     assert person.kind == "human" and platform.host in person.say
-    assert person.url == f"https://{platform.host}/account"
+    assert person.url == f"https://{platform.host}/account#shell-pairing"
     assert redeem.command == f"regents {platform.name} agents pair"
 
 
@@ -100,7 +101,8 @@ def test_a_paired_commands_help_pairs_on_that_site(platform: Platform) -> None:
             assert isinstance(shown, click.Group)
             shown = shown.commands[word]
         assert shown.help is not None
-        assert f"on {platform.host} (regents {platform.name} agents pair)" in shown.help
+        assert f"(regents {platform.name} agents pair;" in shown.help
+        assert f"signed in on {platform.host} once" in shown.help
 
 
 PAY = ["patchbay", "payments", "execute", "00000000-0000-0000-0000-000000000001", "--json"]

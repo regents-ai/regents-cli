@@ -116,7 +116,7 @@ OWN: list[dict[str, Any]] = [
             {
                 "id": "R-20261020-pairing-page",
                 "from": "16 Oct review: an unpaired agent on any site was sent to regents.sh to "
-                "pair, though each site pairs its own agents",
+                "pair, though the person makes the code signed in on the site the agent called",
                 "test": "tests/test_next_steps.py",
             },
         ],

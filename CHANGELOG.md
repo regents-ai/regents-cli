@@ -33,6 +33,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   check says "Not signed in yet; needed only for signed commands", the run exits 0, and the next
   step shows how to sign in when a signed command is needed. A failing site or an expired sign-in
   still exits 1.
+- The pairing steps and the help of commands that need a paired agent now say what the sites
+  say: a person makes a code with Pair New Agent in the side panel, a pairing works on every
+  Regent site, and a site that answers `person_not_here` needs the person to sign in there once.
+  They no longer say each site pairs its own agents. The link goes to Pair New Agent
+  (`/account#shell-pairing`).
 
 ## 1.10.19 — 2026-10-27
 

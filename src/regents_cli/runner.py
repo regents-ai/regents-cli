@@ -195,11 +195,11 @@ CONDITIONS = {
 
 
 def needs_pairing(platform: Platform, command: Command) -> str:
-    """The help's line for a paired_agent command: the pairing with this site, then each
-    condition."""
+    """The help's line for a paired_agent command: the agent paired with its person, who has
+    signed in on this site once, then each condition."""
     asks = [
-        f"have paired this agent with their account on {platform.host} "
-        f"(regents {platform.name} agents pair)"
+        f"have paired this agent with their account (regents {platform.name} agents pair; a "
+        f"pairing works on every Regent site) and signed in on {platform.host} once"
     ]
     asks += [CONDITIONS[c] for c in command.conditions]
     return f"Your person must {in_words(asks)}."

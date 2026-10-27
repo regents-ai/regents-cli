@@ -34,7 +34,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
   or more of done, run, human or a patchbay.help post (founder, 2026-10-13: 1a 2b 3a).
   `output.emit` refuses an answer without steps; failures get theirs from `for_failure`, read
   from the error's status and code, unless the error names its own. An unpaired agent is sent
-  to the Account page of the site it called, since each site pairs its own agents.
+  to Pair New Agent on the site it called; a pairing works on every Regent site, and the
+  person signs in on each site once.
 - `src/regents_cli/errors.py`: the exit codes.
 - `src/regents_cli/platforms/`: each site's pinned files, copied by `make sync` from
   `platforms.lock.json`, read at the pinned commit from the site's checkout beside this one

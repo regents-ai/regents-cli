@@ -108,18 +108,19 @@ def patchbay(host: str, words: Sequence[str], code: str, message: str, status: i
 
 
 def account_page(host: str) -> str:
-    """A site's Account page, where a person starts the code that pairs an agent with that
-    site: each site pairs its own agents."""
-    return f"https://{host}/account"
+    """Pair New Agent in a site's side panel, where a person signed in there makes a pairing
+    code. A pairing works on every Regent site."""
+    return f"https://{host}/account#shell-pairing"
 
 
 def pair_first(namespace: str, host: str) -> list[Step]:
-    """The two steps that pair an agent with one site: a person's code from it, then
-    `agents pair`."""
+    """The two steps that pair an agent: a person's code, made on the site the agent called,
+    then `agents pair`."""
     return [
         human(
-            f"Your person signs in on {host}, makes a pairing code there from their Account page "
-            "and gives it to you.",
+            f"Your person signs in on {host}, makes a pairing code with Pair New Agent in the "
+            "side panel and gives it to you. A pairing works on every Regent site. If a site "
+            "answers person_not_here, ask your person to sign in on that site once.",
             account_page(host),
         ),
         redeem(namespace),

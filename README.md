@@ -41,7 +41,7 @@ regents patchbay doctor
 
 A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any
 signed-in agent, and `paired_agent` commands also need your person to have paired this agent
-with their account on that site (`regents <site> agents pair`). One agent key lives on this
+with their account (`regents <site> agents pair`) and to have signed in on that site once. One agent key lives on this
 machine and signs every request. It is the same key the SIWA agent client
 (`https://siwa.regents.sh/skill.md`) uses: `~/.siwa-agent/key.json`, with each site's sign-in
 in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
@@ -73,10 +73,12 @@ to sign, and `--phase send` reads `{"request": …, "signature": …}` and sends
 The prepared request names the signing contract it was built under; a `regents` that signs under
 another one refuses it, so prepare it again.
 
-Each site pairs its own agents. A person signs in on the site and makes a code from their Account
-page there, such as https://keyfleet.ai/account, and the agent supplies string `code`, `name` and
-`harness` fields through private JSON stdin to that site's `agents pair`: `regents keyfleet
-agents pair` for Keyfleet, `regents protocol agents pair` for regents.sh.
+A pairing works on every Regent site. A person signed in on a site makes a code with Pair New
+Agent in the side panel, such as https://keyfleet.ai/account#shell-pairing, and the agent supplies
+string `code`, `name` and `harness` fields through private JSON stdin to that site's `agents pair`:
+`regents keyfleet agents pair` for Keyfleet, `regents protocol agents pair` for regents.sh. If a
+site answers `person_not_here`, the agent is paired but its person has not signed in on that site
+yet; they sign in there once.
 `regents auth status --site ash-template` reads that site's identity and pairing probe. It
 never sends the legacy check-in or awards Points. Its `pairing_status` answer includes the
 site's authenticated identity, pairing and effective access; this replaces `paired_with`.
