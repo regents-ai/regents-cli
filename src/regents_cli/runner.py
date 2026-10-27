@@ -84,6 +84,7 @@ def platform_group(platform: Platform, group: click.Group | None = None) -> clic
         group = deepcopy(group)
         group.help = f"{group.help}\n\n{help_text}"
     described: list[click.Group] = []
+    public: set[tuple[int, str]] = set()
     for command in platform.commands:
         parent = group
         for word in command.group_words:
@@ -102,12 +103,34 @@ def platform_group(platform: Platform, group: click.Group | None = None) -> clic
                 f"{platform.name}: described command {' '.join(command.words)} already exists."
             )
         parent.add_command(build_command(platform, command))
-    # A description names commands, not groups: each group's line lists what it holds.
+        if command.authority == "public":
+            public.add((id(parent), command.name))
+    # A description names commands, not groups: each group's line lists what it holds, the
+    # commands that need no sign-in first.
     for child in described:
-        child.help = ", ".join(sorted(child.commands))
+        child.help = holds(child, {name for place, name in public if place == id(child)})
     if "doctor" not in group.commands:
         group.add_command(doctor_command(platform))
     return group
+
+
+def holds(group: click.Group, public: set[str]) -> str:
+    """The group's line: one sentence, since a list of commands shows only a help's first."""
+    names = sorted(group.commands)
+    groups = [n for n in names if isinstance(group.commands[n], click.Group)]
+    free = [n for n in names if n in public]
+    signed = [n for n in names if n not in public and n not in groups]
+    parts = [
+        f"{label}: {', '.join(listed)}"
+        for label, listed in (
+            ("needs no sign-in", free),
+            ("needs a sign-in", signed),
+            ("groups", groups),
+        )
+        if listed
+    ]
+    line = "; ".join(parts)
+    return line[:1].upper() + line[1:]
 
 
 def build_command(platform: Platform, command: Command) -> click.Command:

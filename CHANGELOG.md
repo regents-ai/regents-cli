@@ -46,6 +46,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   that the agent asks its person first: the first sign-in makes this machine's agent key, and
   on a Mac it prints a Touch ID page the person opens and confirms within 5 minutes, then once
   after each restart.
+- Each command group's help now marks which of its commands need no sign-in, such as
+  `workspace`: "Needs no sign-in: pulse; needs a sign-in: archive, changes, …". The commands
+  that need no sign-in come first, so they show in a site's command list too.
 
 ## 1.10.19 — 2026-10-27
 
