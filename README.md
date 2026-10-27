@@ -29,7 +29,9 @@ Every command answers the same way:
 
 `regents <site> doctor` runs the same checks for every site: the site answers, each public read
 that needs no input answers, and, for a site with signed commands, the sign-in server accepts
-a request signed with your sign-in, as the site would. It exits 1 when any check fails.
+a request signed with your sign-in, as the site would. Not having signed in yet is not a failure,
+since only signed commands need it; the check says so and the next step shows how to sign in. It
+exits 1 when any other check fails, or when a sign-in has expired.
 
 ```bash
 regents patchbay doctor

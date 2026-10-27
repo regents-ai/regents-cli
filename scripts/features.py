@@ -142,6 +142,12 @@ OWN: list[dict[str, Any]] = [
                 "post saying the live site failed",
                 "test": "tests/test_doctor.py",
             },
+            {
+                "id": "R-20261027-doctor-no-sign-in",
+                "from": "first-run walk of 1.10.19: doctor exited 1 on a new machine only "
+                "because it had not signed in yet",
+                "test": "tests/test_doctor.py",
+            },
         ],
         "gaps": ["The sign-in check is not run against the live sign-in server."],
     },

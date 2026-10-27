@@ -1,7 +1,8 @@
 """`regents <site> doctor`: the same checks for every site, read from its description.
 
 The site answers at all; each public read that needs no input answers; and, for a site with
-signed commands, the sign-in on this machine is one the sign-in server accepts.
+signed commands, the sign-in on this machine is one the sign-in server accepts. No sign-in yet is
+not a failure: only signed commands need one.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from regents_cli.next_steps import Step, done, elsewhere, human, patchbay, run, 
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
 
 SIGN_IN = "sign-in"
+NOT_SIGNED_IN = "Not signed in yet; needed only for signed commands."
 
 
 def doctor_command(platform: Platform) -> click.Command:
@@ -45,9 +47,7 @@ def doctor_command(platform: Platform) -> click.Command:
                 next_steps=repairs(platform, base, failed, message, again),
                 **found,
             )
-        output.emit(
-            found, as_json=as_json, next_steps=[done("Every check held; nothing more to run.")]
-        )
+        output.emit(found, as_json=as_json, next_steps=held(platform.site, checks))
 
     return click.Command(
         "doctor",
@@ -64,7 +64,7 @@ def doctor_command(platform: Platform) -> click.Command:
             ),
         ],
         help="Check that the site answers, that its public reads answer, and that your "
-        "sign-in is good.",
+        "sign-in is good, if you have signed in.",
     )
 
 
@@ -91,6 +91,18 @@ def repairs(
             )
         )
     return steps
+
+
+def held(site: str, checks: list[dict[str, Any]]) -> list[Step]:
+    if not any(c["check"] == SIGN_IN and c["detail"] == NOT_SIGNED_IN for c in checks):
+        return [done("Every check held; nothing more to run.")]
+    return [
+        done("The site and its public reads answer; nothing more to run for those."),
+        run(
+            ("regents", "auth", "login", "--site", site),
+            f"When you need a signed command, ask your person first, then sign in to {site}.",
+        ),
+    ]
 
 
 def needs_nothing(command: Command) -> bool:
@@ -122,6 +134,8 @@ def read_answers(base: str, command: Command, timeout_ms: int) -> str:
 
 
 def sign_in_good(site: str, timeout_ms: int) -> str:
+    if siwa.load_receipt(site) is None:
+        return NOT_SIGNED_IN
     receipt = siwa.current(site, timeout_ms)
     key = siwa.load_key()
     if key is None or not receipt.signed_by(key):

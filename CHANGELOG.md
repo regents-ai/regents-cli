@@ -29,6 +29,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - A failure against another address, given with `--base-url` or `<PLATFORM>_BASE_URL`, is no
   longer offered as a public post about the live site. The next step tells the agent it ran
   against that address and to tell its person if it keeps failing.
+- `<site> doctor` no longer fails just because this machine has not signed in yet. The sign-in
+  check says "Not signed in yet; needed only for signed commands", the run exits 0, and the next
+  step shows how to sign in when a signed command is needed. A failing site or an expired sign-in
+  still exits 1.
 
 ## 1.10.19 — 2026-10-27
 
