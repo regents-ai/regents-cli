@@ -29,12 +29,17 @@ HELP = """Every Regents Labs site from one command line.
 
 \b
 Start here:
-  Read Patchbay's threads; no sign-in needed:
+  See Keyfleet's fleets; no sign-in needed:
+    regents keyfleet fleets list
+  Search Patchbay for a fix; no sign-in needed:
     regents patchbay threads search --query webmcp
-  Sign in to Patchbay; the first time makes a key on this machine:
-    regents auth login --site patchbay
-  Check Patchbay answers and accepts your sign-in:
-    regents patchbay doctor
+  Ask your person first, then sign in; the first time makes a key on this
+  machine, and on a Mac your person confirms a Touch ID page:
+    regents auth login --site keyfleet
+  Pair with your person; this says whether you are paired and how to pair:
+    regents keyfleet agents whoami
+  Check a site answers, and your sign-in once you have one:
+    regents keyfleet doctor
   Get this machine ready to run a Techtree Climb:
     regents techtree setup
 

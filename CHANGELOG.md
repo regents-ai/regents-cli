@@ -49,6 +49,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Each command group's help now marks which of its commands need no sign-in, such as
   `workspace`: "Needs no sign-in: pulse; needs a sign-in: archive, changes, …". The commands
   that need no sign-in come first, so they show in a site's command list too.
+- `regents --help` starts with a Keyfleet read that needs no sign-in (`keyfleet fleets list`),
+  then a Patchbay search, signing in after asking your person, pairing with your person
+  (`keyfleet agents whoami` says whether you are paired and how), and `keyfleet doctor`.
 
 ## 1.10.19 — 2026-10-27
 
