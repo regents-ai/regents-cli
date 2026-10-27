@@ -5,6 +5,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.19 — 2026-10-27
 
+Evidence: level protected; features touch-id-key, techtree-release,
+techtree-evaluation-engine, release-gates and the 18 Keyfleet command groups; 696 tests; 6
+known gaps in verification/features.yml; ten paid Climb runs, every proof verified
+(docs/techtree-recertification.md).
+
 - Techtree Climbs run on Verifiers 0.4.0, which Prime Intellect released as ready for v1. Each
   engine, the subject image and the Tasksmith agent images move to it. The engines install it
   from Regents' copy (`regents-ai/verifiers`, version `0.4.0+regents.1`, commit `04dfb70`),
