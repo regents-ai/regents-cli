@@ -458,7 +458,33 @@ def after(
                 "The site took this but has not finished it, so don't run it again.",
             )
         ]
+    said = answer.get("next_step") or dig(answer, "data.next_step")
+    if isinstance(said, str) and said.strip():
+        return [site_says(platform, said)]
     return [done(DONE[command.effect])]
+
+
+#: An HTTP route named in a site's own words, such as "POST /forum/threads".
+ROUTE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE) (/[^\s,;)`'\"]*)")
+
+
+def site_says(platform: Platform, said: str) -> Step:
+    """The site's own next step, as it wrote it, with the help of the command for the first
+    route it names that is exactly one of the site's commands."""
+    for method, path in ROUTE.findall(said):
+        matching = [c for c in platform.commands if c.method == method and routed(c.path, path)]
+        if len(matching) == 1:
+            named = [w for w in matching[0].words if not w.startswith("<")]
+            return run_step(["regents", platform.name, *named, "--help"], said)
+    return Step("run", said)
+
+
+def routed(template: str, path: str) -> bool:
+    """Whether `path` is the command's route, with any value in each {placeholder}."""
+    pattern = "/".join(
+        "[^/]+" if part.startswith("{") else re.escape(part) for part in template.split("/")
+    )
+    return re.fullmatch(pattern, path.rstrip(".")) is not None
 
 
 #: What a finished answer means, by what the command does.

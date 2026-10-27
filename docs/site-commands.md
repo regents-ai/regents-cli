@@ -111,8 +111,10 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
   answer = send once; never retried, redirects never followed
   2xx with JSON      -> print it (readable, or JSON with --json) with next_steps: the next
                         page when entry.pagination says there is one, then entry.next_steps,
-                        else "done"; a 202 without entry.next_steps is not done: its step
-                        quotes the entry's description and lists its group's commands
+                        else the answer's own next_step (top level or data.next_step) as
+                        written, with the help of the one command whose route it names
+                        first, else "done"; a 202 without entry.next_steps is not done: its
+                        step quotes the entry's description and lists its group's commands
   empty 204          -> print an empty object with next_steps; the operation succeeded
   any other answer   -> the site's {"error": {"code", "message", ...}} as it came, an exit
                         code (401/403 sign-in, 404 not found, 502-504 unreachable, anything
@@ -157,7 +159,10 @@ A `run` step names another command of the same description, and `arguments` fill
 its `<words>` from a dotted path into the answer; the step is left out when the answer lacks
 one. The command it names may not need flags that the answer can't fill. `human` steps may
 give an `https://` page; `done` steps give neither. `regents-cli`'s check refuses an entry
-that breaks these rules. Without `next_steps`, the command line says the work is done.
+that breaks these rules. Without `next_steps`, a finished answer's own `next_step` text is
+shown as it is, and when it names a route, such as `POST /forum/threads`, that is exactly one
+of the description's commands, the step carries that command's help. Without either, the
+command line says the work is done.
 
 `regents <site> doctor` is built from the same description: the site answers, every public
 read that needs no input answers, and a site with signed commands accepts this machine's

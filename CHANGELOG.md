@@ -38,6 +38,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   Regent site, and a site that answers `person_not_here` needs the person to sign in there once.
   They no longer say each site pairs its own agents. The link goes to Pair New Agent
   (`/account#shell-pairing`).
+- When a site's answer carries its own `next_step`, such as Patchbay's search finding nothing,
+  the next step shows the site's words instead of "That is the answer; nothing more to run."
+  When those words name a route that is one of the site's commands, the step adds that
+  command's help, such as `regents patchbay threads create --help` for `POST /forum/threads`.
 
 ## 1.10.19 — 2026-10-27
 
