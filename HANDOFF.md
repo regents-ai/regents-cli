@@ -63,9 +63,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
 3. Every site is pinned to its live commit. In 1.10.18 (`platforms.lock.json`, checked against
-   Fly on 26 Oct): Patchbay `b35c919d` (v273), Keyfleet `87d93611` (v348), Autolaunch
-   `4605972e` (v181), Techtree `6b9c88ac` (v191), regents.sh `8d632fd6` (v228), ash-template
-   `0d713c83` (v110), and the signing
+   Fly on 27 Oct): Patchbay `955e9498` (v274), Keyfleet `83363e79` (v350), Autolaunch
+   `a80469ec` (v183), Techtree `6b9c88ac` (v191), regents.sh `8d632fd6` (v228), ash-template
+   `33c5cd10` (v111), and the signing
    contract from elixir-utils `fe3aa1d5`. `make release-check` reads every public read live
    against these copies. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
    is the one command tree named apart from its site (`SIGN_IN_SITES` in
@@ -143,33 +143,34 @@ behind a site, and never holds one up (founder, 2026-09-28).
      `scope`).
    - 1.10.17 (2026-10-23, `773f8a6`): a paired command's help names that site's own pairing;
      Keyfleet re-pinned to `6e004b4b` for `keys claim-all`.
-   - 1.10.18 (2026-10-24): Patchbay (`bench pair` run and check), Autolaunch (`auctions counts`,
-     token prices) and Keyfleet (the People and agents room) re-pinned to their live commits.
-7b. Verifiers 0.4.0 (founder, 2026-10-20 and 2026-10-21 "1. a"): branch `cli/pi-stack-1021`
-   moves every engine to commit `6e69354`, the eval config to `select.limit`, validation to the
-   gold and noop checks (`upstream_noop`), the image runner checksum to `b05b20d1…`, and
-   `hf-tasksmith-v1` to 0.2.0. Checked here: Hello World 36/36 and Frontier-CS 10/10 valid, the
-   Tasksmith taskset 12/12, two stand-in Hello World episodes on a locally built subject image
-   read by `normalize_eval_output.py`. Still to do, each with the founder's go and in order:
-   push; run `techtree-subject-image.yml`, then the cpp subject image FROM its digest, then
-   `techtree-tasksmith-images.yml` and `pins.json`; publish `hf-tasksmith-v1` 0.2.0 to the Hub
-   and pin it in `build_engine_bundle.py`; rebuild the tasksmith engine; move the image digests in
-   `build_fixture_catalog.py` and regenerate the catalog, goldens, schemas and ReleaseCore; remake
-   the sample proof in `tests/techtree/fixtures/run/proof` from a stand-in run (until then
-   `test_proof`, `test_publish_command` and `test_published_skill` fail on `upstream_setup`);
-   `make check`; main; the paid runs; the Techtree catalog; PyPI. The paid run plan lists three
-   parts, each with its count and cost and each on its own go: reruns of the five published
-   Results (same Skill, model and settings, new result IDs, replacing the old ones, founder
-   2026-10-21 "3 b"), the Climb re-certification runs, and the second independent rerun of each
-   comparison. Before any model call the plan runs the checks that need none (membership and
-   order, deterministic grading, generated configs, proof verification), and a failure is kept as
-   evidence, never dropped. Techtree records each rerun's link to the comparison it replaces on
-   the site; the proof format does not change. The rebuilt tasksmith engine must resolve the
-   same Verifiers 0.4.0, harbor 0.24.0 and prime-sandboxes 0.5.0 as the other two (a scratch
-   lock of `hf-tasksmith-v1` 0.2.0 does). Model Climb's trainer keeps Verifiers `e888a719`: prime-rl
-   0.10.0's packed sampling masks need it. Techtree's stable channel is on 1.10.15 since
-   2026-10-21 10:21Z (founder "2 a"), so the Techtree catalog and PyPI no longer wait on it.
-   Images published 2026-10-21 from this branch: subject `8268cae0…`, cpp `9ae66672…`.
+   - 1.10.18 (2026-10-27): every site request names the release and command in
+     `x-regent-client`; Patchbay (`bench pair` run and check), Autolaunch (`auctions counts`,
+     token prices) and Keyfleet (the People and agents room); every site re-pinned to its live
+     commit.
+7b. Verifiers 0.4.0 (founder, 2026-10-20 and 2026-10-21 "1. a"): branch `cli/pi-stack-1021` moves
+   every engine to commit `6e69354`, the eval config to `select.limit`, validation to the gold and
+   noop checks (`upstream_noop`), the image runner checksum to `b05b20d1…`, and `hf-tasksmith-v1`
+   to 0.2.0. Checked here: Hello World 36/36 and Frontier-CS 10/10 valid, the Tasksmith taskset
+   12/12, two stand-in Hello World episodes on a locally built subject image read by
+   `normalize_eval_output.py`. Done since: the images (subject `8268cae0…`, cpp `9ae66672…`, twelve
+   Tasksmith agent images in `pins.json`); `hf-tasksmith-v1` 0.2.0 on the Hub (2026-10-27, content
+   hash `c279a5b4…`) pinned in `build_engine_bundle.py`; the tasksmith engine rebuilt; the catalog
+   regenerated with all four Campaigns valid (36, 10, 6 and 6). Still to do, in order: goldens,
+   schemas and ReleaseCore; the sample proof in `tests/techtree/fixtures/run/proof` from a stand-in
+   run (until then `test_proof`, `test_publish_command` and `test_published_skill` fail on
+   `upstream_setup`); `make check`; main; the paid runs; the Techtree catalog; PyPI, each with the
+   founder's go. The paid run plan lists three parts, each with its count and cost and each on its
+   own go: reruns of the five published Results (same Skill, model and settings, new result IDs,
+   replacing the old ones, founder 2026-10-21 "3 b"), the Climb re-certification runs, and the
+   second independent rerun of each comparison. Before any model call the plan runs the checks that
+   need none (membership and order, deterministic grading, generated configs, proof verification),
+   and a failure is kept as evidence, never dropped. Techtree records each rerun's link to the
+   comparison it replaces on the site; the proof format does not change. The rebuilt tasksmith
+   engine must resolve the same Verifiers 0.4.0, harbor 0.24.0 and prime-sandboxes 0.5.0 as the
+   other two (a scratch lock of `hf-tasksmith-v1` 0.2.0 does). Model Climb's trainer keeps
+   Verifiers `e888a719`: prime-rl 0.10.0's packed sampling masks need it. Techtree's stable channel
+   is on 1.10.15 since 2026-10-21 10:21Z (founder "2 a"), so the Techtree catalog and PyPI no
+   longer wait on it.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
