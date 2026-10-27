@@ -306,7 +306,8 @@ def tasksmith_campaign(slug: str, label: str, task_ids: tuple[str, ...]) -> Camp
         engine="tasksmith",
         package="hf-tasksmith-v1",
         task_count=len(task_ids),
-        rubric=(("solved", 1.0),),
+        # Verifiers 0.4.0's Harbor taskset names its score by the task's reward key.
+        rubric=(("reward", 1.0),),
         images=TaskImageSet(task_ids=task_ids),
         cpu=1.0,
         memory_gb=2.0,

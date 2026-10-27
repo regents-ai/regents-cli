@@ -198,6 +198,13 @@ behind a site, and never holds one up (founder, 2026-09-28).
    reruns as a ProviderError with all three errors kept. Read with the new rule, the records of
    `run_5f49476a…` and `run_fb2a7550…` each show one baseline task scored after a 502 cut it
    off; both stay published (founder "3 a").
+   The first paid Tasksmith run (`run_1abd03c1…`, $0.85) ended as unusable: Verifiers 0.4.0's
+   Harbor taskset names its score by the task's reward key, `reward`, where the engine before
+   named it after the method, `solved`, and both Tasksmith Campaigns still asked for `solved`.
+   The Campaigns now ask for `reward` (catalog `sha256:b0ab3945…02c4`, only the Tasksmith files
+   changed, ReleaseCore `sha256:127276e8…6269`). The catalog's gold and untouched checks grade
+   through the task's own check, not the episode's scorer, so they cannot see this; a free
+   stand-in run of a Tasksmith Campaign does, and is now run before any paid Tasksmith run.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

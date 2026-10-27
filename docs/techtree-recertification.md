@@ -70,6 +70,30 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-10-27, a free run against a local stand-in model on `tasksmith-climb@2` after the fix
+  below (`run_203f5fbb350a44ec82461c65dedff3dd`), and one on its held-out tasks
+  (`run_7f8bc1dbf2684e7ead353d5eedba5e4f`): in each, all 12 episodes finished and were scored
+  under `reward`, and the proof verifies offline (115 checks). The stand-in answers every call "done",
+  so every task scores 0; the run proves only that a Tasksmith run completes and is scored.
+
+- 2026-10-27, the first paid Tasksmith run on `tasksmith-climb@2`
+  (`run_1abd03c1f1534b5d8a970be482239865`, about $0.85) ended as unusable. Verifiers 0.4.0 names
+  a Harbor task's score by its reward key, `reward`; the engine before named it after the
+  scoring method, `solved`, and both Tasksmith Campaigns still asked for `solved`, so every
+  trace failed the rubric check. The scores themselves were sound (one candidate task solved).
+  Nine provider "502"s and one "520" during the run were all retried inside their tasks. The
+  Campaigns now ask for `reward`; a free stand-in Tasksmith run comes before any paid one,
+  because the catalog's own checks grade tasks without the episode's scorer.
+
+- 2026-10-27, paid recertification on `climb-v0.7.20` (regents-cli 1.10.19, Verifiers
+  `0.4.0+regents.1`, Prime-key route, billed to Regents Labs): Hello World 1, 2 and 3
+  (`run_3f0e618b05834b33b37b051ff2325da6`, `run_c811e1636b504b38a0147b0e9473b39c`,
+  `run_4c1fa831752f4e2eb46cd798f3bd9f50`) each finished all 72 episodes with candidate 24 of 36
+  and baseline 0 of 36, about $0.13 to $0.14 each, proofs verified (355 checks). Run 1 absorbed
+  20 provider "502"s by retrying them. Frontier-CS 1 (`run_e7b22e46920742f9aa0106f97ee8372f`)
+  finished all 20 episodes, candidate mean 0.539 against 0.531, 6 wins and 3 losses, about
+  $0.48, proof verified (147 checks).
+
 - 2026-10-27, why the two runs below lost tasks. Verifiers relayed every failed provider call to
   Hermes labelled as a bad request, and Hermes never retries a bad request, so one "502" ended
   the task. When that happened on a task's first model call the task ended as an error and the

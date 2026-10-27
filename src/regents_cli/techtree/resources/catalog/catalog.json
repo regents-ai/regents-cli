@@ -11,12 +11,17 @@
       "reference": "frontier-cs-open-ended-climb@3"
     },
     {
-      "digest": "sha256:d95b896aaf1ead6316939ea18f678b8066870be1cf13d97dbd071c9e50e1ea32",
+      "digest": "sha256:16ff41f62116e80e32c00fe9319ed73248eba9e92723025075ad3f13a043ecfa",
       "path": "climbs/tasksmith-climb.json",
       "reference": "tasksmith-climb@2"
     }
   ],
   "objects": {
+    "sha256:105ce4fbe9504a3dda5a9e97da46358c413753c0f54c3b11224d77aebe38bfb3": {
+      "kind": "campaign",
+      "media_type": "application/json",
+      "path": "campaigns/tasksmith-climb.json"
+    },
     "sha256:138667542ecf48ac1088c6c8dd654e59158927ef38d51daa7f450a005068b6c6": {
       "kind": "taskset_validation",
       "media_type": "application/json",
@@ -31,6 +36,11 @@
       "kind": "data_policy",
       "media_type": "application/json",
       "path": "data-policies/frontier-cs-open-ended-climb.json"
+    },
+    "sha256:466b1b955b7efac723173b311299620d2a89d0425babbbd2a876a5fcfa2fd06c": {
+      "kind": "campaign",
+      "media_type": "application/json",
+      "path": "campaigns/tasksmith-held-out.json"
     },
     "sha256:48e0b0dddb924c48d6ff2b4db934449f4680d2023e05b5166209bf22954cb6e5": {
       "kind": "campaign",
@@ -77,20 +87,10 @@
       "media_type": "application/json",
       "path": "execution-plans/frontier-cs-open-ended-climb.json"
     },
-    "sha256:886058826e2cb2cab9aaa6a51edffe59d02c6adb51a3cacfbb7896b039009588": {
-      "kind": "campaign",
-      "media_type": "application/json",
-      "path": "campaigns/tasksmith-climb.json"
-    },
     "sha256:c07e4e270d8def74f2689986a72d7891e4cd3cb0c6de011de2acd72fe1437599": {
       "kind": "taskset_validation",
       "media_type": "application/json",
       "path": "taskset-validations/frontier-cs-open-ended-climb.json"
-    },
-    "sha256:dddaf59cc270be25af98b47f766611c8e9f133f3c8352412d6f03f8e577b739d": {
-      "kind": "campaign",
-      "media_type": "application/json",
-      "path": "campaigns/tasksmith-held-out.json"
     },
     "sha256:ebc45cb520aba510cdd79c27750e78bdc88a96d372715a7d047734e77acb6509": {
       "kind": "taskset_validation",
