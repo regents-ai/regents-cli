@@ -18,6 +18,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from importlib.metadata import version
 from typing import Literal
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from regents_cli.errors import (
@@ -146,7 +147,18 @@ def sign_in(site: str) -> Step:
 #: Flags a rerun leaves out: an agreement covers one go, so a rerun asks for a new one.
 AGREEMENT_FLAGS = {"--yes": 0, "--reviewed-on": 1}
 #: Flags whose value a rerun shows only as a placeholder, as the approval review does.
-PRIVATE_FLAGS = {"--address": "<private-address>", "--base-url": "<private-address>"}
+PRIVATE_FLAGS = {"--address": "<private-address>"}
+#: Flags whose value a rerun shows as that placeholder only when it carries a user or password.
+ADDRESS_FLAGS = frozenset({"--base-url"})
+
+
+def _shown_address(value: str) -> str:
+    """`value`, or the placeholder when it carries a user or password (or cannot be read)."""
+    try:
+        private = "@" in urlsplit(value).netloc
+    except ValueError:
+        private = True
+    return PRIVATE_FLAGS["--address"] if private else value
 
 
 @dataclass(frozen=True, slots=True)
@@ -172,15 +184,22 @@ class Invocation:
         """The same command, without an earlier agreement and without private values."""
         kept: list[str] = []
         skip = 0
+        address_next = False
         for arg in self.args:
-            name, has_value, _ = arg.partition("=")
-            if skip:
+            name, has_value, value = arg.partition("=")
+            if address_next:
+                kept.append(_shown_address(arg))
+                address_next = False
+            elif skip:
                 skip -= 1
             elif name in AGREEMENT_FLAGS:
                 skip = 0 if has_value else AGREEMENT_FLAGS[name]
             elif name in PRIVATE_FLAGS:
                 kept += [name, PRIVATE_FLAGS[name]]
                 skip = 0 if has_value else 1
+            elif name in ADDRESS_FLAGS:
+                kept.append(f"{name}={_shown_address(value)}" if has_value else name)
+                address_next = not has_value
             else:
                 kept.append(arg)
         return ("regents", *kept)

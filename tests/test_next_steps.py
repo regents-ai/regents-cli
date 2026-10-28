@@ -216,6 +216,37 @@ def test_a_rerun_asks_for_agreement_again_and_hides_private_values() -> None:
     )
 
 
+def test_a_rerun_keeps_an_address_and_hides_one_carrying_a_password() -> None:
+    """A site command's local --base-url stays runnable; an address with a user or password,
+    given in either form or before a later plain one, never comes back."""
+    args = (
+        "techtree",
+        "model",
+        "check-server",
+        "--base-url",
+        "http://operator:hunter2@127.0.0.1:8000/v1",
+        "--base-url=http://operator:hunter2@127.0.0.1:8001/v1",
+        "--base-url",
+        "http://127.0.0.1:8000/v1",
+        "--base-url=http://[::1:8000/v1",
+        "--json",
+    )
+    again = Invocation(args, ("techtree", "model"), None, None, takes_stdin=False).again
+    assert again == (
+        "regents",
+        "techtree",
+        "model",
+        "check-server",
+        "--base-url",
+        "<private-address>",
+        "--base-url=<private-address>",
+        "--base-url",
+        "http://127.0.0.1:8000/v1",
+        "--base-url=<private-address>",
+        "--json",
+    )
+
+
 def test_only_a_402_with_x402_terms_asks_for_a_signature() -> None:
     """Review P2: a 402 with no payment terms (Credits, free quota) is not signing advice."""
     terms = httpx.Response(402, json={"accepts": []}, headers={"payment-required": "e30="})
