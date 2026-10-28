@@ -1,7 +1,7 @@
 {
   "ash-template": {
     "repository": "regents-ai/ash-template",
-    "commit": "f76f138914a64236747a9f9a5d28c8178c10525a",
+    "commit": "5a1fe29ec53310d1c47a481ed485a06b6a3ac533",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/ash-template/commands.json",
@@ -23,11 +23,11 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "6478f162da389cb4835b2da60a5935a44a96507d",
+    "commit": "e6f3d22577b0d21fa9814205ede3afeea2f66a50",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
-        "sha256": "76ca7100ee2670fe9f2aa343e8e0035ed852e5b50e60ebfe302e5a73bf180406"
+        "sha256": "910617db19e63f7f2e5c2dcd78863802cad82b5fe2324c88c1db9d255ef8120d"
       },
       "cli/docs/profile.openapi.json": {
         "copy": "src/regents_cli/platforms/autolaunch/profile.openapi.json",
@@ -35,17 +35,17 @@
       },
       "cli/docs/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/autolaunch/api-contract.openapiv3.yaml",
-        "sha256": "362d2628670f7f873043b100c75e22981d17dd2341f2d4bf544e9f658af54ddf"
+        "sha256": "d7181db37d8001e86de5f544bad636b6e49354577b52410749e9ed7b88e113cf"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/autolaunch.json",
-        "sha256": "2d831581d936f9dfce0fce999953a2a1cf67c29ff309cf9dcb9b6f4e6f3c8868"
+        "sha256": "b3bbe120ee79c3b4606c44d7a700d6ca9be85e0e70ed5ad257a3c5263f4bdb0d"
       }
     }
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "ce00963ffbbc2bd9b1aead3e82e42a263c75ec40",
+    "commit": "0df8e0f7172ce09869c52ab610f2b9250e27cd25",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
@@ -67,7 +67,7 @@
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "9359eacd68d86f89e24eee17c59d33fcb14fd4ed",
+    "commit": "668d92209414328b501e23afbaee1faff50e65ff",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
@@ -85,7 +85,7 @@
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "0a046b55fc6842744a3a05249210d331d4912819",
+    "commit": "d58a8dbcd4742745a632e9d9d679e93e2699aadc",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",
@@ -93,11 +93,11 @@
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/protocol/openapi.json",
-        "sha256": "2c9d2531775ae7cfaca861a7afd8e0faee1599da707369e6cacda7a65eff2cd8"
+        "sha256": "da52c95eae19a0969f66e0b6f8f633b2ce3962fd3ff54443fc8c529b13bd3938"
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/protocol/api-contract.openapiv3.yaml",
-        "sha256": "6804527b1ad37bc1694b26fdf46710cb02f8a4dccfc6b10b54e62a858da79626"
+        "sha256": "38987a6ff1d501ebeb7845ea96b5f016f01a80e99d2a4b4c49a09277da76d3cf"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/protocol.json",
@@ -121,7 +121,7 @@
   },
   "techtree": {
     "repository": "regents-ai/techtree",
-    "commit": "0d68080660a6079e19c99bee04a9426511ba9db4",
+    "commit": "53fd7920fb15f0afcbe81f6965b56e939b5fdefc",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/techtree/commands.json",
