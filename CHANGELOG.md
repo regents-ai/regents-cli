@@ -11,6 +11,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   sides, and only the weights changed. It reads local files only and computes every digest
   itself; a checkpoint that cannot be named exactly is refused with the reason. No run uses the
   pair yet (docs/model-substitution.md).
+- New: `regents techtree model check-server --block <file> --base-url <url>` asks an operator's
+  vLLM server whether it serves the model a block names: the block's weights root as the served
+  model name, its vLLM version and its context length. Two free reads; a key, when the server
+  needs one, is read from `VLLM_API_KEY` and never shown. This is the open_weights route's
+  check, written out in docs/model-substitution.md.
 
 ## 1.10.20 — 2026-10-28
 

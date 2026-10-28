@@ -46,10 +46,51 @@ It refuses, with `obliteratus_checkpoint_refused`, a checkpoint that:
 The candidate's `weights.repo` and `weights.revision` are null: the weights live on the
 operator's machine.
 
+## The open_weights route (spec section 7, open question 3)
+
+A model substitution run reaches each side's model on a vLLM server the operator runs. This is
+the rule, as `src/regents_cli/techtree/model_server.py` checks it:
+
+1. Each side has its own server, named by the base address of its OpenAI-compatible API: `http`
+   or `https`, ending in `/v1`, with no user, password, query or fragment. One server per side
+   (one GPU each in the first comparison) keeps the sides' calls apart; both run at once.
+2. Each side is served under its own `weights.weights_root` as the served model name (vLLM
+   `--served-model-name sha256:...`). The subject asks for that name, so its traces record the
+   digest of the weights it was meant to be answered by, and the two sides cannot be swapped
+   without the check below refusing.
+3. Before the run, each server is asked two free reads. `GET <base>/models` must list the side's
+   `weights_root` with `max_model_len` equal to the block's `serving.max_model_len`.
+   `GET <server>/version` (the base address without `/v1`) must answer the block's
+   `serving.version`. Anything else refuses with `model_server_mismatch`; a server that cannot be
+   reached, answers other than 200, or asks for a key that is not set refuses with
+   `model_server_unreachable`; an unusable address refuses with `model_server_url_invalid` and
+   is never repeated, since it may carry a password.
+4. A server that needs a key is given it through `VLLM_API_KEY`, vLLM's own name, sent as a
+   bearer token and never written into an answer, a run input or a log line.
+5. The addresses are the run's, not the Campaign's: like the forwarder's address on the
+   ChatGPT plan route, they are not frozen into a Campaign or a proof bundle. What the bundle
+   holds is each side's model block, and so its served name.
+6. What a server cannot show, the bytes it loaded, its dtype and its quantization, stays the
+   operator's statement. The route spends nothing (the operator runs the GPUs), so it has no
+   spending maximum; a rerun by someone else (`independently_reproduced`) is what checks the
+   statement.
+
+`regents techtree model check-server --block <file> --base-url <url>` runs step 3 on its own, so
+an operator can check each server before a run, or in a rehearsal:
+
+```
+regents techtree model import-obliteratus <checkpoint> --source <snapshot> ... --json > pair.json
+jq .baseline pair.json > baseline.json
+vllm serve <snapshot> --served-model-name "$(jq -r .weights.weights_root baseline.json)" ...
+regents techtree model check-server --block baseline.json --base-url http://127.0.0.1:8000/v1
+```
+
 ## Runs
 
 v1 starts from a Campaign, with no Climb in the catalog; Climbs stay `skill_insertion` until a
 model Climb has a real use. A model pair's draft carries the candidate's model block in place of
-a Skill, and no Skill is published. An open-weights run reaches the model through an
-`open_weights` route: an operator-run vLLM server at a base URL, with the served model name
-checked against each side's block. The route is built when a costed run plan exists.
+a Skill, and no Skill is published. Not built yet, and the next step: the model substitution
+Campaign (`mutation_contract.kind` `model_substitution`, its subject naming an open-weights
+block), its run on the route above with each side's server checked first, the comparison of
+section 4, and its proof bundle. The first comparison's task collection is
+`hello-world-climb@3`: exact checks, and no wallet, money or sign-in steps.

@@ -256,25 +256,30 @@ OWN: list[dict[str, Any]] = [
     {
         "id": "techtree-model-substitution",
         "what": "An agent describes an OBLITERATUS checkpoint and the Hugging Face snapshot it "
-        "was made from as the two model blocks of a model substitution pair.",
+        "was made from as the two model blocks of a model substitution pair, and checks that "
+        "an operator's vLLM server serves a block's model.",
         "who": "agent",
         "level": "ordinary",
         "paths": [
             "src/regents_cli/techtree/model_files.py",
+            "src/regents_cli/techtree/model_server.py",
             "src/regents_cli/techtree/obliteratus.py",
             "src/regents_cli/techtree/models/open_weights.py",
         ],
         "entry": [
-            {"cli": "regents techtree model import-obliteratus <checkpoint> --source <snapshot>"}
+            {"cli": "regents techtree model import-obliteratus <checkpoint> --source <snapshot>"},
+            {"cli": "regents techtree model check-server --block <file> --base-url <url>"},
         ],
         "proofs": [
             "tests/techtree/test_model_files.py",
             "tests/techtree/test_obliteratus_import.py",
+            "tests/techtree/test_model_server.py",
         ],
         "gaps": [
             "Proven on hand-made checkpoints only, not yet on a real OBLITERATUS export.",
-            "No run uses the pair yet: an open-weights run needs its own route, which waits "
-            "for a costed run plan.",
+            "check-server is proven against a stand-in for vLLM's two reads, not a real vLLM.",
+            "No run uses the pair yet: the model substitution Campaign, its run on the "
+            "open_weights route, and its proof bundle are the next build.",
         ],
     },
     {
