@@ -57,7 +57,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
 - `scripts/check_live.py`: `make release-check` installs the wheel into a new environment, runs
   every public read against the live sites, and checks the Touch ID page is the live sign-in
   server's own.
-- `tool_manifests/`: each site's WebMCP tool list, pinned but not shipped;
+- `src/regents_cli/platforms/<site>/tool_manifest.json`: each site's WebMCP tool list, pinned
+  and shipped, since `regents browser` checks signed page requests against it;
   `scripts/webmcp_parity.py` reports tools and commands without a partner and never fails.
 
 ## Where the steps stand

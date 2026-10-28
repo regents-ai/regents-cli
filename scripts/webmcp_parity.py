@@ -1,7 +1,7 @@
 """Compare each site's WebMCP tools with its `regents` commands, from the pinned copies.
 
-The tool lists are pinned in tool_manifests/ and never ship; the command lists ship in the
-package under src/regents_cli/platforms/.
+The tool lists and the command lists are both pinned in the package, under
+src/regents_cli/platforms/<site>/.
 
 A command and a tool do the same thing when the command names the tool (`webmcp`), or when
 both call the same route (method and path, whatever the path's placeholders are called). The
@@ -29,14 +29,12 @@ from rich.table import Table
 
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
-TOOL_MANIFESTS = ROOT / "tool_manifests"
 
 #: Who may call a command, from its `authority`.
 WHO = {"public": "anyone", "signed_agent": "signed-in agent", "paired_agent": "paired agent"}
 
 #: Tools whose job `regents` does with its own commands rather than a site command.
 COVERED_BY_CLI: dict[str, dict[str, str]] = {
-    "*": {"prepare_agent_request": "regents signs each request itself"},
     "techtree": {
         "techtree_start": "techtree setup",
         "techtree_climbs": "techtree climb list",
@@ -101,8 +99,8 @@ def routes(text: str | None) -> set[str]:
 
 def compare(name: str) -> dict[str, Any]:
     commands = json.loads((PLATFORMS / name / "commands.json").read_text("utf-8"))["commands"]
-    tools = json.loads((TOOL_MANIFESTS / f"{name}.json").read_text("utf-8"))["tools"]
-    covered = {**COVERED_BY_CLI["*"], **COVERED_BY_CLI.get(name, {})}
+    tools = json.loads((PLATFORMS / name / "tool_manifest.json").read_text("utf-8"))["tools"]
+    covered = COVERED_BY_CLI.get(name, {})
     cli_only = {**CLI_ONLY["*"], **CLI_ONLY.get(name, {})}
     site_only = {**SITE_ONLY["*"], **SITE_ONLY.get(name, {})}
     tool_names = {tool["name"] for tool in tools}
@@ -229,7 +227,7 @@ def main(args: list[str]) -> int:
         console.print(f"[red]unknown arguments:[/red] {' '.join(args)}")
         return 2
     names = sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json"))
-    missing = [name for name in names if not (TOOL_MANIFESTS / f"{name}.json").is_file()]
+    missing = [name for name in names if not (PLATFORMS / name / "tool_manifest.json").is_file()]
     if missing:
         console.print(f"[red]Pinned sites with no tool manifest:[/red] {', '.join(missing)}")
         return 1

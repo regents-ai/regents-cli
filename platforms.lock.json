@@ -16,7 +16,7 @@
         "sha256": "e1080c5f74f3f8219cf339313aca70b8b53bf53004054490b89789492bfe95a4"
       },
       "platform/priv/tool_manifest.json": {
-        "copy": "tool_manifests/ash-template.json",
+        "copy": "src/regents_cli/platforms/ash-template/tool_manifest.json",
         "sha256": "8d4cc0df07ceaf467839b524095765b44afa37d0e15ef92c3586bb2f994e1843"
       }
     }
@@ -38,7 +38,7 @@
         "sha256": "d7181db37d8001e86de5f544bad636b6e49354577b52410749e9ed7b88e113cf"
       },
       "platform/priv/tool_manifest.json": {
-        "copy": "tool_manifests/autolaunch.json",
+        "copy": "src/regents_cli/platforms/autolaunch/tool_manifest.json",
         "sha256": "b3bbe120ee79c3b4606c44d7a700d6ca9be85e0e70ed5ad257a3c5263f4bdb0d"
       }
     }
@@ -60,7 +60,7 @@
         "sha256": "6addb77cb60c666ca9e1d6b0871b92f192c82bbf8acafdae64a5aa655e9c129f"
       },
       "platform/priv/tool_manifest.json": {
-        "copy": "tool_manifests/keyfleet.json",
+        "copy": "src/regents_cli/platforms/keyfleet/tool_manifest.json",
         "sha256": "c3c0c4c9b24943719eac5305a17ccda3aedbda2d8f653d9d6c31dfab9f8f986c"
       }
     }
@@ -78,7 +78,7 @@
         "sha256": "f0150faeacf86d6c99963fe69df22c4dcdf4ede98b0bcce6bd790cca9f43ed2d"
       },
       "platform/priv/tool_manifest.json": {
-        "copy": "tool_manifests/patchbay.json",
+        "copy": "src/regents_cli/platforms/patchbay/tool_manifest.json",
         "sha256": "ed386c7934c305d8d750c74bcec0eb5a2658facd3229dc0a15065eb8c20f6a4d"
       }
     }
@@ -100,7 +100,7 @@
         "sha256": "b76f467ec1134e94412203eb148994445da852afa70b7402fb285383bec34fb9"
       },
       "platform/priv/tool_manifest.json": {
-        "copy": "tool_manifests/protocol.json",
+        "copy": "src/regents_cli/platforms/protocol/tool_manifest.json",
         "sha256": "c5ab44f7387f9acebc4f524efc84b81e14d260ab765ea721e8426b1cac31d187"
       }
     }
@@ -132,7 +132,7 @@
         "sha256": "96024e9e86b62a6bc857b73fd03b54163b6686ba4e94e221a47c8e9b2b47f7d1"
       },
       "platform/priv/tool_manifest.json": {
-        "copy": "tool_manifests/techtree.json",
+        "copy": "src/regents_cli/platforms/techtree/tool_manifest.json",
         "sha256": "3cd3a136f348fe0ed0de252fa327785af82d48c00ec33c6364b351cb0a8b5292"
       }
     }

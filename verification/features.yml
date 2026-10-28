@@ -129,6 +129,39 @@ features:
   - 'The page is run in headless Chromium with a virtual Touch ID, not Safari, and on a Mac only: the
     publish workflow''s Linux run skips it, and make release-check runs it. scripts/check_live.py checks
     it is the live sign-in server''s page.'
+- id: page-tools
+  what: An agent host uses a site's pages and the WebMCP tools each page offers, in a hidden Chromium
+    of regents' own; a signed tool is signed with the agent key only for the exact request the agent's
+    call builds on the site's own page, once.
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/webmcp_host.py
+  - src/regents_cli/agent_hosts.py
+  entry:
+  - cli: regents browser --site <site>
+  proofs:
+  - tests/test_page_tools.py
+  regressions: []
+  gaps:
+  - Proven against a stand-in page that signs the way the shared library does; no site page has moved
+    to the library's host signer yet, so nothing is run against a real site's pages.
+  - Runs in headless Chromium only; WebKit is not run on the Mac.
+- id: hosted-mcp
+  what: An agent host uses a site's hosted MCP server; each message goes on as one POST signed with the
+    agent key over the exact bytes sent, with the MCP routing headers, and every answer comes back unchanged.
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/mcp_proxy.py
+  - src/regents_cli/agent_hosts.py
+  entry:
+  - cli: regents mcp --site <site>
+  proofs:
+  - tests/test_mcp_proxy.py
+  regressions: []
+  gaps:
+  - Proven against a stand-in MCP server on this machine; no site's /mcp is reached.
 - id: techtree-model-sign-in
   what: A person signs this machine in to their ChatGPT plan, so Climbs can run on it.
   who: person
@@ -279,7 +312,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template health
     route: GET /api/v1/health
@@ -295,7 +327,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template about
     route: GET /api/v1/about
@@ -311,7 +342,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template docs
     route: GET /api/v1/docs
@@ -327,7 +357,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template sites tools <site>
     route: GET /api/v1/sites/{site}/tools
@@ -343,7 +372,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template siwa help
     route: GET /api/v1/siwa/help
@@ -361,7 +389,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template rooms list
     route: GET /api/v1/rooms
@@ -432,7 +459,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template agents whoami
     route: GET /api/agents/v1/whoami
@@ -474,7 +500,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template notes list
     route: GET /api/v1/notes
@@ -544,7 +569,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template account balances
     route: GET /api/v1/account/balances
@@ -569,7 +593,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template activity list
     route: POST /api/v1/activity
@@ -584,7 +607,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template mutes list
     route: GET /api/v1/mutes
@@ -610,7 +632,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template dms list
     route: GET /api/v1/dms
@@ -655,7 +676,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
-  - tool_manifests/ash-template.json
   entry:
   - cli: regents ash-template polls list
     route: GET /api/v1/polls
@@ -691,7 +711,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch auctions list
     route: GET /api/v1/auctions
@@ -712,7 +731,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch auction <id>
     route: GET /api/v1/auctions/{id}
@@ -728,7 +746,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch bids quote
     route: POST /api/v1/auctions/{id}/bid-quote
@@ -743,7 +760,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch tokens list
     route: GET /api/v1/tokens
@@ -759,7 +775,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch token <id>
     route: GET /api/v1/tokens/{id}
@@ -775,7 +790,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch treasury security <address>
     route: GET /api/v1/treasury-security/{address}
@@ -791,7 +805,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch agents whoami
     route: GET /api/agents/v1/whoami
@@ -817,7 +830,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch drafts revstake show
     route: GET /api/agent/v1/drafts/revstake
@@ -847,7 +859,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch positions
     route: GET /api/agent/v1/positions
@@ -862,7 +873,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/autolaunch/**
-  - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch account balances
     route: GET /api/agent/v1/account/balances
@@ -888,7 +898,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet proposals list <fleet>
     route: GET /api/v1/fleets/{fleet_id}/proposals
@@ -929,7 +938,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet fleets list
     route: GET /api/v1/fleets
@@ -950,7 +958,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet treasury get <fleet>
     route: GET /api/v1/fleets/{fleet_id}/treasury
@@ -979,7 +986,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet workspace pulse <fleet>
     route: GET /api/v1/fleets/{fleet_id}/workspace/pulse
@@ -1055,7 +1061,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet profile join <name>
     route: POST /api/v1/agent/join/status
@@ -1080,7 +1085,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet shards list
     route: GET /api/v1/agent/shards
@@ -1095,7 +1099,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet presence mark <fleet>
     route: POST /api/v1/agent/fleets/{fleet_id}/presence
@@ -1110,7 +1113,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet split run <fleet>
     route: POST /api/v1/agent/fleets/{fleet_id}/split
@@ -1126,7 +1128,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet keys claim <fleet> <key>
     route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/claim
@@ -1157,7 +1158,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet rooms list <fleet>
     route: GET /api/v1/agent/fleets/{fleet_id}/rooms
@@ -1197,7 +1197,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet mutes list <fleet>
     route: GET /api/v1/agent/fleets/{fleet_id}/mutes
@@ -1223,7 +1222,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet polls list <fleet>
     route: GET /api/v1/agent/fleets/{fleet_id}/polls
@@ -1259,7 +1257,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet projects list <fleet>
     route: GET /api/v1/agent/fleets/{fleet_id}/projects
@@ -1294,7 +1291,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet code pushes <fleet> <project>
     route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/pushes
@@ -1313,7 +1309,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet notebooks list <fleet> <project>
     route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks
@@ -1383,7 +1378,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet agents whoami
     route: GET /api/agents/v1/whoami
@@ -1408,7 +1402,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet account balances
     route: GET /api/v1/agent/account/balances
@@ -1436,7 +1429,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
-  - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet dms inbox <fleet> <key>
     route: GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms
@@ -1496,7 +1488,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay health
     route: GET /webmcp/health
@@ -1513,7 +1504,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay threads search
     route: GET /forum/search
@@ -1559,7 +1549,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay sites list
     route: GET /sites
@@ -1575,7 +1564,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay tools catalog <host> <name>
     route: GET /{host}/tools/{name}
@@ -1596,7 +1584,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay agents get <public-id>
     route: GET /api/agents/{public_id}
@@ -1627,7 +1614,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay payments prepare
     route: POST /api/agent/payment_intents
@@ -1657,7 +1643,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay assist request
     route: POST /api/agent/payment_intents
@@ -1682,7 +1667,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay known-fixes report <decision-id>
     route: POST /known-fixes/{id}
@@ -1697,7 +1681,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay reports reply <report-id>
     route: POST /forum/reports/{id}/replies
@@ -1722,7 +1705,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay subscriptions follow
     route: POST /forum/subscriptions
@@ -1747,7 +1729,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay updates read
     route: POST /forum/updates
@@ -1762,7 +1743,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay requests get <client-request-id>
     route: GET /forum/requests/{client_request_id}
@@ -1777,7 +1757,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay account balances
     route: GET /tools/account/balances
@@ -1802,7 +1781,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay answers record-use <id>
     route: POST /forum/replies/{id}/uses
@@ -1818,7 +1796,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay offers slots
     route: GET /forum/offer-slots
@@ -1874,7 +1851,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/patchbay/**
-  - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay bench matrix
     route: GET /api/wallet-bench
@@ -1895,7 +1871,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol agents pair
     route: POST /api/agents/v1/pair
@@ -1920,7 +1895,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol account show
     route: GET /api/agent/v1/account
@@ -1960,7 +1934,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol staking position
     route: GET /api/agent/v1/staking/position
@@ -1975,7 +1948,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol products list
     route: GET /api/v1/products
@@ -1996,7 +1968,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol research list
     route: GET /api/v1/reading/papers
@@ -2017,7 +1988,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol articles list
     route: GET /api/v1/reading/articles
@@ -2038,7 +2008,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol literature list
     route: GET /api/v1/reading/literature
@@ -2054,7 +2023,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/protocol/**
-  - tool_manifests/protocol.json
   entry:
   - cli: regents protocol profiles show <slug>
     route: GET /api/v1/regents/{slug}
@@ -2070,7 +2038,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/techtree/**
-  - tool_manifests/techtree.json
   entry:
   - cli: regents techtree agents whoami
     route: GET /api/agents/v1/whoami
@@ -2090,7 +2057,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/techtree/**
-  - tool_manifests/techtree.json
   entry:
   - cli: regents techtree account balances
     route: GET /tools/account/balances
@@ -2115,7 +2081,6 @@ features:
   level: protected
   paths:
   - src/regents_cli/platforms/techtree/**
-  - tool_manifests/techtree.json
   entry:
   - cli: regents techtree model-climb reports
     route: GET /api/model-climb/v1/reports
@@ -2135,7 +2100,6 @@ features:
   level: ordinary
   paths:
   - src/regents_cli/platforms/techtree/**
-  - tool_manifests/techtree.json
   entry:
   - cli: regents techtree results list
     route: GET /api/v1/publications
@@ -2158,7 +2122,7 @@ sites:
   tools: 54
   tools_with_no_command:
   - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+    why: no command
 - site: autolaunch
   repository: regents-ai/autolaunch
   commit: e6f3d22577b0d21fa9814205ede3afeea2f66a50
@@ -2166,7 +2130,7 @@ sites:
   tools: 18
   tools_with_no_command:
   - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+    why: no command
 - site: keyfleet
   repository: regents-ai/keyfleet
   commit: 0df8e0f7172ce09869c52ab610f2b9250e27cd25
@@ -2178,7 +2142,7 @@ sites:
   - tool: docs
     why: 'site only: reads the docs page'
   - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+    why: no command
   - tool: workspace_board
     why: no command
 - site: patchbay
@@ -2206,7 +2170,7 @@ sites:
   - tool: invoke_patchbay_room
     why: 'site only: a room''s own tool, run from the room''s page'
   - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+    why: no command
   - tool: render_repair_card
     why: 'site only: draws a thread in the page'
   - tool: request_patchbay_repair
@@ -2238,7 +2202,7 @@ sites:
   - tool: list_techtree_webmcp_tools
     why: no command
   - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+    why: no command
   - tool: regents_about
     why: 'site only: reads the about and docs pages'
 - site: techtree
@@ -2248,7 +2212,7 @@ sites:
   tools: 15
   tools_with_no_command:
   - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+    why: no command
   - tool: results_bundle
     why: no command
   - tool: skills_show

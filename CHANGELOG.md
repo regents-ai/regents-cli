@@ -5,6 +5,23 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- New: `regents browser --site <site>` gives an agent host a site's pages and the WebMCP tools
+  each page offers, as a local MCP server with three tools: `open_page`, `list_page_tools` and
+  `call_page_tool`. Pages open in a hidden Chromium with a fresh profile. A page's signed tool
+  asks `regents` to sign its request; `regents` signs only a request from the site's own page,
+  for the site's audience, with the method and path the pinned tool list gives for the call the
+  agent made, carrying exactly that call's input, and only once for each call. Keys, receipts
+  and signatures never reach the agent. Playwright is now the `browser` extra
+  (`regents-cli[browser]`).
+- New: `regents mcp --site <site>` gives an agent host the site's MCP server at `/mcp`: each
+  message goes on as one request signed with the agent key over its exact bytes, with the MCP
+  routing headers (`Mcp-Method`, `Mcp-Name`, `MCP-Protocol-Version` and any `Mcp-Param-*`), and
+  each answer comes back unchanged. The MCP SDK (`mcp` 2.3) is now a dependency.
+- Each site's WebMCP tool list now ships in the package, beside its commands, at
+  `src/regents_cli/platforms/<site>/tool_manifest.json`; `regents browser` checks signed page
+  requests against it. The WebMCP report no longer counts `prepare_agent_request` as done by
+  `regents`: pages now sign through `regents browser`, and the sites drop that tool as they move
+  to the shared library's signer.
 - New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
   OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both

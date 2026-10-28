@@ -36,7 +36,6 @@ from rich.table import Table
 
 from webmcp_parity import (
     PLATFORMS,
-    TOOL_MANIFESTS,
     WHO,
     command_state,
     compare,
@@ -221,6 +220,39 @@ OWN: list[dict[str, Any]] = [
             "The page is run in headless Chromium with a virtual Touch ID, not Safari, and on a "
             "Mac only: the publish workflow's Linux run skips it, and make release-check runs it. "
             "scripts/check_live.py checks it is the live sign-in server's page."
+        ],
+    },
+    {
+        "id": "page-tools",
+        "what": "An agent host uses a site's pages and the WebMCP tools each page offers, in a "
+        "hidden Chromium of regents' own; a signed tool is signed with the agent key only for "
+        "the exact request the agent's call builds on the site's own page, once.",
+        "who": "agent",
+        "level": "protected",
+        "paths": ["src/regents_cli/webmcp_host.py", "src/regents_cli/agent_hosts.py"],
+        "entry": [{"cli": "regents browser --site <site>"}],
+        "proofs": ["tests/test_page_tools.py"],
+        "regressions": [],
+        "gaps": [
+            "Proven against a stand-in page that signs the way the shared library does; no "
+            "site page has moved to the library's host signer yet, so nothing is run against "
+            "a real site's pages.",
+            "Runs in headless Chromium only; WebKit is not run on the Mac.",
+        ],
+    },
+    {
+        "id": "hosted-mcp",
+        "what": "An agent host uses a site's hosted MCP server; each message goes on as one "
+        "POST signed with the agent key over the exact bytes sent, with the MCP routing "
+        "headers, and every answer comes back unchanged.",
+        "who": "agent",
+        "level": "protected",
+        "paths": ["src/regents_cli/mcp_proxy.py", "src/regents_cli/agent_hosts.py"],
+        "entry": [{"cli": "regents mcp --site <site>"}],
+        "proofs": ["tests/test_mcp_proxy.py"],
+        "regressions": [],
+        "gaps": [
+            "Proven against a stand-in MCP server on this machine; no site's /mcp is reached.",
         ],
     },
     {
@@ -429,7 +461,7 @@ def site_features(site: dict[str, Any], replayed: set[str]) -> list[dict[str, An
             "what": f"Agents use regents {name} {group}" + (f": {uses}." if uses else "."),
             "who": "agent",
             "level": "protected" if protected else "ordinary",
-            "paths": [f"src/regents_cli/platforms/{name}/**", f"tool_manifests/{name}.json"],
+            "paths": [f"src/regents_cli/platforms/{name}/**"],
             "entry": [
                 {
                     "cli": f"regents {name} {row['command']}",
@@ -524,7 +556,8 @@ def main(args: list[str]) -> int:
         console.print("[red]Give one of --write, --check or --release.[/red]")
         return 2
     names = sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json"))
-    if missing := [name for name in names if not (TOOL_MANIFESTS / f"{name}.json").is_file()]:
+    missing = [name for name in names if not (PLATFORMS / name / "tool_manifest.json").is_file()]
+    if missing:
         console.print(f"[red]Pinned sites with no tool manifest:[/red] {', '.join(missing)}")
         return 1
     sites = [compare(name) for name in names]

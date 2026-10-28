@@ -42,6 +42,37 @@ renew.
 regents patchbay doctor
 ```
 
+## Agent hosts
+
+Two commands run as a local MCP server for an agent host such as Claude Code or Codex. Both sign
+with this machine's agent key, so sign in to the site first (`regents auth login --site <site>`).
+
+- `regents browser --site <site>` opens the site's pages in a hidden Chromium of its own, with a
+  fresh profile; your own browser and its sign-ins are never used. Its three tools open a page
+  (`open_page`), list the tools the page offers (`list_page_tools`) and call one
+  (`call_page_tool`). When a page's signed tool asks to sign, `regents` signs only a request from
+  the site's own page that is exactly the call the agent made, and only once; the agent sees the
+  page's answer, never the key, the receipt or the signature. It needs the browser extra and its
+  Chromium:
+
+  ```bash
+  uv tool install --python 3.14 'regents-cli[browser]'
+  uvx --from 'playwright==1.64.*' playwright install chromium
+  ```
+
+- `regents mcp --site <site>` passes each message to the site's MCP server at `/mcp` as one
+  request signed over its exact bytes, with the MCP routing headers, and passes every answer back
+  unchanged.
+
+In Claude Code, for example:
+
+```bash
+claude mcp add keyfleet-pages -- regents browser --site keyfleet
+claude mcp add keyfleet -- regents mcp --site keyfleet
+```
+
+`--base-url` points either one at a site running on this machine.
+
 ## Signing in
 
 A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any
