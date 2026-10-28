@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -27,7 +28,8 @@ from mcp.shared.inbound import decode_header_value
 from mcp.shared.message import SessionMessage
 from mcp_types import JSONRPCNotification, JSONRPCRequest, JSONRPCResponse
 
-from regents_cli import mcp_proxy, webmcp_host
+from regents_cli import app, mcp_proxy
+from regents_cli.agent_hosts import key_signer
 from tests.signed_agent import ADDRESS, sign_in, signer_of
 
 pytestmark = pytest.mark.anyio
@@ -95,7 +97,7 @@ async def through_relay(url: str) -> AsyncIterator[Any]:
     """An MCP client transport whose messages go through `regents mcp`'s relay."""
     to_relay, relay_reads = anyio.create_memory_object_stream[SessionMessage | Exception](16)
     relay_writes, from_relay = anyio.create_memory_object_stream[SessionMessage](16)
-    sign = webmcp_host.key_signer("ash-template")
+    sign = key_signer("ash-template")
     async with anyio.create_task_group() as group:
         group.start_soon(mcp_proxy.relay, url, sign, relay_reads, relay_writes)
         async with to_relay, from_relay:
@@ -141,6 +143,33 @@ async def test_runs_whole_as_an_agent_hosts_mcp_server(
     for request in received:
         signer = signer_of(request["method"], "/mcp", request["body"], request["headers"])
         assert signer == ADDRESS
+
+
+def test_stops_when_the_agent_host_closes_its_input(
+    site: tuple[str, list[dict[str, Any]]],
+) -> None:
+    url, _ = site
+    opening = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "host", "version": "1"},
+        },
+    }
+    started = time.monotonic()
+    finished = subprocess.run(
+        [sys.executable, "-c", REGENTS, "mcp", "--site", "ash-template", "--base-url", url[:-4]],
+        input=json.dumps(opening) + "\n",
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env={"SIWA_AGENT_HOME": os.environ["SIWA_AGENT_HOME"]},
+    )
+    assert finished.returncode == 0, finished.stderr
+    assert time.monotonic() - started < 30
 
 
 def test_mirrors_the_parameters_a_listed_tool_marks_for_headers() -> None:
@@ -199,3 +228,28 @@ def test_routing_headers_carry_any_tool_name_safely(name: str, version: str) -> 
     assert decode_header_value(lowered["mcp-name"]) == name
     assert lowered["mcp-protocol-version"] == version
     assert all(value.isascii() and value.isprintable() for value in headers.values())
+
+
+@pytest.mark.parametrize(
+    ("command", "missing", "install"),
+    [
+        ("mcp", "httpx2", "'regents-cli[mcp]'"),
+        ("mcp", "mcp", "'regents-cli[mcp]'"),
+        ("browser", "playwright", "'regents-cli[browser]'"),
+        ("browser", "jsonschema", "'regents-cli[browser]'"),
+    ],
+)
+def test_names_the_install_line_for_a_missing_part(
+    command: str,
+    missing: str,
+    install: str,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setitem(sys.modules, missing, None)
+    code = app.main([command, "--site", "ash-template"])
+    shown = capsys.readouterr()
+
+    assert code != 0
+    assert "needs a part of regents-cli this installation lacks" in shown.err
+    assert install in shown.err.replace("\n", " ")

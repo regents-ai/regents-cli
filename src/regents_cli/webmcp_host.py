@@ -1,34 +1,45 @@
 """`regents browser --site <site>`: the site's own pages and their tools, for an agent host.
 
 An agent host (Claude Code, Codex and others) runs this command as a local MCP server over
-stdin and stdout. It opens the site in a Chromium of its own, with a fresh profile and the
-browser's WebMCP feature on, so the agent uses the tools each page registers. The person's own
-browser, and its cookies, are never involved.
+stdin and stdout. It opens the site in a sandboxed Chromium of its own, with a fresh profile and
+the browser's WebMCP feature on, so the agent uses the tools each page registers. The person's
+own browser, and its cookies, are never involved. Only the site's own pages are used: another
+address is refused, and a page that leaves the site, by a redirect or later, is used no more.
 
-A signed page tool builds its exact request and asks `window.regentsSign` to sign it. That
-binding is this module's `Bridge`, outside the page: it signs only when the request comes from
-the site's own address, names the site's audience, has the method and path the pinned tool
-manifest gives for the call the agent made, carries exactly that call's input, and matches a
-call that is still waiting, which it then uses up. It answers the signed headers and nothing
-else. Keys, receipts and signatures never enter a tool's arguments or results.
+A signed tool is one the site's pinned tool manifest names: its title, description, input schema
+and annotations come from that manifest, never from the page. The agent calls it with its own
+input, which is checked against that schema and handed to the page as `{input}`. The page builds
+its exact request and asks `window.regentsSign` to sign it. That binding is this module's
+`Bridge`, outside the page: it signs only when the request comes from the site's own address,
+names the site's audience, has the method and path the manifest's route gives for the call the
+agent made, carries exactly that call's input in exactly the bytes JavaScript writes for it, and
+matches a call that is still waiting, which it then uses up. It answers the signed headers and
+nothing else; the signature, its input, the receipt and the body digest are then removed from
+the page tool's answer, so the agent never sees them. The key never leaves this machine.
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
+import math
 import re
-from collections.abc import AsyncIterator, Awaitable, Callable
+import traceback
+from collections.abc import AsyncIterator, Awaitable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from decimal import Decimal
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any, Final
-from urllib.parse import quote, urljoin, urlsplit
+from urllib.parse import quote, urlsplit
 
-from regents_cli import siwa
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import best_match
+
+from regents_cli import output, siwa
+from regents_cli.agent_hosts import Signer
 from regents_cli.errors import CommandError
 from regents_cli.http import Request, same_origin
-from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Platform
+from regents_cli.platforms import Platform
 
 if TYPE_CHECKING:
     from playwright.async_api import Browser, BrowserContext, Page, Playwright
@@ -42,8 +53,12 @@ PREPARED_FIELDS: Final = frozenset({"operation", "audience", "origin", "method",
 PLACEHOLDER: Final = re.compile(r"\{([a-z_]+)\}")
 #: The characters JavaScript's encodeURIComponent leaves as they are, beside letters and digits.
 URI_COMPONENT_SAFE: Final = "-_.!~*'()"
-
-type Signer = Callable[[Request], Awaitable[dict[str, str]]]
+#: Signed headers that only this one call has, removed from what its page tool answers. The
+#: agent's address, key id, chain and the time are its own and stay where a page shows them.
+WITHHELD_HEADERS: Final = frozenset(
+    {"x-siwa-signature", "x-siwa-signature-input", "x-siwa-receipt", "content-digest"}
+)
+WITHHELD: Final = "[withheld]"
 
 
 class RefusalError(Exception):
@@ -76,13 +91,37 @@ def origin_of(url: str) -> str | None:
     return f"{parts.scheme}://{parts.netloc}"
 
 
+def site_address(origin: str, address: str) -> str:
+    """The page of `origin` that `address` names, read the same way by Chromium and Python:
+    a path starting with `/`, or a full address of the site with nothing before its host."""
+    refused = RefusalError(
+        "other_site",
+        f"regents browser opens only pages of {origin}.",
+        "Give a path starting with / or the page's full address on the site.",
+    )
+    if "\\" in address or any(ord(char) <= 0x20 or ord(char) == 0x7F for char in address):
+        raise refused
+    if address.startswith("/") and not address.startswith("//"):
+        return origin + address
+    parts = urlsplit(address)
+    if (
+        parts.scheme not in ("http", "https")
+        or not parts.netloc.isascii()
+        or any(char in parts.netloc for char in "@%")
+        or not same_origin(f"{parts.scheme}://{parts.netloc}", origin)
+    ):
+        raise refused
+    return address
+
+
 @dataclass(eq=False, slots=True)
 class Invocation:
     """A page tool call the agent made and that has not finished yet."""
 
     tool: str
-    arguments: Any
+    input: Any
     origin: str
+    issued: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -94,8 +133,21 @@ class Bridge:
     sign: Signer
     waiting: list[Invocation] = field(default_factory=list)
 
-    def expect(self, tool: str, arguments: Any, origin: str) -> Invocation:
-        invocation = Invocation(tool, arguments, origin)
+    def signed_tool(self, name: str) -> dict[str, Any] | None:
+        """The manifest entry of the site's signed tool called `name`, if there is one."""
+        return next(
+            (
+                tool
+                for tool in self.manifest["tools"]
+                if tool["name"] == name
+                and tool.get("authentication") == "siwa_per_request"
+                and tool.get("availability") == "available"
+            ),
+            None,
+        )
+
+    def expect(self, tool: str, given: Any, origin: str) -> Invocation:
+        invocation = Invocation(tool, given, origin)
         self.waiting.append(invocation)
         return invocation
 
@@ -104,17 +156,41 @@ class Bridge:
             self.waiting.remove(invocation)
 
     async def answer(self, frame_url: str, prepared: Any) -> dict[str, Any]:
-        """What `window.regentsSign` resolves to: `{headers}` or `{error}`."""
+        """What `window.regentsSign` resolves to: `{headers}` or `{error}`, never a failure."""
         try:
-            request = self.claim(frame_url, prepared)
+            invocation, request = self.claim(frame_url, prepared)
+            headers = await self.sign(request)
         except RefusalError as refusal:
             return {"error": refusal.as_json()}
-        try:
-            return {"headers": await self.sign(request)}
-        except CommandError as error:
-            return {"error": {"code": error.code, "message": error.message}}
+        except Exception as error:
+            return {"error": self.could_not_sign(error)}
+        invocation.issued.extend(
+            value for name, value in headers.items() if name.lower() in WITHHELD_HEADERS and value
+        )
+        return {"headers": headers}
 
-    def claim(self, frame_url: str, prepared: Any) -> Request:
+    def could_not_sign(self, error: Exception) -> dict[str, str]:
+        """The page's plain refusal for a signer that failed; the details go to stderr only."""
+        if isinstance(error, CommandError):
+            output.stderr.print(
+                f"regents browser: could not sign: {error.code}: {error.message}", markup=False
+            )
+            return {
+                "code": error.code,
+                "message": "regents could not sign this request, so nothing was sent.",
+                "hint": "Check this machine's sign-in with regents auth login --site "
+                f"{self.manifest['audience']}, then call the tool again.",
+            }
+        output.stderr.print(
+            "regents browser: could not sign:\n" + "".join(traceback.format_exception(error)),
+            markup=False,
+        )
+        return {
+            "code": "signing_failed",
+            "message": "regents could not sign this request, so nothing was sent.",
+        }
+
+    def claim(self, frame_url: str, prepared: Any) -> tuple[Invocation, Request]:
         """The request to sign, after using up the waiting call it matches."""
         if not same_origin(origin_of(frame_url) or "", self.origin):
             raise RefusalError(
@@ -138,11 +214,8 @@ class Bridge:
                 "wrong_site",
                 "The page asked to sign a request for another site, so nothing was signed.",
             )
-        entry = next(
-            (tool for tool in self.manifest["tools"] if tool["name"] == prepared["operation"]),
-            None,
-        )
-        if entry is None or not signed_tool(entry):
+        entry = self.signed_tool(prepared["operation"])
+        if entry is None:
             raise RefusalError(
                 "unsigned_tool",
                 "The page asked to sign for a tool that is not a signed tool of this site.",
@@ -151,15 +224,16 @@ class Bridge:
             if (
                 invocation.tool == entry["name"]
                 and same_origin(invocation.origin, self.origin)
-                and matches(entry, invocation.arguments, prepared)
+                and matches(entry, invocation.input, prepared)
             ):
                 self.waiting.remove(invocation)
                 body = prepared.get("body")
-                return Request(
+                request = Request(
                     prepared["method"],
                     prepared["path"],
                     raw_content=None if body is None else body.encode("utf-8"),
                 )
+                return invocation, request
         raise RefusalError(
             "no_matching_call",
             "The request the page built is not the call you made, so nothing was signed.",
@@ -167,24 +241,24 @@ class Bridge:
         )
 
 
-def signed_tool(entry: dict[str, Any]) -> bool:
-    return bool(
-        entry.get("authentication") == "siwa_per_request"
-        and entry.get("availability") == "available"
+def input_problem(entry: dict[str, Any], given: Any) -> str | None:
+    """Why `given` is not input the manifest's schema for this tool takes, or None."""
+    validator = Draft202012Validator(
+        entry["operation_input_schema"], format_checker=Draft202012Validator.FORMAT_CHECKER
     )
+    error = best_match(validator.iter_errors(given))
+    return None if error is None else error.message
 
 
-def matches(entry: dict[str, Any], arguments: Any, prepared: dict[str, str]) -> bool:
+def matches(entry: dict[str, Any], given: Any, prepared: dict[str, str]) -> bool:
     """Whether `prepared` is the request the manifest's route builds from the call's input.
 
-    A signed page tool takes `{"input": {...}}`. Each `{field}` of the route takes that field
+    The input must be one the tool's schema takes. Each `{field}` of the route takes that field
     of the input, encoded as encodeURIComponent does; the rest of the input is the JSON body,
-    or, for a tool that sends a raw JSON document, that field's exact text. A read sends none.
+    written exactly as JSON.stringify writes it, or, for a tool that sends a raw JSON document,
+    that field's exact text. A read sends none.
     """
-    if not (isinstance(arguments, dict) and arguments.keys() == {"input"}):
-        return False
-    given = arguments["input"]
-    if not isinstance(given, dict):
+    if not isinstance(given, dict) or input_problem(entry, given) is not None:
         return False
     method, template = entry["route"].split(" ")
     raw = entry.get("request_body")
@@ -204,9 +278,9 @@ def matches(entry: dict[str, Any], arguments: Any, prepared: dict[str, str]) -> 
         return rest.keys() == {raw["field"]} and rest[raw["field"]] == body
     try:
         decoded = json.loads(body, object_pairs_hook=_no_repeated_keys, parse_constant=_no_constant)
+        return body == js_json(decoded) and same_json(decoded, rest)
     except (ValueError, RecursionError):
         return False
-    return same_json(decoded, rest)
 
 
 def segment(name: str, rest: dict[str, Any], raw: dict[str, Any] | None) -> str:
@@ -228,31 +302,77 @@ def _no_constant(constant: str) -> Any:
 
 
 def same_json(one: Any, other: Any) -> bool:
-    """JSON equality: true is not 1, and 1 and 1.0 are one number, as JavaScript writes them."""
-    if isinstance(one, bool) or isinstance(other, bool):
-        return type(one) is type(other) and one == other
-    if isinstance(one, int | float) and isinstance(other, int | float):
-        return one == other
-    if isinstance(one, dict) and isinstance(other, dict):
+    """Equal values of the same JSON kind: 2 is not 2.0 and true is not 1, at every depth."""
+    if type(one) is not type(other):
+        return False
+    if isinstance(one, dict):
         return one.keys() == other.keys() and all(same_json(one[k], other[k]) for k in one)
-    if isinstance(one, list) and isinstance(other, list):
+    if isinstance(one, list):
         return len(one) == len(other) and all(map(same_json, one, other))
-    return type(one) is type(other) and bool(one == other)
+    return bool(one == other)
 
 
-def key_signer(site: str) -> Signer:
-    """Signs with this machine's agent key and its sign-in to `site`, renewed when due."""
+def js_json(value: Any) -> str:
+    """`value` written exactly as JavaScript's JSON.stringify writes it, keys in their order."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, str):
+        return json.dumps(value, ensure_ascii=False)
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        return js_number(value)
+    if isinstance(value, list):
+        return "[" + ",".join(map(js_json, value)) + "]"
+    if isinstance(value, dict) and all(isinstance(key, str) for key in value):
+        return (
+            "{" + ",".join(f"{js_json(key)}:{js_json(item)}" for key, item in value.items()) + "}"
+        )
+    raise ValueError(f"{type(value).__name__} is not JSON")
 
-    async def sign(request: Request) -> dict[str, str]:
-        receipt = await asyncio.to_thread(siwa.current, site, DEFAULT_TIMEOUT_MS)
-        return await asyncio.to_thread(siwa.sign, request, receipt)
 
-    return sign
+def js_number(number: float) -> str:
+    """A finite double as JavaScript writes it: the shortest digits that read back as the same
+    double, placed by ECMAScript's Number::toString."""
+    if not math.isfinite(number):
+        raise ValueError("JSON has no infinite numbers")
+    if number == 0:
+        return "0"
+    _, digits, exponent = Decimal(repr(abs(number))).normalize().as_tuple()
+    assert isinstance(exponent, int)
+    shown = "".join(map(str, digits))
+    count, point = len(shown), len(shown) + exponent
+    if count <= point <= 21:
+        written = shown + "0" * (point - count)
+    elif 0 < point <= 21:
+        written = f"{shown[:point]}.{shown[point:]}"
+    elif -6 < point <= 0:
+        written = "0." + "0" * -point + shown
+    else:
+        power = point - 1
+        mantissa = shown[0] + (f".{shown[1:]}" if count > 1 else "")
+        written = f"{mantissa}e{'+' if power >= 0 else '-'}{abs(power)}"
+    return ("-" if number < 0 else "") + written
+
+
+def withheld(value: Any, issued: list[str]) -> Any:
+    """`value` with every value in `issued` replaced, wherever it appears in its text."""
+    if isinstance(value, str):
+        for secret in issued:
+            value = value.replace(secret, WITHHELD)
+        return value
+    if isinstance(value, dict):
+        return {withheld(key, issued): withheld(item, issued) for key, item in value.items()}
+    if isinstance(value, list):
+        return [withheld(item, issued) for item in value]
+    return value
 
 
 @dataclass(slots=True)
 class PageHost:
-    """One Chromium, one fresh profile, one page; started by the first open_page."""
+    """One sandboxed Chromium, one fresh profile, one page; started by the first open_page."""
 
     bridge: Bridge
     show: bool
@@ -262,29 +382,66 @@ class PageHost:
     page: Page | None = None
 
     async def open(self, address: str) -> dict[str, str]:
-        url = urljoin(self.bridge.origin + "/", address)
-        if not same_origin(origin_of(url) or "", self.bridge.origin):
-            raise RefusalError(
-                "other_site", f"regents browser opens only pages of {self.bridge.origin}."
-            )
+        url = site_address(self.bridge.origin, address)
         page = await self._page()
         await page.goto(url, wait_until="load")
+        if not self._on_site(page):
+            await page.goto("about:blank")
+            raise RefusalError(
+                "left_site",
+                f"That page sent the browser to another site, so regents browser closed it. "
+                f"It uses only pages of {self.bridge.origin}.",
+            )
         return {"url": page.url, "title": await page.title()}
 
     async def tools(self) -> list[Any]:
-        return list(await self._open_page().webmcp.tools())
+        listed: list[Any] = []
+        for tool in await self._site_page().webmcp.tools():
+            entry = self.bridge.signed_tool(tool["name"])
+            listed.append(
+                tool
+                if entry is None
+                else {
+                    "name": entry["name"],
+                    "title": entry["title"],
+                    "description": entry["description"],
+                    "inputSchema": entry["operation_input_schema"],
+                    "annotations": entry["annotations"],
+                }
+            )
+        return listed
 
-    async def call(self, name: str, arguments: Any) -> Any:
-        page = self._open_page()
-        invocation = self.bridge.expect(name, arguments, origin_of(page.url) or "")
+    async def call(self, name: str, given: dict[str, Any]) -> Any:
+        page = self._site_page()
+        arguments: dict[str, Any] = given
+        if (entry := self.bridge.signed_tool(name)) is not None:
+            if (problem := input_problem(entry, given)) is not None:
+                raise RefusalError(
+                    "invalid_input",
+                    f"{name} does not take that input, so nothing was sent: {problem}",
+                    "Call list_page_tools for the input schema, then call the tool again.",
+                )
+            arguments = {"input": given}
+        invocation = self.bridge.expect(name, given, origin_of(page.url) or "")
         try:
-            return await page.webmcp.call_tool(name, arguments, timeout=TOOL_TIMEOUT_MS)
+            result = await page.webmcp.call_tool(name, arguments, timeout=TOOL_TIMEOUT_MS)
         finally:
             self.bridge.forget(invocation)
+        return withheld(result, invocation.issued)
 
-    def _open_page(self) -> Page:
+    def _on_site(self, page: Page) -> bool:
+        return same_origin(origin_of(page.url) or "", self.bridge.origin)
+
+    def _site_page(self) -> Page:
         if self.page is None:
             raise RefusalError("no_page", "No page is open yet. Open one with open_page first.")
+        if not self._on_site(self.page):
+            raise RefusalError(
+                "left_site",
+                f"The open page is no longer on {self.bridge.origin}, so regents browser will "
+                "not use it.",
+                "Open a page of the site with open_page.",
+            )
         return self.page
 
     async def _page(self) -> Page:
@@ -294,7 +451,7 @@ class PageHost:
 
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch(
-            headless=not self.show, args=[WEBMCP_FLAG]
+            headless=not self.show, chromium_sandbox=True, args=[WEBMCP_FLAG]
         )
         self.context = await self.browser.new_context()
 
@@ -347,20 +504,21 @@ def server(platform: Platform, host: PageHost) -> Any:
 
     @mcp.tool(name="open_page")
     async def open_page(url: str) -> dict[str, str]:
-        """Open a page of the site, by its full address or its path such as /rooms. Replaces the
+        """Open a page of the site, by its path such as /rooms or its full address. Replaces the
         page open before. Answers the page's address and title."""
         return await guarded(host.open(url))
 
     @mcp.tool(name="list_page_tools")
     async def list_page_tools() -> dict[str, Any]:
-        """List the tools the open page offers, with each one's input schema."""
+        """List the tools the open page offers, with each one's input schema. A signed tool is
+        described in the site's published words."""
         return {"tools": await guarded(host.tools())}
 
     @mcp.tool(name="call_page_tool")
     async def call_page_tool(name: str, input: dict[str, Any]) -> dict[str, Any]:
-        """Call one of the open page's tools with its input, exactly as its schema asks. A
-        signed tool takes {"input": {...}} and is signed with your agent key for this one
-        call. Answers the page tool's result."""
+        """Call one of the open page's tools with its input, exactly as its listed schema asks.
+        A signed tool is signed with your agent key for this one call. Answers the page tool's
+        result."""
         return {"result": await guarded(host.call(name, input))}
 
     return mcp

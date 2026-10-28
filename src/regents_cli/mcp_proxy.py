@@ -38,8 +38,8 @@ from mcp_types import (
 )
 
 from regents_cli import output
+from regents_cli.agent_hosts import Signer
 from regents_cli.http import Request
-from regents_cli.webmcp_host import Signer
 
 #: Connecting and sending give up after 30 seconds; an answer may stream for five minutes.
 TIMEOUT: Final = httpx2.Timeout(30, read=300)
@@ -174,5 +174,5 @@ async def relay(
 async def serve(url: str, sign: Signer) -> None:
     from mcp.server.stdio import stdio_server
 
-    async with stdio_server() as (agent_read, agent_write):
+    async with stdio_server() as (agent_read, agent_write), agent_write:
         await relay(url, sign, agent_read, agent_write)

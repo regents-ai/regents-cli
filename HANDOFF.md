@@ -226,6 +226,14 @@ behind a site, and never holds one up (founder, 2026-09-28).
   siwa-server checkout with `--design-system <checkout> --cli <this checkout>`, then again with
   `--check`.
 
+- **Tool manifests, in the agent access joint release**: the six pinned
+  `src/regents_cli/platforms/<site>/tool_manifest.json` files still give each signed tool the
+  old `{input, request, proof}` input and descriptions that mention `prepare_agent_request`.
+  `regents browser` lists a signed tool in its manifest's words and checks the call against its
+  `operation_input_schema`, so these words reach agents. Release order: the template's half of
+  work item 6 lands first and publishes its new manifest; then, in the joint release, move all
+  six manifests from it (`make sync`, `make check`), and only then ship `regents browser`.
+
 - Queued pins and changes for the next release are in
   `/Users/sean/Documents/regent/docs/backlogs/regents-cli.md`, outside this repository.
 

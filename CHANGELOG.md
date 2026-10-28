@@ -7,16 +7,25 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 - New: `regents browser --site <site>` gives an agent host a site's pages and the WebMCP tools
   each page offers, as a local MCP server with three tools: `open_page`, `list_page_tools` and
-  `call_page_tool`. Pages open in a hidden Chromium with a fresh profile. A page's signed tool
-  asks `regents` to sign its request; `regents` signs only a request from the site's own page,
-  for the site's audience, with the method and path the pinned tool list gives for the call the
-  agent made, carrying exactly that call's input, and only once for each call. Keys, receipts
-  and signatures never reach the agent. Playwright is now the `browser` extra
-  (`regents-cli[browser]`).
+  `call_page_tool`, which takes the tool's own input. Pages open in a hidden Chromium with a
+  fresh profile and the browser's sandbox on. It opens only pages of the site's own address,
+  refuses addresses a browser could read as another site, and stops using a page that moves
+  away. A signed tool is listed in the site's published words and input, and the input is
+  checked against it before the page runs. `regents` signs only a request from the site's own
+  page, for the site's audience, with the method and path the pinned tool list gives for the
+  call the agent made, carrying exactly that call's input (numbers, true and false kept apart),
+  and only once for each call. The signature, signature input, receipt and content digest of
+  each call are taken out of what the agent sees, and keys never reach it. A signing failure
+  reaches the page as one plain refusal; its detail goes to the command's error output. Install
+  it with `uv tool install --python 3.14 'regents-cli[browser]'`, then its Chromium.
+  Not proven yet: a page frame's address is read when the tool asks to sign, so a frame that
+  moves at that moment is not covered; `--base-url` lets the person point it at any address
+  they choose, and it trusts that address as the site.
 - New: `regents mcp --site <site>` gives an agent host the site's MCP server at `/mcp`: each
   message goes on as one request signed with the agent key over its exact bytes, with the MCP
   routing headers (`Mcp-Method`, `Mcp-Name`, `MCP-Protocol-Version` and any `Mcp-Param-*`), and
-  each answer comes back unchanged. The MCP SDK (`mcp` 2.3) is now a dependency.
+  each answer comes back unchanged. Install it with
+  `uv tool install --python 3.14 'regents-cli[mcp]'`; a plain install stays without the MCP SDK.
 - Each site's WebMCP tool list now ships in the package, beside its commands, at
   `src/regents_cli/platforms/<site>/tool_manifest.json`; `regents browser` checks signed page
   requests against it. The WebMCP report no longer counts `prepare_agent_request` as done by

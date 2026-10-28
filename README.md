@@ -48,12 +48,17 @@ Two commands run as a local MCP server for an agent host such as Claude Code or 
 with this machine's agent key, so sign in to the site first (`regents auth login --site <site>`).
 
 - `regents browser --site <site>` opens the site's pages in a hidden Chromium of its own, with a
-  fresh profile; your own browser and its sign-ins are never used. Its three tools open a page
-  (`open_page`), list the tools the page offers (`list_page_tools`) and call one
-  (`call_page_tool`). When a page's signed tool asks to sign, `regents` signs only a request from
-  the site's own page that is exactly the call the agent made, and only once; the agent sees the
-  page's answer, never the key, the receipt or the signature. It needs the browser extra and its
-  Chromium:
+  fresh profile and the browser's own sandbox on; your own browser and its sign-ins are never
+  used. Its three tools open a page (`open_page`), list the tools the page offers
+  (`list_page_tools`) and call one (`call_page_tool` with the tool's name and its own input).
+  It opens only the site's own pages, and stops using a page that moves to another site. A
+  signed tool is listed in the site's own published words and input, never the page's, and its
+  input is checked against that published input before the page runs. When the tool asks to
+  sign, `regents` signs only a request from the site's own page that is exactly the call the
+  agent made, and only once. The agent sees the page's answer with the signature, signature input,
+  receipt and content digest of that call taken out, and never the key. When signing fails, the
+  page hears only that nothing was sent; the reason goes to this command's own error output. It
+  needs the browser extra and its Chromium:
 
   ```bash
   uv tool install --python 3.14 'regents-cli[browser]'
@@ -62,7 +67,13 @@ with this machine's agent key, so sign in to the site first (`regents auth login
 
 - `regents mcp --site <site>` passes each message to the site's MCP server at `/mcp` as one
   request signed over its exact bytes, with the MCP routing headers, and passes every answer back
-  unchanged.
+  unchanged. It needs the mcp extra:
+
+  ```bash
+  uv tool install --python 3.14 'regents-cli[mcp]'
+  ```
+
+  Without its extra, either command stops with `installation_incomplete` and the line to install.
 
 In Claude Code, for example:
 

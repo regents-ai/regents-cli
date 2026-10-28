@@ -238,6 +238,10 @@ OWN: list[dict[str, Any]] = [
             "site page has moved to the library's host signer yet, so nothing is run against "
             "a real site's pages.",
             "Runs in headless Chromium only; WebKit is not run on the Mac.",
+            "A page frame's address is read when its tool asks to sign; a frame that moves at "
+            "that moment is not covered.",
+            "The pinned tool manifests still give signed tools the old input and words until "
+            "the joint release moves them from the template's new manifest.",
         ],
     },
     {
