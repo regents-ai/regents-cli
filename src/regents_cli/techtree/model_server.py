@@ -77,13 +77,14 @@ def api_base_url(base_url: str) -> httpx.URL:
     all."""
     try:
         url = httpx.URL(base_url)
-    except httpx.InvalidURL:
+        host = url.host  # decoded on first read, so an unencodable host fails here
+    except (httpx.InvalidURL, UnicodeError):
         _invalid_url("it is not a URL")
-    if url.scheme not in ("http", "https") or not url.host:
+    if url.scheme not in ("http", "https") or not host:
         _invalid_url("it must be an http or https address")
     if url.port is not None and not 0 < url.port <= _HIGHEST_PORT:
         _invalid_url(f"its port must be between 1 and {_HIGHEST_PORT}")
-    if url.userinfo or url.query or url.fragment:
+    if url.userinfo or "?" in base_url or "#" in base_url:
         _invalid_url("it must carry no user, password, query or fragment")
     if not url.raw_path.rstrip(b"/").endswith(_API_PATH_SUFFIX.encode()):
         _invalid_url(f"it must be the API's base, ending in {_API_PATH_SUFFIX}")

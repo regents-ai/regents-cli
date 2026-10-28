@@ -261,6 +261,7 @@ OWN: list[dict[str, Any]] = [
         "who": "agent",
         "level": "ordinary",
         "paths": [
+            "src/regents_cli/techtree/fs.py",
             "src/regents_cli/techtree/model_files.py",
             "src/regents_cli/techtree/model_server.py",
             "src/regents_cli/techtree/obliteratus.py",

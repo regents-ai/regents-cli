@@ -18,7 +18,9 @@ When a folder has `model.safetensors.index.json`, its `.safetensors` files must 
 ones the index lists. A missing file is an incomplete download, which would otherwise give a
 root over part of the weights under the repository's name; an unlisted file is one vLLM never
 loads, which would otherwise count as a weights change. Every root is still over every
-`.safetensors` file, as section 3 says; this only refuses.
+`.safetensors` file, as section 3 says; this only refuses. A repository that ships a single-file
+copy beside its shards (Mistral's `consolidated.safetensors`) is downloaded without it
+(`allow_patterns`), since vLLM loads the shards the index lists.
 
 Links: a file that is a symbolic link is refused, with one exception agreed with Techtree. In a
 Hugging Face cache snapshot (`<hub>/models--<org>--<name>/snapshots/<40 hex>`) every file is a
@@ -26,8 +28,10 @@ link to a blob directly in that repository's `blobs/` folder, named by its conte
 blob hash for small files, SHA-256 for large ones. huggingface_hub 2.3 links on from such a blob
 into the cache's shared `<hub>/blobs/<xx>/<name>`. So there a link is followed along exactly
 that path, neither blobs folder may itself be a link, and the bytes must have the hash the
-repository's blob is named by; a file changed in place or partly downloaded refuses. Every other
-link stays refused. The bytes digested are the same either way, so no root changes.
+repository's blob is named by; a file changed in place or partly downloaded refuses. A plain
+file inside a snapshot refuses too: editors and `sed -i` save by replacing the link with a file,
+and a cache made without links (huggingface_hub on Windows) is not read. Every other link stays
+refused. The bytes digested are the same either way, so no root changes.
 
 ## The OBLITERATUS import (spec section 6)
 

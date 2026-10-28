@@ -14,7 +14,8 @@ Links are refused, with one exception: in a Hugging Face cache snapshot
 that repository's `blobs/` folder, named by its content's hash (git's blob hash, or SHA-256 for
 large files). huggingface_hub 2.3 links on from there into the cache's shared
 `<hub>/blobs/<xx>/<name>`. So there a link is followed along exactly that path, neither blobs
-folder may itself be a link, and the bytes must have the hash the blob is named by.
+folder may itself be a link, and the bytes must have the hash the blob is named by. A plain file
+in a snapshot is one replaced after download, and refuses.
 """
 
 from __future__ import annotations
@@ -219,8 +220,8 @@ def _file_bytes(entry: os.DirEntry[str], directory: Path) -> bytes:
 def _json_file(entry: os.DirEntry[str], directory: Path) -> JsonValue:
     try:
         return json.loads(_file_bytes(entry, directory))  # type: ignore[no-any-return]
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        _refuse(f"{entry.path} is not valid JSON", path=entry.path)
+    except (ValueError, RecursionError):
+        _refuse(f"{entry.path} is not JSON this reader can hold", path=entry.path)
 
 
 def _git_blob_hash(file: _File) -> hashlib._Hash | None:
@@ -241,10 +242,17 @@ def _check_blob_name(file: _File, entry: os.DirEntry[str], content_hash: str) ->
 
 
 def _regular_file(entry: os.DirEntry[str], directory: Path) -> _File:
-    """The regular file an entry names: itself, or in a cache snapshot the blob it links to."""
-    if entry.is_file(follow_symlinks=False):
-        return _File(path=Path(entry.path), blob_name=None)
+    """The regular file an entry names: itself, or in a cache snapshot the blob it links to.
+    In a cache snapshot every file is a link; one that is not was replaced in place."""
     snapshot = cache_snapshot(directory)
+    if entry.is_file(follow_symlinks=False):
+        if snapshot is None:
+            return _File(path=Path(entry.path), blob_name=None)
+        _refuse(
+            f"{entry.path} is a plain file inside a Hugging Face cache snapshot, where every file "
+            "is a link to its blob, so it was replaced after download; download it again",
+            path=entry.path,
+        )
     if entry.is_symlink() and snapshot is not None:
         blob = _cache_blob(Path(entry.path), snapshot)
         if blob is not None:

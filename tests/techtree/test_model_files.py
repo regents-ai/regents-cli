@@ -245,3 +245,26 @@ def test_config_digest_covers_the_generation_config_when_present(tmp_path: Path)
     (tmp_path / "config.json").unlink()
     with pytest.raises(ValidationError, match=r"no config\.json"):
         config_digest(tmp_path)
+
+
+def test_a_snapshot_file_replaced_in_place_is_refused(tmp_path: Path) -> None:
+    """Editors and `sed -i` save by replacing the snapshot's link with a plain file."""
+    snapshot = _cache_snapshot(tmp_path)
+    config = snapshot / "config.json"
+    config.unlink()
+    config.write_bytes(b'{"model_type": "qwen3", "max_position_embeddings": 131072}')
+    with pytest.raises(ValidationError, match="download it again"):
+        config_digest(snapshot)
+
+
+@pytest.mark.parametrize(
+    "content",
+    ['{"chat_template": ' + "9" * 5000 + "}", "[" * 100_000 + "]" * 100_000],
+    ids=["a number too long", "nesting too deep"],
+)
+def test_a_tokenizer_config_this_reader_cannot_hold_is_refused(
+    tmp_path: Path, content: str
+) -> None:
+    (tmp_path / "tokenizer_config.json").write_text(content)
+    with pytest.raises(ValidationError, match="not JSON this reader can hold"):
+        chat_template_digest(tmp_path)

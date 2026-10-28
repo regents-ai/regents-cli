@@ -197,8 +197,19 @@ def test_a_key_is_read_from_the_environment_and_never_shown(
         "file:///v1",
         "http://127.0.0.1:99999/v1",
         "http://127.0.0.1:8000/x%2Fv1",
+        "http://127.0.0.1:8000/v1#",
+        "http://xn--/v1",
     ],
-    ids=["a password", "not the API base", "a query", "not http", "no such port", "an escape"],
+    ids=[
+        "a password",
+        "not the API base",
+        "a query",
+        "not http",
+        "no such port",
+        "an escape",
+        "an empty fragment",
+        "a host that cannot be encoded",
+    ],
 )
 def test_an_address_that_is_not_an_api_base_is_refused_without_being_repeated(
     tmp_path: Path, base_url: str
@@ -263,3 +274,30 @@ def test_a_server_that_cannot_be_reached_is_refused(tmp_path: Path) -> None:
 
     assert exit_code != 0
     assert _code(output) == "model_server_unreachable"
+
+
+@pytest.mark.parametrize(
+    "content", ["{", "[" * 100_000 + "]" * 100_000], ids=["not JSON", "nesting too deep"]
+)
+def test_a_password_in_the_address_is_never_repeated_when_the_block_is_broken(
+    tmp_path: Path, content: str
+) -> None:
+    block_file = tmp_path / "block.json"
+    block_file.write_text(content)
+    shown = io.StringIO()
+    with contextlib.redirect_stdout(shown), contextlib.redirect_stderr(io.StringIO()):
+        exit_code = app.main(
+            [
+                "techtree",
+                "model",
+                "check-server",
+                "--block",
+                str(block_file),
+                "--base-url",
+                "http://operator:hunter2-secret@127.0.0.1:8000/v1",
+                "--json",
+            ]
+        )
+
+    assert exit_code != 0
+    assert "hunter2-secret" not in shown.getvalue()

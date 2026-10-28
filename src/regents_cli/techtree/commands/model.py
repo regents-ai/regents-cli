@@ -24,7 +24,7 @@ from regents_cli.techtree.chatgpt import signin
 from regents_cli.techtree.commands.answers import JSON, emit
 from regents_cli.techtree.errors import UsageError
 from regents_cli.techtree.fs import read_json
-from regents_cli.techtree.model_server import check_server
+from regents_cli.techtree.model_server import api_base_url, check_server
 from regents_cli.techtree.models.base import JsonValue, ProtocolModel
 from regents_cli.techtree.models.open_weights import OpenWeightsModel, ServingSpec
 from regents_cli.techtree.obliteratus import import_checkpoint
@@ -167,6 +167,7 @@ def import_obliteratus(
 
 
 def check_server_command(block: Path, base_url: str, as_json: bool) -> None:
+    api_base_url(base_url)
     model = _parse(OpenWeightsModel, read_json(block), f"{block} as a model block")
     checked = check_server(base_url, model)
     answer: dict[str, JsonValue] = {

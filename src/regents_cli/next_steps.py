@@ -146,7 +146,7 @@ def sign_in(site: str) -> Step:
 #: Flags a rerun leaves out: an agreement covers one go, so a rerun asks for a new one.
 AGREEMENT_FLAGS = {"--yes": 0, "--reviewed-on": 1}
 #: Flags whose value a rerun shows only as a placeholder, as the approval review does.
-PRIVATE_FLAGS = {"--address": "<private-address>"}
+PRIVATE_FLAGS = {"--address": "<private-address>", "--base-url": "<private-address>"}
 
 
 @dataclass(frozen=True, slots=True)

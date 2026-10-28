@@ -68,7 +68,7 @@ class _Concept(_Upstream):
 
 
 class _PipelineMetadata(_Upstream):
-    source_model: str
+    source_model: NonEmptyString
     provenance: _ToolProvenance
     method: NonEmptyString
     method_config: dict[str, JsonValue]

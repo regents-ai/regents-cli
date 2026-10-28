@@ -145,6 +145,10 @@ def _dirty(metadata: dict[str, object]) -> None:
     metadata["provenance"]["obliteratus_git_dirty"] = True  # type: ignore[index]
 
 
+def _blank_source_model(metadata: dict[str, object]) -> None:
+    metadata["source_model"] = "  "
+
+
 def _blank_method(metadata: dict[str, object]) -> None:
     metadata["method"] = "  "
 
@@ -207,6 +211,7 @@ def _weights_unchanged(checkpoint: Path) -> None:
     "change_metadata",
     [
         _dirty,
+        _blank_source_model,
         _blank_method,
         _seed_beyond_json,
         _no_commit,
@@ -292,3 +297,15 @@ def test_a_blank_serving_option_is_a_usage_refusal(tmp_path: Path, option: str) 
 
     assert exit_code != 0
     assert json.loads(shown.getvalue())["error"]["code"] == "model_input_invalid"
+
+
+def test_metadata_with_a_number_too_long_to_read_is_refused(tmp_path: Path) -> None:
+    checkpoint = _checkpoint(tmp_path, _metadata())
+    text = (checkpoint / "abliteration_metadata.json").read_text()
+    (checkpoint / "abliteration_metadata.json").write_text(
+        text.replace('"seed": 7}', '"seed": ' + "9" * 5000 + "}")
+    )
+    exit_code, answer = _import(checkpoint, _snapshot(tmp_path))
+
+    assert exit_code != 0
+    assert "error" in answer
