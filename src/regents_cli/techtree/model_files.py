@@ -6,9 +6,10 @@ sorted by UTF-8 path, and the root is the digest of their canonical JSON. Techtr
 model files, so these roots are the only thing that ties a run to the weights it served.
 
 Links are refused, with one exception: in a Hugging Face cache snapshot
-(`.../models--<org>--<name>/snapshots/<40 hex>`) every file is a link into that repository's
-`blobs/` folder, so there a link is followed when it resolves to a regular file in that folder.
-The bytes digested are the same either way.
+(`<hub>/models--<org>--<name>/snapshots/<40 hex>`) every file is a link into that repository's
+`blobs/` folder, and newer huggingface_hub releases link on from there into the cache's shared
+`<hub>/blobs/` folder. So there a link is followed when it resolves to a regular file inside
+one of those two folders. The bytes digested are the same either way.
 """
 
 from __future__ import annotations
@@ -43,6 +44,7 @@ TOKENIZER_FILES: Final = frozenset(
         "merges.txt",
     }
 )
+CONFIG_FILE: Final = "config.json"
 CHAT_TEMPLATE_FILE: Final = "chat_template.jinja"
 TOKENIZER_CONFIG_FILE: Final = "tokenizer_config.json"
 MODEL_FILES_REFUSED: Final = "model_files_refused"
@@ -58,6 +60,7 @@ class CacheSnapshot:
     repo: str
     revision: str
     blobs: Path
+    shared_blobs: Path
 
 
 def cache_snapshot(directory: Path) -> CacheSnapshot | None:
@@ -70,7 +73,12 @@ def cache_snapshot(directory: Path) -> CacheSnapshot | None:
     parts = repo_folder.name.removeprefix(_CACHE_PREFIX).split("--")
     if len(parts) != 2 or not all(parts):
         return None
-    return CacheSnapshot(repo="/".join(parts), revision=directory.name, blobs=repo_folder / "blobs")
+    return CacheSnapshot(
+        repo="/".join(parts),
+        revision=directory.name,
+        blobs=repo_folder / "blobs",
+        shared_blobs=repo_folder.parent / "blobs",
+    )
 
 
 def file_root(directory: Path, names: Collection[str]) -> Digest:
@@ -101,6 +109,11 @@ def weights_root(directory: Path) -> Digest:
 def tokenizer_digest(directory: Path) -> Digest:
     """The root over the tokenizer files the checkpoint has."""
     return file_root(directory, TOKENIZER_FILES)
+
+
+def config_digest(directory: Path) -> Digest:
+    """The root over the checkpoint's `config.json`."""
+    return file_root(directory, {CONFIG_FILE})
 
 
 def chat_template_digest(directory: Path) -> Digest:
@@ -145,11 +158,12 @@ def _regular_file(entry: os.DirEntry[str], directory: Path) -> Path:
     snapshot = cache_snapshot(directory)
     if entry.is_symlink() and snapshot is not None:
         target = Path(entry.path).resolve()
-        if target.parent == snapshot.blobs.resolve() and target.is_file():
+        inside = (snapshot.blobs.resolve(), snapshot.shared_blobs.resolve())
+        if target.is_file() and any(target.is_relative_to(folder) for folder in inside):
             return target
     raise ValidationError(
         f"{entry.path} is not a regular file; model digests cover regular files, and links only "
-        "into a Hugging Face cache snapshot's own blobs folder",
+        "into a Hugging Face cache's own blobs folders",
         code=MODEL_FILES_REFUSED,
         details={"path": entry.path},
     )

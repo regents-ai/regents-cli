@@ -9,8 +9,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both
   sides, and only the weights changed. It reads local files only and computes every digest
-  itself; a checkpoint that cannot be named exactly is refused with the reason. No run uses the
-  pair yet (docs/model-substitution.md).
+  itself; a checkpoint that cannot be named exactly is refused with the reason and what to do.
+  It reads the Hugging Face cache as huggingface_hub 2.3 lays it out, and names `config.json`
+  by its own digest. No run uses the pair yet (docs/model-substitution.md).
 - New: `regents techtree model check-server --block <file> --base-url <url>` asks an operator's
   vLLM server whether it serves the model a block names: the block's weights root as the served
   model name, its vLLM version and its context length. Two free reads; a key, when the server

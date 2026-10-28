@@ -164,6 +164,10 @@ def _not_a_pipeline_export(metadata: dict[str, object]) -> None:
     metadata.update({"schema_version": 2, "checkpoint_provenance": "checkpoint-provenance.json"})
 
 
+def _config_rewritten(checkpoint: Path) -> None:
+    (checkpoint / "config.json").write_bytes(b'{"model_type": "qwen3", "torch_dtype": "float32"}')
+
+
 def _tokenizer_rewritten(checkpoint: Path) -> None:
     (checkpoint / "tokenizer.json").write_bytes(b'{"vocab": {"a": 1}}')
 
@@ -200,7 +204,8 @@ def test_a_checkpoint_that_cannot_be_named_exactly_is_refused(
 
 
 @pytest.mark.parametrize(
-    "change_files", [_tokenizer_rewritten, _template_changed, _weights_unchanged]
+    "change_files",
+    [_config_rewritten, _tokenizer_rewritten, _template_changed, _weights_unchanged],
 )
 def test_a_pair_that_changes_more_or_less_than_the_weights_is_refused(
     tmp_path: Path, change_files: Callable[[Path], None]

@@ -29,6 +29,7 @@ KEY = "server-key-for-tests"
 def _block(weights_root: str) -> OpenWeightsModel:
     return OpenWeightsModel(
         weights=WeightsRef(repo=None, revision=None, weights_root=weights_root),
+        config_digest="sha256:" + "5" * 64,
         tokenizer_digest="sha256:" + "3" * 64,
         chat_template_digest="sha256:" + "4" * 64,
         serving=ServingSpec(

@@ -83,6 +83,32 @@ def test_a_cache_snapshot_follows_links_into_its_own_blobs(tmp_path: Path) -> No
     assert (named.repo, named.revision) == ("Qwen/Qwen3-8B", "b" * 40)
 
 
+def test_a_cache_snapshot_follows_a_second_link_into_the_shared_blobs(tmp_path: Path) -> None:
+    """huggingface_hub 2.3 links snapshot -> repository blobs -> <hub>/blobs/<xx>/<hash>."""
+    hub = tmp_path / "hub"
+    snapshot = _cache_snapshot(hub)
+    for name in ("00001", "00002"):
+        repo_blob = hub / "models--Qwen--Qwen3-8B" / "blobs" / name
+        shared = hub / "blobs" / "ab" / f"hash{name}"
+        shared.parent.mkdir(parents=True, exist_ok=True)
+        shared.write_bytes(repo_blob.read_bytes())
+        repo_blob.unlink()
+        repo_blob.symlink_to(Path("../../blobs/ab") / shared.name)
+    assert weights_root(snapshot) == SPEC_ROOT
+
+
+def test_a_cache_snapshot_refuses_a_second_link_out_of_the_cache(tmp_path: Path) -> None:
+    hub = tmp_path / "hub"
+    snapshot = _cache_snapshot(hub)
+    outside = tmp_path / "outside"
+    outside.write_bytes(b"hello")
+    repo_blob = hub / "models--Qwen--Qwen3-8B" / "blobs" / "00001"
+    repo_blob.unlink()
+    repo_blob.symlink_to(outside)
+    with pytest.raises(ValidationError, match="not a regular file"):
+        weights_root(snapshot)
+
+
 def test_a_cache_snapshot_refuses_a_link_out_of_its_blobs(tmp_path: Path) -> None:
     snapshot = _cache_snapshot(tmp_path)
     outside = tmp_path / "outside"

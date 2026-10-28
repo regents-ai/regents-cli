@@ -1,8 +1,8 @@
 """The open-weights model block a model substitution Campaign names its subject model by.
 
 Techtree's model substitution spec, section 2: the weights by repository, commit and file
-root, the tokenizer and chat template by digest, how the weights are served, and, on the
-candidate, how its weights were derived from the baseline's.
+root, the model configuration, tokenizer and chat template by digest, how the weights are
+served, and, on the candidate, how its weights were derived from the baseline's.
 """
 
 from __future__ import annotations
@@ -65,6 +65,7 @@ class OpenWeightsModel(ProtocolModel):
     """The subject model of a model substitution Campaign."""
 
     weights: WeightsRef
+    config_digest: Digest
     tokenizer_digest: Digest
     chat_template_digest: Digest
     serving: ServingSpec

@@ -8,12 +8,16 @@ builds of it and the two points this side settled with Techtree on 28 Oct 2026.
 
 `src/regents_cli/techtree/model_files.py` computes `file_root`, `weights_root`,
 `tokenizer_digest` and `chat_template_digest` exactly as section 3 sets out, and
-`tests/techtree/test_model_files.py` checks the spec's test vector.
+`tests/techtree/test_model_files.py` checks the spec's test vector. It also computes
+`config_digest`, the root over `config.json` alone, which both sides must share: a config that
+changes the architecture or the context length would change more than the weights. Proposed to
+Techtree on 28 Oct after the CPU rehearsal; its spec section 2 gains the field.
 
 Links: a file that is a symbolic link is refused, with one exception agreed with Techtree. In a
-Hugging Face cache snapshot (`.../models--<org>--<name>/snapshots/<40 hex>`) every file is a
-link into that repository's `blobs/` folder, so there a link is followed when it resolves to a
-regular file inside that same `blobs/` folder. Every other link stays refused. The bytes digested
+Hugging Face cache snapshot (`<hub>/models--<org>--<name>/snapshots/<40 hex>`) every file is a
+link into that repository's `blobs/` folder, and huggingface_hub 2.3 links on from there into
+the cache's shared `<hub>/blobs/<xx>/<hash>`. So there a link is followed when it resolves to a
+regular file inside one of those two folders. Every other link stays refused. The bytes digested
 are the same either way, so no root changes.
 
 ## The OBLITERATUS import (spec section 6)
@@ -40,11 +44,30 @@ It refuses, with `obliteratus_checkpoint_refused`, a checkpoint that:
 - names no 40-character commit of its source, or was made from a local folder that is not a
   Hugging Face cache snapshot;
 - was made from a different repository or commit than the `--source` snapshot;
-- has a tokenizer or chat template that differs from the source's;
+- has a `config.json`, tokenizer or chat template that differs from the source's;
 - has weights byte for byte the source's.
 
 The candidate's `weights.repo` and `weights.revision` are null: the weights live on the
 operator's machine.
+
+### Preparing a real export
+
+The CPU rehearsal on 28 Oct (Qwen2.5-0.5B-Instruct, OBLITERATUS 43b5d6d `advanced`, seed 42)
+found three things an export needs before it imports:
+
+1. Run OBLITERATUS from a git checkout at a clean commit. An installed copy has no `.git`, so it
+   records its commit and dirty flag as null, and the import refuses it.
+2. Export with `--dtype bfloat16` (or the dtype the pair is served at). From a bfloat16 source
+   the export otherwise writes float32 weights and says so in its `config.json`.
+3. Under transformers 5 the export re-saves the tokenizer (dropping `vocab.json` and
+   `merges.txt`, rewriting `tokenizer.json` and `tokenizer_config.json`) and rewrites
+   `config.json`. They behave the same, but their bytes differ, so the pair would not show that
+   only the weights changed. Copy the source snapshot's `config.json` and tokenizer files into
+   the checkpoint (`cp -L`), and remove any tokenizer file the source does not have. The rules
+   stay as they are; the refusals say this too.
+
+With those three, the rehearsal's export imports against the real cache snapshot, and its
+weights roots match the ones Techtree's own script computed.
 
 ## The open_weights route (spec section 7, open question 3)
 
