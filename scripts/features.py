@@ -254,6 +254,30 @@ OWN: list[dict[str, Any]] = [
         "gaps": ["model login, status and logout are proven against a stand-in for OpenAI only."],
     },
     {
+        "id": "techtree-model-substitution",
+        "what": "An agent describes an OBLITERATUS checkpoint and the Hugging Face snapshot it "
+        "was made from as the two model blocks of a model substitution pair.",
+        "who": "agent",
+        "level": "ordinary",
+        "paths": [
+            "src/regents_cli/techtree/model_files.py",
+            "src/regents_cli/techtree/obliteratus.py",
+            "src/regents_cli/techtree/models/open_weights.py",
+        ],
+        "entry": [
+            {"cli": "regents techtree model import-obliteratus <checkpoint> --source <snapshot>"}
+        ],
+        "proofs": [
+            "tests/techtree/test_model_files.py",
+            "tests/techtree/test_obliteratus_import.py",
+        ],
+        "gaps": [
+            "Proven on hand-made checkpoints only, not yet on a real OBLITERATUS export.",
+            "No run uses the pair yet: an open-weights run needs its own route, which waits "
+            "for a costed run plan.",
+        ],
+    },
+    {
         "id": "techtree-approval",
         "what": "Before a Techtree step that needs agreement, the agent shows its person the "
         "review and runs the step only once they agree.",

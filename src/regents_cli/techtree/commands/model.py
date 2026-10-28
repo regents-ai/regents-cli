@@ -1,16 +1,25 @@
 """`regents techtree model login | status | logout`: sign this machine in to the person's ChatGPT
 plan, so Climbs can run on it as well as on their own Prime key. Every call goes to OpenAI;
-nothing goes to the Techtree site, and no answer ever carries a token."""
+nothing goes to the Techtree site, and no answer ever carries a token.
+
+`regents techtree model import-obliteratus`: describe an OBLITERATUS checkpoint and the model it
+was made from as the two model blocks of a model substitution pair. It reads local files only.
+"""
 
 from __future__ import annotations
+
+from pathlib import Path
 
 import click
 
 from regents_cli.next_steps import done, human
 from regents_cli.techtree import paths
+from regents_cli.techtree.canonical import to_json_value
 from regents_cli.techtree.chatgpt import signin
 from regents_cli.techtree.commands.answers import JSON, emit
 from regents_cli.techtree.models.base import JsonValue
+from regents_cli.techtree.models.open_weights import ServingSpec
+from regents_cli.techtree.obliteratus import import_checkpoint
 
 _PLAN_LINE = "Using your ChatGPT plan"
 
@@ -104,8 +113,50 @@ def _logout_report(logged_out: signin.LoggedOut) -> str:
     )
 
 
+def import_obliteratus(
+    checkpoint: Path,
+    source: Path,
+    vllm_version: str,
+    dtype: str,
+    quantization: str | None,
+    max_model_len: int,
+    as_json: bool,
+) -> None:
+    serving = ServingSpec(
+        engine="vllm",
+        version=vllm_version,
+        dtype=dtype,
+        quantization=quantization,
+        max_model_len=max_model_len,
+    )
+    pair = import_checkpoint(checkpoint, source, serving)
+    derivation = pair.candidate.derivation
+    assert derivation is not None
+    answer: dict[str, JsonValue] = {
+        "baseline": to_json_value(pair.baseline),
+        "candidate": to_json_value(pair.candidate),
+    }
+    answer["report"] = "\n".join(
+        [
+            f"**Baseline** {derivation.source.repo} at {derivation.source.revision}",
+            "",
+            f"Weights {pair.baseline.weights.weights_root}",
+            "",
+            f"**Candidate** OBLITERATUS {derivation.method} at {derivation.tool_commit}",
+            "",
+            f"Weights {pair.candidate.weights.weights_root}",
+            "",
+            "Same tokenizer, chat template and serving on both sides; only the weights differ. "
+            "The --json answer holds both model blocks.",
+        ]
+    )
+    emit(answer, as_json=as_json, next_steps=[done("Both model blocks are ready.")])
+
+
 MODEL = click.Group(
-    "model", help="Sign this machine in to your ChatGPT plan, so Climbs can run on it."
+    "model",
+    help="Sign this machine in to your ChatGPT plan, so Climbs can run on it, or describe an "
+    "open-weights model pair.",
 )
 MODEL.add_command(
     click.Command(
@@ -130,5 +181,38 @@ MODEL.add_command(
         callback=logout,
         help="Revoke the ChatGPT sign-in at OpenAI and remove it from this machine.",
         params=[JSON],
+    )
+)
+MODEL.add_command(
+    click.Command(
+        "import-obliteratus",
+        callback=import_obliteratus,
+        help="Describe an OBLITERATUS checkpoint and the Hugging Face snapshot it was made from "
+        "as a model substitution pair. Reads local files only; every digest is computed here.",
+        params=[
+            click.Argument(
+                ["checkpoint"],
+                type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path),
+            ),
+            click.Option(
+                ["--source"],
+                required=True,
+                type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path),
+                help="The source model's Hugging Face cache snapshot folder "
+                "(.../models--<org>--<name>/snapshots/<commit>).",
+            ),
+            click.Option(
+                ["--vllm-version"], required=True, help="The vLLM version both sides are served by."
+            ),
+            click.Option(["--dtype"], required=True, help="The served dtype, such as bfloat16."),
+            click.Option(["--quantization"], default=None, help="The served quantization, if any."),
+            click.Option(
+                ["--max-model-len"],
+                required=True,
+                type=click.IntRange(min=1),
+                help="The served context length in tokens.",
+            ),
+            JSON,
+        ],
     )
 )

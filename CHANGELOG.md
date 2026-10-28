@@ -3,6 +3,15 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
+  OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
+  of a Techtree model substitution pair: the same tokenizer, chat template and serving on both
+  sides, and only the weights changed. It reads local files only and computes every digest
+  itself; a checkpoint that cannot be named exactly is refused with the reason. No run uses the
+  pair yet (docs/model-substitution.md).
+
 ## 1.10.20 — 2026-10-28
 
 Evidence: level protected; features signed-requests, sign-in, site-doctor, techtree-release,
