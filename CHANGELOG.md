@@ -16,6 +16,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). Every taskset was checked again on
   the new engines: Hello World 36 of 36, Frontier-CS 10 of 10, Tasksmith 6 of 6 and its held-out 6 of 6.
 - `regents` itself needs filelock 4.2.1 or later, so an install never picks the flagged 4.2.0.
+- Install with `uv tool install --python 3.14 regents-cli`. Python 3.15 came out this month and
+  uv picks it when it is the newest Python on a machine, but `ckzg` (which `eth-account` needs)
+  has no ready-built copy for 3.15 yet, so the install has to compile it and fails without a
+  working C compiler. Every earlier release has the same limit.
 - One flagged library could not move yet: mcp stays at 2.0.0 in every engine, because the
   Verifiers release the Climbs use asks for exactly that version.
 

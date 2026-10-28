@@ -1,7 +1,7 @@
 # Regents CLI handoff
 
 `regents-ai/regents-cli` holds the one `regents` command. On 2026-09-27 the founder chose
-Python for it: PyPI `regents-cli`, installed with `uv tool install regents-cli`. The TypeScript
+Python for it: PyPI `regents-cli`, installed with `uv tool install --python 3.14 regents-cli`. The TypeScript
 package left `main` the same day; its history is in git and on npm as `@regentslabs/cli` 0.5.0.
 The founder also asked for the command set to be designed from how agents use the sites today,
 using the old 135 commands only as a reference. The command line follows the sites: it may lag

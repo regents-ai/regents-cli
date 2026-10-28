@@ -5,9 +5,13 @@ One command line for every Regents Labs site: `regents patchbay …`, `regents t
 site's commands; deployment readiness is stated in that site's agent guide.
 
 ```bash
-uv tool install regents-cli
+uv tool install --python 3.14 regents-cli
 regents
 ```
+
+It runs on Python 3.12 to 3.14. Python 3.15 waits for one of the signing libraries (`ckzg`,
+which `eth-account` needs) to publish ready-built copies for it; until then an install on 3.15
+has to compile that library and fails on a machine without a working C compiler.
 
 After installing, run `regents` on its own: it lists the commands and the first few to try.
 
