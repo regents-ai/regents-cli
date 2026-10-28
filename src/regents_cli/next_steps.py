@@ -379,8 +379,8 @@ def _broken(error: CommandError, status: int | None, invocation: Invocation) -> 
 def elsewhere(address: str, message: str) -> Step:
     """A failure at an address other than the usual one: not one for the site's board."""
     return human(
-        f"This ran against {address}, not the usual address, so it is not one to post on "
-        f"patchbay.help. If it keeps failing, tell your person: {message}"
+        f"This ran against {_shown_address(address)}, not the usual address, so it is not one "
+        f"to post on patchbay.help. If it keeps failing, tell your person: {message}"
     )
 
 

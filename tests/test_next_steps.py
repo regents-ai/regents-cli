@@ -18,7 +18,7 @@ import pytest
 from regents_cli import app, output
 from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import answer
-from regents_cli.next_steps import Invocation, for_failure, human
+from regents_cli.next_steps import Invocation, elsewhere, for_failure, human
 from regents_cli.platforms import Platform, pinned_platforms
 from regents_cli.runner import after
 from regents_cli.techtree.commands.run import after_logs, after_status
@@ -278,6 +278,48 @@ def test_a_failure_after_a_repeated_base_url_names_the_address_used_and_no_passw
     assert "hunter2" not in shown
     said = " ".join(step["say"] for step in json.loads(shown)["next_steps"])
     assert f"This ran against {used}," in said
+
+
+@pytest.mark.parametrize(
+    ("command", "after"),
+    [
+        (
+            ["threads", "search"],
+            ["--query", "--base-url=http://operator:hunter2@127.0.0.1:9", "--json"],
+        ),
+        (
+            ["tools", "catalog"],
+            ["--json", "--", "example.com", "--base-url=http://operator:hunter2@127.0.0.1:9"],
+        ),
+    ],
+    ids=["another option's value", "after --"],
+)
+def test_the_address_named_is_the_one_click_read(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    command: list[str],
+    after: list[str],
+) -> None:
+    """Words that only look like --base-url are not the address the command used."""
+    monkeypatch.delenv("PATCHBAY_BASE_URL", raising=False)
+    with socket.socket() as unused:
+        unused.bind(("127.0.0.1", 0))
+        port = unused.getsockname()[1]
+    used = f"http://127.0.0.1:{port}"
+    exit_code = app.main(["patchbay", *command, "--base-url", used, *after])
+
+    shown = capsys.readouterr().out
+    assert exit_code == EXIT_UNREACHABLE
+    assert "hunter2" not in shown
+    said = " ".join(step["say"] for step in json.loads(shown)["next_steps"])
+    assert f"This ran against {used}," in said
+
+
+def test_another_address_carrying_a_password_is_named_without_it() -> None:
+    """A site's variable is read as given, so a failure there may name a user and password."""
+    step = elsewhere("https://operator:hunter2@staging.example", "It could not be reached.")
+    assert "hunter2" not in step.say
+    assert "<private-address>" in step.say
 
 
 def test_only_a_402_with_x402_terms_asks_for_a_signature() -> None:

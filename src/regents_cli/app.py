@@ -148,10 +148,11 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
             break
         words.append(arg)
         command = child
+    given = _given(command, words, args)
     platforms = pinned_platforms()
     platform: Platform | None = None
     if words[:1] == ["auth"]:
-        site = _value_of("--site", args)
+        site = given.get("site")
         platform = next((p for p in platforms if p.site == site), None)
     elif words:
         platform = next((p for p in platforms if p.name == words[0]), None)
@@ -165,19 +166,30 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
         words=tuple(words),
         site=platform.site if platform is not None else None,
         host=platform.host if platform is not None else None,
-        takes_stdin=bool(described and described.stdin_fields)
-        or _value_of("--phase", args) == "send",
+        takes_stdin=bool(described and described.stdin_fields) or given.get("phase") == "send",
         # --phase prepare sends nothing, so it never pays.
         effect=described.effect
-        if described is not None and _value_of("--phase", args) != "prepare"
+        if described is not None and given.get("phase") != "prepare"
         else None,
         description=described.description if described is not None else None,
-        elsewhere=_elsewhere(platform, described, words, args),
+        elsewhere=_elsewhere(platform, described, words, given),
     )
 
 
+def _given(command: click.Command, words: list[str], args: list[str]) -> dict[str, object]:
+    """The options as Click read them for the command that ran. Arguments Click cannot read
+    ran nothing, so they name no option."""
+    try:
+        with command.make_context(
+            words[-1] if words else "regents", args[len(words) :], resilient_parsing=True
+        ) as context:
+            return dict(context.params)
+    except click.ClickException:
+        return {}
+
+
 def _elsewhere(
-    platform: Platform | None, described: Command | None, words: list[str], args: list[str]
+    platform: Platform | None, described: Command | None, words: list[str], given: dict[str, object]
 ) -> str | None:
     """The address the command ran against, when it is not the usual one: the site's, from
     --base-url or the site's variable, which every site command and `auth status` reach, or the
@@ -187,24 +199,14 @@ def _elsewhere(
     auth = words[:1] == ["auth"]
     addresses = []
     if not auth or words[1:2] == ["status"]:
-        site = _value_of("--base-url", args) or os.environ.get(platform.env_var)
+        flag = given.get("base_url")
+        site = flag if isinstance(flag, str) and flag else os.environ.get(platform.env_var)
         addresses.append((site, platform.base_url))
     if auth or (described is not None and described.signed):
         addresses.append((os.environ.get("SIWA_BROKER"), siwa.BROKER))
     return next(
         (named for named, usual in addresses if named and not same_origin(named, usual)), None
     )
-
-
-def _value_of(flag: str, args: list[str]) -> str | None:
-    """The value Click used for `flag`: the last one given."""
-    found = None
-    for index, arg in enumerate(args):
-        if arg == flag and index + 1 < len(args):
-            found = args[index + 1]
-        elif arg.startswith(flag + "="):
-            found = arg.removeprefix(flag + "=")
-    return found
 
 
 def run() -> None:

@@ -21,8 +21,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   check, written out in docs/model-substitution.md.
 - A "run this again" step repeats a `--base-url` as it was given, so a check against a local
   server can be rerun as shown, and shows `<private-address>` instead of any value with an `@`
-  in it, which could carry a user or password. When `--base-url` is given more than once, the
-  steps name the last one, which is the address the command used.
+  in it, which could carry a user or password. The step for a failure against another address
+  hides it the same way, and names the address the command used, read as the command reads its
+  options: the last `--base-url` given, and never a look-alike value of another option.
 
 ## 1.10.20 — 2026-10-28
 
