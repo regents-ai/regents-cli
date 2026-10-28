@@ -184,6 +184,43 @@ def test_a_step_shows_the_sites_words_as_written(capsys: pytest.CaptureFixture[s
 
 
 @pytest.mark.parametrize(
+    ("refusal", "words"),
+    [
+        (
+            {
+                "code": "agent_not_paired",
+                "message": "Not paired.",
+                "hint": "Ask your person to pair you. Help: https://patchbay.help/errors/agent_not_paired",
+            },
+            ["keyfleet", "agents", "whoami"],
+        ),
+        ({"code": "person_not_here", "message": "Not here."}, ["keyfleet", "agents", "whoami"]),
+        (
+            {
+                "code": "person_not_here",
+                "message": "Not here.",
+                "hint": ["Sign in once.", "Help: https://patchbay.help/errors/person_not_here"],
+            },
+            ["keyfleet", "agents", "whoami"],
+        ),
+    ],
+)
+def test_an_errors_help_page_is_printed_once(
+    refusal: dict[str, str], words: list[str], capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The sites' hints end with the error's patchbay.help page, and the hint is also a next
+    step: printing the CLI's own Help line and the hint under the error as well showed the same
+    link three times. A hint that is not text is the site's data and is shown as it is."""
+    error = _raised(httpx.Response(403, json={"error": refusal}))
+    steps = for_failure(error, app.invocation(app.root(), words))
+    output.emit_error(error, steps, as_json=False)
+    printed = " ".join(capsys.readouterr().err.split())
+    assert printed.count(f"https://patchbay.help/errors/{refusal['code']}") == 1
+    output.emit_error(error, steps, as_json=True)
+    assert json.loads(capsys.readouterr().out)["help"].endswith(refusal["code"])
+
+
+@pytest.mark.parametrize(
     "error",
     [
         CommandError(

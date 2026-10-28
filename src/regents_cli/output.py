@@ -29,7 +29,7 @@ from rich.segment import Segment
 from rich.table import Table
 from rich.text import Text
 
-from regents_cli.errors import CommandError
+from regents_cli.errors import CommandError, help_page
 from regents_cli.next_steps import Kind, Step
 
 stdout = Console(highlight=False)
@@ -96,14 +96,15 @@ def emit(
 
 
 def emit_error(error: CommandError, next_steps: Sequence[Step], *, as_json: bool) -> None:
-    """The failure and what to do about it, with `next_steps` beside `error` in JSON."""
+    """The failure and what to do about it, with `next_steps` beside `error` in JSON, and `help`,
+    the error's page on patchbay.help, when it has one."""
     if as_json:
+        page = help_page(error.code)
+        found = {**error.as_json(), **({"help": page} if page else {})}
         steps = [step.as_json() for step in next_steps]
-        sys.stdout.write(
-            json.dumps({**error.as_json(), "next_steps": steps}, ensure_ascii=False) + "\n"
-        )
+        sys.stdout.write(json.dumps({**found, "next_steps": steps}, ensure_ascii=False) + "\n")
         return
-    _print(stderr, _spaced([_failure(error), _next(next_steps)]))
+    _print(stderr, _spaced([_failure(error, next_steps), _next(next_steps)]))
 
 
 def show(*blocks: RenderableType) -> None:
@@ -173,15 +174,29 @@ class _Report(Markdown):
         yield from segments
 
 
-def _failure(error: CommandError) -> RenderableType:
+def _failure(error: CommandError, next_steps: Sequence[Step]) -> RenderableType:
+    """The failure as the person reads it. A site's hint that a next step already says word for
+    word is shown once, in the steps, and the error's patchbay.help page is shown unless the
+    site's words or the steps already carry it."""
+    said = {step.say for step in next_steps}
+    fields = {
+        k: v
+        for k, v in error.fields.items()
+        if not (k == "hint" and isinstance(v, str) and v in said)
+    }
     blocks: list[RenderableType] = [
         Text.assemble(("✗ ", "bold red"), (error.message, "bold")),
         Text("  " + error.code, style="dim"),
     ]
+    page = help_page(error.code)
+    words = [error.message, json.dumps(error.fields, ensure_ascii=False)]
+    words += [text for step in next_steps for text in (step.say, step.url) if text]
+    if page and not any(page in text for text in words):
+        blocks.append(Text.assemble("  Help: ", (page, "cyan"), no_wrap=True, overflow="ignore"))
     if error.review:
         blocks.append(review(error.review))
-    if error.fields:
-        blocks.append(_indented(_renderable(error.fields)))
+    if fields:
+        blocks.append(_indented(_renderable(fields)))
     return Group(*blocks)
 
 
