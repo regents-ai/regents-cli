@@ -21,11 +21,11 @@ import secrets
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import httpx
 from eth_abi import abi
@@ -128,6 +128,9 @@ class Receipt:
         return key.address == self.address
 
 
+RECEIPT_FIELDS: Final = {field.name for field in fields(Receipt)}
+
+
 def _write_private(path: Path, value: Any) -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     path.parent.chmod(0o700)
@@ -206,7 +209,19 @@ def chain_for(address: str) -> int:
 
 def load_receipt(site: str) -> Receipt | None:
     stored = _read_private(receipt_file(site))
-    return Receipt(**stored) if stored is not None else None
+    if stored is None:
+        return None
+    if not (
+        isinstance(stored, dict)
+        and set(stored) == RECEIPT_FIELDS
+        and all(isinstance(value, str) for value in stored.values())
+    ):
+        raise CommandError(
+            "unreadable_file",
+            f"{receipt_file(site)} is not a sign-in. Move it aside, then sign in again.",
+            exit_code=EXIT_AUTH,
+        )
+    return Receipt(**stored)
 
 
 def receipts() -> dict[str, Receipt]:

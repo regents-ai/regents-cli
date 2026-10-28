@@ -14,6 +14,9 @@ check:
 	uv run scripts/sync_platforms.py --copies
 	uv run python -m regents_cli.check_commands
 	uv run scripts/features.py --check
+	# The ReleaseCore names the engines this build ships: an engine lock changed without
+	# rebuilding the catalog and the ReleaseCore fails here.
+	uv run scripts/techtree/verify_release_core.py
 	@echo "Made-up inputs from seed $(SEED)"
 	uv run pytest -q --hypothesis-seed=$(SEED)
 	uv run scripts/check_wheel.py

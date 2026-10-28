@@ -180,14 +180,16 @@ def _elsewhere(
     platform: Platform | None, described: Command | None, words: list[str], args: list[str]
 ) -> str | None:
     """The address the command ran against, when it is not the usual one: the site's, from
-    --base-url or the site's variable, or the sign-in server's, from SIWA_BROKER, which `auth`
-    and every signed command reach."""
+    --base-url or the site's variable, which every site command and `auth status` reach, or the
+    sign-in server's, from SIWA_BROKER, which `auth` and every signed command reach."""
     if platform is None:
         return None
-    addresses = [
-        (_value_of("--base-url", args) or os.environ.get(platform.env_var), platform.base_url)
-    ]
-    if words[:1] == ["auth"] or (described is not None and described.signed):
+    auth = words[:1] == ["auth"]
+    addresses = []
+    if not auth or words[1:2] == ["status"]:
+        site = _value_of("--base-url", args) or os.environ.get(platform.env_var)
+        addresses.append((site, platform.base_url))
+    if auth or (described is not None and described.signed):
         addresses.append((os.environ.get("SIWA_BROKER"), siwa.BROKER))
     return next(
         (named for named, usual in addresses if named and not same_origin(named, usual)), None

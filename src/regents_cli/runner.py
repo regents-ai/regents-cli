@@ -84,7 +84,7 @@ def platform_group(platform: Platform, group: click.Group | None = None) -> clic
         group = deepcopy(group)
         group.help = f"{group.help}\n\n{help_text}"
     described: list[click.Group] = []
-    public: set[tuple[int, str]] = set()
+    public: dict[click.Group, set[str]] = {}
     for command in platform.commands:
         parent = group
         for word in command.group_words:
@@ -104,11 +104,11 @@ def platform_group(platform: Platform, group: click.Group | None = None) -> clic
             )
         parent.add_command(build_command(platform, command))
         if command.authority == "public":
-            public.add((id(parent), command.name))
+            public.setdefault(parent, set()).add(command.name)
     # A description names commands, not groups: each group's line lists what it holds, the
     # commands that need no sign-in first.
     for child in described:
-        child.help = holds(child, {name for place, name in public if place == id(child)})
+        child.help = holds(child, public.get(child, set()))
     if "doctor" not in group.commands:
         group.add_command(doctor_command(platform))
     return group
@@ -481,7 +481,10 @@ def after(
                 "The site took this but has not finished it, so don't run it again.",
             )
         ]
-    said = answer.get("next_step")
+    # An answer in a {"data": …} envelope (regents.sh, the template) carries it in data; an
+    # answer without one (Patchbay's search) carries it at the top.
+    data = answer.get("data")
+    said = (data if isinstance(data, dict) else answer).get("next_step")
     if isinstance(said, str) and said.strip():
         return site_says(platform, command.effect, said)
     return [done(DONE[command.effect])]

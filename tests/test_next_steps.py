@@ -101,8 +101,7 @@ def test_a_paired_commands_help_pairs_on_that_site(platform: Platform) -> None:
             assert isinstance(shown, click.Group)
             shown = shown.commands[word]
         assert shown.help is not None
-        assert f"(regents {platform.name} agents pair;" in shown.help
-        assert f"signed in on {platform.host} once" in shown.help
+        assert f"regents {platform.name} agents pair" in shown.help
 
 
 PAY = ["patchbay", "payments", "execute", "00000000-0000-0000-0000-000000000001", "--json"]

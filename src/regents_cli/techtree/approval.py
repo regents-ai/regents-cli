@@ -33,7 +33,7 @@ REVIEWED_ON = click.Option(
     type=click.Choice(["cli", "host-agent"]),
     default="cli",
     show_default=True,
-    help="Where the person agreed. host-agent: the review was shown and agreed in a "
+    help="The place the person agreed. host-agent: the review was shown and agreed in a "
     "conversation. Goes with --yes.",
 )
 

@@ -111,7 +111,8 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
   answer = send once; never retried, redirects never followed
   2xx with JSON      -> print it (readable, or JSON with --json) with next_steps: the next
                         page when entry.pagination says there is one, then entry.next_steps,
-                        else the answer's own top-level next_step as written: the help
+                        else the answer's own next_step as written (in data when the
+                        answer is {"data": ...}, else at the top): the help
                         of the one command whose route it names, or else beside "done";
                         a 202 without entry.next_steps is not done: its
                         step quotes the entry's description and lists its group's commands

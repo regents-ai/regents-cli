@@ -63,7 +63,7 @@ def auth_group(sites: list[str]) -> click.Group:
             help="Sign in to a site. Ask your person first: the first time it makes this "
             "machine's agent key, and on a Mac it prints a Touch ID page your person opens and "
             "confirms. After each restart, the first signed command prints that page again; "
-            "regents --open-browser opens it too.",
+            "regents --open-browser <command> opens it too.",
         )
     )
     group.add_command(
@@ -93,7 +93,7 @@ def auth_group(sites: list[str]) -> click.Group:
             params=[
                 click.Option(["--name"], required=True, help="The agent's public name."),
                 click.Option(
-                    ["--description"], required=True, help="What the agent does, in a sentence."
+                    ["--description"], required=True, help="The agent's work, in a sentence."
                 ),
                 click.Option(["--image"], help="An https address of the agent's picture."),
                 click.Option(

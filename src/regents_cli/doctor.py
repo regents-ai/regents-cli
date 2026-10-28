@@ -22,7 +22,7 @@ from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
 SIGN_IN = "sign-in"
 #: A sign-in check that failed on a file on this machine: signing in again meets the same file.
 KEY_FILE_PROBLEMS = ("unsafe_file", "bad_key_file", "unreadable_file")
-NOT_SIGNED_IN = "Not signed in yet; needed only for signed commands."
+NOT_SIGNED_IN = "not_signed_in"
 
 
 def doctor_command(platform: Platform) -> click.Command:
@@ -78,11 +78,11 @@ def repairs(
     checks ran against another address."""
     steps: list[Step] = []
     for failure in (c for c in failed if c["check"] == SIGN_IN):
-        code, _, said = failure["detail"].partition(": ")
-        steps.append(human(said) if code in KEY_FILE_PROBLEMS else sign_in(platform.site))
+        key_file = failure["code"] in KEY_FILE_PROBLEMS
+        steps.append(human(failure["detail"]) if key_file else sign_in(platform.site))
     broken = [c for c in failed if c["check"] != SIGN_IN]
     steps.append(run(again, "Then check again."))
-    detail = "; ".join(f"{c['check']}: {c['detail']}" for c in broken)
+    detail = "; ".join(f"{c['check']}: {c['code']}: {c['detail']}" for c in broken)
     if broken and not same_origin(base, platform.base_url):
         steps.append(elsewhere(base, detail))
     elif broken and platform.name == "patchbay":
@@ -98,7 +98,7 @@ def repairs(
 
 
 def held(site: str, checks: list[dict[str, Any]]) -> list[Step]:
-    if not any(c["check"] == SIGN_IN and c["detail"] == NOT_SIGNED_IN for c in checks):
+    if not any(c["code"] == NOT_SIGNED_IN for c in checks):
         return [done("Every check held; nothing more to run.")]
     return [
         done("The site and its public reads answer; nothing more to run for those."),
@@ -120,30 +120,32 @@ def needs_nothing(command: Command) -> bool:
     )
 
 
-def check(name: str, run: Callable[[], str]) -> dict[str, Any]:
+def check(name: str, run: Callable[[], tuple[str, str]]) -> dict[str, Any]:
+    """One check's row: its code (the error's, when it failed) and what it found."""
     try:
-        return {"check": name, "ok": True, "detail": run()}
+        code, detail = run()
+        return {"check": name, "ok": True, "code": code, "detail": detail}
     except CommandError as error:
-        return {"check": name, "ok": False, "detail": f"{error.code}: {error.message}"}
+        return {"check": name, "ok": False, "code": error.code, "detail": error.message}
 
 
-def site_answers(base: str, timeout_ms: int) -> str:
+def site_answers(base: str, timeout_ms: int) -> tuple[str, str]:
     response = respond(base, Request("GET", "/", headers={"accept": "*/*"}), timeout_ms)
-    return f"{base} answered {response.status_code}."
+    return "answered", f"{base} answered {response.status_code}."
 
 
-def read_answers(base: str, command: Command, timeout_ms: int) -> str:
+def read_answers(base: str, command: Command, timeout_ms: int) -> tuple[str, str]:
     send(base, Request(command.method, command.path), timeout_ms)
-    return f"{command.method} {command.path} answered."
+    return "answered", f"{command.method} {command.path} answered."
 
 
-def sign_in_good(site: str, timeout_ms: int) -> str:
+def sign_in_good(site: str, timeout_ms: int) -> tuple[str, str]:
     key = siwa.load_key()
     if siwa.load_receipt(site) is None:
-        return NOT_SIGNED_IN
+        return NOT_SIGNED_IN, "Not signed in yet; needed only for signed commands."
     receipt = siwa.current(site, timeout_ms)
     if key is None or not receipt.signed_by(key):
-        return (
+        return "own_key", (
             f"Signed in with your own key as {receipt.address} until "
             f"{receipt.receipt_expires_at}; only that key can sign a request to check it further."
         )
@@ -159,7 +161,7 @@ def sign_in_good(site: str, timeout_ms: int) -> str:
         if person
         else "it has accepted no World ID person (optional: regents auth accept-world-id)"
     )
-    return (
+    return "accepted", (
         f"The sign-in server accepts {receipt.address} until {receipt.receipt_expires_at}; "
         f"it is {listed}, and {vouched}."
     )

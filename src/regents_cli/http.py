@@ -45,18 +45,24 @@ def origin(value: str, source: str) -> str:
 
 
 def same_origin(one: str, other: str) -> bool:
-    """Whether two addresses are one origin: the same scheme, host and port, written either way."""
-    return _origin_key(one) == _origin_key(other)
+    """Whether two addresses are one origin: the same scheme, host and port, written either way.
+    An address whose port is not a number is no origin, so it is never the same as another."""
+    keys = _origin_key(one), _origin_key(other)
+    return None not in keys and keys[0] == keys[1]
 
 
-def _origin_key(value: str) -> tuple[str, str | None, int | None]:
-    parts = urlsplit(value)
+def _origin_key(value: str) -> tuple[str, str | None, int | None] | None:
+    parts = urlsplit(value.strip())
     scheme = parts.scheme.lower()
     try:
-        port = parts.port or {"https": 443, "http": 80}.get(scheme)
-    except ValueError:  # a port that is not a number is never the usual one
-        port = -1
-    return scheme, parts.hostname, port
+        port = parts.port
+    except ValueError:
+        return None
+    return (
+        scheme,
+        parts.hostname,
+        port if port is not None else {"https": 443, "http": 80}.get(scheme),
+    )
 
 
 def base_address(flag: str | None, env_var: str, site: str) -> str:
