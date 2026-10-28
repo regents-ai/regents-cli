@@ -207,10 +207,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
    through the task's own check, not the episode's scorer, so they cannot see this; a free
    stand-in run of a Tasksmith Campaign does, and is now run before any paid Tasksmith run.
 7d. 1.10.20 (2026-10-28): security fixes in every engine lock (Pillow, aiohttp, filelock,
-   opentelemetry-api, certifi; Hello World also PyJWT, urllib3, multidict, yarl; mcp stays
-   2.0.0 for Verifiers), new engine digests, catalog `sha256:f19451cb…a43b` (36/10/6/6 valid),
-   release `climb-v0.7.21`, ReleaseCore `sha256:cd161fd5…4780`. The sample proof is now
-   `run_6932c346…` (free stand-in run on the new engines, 72 episodes, 355 checks). Proofs
+   opentelemetry-api, certifi; Hello World also PyJWT, urllib3, multidict, yarl, msgpack; mcp
+   stays 2.0.0 for Verifiers), new engine digests, catalog `sha256:e0319bae…3044` (36/10/6/6
+   valid), release `climb-v0.7.21`, ReleaseCore `sha256:0dcc4234…8614`. The sample proof is now
+   `run_4d719cc5…` (free stand-in run on the new engines, 72 episodes, 355 checks). Proofs
    made under 1.10.19 still verify but can no longer be rerun with `--rerun-of`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 

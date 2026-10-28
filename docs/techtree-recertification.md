@@ -71,9 +71,11 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 ## What has run
 
 - 2026-10-28, a free run against a local stand-in model on `hello-world-climb@3`
-  (`climb-v0.7.21`, the patched engines, Prime-key route, `run_6932c346b0184d15b2c2cc0b6fb36b97`):
-  all 72 episodes finished and the proof verifies offline (355 checks). That run's proof is
-  now the test fixture in `tests/techtree/fixtures/run`.
+  (`climb-v0.7.21`, the patched engines with msgpack 1.2.3, Prime-key route,
+  `run_4d719cc590124e0ebad42d1d19d2ad78`): all 72 episodes finished and the proof verifies
+  offline (355 checks). That run's proof is now the test fixture in `tests/techtree/fixtures/run`.
+  It replaces `run_6932c346b0184d15b2c2cc0b6fb36b97`, the same run on the engine before msgpack
+  moved.
 
 - 2026-10-27, a free run against a local stand-in model on `tasksmith-climb@2` after the fix
   below (`run_203f5fbb350a44ec82461c65dedff3dd`), and one on its held-out tasks

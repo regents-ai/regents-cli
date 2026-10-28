@@ -5,6 +5,12 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.20 — 2026-10-28
 
+Evidence: level protected; features signed-requests, sign-in, site-doctor, techtree-release,
+techtree-evaluation-engine, release-gates and the Autolaunch and protocol command groups; 696
+tests; 20 known gaps in verification/features.yml; every taskset checked again on the new
+engines (36/10/6/6) and a free stand-in Hello World run whose proof verifies offline (355
+checks; docs/techtree-recertification.md).
+
 - When a site fails, is unreachable or answers in a way `regents` can't read, the next steps now
   search patchbay.help first for that error on that site, which needs no sign-in:
   `regents patchbay threads search --query <error> --origin <site>`. The ready post comes after
@@ -44,15 +50,17 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   now locks the fixed releases of Pillow (13.0.0), aiohttp (3.14.4), filelock (4.2.1),
   opentelemetry-api (1.45.1) and certifi (2026.10.18), which no longer trusts the withdrawn
   emSign certificates. The Hello World engine also moves PyJWT to 2.15.0, urllib3 to 2.8.0,
-  multidict to 6.9.1 and yarl to 1.25.1. Nothing else in an engine changed: the same Verifiers,
-  the same tasks and the same scoring.
+  multidict to 6.9.1, yarl to 1.25.1 and msgpack to 1.2.3. Nothing else in an engine changed:
+  the same Verifiers, the same tasks and the same scoring.
 - Because the engines changed, every Climb's engine has a new fingerprint and the Climb catalog
   that names them is new. The Climbs keep their names (`hello-world-climb@3`,
   `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). Every taskset was checked again on
-  the new engines: Hello World 36 of 36, Frontier-CS 10 of 10, Tasksmith 6 of 6 and its held-out 6 of 6.
+  the new engines: Hello World 36 of 36, Frontier-CS 10 of 10, Tasksmith 6 of 6 and its
+  held-out 6 of 6.
   A proof made with 1.10.19 still verifies, but `climb prepare --rerun-of` can't rerun it, since
   its Campaign names the old engine; run the Skill again on the Climb instead.
-- `regents` itself needs filelock 4.2.1 or later, so an install never picks the flagged 4.2.0.
+- `regents` itself needs filelock 4.2.1 or later, so an install never picks the flagged 4.2.0,
+  and its own lock moves certifi to 2026.10.23.
 - Install with `uv tool install --python 3.14 regents-cli`. Python 3.15 came out this month and
   uv picks it when it is the newest Python on a machine, but `ckzg` (which `eth-account` needs)
   has no ready-built copy for 3.15 yet, so the install has to compile it and fails without a
