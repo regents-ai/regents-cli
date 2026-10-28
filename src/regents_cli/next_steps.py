@@ -18,7 +18,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from importlib.metadata import version
 from typing import Literal
-from urllib.parse import urlsplit
 from uuid import uuid4
 
 from regents_cli.errors import (
@@ -153,12 +152,9 @@ ADDRESS_FLAGS = frozenset({"--base-url"})
 
 
 def _shown_address(value: str) -> str:
-    """`value`, or the placeholder when it carries a user or password (or cannot be read)."""
-    try:
-        private = "@" in urlsplit(value).netloc
-    except ValueError:
-        private = True
-    return PRIVATE_FLAGS["--address"] if private else value
+    """`value`, or the placeholder when it could carry a user or password: any "@" at all, since
+    an address written without a scheme or slashes still reaches the server with them."""
+    return PRIVATE_FLAGS["--address"] if "@" in value else value
 
 
 @dataclass(frozen=True, slots=True)

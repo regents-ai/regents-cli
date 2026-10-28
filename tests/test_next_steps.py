@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import shlex
+import socket
 from pathlib import Path
 
 import click
@@ -228,7 +229,9 @@ def test_a_rerun_keeps_an_address_and_hides_one_carrying_a_password() -> None:
         "--base-url=http://operator:hunter2@127.0.0.1:8001/v1",
         "--base-url",
         "http://127.0.0.1:8000/v1",
-        "--base-url=http://[::1:8000/v1",
+        "--base-url=operator:hunter2@127.0.0.1:8000",
+        "--base-url",
+        "http:\\\\operator:hunter2@127.0.0.1:8000",
         "--json",
     )
     again = Invocation(args, ("techtree", "model"), None, None, takes_stdin=False).again
@@ -243,8 +246,38 @@ def test_a_rerun_keeps_an_address_and_hides_one_carrying_a_password() -> None:
         "--base-url",
         "http://127.0.0.1:8000/v1",
         "--base-url=<private-address>",
+        "--base-url",
+        "<private-address>",
         "--json",
     )
+
+
+def test_a_failure_after_a_repeated_base_url_names_the_address_used_and_no_password(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Click uses the last --base-url given, so the steps name that one, and an earlier one
+    carrying a password never comes back."""
+    monkeypatch.delenv("ASH_TEMPLATE_BASE_URL", raising=False)
+    with socket.socket() as unused:
+        unused.bind(("127.0.0.1", 0))
+        port = unused.getsockname()[1]
+    used = f"http://127.0.0.1:{port}"
+    exit_code = app.main(
+        [
+            "ash-template",
+            "health",
+            "--base-url",
+            f"http://operator:hunter2@127.0.0.1:{port}",
+            f"--base-url={used}",
+            "--json",
+        ]
+    )
+
+    shown = capsys.readouterr().out
+    assert exit_code == EXIT_UNREACHABLE
+    assert "hunter2" not in shown
+    said = " ".join(step["say"] for step in json.loads(shown)["next_steps"])
+    assert f"This ran against {used}," in said
 
 
 def test_only_a_402_with_x402_terms_asks_for_a_signature() -> None:

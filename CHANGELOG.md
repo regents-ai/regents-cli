@@ -19,6 +19,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   model name and nothing else, its vLLM version and its context length. Two free reads; a key,
   when the server needs one, is read from `VLLM_API_KEY` and never shown. This is the open_weights route's
   check, written out in docs/model-substitution.md.
+- A "run this again" step repeats a `--base-url` as it was given, so a check against a local
+  server can be rerun as shown, and shows `<private-address>` instead of any value with an `@`
+  in it, which could carry a user or password. When `--base-url` is given more than once, the
+  steps name the last one, which is the address the command used.
 
 ## 1.10.20 — 2026-10-28
 

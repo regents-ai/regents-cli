@@ -197,12 +197,14 @@ def _elsewhere(
 
 
 def _value_of(flag: str, args: list[str]) -> str | None:
+    """The value Click used for `flag`: the last one given."""
+    found = None
     for index, arg in enumerate(args):
         if arg == flag and index + 1 < len(args):
-            return args[index + 1]
-        if arg.startswith(flag + "="):
-            return arg.removeprefix(flag + "=")
-    return None
+            found = args[index + 1]
+        elif arg.startswith(flag + "="):
+            found = arg.removeprefix(flag + "=")
+    return found
 
 
 def run() -> None:
