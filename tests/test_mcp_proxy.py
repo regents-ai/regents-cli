@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 import anyio
+import httpx2
 import pytest
 import uvicorn
 from hypothesis import given
@@ -205,6 +206,8 @@ def test_a_site_it_cannot_reach_gets_an_answer_and_it_keeps_running(
         answered = json.loads(running.stdout.readline())
         cancelled = {"jsonrpc": "2.0", "method": "notifications/cancelled", "params": {}}
         running.stdin.write(json.dumps(cancelled) + "\n")
+        # The agent's own reply to the site gets no made-up answer under its id.
+        running.stdin.write(json.dumps({"jsonrpc": "2.0", "id": 7, "result": {}}) + "\n")
         running.stdin.write(json.dumps({**OPENING, "id": 2}) + "\n")
         running.stdin.flush()
         again = json.loads(running.stdout.readline())
@@ -294,3 +297,23 @@ def test_refuses_to_start_without_a_part_it_needs(
 
     assert code != 0
     assert "installation_incomplete" in capsys.readouterr().err.split()
+
+
+async def test_a_site_that_takes_a_request_and_never_answers_may_have_acted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sign_in(tmp_path, monkeypatch)
+    monkeypatch.setattr(mcp_proxy, "TIMEOUT", httpx2.Timeout(5, read=0.5))
+    silent = socket.socket()
+    silent.bind(("127.0.0.1", 0))
+    silent.listen()
+    try:
+        async with mcp_proxy.SiteClient(
+            f"http://127.0.0.1:{silent.getsockname()[1]}", key_signer("ash-template")
+        ) as client:
+            answer = await client.post("/mcp", json={"jsonrpc": "2.0", "id": 3, "method": "ping"})
+    finally:
+        silent.close()
+    error = answer.json()["error"]
+    assert answer.json()["id"] == 3
+    assert "no answer" in error["message"] and "could not reach" not in error["message"]

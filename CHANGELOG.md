@@ -44,6 +44,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
     is refused as another site.
   - `regents mcp` answers each request with "regents could not reach <site>" when the site is
     down, notes an undelivered notification in one line on its error output, and keeps running.
+    When the site took a request and gave no answer in time, the error says the site may have
+    acted on it. The agent's own reply to the site is never answered with a made-up error.
     When the agent host closes its input, the answers still owed arrive before it stops.
   - The install line names both parts, `'regents-cli[browser,mcp]'`, since installing one after
     the other removed the first.

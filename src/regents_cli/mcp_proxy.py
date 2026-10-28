@@ -81,8 +81,9 @@ class Signed(httpx2.Auth):
 
 
 class SiteClient(httpx2.AsyncClient):
-    """Sends each message to the site. When the site cannot be reached, a request is answered
-    with a JSON-RPC error naming the site, and a notification is noted on stderr."""
+    """Sends each message to the site. When the site cannot be reached, or does not answer in
+    time, a request is answered with a JSON-RPC error saying which, and any other message (a
+    notification, or the agent's reply to the site) is noted on stderr."""
 
     def __init__(self, site: str, sign: Signer) -> None:
         super().__init__(auth=Signed(sign), timeout=TIMEOUT)
@@ -91,18 +92,26 @@ class SiteClient(httpx2.AsyncClient):
     async def send(self, request: httpx2.Request, **options: Any) -> httpx2.Response:
         try:
             return await super().send(request, **options)
-        except httpx2.TransportError:
+        except httpx2.TransportError as failure:
             if request.method != "POST":
                 raise
+            # Only a failed connection is certain not to have reached the site.
+            unreached = isinstance(failure, httpx2.ConnectError | httpx2.ConnectTimeout)
+            what = (
+                f"regents could not reach {self.site}"
+                if unreached
+                else f"regents had no answer from {self.site}, which may have acted on it"
+            )
             message = json.loads(request.content)
-            if "id" not in message:
+            if "method" not in message or "id" not in message:
                 output.stderr.print(
-                    f"regents mcp: could not reach {self.site}; a notification was not delivered.",
+                    f"regents mcp: {what}; a message was not delivered.",
                     markup=False,
                     soft_wrap=True,
                 )
-            error = {"code": INTERNAL_ERROR, "message": f"regents could not reach {self.site}"}
-            answer = {"jsonrpc": "2.0", "id": message.get("id"), "error": error}
+                return httpx2.Response(202, request=request)
+            error = {"code": INTERNAL_ERROR, "message": what}
+            answer = {"jsonrpc": "2.0", "id": message["id"], "error": error}
             return httpx2.Response(502, json=answer, request=request)
 
 
