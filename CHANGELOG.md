@@ -5,26 +5,6 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.20 — 2026-10-28
 
-- Security updates for the libraries Techtree Climbs install. Each Climb's evaluation engine
-  now locks the fixed releases of Pillow (13.0.0), aiohttp (3.14.4), filelock (4.2.1),
-  opentelemetry-api (1.45.1) and certifi (2026.10.18), which no longer trusts the withdrawn
-  emSign certificates. The Hello World engine also moves PyJWT to 2.15.0, urllib3 to 2.8.0,
-  multidict to 6.9.1 and yarl to 1.25.1. Nothing else in an engine changed: the same Verifiers,
-  the same tasks and the same scoring.
-- Because the engines changed, every Climb's engine has a new fingerprint and the Climb catalog
-  that names them is new. The Climbs keep their names (`hello-world-climb@3`,
-  `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). Every taskset was checked again on
-  the new engines: Hello World 36 of 36, Frontier-CS 10 of 10, Tasksmith 6 of 6 and its held-out 6 of 6.
-- `regents` itself needs filelock 4.2.1 or later, so an install never picks the flagged 4.2.0.
-- Install with `uv tool install --python 3.14 regents-cli`. Python 3.15 came out this month and
-  uv picks it when it is the newest Python on a machine, but `ckzg` (which `eth-account` needs)
-  has no ready-built copy for 3.15 yet, so the install has to compile it and fails without a
-  working C compiler. Every earlier release has the same limit.
-- One flagged library could not move yet: mcp stays at 2.0.0 in every engine, because the
-  Verifiers release the Climbs use asks for exactly that version.
-
-## Unreleased (first-run fixes)
-
 - When a site fails, is unreachable or answers in a way `regents` can't read, the next steps now
   search patchbay.help first for that error on that site, which needs no sign-in:
   `regents patchbay threads search --query <error> --origin <site>`. The ready post comes after
@@ -58,6 +38,27 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `regents --help` starts with a Keyfleet read that needs no sign-in (`keyfleet fleets list`),
   then a Patchbay search, signing in after asking your person, pairing with your person
   (`keyfleet agents whoami` says whether you are paired and how), and `keyfleet doctor`.
+- Autolaunch and regents.sh commands match the sites as they run on 28 Oct. Autolaunch's
+  `agents whoami` says to run it first and what it answers.
+- Security updates for the libraries Techtree Climbs install. Each Climb's evaluation engine
+  now locks the fixed releases of Pillow (13.0.0), aiohttp (3.14.4), filelock (4.2.1),
+  opentelemetry-api (1.45.1) and certifi (2026.10.18), which no longer trusts the withdrawn
+  emSign certificates. The Hello World engine also moves PyJWT to 2.15.0, urllib3 to 2.8.0,
+  multidict to 6.9.1 and yarl to 1.25.1. Nothing else in an engine changed: the same Verifiers,
+  the same tasks and the same scoring.
+- Because the engines changed, every Climb's engine has a new fingerprint and the Climb catalog
+  that names them is new. The Climbs keep their names (`hello-world-climb@3`,
+  `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). Every taskset was checked again on
+  the new engines: Hello World 36 of 36, Frontier-CS 10 of 10, Tasksmith 6 of 6 and its held-out 6 of 6.
+  A proof made with 1.10.19 still verifies, but `climb prepare --rerun-of` can't rerun it, since
+  its Campaign names the old engine; run the Skill again on the Climb instead.
+- `regents` itself needs filelock 4.2.1 or later, so an install never picks the flagged 4.2.0.
+- Install with `uv tool install --python 3.14 regents-cli`. Python 3.15 came out this month and
+  uv picks it when it is the newest Python on a machine, but `ckzg` (which `eth-account` needs)
+  has no ready-built copy for 3.15 yet, so the install has to compile it and fails without a
+  working C compiler. Every earlier release has the same limit.
+- One flagged library could not move yet: mcp stays at 2.0.0 in every engine, because the
+  Verifiers release the Climbs use asks for exactly that version.
 
 ## 1.10.19 — 2026-10-27
 

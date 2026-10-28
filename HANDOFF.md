@@ -63,10 +63,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
 ## Where the steps stand
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
-3. Every site is pinned to its live commit. In 1.10.19 (`platforms.lock.json`, checked against
-   Fly on 27 Oct): Patchbay `9359eacd` (v277), Keyfleet `ce00963f` (v366), Autolaunch
-   `6478f162` (v187), Techtree `0d680806` (v193), regents.sh `0a046b55` (v235), ash-template
-   `f76f1389` (v116), and the signing
+3. Every site is pinned to its live commit. In 1.10.20 (`platforms.lock.json`, checked against
+   Fly on 28 Oct): Patchbay `668d9220` (v279), Keyfleet `0df8e0f7` (v386), Autolaunch
+   `e6f3d225` (v191), Techtree `53fd7920` (v198), regents.sh `d58a8dbc` (v238), ash-template
+   `5a1fe29e` (v123), and the signing
    contract from elixir-utils `fe3aa1d5`. `make release-check` reads every public read live
    against these copies. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
    is the one command tree named apart from its site (`SIGN_IN_SITES` in
@@ -206,6 +206,12 @@ behind a site, and never holds one up (founder, 2026-09-28).
    changed, ReleaseCore `sha256:127276e8…6269`). The catalog's gold and untouched checks grade
    through the task's own check, not the episode's scorer, so they cannot see this; a free
    stand-in run of a Tasksmith Campaign does, and is now run before any paid Tasksmith run.
+7d. 1.10.20 (2026-10-28): security fixes in every engine lock (Pillow, aiohttp, filelock,
+   opentelemetry-api, certifi; Hello World also PyJWT, urllib3, multidict, yarl; mcp stays
+   2.0.0 for Verifiers), new engine digests, catalog `sha256:f19451cb…a43b` (36/10/6/6 valid),
+   release `climb-v0.7.21`, ReleaseCore `sha256:cd161fd5…4780`. The sample proof is now
+   `run_6932c346…` (free stand-in run on the new engines, 72 episodes, 355 checks). Proofs
+   made under 1.10.19 still verify but can no longer be rerun with `--rerun-of`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

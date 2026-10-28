@@ -70,6 +70,11 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-10-28, a free run against a local stand-in model on `hello-world-climb@3`
+  (`climb-v0.7.21`, the patched engines, Prime-key route, `run_6932c346b0184d15b2c2cc0b6fb36b97`):
+  all 72 episodes finished and the proof verifies offline (355 checks). That run's proof is
+  now the test fixture in `tests/techtree/fixtures/run`.
+
 - 2026-10-27, a free run against a local stand-in model on `tasksmith-climb@2` after the fix
   below (`run_203f5fbb350a44ec82461c65dedff3dd`), and one on its held-out tasks
   (`run_7f8bc1dbf2684e7ead353d5eedba5e4f`): in each, all 12 episodes finished and were scored
@@ -136,8 +141,7 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 - 2026-10-27, a free run against a local stand-in model on `hello-world-climb@3`
   (`climb-v0.7.20`, Verifiers 0.4.0, Prime-key route): all 72 episodes finished and the proof
-  verifies offline (355 checks). That run's proof is now the test fixture in
-  `tests/techtree/fixtures/run`.
+  verifies offline (355 checks). That run's proof was the test fixture until 2026-10-28.
 
 - 2026-10-05, a free run against a local stand-in model on `hello-world-climb@3`
   (`climb-v0.7.0`, each task scored on the environment's weighted total of its rewards): all 72
