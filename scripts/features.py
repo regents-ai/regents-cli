@@ -276,7 +276,8 @@ OWN: list[dict[str, Any]] = [
             "tests/techtree/test_model_server.py",
         ],
         "gaps": [
-            "Proven on hand-made checkpoints only, not yet on a real OBLITERATUS export.",
+            "The real OBLITERATUS export (CPU rehearsal, 28 Oct) was imported by hand; the "
+            "tests use hand-made checkpoints.",
             "check-server is proven against a stand-in for vLLM's two reads, not a real vLLM.",
             "No run uses the pair yet: the model substitution Campaign, its run on the "
             "open_weights route, and its proof bundle are the next build.",

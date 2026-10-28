@@ -7,8 +7,9 @@ of the weights it should be answered by, and the two sides cannot be swapped uns
 
 Before a run uses a server, it is asked, with two free reads:
 
-- `GET <base_url>/models` lists the side's `weights_root`, with `max_model_len` equal to the
-  block's `serving.max_model_len`;
+- `GET <base_url>/models` lists exactly one model, the side's `weights_root`, with
+  `max_model_len` equal to the block's `serving.max_model_len`. A second name or a LoRA adapter
+  on the same server would let a request for one side be answered by other weights;
 - `GET <server>/version` answers the block's `serving.version`.
 
 What the server cannot show, the bytes it loaded, its dtype and quantization, stays the
@@ -33,10 +34,12 @@ from regents_cli.techtree.models.open_weights import OpenWeightsModel
 MODEL_SERVER_MISMATCH: Final = "model_server_mismatch"
 MODEL_SERVER_UNREACHABLE: Final = "model_server_unreachable"
 MODEL_SERVER_URL_INVALID: Final = "model_server_url_invalid"
+MODEL_SERVER_KEY_INVALID: Final = "model_server_key_invalid"
 SERVER_KEY_ENV: Final = "VLLM_API_KEY"
 
 _API_PATH_SUFFIX: Final = "/v1"
 _TIMEOUT_SECONDS: Final = 10.0
+_HIGHEST_PORT: Final = 65535
 
 
 class _Upstream(BaseModel):
@@ -47,7 +50,7 @@ class _Upstream(BaseModel):
 
 class _ServedModel(_Upstream):
     id: str
-    max_model_len: int
+    max_model_len: int | None
 
 
 class _ServedModels(_Upstream):
@@ -70,18 +73,21 @@ class ServerCheck:
 
 def api_base_url(base_url: str) -> httpx.URL:
     """`base_url` when it is the base of an OpenAI-compatible API: http or https, ending in
-    `/v1`, with no user, password, query or fragment."""
+    `/v1`, with no user, password, query or fragment. Its path is kept as written, escapes and
+    all."""
     try:
         url = httpx.URL(base_url)
     except httpx.InvalidURL:
         _invalid_url("it is not a URL")
     if url.scheme not in ("http", "https") or not url.host:
         _invalid_url("it must be an http or https address")
+    if url.port is not None and not 0 < url.port <= _HIGHEST_PORT:
+        _invalid_url(f"its port must be between 1 and {_HIGHEST_PORT}")
     if url.userinfo or url.query or url.fragment:
         _invalid_url("it must carry no user, password, query or fragment")
-    if not url.path.rstrip("/").endswith(_API_PATH_SUFFIX):
+    if not url.raw_path.rstrip(b"/").endswith(_API_PATH_SUFFIX.encode()):
         _invalid_url(f"it must be the API's base, ending in {_API_PATH_SUFFIX}")
-    return url.copy_with(path=url.path.rstrip("/"))
+    return httpx.URL(str(url).rstrip("/"))
 
 
 def check_server(
@@ -89,34 +95,34 @@ def check_server(
 ) -> ServerCheck:
     """The server at `base_url`, checked against `block`; refused when it serves anything else."""
     api = api_base_url(base_url)
-    server = api.copy_with(path=api.path.removesuffix(_API_PATH_SUFFIX) or "/")
     served_name = block.weights.weights_root
-    headers = {"Authorization": f"Bearer {key}"} if (key := os.environ.get(SERVER_KEY_ENV)) else {}
+    headers = _key_header()
     with (
         contextlib.nullcontext(client)
         if client is not None
         else httpx.Client(timeout=_TIMEOUT_SECONDS)
     ) as http:
-        models = _get(http, api.copy_with(path=f"{api.path}/models"), _ServedModels, headers)
+        models = _get(http, httpx.URL(f"{api}/models"), _ServedModels, headers)
         version = _get(
             http,
-            server.copy_with(path=f"{server.path.rstrip('/')}/version"),
+            httpx.URL(f"{str(api).removesuffix(_API_PATH_SUFFIX)}/version"),
             _ServerVersion,
             headers,
         )
-    served = {model.id: model for model in models.data}
-    model = served.get(served_name)
-    if model is None:
+    served = [model.id for model in models.data]
+    if served != [served_name]:
         _mismatch(
-            f"the server does not serve {served_name}; serve these weights with "
-            f"--served-model-name {served_name}",
-            served=sorted(served),
+            f"the server must serve {served_name} and nothing else, but it lists "
+            f"{len(served)} model(s); start it with --served-model-name {served_name} alone and "
+            "no LoRA adapters",
+            served=served,
         )
-    if model.max_model_len != block.serving.max_model_len:
+    max_model_len = models.data[0].max_model_len
+    if max_model_len != block.serving.max_model_len:
         _mismatch(
-            f"the server's context length is {model.max_model_len} tokens, but the block says "
+            f"the server's context length is {max_model_len} tokens, but the block says "
             f"{block.serving.max_model_len}",
-            served_max_model_len=model.max_model_len,
+            served_max_model_len=max_model_len,
         )
     if version.version != block.serving.version:
         _mismatch(
@@ -127,8 +133,22 @@ def check_server(
         base_url=str(api),
         served_model=served_name,
         version=version.version,
-        max_model_len=model.max_model_len,
+        max_model_len=max_model_len,
     )
+
+
+def _key_header() -> dict[str, str]:
+    key = os.environ.get(SERVER_KEY_ENV)
+    if not key:
+        return {}
+    if not (key.isascii() and key.isprintable()):
+        # The key is never repeated, not even the character at fault.
+        raise UsageError(
+            f"{SERVER_KEY_ENV} holds characters a request header cannot carry; set it to the "
+            "key the server was started with",
+            code=MODEL_SERVER_KEY_INVALID,
+        )
+    return {"Authorization": f"Bearer {key}"}
 
 
 def _get[T: _Upstream](

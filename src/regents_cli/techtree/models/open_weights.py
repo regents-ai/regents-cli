@@ -9,12 +9,15 @@ from __future__ import annotations
 
 from typing import Annotated, Literal, Self
 
-from pydantic import PositiveInt, StringConstraints, model_validator
+from pydantic import Field, PositiveInt, StringConstraints, model_validator
 
 from regents_cli.techtree.models.base import Digest, NonEmptyString, ProtocolModel
 
 #: A full git commit: 40 lowercase hexadecimal characters.
 type GitCommit = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{40}$")]
+
+#: A seed canonical JSON carries exactly: an integer within 2**53 - 1 either side of zero.
+type Seed = Annotated[int, Field(ge=-(2**53 - 1), le=2**53 - 1)]
 
 
 class WeightsRef(ProtocolModel):
@@ -57,7 +60,7 @@ class Derivation(ProtocolModel):
     source: SourceRef
     method: NonEmptyString
     method_config_digest: Digest
-    seed: int | None
+    seed: Seed | None
     weights_root: Digest
 
 

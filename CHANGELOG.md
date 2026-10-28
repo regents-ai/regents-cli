@@ -10,12 +10,14 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both
   sides, and only the weights changed. It reads local files only and computes every digest
   itself; a checkpoint that cannot be named exactly is refused with the reason and what to do.
-  It reads the Hugging Face cache as huggingface_hub 2.3 lays it out, and names `config.json`
-  by its own digest. No run uses the pair yet (docs/model-substitution.md).
+  It reads the Hugging Face cache as huggingface_hub 2.3 lays it out, checks each cached file
+  against the hash it is stored under, refuses weights that are not the ones the model's index
+  lists, and names `config.json` and `generation_config.json` by their own digest. No run uses
+  the pair yet (docs/model-substitution.md).
 - New: `regents techtree model check-server --block <file> --base-url <url>` asks an operator's
   vLLM server whether it serves the model a block names: the block's weights root as the served
-  model name, its vLLM version and its context length. Two free reads; a key, when the server
-  needs one, is read from `VLLM_API_KEY` and never shown. This is the open_weights route's
+  model name and nothing else, its vLLM version and its context length. Two free reads; a key,
+  when the server needs one, is read from `VLLM_API_KEY` and never shown. This is the open_weights route's
   check, written out in docs/model-substitution.md.
 
 ## 1.10.20 — 2026-10-28

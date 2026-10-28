@@ -45,20 +45,26 @@ def _block(weights_root: str) -> OpenWeightsModel:
 
 @contextlib.contextmanager
 def _vllm(
-    *, served: str, version: str = "0.11.0", max_model_len: int = 32768, key: str | None = None
+    *,
+    served: str,
+    version: str = "0.11.0",
+    max_model_len: int = 32768,
+    key: str | None = None,
+    also: tuple[dict[str, object], ...] = (),
+    prefix: str = "",
 ) -> Iterator[str]:
-    """A stand-in for vLLM's two reads, at its own address."""
+    """A stand-in for vLLM's two reads, at its own address. `also` lists further entries the
+    server reports, as vLLM does for a second served name or a LoRA adapter."""
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
             if key is not None and self.headers.get("Authorization") != f"Bearer {key}":
                 self._answer(401, {"error": "Unauthorized"})
-            elif self.path == "/v1/models":
+            elif self.path == f"{prefix}/v1/models":
                 model = {"id": served, "object": "model", "root": "/models/x"}
-                self._answer(
-                    200, {"object": "list", "data": [model | {"max_model_len": max_model_len}]}
-                )
-            elif self.path == "/version":
+                data = [model | {"max_model_len": max_model_len}, *also]
+                self._answer(200, {"object": "list", "data": data})
+            elif self.path == f"{prefix}/version":
                 self._answer(200, {"version": version})
             else:
                 self._answer(404, {"detail": "Not Found"})
@@ -78,7 +84,7 @@ def _vllm(
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
-        yield f"http://127.0.0.1:{server.server_address[1]}/v1"
+        yield f"http://127.0.0.1:{server.server_address[1]}{prefix}/v1"
     finally:
         server.shutdown()
         server.server_close()
@@ -125,8 +131,35 @@ def test_a_server_serving_the_block_under_its_root_is_accepted(tmp_path: Path) -
         {"served": BASELINE_ROOT},
         {"served": CANDIDATE_ROOT, "version": "0.10.2"},
         {"served": CANDIDATE_ROOT, "max_model_len": 8192},
+        {
+            "served": BASELINE_ROOT,
+            "also": ({"id": CANDIDATE_ROOT, "root": "/models/x", "max_model_len": 32768},),
+        },
+        {
+            "served": CANDIDATE_ROOT,
+            "max_model_len": 8192,
+            "also": ({"id": CANDIDATE_ROOT, "root": "/models/x", "max_model_len": 32768},),
+        },
+        {
+            "served": BASELINE_ROOT,
+            "also": (
+                {
+                    "id": CANDIDATE_ROOT,
+                    "root": "/adapters/x",
+                    "parent": BASELINE_ROOT,
+                    "max_model_len": None,
+                },
+            ),
+        },
     ],
-    ids=["the other side's weights", "another vLLM", "another context length"],
+    ids=[
+        "the other side's weights",
+        "another vLLM",
+        "another context length",
+        "both sides' names on one server",
+        "the name listed twice",
+        "a LoRA adapter under the name",
+    ],
 )
 def test_a_server_serving_anything_else_is_refused(
     tmp_path: Path, server: dict[str, object]
@@ -162,8 +195,10 @@ def test_a_key_is_read_from_the_environment_and_never_shown(
         "http://127.0.0.1:8000",
         "http://127.0.0.1:8000/v1?model=x",
         "file:///v1",
+        "http://127.0.0.1:99999/v1",
+        "http://127.0.0.1:8000/x%2Fv1",
     ],
-    ids=["a password", "not the API base", "a query", "not http"],
+    ids=["a password", "not the API base", "a query", "not http", "no such port", "an escape"],
 )
 def test_an_address_that_is_not_an_api_base_is_refused_without_being_repeated(
     tmp_path: Path, base_url: str
@@ -173,6 +208,51 @@ def test_an_address_that_is_not_an_api_base_is_refused_without_being_repeated(
     assert exit_code != 0
     assert _code(output) == "model_server_url_invalid"
     assert "hunter2-secret" not in output
+
+
+@pytest.mark.parametrize("key", ["kéy-hunter2", "key\nhunter2"], ids=["not ascii", "a newline"])
+def test_a_key_a_header_cannot_carry_is_refused_without_being_repeated(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, key: str
+) -> None:
+    monkeypatch.setenv("VLLM_API_KEY", key)
+    with _vllm(served=BASELINE_ROOT) as base_url:
+        exit_code, output = _check(tmp_path, _block(BASELINE_ROOT), base_url)
+
+    assert exit_code != 0
+    assert _code(output) == "model_server_key_invalid"
+    assert "hunter2" not in output and "é" not in output
+
+
+def test_a_server_behind_an_escaped_path_prefix_is_read_at_that_path(tmp_path: Path) -> None:
+    with _vllm(served=BASELINE_ROOT, prefix="/team%2Fa") as base_url:
+        exit_code, output = _check(tmp_path, _block(BASELINE_ROOT), base_url)
+
+    assert exit_code == 0, output
+    assert json.loads(output)["base_url"] == base_url
+
+
+def test_a_block_that_is_not_a_model_block_is_a_usage_refusal(tmp_path: Path) -> None:
+    broken = _block(BASELINE_ROOT).model_dump(mode="json")
+    broken["serving"]["max_model_len"] = "long"
+    block_file = tmp_path / "block.json"
+    block_file.write_text(json.dumps(broken))
+    shown = io.StringIO()
+    with contextlib.redirect_stdout(shown), contextlib.redirect_stderr(io.StringIO()):
+        exit_code = app.main(
+            [
+                "techtree",
+                "model",
+                "check-server",
+                "--block",
+                str(block_file),
+                "--base-url",
+                "http://127.0.0.1:8000/v1",
+                "--json",
+            ]
+        )
+
+    assert exit_code != 0
+    assert _code(shown.getvalue()) == "model_input_invalid"
 
 
 def test_a_server_that_cannot_be_reached_is_refused(tmp_path: Path) -> None:

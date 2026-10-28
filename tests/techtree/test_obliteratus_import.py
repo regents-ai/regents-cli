@@ -7,6 +7,7 @@ that changes more than the weights, is published as a controlled comparison of o
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import io
 import json
 from collections.abc import Callable
@@ -26,20 +27,30 @@ METHOD_CONFIG = {"n_directions": 4, "norm_preserve": True, "regularization": 0.2
 SOURCE_FILES = {
     "model-00001-of-00002.safetensors": b"hello",
     "model-00002-of-00002.safetensors": b"world",
+    "model.safetensors.index.json": json.dumps(
+        {
+            "weight_map": {
+                "a": "model-00001-of-00002.safetensors",
+                "b": "model-00002-of-00002.safetensors",
+            }
+        }
+    ).encode(),
     "config.json": b'{"model_type": "qwen3"}',
+    "generation_config.json": b'{"temperature": 0.6, "top_p": 0.95}',
     "tokenizer.json": b'{"vocab": {}}',
     "tokenizer_config.json": b'{"chat_template": "{{ messages }}"}',
 }
 
 
 def _snapshot(root: Path) -> Path:
-    """A Hugging Face cache snapshot: every file a link into the repository's blobs/."""
+    """A Hugging Face cache snapshot: every file a link to a blob in the repository's blobs/,
+    named by its SHA-256 as large files are."""
     repo_folder = root / "hub" / "models--Qwen--Qwen3-8B"
     snapshot = repo_folder / "snapshots" / REVISION
     (repo_folder / "blobs").mkdir(parents=True)
     snapshot.mkdir(parents=True)
-    for number, (name, content) in enumerate(SOURCE_FILES.items()):
-        blob = repo_folder / "blobs" / f"blob{number}"
+    for name, content in SOURCE_FILES.items():
+        blob = repo_folder / "blobs" / hashlib.sha256(content).hexdigest()
         blob.write_bytes(content)
         (snapshot / name).symlink_to(Path("../../blobs") / blob.name)
     return snapshot
@@ -134,6 +145,14 @@ def _dirty(metadata: dict[str, object]) -> None:
     metadata["provenance"]["obliteratus_git_dirty"] = True  # type: ignore[index]
 
 
+def _blank_method(metadata: dict[str, object]) -> None:
+    metadata["method"] = "  "
+
+
+def _seed_beyond_json(metadata: dict[str, object]) -> None:
+    metadata["seed"] = 2**63
+
+
 def _no_commit(metadata: dict[str, object]) -> None:
     metadata["provenance"]["obliteratus_git_commit"] = None  # type: ignore[index]
 
@@ -168,6 +187,10 @@ def _config_rewritten(checkpoint: Path) -> None:
     (checkpoint / "config.json").write_bytes(b'{"model_type": "qwen3", "torch_dtype": "float32"}')
 
 
+def _generation_config_rewritten(checkpoint: Path) -> None:
+    (checkpoint / "generation_config.json").write_bytes(b'{"temperature": 1.0}')
+
+
 def _tokenizer_rewritten(checkpoint: Path) -> None:
     (checkpoint / "tokenizer.json").write_bytes(b'{"vocab": {"a": 1}}')
 
@@ -184,6 +207,8 @@ def _weights_unchanged(checkpoint: Path) -> None:
     "change_metadata",
     [
         _dirty,
+        _blank_method,
+        _seed_beyond_json,
         _no_commit,
         _no_source_revision,
         _local_source,
@@ -205,7 +230,13 @@ def test_a_checkpoint_that_cannot_be_named_exactly_is_refused(
 
 @pytest.mark.parametrize(
     "change_files",
-    [_config_rewritten, _tokenizer_rewritten, _template_changed, _weights_unchanged],
+    [
+        _config_rewritten,
+        _generation_config_rewritten,
+        _tokenizer_rewritten,
+        _template_changed,
+        _weights_unchanged,
+    ],
 )
 def test_a_pair_that_changes_more_or_less_than_the_weights_is_refused(
     tmp_path: Path, change_files: Callable[[Path], None]
@@ -216,3 +247,48 @@ def test_a_pair_that_changes_more_or_less_than_the_weights_is_refused(
 
     assert exit_code != 0
     assert answer["error"]["code"] == "obliteratus_checkpoint_refused"  # type: ignore[index]
+
+
+@pytest.mark.parametrize("side", ["source", "checkpoint"])
+def test_weights_that_are_not_the_ones_the_index_lists_are_refused(
+    tmp_path: Path, side: str
+) -> None:
+    """A source missing a shard is an incomplete download; a checkpoint whose only change is an
+    extra shard vLLM never loads would measure nothing."""
+    source = _snapshot(tmp_path)
+    checkpoint = _checkpoint(tmp_path, _metadata())
+    if side == "source":
+        (source / "model-00002-of-00002.safetensors").unlink()
+    else:
+        (checkpoint / "model-00001-of-00002.safetensors").write_bytes(b"hello")
+        (checkpoint / "model-extra.safetensors").write_bytes(b"never loaded")
+    exit_code, answer = _import(checkpoint, source)
+
+    assert exit_code != 0
+    assert answer["error"]["code"] == "model_files_refused"  # type: ignore[index]
+
+
+@pytest.mark.parametrize("option", ["--vllm-version", "--dtype"])
+def test_a_blank_serving_option_is_a_usage_refusal(tmp_path: Path, option: str) -> None:
+    source = _snapshot(tmp_path)
+    checkpoint = _checkpoint(tmp_path, _metadata())
+    shown = io.StringIO()
+    arguments = {"--vllm-version": "0.11.0", "--dtype": "bfloat16"} | {option: " "}
+    with contextlib.redirect_stdout(shown), contextlib.redirect_stderr(io.StringIO()):
+        exit_code = app.main(
+            [
+                "techtree",
+                "model",
+                "import-obliteratus",
+                str(checkpoint),
+                "--source",
+                str(source),
+                *[part for pair in arguments.items() for part in pair],
+                "--max-model-len",
+                "32768",
+                "--json",
+            ]
+        )
+
+    assert exit_code != 0
+    assert json.loads(shown.getvalue())["error"]["code"] == "model_input_invalid"

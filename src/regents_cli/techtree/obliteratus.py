@@ -31,10 +31,11 @@ from regents_cli.techtree.model_files import (
     tokenizer_digest,
     weights_root,
 )
-from regents_cli.techtree.models.base import JsonValue
+from regents_cli.techtree.models.base import JsonValue, NonEmptyString
 from regents_cli.techtree.models.open_weights import (
     Derivation,
     OpenWeightsModel,
+    Seed,
     ServingSpec,
     SourceRef,
     WeightsRef,
@@ -69,9 +70,9 @@ class _Concept(_Upstream):
 class _PipelineMetadata(_Upstream):
     source_model: str
     provenance: _ToolProvenance
-    method: str
+    method: NonEmptyString
     method_config: dict[str, JsonValue]
-    seed: int | None = None
+    seed: Seed | None = None
     concept: _Concept
 
 
@@ -123,10 +124,10 @@ def import_checkpoint(checkpoint: Path, source: Path, serving: ServingSpec) -> S
     baseline_config, candidate_config = config_digest(source), config_digest(checkpoint)
     if baseline_config != candidate_config:
         _refuse(
-            "the checkpoint's config.json differs from the source's, so the pair would change "
-            "more than the weights. If the export only rewrote it (its dtype or library "
-            "version), copy the source snapshot's config.json into the checkpoint; the served "
-            "dtype is the one --dtype names",
+            "the checkpoint's config.json or generation_config.json differs from the source's, "
+            "so the pair would change more than the weights. If the export only rewrote them "
+            "(their order, dtype or library version), copy the source snapshot's own into the "
+            "checkpoint; the served dtype is the one --dtype names",
             baseline_config_digest=baseline_config,
             candidate_config_digest=candidate_config,
         )
