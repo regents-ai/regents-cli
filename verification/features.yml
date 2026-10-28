@@ -1873,7 +1873,7 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: protocol-agents
-  what: 'Agents use regents protocol agents: pair, me, whoami.'
+  what: 'Agents use regents protocol agents: pair, status, whoami.'
   who: agent
   level: protected
   paths:
@@ -1885,7 +1885,7 @@ features:
     who: signed-in agent
     changes: write
     webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
-  - cli: regents protocol agents me
+  - cli: regents protocol agents status
     route: GET /api/agents/v1/me
     who: paired agent
     changes: write
@@ -2202,7 +2202,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: d58a8dbcd4742745a632e9d9d679e93e2699aadc
+  commit: 21a1eeeaab76d7477ac90d47e05948030bdaf949
   commands: 18
   tools: 25
   tools_with_no_command:

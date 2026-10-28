@@ -53,12 +53,12 @@ def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[Request]:
     return sent
 
 
-ME = ["protocol", "agents", "me"]
+CHECK_IN = ["protocol", "agents", "status"]
 FREE_FIX = ["patchbay", "assist", "free"]
 
 
 def run(
-    monkeypatch: pytest.MonkeyPatch, phase: str, stdin: str = "", command: list[str] = ME
+    monkeypatch: pytest.MonkeyPatch, phase: str, stdin: str = "", command: list[str] = CHECK_IN
 ) -> tuple[int, str, str]:
     monkeypatch.setattr("sys.stdin", io.StringIO(stdin))
     out, err = io.StringIO(), io.StringIO()
@@ -69,7 +69,7 @@ def run(
 
 
 def prepare(
-    monkeypatch: pytest.MonkeyPatch, contract: str, stdin: str = "", command: list[str] = ME
+    monkeypatch: pytest.MonkeyPatch, contract: str, stdin: str = "", command: list[str] = CHECK_IN
 ) -> dict[str, Any]:
     monkeypatch.setattr(siwa, "contract_id", lambda: contract)
     code, out, err = run(monkeypatch, "prepare", stdin, command)

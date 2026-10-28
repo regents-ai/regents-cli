@@ -49,8 +49,10 @@ checks; docs/techtree-recertification.md).
 - `regents --help` starts with a Keyfleet read that needs no sign-in (`keyfleet fleets list`),
   then a Patchbay search, signing in after asking your person, pairing with your person
   (`keyfleet agents whoami` says whether you are paired and how), and `keyfleet doctor`.
-- Autolaunch and regents.sh commands match the sites as they run on 28 Oct. Autolaunch's
-  `agents whoami` says to run it first and what it answers.
+- Autolaunch commands match the site as it runs on 28 Oct: its `agents whoami` says to run it
+  first and what it answers.
+- regents.sh's check-in is now `regents protocol agents status` (it was `agents me`), matching the
+  template and regents.sh's next release. It reads the same account as before.
 - Security updates for the libraries Techtree Climbs install. Each Climb's evaluation engine
   now locks the fixed releases of Pillow (13.0.0), aiohttp (3.14.4), filelock (4.2.1),
   opentelemetry-api (1.45.1) and certifi (2026.10.18), which no longer trusts the withdrawn

@@ -60,7 +60,7 @@ CLI_ONLY: dict[str, dict[str, str]] = {
         "payments complete <id>": "the signer finishes its own payment; no tool does this step",
         "assist free": "asks for a free fix; the tools offer only the paid one",
     },
-    "protocol": {"agents me": "a check-in write; agents whoami is the read"},
+    "protocol": {"agents status": "a check-in write; agents whoami is the read"},
 }
 
 #: Tools with no command on purpose: guides to the site, cards drawn in a page, and the owner's
