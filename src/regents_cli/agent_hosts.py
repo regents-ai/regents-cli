@@ -19,10 +19,10 @@ from regents_cli.http import Request, base_address
 from regents_cli.next_steps import human
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Platform
 
-#: Installs regents-cli with what `regents mcp` needs.
-INSTALL_MCP = "uv tool install --python 3.14 'regents-cli[mcp]'"
-#: Installs regents-cli with what `regents browser` needs, then the Chromium it drives.
-INSTALL_BROWSER = "uv tool install --python 3.14 'regents-cli[browser]'"
+#: Installs regents-cli with what `regents browser` and `regents mcp` both need. One line for
+#: both: a later `uv tool install` replaces the extras an earlier one chose.
+INSTALL = "uv tool install --python 3.14 'regents-cli[browser,mcp]'"
+#: Installs the Chromium `regents browser` drives.
 INSTALL_CHROMIUM = "uvx --from 'playwright==1.64.*' playwright install chromium"
 
 type Signer = Callable[[Request], Awaitable[dict[str, str]]]
@@ -41,8 +41,8 @@ def browser_command(platforms: list[Platform]) -> click.Command:
         help="A site's pages and the tools each page offers, for your agent host. Add it to your "
         "agent host as a local MCP server: regents browser --site <site>. Pages open in a "
         "hidden browser of its own with a fresh profile, never your own browser, and a signed "
-        "tool is signed with this machine's agent key, once for each call. Install it with "
-        f"{INSTALL_BROWSER}, then its Chromium with {INSTALL_CHROMIUM}.",
+        "tool is signed with this machine's agent key, once for each call.\n\n"
+        f"Install it, then its Chromium:\n\n\b\n{INSTALL}\n{INSTALL_CHROMIUM}",
         params=[BASE_URL],
     )
     @click.option("--site", required=True, type=click.Choice(sorted(sites)), help="The site.")
@@ -71,13 +71,13 @@ def mcp_command(platforms: list[Platform]) -> click.Command:
         "mcp",
         help="A site's MCP server, for your agent host. Add it to your agent host as a local "
         "MCP server: regents mcp --site <site>. Each message is signed with this machine's "
-        "agent key, so the site knows your agent without a token. Install it with "
-        f"{INSTALL_MCP}.",
+        "agent key, so the site knows your agent without a token.\n\n"
+        f"Install it:\n\n\b\n{INSTALL}",
         params=[BASE_URL],
     )
     @click.option("--site", required=True, type=click.Choice(sorted(sites)), help="The site.")
     def run(site: str, base_url: str | None) -> None:
-        _installed("regents mcp", ("anyio", "httpx2", "mcp", "mcp_types"), INSTALL_MCP)
+        _installed("regents mcp", ("anyio", "httpx2", "mcp", "mcp_types"), INSTALL)
         import anyio
 
         from regents_cli import mcp_proxy
@@ -115,7 +115,7 @@ def _installed(command: str, modules: tuple[str, ...], install: str) -> None:
 
 def _ready_to_browse() -> None:
     """Refuse to start without the browser extra and its Chromium, saying how to add them."""
-    _installed("regents browser", ("jsonschema", "mcp", "playwright"), INSTALL_BROWSER)
+    _installed("regents browser", ("jsonschema", "mcp", "playwright"), INSTALL)
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as playwright:

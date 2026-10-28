@@ -14,23 +14,43 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   checked against it before the page runs. `regents` signs only a request from the site's own
   page, for the site's audience, with the method and path the pinned tool list gives for the
   call the agent made, carrying exactly that call's input (numbers, true and false kept apart),
-  and only once for each call. The signature, signature input, receipt and content digest of
-  each call are taken out of what the agent sees, and keys never reach it. A signing failure
-  reaches the page as one plain refusal; its detail goes to the command's error output. Install
-  it with `uv tool install --python 3.14 'regents-cli[browser]'`, then its Chromium.
+  only once for each call, and only while that call is still running. The page holds the signed
+  headers to send its request; each set is good for that one request, once, and only for a short
+  time, and the key never leaves the machine. A signing failure reaches the page as one plain
+  refusal; its detail goes to the command's error output. Install it with
+  `uv tool install --python 3.14 'regents-cli[browser,mcp]'`, then its Chromium.
   Not proven yet: a page frame's address is read when the tool asks to sign, so a frame that
   moves at that moment is not covered; `--base-url` lets the person point it at any address
   they choose, and it trusts that address as the site.
 - New: `regents mcp --site <site>` gives an agent host the site's MCP server at `/mcp`: each
   message goes on as one request signed with the agent key over its exact bytes, with the MCP
   routing headers (`Mcp-Method`, `Mcp-Name`, `MCP-Protocol-Version` and any `Mcp-Param-*`), and
-  each answer comes back unchanged. Install it with
-  `uv tool install --python 3.14 'regents-cli[mcp]'`; a plain install stays without the MCP SDK.
+  each answer comes back unchanged. Install it with the same line as `regents browser`,
+  `uv tool install --python 3.14 'regents-cli[browser,mcp]'`; a plain install stays without the
+  MCP SDK.
 - Each site's WebMCP tool list now ships in the package, beside its commands, at
   `src/regents_cli/platforms/<site>/tool_manifest.json`; `regents browser` checks signed page
   requests against it. The WebMCP report no longer counts `prepare_agent_request` as done by
   `regents`: pages now sign through `regents browser`, and the sites drop that tool as they move
   to the shared library's signer.
+- Review fixes for `regents browser` and `regents mcp`, before their first release:
+  - A page frame that calls `window.regentsSign` with the wrong number of values gets a plain
+    `invalid_request` refusal, never an error carrying this machine's file paths.
+  - A signature that is ready only after the agent's call ended is not handed to the page; the
+    page gets `call_ended`.
+  - A whole number sent with a decimal point (`2.0`) for a whole-number field is refused before
+    the page runs, asking for a whole number. A request body over 2 MB is refused
+    (`body_too_large`), as the sites' own library refuses it. An unreadable page or frame address
+    is refused as another site.
+  - `regents mcp` answers each request with "regents could not reach <site>" when the site is
+    down, notes an undelivered notification in one line on its error output, and keeps running.
+    When the agent host closes its input, the answers still owed arrive before it stops.
+  - The install line names both parts, `'regents-cli[browser,mcp]'`, since installing one after
+    the other removed the first.
+  - ash-template's pinned tool list is its new one (template `d60c47cc`): each signed tool's
+    input is the tool's own input, and `prepare_agent_request` is gone. `regents browser` reads
+    each signed tool's `input_schema`. The other five sites' tool lists move at the joint
+    release.
 - New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
   OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both

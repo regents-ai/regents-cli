@@ -55,25 +55,26 @@ with this machine's agent key, so sign in to the site first (`regents auth login
   signed tool is listed in the site's own published words and input, never the page's, and its
   input is checked against that published input before the page runs. When the tool asks to
   sign, `regents` signs only a request from the site's own page that is exactly the call the
-  agent made, and only once. The agent sees the page's answer with the signature, signature input,
-  receipt and content digest of that call taken out, and never the key. When signing fails, the
-  page hears only that nothing was sent; the reason goes to this command's own error output. It
-  needs the browser extra and its Chromium:
-
-  ```bash
-  uv tool install --python 3.14 'regents-cli[browser]'
-  uvx --from 'playwright==1.64.*' playwright install chromium
-  ```
+  agent made, only once, and only while that call is still running. The page holds the signed
+  headers to send its request; each set is good for that one request, once, and only for a
+  short time. The key never leaves this machine. When signing fails, the page hears only that
+  nothing was sent; the reason goes to this command's own error output.
 
 - `regents mcp --site <site>` passes each message to the site's MCP server at `/mcp` as one
   request signed over its exact bytes, with the MCP routing headers, and passes every answer back
-  unchanged. It needs the mcp extra:
+  unchanged. When the site cannot be reached, each request gets an error answer saying so and the
+  command keeps running. When the agent host closes its input, the answers still owed have ten
+  seconds to arrive before it stops.
 
-  ```bash
-  uv tool install --python 3.14 'regents-cli[mcp]'
-  ```
+Both need the same install, and `regents browser` also needs its Chromium. Install both parts in
+one line: a later `uv tool install` replaces the parts an earlier one chose.
 
-  Without its extra, either command stops with `installation_incomplete` and the line to install.
+```bash
+uv tool install --python 3.14 'regents-cli[browser,mcp]'
+uvx --from 'playwright==1.64.*' playwright install chromium
+```
+
+Without them, either command stops with `installation_incomplete` and the line to install.
 
 In Claude Code, for example:
 

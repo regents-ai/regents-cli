@@ -5,13 +5,19 @@ sends goes on as one POST to the site's `/mcp`, signed with this machine's agent
 exact bytes sent, so the site knows which agent is acting without a token in the agent host.
 The MCP routing headers (Mcp-Method, Mcp-Name, MCP-Protocol-Version and any Mcp-Param-*) go
 with each message as the protocol asks, and every answer comes back unchanged.
+
+When the site cannot be reached, a request is answered with an error saying so, and a
+notification that could not be delivered is noted on stderr; the command keeps running. When the
+agent host stops sending, the answers still owed have a few seconds to arrive before it exits.
 """
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncGenerator, AsyncIterable
 from dataclasses import dataclass, field
-from typing import Final, Protocol
+from typing import Any, Final, Protocol
+from urllib.parse import urlsplit
 
 import anyio
 import httpx2
@@ -28,6 +34,7 @@ from mcp.shared.inbound import (
 )
 from mcp.shared.message import ClientMessageMetadata, SessionMessage
 from mcp_types import (
+    INTERNAL_ERROR,
     PROTOCOL_VERSION_META_KEY,
     JSONRPCError,
     JSONRPCMessage,
@@ -43,6 +50,8 @@ from regents_cli.http import Request
 
 #: Connecting and sending give up after 30 seconds; an answer may stream for five minutes.
 TIMEOUT: Final = httpx2.Timeout(30, read=300)
+#: How long the answers still owed may take once the agent host stops sending.
+SETTLE_SECONDS: Final = 10
 
 
 class Sends(Protocol):
@@ -69,6 +78,55 @@ class Signed(httpx2.Auth):
         )
         request.headers.update(signed)
         yield request
+
+
+class SiteClient(httpx2.AsyncClient):
+    """Sends each message to the site. When the site cannot be reached, a request is answered
+    with a JSON-RPC error naming the site, and a notification is noted on stderr."""
+
+    def __init__(self, site: str, sign: Signer) -> None:
+        super().__init__(auth=Signed(sign), timeout=TIMEOUT)
+        self.site = site
+
+    async def send(self, request: httpx2.Request, **options: Any) -> httpx2.Response:
+        try:
+            return await super().send(request, **options)
+        except httpx2.TransportError:
+            if request.method != "POST":
+                raise
+            message = json.loads(request.content)
+            if "id" not in message:
+                output.stderr.print(
+                    f"regents mcp: could not reach {self.site}; a notification was not delivered.",
+                    markup=False,
+                    soft_wrap=True,
+                )
+            error = {"code": INTERNAL_ERROR, "message": f"regents could not reach {self.site}"}
+            answer = {"jsonrpc": "2.0", "id": message.get("id"), "error": error}
+            return httpx2.Response(502, json=answer, request=request)
+
+
+@dataclass(slots=True)
+class Owed:
+    """The requests sent to the site and not answered yet."""
+
+    ids: set[RequestId] = field(default_factory=set)
+    settled: anyio.Event = field(default_factory=anyio.Event)
+
+    def __post_init__(self) -> None:
+        self.settled.set()
+
+    def sent(self, message: JSONRPCMessage) -> None:
+        if isinstance(message, JSONRPCRequest):
+            if self.settled.is_set():
+                self.settled = anyio.Event()
+            self.ids.add(message.id)
+
+    def answered(self, message: JSONRPCMessage) -> None:
+        if isinstance(message, JSONRPCResponse | JSONRPCError) and message.id is not None:
+            self.ids.discard(message.id)
+            if not self.ids:
+                self.settled.set()
 
 
 @dataclass(slots=True)
@@ -139,10 +197,13 @@ async def relay(
     agent_write: Sends,
 ) -> None:
     """Carry messages between the agent host's streams and the site's MCP endpoint at `url`,
-    until the agent host stops sending."""
+    until the agent host stops sending and the answers still owed have come back, or
+    SETTLE_SECONDS have passed."""
     routing = Routing()
+    owed = Owed()
+    address = urlsplit(url)
     async with (
-        httpx2.AsyncClient(auth=Signed(sign), timeout=TIMEOUT) as client,
+        SiteClient(f"{address.scheme}://{address.netloc}", sign) as client,
         streamable_http_client(url, http_client=client) as (site_read, site_write),
         anyio.create_task_group() as group,
     ):
@@ -154,9 +215,12 @@ async def relay(
                         output.stderr.print(f"regents mcp: unreadable: {item}", markup=False)
                         continue
                     headers = routing.outgoing(item.message)
+                    owed.sent(item.message)
                     await site_write.send(
                         SessionMessage(item.message, ClientMessageMetadata(headers=headers))
                     )
+                with anyio.move_on_after(SETTLE_SECONDS):
+                    await owed.settled.wait()
             group.cancel_scope.cancel()
 
         async def to_agent() -> None:
@@ -166,6 +230,7 @@ async def relay(
                     continue
                 routing.incoming(item.message)
                 await agent_write.send(item)
+                owed.answered(item.message)
 
         group.start_soon(to_site)
         group.start_soon(to_agent)

@@ -2125,7 +2125,7 @@ sites:
   commands: 54
   tools: 54
   tools_with_no_command:
-  - tool: prepare_agent_request
+  - tool: activity_mark_read
     why: no command
 - site: autolaunch
   repository: regents-ai/autolaunch

@@ -13,9 +13,10 @@ its exact request and asks `window.regentsSign` to sign it. That binding is this
 `Bridge`, outside the page: it signs only when the request comes from the site's own address,
 names the site's audience, has the method and path the manifest's route gives for the call the
 agent made, carries exactly that call's input in exactly the bytes JavaScript writes for it, and
-matches a call that is still waiting, which it then uses up. It answers the signed headers and
-nothing else; the signature, its input, the receipt and the body digest are then removed from
-the page tool's answer, so the agent never sees them. The key never leaves this machine.
+matches a call that is still waiting, which it then uses up. It answers the signed headers, which
+the page holds to send its request; a call that ended while it was being signed gets a refusal
+instead. Each set of signed headers is good for that one request, once, and only for a short
+time. The key never leaves this machine.
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ from importlib.resources import files
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import quote, urlsplit
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, validators
 from jsonschema.exceptions import best_match
 
 from regents_cli import output, siwa
@@ -53,12 +54,21 @@ PREPARED_FIELDS: Final = frozenset({"operation", "audience", "origin", "method",
 PLACEHOLDER: Final = re.compile(r"\{([a-z_]+)\}")
 #: The characters JavaScript's encodeURIComponent leaves as they are, beside letters and digits.
 URI_COMPONENT_SAFE: Final = "-_.!~*'()"
-#: Signed headers that only this one call has, removed from what its page tool answers. The
-#: agent's address, key id, chain and the time are its own and stay where a page shows them.
-WITHHELD_HEADERS: Final = frozenset(
-    {"x-siwa-signature", "x-siwa-signature-input", "x-siwa-receipt", "content-digest"}
+#: The largest body a page may ask to have signed, as the sites' signed-tools library allows.
+MAX_BODY_BYTES: Final = 2_097_152
+
+
+def _whole_number(_checker: Any, value: Any) -> bool:
+    """JSON Schema's integer, without the whole floats Python's checker lets through: 1.0 is
+    written 1 by the page, so it would never be the call the agent made."""
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+#: Draft 2020-12, where an integer field takes only a whole number written without a point.
+InputValidator: Final = validators.extend(  # type: ignore[no-untyped-call]
+    Draft202012Validator,
+    type_checker=Draft202012Validator.TYPE_CHECKER.redefine("integer", _whole_number),
 )
-WITHHELD: Final = "[withheld]"
 
 
 class RefusalError(Exception):
@@ -103,7 +113,10 @@ def site_address(origin: str, address: str) -> str:
         raise refused
     if address.startswith("/") and not address.startswith("//"):
         return origin + address
-    parts = urlsplit(address)
+    try:
+        parts = urlsplit(address)
+    except ValueError:
+        raise refused from None
     if (
         parts.scheme not in ("http", "https")
         or not parts.netloc.isascii()
@@ -120,8 +133,7 @@ class Invocation:
 
     tool: str
     input: Any
-    origin: str
-    issued: list[str] = field(default_factory=list)
+    finished: bool = False
 
 
 @dataclass(slots=True)
@@ -146,12 +158,14 @@ class Bridge:
             None,
         )
 
-    def expect(self, tool: str, given: Any, origin: str) -> Invocation:
-        invocation = Invocation(tool, given, origin)
+    def expect(self, tool: str, given: Any) -> Invocation:
+        invocation = Invocation(tool, given)
         self.waiting.append(invocation)
         return invocation
 
     def forget(self, invocation: Invocation) -> None:
+        """The agent's call ended: nothing more is signed for it, even mid-signature."""
+        invocation.finished = True
         if invocation in self.waiting:
             self.waiting.remove(invocation)
 
@@ -164,9 +178,8 @@ class Bridge:
             return {"error": refusal.as_json()}
         except Exception as error:
             return {"error": self.could_not_sign(error)}
-        invocation.issued.extend(
-            value for name, value in headers.items() if name.lower() in WITHHELD_HEADERS and value
-        )
+        if invocation.finished:
+            return {"error": call_ended().as_json()}
         return {"headers": headers}
 
     def could_not_sign(self, error: Exception) -> dict[str, str]:
@@ -204,8 +217,12 @@ class Bridge:
             and PREPARED_FIELDS <= prepared.keys() <= PREPARED_FIELDS | {"body"}
             and all(isinstance(value, str) for value in prepared.values())
         ):
+            raise unreadable_request()
+        body = prepared.get("body")
+        if body is not None and len(body.encode("utf-8", "surrogatepass")) > MAX_BODY_BYTES:
             raise RefusalError(
-                "invalid_request", "The page asked to sign a request regents can't read."
+                "body_too_large",
+                "The page asked to sign a request over 2 MB, so nothing was signed.",
             )
         if prepared["audience"] != self.manifest["audience"] or not same_origin(
             prepared["origin"], self.origin
@@ -221,13 +238,8 @@ class Bridge:
                 "The page asked to sign for a tool that is not a signed tool of this site.",
             )
         for invocation in self.waiting:
-            if (
-                invocation.tool == entry["name"]
-                and same_origin(invocation.origin, self.origin)
-                and matches(entry, invocation.input, prepared)
-            ):
+            if invocation.tool == entry["name"] and matches(entry, invocation.input, prepared):
                 self.waiting.remove(invocation)
-                body = prepared.get("body")
                 request = Request(
                     prepared["method"],
                     prepared["path"],
@@ -241,13 +253,32 @@ class Bridge:
         )
 
 
+def unreadable_request() -> RefusalError:
+    return RefusalError("invalid_request", "The page asked to sign a request regents can't read.")
+
+
+def call_ended() -> RefusalError:
+    """The answer for a signature that was ready only after the agent's call had ended."""
+    return RefusalError(
+        "call_ended",
+        "The call this request was for has ended, so its signature was not handed over.",
+        "Call the tool again with call_page_tool.",
+    )
+
+
 def input_problem(entry: dict[str, Any], given: Any) -> str | None:
     """Why `given` is not input the manifest's schema for this tool takes, or None."""
-    validator = Draft202012Validator(
-        entry["operation_input_schema"], format_checker=Draft202012Validator.FORMAT_CHECKER
+    validator = InputValidator(
+        entry["input_schema"], format_checker=Draft202012Validator.FORMAT_CHECKER
     )
     error = best_match(validator.iter_errors(given))
-    return None if error is None else error.message
+    if error is None:
+        return None
+    wanted = error.validator_value if error.validator == "type" else ()
+    if isinstance(error.instance, float) and "integer" in wanted:
+        named = error.path[-1] if error.path else "it"
+        return f"send {named} as a whole number, such as 2 rather than 2.0"
+    return str(error.message)
 
 
 def matches(entry: dict[str, Any], given: Any, prepared: dict[str, str]) -> bool:
@@ -357,19 +388,6 @@ def js_number(number: float) -> str:
     return ("-" if number < 0 else "") + written
 
 
-def withheld(value: Any, issued: list[str]) -> Any:
-    """`value` with every value in `issued` replaced, wherever it appears in its text."""
-    if isinstance(value, str):
-        for secret in issued:
-            value = value.replace(secret, WITHHELD)
-        return value
-    if isinstance(value, dict):
-        return {withheld(key, issued): withheld(item, issued) for key, item in value.items()}
-    if isinstance(value, list):
-        return [withheld(item, issued) for item in value]
-    return value
-
-
 @dataclass(slots=True)
 class PageHost:
     """One sandboxed Chromium, one fresh profile, one page; started by the first open_page."""
@@ -405,7 +423,7 @@ class PageHost:
                     "name": entry["name"],
                     "title": entry["title"],
                     "description": entry["description"],
-                    "inputSchema": entry["operation_input_schema"],
+                    "inputSchema": entry["input_schema"],
                     "annotations": entry["annotations"],
                 }
             )
@@ -422,12 +440,11 @@ class PageHost:
                     "Call list_page_tools for the input schema, then call the tool again.",
                 )
             arguments = {"input": given}
-        invocation = self.bridge.expect(name, given, origin_of(page.url) or "")
+        invocation = self.bridge.expect(name, given)
         try:
-            result = await page.webmcp.call_tool(name, arguments, timeout=TOOL_TIMEOUT_MS)
+            return await page.webmcp.call_tool(name, arguments, timeout=TOOL_TIMEOUT_MS)
         finally:
             self.bridge.forget(invocation)
-        return withheld(result, invocation.issued)
 
     def _on_site(self, page: Page) -> bool:
         return same_origin(origin_of(page.url) or "", self.bridge.origin)
@@ -455,8 +472,11 @@ class PageHost:
         )
         self.context = await self.browser.new_context()
 
-        async def regents_sign(source: dict[str, Any], prepared: Any) -> dict[str, Any]:
-            return await self.bridge.answer(source["frame"].url, prepared)
+        async def regents_sign(source: dict[str, Any], *given: Any) -> dict[str, Any]:
+            """`window.regentsSign(prepared)`: one argument, or a refusal; never a failure."""
+            if len(given) != 1:
+                return {"error": unreadable_request().as_json()}
+            return await self.bridge.answer(source["frame"].url, given[0])
 
         await self.context.expose_binding("regentsSign", regents_sign)
         self.page = await self.context.new_page()

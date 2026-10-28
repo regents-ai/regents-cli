@@ -1,13 +1,14 @@
 """`regents browser`, run whole: a page on a stand-in site registers WebMCP tools in Playwright's
 Chromium, the agent calls them through the three MCP tools, and the page asks
 `window.regentsSign` to sign. Only the exact request the agent's call builds, from the site's
-own page, is signed, and only once; the agent sees the page's answer and never the signature.
+own page, is signed, and only once, while the agent's call is still running.
 """
 
 from __future__ import annotations
 
 import copy
 import json
+import math
 import os
 import struct
 import subprocess
@@ -21,6 +22,7 @@ from pathlib import Path
 from typing import Any, ClassVar, NamedTuple
 from urllib.parse import quote
 
+import anyio
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -49,8 +51,8 @@ NOTE = "3f2b8c1e-5d4a-4e6f-9a7b-0c1d2e3f4a5b"
 # A page that signs the way the shared signed-tools library does: it builds the request from
 # the tool's input, asks window.regentsSign, then sends those bytes with the signed headers.
 # `?mode=` makes it misbehave: `victim` edits another note, `twice` asks for a second
-# signature, `framed` asks from a frame on another site, `leak` answers the signed headers,
-# and `hop` moves itself to another site once loaded.
+# signature, `framed` asks from a frame on another site, and `hop` moves itself to another site
+# once loaded.
 PAGE = """<!doctype html><title>Notes</title>
 <script>
 const mode = new URLSearchParams(location.search).get("mode")
@@ -76,8 +78,7 @@ async function signed(prepared) {
     method: prepared.method, body: prepared.body, headers: answer.headers,
     credentials: "omit", redirect: "error",
   })
-  const sent = {status: response.status, answer: await response.json()}
-  return mode === "leak" ? {...sent, headers: answer.headers, all: JSON.stringify(answer)} : sent
+  return {status: response.status, answer: await response.json()}
 }
 document.modelContext.registerTool({
   name: "notes_edit",
@@ -173,7 +174,7 @@ async def call(client: Client, name: str, arguments: dict[str, Any]) -> Any:
     return result.structured_content
 
 
-async def test_signs_the_exact_call_and_the_agent_never_sees_the_signature(site: Site) -> None:
+async def test_signs_the_exact_call(site: Site) -> None:
     client, received, _ = site
     opened = await call(client, "open_page", {"url": "/notes"})
     assert opened == {"url": SITE + "/notes", "title": "Notes"}
@@ -204,22 +205,30 @@ async def test_lists_signed_tools_in_the_sites_own_words(site: Site) -> None:
         "name": "notes_edit",
         "title": NOTES_EDIT["title"],
         "description": NOTES_EDIT["description"],
-        "inputSchema": NOTES_EDIT["operation_input_schema"],
+        "inputSchema": NOTES_EDIT["input_schema"],
         "annotations": NOTES_EDIT["annotations"],
     }
     assert listed["page_clock"]["description"] == "The page's own clock."
 
 
-async def test_withholds_what_it_signed_with_from_the_pages_answer(site: Site) -> None:
-    client, received, _ = site
-    await call(client, "open_page", {"url": "/notes?mode=leak"})
-    edit = {"id": NOTE, "title": "Plan"}
-    answered = await call(client, "call_page_tool", {"name": "notes_edit", "input": edit})
-    [sent] = received
-    shown = json.dumps(answered)
-    assert answered["result"]["status"] == 200
-    for name in ("x-siwa-signature", "x-siwa-signature-input", "x-siwa-receipt", "content-digest"):
-        assert sent["headers"][name] not in shown
+async def test_a_frame_calling_the_signer_wrongly_gets_a_refusal(site: Site) -> None:
+    client, received, host = site
+    await call(client, "open_page", {"url": "/notes?mode=framed"})
+    assert host.page is not None
+    [frame] = [frame for frame in host.page.frames if frame.url == OTHER + "/frame"]
+    answers = await frame.evaluate(
+        """async () => {
+          const answers = []
+          for (const sign of [() => window.regentsSign(), () => window.regentsSign({}, {})]) {
+            try { answers.push(await sign()) } catch (thrown) { answers.push(String(thrown.stack)) }
+          }
+          return answers
+        }"""
+    )
+    shown = json.dumps(answers)
+    assert [answer["error"]["code"] for answer in answers] == ["invalid_request"] * 2
+    assert "/Users" not in shown and 'File "' not in shown
+    assert received == []
 
 
 @pytest.mark.parametrize(
@@ -267,6 +276,8 @@ async def test_refuses_input_its_tool_does_not_take_before_the_page_runs(site: S
         "/notes\n",
         "notes",
         "javascript:alert(1)",
+        "https://site.test\uff0fother/x",
+        "https://[site.test/x",
     ],
 )
 async def test_opens_only_the_sites_own_pages(site: Site, address: str) -> None:
@@ -389,7 +400,7 @@ async def test_does_not_follow_the_site_to_another_site(signed_in: None) -> None
 # notes_edit takes any fields lets the input range wide.
 
 LOOSE = copy.deepcopy(MANIFEST)
-next(tool for tool in LOOSE["tools"] if tool["name"] == "notes_edit")["operation_input_schema"] = {
+next(tool for tool in LOOSE["tools"] if tool["name"] == "notes_edit")["input_schema"] = {
     "type": "object",
     "properties": {"id": {"type": "string"}},
     "required": ["id"],
@@ -435,7 +446,7 @@ async def test_signs_only_the_request_its_call_builds(
 ) -> None:
     signed: list[Request] = []
     signer = bridge(signed)
-    signer.expect("notes_edit", {"id": note, **fields}, SITE)
+    signer.expect("notes_edit", {"id": note, **fields})
     if built(note, other) != built(note, fields):
         refused = await signer.answer(SITE + "/notes", built(note, other))
         assert refused["error"]["code"] == "no_matching_call"
@@ -475,7 +486,7 @@ async def test_signs_only_the_request_its_call_builds(
 async def test_signs_only_the_bytes_the_call_builds(fields: dict[str, Any], body: str) -> None:
     signed: list[Request] = []
     signer = bridge(signed)
-    signer.expect("notes_edit", {"id": "n1", **fields}, SITE)
+    signer.expect("notes_edit", {"id": "n1", **fields})
     answer = await signer.answer(SITE + "/notes", built("n1", fields, body))
     assert answer["error"]["code"] == "no_matching_call"
     assert signed == []
@@ -488,6 +499,8 @@ async def test_signs_only_the_bytes_the_call_builds(fields: dict[str, Any], body
         ("http://site.test/notes", {}, "untrusted_page"),
         (SITE + "/notes", {"audience": "patchbay"}, "wrong_site"),
         (SITE + "/notes", {"origin": OTHER}, "wrong_site"),
+        (SITE + "/notes", {"origin": "https://[site.test"}, "wrong_site"),
+        (SITE + "/notes", {"body": "x" * (2 * 1024 * 1024 + 1)}, "body_too_large"),
         (SITE + "/notes", {"operation": "rooms_list"}, "unsigned_tool"),
         (SITE + "/notes", {"method": "DELETE"}, "no_matching_call"),
         (SITE + "/notes", {"path": "/api/v1/notes/other"}, "no_matching_call"),
@@ -499,7 +512,7 @@ async def test_signs_only_the_bytes_the_call_builds(fields: dict[str, Any], body
 async def test_refuses(frame: str, change: dict[str, str], refusal: str) -> None:
     signed: list[Request] = []
     signer = bridge(signed)
-    signer.expect("notes_edit", {"id": "mine", "title": "Plan"}, SITE)
+    signer.expect("notes_edit", {"id": "mine", "title": "Plan"})
     answer = await signer.answer(frame, {**built("mine", {"title": "Plan"}), **change})
     assert answer["error"]["code"] == refusal
     assert signed == []
@@ -512,11 +525,47 @@ async def test_refuses(frame: str, change: dict[str, str], refusal: str) -> None
 async def test_signs_only_input_the_sites_tool_takes(fields: dict[str, Any]) -> None:
     signed: list[Request] = []
     signer = bridge(signed, MANIFEST)
-    signer.expect("notes_edit", fields, SITE)
+    signer.expect("notes_edit", fields)
     note, rest = fields["id"], {key: value for key, value in fields.items() if key != "id"}
     answer = await signer.answer(SITE + "/notes", built(note, rest))
     assert "error" in answer
     assert signed == []
+
+
+async def test_a_signature_ready_after_the_call_ended_is_not_handed_over() -> None:
+    signing, release = anyio.Event(), anyio.Event()
+
+    async def slow(_: Request) -> dict[str, str]:
+        signing.set()
+        await release.wait()
+        return {"x-siwa-signature": "signed"}
+
+    signer = Bridge(origin=SITE, manifest=LOOSE, sign=slow)
+    invocation = signer.expect("notes_edit", {"id": "n1", "title": "Plan"})
+    answers: list[dict[str, Any]] = []
+    async with anyio.create_task_group() as group:
+
+        async def ask() -> None:
+            answers.append(await signer.answer(SITE + "/notes", built("n1", {"title": "Plan"})))
+
+        group.start_soon(ask)
+        await signing.wait()
+        signer.forget(invocation)
+        release.set()
+    [answer] = answers
+    assert answer["error"]["code"] == "call_ended"
+    assert "signed" not in json.dumps(answer)
+
+
+POLLS_START = next(tool for tool in MANIFEST["tools"] if tool["name"] == "polls_start")
+
+
+@given(minutes=st.integers(min_value=1, max_value=60))
+def test_an_integer_field_takes_only_a_whole_number(minutes: int) -> None:
+    poll = {"question": "Lunch?", "choices": ["Soup", "Salad"], "operation_id": NOTE}
+    assert webmcp_host.input_problem(POLLS_START, {**poll, "minutes": minutes}) is None
+    assert webmcp_host.input_problem(POLLS_START, {**poll, "minutes": float(minutes)}) is not None
+    assert webmcp_host.input_problem(POLLS_START, {**poll, "minutes": math.nextafter(1, 2)})
 
 
 @pytest.mark.parametrize(
@@ -531,7 +580,7 @@ async def test_a_signer_that_fails_gives_the_page_a_plain_refusal(failure: Excep
         raise failure
 
     signer = Bridge(origin=SITE, manifest=LOOSE, sign=sign)
-    signer.expect("notes_edit", {"id": "n1", "title": "Plan"}, SITE)
+    signer.expect("notes_edit", {"id": "n1", "title": "Plan"})
     answer = await signer.answer(SITE + "/notes", built("n1", {"title": "Plan"}))
     assert set(answer) == {"error"}
     assert "/Users" not in json.dumps(answer)
