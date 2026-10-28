@@ -33,6 +33,15 @@ writes the changelog and releases. `docs/site-commands.md` is the guide for site
   explicit go.
 - Never read `.env`, `.env.local`, or `.envrc`; `.env.example` is allowed.
 
+## Release done
+
+A release is done only when all six sites (Keyfleet, Autolaunch, regents.sh, Techtree, Patchbay
+and the template) are live naming it (founder, 2026-10-28: "all sites should always be on the
+latest"). Tell each site's lane the version in `control/coordination`, and list each site's live
+commit naming it in the release's run record in
+`/Users/sean/Documents/regent/docs/handoffs/regents-cli-runs/`. Sentinel's `cli-version` check
+alerts on any site behind PyPI's newest.
+
 ## Required validation
 
 Run `make check` from the repository root.

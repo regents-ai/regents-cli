@@ -49,10 +49,14 @@ def same_origin(one: str, other: str) -> bool:
     return _origin_key(one) == _origin_key(other)
 
 
-def _origin_key(value: str) -> tuple[str, str, str]:
-    parts = urlsplit(value.strip())
-    host, _, port = parts.netloc.lower().rpartition("@")[2].partition(":")
-    return parts.scheme, host, port or {"https": "443", "http": "80"}.get(parts.scheme, "")
+def _origin_key(value: str) -> tuple[str, str | None, int | None]:
+    parts = urlsplit(value)
+    scheme = parts.scheme.lower()
+    try:
+        port = parts.port or {"https": 443, "http": 80}.get(scheme)
+    except ValueError:  # a port that is not a number is never the usual one
+        port = -1
+    return scheme, parts.hostname, port
 
 
 def base_address(flag: str | None, env_var: str, site: str) -> str:

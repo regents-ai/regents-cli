@@ -20,7 +20,7 @@ from regents_cli.errors import (
     UsageError,
 )
 from regents_cli.http import same_origin, unreadable_address
-from regents_cli.platforms import Platform, pinned_platforms
+from regents_cli.platforms import Command, Platform, pinned_platforms
 from regents_cli.runner import platform_group
 from regents_cli.techtree.cli import techtree_group
 
@@ -172,21 +172,26 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
         if described is not None and _value_of("--phase", args) != "prepare"
         else None,
         description=described.description if described is not None else None,
-        elsewhere=_elsewhere(platform, words, args),
+        elsewhere=_elsewhere(platform, described, words, args),
     )
 
 
-def _elsewhere(platform: Platform | None, words: list[str], args: list[str]) -> str | None:
-    """The address the command ran against, when it is not the usual one: SIWA_BROKER for
-    `auth`, which talks only to the sign-in server, or else --base-url or the site's variable."""
+def _elsewhere(
+    platform: Platform | None, described: Command | None, words: list[str], args: list[str]
+) -> str | None:
+    """The address the command ran against, when it is not the usual one: the site's, from
+    --base-url or the site's variable, or the sign-in server's, from SIWA_BROKER, which `auth`
+    and every signed command reach."""
     if platform is None:
         return None
-    if words[:1] == ["auth"]:
-        named, usual = os.environ.get("SIWA_BROKER"), siwa.BROKER
-    else:
-        named = _value_of("--base-url", args) or os.environ.get(platform.env_var)
-        usual = platform.base_url
-    return named if named and not same_origin(named, usual) else None
+    addresses = [
+        (_value_of("--base-url", args) or os.environ.get(platform.env_var), platform.base_url)
+    ]
+    if words[:1] == ["auth"] or (described is not None and described.signed):
+        addresses.append((os.environ.get("SIWA_BROKER"), siwa.BROKER))
+    return next(
+        (named for named, usual in addresses if named and not same_origin(named, usual)), None
+    )
 
 
 def _value_of(flag: str, args: list[str]) -> str | None:

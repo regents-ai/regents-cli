@@ -20,6 +20,8 @@ from regents_cli.next_steps import Step, done, elsewhere, human, patchbay, run, 
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
 
 SIGN_IN = "sign-in"
+#: A sign-in check that failed on a file on this machine: signing in again meets the same file.
+KEY_FILE_PROBLEMS = ("unsafe_file", "bad_key_file", "unreadable_file")
 NOT_SIGNED_IN = "Not signed in yet; needed only for signed commands."
 
 
@@ -71,11 +73,13 @@ def doctor_command(platform: Platform) -> click.Command:
 def repairs(
     platform: Platform, base: str, failed: list[dict[str, Any]], message: str, again: list[str]
 ) -> list[Step]:
-    """Sign in again for a failed sign-in; search patchbay.help about a site that failed its own
-    checks, then report it there, unless the checks ran against another address."""
+    """Sign in again for a failed sign-in, or fix the file it could not use; search
+    patchbay.help about a site that failed its own checks, then report it there, unless the
+    checks ran against another address."""
     steps: list[Step] = []
-    if any(c["check"] == SIGN_IN for c in failed):
-        steps.append(sign_in(platform.site))
+    for failure in (c for c in failed if c["check"] == SIGN_IN):
+        code, _, said = failure["detail"].partition(": ")
+        steps.append(human(said) if code in KEY_FILE_PROBLEMS else sign_in(platform.site))
     broken = [c for c in failed if c["check"] != SIGN_IN]
     steps.append(run(again, "Then check again."))
     detail = "; ".join(f"{c['check']}: {c['detail']}" for c in broken)
@@ -100,7 +104,7 @@ def held(site: str, checks: list[dict[str, Any]]) -> list[Step]:
         done("The site and its public reads answer; nothing more to run for those."),
         run(
             ("regents", "auth", "login", "--site", site),
-            f"When you need a signed command, ask your person first, then sign in to {site}.",
+            f"For a signed command, ask your person first, then sign in to {site}.",
         ),
     ]
 

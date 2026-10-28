@@ -147,7 +147,14 @@ def _read_private(path: Path) -> Any:
             f"{path} can be read by other users. Run chmod 600 {path}.",
             exit_code=EXIT_AUTH,
         )
-    return json.loads(path.read_text("utf-8"))
+    try:
+        return json.loads(path.read_text("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise CommandError(
+            "unreadable_file",
+            f"{path} is not readable JSON. Move it aside, then set it up again.",
+            exit_code=EXIT_AUTH,
+        ) from error
 
 
 def load_key() -> Key | None:
