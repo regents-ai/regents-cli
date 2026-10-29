@@ -15,6 +15,7 @@ from pathlib import Path
 import click
 import httpx
 import pytest
+from rich.console import Console
 
 from regents_cli import app, output
 from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
@@ -418,3 +419,15 @@ def test_a_refusals_hint_naming_a_route_offers_its_command() -> None:
     (projects,) = hinted(keyfleet, "List them with GET /api/v1/agent/fleets/FLEET_ID/projects).")
     assert projects.command == "regents keyfleet projects list --help"
     assert hinted(keyfleet, "Ask your person.") == []
+
+
+def test_flat_records_are_a_table_only_when_they_fit() -> None:
+    """workspace pulse's seven short columns printed as thirty blocks of seven lines; a table
+    that does not fit must still never fold a cell across lines."""
+    row = {"at": "2026-10-29T03:20:00Z", "seq": 1405, "text": "Agent Contessa worked on it"}
+    rows = [row, {**row, "seq": 1402}]
+    for width, table in ((120, True), (40, False)):
+        console = Console(width=width, record=True)
+        console.print(output._renderable(rows))
+        lines = console.export_text().splitlines()
+        assert (len(lines) == 3) is table, lines

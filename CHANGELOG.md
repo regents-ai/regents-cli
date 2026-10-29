@@ -47,6 +47,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - When a site refuses with a `hint` that names one of its routes, such as Keyfleet's "GET
   /api/v1/fleets lists every fleet." after `fleets get` with a mistyped id, the next steps now
   include that command: run as it is when it needs nothing more, or else its `--help`.
+- A list of flat records of one shape prints as a table whenever its columns fit the width they
+  are drawn in, however many there are, and otherwise as one block per record. It was a table
+  only up to six columns of 40 characters, so `regents keyfleet workspace pulse` printed thirty
+  blocks of seven lines even in a wide terminal. A table never folds a cell across lines.
 
 ## 1.10.20 — 2026-10-28
 
