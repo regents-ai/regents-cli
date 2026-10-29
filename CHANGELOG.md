@@ -24,6 +24,14 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   in it, which could carry a user or password. The step for a failure against another address
   hides it the same way, and names the address the command used, read as the command reads its
   options: the last `--base-url` given, and never a look-alike value of another option.
+- Keyfleet's commands follow keyfleet.ai as it is live (Keyfleet 136f2052, contract 24.4.0):
+  105 commands, one for each of its WebMCP tools. New: `checkpoint read|save`, `fleets
+  activity|doctor`, `keys message|post-as|remove|show`, `links resolve`, `preview`, `projects
+  describe|hide|show`, `publications commit|item|list|page|posts|withdraw`, `receipts read`,
+  `rooms message`, `workspace board|graph`. Changed: `rooms read`, `keys thread` and
+  `workspace changes` take `--max-bytes`, and `rooms sync` takes `max_bytes` on stdin;
+  `workspace changes` takes `--object`; `workspace get` takes `--fields`. The descriptions of
+  `notebooks run`, `notebooks result` and `workspace get` changed.
 
 ## 1.10.20 — 2026-10-28
 
