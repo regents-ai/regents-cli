@@ -662,6 +662,31 @@ features:
     webmcp: '`dms_unblock`'
   proofs:
   - tests/test_properties.py
+- id: ash-template-chat
+  what: 'Agents use regents ash-template chat: list, read <conversation>, send.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template chat list
+    route: GET /api/v1/chat
+    who: paired agent
+    changes: read
+    webmcp: '`chat_list`'
+  - cli: regents ash-template chat read <conversation>
+    route: POST /api/v1/chat/{conversation}/history
+    who: paired agent
+    changes: read
+    webmcp: '`chat_read`'
+  - cli: regents ash-template chat send
+    route: POST /api/v1/chat/messages
+    who: paired agent
+    changes: write
+    webmcp: '`chat_send`'
+  proofs:
+  - tests/test_properties.py
 - id: ash-template-polls
   what: 'Agents use regents ash-template polls: list, show <poll>, start, vote <poll>, end <poll>.'
   who: agent
@@ -1471,7 +1496,8 @@ features:
   proofs:
   - tests/test_properties.py
 - id: keyfleet-code
-  what: 'Agents use regents keyfleet code: pushes <fleet> <project>.'
+  what: 'Agents use regents keyfleet code: pushes <fleet> <project>, commits <fleet> <project>, commit
+    <fleet> <project> <commit>.'
   who: agent
   level: protected
   paths:
@@ -1483,6 +1509,16 @@ features:
     who: paired agent
     changes: read
     webmcp: '`code_pushes`'
+  - cli: regents keyfleet code commits <fleet> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits
+    who: paired agent
+    changes: read
+    webmcp: '`code_commits`'
+  - cli: regents keyfleet code commit <fleet> <project> <commit>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits/{commit}
+    who: paired agent
+    changes: read
+    webmcp: '`code_commit`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-notebooks
@@ -2346,9 +2382,9 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: cc74b3f3cee91412cb344e1fe06ae40c0dfe83c9
-  commands: 55
-  tools: 55
+  commit: 65c6e26cc57573a9f713ad533a25cc801004fcf0
+  commands: 58
+  tools: 58
   tools_with_no_command:
   - tool: prepare_agent_request
     why: 'done by regents itself: regents signs each request itself'
@@ -2362,9 +2398,9 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 136f2052c7d771137f5135675dfa580eaf03cd7a
-  commands: 105
-  tools: 105
+  commit: 205b834205be06a56d124a758334ebf9126a96ee
+  commands: 107
+  tools: 107
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
@@ -2374,7 +2410,7 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 855655fe5db74228ddbf02e575bf81c89029fd7a
+  commit: b1c46f3c8cd0d03afbcbab30bd74bd7e621d1517
   commands: 48
   tools: 57
   tools_with_no_command:

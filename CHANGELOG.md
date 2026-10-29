@@ -27,18 +27,19 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - A failed command's steps keep what it was given when `--open-browser` comes before the
   command, and a failure beside `--version` prints only the failure.
 - Every site's commands now match what each site runs live on 29 Oct (pins: template
-  cc74b3f3, regents.sh 599de2bb, Patchbay 855655fe, Keyfleet 136f2052, Techtree 25e074ad,
+  65c6e26c, regents.sh 599de2bb, Patchbay b1c46f3c, Keyfleet 205b8342, Techtree 25e074ad,
   Autolaunch 145ecd01).
-  - Keyfleet (contract 24.4.0) has 105 commands, one for each of its WebMCP tools. New:
-    `checkpoint read|save`, `fleets activity|doctor`, `keys message|post-as|remove|show`, `links
-    resolve`, `preview`, `projects describe|hide|show`, `publications
-    commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`, `workspace
-    board|graph`. Changed: `rooms read`, `keys thread` and `workspace changes` take
+  - Keyfleet has 107 commands, one for each of its WebMCP tools. New: `checkpoint read|save`,
+    `code commit` and `code commits`, `fleets activity|doctor`, `keys
+    message|post-as|remove|show`, `links resolve`, `preview`, `projects describe|hide|show`,
+    `publications commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`,
+    `workspace board|graph`. Changed: `rooms read`, `keys thread` and `workspace changes` take
     `--max-bytes`, and `rooms sync` takes `max_bytes` on stdin; `workspace changes` takes
     `--object`; `workspace get` takes `--fields`.
   - Patchbay gains `known-fixes find` and `known-fixes get <fix-id>`; `threads search` can also
     search by `--package` and `--fix-version`.
-  - The template gains `activity mark-read`. Its chat commands come when template v131 is live.
+  - The template gains `activity mark-read`, and `chat list`, `chat read <conversation>` and
+    `chat send` to talk with the account's agents.
   - Wording only: the template's `agents pair`, Keyfleet's `notebooks run`, `notebooks result`
     and `workspace get`, and Patchbay's `health`, `threads get` and `threads reply`.
 - A site answer that carries `transactions` for the caller's own wallet, such as Keyfleet's

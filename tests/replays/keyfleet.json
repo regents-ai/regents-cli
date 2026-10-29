@@ -91,7 +91,7 @@
             "last_post_at": "2026-10-20T17:50:56.252166Z"
           }
         ],
-        "generated_at": "2026-10-29T05:34:30Z"
+        "generated_at": "2026-10-29T05:58:12Z"
       }
     }
   },
@@ -138,11 +138,11 @@
             "status": "no_schedule",
             "key": 3,
             "light": "late",
-            "declared_harness": "codex",
             "last_check_in_at": "2026-10-27T06:19:57.314849Z",
             "schedule_minutes": null,
             "scheduled_check_ins": 0,
-            "last_active_at": "2026-10-29T05:33:22.155423Z",
+            "declared_harness": "codex",
+            "last_active_at": "2026-10-29T05:50:36.093438Z",
             "status_label": "No scheduled check-ins"
           },
           {
@@ -150,10 +150,10 @@
             "status": "check_ins_working",
             "key": 25,
             "light": "on",
-            "declared_harness": "grok_bot",
             "last_check_in_at": "2026-10-29T02:03:34.206369Z",
             "schedule_minutes": 360,
             "scheduled_check_ins": 30,
+            "declared_harness": "grok_bot",
             "last_active_at": "2026-10-29T02:03:34.206369Z",
             "status_label": "Check-ins working"
           },
@@ -162,10 +162,10 @@
             "status": "paused",
             "key": 19,
             "light": "off",
-            "declared_harness": "claude_code",
             "last_check_in_at": "2026-10-28T18:04:48.237364Z",
             "schedule_minutes": 30,
             "scheduled_check_ins": 31,
+            "declared_harness": "claude_code",
             "last_active_at": "2026-10-28T18:05:01.430736Z",
             "status_label": "Paused"
           },
@@ -174,10 +174,10 @@
             "status": "check_ins_working",
             "key": 15,
             "light": "on",
-            "declared_harness": "muse",
             "last_check_in_at": "2026-10-28T17:47:22.831361Z",
             "schedule_minutes": 1440,
             "scheduled_check_ins": 6,
+            "declared_harness": "muse",
             "last_active_at": "2026-10-28T17:47:22.831361Z",
             "status_label": "Check-ins working"
           },
@@ -186,10 +186,10 @@
             "status": "check_ins_working",
             "key": 74,
             "light": "on",
-            "declared_harness": "grok_bot",
             "last_check_in_at": "2026-10-28T15:18:50.444789Z",
             "schedule_minutes": 1440,
             "scheduled_check_ins": 5,
+            "declared_harness": "grok_bot",
             "last_active_at": "2026-10-28T15:18:50.444789Z",
             "status_label": "Check-ins working"
           },
@@ -198,10 +198,10 @@
             "status": "check_ins_working",
             "key": 53,
             "light": "on",
-            "declared_harness": "muse",
             "last_check_in_at": "2026-10-28T14:48:11.007149Z",
             "schedule_minutes": 1440,
             "scheduled_check_ins": 8,
+            "declared_harness": "muse",
             "last_active_at": "2026-10-28T14:48:11.007149Z",
             "status_label": "Check-ins working"
           },
@@ -210,10 +210,10 @@
             "status": "no_schedule",
             "key": 9,
             "light": "late",
-            "declared_harness": "claude_code",
             "last_check_in_at": "2026-10-23T01:41:17.825265Z",
             "schedule_minutes": null,
             "scheduled_check_ins": 0,
+            "declared_harness": "claude_code",
             "last_active_at": "2026-10-23T01:41:17.825265Z",
             "status_label": "No scheduled check-ins"
           },
@@ -222,10 +222,10 @@
             "status": "no_schedule",
             "key": 3,
             "light": "late",
-            "declared_harness": "dots",
             "last_check_in_at": "2026-10-19T18:44:07.566757Z",
             "schedule_minutes": null,
             "scheduled_check_ins": 0,
+            "declared_harness": "dots",
             "last_active_at": "2026-10-21T11:04:59.993084Z",
             "status_label": "No scheduled check-ins"
           },
@@ -234,10 +234,10 @@
             "status": "no_schedule",
             "key": 18,
             "light": "late",
-            "declared_harness": "Claude Code",
             "last_check_in_at": "2026-10-20T12:22:30.970856Z",
             "schedule_minutes": null,
             "scheduled_check_ins": 0,
+            "declared_harness": "Claude Code",
             "last_active_at": "2026-10-20T12:22:30.970856Z",
             "status_label": "No scheduled check-ins"
           },
@@ -246,10 +246,10 @@
             "status": "never_checked_in",
             "key": 3,
             "light": "off",
-            "declared_harness": "hermes",
             "last_check_in_at": null,
             "schedule_minutes": null,
             "scheduled_check_ins": 0,
+            "declared_harness": "hermes",
             "last_active_at": null,
             "status_label": "Hasn’t checked in"
           },
@@ -258,10 +258,10 @@
             "status": "never_checked_in",
             "key": 3,
             "light": "off",
-            "declared_harness": "grok_bot",
             "last_check_in_at": null,
             "schedule_minutes": null,
             "scheduled_check_ins": 0,
+            "declared_harness": "grok_bot",
             "last_active_at": null,
             "status_label": "Hasn’t checked in"
           }
@@ -455,7 +455,7 @@
         ],
         "agents_checked_in_last_day": 5,
         "last_post_at": "2026-10-28T08:12:35.554990Z",
-        "generated_at": "2026-10-29T05:34:31Z"
+        "generated_at": "2026-10-29T05:58:13Z"
       }
     }
   },
@@ -516,7 +516,7 @@
           },
           "address": "0x48c5501a7f127030f4ac04e87e3c6eb1d29bb767",
           "history": [],
-          "as_of": "2026-10-29T05:29:59.000000Z",
+          "as_of": "2026-10-29T05:54:59.000000Z",
           "earlier?": false,
           "balances": [
             {
@@ -566,10 +566,10 @@
             }
           ],
           "next_run_at": "2026-10-11T05:47:57Z",
-          "convert_typed": "",
           "read?": true,
-          "split_rate": "0.5%",
-          "advances": []
+          "advances": [],
+          "convert_typed": "",
+          "split_rate": "0.5%"
         },
         "fleet_id": "regents_club",
         "manager_address": "0xa908e9e9bac3e3956c9929d786e6f83526dcab79",
@@ -691,7 +691,7 @@
           }
         ],
         "fleet_id": "regents_club",
-        "generated_at": "2026-10-29T05:34:31.316460Z",
+        "generated_at": "2026-10-29T05:58:13.447584Z",
         "notebooks_configured": true
       }
     }
@@ -717,7 +717,7 @@
         "proposals": [],
         "deployed": true,
         "catching_up": false,
-        "generated_at": "2026-10-29T05:34:31.392501Z",
+        "generated_at": "2026-10-29T05:58:13.556097Z",
         "next_before": null
       }
     }
