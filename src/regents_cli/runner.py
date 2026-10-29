@@ -271,8 +271,10 @@ def on_this_site(spec: Input, value: str, route: str, base: str) -> str:
     """The path of an address on this site whose path is `route`, such as the upload address an
     earlier answer gave. An address anywhere else is refused, so nothing goes elsewhere."""
     parts = urlsplit(value)
+    # A filled segment is never "." or "..", which would name another route.
     pattern = "/".join(
-        "[^/]+" if part.startswith("{") else re.escape(part) for part in route.split("/")
+        r"(?!\.\.?(?:/|$))[^/]+" if part.startswith("{") else re.escape(part)
+        for part in route.split("/")
     )
     if (
         not same_origin(f"{parts.scheme}://{parts.netloc}", base)

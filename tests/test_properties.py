@@ -13,6 +13,8 @@
 - Every command's help reads in a pipe as plain lines: no frame characters, no spaces padding a
   line out to the width, which an agent would read as part of the help, and one blank line at
   most between blocks.
+- A file goes only to an address on the site whose path is the command's route, byte for byte
+  with the media type its name gives; any other address is refused and nothing is sent.
 - Any answer prints in plain words without crashing, and a moment a site sends shows as the same
   minute in the reader's own time zone: a wrong hour sends a person to an event that is over.
 """
@@ -24,6 +26,7 @@ import contextlib
 import hashlib
 import io
 import json
+import mimetypes
 import shlex
 import unicodedata
 from collections.abc import Iterator
@@ -426,6 +429,76 @@ def test_a_printed_command_runs_the_same_request(
         assert (read["base_url"], read["as_json"]) == ("https://example.com", True)
     phase = read_back(shlex.join(printed[0][0])).get("phase")
     assert phase == ("send" if command.signed else None)
+
+
+UPLOADS = [
+    (platform, command)
+    for platform, command in COMMANDS
+    if any(spec.type == "file" for spec in command.inputs)
+]
+
+
+@pytest.mark.parametrize(
+    "pair", UPLOADS, ids=lambda pair: f"{pair[0].name} {' '.join(pair[1].words)}"
+)
+@given(
+    origin=st.sampled_from(
+        [
+            "https://example.com",
+            "https://example.com:8443",
+            "http://example.com",
+            "https://example.com.evil.test",
+            "https://person@example.com",
+        ]
+    ),
+    # A ticket as a site writes one in an address, or a segment that names another route.
+    segment=st.sampled_from(["..", ".", "a%2Fb"])
+    | st.text(st.sampled_from("aZ09-._~"), min_size=1),
+    rest=st.sampled_from(["", "?next=1", "#top", "/more"]),
+    content=st.binary(max_size=64),
+)
+@settings(deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_a_file_goes_only_to_its_address_on_the_site(
+    pair: tuple[Platform, Command],
+    signed_in: list[httpx.Request],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    origin: str,
+    segment: str,
+    rest: str,
+    content: bytes,
+) -> None:
+    platform, command = pair
+    [address] = [spec for spec in command.inputs if spec.type == "site_url"]
+    [file] = [spec for spec in command.inputs if spec.type == "file"]
+    kind = (file.enum or ())[0]
+    picture = tmp_path / f"picture{mimetypes.guess_extension(kind)}"
+    picture.write_bytes(content)
+    route = command.path.replace(f"{{{address.field}}}", segment)
+    names = [word for word in command.words if not word.startswith("<")]
+    signed_in.clear()
+    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+        code = app.main(
+            [
+                platform.name,
+                *names,
+                *SHARED,
+                "--",
+                f"{origin}{route}{rest}",
+                str(picture),
+            ]
+        )
+    if origin != "https://example.com" or rest or segment in (".", ".."):
+        assert (code, signed_in) == (2, [])
+        return
+    [wire] = signed_in
+    assert code == 0
+    assert (wire.method, wire.url.host, wire.url.raw_path) == (
+        command.method,
+        "example.com",
+        route.encode(),
+    )
+    assert (wire.content, wire.headers["content-type"]) == (content, kind)
 
 
 #: Keys as sites name them, with the endings readable output treats apart.
