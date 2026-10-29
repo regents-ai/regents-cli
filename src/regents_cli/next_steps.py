@@ -147,6 +147,14 @@ def sign_in(site: str) -> Step:
 AGREEMENT_FLAGS = {"--yes": 0, "--reviewed-on": 1}
 #: Flags whose value a rerun shows only as a placeholder, as the approval review does.
 PRIVATE_FLAGS = {"--address": "<private-address>"}
+#: Flags whose value a rerun shows as that placeholder only when it carries a user or password.
+ADDRESS_FLAGS = frozenset({"--base-url"})
+
+
+def _shown_address(value: str) -> str:
+    """`value`, or the placeholder when it could carry a user or password: any "@" at all, since
+    an address written without a scheme or slashes still reaches the server with them."""
+    return PRIVATE_FLAGS["--address"] if "@" in value else value
 
 
 @dataclass(frozen=True, slots=True)
@@ -172,15 +180,22 @@ class Invocation:
         """The same command, without an earlier agreement and without private values."""
         kept: list[str] = []
         skip = 0
+        address_next = False
         for arg in self.args:
-            name, has_value, _ = arg.partition("=")
-            if skip:
+            name, has_value, value = arg.partition("=")
+            if address_next:
+                kept.append(_shown_address(arg))
+                address_next = False
+            elif skip:
                 skip -= 1
             elif name in AGREEMENT_FLAGS:
                 skip = 0 if has_value else AGREEMENT_FLAGS[name]
             elif name in PRIVATE_FLAGS:
                 kept += [name, PRIVATE_FLAGS[name]]
                 skip = 0 if has_value else 1
+            elif name in ADDRESS_FLAGS:
+                kept.append(f"{name}={_shown_address(value)}" if has_value else name)
+                address_next = not has_value
             else:
                 kept.append(arg)
         return ("regents", *kept)

@@ -92,6 +92,12 @@ def read_json(path: Path) -> JsonValue:
             f"file is not valid JSON: {path} ({error.msg} at line {error.lineno})",
             details={"path": str(path), "line": error.lineno},
         ) from error
+    except (ValueError, RecursionError) as error:
+        raise ValidationError(
+            f"file is not JSON this reader can hold: {path} (a number too long or nesting too "
+            "deep)",
+            details={"path": str(path)},
+        ) from error
 
 
 def ensure_private_directory(path: Path) -> None:

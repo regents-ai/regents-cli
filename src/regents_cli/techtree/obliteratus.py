@@ -27,13 +27,15 @@ from regents_cli.techtree.fs import read_json
 from regents_cli.techtree.model_files import (
     cache_snapshot,
     chat_template_digest,
+    config_digest,
     tokenizer_digest,
     weights_root,
 )
-from regents_cli.techtree.models.base import JsonValue
+from regents_cli.techtree.models.base import JsonValue, NonEmptyString
 from regents_cli.techtree.models.open_weights import (
     Derivation,
     OpenWeightsModel,
+    Seed,
     ServingSpec,
     SourceRef,
     WeightsRef,
@@ -66,11 +68,11 @@ class _Concept(_Upstream):
 
 
 class _PipelineMetadata(_Upstream):
-    source_model: str
+    source_model: NonEmptyString
     provenance: _ToolProvenance
-    method: str
+    method: NonEmptyString
     method_config: dict[str, JsonValue]
-    seed: int | None = None
+    seed: Seed | None = None
     concept: _Concept
 
 
@@ -87,7 +89,9 @@ def import_checkpoint(checkpoint: Path, source: Path, serving: ServingSpec) -> S
     metadata = _read_metadata(checkpoint)
     commit = _require_commit(
         metadata.provenance.obliteratus_git_commit,
-        "the checkpoint names no OBLITERATUS commit, so the tool that made it cannot be named",
+        "the checkpoint names no OBLITERATUS commit, so the tool that made it cannot be named; "
+        "run OBLITERATUS from a git checkout at a clean commit, since an installed copy records "
+        "none",
     )
     if metadata.provenance.obliteratus_git_dirty is not False:
         _refuse(
@@ -117,11 +121,23 @@ def import_checkpoint(checkpoint: Path, source: Path, serving: ServingSpec) -> S
             checkpoint_repo=named.repo,
             checkpoint_revision=named.revision,
         )
+    baseline_config, candidate_config = config_digest(source), config_digest(checkpoint)
+    if baseline_config != candidate_config:
+        _refuse(
+            "the checkpoint's config.json or generation_config.json differs from the source's, "
+            "so the pair would change more than the weights. If the export only rewrote them "
+            "(their order, dtype or library version), copy the source snapshot's own into the "
+            "checkpoint; the served dtype is the one --dtype names",
+            baseline_config_digest=baseline_config,
+            candidate_config_digest=candidate_config,
+        )
     baseline_tokenizer, candidate_tokenizer = tokenizer_digest(source), tokenizer_digest(checkpoint)
     if baseline_tokenizer != candidate_tokenizer:
         _refuse(
             "the checkpoint's tokenizer files differ from the source's, so the pair would "
-            "change more than the weights",
+            "change more than the weights. If the export only re-saved the source's tokenizer, "
+            "make the checkpoint's tokenizer files the source's own: copy each one in from the "
+            "source snapshot and remove any the source does not have",
             baseline_tokenizer_digest=baseline_tokenizer,
             candidate_tokenizer_digest=candidate_tokenizer,
         )
@@ -145,6 +161,7 @@ def import_checkpoint(checkpoint: Path, source: Path, serving: ServingSpec) -> S
         )
     baseline = OpenWeightsModel(
         weights=WeightsRef(repo=named.repo, revision=named.revision, weights_root=baseline_root),
+        config_digest=baseline_config,
         tokenizer_digest=baseline_tokenizer,
         chat_template_digest=baseline_template,
         serving=serving,
@@ -152,6 +169,7 @@ def import_checkpoint(checkpoint: Path, source: Path, serving: ServingSpec) -> S
     )
     candidate = OpenWeightsModel(
         weights=WeightsRef(repo=None, revision=None, weights_root=candidate_root),
+        config_digest=candidate_config,
         tokenizer_digest=candidate_tokenizer,
         chat_template_digest=candidate_template,
         serving=serving,

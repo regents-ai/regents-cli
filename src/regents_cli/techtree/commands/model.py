@@ -4,24 +4,33 @@ nothing goes to the Techtree site, and no answer ever carries a token.
 
 `regents techtree model import-obliteratus`: describe an OBLITERATUS checkpoint and the model it
 was made from as the two model blocks of a model substitution pair. It reads local files only.
+
+`regents techtree model check-server`: ask an operator's vLLM server whether it serves the model
+a block names, as a run on the open_weights route does before it starts. Two free reads.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 
 import click
+from pydantic import ValidationError as PydanticValidationError
 
 from regents_cli.next_steps import done, human
 from regents_cli.techtree import paths
 from regents_cli.techtree.canonical import to_json_value
 from regents_cli.techtree.chatgpt import signin
 from regents_cli.techtree.commands.answers import JSON, emit
-from regents_cli.techtree.models.base import JsonValue
-from regents_cli.techtree.models.open_weights import ServingSpec
+from regents_cli.techtree.errors import UsageError
+from regents_cli.techtree.fs import read_json
+from regents_cli.techtree.model_server import api_base_url, check_server
+from regents_cli.techtree.models.base import JsonValue, ProtocolModel
+from regents_cli.techtree.models.open_weights import OpenWeightsModel, ServingSpec
 from regents_cli.techtree.obliteratus import import_checkpoint
 
 _PLAN_LINE = "Using your ChatGPT plan"
+MODEL_INPUT_INVALID: Final = "model_input_invalid"
 
 
 def login(as_json: bool) -> None:
@@ -122,12 +131,16 @@ def import_obliteratus(
     max_model_len: int,
     as_json: bool,
 ) -> None:
-    serving = ServingSpec(
-        engine="vllm",
-        version=vllm_version,
-        dtype=dtype,
-        quantization=quantization,
-        max_model_len=max_model_len,
+    serving = _parse(
+        ServingSpec,
+        {
+            "engine": "vllm",
+            "version": vllm_version,
+            "dtype": dtype,
+            "quantization": quantization,
+            "max_model_len": max_model_len,
+        },
+        "the serving options",
     )
     pair = import_checkpoint(checkpoint, source, serving)
     derivation = pair.candidate.derivation
@@ -151,6 +164,45 @@ def import_obliteratus(
         ]
     )
     emit(answer, as_json=as_json, next_steps=[done("Both model blocks are ready.")])
+
+
+def check_server_command(block: Path, base_url: str, as_json: bool) -> None:
+    api_base_url(base_url)
+    model = _parse(OpenWeightsModel, read_json(block), f"{block} as a model block")
+    checked = check_server(base_url, model)
+    answer: dict[str, JsonValue] = {
+        "base_url": checked.base_url,
+        "served_model": checked.served_model,
+        "version": checked.version,
+        "max_model_len": checked.max_model_len,
+    }
+    answer["report"] = "\n".join(
+        [
+            f"**Server** {checked.base_url}",
+            "",
+            f"Serves {checked.served_model} on vLLM {checked.version}, "
+            f"{checked.max_model_len} tokens of context, as the block says.",
+            "",
+            "Its dtype, quantization and the bytes it loaded are the operator's statement; a "
+            "rerun by someone else checks them.",
+        ]
+    )
+    emit(answer, as_json=as_json, next_steps=[done("The server serves this block's model.")])
+
+
+def _parse[ModelT: ProtocolModel](shape: type[ModelT], raw: object, what: str) -> ModelT:
+    try:
+        return shape.model_validate(raw)
+    except PydanticValidationError as error:
+        problems = [
+            f"{'.'.join(str(part) for part in issue['loc']) or 'the whole'}: {issue['msg']}"
+            for issue in error.errors()
+        ]
+        raise UsageError(
+            f"{what} is not usable: " + "; ".join(problems),
+            code=MODEL_INPUT_INVALID,
+            details={"problems": list(problems)},
+        ) from error
 
 
 MODEL = click.Group(
@@ -211,6 +263,30 @@ MODEL.add_command(
                 required=True,
                 type=click.IntRange(min=1),
                 help="The served context length in tokens.",
+            ),
+            JSON,
+        ],
+    )
+)
+MODEL.add_command(
+    click.Command(
+        "check-server",
+        callback=check_server_command,
+        help="Check that a vLLM server serves the model a block names, under its weights root, "
+        "with the block's vLLM version and context length. Two free reads; a key, if the server "
+        "needs one, is read from VLLM_API_KEY.",
+        params=[
+            click.Option(
+                ["--block"],
+                required=True,
+                type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=Path),
+                help="One side's model block, as import-obliteratus prints it (its baseline or "
+                "candidate).",
+            ),
+            click.Option(
+                ["--base-url"],
+                required=True,
+                help="The server's OpenAI-compatible base address, ending in /v1.",
             ),
             JSON,
         ],
