@@ -28,9 +28,12 @@ import hashlib
 import io
 import json
 import mimetypes
+import os
 import re
 import shlex
 import socket
+import subprocess
+import sys
 import unicodedata
 from collections.abc import Iterator
 from dataclasses import replace
@@ -434,6 +437,15 @@ def test_a_printed_command_runs_the_same_request(
     assert phase == ("send" if command.signed else None)
 
 
+#: An upload that is sent, which each example changes in one way.
+PLAIN = {
+    "origin": "https://example.com",
+    "segment": "ticket",
+    "rest": "",
+    "ending": "",
+    "content": b"",
+    "oversize": False,
+}
 UPLOADS = [
     (platform, command)
     for platform, command in COMMANDS
@@ -458,11 +470,16 @@ UPLOADS = [
     segment=st.sampled_from(["..", ".", "a%2Fb", "%2e%2e", ".%2e", "a\\b", "t;x=1"])
     | st.text(st.sampled_from("aZ09-._~"), min_size=1),
     rest=st.sampled_from(["", "?next=1", "#top", "/more"]),
-    # The name's ending, after the command's own type's: as it is, another type, none, packed.
-    ending=st.sampled_from(["", ".gif", "-", ".gz"]),
+    # The name's ending, after the command's own type's: as it is, another type, none, packed, or
+    # a name that reads as a web address of the command's type.
+    ending=st.sampled_from(["", ".gif", "-", ".gz", "#.gif"]),
     content=st.binary(max_size=64),
     oversize=st.booleans(),
 )
+@example(**PLAIN | {"segment": "%2e%2e"})
+@example(**PLAIN | {"segment": ".%2e"})
+@example(**PLAIN | {"ending": ".gz"})
+@example(**PLAIN | {"ending": "#.gif"})
 @settings(deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_a_file_goes_only_to_its_address_on_the_site(
     pair: tuple[Platform, Command],
@@ -482,7 +499,14 @@ def test_a_file_goes_only_to_its_address_on_the_site(
     kind = (file.enum or ())[0]
     named = f"picture{mimetypes.guess_extension(kind)}"
     picture = (
-        tmp_path / {"": named, ".gif": "picture.gif", "-": "picture", ".gz": f"{named}.gz"}[ending]
+        tmp_path
+        / {
+            "": named,
+            ".gif": "picture.gif",
+            "-": "picture",
+            ".gz": f"{named}.gz",
+            "#.gif": f"ab:{named}#.gif",
+        }[ending]
     )
     if oversize:
         content = bytes((file.maximum or 0) + 1)
@@ -515,32 +539,48 @@ def test_a_file_goes_only_to_its_address_on_the_site(
     assert (wire.content, wire.headers["content-type"]) == (content, kind)
 
 
+@pytest.mark.parametrize("made", ["socket", "pipe"])
 @pytest.mark.parametrize(
     "pair", UPLOADS, ids=lambda pair: f"{pair[0].name} {' '.join(pair[1].words)}"
 )
-def test_a_file_that_cannot_be_read_is_refused_in_words(
-    pair: tuple[Platform, Command],
-    signed_in: list[httpx.Request],
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+def test_a_file_that_is_not_plain_is_refused_in_words(
+    made: str, pair: tuple[Platform, Command], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A socket passes for a readable file until it is opened, which once ended in a traceback."""
+    """A socket or a pipe passes for a readable file until it is opened, which once ended in a
+    traceback, or waited forever for a writer. It runs as its own process with a time limit, at
+    a closed local port, so a mistake fails the test and sends nothing."""
     platform, command = pair
     [address] = [spec for spec in command.inputs if spec.type == "site_url"]
     [file] = [spec for spec in command.inputs if spec.type == "file"]
     named = f"picture{mimetypes.guess_extension((file.enum or ())[0])}"
     # A socket's path must be short, so it is made from inside the folder.
     monkeypatch.chdir(tmp_path)
+    base = "http://127.0.0.1:9"
+    names = [word for word in command.words if not word.startswith("<")]
+    route = command.path.replace(f"{{{address.field}}}", "ticket")
     with socket.socket(socket.AF_UNIX) as listening:
-        listening.bind(named)
-        names = [word for word in command.words if not word.startswith("<")]
-        route = command.path.replace(f"{{{address.field}}}", "ticket")
-        code = app.main(
-            [platform.name, *names, *SHARED, "--", f"https://example.com{route}", named]
+        if made == "socket":
+            listening.bind(named)
+        else:
+            os.mkfifo(named)
+        shown = subprocess.run(
+            [
+                str(Path(sys.executable).parent / "regents"),
+                platform.name,
+                *names,
+                "--base-url",
+                base,
+                "--json",
+                "--",
+                f"{base}{route}",
+                named,
+            ],
+            capture_output=True,
+            timeout=60,
+            env={**os.environ, "SIWA_AGENT_HOME": str(tmp_path / "agent")},
         )
-    assert (code, signed_in) == (2, [])
-    assert "cannot be read" in json.loads(capsys.readouterr().out)["error"]["message"]
+    assert shown.returncode == 2
+    assert "is not a plain file" in json.loads(shown.stdout)["error"]["message"]
 
 
 #: Keys as sites name them, with the endings readable output treats apart.

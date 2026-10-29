@@ -70,6 +70,11 @@ TYPES: dict[str, click.ParamType[Any]] = {
 }
 
 
+#: Python's own table of file types, the same on every machine; Python 3.12's lacks WebP.
+FILE_TYPES = mimetypes.MimeTypes()
+FILE_TYPES.add_type("image/webp", ".webp")
+
+
 def param_type(spec: Input) -> click.ParamType[Any]:
     if spec.type == "file":
         return click.Path(exists=True, dir_okay=False, readable=True)
@@ -296,13 +301,17 @@ def file_request(
     command: Command, spec: Input, file: Path, path: str, query: dict[str, str]
 ) -> Request:
     """The file's bytes as the whole body, with the content type its extension gives."""
-    kind, packed = mimetypes.guess_type(file.name)
+    # The type is the name's last ending: never the name read as a web address.
+    kind = FILE_TYPES.types_map[True].get(file.suffix.lower())
     allowed = spec.enum or ()
-    if kind not in allowed or packed is not None:
+    if kind not in allowed:
         raise UsageError(
             f"{spec.name.upper()} must be named for its type, ending in "
-            f"{in_words([mimetypes.guess_extension(each) or each for each in allowed], 'or')}."
+            f"{in_words([FILE_TYPES.guess_extension(each) or each for each in allowed], 'or')}."
         )
+    # A pipe or a device would wait for bytes that may never come.
+    if not file.is_file():
+        raise UsageError(f"{spec.name.upper()} {file} is not a plain file.")
     limit = spec.maximum or 0
     try:
         with file.open("rb") as opened:
