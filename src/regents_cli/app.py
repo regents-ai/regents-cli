@@ -248,7 +248,12 @@ def run() -> None:
         code = main()
         sys.stdout.flush()
     except BrokenPipeError:
-        # The reader closed the pipe, as `| head` does; nothing more can reach it.
-        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        # A reader closed its pipe, as `| head` does; nothing more can reach that one, and the
+        # other still gets what is waiting for it.
+        for stream in (sys.stdout, sys.stderr):
+            try:
+                stream.flush()
+            except BrokenPipeError:
+                os.dup2(os.open(os.devnull, os.O_WRONLY), stream.fileno())
         code = 1
     sys.exit(code)

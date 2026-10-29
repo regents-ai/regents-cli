@@ -418,15 +418,23 @@ def test_shell_completion_answers() -> None:
     assert stdout.startswith(b"#compdef regents")
 
 
-@pytest.mark.parametrize("args", [[], ["keyfleet", "--help"]])
-def test_help_into_a_closed_pipe_ends_quietly(args: list[str]) -> None:
+@pytest.mark.parametrize("args", [[], ["keyfleet", "--help"], ["--bogus", "--json"]])
+def test_output_into_a_closed_pipe_ends_quietly(args: list[str]) -> None:
     """A reader that stops early, as `| head` does, leaves no traceback behind."""
-    shown = _regents(*args)
-    assert shown.stdout is not None and shown.stderr is not None
-    shown.stdout.close()
-    said = shown.stderr.read()
-    assert shown.wait(timeout=60) in (0, 1)
-    assert said == b""
+    read, write = os.pipe()
+    os.close(read)
+    try:
+        shown = subprocess.run(
+            [str(Path(sys.executable).parent / "regents"), *args],
+            stdout=write,
+            stderr=subprocess.PIPE,
+            timeout=60,
+            check=False,
+        )
+    finally:
+        os.close(write)
+    assert shown.returncode == 1
+    assert shown.stderr == b""
 
 
 def test_another_address_carrying_a_password_is_named_without_it() -> None:
