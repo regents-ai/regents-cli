@@ -24,6 +24,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   in it, which could carry a user or password. The step for a failure against another address
   hides it the same way, and names the address the command used, read as the command reads its
   options: the last `--base-url` given, and never a look-alike value of another option.
+- A failed command's steps keep what it was given when `--open-browser` comes before the
+  command, and a failure beside `--version` prints only the failure.
 - Every site's commands now match what each site runs live on 29 Oct (pins: template
   cc74b3f3, regents.sh 599de2bb, Patchbay 855655fe, Keyfleet 136f2052, Techtree 25e074ad,
   Autolaunch 145ecd01).

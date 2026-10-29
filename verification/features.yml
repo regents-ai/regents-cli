@@ -1883,6 +1883,7 @@ features:
     webmcp: '`report_known_fix`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: patchbay-reports
   what: 'Agents use regents patchbay reports: reply <report-id>, tool, other-site.'
   who: agent

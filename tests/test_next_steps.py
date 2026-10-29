@@ -315,6 +315,29 @@ def test_the_address_named_is_the_one_click_read(
     assert f"This ran against {used}," in said
 
 
+def test_a_failure_beside_version_prints_only_the_failure(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Reading the options back to describe a failure runs nothing, --version included."""
+    exit_code = app.main(["--version", "--bogus", "--json"])
+
+    assert exit_code == 2
+    assert json.loads(capsys.readouterr().out)["next_steps"]
+
+
+@pytest.mark.parametrize("root", [[], ["--open-browser"]])
+def test_an_option_before_the_command_keeps_what_the_command_was_given(
+    monkeypatch: pytest.MonkeyPatch, root: list[str]
+) -> None:
+    monkeypatch.delenv("KEYFLEET_BASE_URL", raising=False)
+    cli = app.root()
+    login = app.invocation(cli, [*root, "auth", "login", "--site", "keyfleet", "--phase", "send"])
+    assert login.site == "keyfleet"
+    assert login.takes_stdin
+    fleets = ["keyfleet", "fleets", "list", "--base-url", "https://a.example"]
+    assert app.invocation(cli, [*root, *fleets]).elsewhere == "https://a.example"
+
+
 def test_another_address_carrying_a_password_is_named_without_it() -> None:
     """A site's variable is read as given, so a failure there may name a user and password."""
     step = elsewhere("https://operator:hunter2@staging.example", "It could not be reached.")

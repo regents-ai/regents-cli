@@ -79,7 +79,7 @@ def root() -> click.Group:
 
 
 def _print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> None:
-    if value:
+    if value and not ctx.resilient_parsing:
         click.echo(f"regents {version('regents-cli')}")
         ctx.exit()
 
@@ -140,15 +140,20 @@ def _failed(error: CommandError, cli: click.Group, args: list[str], as_json: boo
 
 def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
     """The command the arguments name, its site and that site's host."""
+    root_flags = {name for param in cli.params for name in param.opts}
     words: list[str] = []
     command: click.Command = cli
-    for arg in args:
+    rest = args
+    for index, arg in enumerate(args):
+        if command is cli and arg in root_flags:
+            continue
         child = command.commands.get(arg) if isinstance(command, click.Group) else None
         if child is None:
             break
         words.append(arg)
         command = child
-    given = _given(command, words, args)
+        rest = args[index + 1 :]
+    given = _given(command, words, rest)
     platforms = pinned_platforms()
     platform: Platform | None = None
     if words[:1] == ["auth"]:
@@ -176,12 +181,12 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
     )
 
 
-def _given(command: click.Command, words: list[str], args: list[str]) -> dict[str, object]:
-    """The options as Click read them for the command that ran. Arguments Click cannot read
-    ran nothing, so they name no option."""
+def _given(command: click.Command, words: list[str], rest: list[str]) -> dict[str, object]:
+    """The options as Click read them for the command that ran, from the arguments after its
+    name. Arguments Click cannot read ran nothing, so they name no option."""
     try:
         with command.make_context(
-            words[-1] if words else "regents", args[len(words) :], resilient_parsing=True
+            words[-1] if words else "regents", rest, resilient_parsing=True
         ) as context:
             return dict(context.params)
     except click.ClickException:
