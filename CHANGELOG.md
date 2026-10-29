@@ -6,15 +6,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.21 — 2026-10-29
 
 Evidence: level protected; every site pinned at the commit it runs live on 29 Oct and read
-live from the built wheel; 856 tests; an independent review of the whole bundle, each finding
+live from the built wheel; 861 tests; independent reviews of the whole bundle, each finding
 fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
-- Fields piped on stdin are now checked like options before anything is signed or sent: a field
-  a site describes as a UUID must be one (`operation_id` on rooms post, notes create, notes pin,
-  dms send, polls start and chat send, and `conversation_id` on chat send), and a whole number
-  with a range must be inside it (poll `minutes`, 1 to 60). A site's command list may now give a
-  stdin field the type `uuid`, and `minimum` and `maximum` on whole numbers only; `regents
-  check-commands` refuses a range on any other type.
+- A site's command list may now give a field piped on stdin the type `uuid`, and a whole number
+  a `minimum` and `maximum`; `regents check-commands` refuses a range on any other type. Such a
+  field is checked like an option before anything is signed or sent. No pinned site uses these
+  yet: the template's own typed fields reach `regents` in the release that pins them.
 - Readable output is easier to scan on every site: a time a site sends shows as a short time in
   this computer's own time zone, such as "29 Oct 05:31" (with the year when it is not this
   year); in a table of records that each have an `id`, the columns ending in `_id` are left out,
@@ -46,8 +44,8 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
   hides it the same way, and names the address the command used, read as the command reads its
   options: the last `--base-url` given, and never a look-alike value of another option.
 - A failed command's steps name the command Click ran, read the way Click reads it: with
-  `--open-browser` or a `--` before the command, and with `--json` anywhere it counts. A failure
-  beside `--version` prints only the failure.
+  `--open-browser` or a `--` before the command. When Click cannot read the arguments, a `--json`
+  anywhere counts. A failure beside `--version` prints only the failure.
 - A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
   refused with what to do, where it ended in a traceback.
 - Every site's commands now match what each site runs live on 29 Oct (pins: template

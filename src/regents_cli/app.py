@@ -94,19 +94,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     cli = root()
     try:
-        cli.main(args, prog_name="regents", standalone_mode=False)
+        # Run straight through Click: rich-click's main prints a bare group's help and exits 2.
+        with cli.make_context("regents", list(args)) as context:
+            cli.invoke(context)
     except click.exceptions.NoArgsIsHelpError as shown:
         click.echo(shown.ctx.get_help() if shown.ctx else "")
     except click.exceptions.Exit as done:
         return done.exit_code
-    except (click.Abort, KeyboardInterrupt):
+    except (click.Abort, KeyboardInterrupt, EOFError):
         return _failed(
             CommandError("cancelled", "The command was interrupted.", exit_code=EXIT_CANCELLED),
             cli,
             args,
         )
     except click.UsageError as error:
-        return _failed(UsageError(error.format_message()), cli, args)
+        return _failed(UsageError(error.format_message()), cli, args, unread=True)
     except CommandError as error:
         return _failed(error, cli, args)
     except httpx.InvalidURL as error:
@@ -135,11 +137,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     return EXIT_OK
 
 
-def _failed(error: CommandError, cli: click.Group, args: list[str]) -> int:
+def _failed(error: CommandError, cli: click.Group, args: list[str], *, unread: bool = False) -> int:
     words, given = _read(cli, args)
     called = _invocation(words, given, args)
-    # A usage failure stopped Click before it read every option, so a --json anywhere counts.
-    as_json = given.get("as_json") is True or (isinstance(error, UsageError) and "--json" in args)
+    # Click stopped before it read every option, so a --json anywhere counts.
+    as_json = given.get("as_json") is True or (unread and "--json" in args)
     steps = next_steps.for_failure(error, called)
     platform = next((p for p in pinned_platforms() if (p.name,) == called.words[:1]), None)
     if platform is not None and isinstance(error.fields.get("status"), int):

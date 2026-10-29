@@ -7,11 +7,17 @@ from rich_click.patch import patch
 
 
 class _Help(RichHelpFormatter):
-    """Help whose lines end at their last character. Rich pads each line to the width, which a
-    pipe would carry as spaces an agent reads as part of the help."""
+    """Help whose lines end at their last character, one blank line at most between blocks. Rich
+    pads each line to the width, which a pipe would carry as spaces an agent reads as part of the
+    help, and puts a second blank line under a one-line description."""
 
     def getvalue(self) -> str:
-        return "".join(line.rstrip() + "\n" for line in super().getvalue().splitlines())
+        lines = [line.rstrip() for line in super().getvalue().splitlines()]
+        return "".join(
+            line + "\n"
+            for index, line in enumerate(lines)
+            if line or index == 0 or lines[index - 1]
+        )
 
 
 # Help reads the Rich way at a terminal and as plain text in a pipe, for every command, whichever

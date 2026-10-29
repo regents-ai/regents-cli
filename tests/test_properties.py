@@ -10,8 +10,9 @@
   describes, runs the same request again.
 - Every request names the release and the command that sent it in `x-regent-client`, and
   nothing a person or agent typed after the command's words.
-- Every command's help reads in a pipe as plain lines: no frame characters, and no spaces
-  padding a line out to the width, which an agent would read as part of the help.
+- Every command's help reads in a pipe as plain lines: no frame characters, no spaces padding a
+  line out to the width, which an agent would read as part of the help, and one blank line at
+  most between blocks.
 - Any answer prints in plain words without crashing, and a moment a site sends shows as the same
   minute in the reader's own time zone: a wrong hour sends a person to an event that is over.
 """
@@ -482,3 +483,4 @@ def test_every_help_reads_as_plain_lines_in_a_pipe() -> None:
     for text in shown:
         assert not any(line != line.rstrip() for line in text.splitlines()), text
         assert not set(text) & set("│─╭╮╰╯┌┐└┘═"), text
+        assert "\n\n\n" not in text, text

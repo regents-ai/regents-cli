@@ -382,6 +382,25 @@ def test_an_unreadable_address_is_refused_without_a_traceback(
     assert json.loads(capsys.readouterr().out)["next_steps"]
 
 
+def test_a_json_read_as_another_options_value_leaves_the_failure_in_words(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Click read every argument and took `--json` as the address, so no --json was given."""
+    monkeypatch.delenv("KEYFLEET_BASE_URL", raising=False)
+    exit_code = app.main(["keyfleet", "fleets", "list", "--base-url", "--json"])
+
+    assert exit_code == 2
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("args", [[], ["keyfleet"], ["keyfleet", "fleets"], ["auth"]])
+def test_a_bare_group_prints_its_help_and_succeeds(
+    capsys: pytest.CaptureFixture[str], args: list[str]
+) -> None:
+    assert app.main(args) == 0
+    assert capsys.readouterr().out.startswith("Usage: regents")
+
+
 def test_another_address_carrying_a_password_is_named_without_it() -> None:
     """A site's variable is read as given, so a failure there may name a user and password."""
     step = elsewhere("https://operator:hunter2@staging.example", "It could not be reached.")
