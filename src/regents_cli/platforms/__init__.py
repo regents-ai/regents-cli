@@ -54,9 +54,11 @@ class Input:
 @dataclass(frozen=True, slots=True)
 class StdinField:
     field: str
-    type: Literal["array", "object", "string", "integer"]
+    type: Literal["array", "object", "string", "integer", "uuid"]
     required: bool
     description: str
+    minimum: int | None
+    maximum: int | None
 
     @classmethod
     def parse(cls, raw: dict[str, Any]) -> StdinField:
@@ -65,6 +67,8 @@ class StdinField:
             type=raw["type"],
             required=raw.get("required", False),
             description=raw["description"],
+            minimum=raw.get("minimum"),
+            maximum=raw.get("maximum"),
         )
 
 

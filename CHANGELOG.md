@@ -5,6 +5,23 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- Fields piped on stdin are now checked like options before anything is signed or sent: a field
+  a site describes as a UUID must be one (`operation_id` on rooms post, notes create, notes pin,
+  dms send, polls start and chat send, and `conversation_id` on chat send), and a whole number
+  with a range must be inside it (poll `minutes`, 1 to 60). A site's command list may now give a
+  stdin field the type `uuid`, and `minimum` and `maximum` on whole numbers only; `regents
+  check-commands` refuses a range on any other type.
+- Readable output is easier to scan on every site: a time a site sends shows as a short time in
+  this computer's own time zone, such as "29 Oct 05:31" (with the year when it is not this
+  year); in a table of records that each have an `id`, the columns ending in `_id` are left out,
+  with a line under the table saying `--json` has them; and headings read as words ("Added",
+  "Wallet URL", "USDC balance"). `--json` is unchanged.
+- Help is laid out with Rich, in colour at a terminal, for every command. In a pipe it is plain
+  lines, with no frame characters and no spaces padding a line out to the width, and the exit
+  codes in `regents --help` are one to a line. This adds rich-click to the dependencies.
+- The pairing steps say a person makes a code with Pair New Agent on their Account page, as the
+  sites now say. The link still opens `/account#shell-pairing`; it moves to `#account-pairing`
+  in the release after the account menu reaches all five sites.
 - New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
   OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both

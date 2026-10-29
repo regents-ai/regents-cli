@@ -250,7 +250,7 @@ def test_the_readable_review_names_the_wallet_chain_registry_and_amount(
         *(f"{field}: {value}" for field, value in shown_by_json(profile).items()),
     ):
         assert re.sub(r"\s", "", said) in flat
-    assert flat.index("Review") < flat.index("agentid") < flat.index("Next")
+    assert flat.index("Review") < flat.index("AgentID") < flat.index("Next")
 
 
 def shown_by_json(profile: dict[str, str]) -> dict[str, str]:

@@ -24,29 +24,35 @@ from regents_cli.platforms import Command, Platform, pinned_platforms
 from regents_cli.runner import hinted, platform_group
 from regents_cli.techtree.cli import techtree_group
 
-# Click keeps a paragraph that follows a \b line exactly as written.
+# Rich help keeps each indented line on a line of its own, so every command can be copied whole.
 HELP = """Every Regents Labs site from one command line.
 
-\b
 Start here:
-  See Keyfleet's fleets; no sign-in needed:
+
+See Keyfleet's fleets; no sign-in needed:
     regents keyfleet fleets list
-  Search Patchbay for a fix; no sign-in needed:
+
+Search Patchbay for a fix; no sign-in needed:
     regents patchbay threads search --query webmcp
-  Ask your person first, then sign in; the first time makes a key on this
-  machine, and on a Mac your person confirms a Touch ID page:
+
+Ask your person first, then sign in; the first time makes a key on this machine, and on a Mac
+your person confirms a Touch ID page:
     regents auth login --site keyfleet
-  Pair with your person; this says whether you are paired and how to pair:
+
+Pair with your person; this says whether you are paired and how to pair:
     regents keyfleet agents whoami
-  Check a site answers, and your sign-in once you have one:
+
+Check a site answers, and your sign-in once you have one:
     regents keyfleet doctor
-  Get this machine ready to run a Techtree Climb:
+
+Get this machine ready to run a Techtree Climb:
     regents techtree setup
 
 Add --help to any command to see what it does."""
 
+# Rich help prints each paragraph of an epilog as one line, so each exit code is a paragraph.
 EPILOG = "Add --json to any command for machine output.\n\nExit codes:\n\n" + "\n\n".join(
-    f"  {code}  {meaning}" for code, meaning in EXIT_CODES.items()
+    f"{code:<3}  {meaning}" for code, meaning in EXIT_CODES.items()
 )
 
 

@@ -529,6 +529,24 @@ def test_flat_records_are_a_table_only_when_they_fit() -> None:
         assert (len(lines) == 3) is table, lines
 
 
+def test_a_table_leaves_links_to_json_only_beside_a_records_own_id() -> None:
+    """Patchbay thread rows carry only `thread_id`, so hiding it left a person nothing to pick a
+    thread by; beside an `id`, the hidden links are named in one line however narrow the table."""
+    threads = [{"thread_id": "t1", "title": "Hello", "inserted_at": "2026-10-29T03:20:00Z"}]
+    messages = [{"conversation_id": "c1", "id": "m1", "body": "hi"}]
+    for width in (120, 30):
+        console = Console(width=width, record=True)
+        console.print(output._renderable(threads))
+        lines = console.export_text().splitlines()
+        assert lines[0].split()[:2] == ["Thread", "ID"] and lines[1].startswith("t1"), lines
+        assert "--json" not in console.export_text()
+        console = Console(width=width, record=True)
+        console.print(output._renderable(messages))
+        lines = console.export_text().splitlines()
+        assert lines[0].split() == ["ID", "Body"] and "c1" not in lines[1], lines
+        assert lines[2:] == ["Add --json for the ID columns."], lines
+
+
 def test_doctor_asks_for_an_update_only_when_the_site_names_a_newer_regents(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

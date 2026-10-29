@@ -168,12 +168,22 @@
                 "minLength": 1
               },
               "type": {
+                "description": "The JSON value the field holds: array; object; string; integer; uuid (a string holding a UUID).",
                 "enum": [
                   "array",
                   "object",
                   "string",
-                  "integer"
+                  "integer",
+                  "uuid"
                 ]
+              },
+              "minimum": {
+                "description": "integer only: the smallest value the site takes.",
+                "type": "integer"
+              },
+              "maximum": {
+                "description": "integer only: the largest value the site takes.",
+                "type": "integer"
               },
               "required": {
                 "type": "boolean"

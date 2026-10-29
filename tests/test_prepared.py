@@ -128,7 +128,8 @@ def test_send_refuses_a_changed_body(
 def test_typed_stdin_keeps_arrays_and_integers_in_both_phases(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Do not stringify typed JSON, or accept booleans as integers when sending a proof."""
+    """Do not stringify typed JSON, accept booleans as integers, or let an id that is not a UUID
+    or an integer out of range reach the site, when signing or when sending a proof."""
     from dataclasses import replace
 
     from regents_cli.errors import UsageError
@@ -142,22 +143,26 @@ def test_typed_stdin_keeps_arrays_and_integers_in_both_phases(
         arguments=(),
         flags=(),
         stdin_fields=(
-            StdinField("items", "array", True, "The selected items."),
-            StdinField("limit", "integer", True, "The result limit."),
+            StdinField("items", "array", True, "The selected items.", None, None),
+            StdinField("limit", "integer", True, "The result limit.", 1, 60),
+            StdinField("operation_id", "uuid", False, "Stable UUID.", None, None),
         ),
     )
     request = runner.request_for(command, {})
-    good = '{"items":["one","two"],"limit":2}'
+    good = '{"items":["one","two"],"limit":2,"operation_id":"0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21"}'
     monkeypatch.setattr("sys.stdin", io.StringIO(good))
     built = runner.with_stdin_fields(command, request, 1000)
     assert built.content == good.encode()
     assert runner.prepared_body(command, request, good) == json.loads(good)
-    for value in (True, 2.5, "2", None):
-        wrong = json.dumps({"items": ["one"], "limit": value}, separators=(",", ":"))
+    refused = [({"limit": v}, "limit must be an integer") for v in (True, 2.5, "2", None, 0, 61)]
+    refused += [({"operation_id": v}, "operation_id must be a UUID") for v in ("op-1", 7, "")]
+    for fields, problem in refused:
+        piped = {"items": ["one"], "limit": 2, **fields}
+        wrong = json.dumps(piped, separators=(",", ":"))
         monkeypatch.setattr("sys.stdin", io.StringIO(wrong))
-        with pytest.raises(UsageError, match="limit must be an integer"):
+        with pytest.raises(UsageError, match=problem):
             runner.with_stdin_fields(command, request, 1000)
-        with pytest.raises(UsageError, match="limit must be an integer"):
+        with pytest.raises(UsageError, match=problem):
             runner.prepared_body(command, request, wrong)
     with pytest.raises(UsageError, match="limit is required"):
         runner.prepared_body(command, request, '{"items":[]}')

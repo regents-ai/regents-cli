@@ -10,6 +10,10 @@
   describes, runs the same request again.
 - Every request names the release and the command that sent it in `x-regent-client`, and
   nothing a person or agent typed after the command's words.
+- Every command's help reads in a pipe as plain lines: no frame characters, and no spaces
+  padding a line out to the width, which an agent would read as part of the help.
+- Any answer prints in plain words without crashing, and a moment a site sends shows as the same
+  minute in the reader's own time zone: a wrong hour sends a person to an event that is over.
 """
 
 from __future__ import annotations
@@ -21,7 +25,9 @@ import io
 import json
 import shlex
 import unicodedata
+from collections.abc import Iterator
 from dataclasses import replace
+from datetime import UTC, datetime, timedelta, timezone
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any
@@ -37,7 +43,7 @@ from regents_cli import app, output, runner
 from regents_cli.errors import CommandError
 from regents_cli.http import answer
 from regents_cli.next_steps import Step, for_failure
-from regents_cli.platforms import Command, FollowUp, Input, Platform, pinned_platforms
+from regents_cli.platforms import Command, FollowUp, Input, Platform, StdinField, pinned_platforms
 
 ROOT = app.root()
 PLATFORMS = {platform.name: platform for platform in pinned_platforms()}
@@ -223,16 +229,21 @@ def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[httpx.Req
     return sent
 
 
-def stdin_for(command: Command) -> st.SearchStrategy[dict[str, Any]]:
+def stdin_value(field: StdinField) -> st.SearchStrategy[Any]:
     kinds: dict[str, st.SearchStrategy[Any]] = {
         "array": st.lists(JSON, max_size=3),
         "object": st.dictionaries(st.text(), JSON),
         "string": st.text(),
-        "integer": st.integers(),
+        "integer": st.integers(field.minimum, field.maximum),
+        "uuid": st.from_regex(runner.UUID.pattern, fullmatch=True),
     }
+    return kinds[field.type]
+
+
+def stdin_for(command: Command) -> st.SearchStrategy[dict[str, Any]]:
     return st.fixed_dictionaries(
-        {f.field: kinds[f.type] for f in command.stdin_fields if f.required},
-        optional={f.field: kinds[f.type] for f in command.stdin_fields if not f.required},
+        {f.field: stdin_value(f) for f in command.stdin_fields if f.required},
+        optional={f.field: stdin_value(f) for f in command.stdin_fields if not f.required},
     )
 
 
@@ -411,3 +422,63 @@ def test_a_printed_command_runs_the_same_request(
         assert (read["base_url"], read["as_json"]) == ("https://example.com", True)
     phase = read_back(shlex.join(printed[0][0])).get("phase")
     assert phase == ("send" if command.signed else None)
+
+
+#: Keys as sites name them, with the endings readable output treats apart.
+KEY = st.text(st.sampled_from("abz_"), max_size=8).map(
+    lambda key: key + ("_id", "_at", "", "_")[len(key) % 4]
+)
+ANSWER = st.recursive(
+    JSON,
+    lambda inner: (
+        st.lists(st.dictionaries(KEY, inner, max_size=4), max_size=3)
+        | st.dictionaries(KEY, inner, max_size=4)
+    ),
+    max_leaves=12,
+)
+
+
+@given(answer=st.dictionaries(KEY, ANSWER, max_size=4))
+@settings(deadline=None)
+def test_any_answer_prints_in_plain_words(answer: dict[str, Any]) -> None:
+    with contextlib.redirect_stdout(io.StringIO()):
+        output.emit(answer, as_json=False, next_steps=[Step("done", "Finished.")])
+
+
+@given(
+    moment=st.datetimes(
+        min_value=datetime(1970, 1, 2), max_value=datetime(9998, 12, 30), timezones=st.just(UTC)
+    ),
+    offset=st.integers(-14 * 60, 14 * 60),
+    zulu=st.booleans(),
+)
+def test_a_moment_shows_as_the_same_local_minute(moment: datetime, offset: int, zulu: bool) -> None:
+    sent = moment.astimezone(timezone(timedelta(minutes=offset))).isoformat()
+    if zulu:
+        sent = moment.isoformat().replace("+00:00", "Z")
+    local = moment.astimezone()
+    shown = output._scalar(sent)
+    if local.year == datetime.now().astimezone().year:
+        read = datetime.strptime(f"{local.year} {shown}", "%Y %d %b %H:%M")
+    else:
+        read = datetime.strptime(shown, "%d %b %Y %H:%M")
+    assert read == local.replace(tzinfo=None, second=0, microsecond=0)
+
+
+def helps(command: click.Command, parent: click.Context | None = None) -> Iterator[str]:
+    """The help of a command and of every command under it, as `--help` prints it."""
+    context = command.context_class(command, info_name=command.name, parent=parent)
+    yield command.get_help(context)
+    if isinstance(command, click.Group):
+        for name in command.list_commands(context):
+            sub = command.get_command(context, name)
+            assert sub is not None
+            yield from helps(sub, context)
+
+
+def test_every_help_reads_as_plain_lines_in_a_pipe() -> None:
+    shown = list(helps(app.root()))
+    assert len(shown) > 100
+    for text in shown:
+        assert not any(line != line.rstrip() for line in text.splitlines()), text
+        assert not set(text) & set("│─╭╮╰╯┌┐└┘═"), text

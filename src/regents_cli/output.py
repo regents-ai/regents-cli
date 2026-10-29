@@ -4,15 +4,19 @@ Every command tree shows what a person reads through the same few blocks: a summ
 fields, a table of records, a check list with one mark per check, a compact Markdown report,
 text shown exactly as it is, the review a person reads before agreeing to something, and one
 shape of failure. Every answer and every failure ends with what to do next (`next_steps`).
-At a terminal they are styled; in a pipe they are plain text.
+At a terminal they are styled; in a pipe they are plain text. Readable output shows a site's
+times in this computer's time zone, leaves a record's links to others (`*_id` beside its own `id`)
+to --json and names headings in words.
 """
 
 from __future__ import annotations
 
 import json
+import re
 import sys
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Literal
 
 from markdown_it import MarkdownIt
@@ -30,6 +34,20 @@ from regents_cli.next_steps import Kind, Step
 
 stdout = Console(highlight=False)
 stderr = Console(stderr=True, highlight=False)
+
+#: Words in a site's field names that read differently on screen; a trailing "at" is dropped, so
+#: inserted_at reads "Added" and last_seen_at reads "Last seen".
+WORDS = {
+    "inserted": "added",
+    "id": "ID",
+    "url": "URL",
+    "ens": "ENS",
+    "usdc": "USDC",
+    "eth": "ETH",
+}
+
+#: A moment as sites send it, such as 2026-10-29T05:31:07.123456Z; shown as the reader's local time.
+MOMENT = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})")
 
 type CheckStatus = Literal["pass", "warn", "fail", "skip"]
 
@@ -223,14 +241,16 @@ def _summary(fields: dict[str, Any]) -> RenderableType:
 
 
 class _Records:
-    """Flat records of one shape: a table when every column fits the width it is drawn in at
-    its widest, or else one block of fields per record."""
+    """Flat records of one shape: a table when every shown column fits the width it is drawn in
+    at its widest, or else one block of fields per record. A table leaves the columns that link to
+    other records (`*_id`) to --json when each record has its own `id`, and says so in one line
+    under it."""
 
     def __init__(self, rows: list[dict[str, Any]]) -> None:
         self.rows = rows
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
-        columns = list(self.rows[0])
+        columns = _shown_columns(self.rows[0])
         widths = [
             max(cell_len(_label(column)), *(cell_len(_scalar(row[column])) for row in self.rows))
             for column in columns
@@ -249,6 +269,16 @@ class _Records:
         for row in self.rows:
             table.add_row(*(Text(_scalar(row[column])) for column in columns))
         yield table
+        if len(columns) < len(self.rows[0]):
+            yield Text("Add --json for the ID columns.", style="dim")
+
+
+def _shown_columns(row: dict[str, Any]) -> list[str]:
+    """Every column, less the links to other records when the record has its own `id` to pick it
+    by; without one, a link such as `thread_id` is the only handle for the next command."""
+    if "id" not in row:
+        return list(row)
+    return [column for column in row if not column.endswith("_id")]
 
 
 def _spaced(blocks: Sequence[RenderableType]) -> Group:
@@ -266,7 +296,12 @@ def _indented(block: RenderableType) -> RenderableType:
 
 
 def _label(key: str) -> str:
-    return key.replace("_", " ")
+    """A field's name in plain words: response_to_id reads "Response to ID"."""
+    words = key.split("_")
+    if len(words) > 1 and words[-1] == "at":
+        words.pop()
+    line = " ".join(WORDS.get(word, word) for word in words)
+    return line[:1].upper() + line[1:]
 
 
 def _is_scalar(value: Any) -> bool:
@@ -306,7 +341,7 @@ def _is_table(value: Any) -> bool:
         return False
     keys = value[0].keys()
     return (
-        bool(keys)
+        bool(_shown_columns(value[0]))
         and all(row.keys() == keys for row in value)
         and all(_is_scalar(v) for row in value for v in row.values())
     )
@@ -317,4 +352,16 @@ def _scalar(value: Any) -> str:
         return "-"
     if isinstance(value, bool):
         return "yes" if value else "no"
+    if isinstance(value, str) and MOMENT.fullmatch(value):
+        return _local_time(value)
     return str(value)
+
+
+def _local_time(moment: str) -> str:
+    """29 Oct 05:31 in the reader's own time zone, with the year when it is not this one."""
+    try:
+        local = datetime.fromisoformat(moment).astimezone()
+    except ValueError:
+        return moment
+    year = "" if local.year == datetime.now().astimezone().year else f" {local.year}"
+    return f"{local.day} {local:%b}{year} {local:%H:%M}"
