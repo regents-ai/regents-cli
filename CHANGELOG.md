@@ -6,7 +6,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.21 — 2026-10-29
 
 Evidence: level protected; every site pinned at the commit it runs live on 29 Oct and read
-live from the built wheel; 861 tests; independent reviews of the whole bundle, each finding
+live from the built wheel; 864 tests; independent reviews of the whole bundle, each finding
 fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
 - A site's command list may now give a field piped on stdin the type `uuid`, and a whole number
@@ -44,8 +44,10 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
   hides it the same way, and names the address the command used, read as the command reads its
   options: the last `--base-url` given, and never a look-alike value of another option.
 - A failed command's steps name the command Click ran, read the way Click reads it: with
-  `--open-browser` or a `--` before the command. When Click cannot read the arguments, a `--json`
-  anywhere counts. A failure beside `--version` prints only the failure.
+  `--open-browser` or a `--` before the command. After a usage error, a `--json` anywhere
+  counts. A failure beside `--version` prints only the failure.
+- Output piped to a reader that stops early, such as `| head`, ends quietly with exit code 1,
+  where help could leave a Python warning on stderr.
 - A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
   refused with what to do, where it ended in a traceback.
 - Every site's commands now match what each site runs live on 29 Oct (pins: template

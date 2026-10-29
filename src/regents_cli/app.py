@@ -6,9 +6,11 @@ import os
 import sys
 from collections.abc import Sequence
 from importlib.metadata import version
+from typing import cast
 
 import click
 import httpx
+from rich_click import RichCommand
 
 from regents_cli import browser, next_steps, output, siwa
 from regents_cli.auth import auth_group
@@ -94,14 +96,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     cli = root()
     try:
-        # Run straight through Click: rich-click's main prints a bare group's help and exits 2.
-        with cli.make_context("regents", list(args)) as context:
-            cli.invoke(context)
+        # Click's own main, for completion, Ctrl-C and closed pipes: rich-click's prints a bare
+        # group's help itself and exits 2. Every command class is rich-click's once it is patched.
+        super(RichCommand, cast(RichCommand, cli)).main(
+            args, prog_name="regents", standalone_mode=False
+        )
     except click.exceptions.NoArgsIsHelpError as shown:
         click.echo(shown.ctx.get_help() if shown.ctx else "")
     except click.exceptions.Exit as done:
         return done.exit_code
-    except (click.Abort, KeyboardInterrupt, EOFError):
+    except (click.Abort, KeyboardInterrupt):
         return _failed(
             CommandError("cancelled", "The command was interrupted.", exit_code=EXIT_CANCELLED),
             cli,
@@ -140,7 +144,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 def _failed(error: CommandError, cli: click.Group, args: list[str], *, unread: bool = False) -> int:
     words, given = _read(cli, args)
     called = _invocation(words, given, args)
-    # Click stopped before it read every option, so a --json anywhere counts.
+    # After a usage error Click may not have read every option, so a --json anywhere counts.
     as_json = given.get("as_json") is True or (unread and "--json" in args)
     steps = next_steps.for_failure(error, called)
     platform = next((p for p in pinned_platforms() if (p.name,) == called.words[:1]), None)
@@ -240,4 +244,11 @@ def _elsewhere(
 
 
 def run() -> None:
-    sys.exit(main())
+    try:
+        code = main()
+        sys.stdout.flush()
+    except BrokenPipeError:
+        # The reader closed the pipe, as `| head` does; nothing more can reach it.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        code = 1
+    sys.exit(code)

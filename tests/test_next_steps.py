@@ -7,8 +7,11 @@ the site's own, a person is told instead. A payment or a paid start is never rep
 from __future__ import annotations
 
 import json
+import os
 import shlex
 import socket
+import subprocess
+import sys
 from dataclasses import replace
 from pathlib import Path
 
@@ -399,6 +402,31 @@ def test_a_bare_group_prints_its_help_and_succeeds(
 ) -> None:
     assert app.main(args) == 0
     assert capsys.readouterr().out.startswith("Usage: regents")
+
+
+def _regents(*args: str, **env: str) -> subprocess.Popen[bytes]:
+    return subprocess.Popen(
+        [str(Path(sys.executable).parent / "regents"), *args],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env={**os.environ, **env},
+    )
+
+
+def test_shell_completion_answers() -> None:
+    stdout, _ = _regents(_REGENTS_COMPLETE="zsh_source").communicate(timeout=60)
+    assert stdout.startswith(b"#compdef regents")
+
+
+@pytest.mark.parametrize("args", [[], ["keyfleet", "--help"]])
+def test_help_into_a_closed_pipe_ends_quietly(args: list[str]) -> None:
+    """A reader that stops early, as `| head` does, leaves no traceback behind."""
+    shown = _regents(*args)
+    assert shown.stdout is not None and shown.stderr is not None
+    shown.stdout.close()
+    said = shown.stderr.read()
+    assert shown.wait(timeout=60) in (0, 1)
+    assert said == b""
 
 
 def test_another_address_carrying_a_password_is_named_without_it() -> None:
