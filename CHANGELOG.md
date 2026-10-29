@@ -56,6 +56,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - The help of every command that reads JSON on stdin ends with an example to copy: its required
   fields piped in, each value a placeholder to fill, such as `printf '%s' '{"body": "<body>",
   "idempotency_key": "<idempotency_key>"}' | regents keyfleet rooms send FLEET ROOM`.
+- A command's help names the site's WebMCP tool that does the same thing in a browser, when the
+  site's description names one: "Same as the WebMCP tool fleets_list on keyfleet.ai."
 
 ## 1.10.20 — 2026-10-28
 

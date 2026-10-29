@@ -161,6 +161,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         ),
     ]
     help_text = command.description
+    if command.webmcp is not None:
+        help_text += f"\n\nSame as the WebMCP tool {command.webmcp} on {platform.host}."
     if command.signed:
         params.append(
             click.Option(
