@@ -10,12 +10,14 @@ the same library as the packaged signing contract:
       uv run scripts/check_siwa_server.py
 
 It signs in to the server's `ash-template` and `patchbay` audiences with a throwaway key through
-`regents auth login`, then sends the site its signed `agents whoami` (GET
-/api/agents/v1/whoami), which the site checks with the sign-in server using its own key, as it
-checks every signed request: a read, a read with a query, one with a JSON body and one with an
-empty signed body are accepted; a changed query, a changed body, another site's sign-in and a
-replay are refused. Neither address has a default; point both at local copies, since a live site
-refuses a throwaway key's sign-in from a local server and every accepted case would fail.
+`regents auth login`, then sends the site its signed `agents whoami` (GET /api/agents/v1/whoami),
+which the site checks with the sign-in server using its own key, as it checks every signed request:
+a read, a read with a query, one with a JSON body and one with an empty signed body are accepted; a
+changed query, a changed body, another site's sign-in and a replay are refused. The body cases send
+a GET with a body, so on a site's first run read them together: the JSON body accepted and the
+changed body refused is what shows the body reached the sign-in check, and the script fails unless
+both hold. Neither address has a default; point both at local copies, since a live site refuses a
+throwaway key's sign-in from a local server and every accepted case would fail.
 """
 
 from __future__ import annotations

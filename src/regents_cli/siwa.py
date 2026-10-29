@@ -535,9 +535,27 @@ def confirm(base: str, probe: Command, receipt: Receipt, timeout_ms: int) -> dic
     told = data_with(
         send(base, replace(request, headers=sign(request, receipt)), timeout_ms), "agent"
     )
-    if not holds(told["agent"], "registry_listing", "human_backed", "same_person_agent_count"):
+    if not described(told["agent"]):
         raise unreadable()
     return told
+
+
+def described(agent: Any) -> bool:
+    """Whether whoami's `agent` reads as the contract says: `registry_listing` text or null,
+    `human_backed` true or false, and `same_person_agent_count` a whole number from 1 when a
+    person stands behind the agent and null when none does."""
+    if not (
+        isinstance(agent, dict)
+        and holds(agent, "registry_listing", "human_backed", "same_person_agent_count")
+    ):
+        return False
+    listing, backed, count = (
+        agent["registry_listing"],
+        agent["human_backed"],
+        agent["same_person_agent_count"],
+    )
+    counted = type(count) is int and count >= 1 if backed else count is None
+    return (listing is None or isinstance(listing, str)) and isinstance(backed, bool) and counted
 
 
 def registration_step(profile: dict[str, str], timeout_ms: int) -> dict[str, Any]:

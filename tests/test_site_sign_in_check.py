@@ -2,8 +2,8 @@
 the site its read-only identity probe (`agents whoami`), signed with this machine's key, and read
 what the site says of the agent. Nothing goes to the sign-in server, which answers only a site
 presenting its own key. A site that refuses the sign-in gets the agent to sign in again; a site
-that fails the check is reported like any other failed check; and an answer without the agent's
-facts is one regents can't read.
+that fails the check is reported like any other failed check; and an answer that misdescribes the
+agent is one regents can't read.
 """
 
 from __future__ import annotations
@@ -225,12 +225,22 @@ def test_only_a_refused_sign_in_gets_the_agent_to_sign_in_again() -> None:
     assert "sign-in: unavailable: No." in (reported[-1].command or "")
 
 
-@pytest.mark.parametrize("missing", ["registry_listing", "human_backed", "same_person_agent_count"])
-def test_an_answer_without_the_agents_facts_is_unreadable(
-    missing: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    "agent",
+    [
+        *({k: v for k, v in AGENTS[1].items() if k != missing} for missing in AGENTS[1]),
+        {**AGENTS[0], "human_backed": "false"},
+        {**AGENTS[1], "same_person_agent_count": None},
+        {**AGENTS[0], "same_person_agent_count": 2},
+        {**AGENTS[1], "same_person_agent_count": 0},
+        {**AGENTS[1], "same_person_agent_count": True},
+        {**AGENTS[1], "registry_listing": 7},
+    ],
+)
+def test_an_answer_that_misdescribes_the_agent_is_unreadable(
+    agent: dict[str, Any], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     signed_in(tmp_path, monkeypatch, "regents")
-    agent = {k: v for k, v in AGENTS[1].items() if k != missing}
     stand_in("regents", whoami("regents", agent), monkeypatch)
 
     row = doctor.check(
