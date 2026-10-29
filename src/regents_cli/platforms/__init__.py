@@ -27,7 +27,7 @@ SIGN_IN_SITES: Final = {"protocol": "regents"}
 @dataclass(frozen=True, slots=True)
 class Input:
     name: str
-    type: Literal["string", "integer", "decimal", "uuid", "address"]
+    type: Literal["string", "integer", "decimal", "uuid", "address", "site_url", "file"]
     location: Literal["path", "query", "body"]
     field: str
     description: str

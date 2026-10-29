@@ -151,7 +151,7 @@ def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
     """Send once and never follow a redirect."""
     content = request.content
     headers = {"accept": "application/json", **client_header(), **request.headers}
-    if content is not None:
+    if content is not None and "content-type" not in request.headers:
         headers["content-type"] = "application/json"
     try:
         return httpx.request(

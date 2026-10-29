@@ -148,7 +148,7 @@ def test_typed_stdin_keeps_arrays_and_integers_in_both_phases(
             StdinField("operation_id", "uuid", False, "Stable UUID.", None, None),
         ),
     )
-    request = runner.request_for(command, {})
+    request = runner.request_for(command, {}, "https://example.com")
     good = '{"items":["one","two"],"limit":2,"operation_id":"0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21"}'
     monkeypatch.setattr("sys.stdin", io.StringIO(good))
     built = runner.with_stdin_fields(command, request, 1000)

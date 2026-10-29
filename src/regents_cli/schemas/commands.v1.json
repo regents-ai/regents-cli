@@ -324,13 +324,15 @@
           "$ref": "#/$defs/name"
         },
         "type": {
-          "description": "string; integer; decimal (an exact decimal kept as text, 1.25); uuid; address (0x and 40 hex characters).",
+          "description": "string; integer; decimal (an exact decimal kept as text, 1.25); uuid; address (0x and 40 hex characters); site_url (an address on this site whose path is the command's route, such as an upload address an earlier answer gave: it fills the path, and an address anywhere else is refused); file (a file on this machine whose bytes are the whole request body, sent with the content type its name's extension gives, which `enum` lists, and at most `maximum` bytes).",
           "enum": [
             "string",
             "integer",
             "decimal",
             "uuid",
-            "address"
+            "address",
+            "site_url",
+            "file"
           ]
         },
         "in": {

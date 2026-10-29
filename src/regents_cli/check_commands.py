@@ -62,6 +62,8 @@ class Body(NamedTuple):
 
     fields: frozenset[str] | None
     required: frozenset[str]
+    #: The media types the body may be sent as.
+    media: frozenset[str] = frozenset()
 
 
 class Operation(NamedTuple):
@@ -107,12 +109,13 @@ def request_body(document: Any, operation: dict[str, Any]) -> Body | None:
     if "requestBody" not in operation:
         return None
     content = followed(document, operation["requestBody"]).get("content") or {}
+    media = frozenset(media.split(";")[0].strip().lower() for media in content)
     schemas = [
         kind["schema"] for media, kind in content.items() if is_json(media) and "schema" in kind
     ]
     if len(schemas) != 1:
-        return Body(None, frozenset())
-    return body_named_in(document, schemas[0])
+        return Body(None, frozenset(), media)
+    return body_named_in(document, schemas[0])._replace(media=media)
 
 
 def operations_in(documents: list[Any]) -> dict[str, Operation]:
@@ -150,6 +153,29 @@ def body_problems(entry: dict[str, Any], body: Body | None) -> list[str]:
         problems.append(f"sends {named(unknown)}, which operation {operation}'s body does not name")
     if optional := body.required - always - fixed:
         problems.append(f"operation {operation} requires {named(optional)}, which it may leave out")
+    return problems
+
+
+def file_problems(entry: dict[str, Any], operation: Operation | None) -> list[str]:
+    """A file argument is the whole body: the command sends nothing else in it, says which
+    content types and how many bytes it may send, and the operation takes each of those types."""
+    files = [i for i in entry.get("arguments", []) if i["type"] == "file"]
+    if not files:
+        return []
+    others = [i for i in entry.get("arguments", []) + entry.get("flags", []) if i["in"] == "body"]
+    problems = []
+    if any(f["in"] != "body" for f in files):
+        problems.append("a file argument fills the body")
+    if len(files) > 1 or others != files[:1] or "stdin_fields" in entry or "body" in entry:
+        problems.append("a file argument is the whole body: nothing else may fill it")
+    if any("enum" not in f or "maximum" not in f for f in files):
+        problems.append("a file argument names its content types (enum) and its most bytes")
+    if entry["method"] not in ("POST", "PUT"):
+        problems.append("a file is sent with POST or PUT")
+    sent = {t for f in files for t in f.get("enum", [])}
+    takes = operation.body.media if operation is not None and operation.body is not None else None
+    if takes is not None and (unknown := sent - takes):
+        problems.append(f"operation {entry['operation_id']} takes no {named(unknown)} body")
     return problems
 
 
@@ -199,10 +225,21 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
                 f"must fill exactly {entry['path']}"
             )
         for i in inputs:
-            if "enum" in i and i["type"] != "string":
-                say(f"{i['name']}: only string inputs take enum")
-            if ("minimum" in i or "maximum" in i) and i["type"] != "integer":
-                say(f"{i['name']}: only integer inputs take minimum and maximum")
+            if "enum" in i and i["type"] not in ("string", "file"):
+                say(f"{i['name']}: only string and file inputs take enum")
+            if "minimum" in i and i["type"] != "integer":
+                say(f"{i['name']}: only integer inputs take minimum")
+            if "maximum" in i and i["type"] not in ("integer", "file"):
+                say(f"{i['name']}: only integer and file inputs take maximum")
+        for problem in file_problems(entry, operations.get(entry["operation_id"])):
+            say(problem)
+        site_urls = [i for i in args if i["type"] == "site_url"]
+        if [i for i in flags if i["type"] in ("site_url", "file")]:
+            say("site_url and file inputs are arguments, not flags")
+        if site_urls and [i for i in inputs if i["in"] == "path"] != site_urls[:1]:
+            say("a site_url argument is the command's only path input")
+        if any(i["in"] != "path" for i in site_urls):
+            say("a site_url argument fills the path")
         for f in entry.get("stdin_fields", []):
             if ("minimum" in f or "maximum" in f) and f["type"] != "integer":
                 say(f"stdin {f['field']}: only integer fields take minimum and maximum")

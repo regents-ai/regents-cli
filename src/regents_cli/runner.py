@@ -7,21 +7,23 @@ and flags fill the route's path, query and body, and the answer prints the share
 from __future__ import annotations
 
 import json
+import mimetypes
 import re
 import sys
 import threading
 from collections.abc import Sequence
 from copy import deepcopy
 from dataclasses import replace
+from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import click
 
 from regents_cli import output, siwa
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
-from regents_cli.http import Request, answer, base_address, respond
+from regents_cli.http import Request, answer, base_address, respond, same_origin
 from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped, wallet
 from regents_cli.next_steps import run as run_step
 from regents_cli.platforms import Command, Input, Platform, StdinField
@@ -73,6 +75,8 @@ def param_type(spec: Input) -> click.ParamType[Any]:
         return click.Choice(spec.enum)
     if spec.type == "integer":
         return click.IntRange(spec.minimum, spec.maximum)
+    if spec.type == "file":
+        return click.Path(exists=True, dir_okay=False, readable=True)
     return TYPES.get(spec.type, click.STRING)
 
 
@@ -196,7 +200,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         if command.required_one_of and len(missing) == len(command.required_one_of):
             raise UsageError("Give at least one of " + ", ".join(f"--{n}" for n in missing) + ".")
         base = base_address(base_url, platform.env_var, platform.base_url)
-        request = request_for(command, given)
+        request = request_for(command, given, base)
         shared = [*(["--base-url", base_url] if base_url else []), *(["--json"] if as_json else [])]
         if command.signed and phase == "send":
             request = signed_by_caller(command, base, request, timeout_ms)
@@ -235,15 +239,20 @@ def needs_pairing(platform: Platform, command: Command) -> str:
     return f"Your person must {in_words(asks)}."
 
 
-def request_for(command: Command, given: dict[str, Any]) -> Request:
+def request_for(command: Command, given: dict[str, Any], base: str) -> Request:
     path = command.path
     query: dict[str, str] = {}
     body: dict[str, Any] | None = dict(command.body) if command.body is not None else None
+    sent: tuple[Input, Path] | None = None
     for spec in command.inputs:
         value = given[spec.name]
         if value is None:
             continue
-        if spec.location == "path":
+        if spec.type == "site_url":
+            path = on_this_site(spec, str(value), command.path, base)
+        elif spec.type == "file":
+            sent = (spec, Path(value))
+        elif spec.location == "path":
             if str(value) in ("", ".", ".."):
                 raise UsageError(f"{spec.name.upper()} must name a record, not a dot path.")
             path = path.replace("{" + spec.field + "}", quote(str(value), safe=""))
@@ -251,9 +260,51 @@ def request_for(command: Command, given: dict[str, Any]) -> Request:
             query[spec.field] = str(value)
         else:
             body = {**(body or {}), spec.field: value}
+    if sent is not None:
+        return file_request(command, *sent, path, query)
     if body is None and command.method in ("POST", "PUT", "PATCH"):
         body = {}
     return Request(command.method, path, query, body)
+
+
+def on_this_site(spec: Input, value: str, route: str, base: str) -> str:
+    """The path of an address on this site whose path is `route`, such as the upload address an
+    earlier answer gave. An address anywhere else is refused, so nothing goes elsewhere."""
+    parts = urlsplit(value)
+    pattern = "/".join(
+        "[^/]+" if part.startswith("{") else re.escape(part) for part in route.split("/")
+    )
+    if (
+        not same_origin(f"{parts.scheme}://{parts.netloc}", base)
+        or parts.username
+        or parts.password
+        or parts.query
+        or parts.fragment
+        or not re.fullmatch(pattern, parts.path)
+    ):
+        raise UsageError(
+            f"{spec.name.upper()} must be an address on {base} of the form {base}{route}, as the "
+            "site answered it."
+        )
+    return parts.path
+
+
+def file_request(
+    command: Command, spec: Input, file: Path, path: str, query: dict[str, str]
+) -> Request:
+    """The file's bytes as the whole body, with the content type its extension gives."""
+    kind = mimetypes.guess_type(file.name)[0]
+    allowed = spec.enum or ()
+    if kind not in allowed:
+        raise UsageError(
+            f"{spec.name.upper()} must be {in_words(list(allowed), 'or')} by its name."
+        )
+    limit = spec.maximum or 0
+    with file.open("rb") as opened:
+        content = opened.read(limit + 1)
+    if len(content) > limit:
+        raise UsageError(f"{spec.name.upper()} holds more than {limit:,} bytes.")
+    return Request(command.method, path, query, raw_content=content, headers={"content-type": kind})
 
 
 def example(platform: Platform, command: Command) -> str:
@@ -362,9 +413,9 @@ def within(low: int | None, high: int | None) -> str:
     return f"an integer of at least {low}" if low is not None else f"an integer of at most {high}"
 
 
-def in_words(names: list[str]) -> str:
+def in_words(names: list[str], joined: str = "and") -> str:
     """rooms, graph and run."""
-    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + f" {joined} " + names[-1]
 
 
 def prepared(base: str, request: Request, receipt: siwa.Receipt) -> dict[str, Any]:
