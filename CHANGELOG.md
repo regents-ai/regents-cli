@@ -6,7 +6,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.21 — 2026-10-29
 
 Evidence: level protected; every site pinned at the commit it runs live on 29 Oct and read
-live from the built wheel; 893 tests; independent reviews of the whole bundle, each finding
+live from the built wheel; 908 tests; independent reviews of the whole bundle, each finding
 fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
 - A site's command list may now give a field piped on stdin the type `uuid`, and a whole number
