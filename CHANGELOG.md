@@ -77,11 +77,15 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
     run`, `notebooks result`, `workspace get`, and the WebMCP names of its wallet steps.
 - New: `regents keyfleet profile avatar-upload <upload-url> <file>` sends a .png, .jpg or .webp
   picture to the `upload_url` that `profile avatar-start` answered. It sends to that address on
-  the site only, and refuses any other address, another kind of file, or one over the size the
-  site takes, before anything is sent. A site's command list may now give an argument the type
-  `site_url` (an address on the site, checked against the command's route) and the type `file`
-  (the bytes of a local file as the whole body, with the media types it takes as `enum` and its
-  largest size as `maximum`); `regents check-commands` checks both.
+  the site only, and refuses before anything is sent: any other address, including one whose
+  ticket is not plain letters, digits, `.`, `-`, `_` or `~`; a file named for another type, with
+  no ending, or packed (such as `.png.gz`); one over the size the site takes; and one that cannot
+  be read, such as a socket. The address is the permission, so the command is not signed, and a
+  401 from it means the address has run out: its next step no longer says to sign in. A site's
+  command list may now give an argument the type `site_url` (an address on the site, checked
+  against the command's route) and the type `file` (the bytes of a local file as the whole body,
+  with the media types it takes as `enum` and its largest size as `maximum`); `regents
+  check-commands` checks both, and refuses a file sent to an operation that takes no body.
 - A site answer that carries `transactions` for the caller's own wallet, such as Keyfleet's
   `proposals vote`, `presence mark`, `keys claim` or `treasury convert`, no longer ends with
   "nothing more to run". Its first next step is a new kind, `wallet`: send those transactions

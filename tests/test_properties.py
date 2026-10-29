@@ -14,7 +14,8 @@
   line out to the width, which an agent would read as part of the help, and one blank line at
   most between blocks.
 - A file goes only to an address on the site whose path is the command's route, byte for byte
-  with the media type its name gives; any other address is refused and nothing is sent.
+  with the media type its name gives; any other address, a name of another type or a packed one,
+  and a file over the most bytes the command sends are refused, and nothing is sent.
 - Any answer prints in plain words without crashing, and a moment a site sends shows as the same
   minute in the reader's own time zone: a wrong hour sends a person to an event that is over.
 """
@@ -27,7 +28,9 @@ import hashlib
 import io
 import json
 import mimetypes
+import re
 import shlex
+import socket
 import unicodedata
 from collections.abc import Iterator
 from dataclasses import replace
@@ -452,10 +455,13 @@ UPLOADS = [
         ]
     ),
     # A ticket as a site writes one in an address, or a segment that names another route.
-    segment=st.sampled_from(["..", ".", "a%2Fb"])
+    segment=st.sampled_from(["..", ".", "a%2Fb", "%2e%2e", ".%2e", "a\\b", "t;x=1"])
     | st.text(st.sampled_from("aZ09-._~"), min_size=1),
     rest=st.sampled_from(["", "?next=1", "#top", "/more"]),
+    # The name's ending, after the command's own type's: as it is, another type, none, packed.
+    ending=st.sampled_from(["", ".gif", "-", ".gz"]),
     content=st.binary(max_size=64),
+    oversize=st.booleans(),
 )
 @settings(deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_a_file_goes_only_to_its_address_on_the_site(
@@ -466,13 +472,20 @@ def test_a_file_goes_only_to_its_address_on_the_site(
     origin: str,
     segment: str,
     rest: str,
+    ending: str,
     content: bytes,
+    oversize: bool,
 ) -> None:
     platform, command = pair
     [address] = [spec for spec in command.inputs if spec.type == "site_url"]
     [file] = [spec for spec in command.inputs if spec.type == "file"]
     kind = (file.enum or ())[0]
-    picture = tmp_path / f"picture{mimetypes.guess_extension(kind)}"
+    named = f"picture{mimetypes.guess_extension(kind)}"
+    picture = (
+        tmp_path / {"": named, ".gif": "picture.gif", "-": "picture", ".gz": f"{named}.gz"}[ending]
+    )
+    if oversize:
+        content = bytes((file.maximum or 0) + 1)
     picture.write_bytes(content)
     route = command.path.replace(f"{{{address.field}}}", segment)
     names = [word for word in command.words if not word.startswith("<")]
@@ -488,7 +501,8 @@ def test_a_file_goes_only_to_its_address_on_the_site(
                 str(picture),
             ]
         )
-    if origin != "https://example.com" or rest or segment in (".", ".."):
+    ticket = re.fullmatch(r"[A-Za-z0-9._~-]+", segment) and segment not in (".", "..")
+    if origin != "https://example.com" or rest or not ticket or ending or oversize:
         assert (code, signed_in) == (2, [])
         return
     [wire] = signed_in
@@ -499,6 +513,34 @@ def test_a_file_goes_only_to_its_address_on_the_site(
         route.encode(),
     )
     assert (wire.content, wire.headers["content-type"]) == (content, kind)
+
+
+@pytest.mark.parametrize(
+    "pair", UPLOADS, ids=lambda pair: f"{pair[0].name} {' '.join(pair[1].words)}"
+)
+def test_a_file_that_cannot_be_read_is_refused_in_words(
+    pair: tuple[Platform, Command],
+    signed_in: list[httpx.Request],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A socket passes for a readable file until it is opened, which once ended in a traceback."""
+    platform, command = pair
+    [address] = [spec for spec in command.inputs if spec.type == "site_url"]
+    [file] = [spec for spec in command.inputs if spec.type == "file"]
+    named = f"picture{mimetypes.guess_extension((file.enum or ())[0])}"
+    # A socket's path must be short, so it is made from inside the folder.
+    monkeypatch.chdir(tmp_path)
+    with socket.socket(socket.AF_UNIX) as listening:
+        listening.bind(named)
+        names = [word for word in command.words if not word.startswith("<")]
+        route = command.path.replace(f"{{{address.field}}}", "ticket")
+        code = app.main(
+            [platform.name, *names, *SHARED, "--", f"https://example.com{route}", named]
+        )
+    assert (code, signed_in) == (2, [])
+    assert "cannot be read" in json.loads(capsys.readouterr().out)["error"]["message"]
 
 
 #: Keys as sites name them, with the endings readable output treats apart.

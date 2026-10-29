@@ -150,6 +150,16 @@ def test_a_refused_payment_is_not_called_unsure() -> None:
     assert all("may have gone through" not in s.say for s in for_failure(timeout, preparing))
 
 
+def test_a_401_on_a_public_command_asks_for_no_sign_in() -> None:
+    """No sign-in changes a public command's answer, so a 401 there, such as an upload address
+    that has run out, is the site's own refusal: signing in again would not help."""
+    expired = CommandError("http_401", "The address has run out.", status=401)
+    reading = app.invocation(app.root(), ["keyfleet", "proposals", "list", "f1"])
+    assert all("auth login" not in (step.command or "") for step in for_failure(expired, reading))
+    signed = app.invocation(app.root(), ["keyfleet", "whoami"])
+    assert for_failure(expired, signed)[0].command == "regents auth login --site keyfleet"
+
+
 def test_a_full_account_asks_the_person_to_unpair_in_the_sites_words() -> None:
     """An agent told to change what it sent and retry would retry a pairing that only its
     person can clear; the step is the site's hint, then the same pair with the same JSON."""

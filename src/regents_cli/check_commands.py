@@ -173,8 +173,10 @@ def file_problems(entry: dict[str, Any], operation: Operation | None) -> list[st
     if entry["method"] not in ("POST", "PUT"):
         problems.append("a file is sent with POST or PUT")
     sent = {t for f in files for t in f.get("enum", [])}
-    takes = operation.body.media if operation is not None and operation.body is not None else None
-    if takes is not None and (unknown := sent - takes):
+    body = operation.body if operation is not None else None
+    if operation is not None and body is None:
+        problems.append(f"operation {entry['operation_id']} takes no body")
+    if body is not None and (unknown := sent - body.media):
         problems.append(f"operation {entry['operation_id']} takes no {named(unknown)} body")
     return problems
 

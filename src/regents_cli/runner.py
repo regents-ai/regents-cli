@@ -271,9 +271,10 @@ def on_this_site(spec: Input, value: str, route: str, base: str) -> str:
     """The path of an address on this site whose path is `route`, such as the upload address an
     earlier answer gave. An address anywhere else is refused, so nothing goes elsewhere."""
     parts = urlsplit(value)
-    # A filled segment is never "." or "..", which would name another route.
+    # A filled segment holds only the characters a site's tickets use, so neither ".." nor an
+    # escaped dot segment such as "%2e%2e" can name another route.
     pattern = "/".join(
-        r"(?!\.\.?(?:/|$))[^/]+" if part.startswith("{") else re.escape(part)
+        r"(?!\.\.?(?:/|$))[A-Za-z0-9._~-]+" if part.startswith("{") else re.escape(part)
         for part in route.split("/")
     )
     if (
@@ -295,15 +296,19 @@ def file_request(
     command: Command, spec: Input, file: Path, path: str, query: dict[str, str]
 ) -> Request:
     """The file's bytes as the whole body, with the content type its extension gives."""
-    kind = mimetypes.guess_type(file.name)[0]
+    kind, packed = mimetypes.guess_type(file.name)
     allowed = spec.enum or ()
-    if kind not in allowed:
+    if kind not in allowed or packed is not None:
         raise UsageError(
-            f"{spec.name.upper()} must be {in_words(list(allowed), 'or')} by its name."
+            f"{spec.name.upper()} must be named for its type, ending in "
+            f"{in_words([mimetypes.guess_extension(each) or each for each in allowed], 'or')}."
         )
     limit = spec.maximum or 0
-    with file.open("rb") as opened:
-        content = opened.read(limit + 1)
+    try:
+        with file.open("rb") as opened:
+            content = opened.read(limit + 1)
+    except OSError as error:
+        raise UsageError(f"{spec.name.upper()} {file} cannot be read: {error.strerror}.") from None
     if len(content) > limit:
         raise UsageError(f"{spec.name.upper()} holds more than {limit:,} bytes.")
     return Request(command.method, path, query, raw_content=content, headers={"content-type": kind})
