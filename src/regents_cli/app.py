@@ -50,8 +50,9 @@ Get this machine ready to run a Techtree Climb:
 
 Add --help to any command to see what it does."""
 
+# Rich help prints each paragraph of an epilog as one line, so each exit code is a paragraph.
 EPILOG = "Add --json to any command for machine output.\n\nExit codes:\n\n" + "\n\n".join(
-    f"  {code}  {meaning}" for code, meaning in EXIT_CODES.items()
+    f"{code:<3}  {meaning}" for code, meaning in EXIT_CODES.items()
 )
 
 

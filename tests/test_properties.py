@@ -10,6 +10,8 @@
   describes, runs the same request again.
 - Every request names the release and the command that sent it in `x-regent-client`, and
   nothing a person or agent typed after the command's words.
+- Every command's help reads in a pipe as plain lines: no frame characters, and no spaces
+  padding a line out to the width, which an agent would read as part of the help.
 - Any answer prints in plain words without crashing, and a moment a site sends shows as the same
   minute in the reader's own time zone: a wrong hour sends a person to an event that is over.
 """
@@ -23,6 +25,7 @@ import io
 import json
 import shlex
 import unicodedata
+from collections.abc import Iterator
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
 from importlib.metadata import version
@@ -460,3 +463,22 @@ def test_a_moment_shows_as_the_same_local_minute(moment: datetime, offset: int, 
     else:
         read = datetime.strptime(shown, "%d %b %Y %H:%M")
     assert read == local.replace(tzinfo=None, second=0, microsecond=0)
+
+
+def helps(command: click.Command, parent: click.Context | None = None) -> Iterator[str]:
+    """The help of a command and of every command under it, as `--help` prints it."""
+    context = command.context_class(command, info_name=command.name, parent=parent)
+    yield command.get_help(context)
+    if isinstance(command, click.Group):
+        for name in command.list_commands(context):
+            sub = command.get_command(context, name)
+            assert sub is not None
+            yield from helps(sub, context)
+
+
+def test_every_help_reads_as_plain_lines_in_a_pipe() -> None:
+    shown = list(helps(app.root()))
+    assert len(shown) > 100
+    for text in shown:
+        assert not any(line != line.rstrip() for line in text.splitlines()), text
+        assert not set(text) & set("│─╭╮╰╯┌┐└┘═"), text
