@@ -3,7 +3,11 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.10.21 — 2026-10-29
+
+Evidence: level protected; every site pinned at the commit it runs live on 29 Oct and read
+live from the built wheel; 856 tests; an independent review of the whole bundle, each finding
+fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
 - Fields piped on stdin are now checked like options before anything is signed or sent: a field
   a site describes as a UUID must be one (`operation_id` on rooms post, notes create, notes pin,
