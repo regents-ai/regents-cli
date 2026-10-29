@@ -85,12 +85,23 @@ def emit_error(error: CommandError, next_steps: Sequence[Step], *, as_json: bool
             json.dumps({**error.as_json(), "next_steps": steps}, ensure_ascii=False) + "\n"
         )
         return
-    stderr.print(_spaced([_failure(error), _next(next_steps)]), crop=False)
+    _print(stderr, _spaced([_failure(error), _next(next_steps)]))
 
 
 def show(*blocks: RenderableType) -> None:
     """What a person reads, one blank line between blocks; a line shown as it is stays whole."""
-    stdout.print(_spaced(blocks), crop=False)
+    _print(stdout, _spaced(blocks))
+
+
+def _print(console: Console, block: RenderableType) -> None:
+    """Printed whole. In a pipe each line ends at its last character, not padded with spaces to
+    the width, which agents and diffs would read as part of the answer."""
+    if console.is_terminal:
+        console.print(block, crop=False)
+        return
+    with console.capture() as captured:
+        console.print(block, crop=False)
+    console.file.write("".join(line.rstrip() + "\n" for line in captured.get().splitlines()))
 
 
 def report(markdown: str) -> RenderableType:

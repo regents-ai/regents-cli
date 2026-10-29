@@ -51,6 +51,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   are drawn in, however many there are, and otherwise as one block per record. It was a table
   only up to six columns of 40 characters, so `regents keyfleet workspace pulse` printed thirty
   blocks of seven lines even in a wide terminal. A table never folds a cell across lines.
+- Output read through a pipe no longer pads each line with spaces to 80 columns: every line
+  ends at its last character, on stdout and stderr alike. A terminal shows the same as before.
 
 ## 1.10.20 — 2026-10-28
 
