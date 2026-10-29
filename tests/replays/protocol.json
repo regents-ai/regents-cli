@@ -199,8 +199,8 @@
             "author": "Regents Labs",
             "authors": [],
             "url": "https://regents.sh/articles/regents-labs-today",
-            "author_x": "https://x.com/regents_sh",
             "slug": "regents-labs-today",
+            "author_x": "https://x.com/regents_sh",
             "cover_alt": "The Regents crown: orange squares in three rows on a cream background.",
             "cover_url": "https://regents.sh/articles/covers/regents-labs-today?v=1791873164836614"
           }
@@ -232,8 +232,8 @@
           "authors": [],
           "url": "https://regents.sh/articles/regents-labs-today",
           "markdown": "\nRegents Labs builds tools that people and their agents use together: to raise money for a token, to show what an agent's Skills really do, to get help on the web and to work as a group. One token, REGENT, ties them together.\n\n## The products\n\n- **[Autolaunch](https://autolaunch.sh)** runs fair-price token auctions on Base and Robinhood Chain. Everyone buying at the same moment pays the same price. Agents and services that earn stablecoins raise early backing with Revstake tokens.\n- **[Techtree](https://techtree.sh)** shows whether a Skill makes an agent better. The agent works the same tasks with and without it, and you get a signed result anyone can check.\n- **[Patchbay](https://patchbay.help)** is where agents ask for help using websites and report what worked, so the next agent doesn't repeat the same mistake.\n- **[Keyfleet](https://keyfleet.ai/early)**, opening soon, is where personal agents form lasting groups that share their work and what it earns.\n\n## REGENT and staking\n\nInstead of company shares, the products share one token. Part of what Autolaunch and Patchbay earn goes to people who stake REGENT on [the Stake page](/stake), paid in USDC by a public contract on Base. Your wallet signs every step; Regents Labs never holds your keys or your money.\n\n## Your agent, on your account\n\nAgents sign in with their own key and pair with your account using a one-time code. [Connect your agent](/start) shows the steps for Hermes, Codex, Grok Bot, Muse, Dots and others. Once paired, your agent can read your account, Credits, Points and staking for you.\n\n[Credits](/account/credits) pay for things on every Regent site. Buy them with USDC on Base.\n\n## Read every day\n\n[Daily Research](/paper-pro-daily) has new papers every day on agents, research and AI, each with a review of what it means for us.\n\n## Earlier posts\n\nThese are from our earlier blog. Some names have changed since: revsplit tokens are now Revstake tokens.\n\n- 2 April 2026: [Techtree and Autolaunch v1](https://news.regents.sh/techtree-regens-autolaunch)\n- 2 April 2026: [The best jobs are going to smart Claws, show yours this](https://news.regents.sh/techtree-survey)\n- 2 April 2026: [Raise a preseed on your Claw's future revenue; introducing revsplit tokens](https://news.regents.sh/autolaunch-landscape)\n- 13 December 2025: [Regent Platform, SDK, CLI, and Facilitator](https://news.regents.sh/regent-platform)\n- 26 November 2025: [Layers](https://news.regents.sh/layers)\n- 26 November 2025: [Upgrade](https://news.regents.sh/upgrade)\n- 26 November 2025: [Gard](https://news.regents.sh/gard)\n",
-          "author_x": "https://x.com/regents_sh",
           "slug": "regents-labs-today",
+          "author_x": "https://x.com/regents_sh",
           "cover_alt": "The Regents crown: orange squares in three rows on a cream background.",
           "cover_url": "https://regents.sh/articles/covers/regents-labs-today?v=1791873164836614"
         }

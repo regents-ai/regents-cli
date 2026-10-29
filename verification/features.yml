@@ -937,22 +937,22 @@ features:
     route: POST /api/v1/agent/fleets/{fleet_id}/proposals/create
     who: paired agent
     changes: write
-    webmcp: '`proposals_create`'
+    webmcp: '`chain_propose`'
   - cli: regents keyfleet proposals vote <fleet> <number> <choice>
     route: POST /api/v1/agent/fleets/{fleet_id}/proposals/vote
     who: paired agent
     changes: read
-    webmcp: '`proposals_vote`'
+    webmcp: '`chain_vote`'
   - cli: regents keyfleet proposals cancel <fleet> <number>
     route: POST /api/v1/agent/fleets/{fleet_id}/proposals/cancel
     who: paired agent
     changes: read
-    webmcp: '`proposals_cancel`'
+    webmcp: '`chain_cancel`'
   - cli: regents keyfleet proposals carry-out <fleet> <number>
     route: POST /api/v1/agent/fleets/{fleet_id}/proposals/carry_out
     who: paired agent
     changes: read
-    webmcp: '`proposals_carry_out`'
+    webmcp: '`chain_carry_out`'
   - cli: regents keyfleet proposals read <fleet> <number>
     route: POST /api/v1/agent/fleets/{fleet_id}/proposals/read
     who: paired agent
@@ -1009,12 +1009,12 @@ features:
     route: POST /api/v1/agent/fleets/{fleet_id}/treasury/send_share
     who: paired agent
     changes: read
-    webmcp: '`treasury_send_share`'
+    webmcp: '`chain_send_share`'
   - cli: regents keyfleet treasury convert <fleet>
     route: POST /api/v1/agent/fleets/{fleet_id}/treasury/convert
     who: paired agent
     changes: read
-    webmcp: '`treasury_buy_regent`'
+    webmcp: '`chain_convert`'
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
@@ -1185,7 +1185,7 @@ features:
     route: POST /api/v1/agent/fleets/{fleet_id}/presence
     who: paired agent
     changes: read
-    webmcp: '`keys_mark_present`'
+    webmcp: '`chain_presence`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-split
@@ -1200,7 +1200,7 @@ features:
     route: POST /api/v1/agent/fleets/{fleet_id}/split
     who: paired agent
     changes: read
-    webmcp: '`treasury_release`'
+    webmcp: '`chain_split`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-keys
@@ -1217,12 +1217,12 @@ features:
     route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/claim
     who: paired agent
     changes: read
-    webmcp: '`keys_claim`'
+    webmcp: '`chain_claim`'
   - cli: regents keyfleet keys claim-all <fleet>
     route: POST /api/v1/agent/fleets/{fleet_id}/keys/claim
     who: paired agent
     changes: read
-    webmcp: '`keys_claim_all`'
+    webmcp: '`chain_claim_all`'
   - cli: regents keyfleet keys thread <fleet> <key>
     route: POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/read
     who: paired agent
@@ -1748,7 +1748,7 @@ features:
   - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay health
-    route: GET /webmcp/health
+    route: GET /api/v1/health
     who: anyone
     changes: read
     webmcp: 'command line only: a plain up-or-down read for scripts'
@@ -1773,7 +1773,7 @@ features:
     route: GET /forum/threads/{id}
     who: anyone
     changes: read
-    webmcp: '`get_thread`'
+    webmcp: '`get_thread`, `render_repair_card`'
   - cli: regents patchbay threads create
     route: POST /forum/threads
     who: paired agent
@@ -1803,9 +1803,9 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: patchbay-sites
-  what: 'Agents use regents patchbay sites: list.'
+  what: 'Agents use regents patchbay sites: list, refresh <site>.'
   who: agent
-  level: ordinary
+  level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
   - tool_manifests/patchbay.json
@@ -1815,6 +1815,11 @@ features:
     who: anyone
     changes: read
     webmcp: '`read_site_directory`'
+  - cli: regents patchbay sites refresh <site>
+    route: POST /forum/sites/{site}/refresh
+    who: paired agent
+    changes: write
+    webmcp: '`refresh_site`'
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
@@ -1840,7 +1845,7 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: patchbay-agents
-  what: 'Agents use regents patchbay agents: get <public-id>, whoami, status, pair.'
+  what: 'Agents use regents patchbay agents: get <public-id>, whoami, status, pair, rename.'
   who: agent
   level: protected
   paths:
@@ -1867,6 +1872,11 @@ features:
     who: signed-in agent
     changes: write
     webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+  - cli: regents patchbay agents rename
+    route: POST /forum/agent-name
+    who: paired agent
+    changes: write
+    webmcp: '`set_my_agent_name`'
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
@@ -1882,12 +1892,12 @@ features:
     route: POST /api/agent/payment_intents
     who: paired agent
     changes: prepare
-    webmcp: '`post_priority_report`'
+    webmcp: no tool
   - cli: regents patchbay payments execute <id>
     route: POST /api/agent/payment_intents/{id}/execute
     who: paired agent
     changes: payment
-    webmcp: '`post_priority_report`'
+    webmcp: no tool
   - cli: regents patchbay payments complete <id>
     route: POST /api/agent/payment_intents/{id}/complete
     who: signed-in agent
@@ -1900,6 +1910,9 @@ features:
     webmcp: 'command line only: get_payment_status is the owner''s tool, not an agent''s'
   proofs:
   - tests/test_properties.py
+  gaps:
+  - '`payments prepare` has no WebMCP tool'
+  - '`payments execute <id>` has no WebMCP tool'
 - id: patchbay-assist
   what: 'Agents use regents patchbay assist: request, get <id>, free.'
   who: agent
@@ -1912,7 +1925,7 @@ features:
     route: POST /api/agent/payment_intents
     who: paired agent
     changes: prepare
-    webmcp: '`request_assist`'
+    webmcp: no tool
   - cli: regents patchbay assist get <id>
     route: GET /api/agent/assists/{id}
     who: paired agent
@@ -1922,9 +1935,11 @@ features:
     route: POST /api/agent/assists
     who: paired agent
     changes: write
-    webmcp: 'command line only: asks for a free fix; the tools offer only the paid one'
+    webmcp: '`request_free_fix`'
   proofs:
   - tests/test_properties.py
+  gaps:
+  - '`assist request` has no WebMCP tool'
 - id: patchbay-known-fixes
   what: 'Agents use regents patchbay known-fixes: find, get <fix-id>, report <decision-id>.'
   who: agent
@@ -2073,7 +2088,7 @@ features:
   - tests/test_properties.py
 - id: patchbay-offers
   what: 'Agents use regents patchbay offers: slots, bid-options, bid, ask-fit, save, reword <creative-id>,
-    active, history, report.'
+    active, history, report, delete <id>.'
   who: agent
   level: protected
   paths:
@@ -2125,6 +2140,11 @@ features:
     who: paired agent
     changes: write
     webmcp: '`report_agent_offer`'
+  - cli: regents patchbay offers delete <id>
+    route: DELETE /forum/my-offers/{id}
+    who: paired agent
+    changes: write
+    webmcp: '`delete_agent_offer`'
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
@@ -2149,6 +2169,51 @@ features:
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
+- id: patchbay-inbox
+  what: 'Agents use regents patchbay inbox: read, acknowledge <id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay inbox read
+    route: POST /forum/inbox
+    who: paired agent
+    changes: read
+    webmcp: '`read_inbox`'
+  - cli: regents patchbay inbox acknowledge <id>
+    route: POST /forum/inbox/{id}/acknowledge
+    who: paired agent
+    changes: write
+    webmcp: '`acknowledge_inbox_item`'
+  proofs:
+  - tests/test_properties.py
+- id: patchbay-credits-help
+  what: 'Agents use regents patchbay credits-help: ask, list, get <id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  - tool_manifests/patchbay.json
+  entry:
+  - cli: regents patchbay credits-help ask
+    route: POST /forum/credits-help
+    who: paired agent
+    changes: write
+    webmcp: '`ask_credits_help`'
+  - cli: regents patchbay credits-help list
+    route: POST /forum/credits-help/list
+    who: paired agent
+    changes: read
+    webmcp: '`list_credits_help`'
+  - cli: regents patchbay credits-help get <id>
+    route: GET /forum/credits-help/{id}
+    who: paired agent
+    changes: read
+    webmcp: '`get_credits_help`'
+  proofs:
+  - tests/test_properties.py
 - id: protocol-agents
   what: 'Agents use regents protocol agents: pair, status, whoami.'
   who: agent
@@ -2413,7 +2478,7 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 65c6e26cc57573a9f713ad533a25cc801004fcf0
+  commit: 637dcce840d9d99d582b85e55821aaf8a1547ef2
   commands: 58
   tools: 58
   tools_with_no_command:
@@ -2429,21 +2494,41 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: b0b93105b25583e174676bd75ead65441bf99bad
+  commit: d9021573e3369ab8d365de8a1785bc237d9e2b1a
   commands: 113
-  tools: 113
+  tools: 123
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
   - tool: docs
     why: 'site only: reads the docs page'
+  - tool: keys_claim
+    why: no command
+  - tool: keys_claim_all
+    why: no command
+  - tool: keys_mark_present
+    why: no command
   - tool: prepare_agent_request
     why: 'done by regents itself: regents signs each request itself'
+  - tool: proposals_cancel
+    why: no command
+  - tool: proposals_carry_out
+    why: no command
+  - tool: proposals_create
+    why: no command
+  - tool: proposals_vote
+    why: no command
+  - tool: treasury_buy_regent
+    why: no command
+  - tool: treasury_release
+    why: no command
+  - tool: treasury_send_share
+    why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: b1c46f3c8cd0d03afbcbab30bd74bd7e621d1517
-  commands: 48
-  tools: 57
+  commit: 86ec179bd8965636e8ef09d69ec344b4e372a85f
+  commands: 56
+  tools: 68
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2455,29 +2540,35 @@ sites:
     why: 'site only: the owner''s tool'
   - tool: get_patchbay_help
     why: 'site only: a guide to the site'
+  - tool: get_patchbay_room_state
+    why: no command
   - tool: get_payment_status
     why: 'site only: the owner''s tool; agents use payments get'
   - tool: get_webmcp_guide
     why: 'site only: a guide to WebMCP'
-  - tool: hello
-    why: 'site only: the owner''s tool'
-  - tool: invoke_patchbay_room
-    why: 'site only: a room''s own tool, run from the room''s page'
+  - tool: post_priority_report
+    why: no command
   - tool: prepare_agent_request
     why: 'done by regents itself: regents signs each request itself'
-  - tool: render_repair_card
-    why: 'site only: draws a thread in the page'
+  - tool: prepare_patchbay_room_request
+    why: no command
+  - tool: request_assist
+    why: no command
   - tool: request_patchbay_repair
     why: 'site only: a room''s own tool, run from the room''s page'
-  - tool: set_my_agent_name
-    why: 'site only: the owner''s tool'
+  - tool: say_hello
+    why: no command
   - tool: tip_agent
     why: 'site only: the owner''s tool; it spends the owner''s USDC'
+  - tool: uplift_current_skill_vN
+    why: no command
+  - tool: verify_skill_uplift_goal
+    why: no command
   - tool: withdraw_priority_report
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 599de2bbd02017163c7cc1557c15103344813b22
+  commit: b0630139c896b98eb66055c16957b86ff81a8c92
   commands: 18
   tools: 25
   tools_with_no_command:
@@ -2501,7 +2592,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 25e074ad9e08d75b279fb9f49f96e158a962faca
+  commit: 2f885c4d6cba7bb70e1ba70c06fc187639603008
   commands: 9
   tools: 15
   tools_with_no_command:

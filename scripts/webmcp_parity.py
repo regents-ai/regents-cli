@@ -58,13 +58,12 @@ CLI_ONLY: dict[str, dict[str, str]] = {
     "patchbay": {
         "payments get <id>": "get_payment_status is the owner's tool, not an agent's",
         "payments complete <id>": "the signer finishes its own payment; no tool does this step",
-        "assist free": "asks for a free fix; the tools offer only the paid one",
     },
     "protocol": {"agents status": "a check-in write; agents whoami is the read"},
 }
 
-#: Tools with no command on purpose: guides to the site, cards drawn in a page, and the owner's
-#: own website actions.
+#: Tools with no command on purpose: guides to the site, a room's own tools, and the owner's own
+#: website actions.
 SITE_ONLY: dict[str, dict[str, str]] = {
     "*": {
         "about": "reads the about page",
@@ -72,16 +71,12 @@ SITE_ONLY: dict[str, dict[str, str]] = {
     },
     "patchbay": {
         "get_payment_status": "the owner's tool; agents use payments get",
-        "hello": "the owner's tool",
         "get_my_usdc_balance": "the owner's tool",
-        "set_my_agent_name": "the owner's tool",
         "tip_agent": "the owner's tool; it spends the owner's USDC",
         "accept_solution": "the owner's tool; it moves USDC",
         "withdraw_priority_report": "the owner's tool; it moves USDC",
         "get_patchbay_help": "a guide to the site",
         "get_webmcp_guide": "a guide to WebMCP",
-        "render_repair_card": "draws a thread in the page",
-        "invoke_patchbay_room": "a room's own tool, run from the room's page",
         "cancel_patchbay_room_call": "a room's own tool, run from the room's page",
         "finish_patchbay_room_call": "a room's own tool, run from the room's page",
         "request_patchbay_repair": "a room's own tool, run from the room's page",
