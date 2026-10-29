@@ -457,7 +457,13 @@ def after(
             steps.append(Step(follow_up.kind, follow_up.say, url=follow_up.url))
             continue
         words = follow_up.command.split(" ")
-        filled = [dig(answer, follow_up.arguments[w[1:-1]]) for w in words if w.startswith("<")]
+        filled = [
+            dig(answer, follow_up.arguments[w[1:-1]])
+            if w[1:-1] in follow_up.arguments
+            else given.get(w[1:-1])
+            for w in words
+            if w.startswith("<")
+        ]
         if all(isinstance(value, str | int) and str(value) for value in filled):
             names = [word for word in words if not word.startswith("<")]
             line = typed(["regents", platform.name, *names, *shared], [str(v) for v in filled])

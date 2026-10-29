@@ -163,7 +163,10 @@ answer:
 
 A `run` step names another command of the same description, and `arguments` fills each of
 its `<words>` from a dotted path into the answer; the step is left out when the answer lacks
-one. The command it names may not need flags that the answer can't fill. `human` steps may
+one. A `<word>` that `arguments` leaves out is filled with the value the caller gave this
+command's own argument of that name, so `notebooks run <fleet> <project> <notebook>` can be
+followed by `notebooks result <fleet> <project> <notebook> <run>` with only `run` read from
+the answer. The command it names may not need flags that the answer can't fill. `human` steps may
 give an `https://` page; `done` steps give neither. `regents-cli`'s check refuses an entry
 that breaks these rules. Without `next_steps`, a finished answer's own `next_step` text is
 shown as it is, and when it names a route, such as `POST /forum/threads`, that is exactly one

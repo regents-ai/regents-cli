@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import shlex
 import socket
+from dataclasses import replace
 from pathlib import Path
 
 import click
@@ -19,7 +20,7 @@ from regents_cli import app, output
 from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import answer
 from regents_cli.next_steps import Invocation, elsewhere, for_failure, human
-from regents_cli.platforms import Platform, pinned_platforms
+from regents_cli.platforms import FollowUp, Platform, pinned_platforms
 from regents_cli.runner import after
 from regents_cli.techtree.commands.run import after_logs, after_status
 from regents_cli.techtree.errors import RunError
@@ -393,3 +394,16 @@ def test_transactions_to_send_are_never_called_done() -> None:
     blocked = {**answered, "transactions": [{**sent, "blocked": "Voting has closed"}]}
     (step,) = after(keyfleet, vote, blocked, given, [], finished=True)
     assert step.kind == "done" and "Voting has closed" in step.say
+
+
+def test_a_follow_up_takes_the_callers_own_arguments() -> None:
+    """Keyfleet answers seldom repeat the fleet, so a follow-up that needed <fleet> from the
+    answer was always dropped (18 Oct ask 2) and Keyfleet could describe none."""
+    keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
+    started = next(c for c in keyfleet.commands if c.words[:2] == ("notebooks", "run"))
+    result = next(c for c in keyfleet.commands if c.words[:2] == ("notebooks", "result"))
+    follow = FollowUp("run", "Read the result.", " ".join(result.words), {"run": "run.id"}, None)
+    command = replace(started, next_steps=(follow,))
+    given = {spec.name: spec.name.upper() if spec.required else None for spec in command.inputs}
+    (step,) = after(keyfleet, command, {"run": {"id": "r1"}}, given, [], finished=True)
+    assert step.command == "regents keyfleet notebooks result FLEET PROJECT NOTEBOOK r1"

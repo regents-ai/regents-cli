@@ -234,8 +234,13 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
                 say(f"next_steps runs {step['command']}, which is not one of its commands")
                 continue
             words = [w[1:-1] for w in step["command"].split(" ") if w.startswith("<")]
-            if sorted(step.get("arguments", {})) != sorted(words):
-                say(f"next_steps: arguments must fill exactly the <words> of {step['command']}")
+            filled = step.get("arguments", {})
+            own = {a["name"] for a in entry.get("arguments", [])}
+            if not set(filled) <= set(words) or not set(words) - set(filled) <= own:
+                say(
+                    f"next_steps: arguments and this command's own arguments must fill exactly "
+                    f"the <words> of {step['command']}"
+                )
             if target.get("required_one_of") or any(
                 f.get("required") for f in target.get("flags", [])
             ):

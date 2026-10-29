@@ -39,6 +39,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `blocked` says the chain's state makes it certain to fail, the step says to send nothing and
   names it with the reason. `next_steps` now has five kinds: `done`, `run`, `human`, `wallet`
   and `patchbay`.
+- Format: a `run` follow-up in a site's `next_steps` may leave an `<argument>` out of its
+  `arguments` when the command it follows has an argument of the same name; the step then uses
+  the value the caller gave. Keyfleet answers seldom repeat the fleet, so `notebooks run <fleet>
+  <project> <notebook>` can now be followed by `notebooks result <fleet> <project> <notebook>
+  <run>` with only `run` read from the answer. The check still refuses a word neither fills.
 
 ## 1.10.20 — 2026-10-28
 

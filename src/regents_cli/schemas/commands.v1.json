@@ -223,7 +223,7 @@
       }
     },
     "next_step": {
-      "description": "run: another command of this description, its <arguments> filled from the answer, left out when the answer lacks one of them. human: something a person does first, with the page to do it on. done: the work is finished.",
+      "description": "run: another command of this description, its <arguments> filled from the answer, or else from this command's own argument of the same name, left out when the answer lacks one of them. human: something a person does first, with the page to do it on. done: the work is finished.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -249,7 +249,7 @@
           "minLength": 1
         },
         "arguments": {
-          "description": "run only: the answer field that fills each <argument> of `command`.",
+          "description": "run only: the answer field that fills each <argument> of `command`. An <argument> left out here is filled with this command's own argument of the same name.",
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/answer_field"
