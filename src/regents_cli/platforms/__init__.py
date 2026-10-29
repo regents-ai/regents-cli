@@ -54,9 +54,11 @@ class Input:
 @dataclass(frozen=True, slots=True)
 class StdinField:
     field: str
-    type: Literal["array", "object", "string", "integer"]
+    type: Literal["array", "object", "string", "integer", "uuid"]
     required: bool
     description: str
+    minimum: int | None
+    maximum: int | None
 
     @classmethod
     def parse(cls, raw: dict[str, Any]) -> StdinField:
@@ -65,6 +67,8 @@ class StdinField:
             type=raw["type"],
             required=raw.get("required", False),
             description=raw["description"],
+            minimum=raw.get("minimum"),
+            maximum=raw.get("maximum"),
         )
 
 
@@ -102,6 +106,7 @@ class Command:
     words: tuple[str, ...]
     description: str
     operation_id: str
+    webmcp: str | None
     method: str
     path: str
     authority: Authority
@@ -141,6 +146,7 @@ class Command:
             words=tuple(raw["command"].split(" ")),
             description=raw["description"],
             operation_id=raw["operation_id"],
+            webmcp=raw.get("webmcp"),
             method=raw["method"],
             path=raw["path"],
             authority=raw["authority"],

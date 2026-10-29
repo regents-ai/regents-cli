@@ -572,7 +572,7 @@ features:
   proofs:
   - tests/test_properties.py
 - id: ash-template-activity
-  what: 'Agents use regents ash-template activity: list.'
+  what: 'Agents use regents ash-template activity: list, mark-read.'
   who: agent
   level: protected
   paths:
@@ -584,6 +584,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`activity_list`'
+  - cli: regents ash-template activity mark-read
+    route: POST /api/v1/activity/read
+    who: paired agent
+    changes: write
+    webmcp: '`activity_mark_read`'
   proofs:
   - tests/test_properties.py
 - id: ash-template-mutes
@@ -655,6 +660,31 @@ features:
     who: paired agent
     changes: write
     webmcp: '`dms_unblock`'
+  proofs:
+  - tests/test_properties.py
+- id: ash-template-chat
+  what: 'Agents use regents ash-template chat: list, read <conversation>, send.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  - tool_manifests/ash-template.json
+  entry:
+  - cli: regents ash-template chat list
+    route: GET /api/v1/chat
+    who: paired agent
+    changes: read
+    webmcp: '`chat_list`'
+  - cli: regents ash-template chat read <conversation>
+    route: POST /api/v1/chat/{conversation}/history
+    who: paired agent
+    changes: read
+    webmcp: '`chat_read`'
+  - cli: regents ash-template chat send
+    route: POST /api/v1/chat/messages
+    who: paired agent
+    changes: write
+    webmcp: '`chat_send`'
   proofs:
   - tests/test_properties.py
 - id: ash-template-polls
@@ -2161,9 +2191,9 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 5a1fe29ec53310d1c47a481ed485a06b6a3ac533
-  commands: 54
-  tools: 54
+  commit: 65c6e26cc57573a9f713ad533a25cc801004fcf0
+  commands: 58
+  tools: 58
   tools_with_no_command:
   - tool: prepare_agent_request
     why: 'done by regents itself: regents signs each request itself'

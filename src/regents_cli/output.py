@@ -4,15 +4,18 @@ Every command tree shows what a person reads through the same few blocks: a summ
 fields, a table of records, a check list with one mark per check, a compact Markdown report,
 text shown exactly as it is, the review a person reads before agreeing to something, and one
 shape of failure. Every answer and every failure ends with what to do next (`next_steps`).
-At a terminal they are styled; in a pipe they are plain text.
+At a terminal they are styled; in a pipe they are plain text. Readable output shows a site's
+times in this computer's time zone, leaves `_id` columns to --json and names headings in words.
 """
 
 from __future__ import annotations
 
 import json
+import re
 import sys
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Literal
 
 from markdown_it import MarkdownIt
@@ -32,6 +35,20 @@ stderr = Console(stderr=True, highlight=False)
 
 TABLE_COLUMNS = 6
 TABLE_CELL = 40
+
+#: Words in a site's field names that read differently on screen; a trailing "at" is dropped, so
+#: inserted_at reads "Added" and last_seen_at reads "Last seen".
+WORDS = {
+    "inserted": "added",
+    "id": "ID",
+    "url": "URL",
+    "ens": "ENS",
+    "usdc": "USDC",
+    "eth": "ETH",
+}
+
+#: A moment as sites send it, such as 2026-10-29T05:31:07.123456Z; shown as the reader's local time.
+MOMENT = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})")
 
 type CheckStatus = Literal["pass", "warn", "fail", "skip"]
 
@@ -213,13 +230,27 @@ def _summary(fields: dict[str, Any]) -> RenderableType:
 
 
 def _table(rows: list[dict[str, Any]]) -> Table:
-    columns = list(rows[0])
-    table = Table(box=None, pad_edge=False, padding=(0, 2, 0, 0), header_style="bold")
+    """Records as rows; the columns that link to other records (`*_id`) are left to --json."""
+    columns = _shown_columns(rows[0])
+    hidden = len(columns) < len(rows[0])
+    table = Table(
+        box=None,
+        pad_edge=False,
+        padding=(0, 2, 0, 0),
+        header_style="bold",
+        caption="Add --json for the ID columns." if hidden else None,
+        caption_justify="left",
+        caption_style="dim",
+    )
     for column in columns:
         table.add_column(_label(column), overflow="fold")
     for row in rows:
         table.add_row(*(Text(_scalar(row[column])) for column in columns))
     return table
+
+
+def _shown_columns(row: dict[str, Any]) -> list[str]:
+    return [column for column in row if not column.endswith("_id")]
 
 
 def _spaced(blocks: Sequence[RenderableType]) -> Group:
@@ -237,7 +268,12 @@ def _indented(block: RenderableType) -> RenderableType:
 
 
 def _label(key: str) -> str:
-    return key.replace("_", " ")
+    """A field's name in plain words: response_to_id reads "Response to ID"."""
+    words = key.split("_")
+    if len(words) > 1 and words[-1] == "at":
+        words.pop()
+    line = " ".join(WORDS.get(word, word) for word in words)
+    return line[:1].upper() + line[1:]
 
 
 def _is_scalar(value: Any) -> bool:
@@ -277,7 +313,7 @@ def _is_table(value: Any) -> bool:
         return False
     keys = value[0].keys()
     return (
-        len(keys) <= TABLE_COLUMNS
+        len(_shown_columns(value[0])) <= TABLE_COLUMNS
         and all(row.keys() == keys for row in value)
         and all(
             _is_scalar(v) and len(_scalar(v)) <= TABLE_CELL for row in value for v in row.values()
@@ -290,4 +326,16 @@ def _scalar(value: Any) -> str:
         return "-"
     if isinstance(value, bool):
         return "yes" if value else "no"
+    if isinstance(value, str) and MOMENT.fullmatch(value):
+        return _local_time(value)
     return str(value)
+
+
+def _local_time(moment: str) -> str:
+    """29 Oct 05:31 in the reader's own time zone, with the year when it is not this one."""
+    try:
+        local = datetime.fromisoformat(moment).astimezone()
+    except ValueError:
+        return moment
+    year = "" if local.year == datetime.now().astimezone().year else f" {local.year}"
+    return f"{local.day} {local:%b}{year} {local:%H:%M}"

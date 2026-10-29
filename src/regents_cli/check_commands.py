@@ -203,6 +203,9 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
                 say(f"{i['name']}: only string inputs take enum")
             if ("minimum" in i or "maximum" in i) and i["type"] != "integer":
                 say(f"{i['name']}: only integer inputs take minimum and maximum")
+        for f in entry.get("stdin_fields", []):
+            if ("minimum" in f or "maximum" in f) and f["type"] != "integer":
+                say(f"stdin {f['field']}: only integer fields take minimum and maximum")
 
         fills_body = any(i["in"] == "body" for i in inputs) or "stdin_fields" in entry
         empty_signed_body = entry.get("body") == {} and entry["authority"] != "public"

@@ -5,6 +5,28 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- New for Ash Template: `regents ash-template activity mark-read` marks every unread
+  notification of the person read, and `regents ash-template chat list`, `chat read` and `chat
+  send` reach the person's chats with the site's assistant. The chat commands answer once Ash
+  Template v131 is live; until then the site answers 404 `not_found`.
+- A command whose site offers the same action as a browser tool ends its help with one line
+  naming it, such as "Site tool: chat_send.", so an agent in a page knows which tool matches.
+- Fields piped on stdin are now checked like options before anything is signed or sent: a field
+  a site describes as a UUID must be one (`operation_id` on rooms post, notes create, notes pin,
+  dms send, polls start and chat send, and `conversation_id` on chat send), and a whole number
+  with a range must be inside it (poll `minutes`, 1 to 60). A site's command list may now give a
+  stdin field the type `uuid`, and `minimum` and `maximum` on whole numbers only; `regents
+  check-commands` refuses a range on any other type.
+- Readable output is easier to scan on every site: a time a site sends shows as a short time in
+  this computer's own time zone, such as "29 Oct 05:31" (with the year when it is not this
+  year); columns ending in `_id` are left out of tables, with a line saying `--json` has them;
+  and headings read as words ("Added", "Wallet URL", "USDC balance"). `--json` is unchanged.
+- Help is laid out with Rich at a terminal and stays plain text in a pipe, for every command.
+  This adds rich-click to the dependencies.
+- The pairing steps say a person makes a code with Pair New Agent on their Account page, as the
+  sites now say. The link still opens `/account#shell-pairing`; it moves to `#account-pairing`
+  in the release after the account menu reaches all five sites.
+
 - New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
   OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both

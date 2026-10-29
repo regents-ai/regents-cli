@@ -79,7 +79,7 @@ The prepared request names the signing contract it was built under; a `regents` 
 another one refuses it, so prepare it again.
 
 A pairing works on every Regent site. A person signed in on a site makes a code with Pair New
-Agent in the side panel, such as https://keyfleet.ai/account#shell-pairing, and the agent supplies
+Agent on their Account page, such as https://keyfleet.ai/account#shell-pairing, and the agent supplies
 string `code`, `name` and `harness` fields through private JSON stdin to that site's `agents pair`:
 `regents keyfleet agents pair` for Keyfleet, `regents protocol agents pair` for regents.sh. If a
 site answers `person_not_here`, the agent is paired but its person has not signed in on that site

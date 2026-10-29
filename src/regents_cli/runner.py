@@ -24,7 +24,7 @@ from regents_cli.errors import UsageError
 from regents_cli.http import Request, answer, base_address, respond
 from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped
 from regents_cli.next_steps import run as run_step
-from regents_cli.platforms import Command, Input, Platform
+from regents_cli.platforms import Command, Input, Platform, StdinField
 
 STDIN_LIMIT = 200_000
 #: The one command that asks for its stdin fields when run at a terminal, its code hidden.
@@ -37,6 +37,7 @@ STDIN_TYPES: dict[str, tuple[type, str]] = {
     "object": (dict, "an object"),
     "string": (str, "a string"),
     "integer": (int, "an integer"),
+    "uuid": (str, "a UUID"),
 }
 
 
@@ -52,12 +53,14 @@ class Pattern(click.ParamType[str]):
         self.fail(f"{value!r} is not {self.name}, such as {self.example}.", param, ctx)
 
 
+UUID = Pattern(
+    "a UUID",
+    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+    "0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21",
+)
+
 TYPES: dict[str, click.ParamType[Any]] = {
-    "uuid": Pattern(
-        "a UUID",
-        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
-        "0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21",
-    ),
+    "uuid": UUID,
     "address": Pattern(
         "an address", r"0x[0-9a-fA-F]{40}", "0x4200000000000000000000000000000000000006"
     ),
@@ -161,6 +164,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         ),
     ]
     help_text = command.description
+    if command.webmcp is not None:
+        help_text += f"\n\nSite tool: {command.webmcp}."
     if command.signed:
         params.append(
             click.Option(
@@ -312,12 +317,35 @@ def validate_stdin_fields(command: Command, piped: dict[str, Any]) -> None:
             f"Pipe {stdin_shape(command)} on stdin; {in_words(missing)} {are} required."
         )
     wrong = [
-        f"{f.field} must be {STDIN_TYPES[f.type][1]}"
+        problem
         for f in command.stdin_fields
-        if f.field in piped and type(piped[f.field]) is not STDIN_TYPES[f.type][0]
+        if f.field in piped and (problem := stdin_problem(f, piped[f.field]))
     ]
     if wrong:
         raise UsageError("; ".join(wrong) + ".")
+
+
+def stdin_problem(field: StdinField, value: Any) -> str:
+    """What is wrong with one piped value, checked as a flag of the same type is; "" when
+    nothing is."""
+    kind, named = STDIN_TYPES[field.type]
+    if type(value) is not kind:
+        return f"{field.field} must be {named}"
+    if field.type == "uuid" and isinstance(value, str) and not UUID.pattern.fullmatch(value):
+        return f"{field.field} must be a UUID, such as {UUID.example}"
+    low, high = field.minimum, field.maximum
+    if isinstance(value, int) and (
+        (low is not None and value < low) or (high is not None and value > high)
+    ):
+        return f"{field.field} must be {within(low, high)}"
+    return ""
+
+
+def within(low: int | None, high: int | None) -> str:
+    """an integer from 1 to 60; an integer of at least 1; an integer of at most 60."""
+    if low is not None and high is not None:
+        return f"an integer from {low} to {high}"
+    return f"an integer of at least {low}" if low is not None else f"an integer of at most {high}"
 
 
 def in_words(names: list[str]) -> str:
