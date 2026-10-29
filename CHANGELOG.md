@@ -5,12 +5,6 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
-- New for Ash Template: `regents ash-template activity mark-read` marks every unread
-  notification of the person read, and `regents ash-template chat list`, `chat read` and `chat
-  send` reach the person's chats with the site's assistant. The chat commands answer once Ash
-  Template v131 is live; until then the site answers 404 `not_found`.
-- A command whose site offers the same action as a browser tool ends its help with one line
-  naming it, such as "Site tool: chat_send.", so an agent in a page knows which tool matches.
 - Fields piped on stdin are now checked like options before anything is signed or sent: a field
   a site describes as a UUID must be one (`operation_id` on rooms post, notes create, notes pin,
   dms send, polls start and chat send, and `conversation_id` on chat send), and a whole number
@@ -27,7 +21,6 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - The pairing steps say a person makes a code with Pair New Agent on their Account page, as the
   sites now say. The link still opens `/account#shell-pairing`; it moves to `#account-pairing`
   in the release after the account menu reaches all five sites.
-
 - New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
   OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both
@@ -47,6 +40,54 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   in it, which could carry a user or password. The step for a failure against another address
   hides it the same way, and names the address the command used, read as the command reads its
   options: the last `--base-url` given, and never a look-alike value of another option.
+- A failed command's steps keep what it was given when `--open-browser` comes before the
+  command, and a failure beside `--version` prints only the failure.
+- Every site's commands now match what each site runs live on 29 Oct (pins: template
+  65c6e26c, regents.sh 599de2bb, Patchbay b1c46f3c, Keyfleet 205b8342, Techtree 25e074ad,
+  Autolaunch 145ecd01).
+  - Keyfleet has 107 commands, one for each of its WebMCP tools. New: `checkpoint read|save`,
+    `code commit` and `code commits`, `fleets activity|doctor`, `keys
+    message|post-as|remove|show`, `links resolve`, `preview`, `projects describe|hide|show`,
+    `publications commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`,
+    `workspace board|graph`. Changed: `rooms read`, `keys thread` and `workspace changes` take
+    `--max-bytes`, and `rooms sync` takes `max_bytes` on stdin; `workspace changes` takes
+    `--object`; `workspace get` takes `--fields`.
+  - Patchbay gains `known-fixes find` and `known-fixes get <fix-id>`; `threads search` can also
+    search by `--package` and `--fix-version`.
+  - The template gains `activity mark-read`, and `chat list`, `chat read <conversation>` and
+    `chat send` to talk with the account's agents.
+  - Wording only: the template's `agents pair`, Keyfleet's `notebooks run`, `notebooks result`
+    and `workspace get`, and Patchbay's `health`, `threads get` and `threads reply`.
+- A site answer that carries `transactions` for the caller's own wallet, such as Keyfleet's
+  `proposals vote`, `presence mark`, `keys claim` or `treasury convert`, no longer ends with
+  "nothing more to run". Its first next step is a new kind, `wallet`: send those transactions
+  from your own wallet, in order, since `regents` sends none of them. When a transaction's
+  `blocked` says the chain's state makes it certain to fail, the step says to send nothing and
+  names it with the reason. `next_steps` now has five kinds: `done`, `run`, `human`, `wallet`
+  and `patchbay`.
+- Format: a `run` follow-up in a site's `next_steps` may leave an `<argument>` out of its
+  `arguments` when the command it follows has an argument of the same name; the step then uses
+  the value the caller gave. Keyfleet answers seldom repeat the fleet, so `notebooks run <fleet>
+  <project> <notebook>` can now be followed by `notebooks result <fleet> <project> <notebook>
+  <run>` with only `run` read from the answer. The check still refuses a word neither fills.
+- When a site refuses with a `hint` that names one of its routes, such as Keyfleet's "GET
+  /api/v1/fleets lists every fleet." after `fleets get` with a mistyped id, the next steps now
+  include that command: run as it is when it needs nothing more, or else its `--help`.
+- A list of flat records of one shape prints as a table whenever its columns fit the width they
+  are drawn in, however many there are, and otherwise as one block per record. It was a table
+  only up to six columns of 40 characters, so `regents keyfleet workspace pulse` printed thirty
+  blocks of seven lines even in a wide terminal. A table never folds a cell across lines.
+- Output read through a pipe no longer pads each line with spaces to 80 columns: every line
+  ends at its last character, on stdout and stderr alike. A terminal shows the same as before.
+- The help of every command that reads JSON on stdin ends with an example to copy: its required
+  fields piped in, each value a placeholder to fill, such as `printf '%s' '{"body": "<body>",
+  "idempotency_key": "<idempotency_key>"}' | regents keyfleet rooms send FLEET ROOM`.
+- A command's help names the site's WebMCP tool that does the same thing in a browser, when the
+  site's description names one: "Same as the WebMCP tool fleets_list on keyfleet.ai."
+- `regents <site> doctor` adds a `regents version` check when the site's `/capabilities.json`
+  names the regents-cli release it describes (`cli.release`, as Keyfleet, Patchbay, Techtree and
+  the template do). It passes either way, and when the site names a newer release the next steps
+  ask the person to update with `uv tool upgrade regents-cli`. Releases compare by number.
 
 ## 1.10.20 — 2026-10-28
 

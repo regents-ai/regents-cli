@@ -1,9 +1,11 @@
-"""What an agent does after any `regents` output: always one or more of four kinds of step.
+"""What an agent does after any `regents` output: always one or more of five kinds of step.
 
 done: the work is finished. run: run this `regents` command next. human: a person has to do
-something first. patchbay: post the problem on patchbay.help, because a site broke, answered in
-a way `regents` can't act on, or stays unreachable, and only its team can fix that. A post always
-follows a public search of patchbay.help for the same problem, which needs no sign-in.
+something first. wallet: send the answer's transactions from your own wallet, which `regents`
+never does for a site's command. patchbay: post the problem on patchbay.help, because a site
+broke, answered in a way `regents` can't act on, or stays unreachable, and only its team can fix
+that. A post always follows a public search of patchbay.help for the same problem, which needs
+no sign-in.
 
 Every answer and every failure carries its steps: in `--json` as `next_steps` beside the answer's
 fields or beside `error`, and on screen as a short "Next" block at the bottom.
@@ -29,7 +31,7 @@ from regents_cli.errors import (
     CommandError,
 )
 
-type Kind = Literal["done", "run", "human", "patchbay"]
+type Kind = Literal["done", "run", "human", "wallet", "patchbay"]
 
 PATCHBAY_SEARCH = ("regents", "patchbay", "threads", "search")
 PATCHBAY_POST = ("regents", "patchbay", "threads", "create")
@@ -63,6 +65,10 @@ def run_piped(piped: str, command: Sequence[str], say: str) -> Step:
 
 def human(say: str, url: str | None = None) -> Step:
     return Step("human", say, url=url)
+
+
+def wallet(say: str) -> Step:
+    return Step("wallet", say)
 
 
 def report(

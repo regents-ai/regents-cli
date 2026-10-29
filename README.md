@@ -32,7 +32,9 @@ Every command answers the same way:
 ## Checking a site
 
 `regents <site> doctor` runs the same checks for every site: the site answers, each public read
-that needs no input answers, and, for a site with signed commands, the sign-in server accepts
+that needs no input answers, this regents is no older than the release the site names in its
+`/capabilities.json` (`cli.release`; an older one gets a step to update), and, for a site with
+signed commands, the sign-in server accepts
 a request signed with your sign-in, as the site would. Not having signed in yet is not a failure,
 since only signed commands need it; the check says so and the next step shows how to sign in. It
 exits 1 when any other check fails, including a key file it can't use or a sign-in it can't

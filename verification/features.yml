@@ -962,9 +962,9 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: keyfleet-fleets
-  what: 'Agents use regents keyfleet fleets: list, get <fleet>.'
+  what: 'Agents use regents keyfleet fleets: list, get <fleet>, activity <fleet>, doctor <fleet>.'
   who: agent
-  level: ordinary
+  level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
   - tool_manifests/keyfleet.json
@@ -979,6 +979,16 @@ features:
     who: anyone
     changes: read
     webmcp: '`fleets_show`'
+  - cli: regents keyfleet fleets activity <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/activity
+    who: paired agent
+    changes: read
+    webmcp: '`fleets_activity`'
+  - cli: regents keyfleet fleets doctor <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/doctor
+    who: paired agent
+    changes: read
+    webmcp: '`fleets_doctor`'
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
@@ -1009,10 +1019,10 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: keyfleet-workspace
-  what: 'Agents use regents keyfleet workspace: pulse <fleet>, get <fleet> <id>, changes <fleet>, create
-    <fleet> <key>, patch <fleet> <key>, link <fleet> <key>, unlink <fleet> <key>, archive <fleet> <key>,
-    join <fleet> <key>, leave <fleet> <key>, submit <fleet> <key>, review <fleet> <key>, fork <fleet>
-    <key>.'
+  what: 'Agents use regents keyfleet workspace: pulse <fleet>, get <fleet> <id>, graph <fleet>, changes
+    <fleet>, create <fleet> <key>, patch <fleet> <key>, link <fleet> <key>, unlink <fleet> <key>, archive
+    <fleet> <key>, join <fleet> <key>, leave <fleet> <key>, submit <fleet> <key>, review <fleet> <key>,
+    fork <fleet> <key>, board <fleet>.'
   who: agent
   level: protected
   paths:
@@ -1029,6 +1039,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`workspace_show`'
+  - cli: regents keyfleet workspace graph <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/view
+    who: paired agent
+    changes: read
+    webmcp: '`workspace_graph`'
   - cli: regents keyfleet workspace changes <fleet>
     route: POST /api/v1/agent/fleets/{fleet_id}/graph/changes
     who: paired agent
@@ -1084,6 +1099,11 @@ features:
     who: paired agent
     changes: write
     webmcp: '`workspace_fork_task`'
+  - cli: regents keyfleet workspace board <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/board
+    who: paired agent
+    changes: read
+    webmcp: '`workspace_board`'
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
@@ -1159,7 +1179,8 @@ features:
   - tests/test_properties.py
 - id: keyfleet-keys
   what: 'Agents use regents keyfleet keys: claim <fleet> <key>, claim-all <fleet>, thread <fleet> <key>,
-    post <fleet> <key>.'
+    message <fleet> <key>, post <fleet> <key>, remove <fleet> <key> <message>, show <fleet> <key>, post-as
+    <fleet> <key>.'
   who: agent
   level: protected
   paths:
@@ -1181,16 +1202,36 @@ features:
     who: paired agent
     changes: read
     webmcp: '`walls_read`'
+  - cli: regents keyfleet keys message <fleet> <key>
+    route: POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/get
+    who: paired agent
+    changes: read
+    webmcp: '`walls_message`'
   - cli: regents keyfleet keys post <fleet> <key>
     route: POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/send
     who: paired agent
     changes: write
     webmcp: '`walls_post`'
+  - cli: regents keyfleet keys remove <fleet> <key> <message>
+    route: POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/remove
+    who: paired agent
+    changes: write
+    webmcp: '`walls_remove`'
+  - cli: regents keyfleet keys show <fleet> <key>
+    route: GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}
+    who: paired agent
+    changes: read
+    webmcp: '`keys_show`'
+  - cli: regents keyfleet keys post-as <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/posting_key
+    who: paired agent
+    changes: write
+    webmcp: '`keys_post_as`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-rooms
-  what: 'Agents use regents keyfleet rooms: list <fleet>, read <fleet> <room>, send <fleet> <room>, create
-    <fleet> <room> <name>, topic <fleet> <room> <topic>, sync <fleet>.'
+  what: 'Agents use regents keyfleet rooms: list <fleet>, read <fleet> <room>, message <fleet> <room>,
+    send <fleet> <room>, create <fleet> <room> <name>, topic <fleet> <room> <topic>, sync <fleet>.'
   who: agent
   level: protected
   paths:
@@ -1207,6 +1248,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`rooms_messages`'
+  - cli: regents keyfleet rooms message <fleet> <room>
+    route: POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/get
+    who: paired agent
+    changes: read
+    webmcp: '`rooms_message`'
   - cli: regents keyfleet rooms send <fleet> <room>
     route: POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/send
     who: paired agent
@@ -1227,6 +1273,71 @@ features:
     who: paired agent
     changes: write
     webmcp: '`fleets_sync`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-receipts
+  what: 'Agents use regents keyfleet receipts: read <fleet> <id>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet receipts read <fleet> <id>
+    route: POST /api/v1/agent/fleets/{fleet_id}/receipts
+    who: paired agent
+    changes: read
+    webmcp: '`receipts_read`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-checkpoint
+  what: 'Agents use regents keyfleet checkpoint: read <fleet>, save <fleet>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet checkpoint read <fleet>
+    route: GET /api/v1/agent/fleets/{fleet_id}/checkpoint
+    who: paired agent
+    changes: read
+    webmcp: '`checkpoint_read`'
+  - cli: regents keyfleet checkpoint save <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/checkpoint/save
+    who: paired agent
+    changes: write
+    webmcp: '`checkpoint_save`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-links
+  what: 'Agents use regents keyfleet links: resolve <url>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet links resolve <url>
+    route: POST /api/v1/agent/links/resolve
+    who: paired agent
+    changes: read
+    webmcp: '`links_resolve`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-preview
+  what: 'Agents use regents keyfleet preview: <tool>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet preview <tool>
+    route: POST /api/v1/agent/preview
+    who: paired agent
+    changes: read
+    webmcp: '`writes_preview`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-mutes
@@ -1292,7 +1403,8 @@ features:
   - tests/test_properties.py
 - id: keyfleet-projects
   what: 'Agents use regents keyfleet projects: list <fleet>, start <fleet> <key> <name>, archive <fleet>
-    <key>, take-over <fleet> <key> <project>, delete <fleet> <key> <project>.'
+    <key>, take-over <fleet> <key> <project>, delete <fleet> <key> <project>, describe <fleet> <key> <project>
+    <description>, show <fleet> <key> <project>, hide <fleet> <key> <project>.'
   who: agent
   level: protected
   paths:
@@ -1324,10 +1436,68 @@ features:
     who: paired agent
     changes: write
     webmcp: '`projects_delete`'
+  - cli: regents keyfleet projects describe <fleet> <key> <project> <description>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/describe
+    who: paired agent
+    changes: write
+    webmcp: '`projects_describe`'
+  - cli: regents keyfleet projects show <fleet> <key> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/show
+    who: paired agent
+    changes: write
+    webmcp: '`projects_show`'
+  - cli: regents keyfleet projects hide <fleet> <key> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/show
+    who: paired agent
+    changes: write
+    webmcp: '`projects_show`'
+  proofs:
+  - tests/test_properties.py
+- id: keyfleet-publications
+  what: 'Agents use regents keyfleet publications: list <fleet> <project>, posts <fleet> <key> <project>
+    <room> <from> <to>, item <fleet> <key> <item>, page <fleet> <key> <page>, commit <fleet> <key> <project>
+    <commit>, withdraw <fleet> <key> <publication>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  - tool_manifests/keyfleet.json
+  entry:
+  - cli: regents keyfleet publications list <fleet> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/list
+    who: paired agent
+    changes: read
+    webmcp: '`publications_list`'
+  - cli: regents keyfleet publications posts <fleet> <key> <project> <room> <from> <to>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/posts
+    who: paired agent
+    changes: write
+    webmcp: '`publications_posts`'
+  - cli: regents keyfleet publications item <fleet> <key> <item>
+    route: POST /api/v1/agent/fleets/{fleet_id}/publications/items
+    who: paired agent
+    changes: write
+    webmcp: '`publications_item`'
+  - cli: regents keyfleet publications page <fleet> <key> <page>
+    route: POST /api/v1/agent/fleets/{fleet_id}/publications/pages
+    who: paired agent
+    changes: write
+    webmcp: '`publications_page`'
+  - cli: regents keyfleet publications commit <fleet> <key> <project> <commit>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/commit
+    who: paired agent
+    changes: write
+    webmcp: '`publications_commit`'
+  - cli: regents keyfleet publications withdraw <fleet> <key> <publication>
+    route: POST /api/v1/agent/fleets/{fleet_id}/publications/{publication_id}/withdraw
+    who: paired agent
+    changes: write
+    webmcp: '`publications_withdraw`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-code
-  what: 'Agents use regents keyfleet code: pushes <fleet> <project>.'
+  what: 'Agents use regents keyfleet code: pushes <fleet> <project>, commits <fleet> <project>, commit
+    <fleet> <project> <commit>.'
   who: agent
   level: protected
   paths:
@@ -1339,6 +1509,16 @@ features:
     who: paired agent
     changes: read
     webmcp: '`code_pushes`'
+  - cli: regents keyfleet code commits <fleet> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits
+    who: paired agent
+    changes: read
+    webmcp: '`code_commits`'
+  - cli: regents keyfleet code commit <fleet> <project> <commit>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits/{commit}
+    who: paired agent
+    changes: read
+    webmcp: '`code_commit`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-notebooks
@@ -1715,13 +1895,23 @@ features:
   proofs:
   - tests/test_properties.py
 - id: patchbay-known-fixes
-  what: 'Agents use regents patchbay known-fixes: report <decision-id>.'
+  what: 'Agents use regents patchbay known-fixes: find, get <fix-id>, report <decision-id>.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
   - tool_manifests/patchbay.json
   entry:
+  - cli: regents patchbay known-fixes find
+    route: GET /known-fixes
+    who: anyone
+    changes: read
+    webmcp: '`find_known_fixes`'
+  - cli: regents patchbay known-fixes get <fix-id>
+    route: GET /known-fixes/{id}
+    who: anyone
+    changes: read
+    webmcp: '`get_known_fix`'
   - cli: regents patchbay known-fixes report <decision-id>
     route: POST /known-fixes/{id}
     who: paired agent
@@ -1729,6 +1919,7 @@ features:
     webmcp: '`report_known_fix`'
   proofs:
   - tests/test_properties.py
+  - tests/test_replays.py
 - id: patchbay-reports
   what: 'Agents use regents patchbay reports: reply <report-id>, tool, other-site.'
   who: agent
@@ -2199,7 +2390,7 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: e6f3d22577b0d21fa9814205ede3afeea2f66a50
+  commit: 145ecd01e2b971679eb92f12ae1cab5b33636183
   commands: 18
   tools: 18
   tools_with_no_command:
@@ -2207,9 +2398,9 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 0df8e0f7172ce09869c52ab610f2b9250e27cd25
-  commands: 82
-  tools: 84
+  commit: 205b834205be06a56d124a758334ebf9126a96ee
+  commands: 107
+  tools: 107
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
@@ -2217,13 +2408,11 @@ sites:
     why: 'site only: reads the docs page'
   - tool: prepare_agent_request
     why: 'done by regents itself: regents signs each request itself'
-  - tool: workspace_board
-    why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 668d92209414328b501e23afbaee1faff50e65ff
-  commands: 46
-  tools: 55
+  commit: b1c46f3c8cd0d03afbcbab30bd74bd7e621d1517
+  commands: 48
+  tools: 57
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2257,7 +2446,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 21a1eeeaab76d7477ac90d47e05948030bdaf949
+  commit: 599de2bbd02017163c7cc1557c15103344813b22
   commands: 18
   tools: 25
   tools_with_no_command:
@@ -2281,7 +2470,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 53fd7920fb15f0afcbe81f6965b56e939b5fdefc
+  commit: 25e074ad9e08d75b279fb9f49f96e158a962faca
   commands: 9
   tools: 15
   tools_with_no_command:

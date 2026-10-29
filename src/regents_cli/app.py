@@ -21,7 +21,7 @@ from regents_cli.errors import (
 )
 from regents_cli.http import same_origin, unreadable_address
 from regents_cli.platforms import Command, Platform, pinned_platforms
-from regents_cli.runner import platform_group
+from regents_cli.runner import hinted, platform_group
 from regents_cli.techtree.cli import techtree_group
 
 # Rich help keeps each indented line on a line of its own, so every command can be copied whole.
@@ -85,7 +85,7 @@ def root() -> click.Group:
 
 
 def _print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> None:
-    if value:
+    if value and not ctx.resilient_parsing:
         click.echo(f"regents {version('regents-cli')}")
         ctx.exit()
 
@@ -139,22 +139,34 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _failed(error: CommandError, cli: click.Group, args: list[str], as_json: bool) -> int:
-    steps = next_steps.for_failure(error, invocation(cli, args))
+    called = invocation(cli, args)
+    steps = next_steps.for_failure(error, called)
+    platform = next((p for p in pinned_platforms() if (p.name,) == called.words[:1]), None)
+    if platform is not None and isinstance(error.fields.get("status"), int):
+        # The site's pointer goes before a closing "nothing more to run".
+        extra = [s for s in hinted(platform, error.fields.get("hint")) if s not in steps]
+        last = len(steps) - 1 if steps and steps[-1].kind == "done" else len(steps)
+        steps[last:last] = extra
     output.emit_error(error, steps, as_json=as_json)
     return error.exit_code
 
 
 def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
     """The command the arguments name, its site and that site's host."""
+    root_flags = {name for param in cli.params for name in param.opts}
     words: list[str] = []
     command: click.Command = cli
-    for arg in args:
+    rest = args
+    for index, arg in enumerate(args):
+        if command is cli and arg in root_flags:
+            continue
         child = command.commands.get(arg) if isinstance(command, click.Group) else None
         if child is None:
             break
         words.append(arg)
         command = child
-    given = _given(command, words, args)
+        rest = args[index + 1 :]
+    given = _given(command, words, rest)
     platforms = pinned_platforms()
     platform: Platform | None = None
     if words[:1] == ["auth"]:
@@ -182,12 +194,12 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
     )
 
 
-def _given(command: click.Command, words: list[str], args: list[str]) -> dict[str, object]:
-    """The options as Click read them for the command that ran. Arguments Click cannot read
-    ran nothing, so they name no option."""
+def _given(command: click.Command, words: list[str], rest: list[str]) -> dict[str, object]:
+    """The options as Click read them for the command that ran, from the arguments after its
+    name. Arguments Click cannot read ran nothing, so they name no option."""
     try:
         with command.make_context(
-            words[-1] if words else "regents", args[len(words) :], resilient_parsing=True
+            words[-1] if words else "regents", rest, resilient_parsing=True
         ) as context:
             return dict(context.params)
     except click.ClickException:

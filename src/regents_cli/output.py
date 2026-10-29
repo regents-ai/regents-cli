@@ -19,6 +19,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 from markdown_it import MarkdownIt
+from rich.cells import cell_len
 from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
 from rich.markdown import Markdown
 from rich.padding import Padding
@@ -32,9 +33,6 @@ from regents_cli.next_steps import Kind, Step
 
 stdout = Console(highlight=False)
 stderr = Console(stderr=True, highlight=False)
-
-TABLE_COLUMNS = 6
-TABLE_CELL = 40
 
 #: Words in a site's field names that read differently on screen; a trailing "at" is dropped, so
 #: inserted_at reads "Added" and last_seen_at reads "Last seen".
@@ -63,6 +61,7 @@ STEP_MARKS: dict[Kind, tuple[str, str]] = {
     "done": ("✓", "bold green"),
     "run": ("→", "bold cyan"),
     "human": ("!", "bold yellow"),
+    "wallet": ("◆", "bold blue"),
     "patchbay": ("↗", "bold magenta"),
 }
 
@@ -103,12 +102,23 @@ def emit_error(error: CommandError, next_steps: Sequence[Step], *, as_json: bool
             json.dumps({**error.as_json(), "next_steps": steps}, ensure_ascii=False) + "\n"
         )
         return
-    stderr.print(_spaced([_failure(error), _next(next_steps)]), crop=False)
+    _print(stderr, _spaced([_failure(error), _next(next_steps)]))
 
 
 def show(*blocks: RenderableType) -> None:
     """What a person reads, one blank line between blocks; a line shown as it is stays whole."""
-    stdout.print(_spaced(blocks), crop=False)
+    _print(stdout, _spaced(blocks))
+
+
+def _print(console: Console, block: RenderableType) -> None:
+    """Printed whole. In a pipe each line ends at its last character, not padded with spaces to
+    the width, which agents and diffs would read as part of the answer."""
+    if console.is_terminal:
+        console.print(block, crop=False)
+        return
+    with console.capture() as captured:
+        console.print(block, crop=False)
+    console.file.write("".join(line.rstrip() + "\n" for line in captured.get().splitlines()))
 
 
 def report(markdown: str) -> RenderableType:
@@ -199,7 +209,7 @@ def _renderable(value: Any) -> RenderableType:
             Check(row["check"], "pass" if row["ok"] else "fail", row["detail"]) for row in value
         )
     if _is_table(value):
-        return _table(value)
+        return _Records(value)
     if isinstance(value, list):
         blocks: list[RenderableType] = []
         for index, item in enumerate(value):
@@ -229,24 +239,43 @@ def _summary(fields: dict[str, Any]) -> RenderableType:
     return Group(*blocks)
 
 
-def _table(rows: list[dict[str, Any]]) -> Table:
-    """Records as rows; the columns that link to other records (`*_id`) are left to --json."""
-    columns = _shown_columns(rows[0])
-    hidden = len(columns) < len(rows[0])
-    table = Table(
-        box=None,
-        pad_edge=False,
-        padding=(0, 2, 0, 0),
-        header_style="bold",
-        caption="Add --json for the ID columns." if hidden else None,
-        caption_justify="left",
-        caption_style="dim",
-    )
-    for column in columns:
-        table.add_column(_label(column), overflow="fold")
-    for row in rows:
-        table.add_row(*(Text(_scalar(row[column])) for column in columns))
-    return table
+class _Records:
+    """Flat records of one shape: a table when every shown column fits the width it is drawn in
+    at its widest, or else one block of fields per record. The columns that link to other records
+    (`*_id`) are left to --json."""
+
+    def __init__(self, rows: list[dict[str, Any]]) -> None:
+        self.rows = rows
+
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        columns = _shown_columns(self.rows[0])
+        widths = [
+            max(cell_len(_label(column)), *(cell_len(_scalar(row[column])) for row in self.rows))
+            for column in columns
+        ]
+        if sum(widths) + 2 * (len(widths) - 1) > options.max_width:
+            blocks: list[RenderableType] = []
+            for index, row in enumerate(self.rows):
+                if index:
+                    blocks.append(Text())
+                blocks.append(_summary(row))
+            yield Group(*blocks)
+            return
+        hidden = len(columns) < len(self.rows[0])
+        table = Table(
+            box=None,
+            pad_edge=False,
+            padding=(0, 2, 0, 0),
+            header_style="bold",
+            caption="Add --json for the ID columns." if hidden else None,
+            caption_justify="left",
+            caption_style="dim",
+        )
+        for column in columns:
+            table.add_column(_label(column), no_wrap=True)
+        for row in self.rows:
+            table.add_row(*(Text(_scalar(row[column])) for column in columns))
+        yield table
 
 
 def _shown_columns(row: dict[str, Any]) -> list[str]:
@@ -308,16 +337,14 @@ def _is_checks(value: Any) -> bool:
 
 
 def _is_table(value: Any) -> bool:
-    """Short flat records read best as a table; anything longer prints one block per record."""
+    """Flat records of one shape, which read best as a table when they fit."""
     if not (isinstance(value, list) and value and all(isinstance(row, dict) for row in value)):
         return False
     keys = value[0].keys()
     return (
-        len(_shown_columns(value[0])) <= TABLE_COLUMNS
+        bool(_shown_columns(value[0]))
         and all(row.keys() == keys for row in value)
-        and all(
-            _is_scalar(v) and len(_scalar(v)) <= TABLE_CELL for row in value for v in row.values()
-        )
+        and all(_is_scalar(v) for row in value for v in row.values())
     )
 
 

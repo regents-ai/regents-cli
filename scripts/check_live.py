@@ -127,6 +127,12 @@ RUNS: dict[str, list[Run]] = {
             {"origin": "patchbay.help", "tool": "agent_whoami"},
         ),
         Run("tools catalog <host> <name>", {"host": "patchbay.help", "name": "agent_whoami"}),
+        # Patchbay always knows fixes for its own site.
+        Run("known-fixes find --site <site>", {"site": "patchbay.help"}),
+        Run(
+            "known-fixes get <fix-id>",
+            {"fix-id": ("known-fixes find --site <site>", "known_fixes.0.fix_id")},
+        ),
         Run(
             "bench pair <harness-id> <wallet-id>",
             {

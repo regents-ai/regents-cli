@@ -23,7 +23,7 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "e6f3d22577b0d21fa9814205ede3afeea2f66a50",
+    "commit": "145ecd01e2b971679eb92f12ae1cab5b33636183",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
@@ -35,7 +35,7 @@
       },
       "cli/docs/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/autolaunch/api-contract.openapiv3.yaml",
-        "sha256": "d7181db37d8001e86de5f544bad636b6e49354577b52410749e9ed7b88e113cf"
+        "sha256": "2aa5ed96bd1a37e6b0f5257e7d43cfb8cc3017da7380e7149f6ee5585911b063"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/autolaunch.json",
@@ -45,11 +45,11 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "0df8e0f7172ce09869c52ab610f2b9250e27cd25",
+    "commit": "205b834205be06a56d124a758334ebf9126a96ee",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
-        "sha256": "ff0abc46a0c688a1364cad649495aacba78f3b8426445a324f06345e27027821"
+        "sha256": "8670815c0359c045ec5d8eafd8f4ab2e997a9da029076dc42ad351c3c1ece0e1"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/keyfleet/openapi.json",
@@ -57,35 +57,35 @@
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/keyfleet/api-contract.openapiv3.yaml",
-        "sha256": "6addb77cb60c666ca9e1d6b0871b92f192c82bbf8acafdae64a5aa655e9c129f"
+        "sha256": "4b795471c0f7db5cfac9e33a1e5721e2c78ad71c7f9ac4d8ff9704258be5b4dc"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/keyfleet.json",
-        "sha256": "c3c0c4c9b24943719eac5305a17ccda3aedbda2d8f653d9d6c31dfab9f8f986c"
+        "sha256": "0341869ed80aad2bf0cbd7544493c144ad85dd1635084b85475c4d520daa2ce6"
       }
     }
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "668d92209414328b501e23afbaee1faff50e65ff",
+    "commit": "b1c46f3c8cd0d03afbcbab30bd74bd7e621d1517",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
-        "sha256": "4dddca8f8213c911028e477b245f5501ede2d255a9e07b1b4b49d48755171092"
+        "sha256": "247192ad7d76dd5f3fe6a83b020ff00acf52403edf7c5a0f722d28feffd019bf"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/openapi.json",
-        "sha256": "f0150faeacf86d6c99963fe69df22c4dcdf4ede98b0bcce6bd790cca9f43ed2d"
+        "sha256": "28e333023c0c03755ac0291b27ebe68a138fd5f1a3d3863a89f42f365e0480c1"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/patchbay.json",
-        "sha256": "ed386c7934c305d8d750c74bcec0eb5a2658facd3229dc0a15065eb8c20f6a4d"
+        "sha256": "6b2d126062e1a45ef8ca6977a1b84d75d4a21c0e4da19fc2608e126fc750acf7"
       }
     }
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "21a1eeeaab76d7477ac90d47e05948030bdaf949",
+    "commit": "599de2bbd02017163c7cc1557c15103344813b22",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",
@@ -121,7 +121,7 @@
   },
   "techtree": {
     "repository": "regents-ai/techtree",
-    "commit": "53fd7920fb15f0afcbe81f6965b56e939b5fdefc",
+    "commit": "25e074ad9e08d75b279fb9f49f96e158a962faca",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/techtree/commands.json",
@@ -129,11 +129,11 @@
       },
       "cli/openapi.json": {
         "copy": "src/regents_cli/platforms/techtree/openapi.json",
-        "sha256": "96024e9e86b62a6bc857b73fd03b54163b6686ba4e94e221a47c8e9b2b47f7d1"
+        "sha256": "88a8b5106b954cd1da789140ea6f71e6c560d7bb2ef51bec24b41a2f800db4d8"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/techtree.json",
-        "sha256": "3cd3a136f348fe0ed0de252fa327785af82d48c00ec33c6364b351cb0a8b5292"
+        "sha256": "8420ac6fe04aa7e924247ab5d60f14ae4c8451e5b931e91106f0fa63831a89dc"
       }
     }
   }
