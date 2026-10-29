@@ -530,7 +530,7 @@
     },
     {
       "command": "agents pair",
-      "description": "Pair with your person's account using the code they made with Pair New Agent in the side panel, on any page of the site. Pipe code, name and harness on stdin; keep the code out of arguments and chat.",
+      "description": "Pair with your person's account using the code they made with Pair New Agent on their Account page. Pipe code, name and harness on stdin; keep the code out of arguments and chat.",
       "operation_id": "pairAgent",
       "method": "POST",
       "path": "/api/agents/v1/pair",
@@ -930,6 +930,16 @@
         "cursor": "pagination.next_cursor",
         "flag": "after"
       }
+    },
+    {
+      "command": "activity mark-read",
+      "description": "Mark every unread notification of your person read, as Mark all read on their activity page does.",
+      "operation_id": "markActivityRead",
+      "webmcp": "activity_mark_read",
+      "method": "POST",
+      "path": "/api/v1/activity/read",
+      "authority": "paired_agent",
+      "effect": "write"
     },
     {
       "command": "mutes list",

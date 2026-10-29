@@ -24,6 +24,21 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   in it, which could carry a user or password. The step for a failure against another address
   hides it the same way, and names the address the command used, read as the command reads its
   options: the last `--base-url` given, and never a look-alike value of another option.
+- Every site's commands now match what each site runs live on 29 Oct (pins: template
+  cc74b3f3, regents.sh 599de2bb, Patchbay 855655fe, Keyfleet 136f2052, Techtree 25e074ad,
+  Autolaunch 145ecd01).
+  - Keyfleet gains 23 commands: `checkpoint read` and `checkpoint save`; `fleets activity` and
+    `fleets doctor`; `keys message`, `keys post-as`, `keys remove` and `keys show`; `links resolve`;
+    `preview`; `projects describe`, `projects hide` and `projects show`; `publications commit`,
+    `publications item`, `publications list`, `publications page`, `publications posts` and
+    `publications withdraw`; `receipts read`; `rooms message`; `workspace board` and
+    `workspace graph`. `keys thread`, `rooms read`, `rooms sync`, `workspace changes` and
+    `workspace get` take the site's current flags and fields.
+  - Patchbay gains `known-fixes find` and `known-fixes get <fix-id>`; `threads search` can also
+    search by `--package` and `--fix-version`.
+  - The template gains `activity mark-read`. Its chat commands come when template v131 is live.
+  - Wording only: the template's `agents pair`, Keyfleet's notebook commands, and Patchbay's
+    `health`, `threads get` and `threads reply`.
 
 ## 1.10.20 — 2026-10-28
 

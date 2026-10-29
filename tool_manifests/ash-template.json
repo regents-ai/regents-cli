@@ -403,6 +403,7 @@
               "account_credits_history",
               "account_points",
               "activity_list",
+              "activity_mark_read",
               "mutes_list",
               "mutes_add",
               "mutes_remove"
@@ -2239,6 +2240,51 @@
             "description": "The previous page's next_cursor, unchanged, for older notifications."
           }
         },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "activity_mark_read",
+      "title": "Mark my person's activity read",
+      "description": "Mark every unread notification of your person read, as Mark all read on their activity page does. Takes no input. Needs a pairing. Signed: prepare it with prepare_agent_request, sign it with your SIWA signer, then pass input, request and proof.",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input",
+          "request",
+          "proof"
+        ],
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          },
+          "request": {
+            "type": "object",
+            "description": "The exact request prepare_agent_request returned."
+          },
+          "proof": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The proof headers your SIWA signer made for that request."
+          }
+        }
+      },
+      "annotations": {},
+      "route": "POST /api/v1/activity/read",
+      "scope": "site",
+      "operation_id": "markActivityRead",
+      "authentication": "siwa_per_request",
+      "availability": "available",
+      "operation_input_schema": {
+        "type": "object",
+        "properties": {},
         "required": [],
         "additionalProperties": false
       }
