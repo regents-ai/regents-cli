@@ -5,7 +5,8 @@ fields, a table of records, a check list with one mark per check, a compact Mark
 text shown exactly as it is, the review a person reads before agreeing to something, and one
 shape of failure. Every answer and every failure ends with what to do next (`next_steps`).
 At a terminal they are styled; in a pipe they are plain text. Readable output shows a site's
-times in this computer's time zone, leaves `_id` columns to --json and names headings in words.
+times in this computer's time zone, leaves a record's links to others (`*_id` beside its own `id`)
+to --json and names headings in words.
 """
 
 from __future__ import annotations
@@ -241,8 +242,9 @@ def _summary(fields: dict[str, Any]) -> RenderableType:
 
 class _Records:
     """Flat records of one shape: a table when every shown column fits the width it is drawn in
-    at its widest, or else one block of fields per record. The columns that link to other records
-    (`*_id`) are left to --json."""
+    at its widest, or else one block of fields per record. A table leaves the columns that link to
+    other records (`*_id`) to --json when each record has its own `id`, and says so in one line
+    under it."""
 
     def __init__(self, rows: list[dict[str, Any]]) -> None:
         self.rows = rows
@@ -261,24 +263,21 @@ class _Records:
                 blocks.append(_summary(row))
             yield Group(*blocks)
             return
-        hidden = len(columns) < len(self.rows[0])
-        table = Table(
-            box=None,
-            pad_edge=False,
-            padding=(0, 2, 0, 0),
-            header_style="bold",
-            caption="Add --json for the ID columns." if hidden else None,
-            caption_justify="left",
-            caption_style="dim",
-        )
+        table = Table(box=None, pad_edge=False, padding=(0, 2, 0, 0), header_style="bold")
         for column in columns:
             table.add_column(_label(column), no_wrap=True)
         for row in self.rows:
             table.add_row(*(Text(_scalar(row[column])) for column in columns))
         yield table
+        if len(columns) < len(self.rows[0]):
+            yield Text("Add --json for the ID columns.", style="dim")
 
 
 def _shown_columns(row: dict[str, Any]) -> list[str]:
+    """Every column, less the links to other records when the record has its own `id` to pick it
+    by; without one, a link such as `thread_id` is the only handle for the next command."""
+    if "id" not in row:
+        return list(row)
     return [column for column in row if not column.endswith("_id")]
 
 

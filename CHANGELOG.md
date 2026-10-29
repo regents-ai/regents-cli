@@ -13,8 +13,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   check-commands` refuses a range on any other type.
 - Readable output is easier to scan on every site: a time a site sends shows as a short time in
   this computer's own time zone, such as "29 Oct 05:31" (with the year when it is not this
-  year); columns ending in `_id` are left out of tables, with a line saying `--json` has them;
-  and headings read as words ("Added", "Wallet URL", "USDC balance"). `--json` is unchanged.
+  year); in a table of records that each have an `id`, the columns ending in `_id` are left out,
+  with a line under the table saying `--json` has them; and headings read as words ("Added",
+  "Wallet URL", "USDC balance"). `--json` is unchanged.
 - Help is laid out with Rich, in colour at a terminal, for every command. In a pipe it is plain
   lines, with no frame characters and no spaces padding a line out to the width, and the exit
   codes in `regents --help` are one to a line. This adds rich-click to the dependencies.
