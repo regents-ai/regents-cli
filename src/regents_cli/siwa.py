@@ -21,7 +21,7 @@ import secrets
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, fields, replace
 from datetime import datetime
 from functools import cache
 from pathlib import Path
@@ -34,8 +34,9 @@ from eth_utils.crypto import keccak
 
 from regents_cli import passkey
 from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError, UsageError
-from regents_cli.http import Request, answer, data_with, holds, origin, unreadable
+from regents_cli.http import Request, answer, data_with, holds, origin, send, unreadable
 from regents_cli.next_steps import Step, human
+from regents_cli.platforms import Command
 
 BASE = 8453
 CHAINS = (BASE, 1)
@@ -520,31 +521,21 @@ def sign(request: Request, receipt: Receipt) -> dict[str, str]:
     return with_signature(headers, personal_sign(key, message))
 
 
-def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
-    """Have the sign-in server check a request signed with this sign-in, as the site does.
+def confirm(base: str, probe: Command, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
+    """Send the site at `base` its read-only identity probe (`agents whoami`), signed with this
+    sign-in. The site has the sign-in server check the signature with the site's own key, so an
+    answer means the site accepts the sign-in.
 
-    Answers what the sign-in server tells the site about the wallet: its agent registry
-    listing (`agentRegistration`) and the World ID person it accepted (`agentBook`), each
-    None when it has none.
+    Answers the probe's `data`. Its `agent` says what the sign-in server told the site about the
+    wallet: its agent registry listing (`registry_listing`, None when it has none), whether a
+    person verified with World ID stands behind it (`human_backed`) and how many agents that
+    person stands behind (`same_person_agent_count`, None when none does).
     """
-    request = Request("GET", "/")
-    checked = _post(
-        "/api/shared/siwa/http-verify",
-        {"method": request.method, "path": request.target, "headers": sign(request, receipt)},
-        timeout_ms,
-        headers={"x-siwa-audience": site},
+    request = Request(probe.method, probe.path)
+    told = data_with(
+        send(base, replace(request, headers=sign(request, receipt)), timeout_ms), "agent"
     )
-    if not isinstance(checked, dict) or checked.get("code") != "http_envelope_valid":
-        raise CommandError(
-            "sign_in_refused",
-            f"The sign-in server did not accept a request signed for {site}.",
-            exit_code=EXIT_AUTH,
-        )
-    told = data_with(checked, "agentRegistration", "agentBook")
-    listing, person = told["agentRegistration"], told["agentBook"]
-    if (listing and not holds(listing, "registryUrl")) or (
-        person and not holds(person, "humanId", "agentCount")
-    ):
+    if not holds(told["agent"], "registry_listing", "human_backed", "same_person_agent_count"):
         raise unreadable()
     return told
 

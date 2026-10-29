@@ -325,12 +325,15 @@ def _inline(value: Any) -> str:
 
 def _is_checks(value: Any) -> bool:
     """The rows `regents <site> doctor` answers with: what was checked, whether it held, its
-    code and what it found."""
+    code, the exit code of one that failed, and what it found."""
+    held = {"check", "ok", "code", "detail"}
     return (
         isinstance(value, list)
         and bool(value)
         and all(
-            isinstance(row, dict) and set(row) == {"check", "ok", "code", "detail"} for row in value
+            isinstance(row, dict)
+            and set(row) == (held if row.get("ok") is True else held | {"exit_code"})
+            for row in value
         )
     )
 

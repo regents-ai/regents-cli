@@ -34,11 +34,13 @@ Every command answers the same way:
 `regents <site> doctor` runs the same checks for every site: the site answers, each public read
 that needs no input answers, this regents is no older than the release the site names in its
 `/capabilities.json` (`cli.release`; an older one gets a step to update), and, for a site with
-signed commands, the sign-in server accepts
-a request signed with your sign-in, as the site would. Not having signed in yet is not a failure,
+signed commands, the site accepts your sign-in: it answers its `agents whoami` signed with it,
+after checking it with the sign-in server. Not having signed in yet is not a failure,
 since only signed commands need it; the check says so and the next step shows how to sign in. It
 exits 1 when any other check fails, including a key file it can't use or a sign-in it can't
-renew.
+renew. A failed check carries its `exit_code`; only a sign-in the site refused (exit code 3)
+gets the step to sign in again, and a site that fails the sign-in check any other way is
+reported like its other checks.
 
 ```bash
 regents patchbay doctor
@@ -105,7 +107,8 @@ be signed. Then the agent key on this machine signs it, `regents` checks the sig
 that transaction and nothing more, sends it and pays its gas, so it needs a little ETH on Base
 (`SIWA_BASE_RPC` names another Base node than `https://mainnet.base.org`). Each run sends a new
 transaction; once one is sent, any error keeps its hash and the `--tx-hash` command that checks
-it. Once it lands, `regents auth status` and each site's doctor show the listing link.
+it. Once it lands, `regents auth status` and each site's doctor show the listing link, as the
+site reads it.
 
 ```bash
 regents auth register --name "Astra" --description "What I do, in a sentence"
@@ -120,7 +123,10 @@ accepted them, because anyone with a World ID can name any wallet. `regents auth
 shows the World ID number AgentBook names; check it with your person, then accept it. Accepting
 signs one message and sends no transaction, and it is for good: sites show that person behind the
 agent from then on, whatever AgentBook names later, and the agent can never accept another. Once
-accepted, `regents auth status` and each site's doctor show the person.
+accepted, `regents auth status` and each site's doctor show that a person stands behind the
+agent (`human_backed`) and how many agents that person stands behind
+(`same_person_agent_count`), as the site reads them; the person's World ID number is never
+shown.
 
 ```bash
 regents auth accept-world-id

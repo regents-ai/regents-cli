@@ -3,6 +3,19 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- `regents auth status` and `regents doctor` check your sign-in through the site itself. They
+  send the site its `agents whoami`, signed, and nothing goes to the sign-in server, which now
+  answers only a site presenting its own key. `auth status` shows `human_backed` (whether a
+  person verified with World ID stands behind the agent) and `same_person_agent_count` (how many
+  agents that person stands behind, or null) in place of `world_id`, and `registry_listing` as
+  the site reads it; the person's World ID number is no longer shown.
+  `scripts/check_siwa_server.py` checks a local site and its sign-in server the same way.
+- `regents <site> doctor` gives each failed check its `exit_code`, and asks you to sign in again
+  only when the site refused the sign-in; a site that fails the sign-in check any other way is
+  searched for and reported on patchbay.help like its other checks.
+
 ## 1.10.21 — 2026-10-29
 
 Evidence: level protected; every site pinned at the commit it runs live on 29 Oct and read

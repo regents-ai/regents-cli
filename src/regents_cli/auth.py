@@ -5,16 +5,15 @@ from __future__ import annotations
 import json
 import re
 import time
-from dataclasses import replace
 from typing import Any
 
 import click
 
 from regents_cli import base, output, siwa
 from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
-from regents_cli.http import Request, base_address, data_with, send
+from regents_cli.http import base_address
 from regents_cli.next_steps import Step, done, human, pair_first, run, run_piped
-from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform, pinned_platforms
+from regents_cli.platforms import DEFAULT_TIMEOUT_MS, identity_probe, pinned_platforms
 from regents_cli.runner import read_stdin, unpaired
 
 TIMEOUT = click.Option(
@@ -80,10 +79,12 @@ def auth_group(sites: list[str]) -> click.Group:
                 JSON,
                 TIMEOUT,
             ],
-            help="Show the agent key's address, each site's sign-in, the agent's listing in "
-            "the agent registry and the World ID person it accepted (each null when it has "
-            "none), read through a sign-in this machine's key made. Pairing status uses a "
-            "site's read-only identity probe. A site without that command reports it unavailable.",
+            help="Show the agent key's address, each site's sign-in, and what the site says of "
+            "the agent: its listing in the agent registry (null when it has none), whether a "
+            "person verified with World ID stands behind it and how many agents that person "
+            "stands behind (null when none does). Read with the site's read-only identity "
+            "probe, which also shows pairing status. A site without that command reports it "
+            "unavailable.",
         )
     )
     group.add_command(
@@ -239,16 +240,6 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         ],
     }
     mine = [site for site, receipt in receipts.items() if key and receipt.signed_by(key)]
-    if mine:
-        confirmation_site = site if site in mine else "regents" if "regents" in mine else mine[0]
-        told = siwa.confirm(
-            confirmation_site, siwa.current(confirmation_site, timeout_ms), timeout_ms
-        )
-        listing, person = told["agentRegistration"], told["agentBook"]
-        answer["registry_listing"] = listing["registryUrl"] if listing else None
-        answer["world_id"] = (
-            {"human_id": person["humanId"], "agent_count": person["agentCount"]} if person else None
-        )
     selected = site or ("regents" if "regents" in mine else mine[0] if mine else None)
     if selected is not None:
         try:
@@ -256,14 +247,17 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         except CommandError as error:
             answer["pairing_status"] = {"site": selected, **error.as_json()}
         else:
-            request = Request(probe.method, probe.path)
-            request = replace(
-                request, headers=siwa.sign(request, siwa.current(selected, timeout_ms))
+            told = siwa.confirm(
+                base_address(None, platform.env_var, platform.base_url),
+                probe,
+                siwa.current(selected, timeout_ms),
+                timeout_ms,
             )
-            told = send(
-                base_address(None, platform.env_var, platform.base_url), request, timeout_ms
-            )
-            answer["pairing_status"] = {"site": selected, **data_with(told)}
+            agent = told["agent"]
+            answer["registry_listing"] = agent["registry_listing"]
+            answer["human_backed"] = agent["human_backed"]
+            answer["same_person_agent_count"] = agent["same_person_agent_count"]
+            answer["pairing_status"] = {"site": selected, **told}
     output.emit(answer, as_json=as_json, next_steps=after_status(answer, receipts))
 
 
@@ -540,29 +534,6 @@ ACCEPTED = done("The agent's wallet accepted its World ID person; nothing more t
 
 def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
     return "this machine" if key is not None and receipt.signed_by(key) else "you"
-
-
-def identity_probe(site: str) -> tuple[Platform, Command]:
-    """Find the pinned read-only probe; never substitute the rewarding legacy check-in."""
-    for platform in pinned_platforms():
-        if platform.site != site:
-            continue
-        for command in platform.commands:
-            if (
-                command.words == ("agents", "whoami")
-                and command.method == "GET"
-                and command.effect == "read"
-                and command.authority == "signed_agent"
-                and not command.inputs
-                and command.body is None
-            ):
-                return platform, command
-    raise CommandError(
-        "identity_probe_unavailable",
-        f"This release has no read-only identity probe for {site}. "
-        "Use the site's agent guide and a CLI release that includes its agents whoami command. "
-        "No check-in was sent.",
-    )
 
 
 def logout(site: str, as_json: bool) -> None:

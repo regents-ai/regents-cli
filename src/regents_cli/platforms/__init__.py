@@ -12,6 +12,8 @@ from importlib.resources import files
 from typing import Any, Final, Literal
 from urllib.parse import urlsplit
 
+from regents_cli.errors import CommandError
+
 type Authority = Literal["public", "signed_agent", "paired_agent"]
 type Condition = Literal["spending_allowed", "member"]
 type Effect = Literal["read", "quote", "write", "prepare", "payment"]
@@ -203,3 +205,35 @@ def pinned_platforms() -> list[Platform]:
         if entry.is_dir() and description.is_file():
             found.append(Platform.parse(json.loads(description.read_text("utf-8"))))
     return sorted(found, key=lambda platform: platform.name)
+
+
+def identity_probe(site: str) -> tuple[Platform, Command]:
+    """The pinned platform for `site` and its read-only probe."""
+    for platform in pinned_platforms():
+        if platform.site == site:
+            return platform, probe_of(platform)
+    raise probe_unavailable(site)
+
+
+def probe_of(platform: Platform) -> Command:
+    """The platform's read-only probe; never substitute the rewarding legacy check-in."""
+    for command in platform.commands:
+        if (
+            command.words == ("agents", "whoami")
+            and command.method == "GET"
+            and command.effect == "read"
+            and command.authority == "signed_agent"
+            and not command.inputs
+            and command.body is None
+        ):
+            return command
+    raise probe_unavailable(platform.site)
+
+
+def probe_unavailable(site: str) -> CommandError:
+    return CommandError(
+        "identity_probe_unavailable",
+        f"This release has no read-only identity probe for {site}. "
+        "Use the site's agent guide and a CLI release that includes its agents whoami command. "
+        "No check-in was sent.",
+    )
