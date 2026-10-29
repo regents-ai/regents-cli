@@ -115,6 +115,8 @@ class Command:
     timeout_ms: int
     pagination: Pagination | None
     next_steps: tuple[FollowUp, ...]
+    #: The site's WebMCP tool that does the same thing in a browser, when it names one.
+    webmcp: str | None
 
     @property
     def signed(self) -> bool:
@@ -154,6 +156,7 @@ class Command:
             timeout_ms=raw.get("timeout_ms", DEFAULT_TIMEOUT_MS),
             pagination=Pagination(**pagination) if pagination else None,
             next_steps=tuple(FollowUp.parse(s) for s in raw.get("next_steps", [])),
+            webmcp=raw.get("webmcp"),
         )
 
 

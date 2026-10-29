@@ -9,18 +9,20 @@ from __future__ import annotations
 import json
 import shlex
 import socket
+from dataclasses import replace
 from pathlib import Path
 
 import click
 import httpx
 import pytest
+from rich.console import Console
 
-from regents_cli import app, output
+from regents_cli import app, doctor, output
 from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import answer
 from regents_cli.next_steps import Invocation, elsewhere, for_failure, human
-from regents_cli.platforms import Platform, pinned_platforms
-from regents_cli.runner import after
+from regents_cli.platforms import FollowUp, Platform, pinned_platforms
+from regents_cli.runner import after, hinted
 from regents_cli.techtree.commands.run import after_logs, after_status
 from regents_cli.techtree.errors import RunError
 from regents_cli.techtree.forge.records import inspect_first, read_back_first
@@ -400,3 +402,68 @@ def _raised(response: httpx.Response) -> CommandError:
     with pytest.raises(CommandError) as raised:
         answer(response)
     return raised.value
+
+
+def test_transactions_to_send_are_never_called_done() -> None:
+    """Keyfleet's votes, claims and presence answer transactions the agent's own wallet sends,
+    and 1.10.20 ended them with "nothing more to run", so an agent took an unsent vote as cast. A
+    transaction the chain's state makes certain to fail stops them all, with its reason."""
+    keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
+    vote = next(c for c in keyfleet.commands if c.words[:2] == ("proposals", "vote"))
+    given = {spec.name: "x" if spec.required else None for spec in vote.inputs}
+    sent = {"name": "yes", "title": "Vote yes", "to": "0x" + "1" * 40, "data": "0x", "value": "0"}
+    answered = {"chain_id": 8453, "transactions": [{**sent, "blocked": None}] * 2}
+    (step,) = after(keyfleet, vote, answered, given, [], finished=True)
+    assert step.kind == "wallet" and "2 transactions" in step.say and "8453" in step.say
+    blocked = {**answered, "transactions": [{**sent, "blocked": "Voting has closed"}]}
+    (step,) = after(keyfleet, vote, blocked, given, [], finished=True)
+    assert step.kind == "done" and "Voting has closed" in step.say
+
+
+def test_a_follow_up_takes_the_callers_own_arguments() -> None:
+    """Keyfleet answers seldom repeat the fleet, so a follow-up that needed <fleet> from the
+    answer was always dropped (18 Oct ask 2) and Keyfleet could describe none."""
+    keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
+    started = next(c for c in keyfleet.commands if c.words[:2] == ("notebooks", "run"))
+    result = next(c for c in keyfleet.commands if c.words[:2] == ("notebooks", "result"))
+    follow = FollowUp("run", "Read the result.", " ".join(result.words), {"run": "run.id"}, None)
+    command = replace(started, next_steps=(follow,))
+    given = {spec.name: spec.name.upper() if spec.required else None for spec in command.inputs}
+    (step,) = after(keyfleet, command, {"run": {"id": "r1"}}, given, [], finished=True)
+    assert step.command == "regents keyfleet notebooks result FLEET PROJECT NOTEBOOK r1"
+
+
+def test_a_refusals_hint_naming_a_route_offers_its_command() -> None:
+    """keyfleet fleets get with a mistyped id: the site's hint names GET /api/v1/fleets, and the
+    only step said the record does not exist."""
+    keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
+    (listed,) = hinted(keyfleet, "GET /api/v1/fleets lists every fleet.")
+    assert listed.command == "regents keyfleet fleets list"
+    (projects,) = hinted(keyfleet, "List them with GET /api/v1/agent/fleets/FLEET_ID/projects).")
+    assert projects.command == "regents keyfleet projects list --help"
+    assert hinted(keyfleet, "Ask your person.") == []
+
+
+def test_flat_records_are_a_table_only_when_they_fit() -> None:
+    """workspace pulse's seven short columns printed as thirty blocks of seven lines; a table
+    that does not fit must still never fold a cell across lines."""
+    row = {"at": "2026-10-29T03:20:00Z", "seq": 1405, "text": "Agent Contessa worked on it"}
+    rows = [row, {**row, "seq": 1402}]
+    for width, table in ((120, True), (40, False)):
+        console = Console(width=width, record=True)
+        console.print(output._renderable(rows))
+        lines = console.export_text().splitlines()
+        assert (len(lines) == 3) is table, lines
+
+
+def test_doctor_asks_for_an_update_only_when_the_site_names_a_newer_regents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Contessa's item 6: nothing told an agent its regents was older than the site's. Releases
+    compare by number, so 1.10.9 is older than 1.10.20, not newer."""
+    monkeypatch.setattr(doctor, "version", lambda _name: "1.10.9")
+    code, _ = doctor.release_current("keyfleet.ai", "1.10.20")
+    behind = {"check": doctor.RELEASE, "ok": True, "code": code, "detail": "x"}
+    assert code == doctor.BEHIND
+    assert [s.kind for s in doctor.held("keyfleet", [behind])] == ["human", "done"]
+    assert doctor.release_current("keyfleet.ai", "1.9.30")[0] == "current"

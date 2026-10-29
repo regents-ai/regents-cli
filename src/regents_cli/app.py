@@ -21,7 +21,7 @@ from regents_cli.errors import (
 )
 from regents_cli.http import same_origin, unreadable_address
 from regents_cli.platforms import Command, Platform, pinned_platforms
-from regents_cli.runner import platform_group
+from regents_cli.runner import hinted, platform_group
 from regents_cli.techtree.cli import techtree_group
 
 # Click keeps a paragraph that follows a \b line exactly as written.
@@ -133,7 +133,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _failed(error: CommandError, cli: click.Group, args: list[str], as_json: bool) -> int:
-    steps = next_steps.for_failure(error, invocation(cli, args))
+    called = invocation(cli, args)
+    steps = next_steps.for_failure(error, called)
+    platform = next((p for p in pinned_platforms() if (p.name,) == called.words[:1]), None)
+    if platform is not None and isinstance(error.fields.get("status"), int):
+        # The site's pointer goes before a closing "nothing more to run".
+        extra = [s for s in hinted(platform, error.fields.get("hint")) if s not in steps]
+        last = len(steps) - 1 if steps and steps[-1].kind == "done" else len(steps)
+        steps[last:last] = extra
     output.emit_error(error, steps, as_json=as_json)
     return error.exit_code
 

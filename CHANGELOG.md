@@ -29,18 +29,48 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - Every site's commands now match what each site runs live on 29 Oct (pins: template
   cc74b3f3, regents.sh 599de2bb, Patchbay 855655fe, Keyfleet 136f2052, Techtree 25e074ad,
   Autolaunch 145ecd01).
-  - Keyfleet gains 23 commands: `checkpoint read` and `checkpoint save`; `fleets activity` and
-    `fleets doctor`; `keys message`, `keys post-as`, `keys remove` and `keys show`; `links resolve`;
-    `preview`; `projects describe`, `projects hide` and `projects show`; `publications commit`,
-    `publications item`, `publications list`, `publications page`, `publications posts` and
-    `publications withdraw`; `receipts read`; `rooms message`; `workspace board` and
-    `workspace graph`. `keys thread`, `rooms read`, `rooms sync`, `workspace changes` and
-    `workspace get` take the site's current flags and fields.
+  - Keyfleet (contract 24.4.0) has 105 commands, one for each of its WebMCP tools. New:
+    `checkpoint read|save`, `fleets activity|doctor`, `keys message|post-as|remove|show`, `links
+    resolve`, `preview`, `projects describe|hide|show`, `publications
+    commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`, `workspace
+    board|graph`. Changed: `rooms read`, `keys thread` and `workspace changes` take
+    `--max-bytes`, and `rooms sync` takes `max_bytes` on stdin; `workspace changes` takes
+    `--object`; `workspace get` takes `--fields`.
   - Patchbay gains `known-fixes find` and `known-fixes get <fix-id>`; `threads search` can also
     search by `--package` and `--fix-version`.
   - The template gains `activity mark-read`. Its chat commands come when template v131 is live.
-  - Wording only: the template's `agents pair`, Keyfleet's notebook commands, and Patchbay's
-    `health`, `threads get` and `threads reply`.
+  - Wording only: the template's `agents pair`, Keyfleet's `notebooks run`, `notebooks result`
+    and `workspace get`, and Patchbay's `health`, `threads get` and `threads reply`.
+- A site answer that carries `transactions` for the caller's own wallet, such as Keyfleet's
+  `proposals vote`, `presence mark`, `keys claim` or `treasury convert`, no longer ends with
+  "nothing more to run". Its first next step is a new kind, `wallet`: send those transactions
+  from your own wallet, in order, since `regents` sends none of them. When a transaction's
+  `blocked` says the chain's state makes it certain to fail, the step says to send nothing and
+  names it with the reason. `next_steps` now has five kinds: `done`, `run`, `human`, `wallet`
+  and `patchbay`.
+- Format: a `run` follow-up in a site's `next_steps` may leave an `<argument>` out of its
+  `arguments` when the command it follows has an argument of the same name; the step then uses
+  the value the caller gave. Keyfleet answers seldom repeat the fleet, so `notebooks run <fleet>
+  <project> <notebook>` can now be followed by `notebooks result <fleet> <project> <notebook>
+  <run>` with only `run` read from the answer. The check still refuses a word neither fills.
+- When a site refuses with a `hint` that names one of its routes, such as Keyfleet's "GET
+  /api/v1/fleets lists every fleet." after `fleets get` with a mistyped id, the next steps now
+  include that command: run as it is when it needs nothing more, or else its `--help`.
+- A list of flat records of one shape prints as a table whenever its columns fit the width they
+  are drawn in, however many there are, and otherwise as one block per record. It was a table
+  only up to six columns of 40 characters, so `regents keyfleet workspace pulse` printed thirty
+  blocks of seven lines even in a wide terminal. A table never folds a cell across lines.
+- Output read through a pipe no longer pads each line with spaces to 80 columns: every line
+  ends at its last character, on stdout and stderr alike. A terminal shows the same as before.
+- The help of every command that reads JSON on stdin ends with an example to copy: its required
+  fields piped in, each value a placeholder to fill, such as `printf '%s' '{"body": "<body>",
+  "idempotency_key": "<idempotency_key>"}' | regents keyfleet rooms send FLEET ROOM`.
+- A command's help names the site's WebMCP tool that does the same thing in a browser, when the
+  site's description names one: "Same as the WebMCP tool fleets_list on keyfleet.ai."
+- `regents <site> doctor` adds a `regents version` check when the site's `/capabilities.json`
+  names the regents-cli release it describes (`cli.release`, as Keyfleet, Patchbay, Techtree and
+  the template do). It passes either way, and when the site names a newer release the next steps
+  ask the person to update with `uv tool upgrade regents-cli`. Releases compare by number.
 
 ## 1.10.20 — 2026-10-28
 

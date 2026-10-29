@@ -22,7 +22,7 @@ from regents_cli import output, siwa
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
 from regents_cli.http import Request, answer, base_address, respond
-from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped
+from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped, wallet
 from regents_cli.next_steps import run as run_step
 from regents_cli.platforms import Command, Input, Platform
 
@@ -161,6 +161,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         ),
     ]
     help_text = command.description
+    if command.webmcp is not None:
+        help_text += f"\n\nSame as the WebMCP tool {command.webmcp} on {platform.host}."
     if command.signed:
         params.append(
             click.Option(
@@ -181,6 +183,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         if command.words == PAIR:
             help_text += " At a terminal it asks for each instead, the code hidden as you type."
         help_text += "".join(f"\n\n{f.field}: {f.description}" for f in command.stdin_fields)
+        if command.stdin_fields:
+            help_text += "\n\n\b\nExample:\n  " + example(platform, command)
 
     def run(as_json: bool, base_url: str | None, timeout_ms: int, **values: Any) -> None:
         phase = values.pop("phase", None)
@@ -247,6 +251,18 @@ def request_for(command: Command, given: dict[str, Any]) -> Request:
     if body is None and command.method in ("POST", "PUT", "PATCH"):
         body = {}
     return Request(command.method, path, query, body)
+
+
+def example(platform: Platform, command: Command) -> str:
+    """The command with its required stdin fields piped in, or its first when none is required,
+    each value a placeholder to fill: a string's in quotes, any other JSON value bare."""
+    fields = [f for f in command.stdin_fields if f.required] or list(command.stdin_fields[:1])
+    piped = ", ".join(
+        f'"{f.field}": ' + (f'"<{f.field}>"' if f.type == "string" else f"<{f.field}>")
+        for f in fields
+    )
+    names = [w if not w.startswith("<") else w[1:-1].upper() for w in command.words]
+    return f"printf '%s' '{{{piped}}}' | regents {platform.name} {' '.join(names)}"
 
 
 def stdin_shape(command: Command) -> str:
@@ -436,10 +452,11 @@ def after(
     *,
     finished: bool,
 ) -> list[Step]:
-    """What follows a site's answer: its next page, the follow-ups the site describes, a check
+    """What follows a site's answer: the transactions it gives the caller's wallet to send, its
+    next page, the follow-ups the site describes, a check
     of a new pairing, or nothing more. An answer that took the request without finishing it
     (202) is followed the way the command's description says, and never sent again."""
-    steps: list[Step] = []
+    steps: list[Step] = to_send(answer)
     if command.pagination is not None:
         cursor = dig(answer, command.pagination.cursor)
         if dig(answer, command.pagination.has_more) is True and cursor is not None:
@@ -456,7 +473,13 @@ def after(
             steps.append(Step(follow_up.kind, follow_up.say, url=follow_up.url))
             continue
         words = follow_up.command.split(" ")
-        filled = [dig(answer, follow_up.arguments[w[1:-1]]) for w in words if w.startswith("<")]
+        filled = [
+            dig(answer, follow_up.arguments[w[1:-1]])
+            if w[1:-1] in follow_up.arguments
+            else given.get(w[1:-1])
+            for w in words
+            if w.startswith("<")
+        ]
         if all(isinstance(value, str | int) and str(value) for value in filled):
             names = [word for word in words if not word.startswith("<")]
             line = typed(["regents", platform.name, *names, *shared], [str(v) for v in filled])
@@ -490,6 +513,38 @@ def after(
     return [done(DONE[command.effect])]
 
 
+def to_send(answer: dict[str, Any]) -> list[Step]:
+    """An answer's `transactions`, at the top or in `data`, are for the caller's own wallet to
+    send in order; `regents` sends none of them. One the chain's state makes certain to fail
+    (its `blocked` reason) stops them all, since the later ones depend on it."""
+    data = answer.get("data")
+    holder = answer if "transactions" in answer else data if isinstance(data, dict) else {}
+    listed = holder.get("transactions")
+    if not (isinstance(listed, list) and listed and all(isinstance(t, dict) for t in listed)):
+        return []
+    blocked = [
+        f"{t.get('name', number)} ({t['blocked']})"
+        for number, t in enumerate(listed, 1)
+        if isinstance(t.get("blocked"), str) and t["blocked"].strip()
+    ]
+    if blocked:
+        return [
+            done(
+                f"Send nothing now: the chain's own state makes {in_words(blocked)} certain to "
+                "fail."
+            )
+        ]
+    chain = holder.get("chain_id")
+    count = f"{len(listed)} transaction{'s' if len(listed) > 1 else ''}"
+    on = f" on chain {chain}" if isinstance(chain, int) and not isinstance(chain, bool) else ""
+    return [
+        wallet(
+            f"Send the {count} in transactions from your own wallet{on}, in order. regents sends "
+            "none of them, so nothing has happened on the chain yet."
+        )
+    ]
+
+
 #: An HTTP route named in a site's own words, such as "POST /forum/threads".
 ROUTE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE) (/[^\s,;)`'\"?#]*)")
 
@@ -504,6 +559,26 @@ def site_says(platform: Platform, effect: str, said: str) -> list[Step]:
             follow = run_step(["regents", platform.name, *named, "--help"], said)
             return [follow] if effect == "read" else [done(DONE[effect]), follow]
     return [done(f"{DONE[effect]} The site adds: {said}")]
+
+
+def hinted(platform: Platform, hint: Any) -> list[Step]:
+    """A refusal's hint that names one of the site's routes, such as "GET /api/v1/fleets lists
+    every fleet.": that command, run as it is when it needs nothing more, or else its help."""
+    if not isinstance(hint, str):
+        return []
+    for method, path in ROUTE.findall(hint):
+        command = routed_command(platform, method, path.rstrip("."))
+        if command is not None:
+            named = [w for w in command.words if not w.startswith("<")]
+            needs = (
+                bool(command.arguments or command.required_one_of)
+                or any(f.required for f in command.flags)
+                or any(f.required for f in command.stdin_fields)
+            )
+            return [
+                run_step(["regents", platform.name, *named, *(["--help"] if needs else [])], hint)
+            ]
+    return []
 
 
 def routed_command(platform: Platform, method: str, path: str) -> Command | None:

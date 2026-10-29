@@ -122,9 +122,13 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
                         else failed) and next_steps read from the status and code
 ```
 
-Every answer and every failure ends with `next_steps`, one or more of four kinds: `done`
+Every answer and every failure ends with `next_steps`, one or more of five kinds: `done`
 (nothing more to run), `run` (the `regents` command to run next), `human` (a person acts
-first) and `patchbay` (a ready post for the site's board on patchbay.help). A post is only
+first), `wallet` (send the answer's `transactions` from your own wallet, in order) and
+`patchbay` (a ready post for the site's board on patchbay.help). An answer that carries a
+non-empty `transactions` list, at the top or in `data`, always starts with the `wallet` step,
+or with a `done` step naming the reason when one transaction's `blocked` says the chain's own
+state makes it certain to fail; `regents` never sends a site's transactions itself. A post is only
 suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
 that is not a JSON object), answers with an error without a readable code, or cannot be
 reached. A coded refusal is the agent's to fix, so write `code` and `message` for that. Every
@@ -159,7 +163,10 @@ answer:
 
 A `run` step names another command of the same description, and `arguments` fills each of
 its `<words>` from a dotted path into the answer; the step is left out when the answer lacks
-one. The command it names may not need flags that the answer can't fill. `human` steps may
+one. A `<word>` that `arguments` leaves out is filled with the value the caller gave this
+command's own argument of that name, so `notebooks run <fleet> <project> <notebook>` can be
+followed by `notebooks result <fleet> <project> <notebook> <run>` with only `run` read from
+the answer. The command it names may not need flags that the answer can't fill. `human` steps may
 give an `https://` page; `done` steps give neither. `regents-cli`'s check refuses an entry
 that breaks these rules. Without `next_steps`, a finished answer's own `next_step` text is
 shown as it is, and when it names a route, such as `POST /forum/threads`, that is exactly one
@@ -168,7 +175,9 @@ command line says the work is done.
 
 `regents <site> doctor` is built from the same description: the site answers, every public
 read that needs no input answers, and a site with signed commands accepts this machine's
-sign-in.
+sign-in. A site whose `/capabilities.json` names `cli.release`, as the template's does, also
+gets a check that this regents is no older; a newer release there adds a step asking the person
+to update.
 
 A command whose work cannot be said in a description (Techtree's Climbs run a local engine and
 sign proofs) is native code here. Ask the regents-cli chief before designing one.
