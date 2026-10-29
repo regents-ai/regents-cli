@@ -1,14 +1,16 @@
 """`regents <site> doctor`: the same checks for every site, read from its description.
 
-The site answers at all; each public read that needs no input answers; and, for a site with
-signed commands, the sign-in on this machine is one the sign-in server accepts. No sign-in yet is
-not a failure: only signed commands need one.
+The site answers at all; each public read that needs no input answers; this regents is the
+release the site names in its /capabilities.json, or newer; and, for a site with signed commands,
+the sign-in on this machine is one the sign-in server accepts. No sign-in yet is not a failure:
+only signed commands need one, and an older regents still runs every command it carries.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from functools import partial
+from importlib.metadata import version
 from typing import Any
 
 import click
@@ -23,6 +25,8 @@ SIGN_IN = "sign-in"
 #: A sign-in check that failed on a file on this machine: signing in again meets the same file.
 KEY_FILE_PROBLEMS = ("unsafe_file", "bad_key_file", "unreadable_file")
 NOT_SIGNED_IN = "not_signed_in"
+RELEASE = "regents version"
+BEHIND = "update_available"
 
 
 def doctor_command(platform: Platform) -> click.Command:
@@ -34,6 +38,9 @@ def doctor_command(platform: Platform) -> click.Command:
             for c in platform.commands
             if needs_nothing(c)
         ]
+        named = release_named(base, timeout_ms)
+        if named is not None:
+            checks.append(check(RELEASE, lambda: release_current(platform.host, named)))
         if any(c.signed for c in platform.commands):
             checks.append(check(SIGN_IN, lambda: sign_in_good(platform.site, timeout_ms)))
         found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
@@ -98,9 +105,15 @@ def repairs(
 
 
 def held(site: str, checks: list[dict[str, Any]]) -> list[Step]:
+    behind = [
+        human(f"Ask your person to update regents: uv tool upgrade regents-cli. {c['detail']}")
+        for c in checks
+        if c["code"] == BEHIND
+    ]
     if not any(c["code"] == NOT_SIGNED_IN for c in checks):
-        return [done("Every check held; nothing more to run.")]
+        return [*behind, done("Every check held; nothing more to run.")]
     return [
+        *behind,
         done("The site and its public reads answer; nothing more to run for those."),
         run(
             ("regents", "auth", "login", "--site", site),
@@ -137,6 +150,32 @@ def site_answers(base: str, timeout_ms: int) -> tuple[str, str]:
 def read_answers(base: str, command: Command, timeout_ms: int) -> tuple[str, str]:
     send(base, Request(command.method, command.path), timeout_ms)
     return "answered", f"{command.method} {command.path} answered."
+
+
+def release_named(base: str, timeout_ms: int) -> str | None:
+    """The regents-cli release the site's /capabilities.json names (`cli.release`), or None
+    when it names none or can't be read: that is no fault of the site's commands."""
+    try:
+        answered = send(base, Request("GET", "/capabilities.json"), timeout_ms)
+    except CommandError:
+        return None
+    cli = answered.get("cli")
+    release = cli.get("release") if isinstance(cli, dict) else None
+    return release if isinstance(release, str) and numbered(release) is not None else None
+
+
+def release_current(host: str, named: str) -> tuple[str, str]:
+    installed = version("regents-cli")
+    newer = (numbered(named) or ()) > (numbered(installed) or ())
+    if newer:
+        return BEHIND, f"{host} names regents-cli {named}; this is {installed}."
+    return "current", f"{host} names regents-cli {named}; this is {installed}."
+
+
+def numbered(release: str) -> tuple[int, ...] | None:
+    """1.10.20 as (1, 10, 20); anything else is no release to compare."""
+    parts = release.split(".")
+    return tuple(int(p) for p in parts) if all(p.isdigit() for p in parts) else None
 
 
 def sign_in_good(site: str, timeout_ms: int) -> tuple[str, str]:

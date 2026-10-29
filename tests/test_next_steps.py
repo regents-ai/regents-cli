@@ -17,7 +17,7 @@ import httpx
 import pytest
 from rich.console import Console
 
-from regents_cli import app, output
+from regents_cli import app, doctor, output
 from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import answer
 from regents_cli.next_steps import Invocation, elsewhere, for_failure, human
@@ -431,3 +431,16 @@ def test_flat_records_are_a_table_only_when_they_fit() -> None:
         console.print(output._renderable(rows))
         lines = console.export_text().splitlines()
         assert (len(lines) == 3) is table, lines
+
+
+def test_doctor_asks_for_an_update_only_when_the_site_names_a_newer_regents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Contessa's item 6: nothing told an agent its regents was older than the site's. Releases
+    compare by number, so 1.10.9 is older than 1.10.20, not newer."""
+    monkeypatch.setattr(doctor, "version", lambda _name: "1.10.9")
+    code, _ = doctor.release_current("keyfleet.ai", "1.10.20")
+    behind = {"check": doctor.RELEASE, "ok": True, "code": code, "detail": "x"}
+    assert code == doctor.BEHIND
+    assert [s.kind for s in doctor.held("keyfleet", [behind])] == ["human", "done"]
+    assert doctor.release_current("keyfleet.ai", "1.9.30")[0] == "current"

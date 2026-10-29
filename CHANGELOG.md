@@ -58,6 +58,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   "idempotency_key": "<idempotency_key>"}' | regents keyfleet rooms send FLEET ROOM`.
 - A command's help names the site's WebMCP tool that does the same thing in a browser, when the
   site's description names one: "Same as the WebMCP tool fleets_list on keyfleet.ai."
+- `regents <site> doctor` adds a `regents version` check when the site's `/capabilities.json`
+  names the regents-cli release it describes (`cli.release`, as Keyfleet, Patchbay, Techtree and
+  the template do). It passes either way, and when the site names a newer release the next steps
+  ask the person to update with `uv tool upgrade regents-cli`. Releases compare by number.
 
 ## 1.10.20 — 2026-10-28
 

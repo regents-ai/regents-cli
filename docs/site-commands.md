@@ -175,7 +175,9 @@ command line says the work is done.
 
 `regents <site> doctor` is built from the same description: the site answers, every public
 read that needs no input answers, and a site with signed commands accepts this machine's
-sign-in.
+sign-in. A site whose `/capabilities.json` names `cli.release`, as the template's does, also
+gets a check that this regents is no older; a newer release there adds a step asking the person
+to update.
 
 A command whose work cannot be said in a description (Techtree's Climbs run a local engine and
 sign proofs) is native code here. Ask the regents-cli chief before designing one.
