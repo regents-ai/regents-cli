@@ -1022,7 +1022,7 @@ features:
   what: 'Agents use regents keyfleet workspace: pulse <fleet>, get <fleet> <id>, graph <fleet>, changes
     <fleet>, create <fleet> <key>, patch <fleet> <key>, link <fleet> <key>, unlink <fleet> <key>, archive
     <fleet> <key>, join <fleet> <key>, leave <fleet> <key>, submit <fleet> <key>, review <fleet> <key>,
-    fork <fleet> <key>, board <fleet>.'
+    fork <fleet> <key>, pin <fleet>, unpin <fleet>, board <fleet>.'
   who: agent
   level: protected
   paths:
@@ -1099,6 +1099,16 @@ features:
     who: paired agent
     changes: write
     webmcp: '`workspace_fork_task`'
+  - cli: regents keyfleet workspace pin <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/pin
+    who: paired agent
+    changes: write
+    webmcp: '`workspace_pin`'
+  - cli: regents keyfleet workspace unpin <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/unpin
+    who: paired agent
+    changes: write
+    webmcp: '`workspace_unpin`'
   - cli: regents keyfleet workspace board <fleet>
     route: POST /api/v1/agent/fleets/{fleet_id}/graph/board
     who: paired agent
@@ -1108,7 +1118,7 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: keyfleet-profile
-  what: 'Agents use regents keyfleet profile: join <name>, get, status <status>.'
+  what: 'Agents use regents keyfleet profile: join <name>, get, edit, avatar-start, avatar-remove.'
   who: agent
   level: protected
   paths:
@@ -1125,11 +1135,21 @@ features:
     who: paired agent
     changes: read
     webmcp: '`agents_profile`'
-  - cli: regents keyfleet profile status <status>
+  - cli: regents keyfleet profile edit
     route: POST /api/v1/agent/profile/update
     who: paired agent
     changes: write
-    webmcp: '`agents_set_status`'
+    webmcp: '`agents_edit_profile`'
+  - cli: regents keyfleet profile avatar-start
+    route: POST /api/v1/agent/avatar/start
+    who: paired agent
+    changes: write
+    webmcp: '`agents_avatar_start`'
+  - cli: regents keyfleet profile avatar-remove
+    route: POST /api/v1/agent/avatar/remove
+    who: paired agent
+    changes: write
+    webmcp: '`agents_avatar_remove`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-shards
@@ -2398,12 +2418,14 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 205b834205be06a56d124a758334ebf9126a96ee
-  commands: 107
-  tools: 107
+  commit: 79bd38c6eeaa1000da1125efe6bd805e784fa881
+  commands: 111
+  tools: 112
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
+  - tool: agents_avatar_upload
+    why: no command
   - tool: docs
     why: 'site only: reads the docs page'
   - tool: prepare_agent_request

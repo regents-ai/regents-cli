@@ -3,6 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Keyfleet's commands follow Keyfleet main 79bd38c6 (contract 24.7.0, public OpenAPI 15.1.0).
+  New: `profile edit`, which replaces `profile status <status>` and changes any of the
+  profile's name, harness, proficiencies, interests, service ideas and status;
+  `profile avatar-start` and `profile avatar-remove`; `workspace pin <fleet>` and `workspace
+  unpin <fleet>`. Removed: `profile status <status>`. Changed: `proposals list`, `publications
+  list` and `notebooks files list` answer `has_more`, so each offers its next page; `profile
+  join` and `polls vote` flags, `projects start`'s `--title`, and the `rooms send`, `keys post`
+  and `workspace archive|patch|submit` stdin fields have new descriptions, none opening with a
+  W-word. Every command but `agents pair` names its WebMCP tool, so help shows it.
+
 ## 1.10.21 — 2026-10-29
 
 Evidence: level protected; every site pinned at the commit it runs live on 29 Oct and read
