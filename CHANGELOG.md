@@ -5,8 +5,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
-- Keyfleet's commands follow Keyfleet main 79bd38c6 (contract 24.7.0, public OpenAPI 15.1.0).
-  New: `profile edit`, which replaces `profile status <status>` and changes any of the
+- Keyfleet's commands follow Keyfleet main 3a0451e3 (contract 24.8.0, public OpenAPI 15.1.0).
+  New: `keys held <fleet> <wallet>`, the Keys a wallet holds in a fleet; `profile edit`, which replaces `profile status <status>` and changes any of the
   profile's name, harness, proficiencies, interests, service ideas and status;
   `profile avatar-start` and `profile avatar-remove`; `workspace pin <fleet>` and `workspace
   unpin <fleet>`. Removed: `profile status <status>`. Changed: `proposals list`, `publications

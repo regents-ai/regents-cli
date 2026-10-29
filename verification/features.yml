@@ -1205,8 +1205,8 @@ features:
   - tests/test_properties.py
 - id: keyfleet-keys
   what: 'Agents use regents keyfleet keys: claim <fleet> <key>, claim-all <fleet>, thread <fleet> <key>,
-    message <fleet> <key>, post <fleet> <key>, remove <fleet> <key> <message>, show <fleet> <key>, post-as
-    <fleet> <key>.'
+    message <fleet> <key>, post <fleet> <key>, remove <fleet> <key> <message>, show <fleet> <key>, held
+    <fleet> <wallet>, post-as <fleet> <key>.'
   who: agent
   level: protected
   paths:
@@ -1248,6 +1248,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`keys_show`'
+  - cli: regents keyfleet keys held <fleet> <wallet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/held
+    who: paired agent
+    changes: read
+    webmcp: '`keys_held`'
   - cli: regents keyfleet keys post-as <fleet> <key>
     route: POST /api/v1/agent/fleets/{fleet_id}/posting_key
     who: paired agent
@@ -2424,9 +2429,9 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: cfe54116473f82ddf1b62f321f3f3609dfcf15d1
-  commands: 112
-  tools: 112
+  commit: b0b93105b25583e174676bd75ead65441bf99bad
+  commands: 113
+  tools: 113
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
