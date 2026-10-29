@@ -17,7 +17,7 @@
       },
       "platform/priv/tool_manifest.json": {
         "copy": "src/regents_cli/platforms/ash-template/tool_manifest.json",
-        "sha256": "8031ce62e12ef47df1511e2e9042ffb96fc004abbf265535ae8fe1574d64a3d4"
+        "sha256": "103d6a200d848903d6141a56e8a4680dc06c5d047b2b0e66fc13fd77c9372909"
       }
     }
   },

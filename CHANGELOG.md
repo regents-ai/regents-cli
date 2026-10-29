@@ -49,8 +49,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
     When the agent host closes its input, the answers still owed arrive before it stops.
   - The install line names both parts, `'regents-cli[browser,mcp]'`, since installing one after
     the other removed the first.
-  - ash-template's pinned tool list is its new one (template `d60c47cc`): each signed tool's
-    input is the tool's own input, and `prepare_agent_request` is gone. `regents browser` reads
+  - ash-template's pinned tool list is its new one (template `45fc0293`, with the three chat
+    tools): each signed tool's input is the tool's own input, and `prepare_agent_request` is gone. `regents browser` reads
     each signed tool's `input_schema`. The other five sites' tool lists move at the joint
     release.
 - New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an

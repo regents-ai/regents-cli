@@ -2131,9 +2131,15 @@ sites:
   repository: regents-ai/ash-template
   commit: 5a1fe29ec53310d1c47a481ed485a06b6a3ac533
   commands: 54
-  tools: 54
+  tools: 57
   tools_with_no_command:
   - tool: activity_mark_read
+    why: no command
+  - tool: chat_list
+    why: no command
+  - tool: chat_read
+    why: no command
+  - tool: chat_send
     why: no command
 - site: autolaunch
   repository: regents-ai/autolaunch

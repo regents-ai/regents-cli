@@ -229,11 +229,11 @@ behind a site, and never holds one up (founder, 2026-09-28).
 - **Tool manifests, in the agent access joint release**: `regents browser` reads each signed
   tool's `input_schema` as the tool's own input (hard cutover, branch
   `agent-access/browser-signer-1028`). ash-template's copy is already the new manifest, byte for
-  byte from template `d60c47cc` (`platform/priv/tool_manifest.json`, on the template's side
-  branch `agent-access/template-mcp-1028`, not on its main yet): the lock holds that copy's
+  byte from template `45fc0293` (`platform/priv/tool_manifest.json`, on the template's side
+  branch `agent-access/template-mcp-1028`, not on its main yet; it adds the three chat tools): the lock holds that copy's
   sha256 under the old template commit `5a1fe29e`, so `make check` passes and `make
   release-check` fails on that one file until the joint release moves the whole ash-template pin
-  to a template main commit that carries `d60c47cc`. The other five sites' copies are still the
+  to a template main commit that carries `45fc0293`. The other five sites' copies are still the
   old `{input, request, proof}` shape with descriptions naming `prepare_agent_request`; on them
   `regents browser` would list that wrapper as a signed tool's input. Hold: they re-pin at the
   joint release, each once its site carries the template change (`make sync`, `make check`),
