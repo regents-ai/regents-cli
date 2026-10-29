@@ -122,9 +122,13 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
                         else failed) and next_steps read from the status and code
 ```
 
-Every answer and every failure ends with `next_steps`, one or more of four kinds: `done`
+Every answer and every failure ends with `next_steps`, one or more of five kinds: `done`
 (nothing more to run), `run` (the `regents` command to run next), `human` (a person acts
-first) and `patchbay` (a ready post for the site's board on patchbay.help). A post is only
+first), `wallet` (send the answer's `transactions` from your own wallet, in order) and
+`patchbay` (a ready post for the site's board on patchbay.help). An answer that carries a
+non-empty `transactions` list, at the top or in `data`, always starts with the `wallet` step,
+or with a `done` step naming the reason when one transaction's `blocked` says the chain's own
+state makes it certain to fail; `regents` never sends a site's transactions itself. A post is only
 suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
 that is not a JSON object), answers with an error without a readable code, or cannot be
 reached. A coded refusal is the agent's to fix, so write `code` and `message` for that. Every

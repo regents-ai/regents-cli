@@ -32,6 +32,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `workspace changes` take `--max-bytes`, and `rooms sync` takes `max_bytes` on stdin;
   `workspace changes` takes `--object`; `workspace get` takes `--fields`. The descriptions of
   `notebooks run`, `notebooks result` and `workspace get` changed.
+- A site answer that carries `transactions` for the caller's own wallet, such as Keyfleet's
+  `proposals vote`, `presence mark`, `keys claim` or `treasury convert`, no longer ends with
+  "nothing more to run". Its first next step is a new kind, `wallet`: send those transactions
+  from your own wallet, in order, since `regents` sends none of them. When a transaction's
+  `blocked` says the chain's state makes it certain to fail, the step says to send nothing and
+  names it with the reason. `next_steps` now has five kinds: `done`, `run`, `human`, `wallet`
+  and `patchbay`.
 
 ## 1.10.20 — 2026-10-28
 

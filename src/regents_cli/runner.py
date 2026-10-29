@@ -22,7 +22,7 @@ from regents_cli import output, siwa
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
 from regents_cli.http import Request, answer, base_address, respond
-from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped
+from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped, wallet
 from regents_cli.next_steps import run as run_step
 from regents_cli.platforms import Command, Input, Platform
 
@@ -436,10 +436,11 @@ def after(
     *,
     finished: bool,
 ) -> list[Step]:
-    """What follows a site's answer: its next page, the follow-ups the site describes, a check
+    """What follows a site's answer: the transactions it gives the caller's wallet to send, its
+    next page, the follow-ups the site describes, a check
     of a new pairing, or nothing more. An answer that took the request without finishing it
     (202) is followed the way the command's description says, and never sent again."""
-    steps: list[Step] = []
+    steps: list[Step] = to_send(answer)
     if command.pagination is not None:
         cursor = dig(answer, command.pagination.cursor)
         if dig(answer, command.pagination.has_more) is True and cursor is not None:
@@ -488,6 +489,38 @@ def after(
     if isinstance(said, str) and said.strip():
         return site_says(platform, command.effect, said)
     return [done(DONE[command.effect])]
+
+
+def to_send(answer: dict[str, Any]) -> list[Step]:
+    """An answer's `transactions`, at the top or in `data`, are for the caller's own wallet to
+    send in order; `regents` sends none of them. One the chain's state makes certain to fail
+    (its `blocked` reason) stops them all, since the later ones depend on it."""
+    data = answer.get("data")
+    holder = answer if "transactions" in answer else data if isinstance(data, dict) else {}
+    listed = holder.get("transactions")
+    if not (isinstance(listed, list) and listed and all(isinstance(t, dict) for t in listed)):
+        return []
+    blocked = [
+        f"{t.get('name', number)} ({t['blocked']})"
+        for number, t in enumerate(listed, 1)
+        if isinstance(t.get("blocked"), str) and t["blocked"].strip()
+    ]
+    if blocked:
+        return [
+            done(
+                f"Send nothing now: the chain's own state makes {in_words(blocked)} certain to "
+                "fail."
+            )
+        ]
+    chain = holder.get("chain_id")
+    count = f"{len(listed)} transaction{'s' if len(listed) > 1 else ''}"
+    on = f" on chain {chain}" if isinstance(chain, int) and not isinstance(chain, bool) else ""
+    return [
+        wallet(
+            f"Send the {count} in transactions from your own wallet{on}, in order. regents sends "
+            "none of them, so nothing has happened on the chain yet."
+        )
+    ]
 
 
 #: An HTTP route named in a site's own words, such as "POST /forum/threads".

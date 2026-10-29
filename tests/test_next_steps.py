@@ -377,3 +377,19 @@ def _raised(response: httpx.Response) -> CommandError:
     with pytest.raises(CommandError) as raised:
         answer(response)
     return raised.value
+
+
+def test_transactions_to_send_are_never_called_done() -> None:
+    """Keyfleet's votes, claims and presence answer transactions the agent's own wallet sends,
+    and 1.10.20 ended them with "nothing more to run", so an agent took an unsent vote as cast. A
+    transaction the chain's state makes certain to fail stops them all, with its reason."""
+    keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
+    vote = next(c for c in keyfleet.commands if c.words[:2] == ("proposals", "vote"))
+    given = {spec.name: "x" if spec.required else None for spec in vote.inputs}
+    sent = {"name": "yes", "title": "Vote yes", "to": "0x" + "1" * 40, "data": "0x", "value": "0"}
+    answered = {"chain_id": 8453, "transactions": [{**sent, "blocked": None}] * 2}
+    (step,) = after(keyfleet, vote, answered, given, [], finished=True)
+    assert step.kind == "wallet" and "2 transactions" in step.say and "8453" in step.say
+    blocked = {**answered, "transactions": [{**sent, "blocked": "Voting has closed"}]}
+    (step,) = after(keyfleet, vote, blocked, given, [], finished=True)
+    assert step.kind == "done" and "Voting has closed" in step.say

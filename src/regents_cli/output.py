@@ -46,6 +46,7 @@ STEP_MARKS: dict[Kind, tuple[str, str]] = {
     "done": ("✓", "bold green"),
     "run": ("→", "bold cyan"),
     "human": ("!", "bold yellow"),
+    "wallet": ("◆", "bold blue"),
     "patchbay": ("↗", "bold magenta"),
 }
 
