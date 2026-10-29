@@ -53,6 +53,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   blocks of seven lines even in a wide terminal. A table never folds a cell across lines.
 - Output read through a pipe no longer pads each line with spaces to 80 columns: every line
   ends at its last character, on stdout and stderr alike. A terminal shows the same as before.
+- The help of every command that reads JSON on stdin ends with an example to copy: its required
+  fields piped in, each value a placeholder to fill, such as `printf '%s' '{"body": "<body>",
+  "idempotency_key": "<idempotency_key>"}' | regents keyfleet rooms send FLEET ROOM`.
 
 ## 1.10.20 — 2026-10-28
 

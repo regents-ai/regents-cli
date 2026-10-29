@@ -181,6 +181,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         if command.words == PAIR:
             help_text += " At a terminal it asks for each instead, the code hidden as you type."
         help_text += "".join(f"\n\n{f.field}: {f.description}" for f in command.stdin_fields)
+        if command.stdin_fields:
+            help_text += "\n\n\b\nExample:\n  " + example(platform, command)
 
     def run(as_json: bool, base_url: str | None, timeout_ms: int, **values: Any) -> None:
         phase = values.pop("phase", None)
@@ -247,6 +249,18 @@ def request_for(command: Command, given: dict[str, Any]) -> Request:
     if body is None and command.method in ("POST", "PUT", "PATCH"):
         body = {}
     return Request(command.method, path, query, body)
+
+
+def example(platform: Platform, command: Command) -> str:
+    """The command with its required stdin fields piped in, or its first when none is required,
+    each value a placeholder to fill: a string's in quotes, any other JSON value bare."""
+    fields = [f for f in command.stdin_fields if f.required] or list(command.stdin_fields[:1])
+    piped = ", ".join(
+        f'"{f.field}": ' + (f'"<{f.field}>"' if f.type == "string" else f"<{f.field}>")
+        for f in fields
+    )
+    names = [w if not w.startswith("<") else w[1:-1].upper() for w in command.words]
+    return f"printf '%s' '{{{piped}}}' | regents {platform.name} {' '.join(names)}"
 
 
 def stdin_shape(command: Command) -> str:
