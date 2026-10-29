@@ -21,11 +21,14 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   check, written out in docs/model-substitution.md.
 - A "run this again" step repeats a `--base-url` as it was given, so a check against a local
   server can be rerun as shown, and shows `<private-address>` instead of any value with an `@`
-  in it, which could carry a user or password. The step for a failure against another address
+  in it, which could carry a user or password, and instead of any other address with one. The step for a failure against another address
   hides it the same way, and names the address the command used, read as the command reads its
   options: the last `--base-url` given, and never a look-alike value of another option.
-- A failed command's steps keep what it was given when `--open-browser` comes before the
-  command, and a failure beside `--version` prints only the failure.
+- A failed command's steps name the command Click ran, read the way Click reads it: with
+  `--open-browser` or a `--` before the command, and with `--json` anywhere it counts. A failure
+  beside `--version` prints only the failure.
+- A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
+  refused with what to do, where it ended in a traceback.
 - Every site's commands now match what each site runs live on 29 Oct (pins: template
   65c6e26c, regents.sh 599de2bb, Patchbay b1c46f3c, Keyfleet 205b8342, Techtree 25e074ad,
   Autolaunch 145ecd01).
@@ -40,8 +43,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
     search by `--package` and `--fix-version`.
   - The template gains `activity mark-read`, and `chat list`, `chat read <conversation>` and
     `chat send` to talk with the account's agents.
+  - Patchbay's `threads reply` can carry a `fix` on stdin.
   - Wording only: the template's `agents pair`, Keyfleet's `notebooks run`, `notebooks result`
-    and `workspace get`, and Patchbay's `health`, `threads get` and `threads reply`.
+    and `workspace get`, and Patchbay's `health` and `threads get`.
 - A site answer that carries `transactions` for the caller's own wallet, such as Keyfleet's
   `proposals vote`, `presence mark`, `keys claim` or `treasury convert`, no longer ends with
   "nothing more to run". Its first next step is a new kind, `wallet`: send those transactions
@@ -51,12 +55,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   and `patchbay`.
 - Format: a `run` follow-up in a site's `next_steps` may leave an `<argument>` out of its
   `arguments` when the command it follows has an argument of the same name; the step then uses
-  the value the caller gave. Keyfleet answers seldom repeat the fleet, so `notebooks run <fleet>
-  <project> <notebook>` can now be followed by `notebooks result <fleet> <project> <notebook>
-  <run>` with only `run` read from the answer. The check still refuses a word neither fills.
+  the value the caller gave. A site whose answers seldom repeat the fleet can then follow one
+  command with another on the same fleet and name only the new value. The check still refuses
+  a word neither fills.
 - When a site refuses with a `hint` that names one of its routes, such as Keyfleet's "GET
   /api/v1/fleets lists every fleet." after `fleets get` with a mistyped id, the next steps now
-  include that command: run as it is when it needs nothing more, or else its `--help`.
+  include that command, with the caller's own `--base-url` and `--json`: run as it is when it
+  only reads and needs nothing more, or else its `--help`.
 - A list of flat records of one shape prints as a table whenever its columns fit the width they
   are drawn in, however many there are, and otherwise as one block per record. It was a table
   only up to six columns of 40 characters, so `regents keyfleet workspace pulse` printed thirty
@@ -71,7 +76,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `regents <site> doctor` adds a `regents version` check when the site's `/capabilities.json`
   names the regents-cli release it describes (`cli.release`, as Keyfleet, Patchbay, Techtree and
   the template do). It passes either way, and when the site names a newer release the next steps
-  ask the person to update with `uv tool upgrade regents-cli`. Releases compare by number.
+  ask the person to update with `uv tool upgrade regents-cli`, even when other checks failed.
+  Releases compare by number, and a build with no release number is never told to update.
 
 ## 1.10.20 — 2026-10-28
 

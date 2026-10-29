@@ -86,7 +86,6 @@ def _print_version(ctx: click.Context, _param: click.Parameter, value: bool) -> 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    as_json = "--json" in args[: args.index("--") if "--" in args else len(args)]
     cli = root()
     try:
         cli.main(args, prog_name="regents", standalone_mode=False)
@@ -99,14 +98,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             CommandError("cancelled", "The command was interrupted.", exit_code=EXIT_CANCELLED),
             cli,
             args,
-            as_json,
         )
     except click.UsageError as error:
-        return _failed(UsageError(error.format_message()), cli, args, as_json)
+        return _failed(UsageError(error.format_message()), cli, args)
     except CommandError as error:
-        return _failed(error, cli, args, as_json)
+        return _failed(error, cli, args)
     except httpx.InvalidURL as error:
-        return _failed(unreadable_address(error), cli, args, as_json)
+        return _failed(unreadable_address(error), cli, args)
     except ImportError as error:
         missing = error.__context__
         if not isinstance(missing, ModuleNotFoundError) or missing.name != "socksio":
@@ -125,20 +123,31 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             cli,
             args,
-            as_json,
         )
     except click.ClickException as error:
-        return _failed(CommandError("command_error", error.format_message()), cli, args, as_json)
+        return _failed(CommandError("command_error", error.format_message()), cli, args)
     return EXIT_OK
 
 
-def _failed(error: CommandError, cli: click.Group, args: list[str], as_json: bool) -> int:
-    called = invocation(cli, args)
+def _failed(error: CommandError, cli: click.Group, args: list[str]) -> int:
+    words, given = _read(cli, args)
+    called = _invocation(words, given, args)
+    # A usage failure stopped Click before it read every option, so a --json anywhere counts.
+    as_json = given.get("as_json") is True or (isinstance(error, UsageError) and "--json" in args)
     steps = next_steps.for_failure(error, called)
     platform = next((p for p in pinned_platforms() if (p.name,) == called.words[:1]), None)
     if platform is not None and isinstance(error.fields.get("status"), int):
         # The site's pointer goes before a closing "nothing more to run".
-        extra = [s for s in hinted(platform, error.fields.get("hint")) if s not in steps]
+        base_url = given.get("base_url")
+        shared = [
+            *(
+                ["--base-url", next_steps.shown_address(base_url)]
+                if isinstance(base_url, str) and base_url
+                else []
+            ),
+            *(["--json"] if as_json else []),
+        ]
+        extra = [s for s in hinted(platform, error.fields.get("hint"), shared) if s not in steps]
         last = len(steps) - 1 if steps and steps[-1].kind == "done" else len(steps)
         steps[last:last] = extra
     output.emit_error(error, steps, as_json=as_json)
@@ -147,20 +156,13 @@ def _failed(error: CommandError, cli: click.Group, args: list[str], as_json: boo
 
 def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
     """The command the arguments name, its site and that site's host."""
-    root_flags = {name for param in cli.params for name in param.opts}
-    words: list[str] = []
-    command: click.Command = cli
-    rest = args
-    for index, arg in enumerate(args):
-        if command is cli and arg in root_flags:
-            continue
-        child = command.commands.get(arg) if isinstance(command, click.Group) else None
-        if child is None:
-            break
-        words.append(arg)
-        command = child
-        rest = args[index + 1 :]
-    given = _given(command, words, rest)
+    words, given = _read(cli, args)
+    return _invocation(words, given, args)
+
+
+def _invocation(
+    words: list[str], given: dict[str, object], args: list[str]
+) -> next_steps.Invocation:
     platforms = pinned_platforms()
     platform: Platform | None = None
     if words[:1] == ["auth"]:
@@ -188,16 +190,24 @@ def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
     )
 
 
-def _given(command: click.Command, words: list[str], rest: list[str]) -> dict[str, object]:
-    """The options as Click read them for the command that ran, from the arguments after its
-    name. Arguments Click cannot read ran nothing, so they name no option."""
+def _read(cli: click.Group, args: list[str]) -> tuple[list[str], dict[str, object]]:
+    """The command words and options in the arguments, read as Click reads them to run a
+    command, with nothing run: it follows groups as its shell completion does, and stops at an
+    argument it cannot read."""
+    words: list[str] = []
     try:
-        with command.make_context(
-            words[-1] if words else "regents", rest, resilient_parsing=True
-        ) as context:
-            return dict(context.params)
+        context = cli.make_context("regents", list(args), resilient_parsing=True)
+        rest = context._protected_args + context.args
+        while isinstance(context.command, click.Group) and rest:
+            name, command, rest = context.command.resolve_command(context, rest)
+            if name is None or command is None:
+                break
+            words.append(name)
+            context = command.make_context(name, rest, parent=context, resilient_parsing=True)
+            rest = context._protected_args + context.args
     except click.ClickException:
-        return {}
+        return words, {}
+    return words, dict(context.params)
 
 
 def _elsewhere(

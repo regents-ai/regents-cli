@@ -157,7 +157,7 @@ PRIVATE_FLAGS = {"--address": "<private-address>"}
 ADDRESS_FLAGS = frozenset({"--base-url"})
 
 
-def _shown_address(value: str) -> str:
+def shown_address(value: str) -> str:
     """`value`, or the placeholder when it could carry a user or password: any "@" at all, since
     an address written without a scheme or slashes still reaches the server with them."""
     return PRIVATE_FLAGS["--address"] if "@" in value else value
@@ -190,7 +190,7 @@ class Invocation:
         for arg in self.args:
             name, has_value, value = arg.partition("=")
             if address_next:
-                kept.append(_shown_address(arg))
+                kept.append(shown_address(arg))
                 address_next = False
             elif skip:
                 skip -= 1
@@ -200,8 +200,13 @@ class Invocation:
                 kept += [name, PRIVATE_FLAGS[name]]
                 skip = 0 if has_value else 1
             elif name in ADDRESS_FLAGS:
-                kept.append(f"{name}={_shown_address(value)}" if has_value else name)
+                kept.append(f"{name}={shown_address(value)}" if has_value else name)
                 address_next = not has_value
+            elif "://" in arg:
+                # An address anywhere else, such as one Click read as some other value, may
+                # carry a user or password too.
+                named = has_value and name.startswith("-")
+                kept.append(f"{name}={shown_address(value)}" if named else shown_address(arg))
             else:
                 kept.append(arg)
         return ("regents", *kept)
@@ -385,7 +390,7 @@ def _broken(error: CommandError, status: int | None, invocation: Invocation) -> 
 def elsewhere(address: str, message: str) -> Step:
     """A failure at an address other than the usual one: not one for the site's board."""
     return human(
-        f"This ran against {_shown_address(address)}, not the usual address, so it is not one "
+        f"This ran against {shown_address(address)}, not the usual address, so it is not one "
         f"to post on patchbay.help. If it keeps failing, tell your person: {message}"
     )
 

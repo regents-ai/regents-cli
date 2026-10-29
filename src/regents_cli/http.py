@@ -26,7 +26,14 @@ LOOPBACK = frozenset({"localhost", "127.0.0.1", "::1"})
 
 def origin(value: str, source: str) -> str:
     """An HTTPS origin, or HTTP on this machine, with no credentials, path, query or fragment."""
-    parts = urlsplit(value)
+    refused = UsageError(
+        f"{source} must be an HTTPS origin such as https://example.com, with no path; "
+        "HTTP is allowed only for this machine."
+    )
+    try:
+        parts = urlsplit(value)
+    except ValueError:
+        raise refused from None
     local = parts.scheme == "http" and parts.hostname in LOOPBACK
     if (
         (parts.scheme != "https" and not local)
@@ -37,27 +44,25 @@ def origin(value: str, source: str) -> str:
         or parts.query
         or parts.fragment
     ):
-        raise UsageError(
-            f"{source} must be an HTTPS origin such as https://example.com, with no path; "
-            "HTTP is allowed only for this machine."
-        )
+        raise refused
     return f"{parts.scheme}://{parts.netloc}"
 
 
 def same_origin(one: str, other: str) -> bool:
     """Whether two addresses are one origin: the same scheme, host and port, written either way.
-    An address whose port is not a number is no origin, so it is never the same as another."""
+    An address that cannot be read, or whose port is not a number, is no origin, so it is never
+    the same as another."""
     keys = _origin_key(one), _origin_key(other)
     return None not in keys and keys[0] == keys[1]
 
 
 def _origin_key(value: str) -> tuple[str, str | None, int | None] | None:
-    parts = urlsplit(value.strip())
-    scheme = parts.scheme.lower()
     try:
+        parts = urlsplit(value.strip())
         port = parts.port
     except ValueError:
         return None
+    scheme = parts.scheme.lower()
     return (
         scheme,
         parts.hostname,

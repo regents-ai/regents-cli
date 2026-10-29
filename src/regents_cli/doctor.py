@@ -12,6 +12,7 @@ from collections.abc import Callable
 from functools import partial
 from importlib.metadata import version
 from typing import Any
+from urllib.parse import urlsplit
 
 import click
 
@@ -40,7 +41,8 @@ def doctor_command(platform: Platform) -> click.Command:
         ]
         named = release_named(base, timeout_ms)
         if named is not None:
-            checks.append(check(RELEASE, lambda: release_current(platform.host, named)))
+            host = urlsplit(base).netloc
+            checks.append(check(RELEASE, lambda: release_current(host, named)))
         if any(c.signed for c in platform.commands):
             checks.append(check(SIGN_IN, lambda: sign_in_good(platform.site, timeout_ms)))
         found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
@@ -53,7 +55,7 @@ def doctor_command(platform: Platform) -> click.Command:
             raise CommandError(
                 "doctor_found_problems",
                 message,
-                next_steps=repairs(platform, base, failed, message, again),
+                next_steps=[*updates(checks), *repairs(platform, base, failed, message, again)],
                 **found,
             )
         output.emit(found, as_json=as_json, next_steps=held(platform.site, checks))
@@ -104,12 +106,17 @@ def repairs(
     return steps
 
 
-def held(site: str, checks: list[dict[str, Any]]) -> list[Step]:
-    behind = [
+def updates(checks: list[dict[str, Any]]) -> list[Step]:
+    """Ask for a newer regents when the site names one, whatever else the checks found."""
+    return [
         human(f"Ask your person to update regents: uv tool upgrade regents-cli. {c['detail']}")
         for c in checks
         if c["code"] == BEHIND
     ]
+
+
+def held(site: str, checks: list[dict[str, Any]]) -> list[Step]:
+    behind = updates(checks)
     if not any(c["code"] == NOT_SIGNED_IN for c in checks):
         return [*behind, done("Every check held; nothing more to run.")]
     return [
@@ -166,8 +173,9 @@ def release_named(base: str, timeout_ms: int) -> str | None:
 
 def release_current(host: str, named: str) -> tuple[str, str]:
     installed = version("regents-cli")
-    newer = (numbered(named) or ()) > (numbered(installed) or ())
-    if newer:
+    mine = numbered(installed)
+    # A build with no release number, such as one from a checkout, is never told to update.
+    if mine is not None and (numbered(named) or ()) > mine:
         return BEHIND, f"{host} names regents-cli {named}; this is {installed}."
     return "current", f"{host} names regents-cli {named}; this is {installed}."
 

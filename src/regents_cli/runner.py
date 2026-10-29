@@ -561,9 +561,10 @@ def site_says(platform: Platform, effect: str, said: str) -> list[Step]:
     return [done(f"{DONE[effect]} The site adds: {said}")]
 
 
-def hinted(platform: Platform, hint: Any) -> list[Step]:
+def hinted(platform: Platform, hint: Any, shared: list[str]) -> list[Step]:
     """A refusal's hint that names one of the site's routes, such as "GET /api/v1/fleets lists
-    every fleet.": that command, run as it is when it needs nothing more, or else its help."""
+    every fleet.": that command with the caller's `shared` options, run as it is when it only
+    reads and needs nothing more, or else its help."""
     if not isinstance(hint, str):
         return []
     for method, path in ROUTE.findall(hint):
@@ -575,8 +576,11 @@ def hinted(platform: Platform, hint: Any) -> list[Step]:
                 or any(f.required for f in command.flags)
                 or any(f.required for f in command.stdin_fields)
             )
+            ready = command.effect == "read" and not needs
             return [
-                run_step(["regents", platform.name, *named, *(["--help"] if needs else [])], hint)
+                run_step(
+                    ["regents", platform.name, *named, *(shared if ready else ["--help"])], hint
+                )
             ]
     return []
 

@@ -221,7 +221,8 @@ def test_a_rerun_asks_for_agreement_again_and_hides_private_values() -> None:
 
 def test_a_rerun_keeps_an_address_and_hides_one_carrying_a_password() -> None:
     """A site command's local --base-url stays runnable; an address with a user or password,
-    given in either form or before a later plain one, never comes back."""
+    given in either form, before a later plain one, or where Click read it as another value,
+    never comes back."""
     args = (
         "techtree",
         "model",
@@ -234,6 +235,10 @@ def test_a_rerun_keeps_an_address_and_hides_one_carrying_a_password() -> None:
         "--base-url=operator:hunter2@127.0.0.1:8000",
         "--base-url",
         "http:\\\\operator:hunter2@127.0.0.1:8000",
+        "--base-url",
+        "--base-url",
+        "https://operator:hunter2@a.example",
+        "--query=https://operator:hunter2@a.example",
         "--json",
     )
     again = Invocation(args, ("techtree", "model"), None, None, takes_stdin=False).again
@@ -250,6 +255,10 @@ def test_a_rerun_keeps_an_address_and_hides_one_carrying_a_password() -> None:
         "--base-url=<private-address>",
         "--base-url",
         "<private-address>",
+        "--base-url",
+        "--base-url",
+        "<private-address>",
+        "--query=<private-address>",
         "--json",
     )
 
@@ -338,6 +347,39 @@ def test_an_option_before_the_command_keeps_what_the_command_was_given(
     assert login.takes_stdin
     fleets = ["keyfleet", "fleets", "list", "--base-url", "https://a.example"]
     assert app.invocation(cli, [*root, *fleets]).elsewhere == "https://a.example"
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["--", "keyfleet", "fleets", "list"],
+        ["keyfleet", "--", "fleets", "list"],
+        ["keyfleet", "fleets", "--", "list"],
+        ["--open-browser", "--", "keyfleet", "fleets", "list"],
+    ],
+)
+def test_a_double_dash_before_the_command_names_the_command_click_ran(args: list[str]) -> None:
+    """The steps named only `regents keyfleet` and offered a public post about another address."""
+    called = app.invocation(app.root(), [*args, "--base-url", "https://a.example"])
+    assert called.words == ("keyfleet", "fleets", "list")
+    assert called.elsewhere == "https://a.example"
+    login = app.invocation(
+        app.root(), ["auth", "--", "login", "--site", "keyfleet", "--phase", "send"]
+    )
+    assert login.site == "keyfleet"
+    assert login.takes_stdin
+
+
+@pytest.mark.parametrize("extra", [[], ["--bogus"]])
+def test_an_unreadable_address_is_refused_without_a_traceback(
+    capsys: pytest.CaptureFixture[str], extra: list[str]
+) -> None:
+    exit_code = app.main(
+        ["keyfleet", "fleets", "list", "--base-url", "http://[::1", *extra, "--json"]
+    )
+
+    assert exit_code == 2
+    assert json.loads(capsys.readouterr().out)["next_steps"]
 
 
 def test_another_address_carrying_a_password_is_named_without_it() -> None:
@@ -437,11 +479,42 @@ def test_a_refusals_hint_naming_a_route_offers_its_command() -> None:
     """keyfleet fleets get with a mistyped id: the site's hint names GET /api/v1/fleets, and the
     only step said the record does not exist."""
     keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
-    (listed,) = hinted(keyfleet, "GET /api/v1/fleets lists every fleet.")
-    assert listed.command == "regents keyfleet fleets list"
-    (projects,) = hinted(keyfleet, "List them with GET /api/v1/agent/fleets/FLEET_ID/projects).")
+    (listed,) = hinted(keyfleet, "GET /api/v1/fleets lists every fleet.", ["--json"])
+    assert listed.command == "regents keyfleet fleets list --json"
+    (projects,) = hinted(
+        keyfleet, "List them with GET /api/v1/agent/fleets/FLEET_ID/projects).", ["--json"]
+    )
     assert projects.command == "regents keyfleet projects list --help"
-    assert hinted(keyfleet, "Ask your person.") == []
+    assert hinted(keyfleet, "Ask your person.", ["--json"]) == []
+
+
+def test_a_hinted_command_runs_where_the_refused_one_ran(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The hinted command offered to run went to the usual site, without --json, after a refusal
+    from another address."""
+    monkeypatch.delenv("KEYFLEET_BASE_URL", raising=False)
+    refusal = CommandError(
+        "fleet_not_found",
+        "No such fleet.",
+        status=404,
+        hint="GET /api/v1/fleets lists every fleet.",
+    )
+    args = ["keyfleet", "fleets", "get", "nope", "--base-url", "https://127.0.0.1:1", "--json"]
+    app._failed(refusal, app.root(), args)
+
+    runs = [step.get("command") for step in json.loads(capsys.readouterr().out)["next_steps"]]
+    assert "regents keyfleet fleets list --base-url https://127.0.0.1:1 --json" in runs
+
+
+def test_a_hint_never_offers_a_change_ready_to_run(capsys: pytest.CaptureFixture[str]) -> None:
+    refusal = CommandError(
+        "nothing_new", "Nothing to mark.", status=409, hint="POST /api/v1/activity/read marks all."
+    )
+    app._failed(refusal, app.root(), ["ash-template", "activity", "list", "--json"])
+
+    runs = [step.get("command") for step in json.loads(capsys.readouterr().out)["next_steps"]]
+    assert "regents ash-template activity mark-read --help" in runs
 
 
 def test_flat_records_are_a_table_only_when_they_fit() -> None:
@@ -467,3 +540,29 @@ def test_doctor_asks_for_an_update_only_when_the_site_names_a_newer_regents(
     assert code == doctor.BEHIND
     assert [s.kind for s in doctor.held("keyfleet", [behind])] == ["human", "done"]
     assert doctor.release_current("keyfleet.ai", "1.9.30")[0] == "current"
+    monkeypatch.setattr(doctor, "version", lambda _name: "1.10.21.dev3+g80ee066")
+    assert doctor.release_current("keyfleet.ai", "1.10.20")[0] == "current"
+
+
+def test_doctor_asks_for_an_update_when_other_checks_fail(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The update step came only when every check held, and named keyfleet.ai for any address."""
+
+    def unreachable(*_: object) -> None:
+        raise CommandError("unreachable", "No answer.", exit_code=EXIT_UNREACHABLE)
+
+    monkeypatch.setattr(doctor, "version", lambda _name: "1.10.9")
+    monkeypatch.setattr(doctor, "release_named", lambda *_: "1.10.20")
+    monkeypatch.setattr(doctor, "site_answers", unreachable)
+    monkeypatch.setattr(doctor, "read_answers", unreachable)
+    monkeypatch.setattr(doctor, "sign_in_good", lambda *_: (doctor.NOT_SIGNED_IN, "Not yet."))
+    exit_code = app.main(["keyfleet", "doctor", "--base-url", "https://127.0.0.1:9", "--json"])
+
+    said = [step["say"] for step in json.loads(capsys.readouterr().out)["next_steps"]]
+    assert exit_code != 0
+    assert any(
+        "uv tool upgrade regents-cli" in line
+        and line.endswith("127.0.0.1:9 names regents-cli 1.10.20; this is 1.10.9.")
+        for line in said
+    ), said
