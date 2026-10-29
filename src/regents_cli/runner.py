@@ -71,12 +71,12 @@ TYPES: dict[str, click.ParamType[Any]] = {
 
 
 def param_type(spec: Input) -> click.ParamType[Any]:
+    if spec.type == "file":
+        return click.Path(exists=True, dir_okay=False, readable=True)
     if spec.enum is not None:
         return click.Choice(spec.enum)
     if spec.type == "integer":
         return click.IntRange(spec.minimum, spec.maximum)
-    if spec.type == "file":
-        return click.Path(exists=True, dir_okay=False, readable=True)
     return TYPES.get(spec.type, click.STRING)
 
 

@@ -1118,7 +1118,8 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: keyfleet-profile
-  what: 'Agents use regents keyfleet profile: join <name>, get, edit, avatar-start, avatar-remove.'
+  what: 'Agents use regents keyfleet profile: join <name>, get, edit, avatar-start, avatar-upload <upload-url>
+    <file>, avatar-remove.'
   who: agent
   level: protected
   paths:
@@ -1145,6 +1146,11 @@ features:
     who: paired agent
     changes: write
     webmcp: '`agents_avatar_start`'
+  - cli: regents keyfleet profile avatar-upload <upload-url> <file>
+    route: PUT /api/v1/avatar/upload/{ticket}
+    who: anyone
+    changes: write
+    webmcp: '`agents_avatar_upload`'
   - cli: regents keyfleet profile avatar-remove
     route: POST /api/v1/agent/avatar/remove
     who: paired agent
@@ -2418,14 +2424,12 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 79bd38c6eeaa1000da1125efe6bd805e784fa881
-  commands: 111
+  commit: cfe54116473f82ddf1b62f321f3f3609dfcf15d1
+  commands: 112
   tools: 112
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
-  - tool: agents_avatar_upload
-    why: no command
   - tool: docs
     why: 'site only: reads the docs page'
   - tool: prepare_agent_request

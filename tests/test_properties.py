@@ -74,6 +74,9 @@ FIELD = st.sampled_from(
 
 
 def value_for(spec: Input) -> st.SearchStrategy[Any]:
+    if spec.type == "file":
+        # A file input names a file that is there.
+        return st.just(__file__)
     if spec.enum is not None:
         return st.sampled_from(spec.enum)
     if spec.type == "integer":

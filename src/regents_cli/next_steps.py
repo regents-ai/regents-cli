@@ -180,6 +180,9 @@ class Invocation:
     #: The address it ran against, when --base-url or the site's variable named another than
     #: the site's own: a failure there is not the site's to hear about.
     elsewhere: str | None = None
+    #: False for a site's public command, which no sign-in changes: a 401 there is the site's
+    #: own refusal, such as an expired upload address.
+    signed: bool = True
 
     @property
     def again(self) -> tuple[str, ...]:
@@ -270,7 +273,7 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
         ]
     if error.code in HINTED and isinstance(hint, str):
         return [human(hint), run(again, f"Then run this again{invocation.piped}.")]
-    if status == 401 and invocation.site is not None:
+    if status == 401 and invocation.site is not None and invocation.signed:
         return [sign_in(invocation.site), run(again, f"Then run this again{invocation.piped}.")]
     if status == 402 and "payment_required" in error.fields:
         return [

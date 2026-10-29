@@ -14,6 +14,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   join` and `polls vote` flags, `projects start`'s `--title`, and the `rooms send`, `keys post`
   and `workspace archive|patch|submit` stdin fields have new descriptions, none opening with a
   W-word. Every command but `agents pair` names its WebMCP tool, so help shows it.
+- New: `regents keyfleet profile avatar-upload <upload-url> <file>` sends a .png, .jpg or .webp
+  picture to the `upload_url` that `profile avatar-start` answered. It sends to that address on
+  the site only, and refuses any other address, another kind of file, or one over the size the
+  site takes, before anything is sent. A site's command list may now give an argument the type
+  `site_url` (an address on the site, checked against the command's route) and the type `file`
+  (the bytes of a local file as the whole body, with the media types it takes as `enum` and its
+  largest size as `maximum`); `regents check-commands` checks both.
 
 ## 1.10.21 — 2026-10-29
 

@@ -199,6 +199,7 @@ def _invocation(
         else None,
         description=described.description if described is not None else None,
         elsewhere=_elsewhere(platform, described, words, given),
+        signed=described is None or described.signed,
     )
 
 

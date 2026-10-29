@@ -99,6 +99,10 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
   request = entry.method entry.path with each {param} filled from ARGS,
             flags placed in the query or body as each one's `in` says,
             plus entry.body's fixed fields
+  a site_url argument must be an address on base matching entry.path, as the site answered
+            it; its path is the request's path
+  a file argument is the whole body: its bytes, sent with the media type its name gives,
+            which must be one of the input's enum and at most its maximum bytes
 
   if entry.authority is signed_agent or paired_agent:
       stdin JSON fills entry.stdin_fields in the body
@@ -209,6 +213,10 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
   Fields may be `array`, `object`, `string` or `integer`; they retain their JSON types in
   the signed body. An integer field refuses strings, fractions and booleans. A bare root
   JSON array is not a command body.
+- **Uploads** of a file's bytes go to an address the site answered on an earlier command, on
+  the site itself: give that command an argument of type `site_url` (filled from the address,
+  checked against the route) and one of type `file` with the media types it takes as `enum`
+  and its largest size as `maximum`. The command line sends the bytes to nothing else.
 - **Payments**: a `prepare` route freezes the terms; the paying route answers 402 with the
   terms and an x402 `payment-required` header. The site names its own payee; the command line
   never names one, and a person's own wallet signs.

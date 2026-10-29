@@ -45,11 +45,11 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "79bd38c6eeaa1000da1125efe6bd805e784fa881",
+    "commit": "cfe54116473f82ddf1b62f321f3f3609dfcf15d1",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
-        "sha256": "58438c85b2b3dd14c351019163d974143436c435498f15d6b9ffe95a9bf401ff"
+        "sha256": "2fe9513ae58d71115ba46aa0e11b5cc66821fd372a9299441469fa9092b89f15"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/keyfleet/openapi.json",
