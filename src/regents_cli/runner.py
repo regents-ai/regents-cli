@@ -545,6 +545,26 @@ def site_says(platform: Platform, effect: str, said: str) -> list[Step]:
     return [done(f"{DONE[effect]} The site adds: {said}")]
 
 
+def hinted(platform: Platform, hint: Any) -> list[Step]:
+    """A refusal's hint that names one of the site's routes, such as "GET /api/v1/fleets lists
+    every fleet.": that command, run as it is when it needs nothing more, or else its help."""
+    if not isinstance(hint, str):
+        return []
+    for method, path in ROUTE.findall(hint):
+        command = routed_command(platform, method, path.rstrip("."))
+        if command is not None:
+            named = [w for w in command.words if not w.startswith("<")]
+            needs = (
+                bool(command.arguments or command.required_one_of)
+                or any(f.required for f in command.flags)
+                or any(f.required for f in command.stdin_fields)
+            )
+            return [
+                run_step(["regents", platform.name, *named, *(["--help"] if needs else [])], hint)
+            ]
+    return []
+
+
 def routed_command(platform: Platform, method: str, path: str) -> Command | None:
     """The one command whose route is exactly `path`, or else the one whose route takes it with
     a value in each {placeholder}."""

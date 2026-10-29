@@ -44,6 +44,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   the value the caller gave. Keyfleet answers seldom repeat the fleet, so `notebooks run <fleet>
   <project> <notebook>` can now be followed by `notebooks result <fleet> <project> <notebook>
   <run>` with only `run` read from the answer. The check still refuses a word neither fills.
+- When a site refuses with a `hint` that names one of its routes, such as Keyfleet's "GET
+  /api/v1/fleets lists every fleet." after `fleets get` with a mistyped id, the next steps now
+  include that command: run as it is when it needs nothing more, or else its `--help`.
 
 ## 1.10.20 — 2026-10-28
 

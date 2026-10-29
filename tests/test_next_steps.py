@@ -21,7 +21,7 @@ from regents_cli.errors import EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import answer
 from regents_cli.next_steps import Invocation, elsewhere, for_failure, human
 from regents_cli.platforms import FollowUp, Platform, pinned_platforms
-from regents_cli.runner import after
+from regents_cli.runner import after, hinted
 from regents_cli.techtree.commands.run import after_logs, after_status
 from regents_cli.techtree.errors import RunError
 from regents_cli.techtree.forge.records import inspect_first, read_back_first
@@ -407,3 +407,14 @@ def test_a_follow_up_takes_the_callers_own_arguments() -> None:
     given = {spec.name: spec.name.upper() if spec.required else None for spec in command.inputs}
     (step,) = after(keyfleet, command, {"run": {"id": "r1"}}, given, [], finished=True)
     assert step.command == "regents keyfleet notebooks result FLEET PROJECT NOTEBOOK r1"
+
+
+def test_a_refusals_hint_naming_a_route_offers_its_command() -> None:
+    """keyfleet fleets get with a mistyped id: the site's hint names GET /api/v1/fleets, and the
+    only step said the record does not exist."""
+    keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
+    (listed,) = hinted(keyfleet, "GET /api/v1/fleets lists every fleet.")
+    assert listed.command == "regents keyfleet fleets list"
+    (projects,) = hinted(keyfleet, "List them with GET /api/v1/agent/fleets/FLEET_ID/projects).")
+    assert projects.command == "regents keyfleet projects list --help"
+    assert hinted(keyfleet, "Ask your person.") == []
