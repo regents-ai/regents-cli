@@ -6,7 +6,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.21 — 2026-10-30
 
 Evidence: level protected; every site pinned at the commit it runs live on 30 Oct and read
-live from the built wheel; 922 tests; independent reviews of the whole bundle, each finding
+live from the built wheel; 923 tests; independent reviews of the whole bundle, each finding
 fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
 - A site's command list may now give a field piped on stdin the type `uuid`, and a whole number
@@ -55,9 +55,9 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
   and exit 120.
 - A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
   refused with what to do, where it ended in a traceback.
-- Every site's commands now match what each site runs live on 30 Oct at 17:14Z (pins: template
-  3f8d628d, regents.sh 42467c4d, Patchbay dd881f9f, Keyfleet e828c29a, Techtree 2f885c4d,
-  Autolaunch c209b024).
+- Every site's commands now match what each site runs live on 30 Oct at 22:00Z (pins: template
+  456a97fb, regents.sh 630474ba, Patchbay 0e180cb7, Keyfleet daa6dd6f, Techtree 2f885c4d,
+  Autolaunch 17764eb8).
   - Keyfleet has 121 commands. New: `checkpoint read|save`, `code commit` and `code commits`,
     `fleets activity|doctor`, `keys buy|club-claim|held|message|post-as|remove|reveal|show`, `links
     resolve`, `preview`, `profile avatar-start|avatar-remove|edit`, `projects describe|hide|show`,
@@ -90,7 +90,8 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
   - Wording only: many Patchbay descriptions; the template's and Patchbay's `agents pair` and
     `agents status`, which now name the person's Agents page; the WebMCP names of Patchbay's
     `payments` commands and `assist request`; Keyfleet's `notebooks run`, `notebooks result`,
-    `workspace get`, and the WebMCP names of its wallet steps.
+    `workspace get`, the WebMCP names of its wallet steps, and its pairing refusals, which now
+    name the person's Agents page.
 - New: `regents keyfleet profile avatar-upload <upload-url> <file>` sends a .png, .jpg or .webp
   picture to the `upload_url` that `profile avatar-start` answered. It sends to that address on
   the site only, and refuses before anything is sent: any other address, including one whose

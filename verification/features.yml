@@ -2509,13 +2509,13 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 3f8d628df94e9b18d1d3a4395f54b4b6d1c43610
+  commit: 456a97fb508f08700affd45b147b01c0bea70ddc
   commands: 58
   tools: 57
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: c209b024643f1e01f8009dd50f98bf256f738023
+  commit: 17764eb87b09ecd67443e7cc4e28a768e38304cf
   commands: 18
   tools: 18
   tools_with_no_command:
@@ -2523,7 +2523,7 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: e828c29a92ba0c95be8916bd983e5b3235d2f48b
+  commit: daa6dd6f289bef69263b8e860e34fc0e9bbab0a9
   commands: 121
   tools: 132
   tools_with_no_command:
@@ -2555,7 +2555,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: dd881f9f71a5eee32c6494f22c9a2824e98589f4
+  commit: 0e180cb7d28014a4a2338ff9a7e06eb593fa5510
   commands: 55
   tools: 62
   tools_with_no_command:
@@ -2577,7 +2577,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 42467c4d4181064512cde9672436e222ad8bcd20
+  commit: 630474baba5497bfb0ea9dd63b1b7a746b789967
   commands: 18
   tools: 25
   tools_with_no_command:
