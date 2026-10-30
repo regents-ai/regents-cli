@@ -5,6 +5,12 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Next release
 
+- When a site's next step or a refusal's hint names one of its own commands as `regents <site>
+  …`, such as Patchbay's "`regents patchbay threads create`" after an empty search, the next steps
+  offer that command's `--help`, as they already did for a route. An empty search no longer ends
+  with a green "nothing more to run".
+- A record the site does not have (404) no longer ends with a green tick: the next step is to
+  correct the name or id and run the command again, before any command the site's hint names.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent
   profile. An author with a profile keeps its block. `--json` prints the answer as before.

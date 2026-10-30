@@ -297,7 +297,13 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
         )
         return [human(f"Ask your person about this first: {error.message}", page)]
     if status == 404 and coded:
-        return [done("There is no such record. If the name or id was mistyped, run it again.")]
+        return [
+            run(
+                again,
+                "There is no such record: correct the name or id if it was mistyped, then run "
+                f"this again{invocation.piped}.",
+            )
+        ]
     if status == 429:
         return [
             run(
@@ -340,7 +346,13 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
     if error.exit_code == EXIT_CANCELLED:
         return [run(again, f"Run it again when ready{invocation.piped}.")]
     if error.exit_code == EXIT_NOT_FOUND:
-        return [done("There is no such record. If the name or id was mistyped, run it again.")]
+        return [
+            run(
+                again,
+                "There is no such record: correct the name or id if it was mistyped, then run "
+                f"this again{invocation.piped}.",
+            )
+        ]
     if error.exit_code == EXIT_UNREACHABLE:
         return [
             run(again, f"Run it once more{invocation.piped}."),

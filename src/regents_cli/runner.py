@@ -646,14 +646,15 @@ ROUTE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE) (/[^\s,;)`'\"?#]*)")
 
 def site_says(platform: Platform, effect: str, said: str) -> list[Step]:
     """The site's own next step, as it wrote it: with the help of the command for the first
-    route it names that is one of the site's commands, or else beside what the answer means."""
-    for method, path in ROUTE.findall(said):
-        command = routed_command(platform, method, path.rstrip("."))
-        if command is not None:
-            named = [w for w in command.words if not w.startswith("<")]
-            follow = run_step(["regents", platform.name, *named, "--help"], said)
-            return [follow] if effect == "read" else [done(DONE[effect]), follow]
-    return [done(f"{DONE[effect]} The site adds: {said}")]
+    route it names that is one of the site's commands, or of the first of its commands it names
+    as `regents <site> …`, or else beside what the answer means."""
+    routed = (routed_command(platform, m, p.rstrip(".")) for m, p in ROUTE.findall(said))
+    command = next((c for c in routed if c is not None), None) or named_command(platform, said)
+    if command is None:
+        return [done(f"{DONE[effect]} The site adds: {said}")]
+    named = [w for w in command.words if not w.startswith("<")]
+    follow = run_step(["regents", platform.name, *named, "--help"], said)
+    return [follow] if effect == "read" else [done(DONE[effect]), follow]
 
 
 def hinted(platform: Platform, hint: Any, shared: list[str]) -> list[Step]:
@@ -677,7 +678,29 @@ def hinted(platform: Platform, hint: Any, shared: list[str]) -> list[Step]:
                     ["regents", platform.name, *named, *(shared if ready else ["--help"])], hint
                 )
             ]
+    command = named_command(platform, hint)
+    if command is not None:
+        named = [w for w in command.words if not w.startswith("<")]
+        return [run_step(["regents", platform.name, *named, "--help"], hint)]
     return []
+
+
+def named_command(platform: Platform, text: str) -> Command | None:
+    """The first of the site's commands `text` names as `regents <site> <words>`, such as
+    "Search with regents patchbay threads search --query WORDS.": the one whose words, its
+    values left out, are the longest run of the words written there."""
+    written = rf"\bregents {re.escape(platform.name)}((?: [a-z][a-z0-9-]*)+)"
+    for found in re.finditer(written, text):
+        words = found.group(1).split()
+        fits = {
+            len(named): command
+            for command in platform.commands
+            if (named := [w for w in command.words if not w.startswith("<")])
+            and words[: len(named)] == named
+        }
+        if fits:
+            return fits[max(fits)]
+    return None
 
 
 def routed_command(platform: Platform, method: str, path: str) -> Command | None:

@@ -572,6 +572,30 @@ def test_a_refusals_hint_naming_a_route_offers_its_command() -> None:
     assert hinted(keyfleet, "Ask your person.", ["--json"]) == []
 
 
+def test_a_site_that_names_its_command_gets_that_command_not_a_done_tick() -> None:
+    """Patchbay audit PB-26 (29 Oct): Patchbay now writes `regents patchbay threads create` in
+    an empty search's next step and `regents patchbay threads search` in a missing thread's hint;
+    only routes were read, so the empty search ended with a green "nothing more to run"."""
+    patchbay = next(p for p in pinned_platforms() if p.name == "patchbay")
+    search = next(c for c in patchbay.commands if c.words[:2] == ("threads", "search"))
+    said = "No thread mentions this yet. Use `regents patchbay threads create`, with a title."
+    (step,) = after(patchbay, search, {"next_step": said}, {}, [], finished=True)
+    assert (step.kind, step.command) == ("run", "regents patchbay threads create --help")
+    (searched,) = hinted(patchbay, "Search with regents patchbay threads search --query W.", [])
+    assert searched.command == "regents patchbay threads search --help"
+    assert hinted(patchbay, "Ask with regents keyfleet rooms post.", []) == []
+    assert hinted(patchbay, "Try regents patchbay nothing-here.", []) == []
+
+
+def test_a_missing_record_is_never_a_done_tick() -> None:
+    """A 404 got a green tick and nothing to run, though the agent's next move is to correct the
+    id and run it again."""
+    error = CommandError("not_found", "There is no thread with that id.", status=404)
+    failed = invocation("patchbay", "patchbay.help")
+    (step,) = for_failure(error, failed)
+    assert step.kind == "run" and step.command == shlex.join(failed.again)
+
+
 def test_a_hinted_command_runs_where_the_refused_one_ran(
     capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
