@@ -49,7 +49,7 @@ import pytest
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 
-from regents_cli import app, output, runner
+from regents_cli import app, output, runner, siwa
 from regents_cli.errors import CommandError
 from regents_cli.http import answer
 from regents_cli.next_steps import Step, for_failure
@@ -239,6 +239,14 @@ def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[httpx.Req
         return httpx.Response(200, json={})
 
     monkeypatch.setattr(httpx, "request", request)
+    listed = [{"audience": p.site, "origin": p.base_url} for p in PLATFORMS.values()]
+
+    def audiences(url: str, **_: Any) -> httpx.Response:
+        assert url == siwa.BROKER + "/api/shared/siwa/audiences"
+        return httpx.Response(200, json={"code": "audiences", "data": {"audiences": listed}})
+
+    monkeypatch.delenv("SIWA_BROKER", raising=False)
+    monkeypatch.setattr(httpx, "get", audiences)
     return sent
 
 

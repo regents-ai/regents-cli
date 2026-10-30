@@ -207,6 +207,8 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         base = base_address(base_url, platform.env_var, platform.base_url)
         request = request_for(command, given, base)
         shared = [*(["--base-url", base_url] if base_url else []), *(["--json"] if as_json else [])]
+        if command.signed:
+            siwa.signs_for(platform.site, base, timeout_ms)
         if command.signed and phase == "send":
             request = signed_by_caller(command, base, request, timeout_ms)
         elif command.signed:

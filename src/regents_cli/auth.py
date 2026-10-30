@@ -256,13 +256,13 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         except CommandError as error:
             answer["pairing_status"] = {"site": selected, **error.as_json()}
         else:
+            base = base_address(None, platform.env_var, platform.base_url)
+            siwa.signs_for(selected, base, timeout_ms)
             request = Request(probe.method, probe.path)
             request = replace(
                 request, headers=siwa.sign(request, siwa.current(selected, timeout_ms))
             )
-            told = send(
-                base_address(None, platform.env_var, platform.base_url), request, timeout_ms
-            )
+            told = send(base, request, timeout_ms)
             answer["pairing_status"] = {"site": selected, **data_with(told)}
     output.emit(answer, as_json=as_json, next_steps=after_status(answer, receipts))
 

@@ -315,12 +315,45 @@ def _post(
             follow_redirects=False,
         )
     except httpx.HTTPError:
-        raise CommandError(
-            "unreachable",
-            f"The sign-in server {address} could not be reached, or did not answer in time.",
-            exit_code=EXIT_UNREACHABLE,
-        ) from None
+        raise unreachable(address) from None
     return answer(response)
+
+
+def unreachable(address: str) -> CommandError:
+    return CommandError(
+        "unreachable",
+        f"The sign-in server {address} could not be reached, or did not answer in time.",
+        exit_code=EXIT_UNREACHABLE,
+    )
+
+
+def signs_for(site: str, base: str, timeout_ms: int) -> None:
+    """Refuse, before anything is signed or sent, an address the sign-in server does not list
+    for `site`: a request signed with this sign-in is good for a short while wherever it lands,
+    so it goes only where the site's own sign-in sends it."""
+    address = broker()
+    try:
+        response = httpx.get(
+            address + "/api/shared/siwa/audiences",
+            timeout=timeout_ms / 1000,
+            follow_redirects=False,
+        )
+    except httpx.HTTPError:
+        raise unreachable(address) from None
+    listed = data_with(answer(response), "audiences")["audiences"]
+    if not isinstance(listed, list) or not all(
+        holds(entry, "audience", "origin") for entry in listed
+    ):
+        raise unreadable()
+    origins = [entry["origin"] for entry in listed if entry["audience"] == site]
+    if base not in origins:
+        raise CommandError(
+            "address_not_listed",
+            f"{base} is not an address the sign-in server {address} lists for {site}, so "
+            f"nothing was signed or sent. Its addresses: {', '.join(origins) or 'none'}. A copy "
+            "of the site elsewhere signs in through its own sign-in server, named in SIWA_BROKER.",
+            exit_code=EXIT_AUTH,
+        )
 
 
 def challenge(site: str, wallet_address: str, timeout_ms: int) -> dict[str, str]:

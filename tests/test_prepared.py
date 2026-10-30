@@ -50,7 +50,21 @@ def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[Request]:
         return httpx.Response(200, json={})
 
     monkeypatch.setattr(runner, "respond", respond)
+
+    def audiences(url: str, **_: Any) -> httpx.Response:
+        assert url == siwa.BROKER + "/api/shared/siwa/audiences"
+        return httpx.Response(200, json={"code": "audiences", "data": {"audiences": AUDIENCES}})
+
+    monkeypatch.delenv("SIWA_BROKER", raising=False)
+    monkeypatch.setattr(httpx, "get", audiences)
     return sent
+
+
+#: Where the sign-in server says each site signs in.
+AUDIENCES = [
+    {"audience": "regents", "origin": "https://regents.sh"},
+    {"audience": "patchbay", "origin": "https://patchbay.help"},
+]
 
 
 CHECK_IN = ["protocol", "agents", "status"]
