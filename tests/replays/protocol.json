@@ -656,9 +656,110 @@
       "body": {
         "pagination": {
           "has_more": true,
-          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhFnQAAAANdwttaWNyb3NlY29uZGgCYgALuM5hBncGc2Vjb25kYQ93CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwR5ZWFyYgAAB+p3BGhvdXJhE3cDZGF5YRd3CXpvbmVfYWJicm0AAAADVVRDdwZtaW51dGVhC3cJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACQzMTM1ZTU1NC0zOGJmLTRiMjMtODkxOC01MmNhNzYyOTZjNGRq"
+          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhGHQAAAANdwttaWNyb3NlY29uZGgCYgAEcK5hBncGc2Vjb25kYTR3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3BHllYXJiAAAH6ncGbWludXRlYQd3BGhvdXJhF3cDZGF5YRp3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwl6b25lX2FiYnJtAAAAA1VUQ3cJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACQwNzU5MTA5YS0xOWVhLTQ1NjctOWMzZi1hOWQwNTZhNWY1NTNq"
         },
         "papers": [
+          {
+            "id": "4924b26f-7f12-4a56-b28e-15b8733b8360",
+            "date": "2026-10-29",
+            "title": "Swarm Telepathy: Prefill-Free KV-Cache Transfer Across Families",
+            "authors": [
+              "Abdulrahman Alabdulkareem",
+              "Irene Tenison",
+              "Yang Zhang",
+              "Yada Zhu",
+              "Boris Katz",
+              "Dan Gutfreund"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-4924b26f-7f12-4a56-b28e-15b8733b8360-title",
+            "cover_alt": "First page of Swarm Telepathy, showing the authors, abstract and a diagram comparing text with cache transfer.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae38aa765688191abf3eef521a895da",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/4924b26f-7f12-4a56-b28e-15b8733b8360?v=1793297212159534",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2610.15095"
+          },
+          {
+            "id": "620ecc75-01be-4522-8d15-440f915b3f90",
+            "date": "2026-10-29",
+            "title": "The Landscape of Agentic Reinforcement Learning for LLMs: A Survey",
+            "authors": [
+              "Guibin Zhang",
+              "Hejia Geng",
+              "Xiaohang Yu",
+              "Zhenfei Yin",
+              "Zaibin Zhang",
+              "Zelin Tan",
+              "Heng Zhou",
+              "Zhongzhi Li",
+              "Xiangyuan Xue",
+              "Yijiang Li",
+              "Yifan Zhou",
+              "Yang Chen",
+              "Chen Zhang",
+              "Yutao Fan",
+              "Zihu Wang",
+              "Songtao Huang",
+              "Francisco Piedrahita-Velez",
+              "Yue Liao",
+              "Hongru Wang",
+              "Mengyue Yang",
+              "Heng Ji",
+              "Jun Wang",
+              "Shuicheng Yan",
+              "Philip Torr",
+              "Lei Bai"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-620ecc75-01be-4522-8d15-440f915b3f90-title",
+            "cover_alt": "First page of the agentic reinforcement learning survey, showing its title, authors, affiliations and abstract.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae38acfb89c8191bd44370bf7df5fe8",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/620ecc75-01be-4522-8d15-440f915b3f90?v=1793297227357660",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2509.02547"
+          },
+          {
+            "id": "160edea7-b6f3-4594-a4ee-c5a78c1f9f52",
+            "date": "2026-10-29",
+            "title": "Agent Lightning v1.0: Towards Harnessed Agentic RL",
+            "authors": [
+              "Zhiyuan He",
+              "Siwei Zhang",
+              "Zhiwen Zhou",
+              "Yuqing Yang",
+              "Yu Kang",
+              "Yuge Zhang",
+              "Luna K. Qiu",
+              "Tin Yan Tsui",
+              "Jiahang Xu",
+              "Chong Luo"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-160edea7-b6f3-4594-a4ee-c5a78c1f9f52-title",
+            "cover_alt": "First page of Agent Lightning v1.0, showing the authors, training-system diagram and abstract.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae38af2ea988191b0aa5a3f91e3d9b5",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/160edea7-b6f3-4594-a4ee-c5a78c1f9f52?v=1793297233747148",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2608.17528"
+          },
+          {
+            "id": "38f5bbec-4a95-402b-b4cf-d57bbd22c401",
+            "date": "2026-10-29",
+            "title": "Search-R1: Training LLMs to Reason and Leverage Search Engines with Reinforcement Learning",
+            "authors": [
+              "Bowen Jin",
+              "Hansi Zeng",
+              "Zhenrui Yue",
+              "Jinsung Yoon",
+              "Sercan Ö. Arık",
+              "Dong Wang",
+              "Hamed Zamani",
+              "Jiawei Han"
+            ],
+            "url": "https://regents.sh/paper-pro-daily#paper-38f5bbec-4a95-402b-b4cf-d57bbd22c401-title",
+            "cover_alt": "First page of Search-R1, showing the authors, affiliations, abstract and opening of the introduction.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae38b112a848191999a5aeb34491b61",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/38f5bbec-4a95-402b-b4cf-d57bbd22c401?v=1793297238046319",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2503.09516"
+          },
           {
             "id": "d2663850-f86b-425a-9a11-42f4b07fe756",
             "date": "2026-10-28",
@@ -776,78 +877,6 @@
             "cover_url": "https://regents.sh/paper-pro-daily/pictures/0759109a-19ea-4567-9c3f-a9d056a5f553?v=1793056072290990",
             "chatgpt_model": "ChatGPT Astra 6 Pro",
             "paper_url": "https://www.alphaxiv.org/pdf/2610.32778"
-          },
-          {
-            "id": "e8a152a7-ff96-41dc-84f4-f5781a194fac",
-            "date": "2026-10-23",
-            "title": "QD-Rec: Open-Ended Evolution of Recommendations via Quality-Diversity",
-            "authors": [
-              "Takashi Ishida",
-              "Taro Makino",
-              "Issa Sugiura"
-            ],
-            "url": "https://regents.sh/paper-pro-daily#paper-e8a152a7-ff96-41dc-84f4-f5781a194fac-title",
-            "cover_alt": "First page of QD-Rec with its authors, abstract and introduction to quality-diversity recommendation.",
-            "chatgpt_url": "https://chatgpt.com/share/6adbafe5-af28-83ea-bf53-8d89bd502bb3",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/e8a152a7-ff96-41dc-84f4-f5781a194fac?v=1792782582203150",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://arxiv.org/abs/2610.23470"
-          },
-          {
-            "id": "925723c3-539b-4a21-9a86-5cb1f7937e18",
-            "date": "2026-10-23",
-            "title": "Recursive Self-Improvement through Multi-Agent Self-Supervision",
-            "authors": [
-              "Hyunin Lee",
-              "Jinglue Xu",
-              "Jeffrey Seely",
-              "Donghyun Lee",
-              "Somayeh Sojoudi",
-              "Matei Zaharia",
-              "Yujin Tang"
-            ],
-            "url": "https://regents.sh/paper-pro-daily#paper-925723c3-539b-4a21-9a86-5cb1f7937e18-title",
-            "cover_alt": "First page of the MASS paper, with authors, abstract and a diagram of the self-improvement workflow.",
-            "chatgpt_url": "https://chatgpt.com/share/6adbb029-21ec-83e9-be68-0baf615555bd",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/925723c3-539b-4a21-9a86-5cb1f7937e18?v=1792782607578770",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://arxiv.org/abs/2610.12176"
-          },
-          {
-            "id": "2239ec40-4fd1-469c-9150-188278558b1c",
-            "date": "2026-10-22",
-            "title": "Decision4Rec: A Jev-Inspired Framework of Decision Models on Knowledge and Active Graphs for Multi-Agent Recommender Systems",
-            "authors": [
-              "Marco Polignano",
-              "Het Darshan Mehta",
-              "Pasquale Lops",
-              "Ernesto William De Luca",
-              "Giovanni Semeraro"
-            ],
-            "url": "https://regents.sh/paper-pro-daily#paper-2239ec40-4fd1-469c-9150-188278558b1c-title",
-            "cover_alt": "First page of Decision4Rec, showing its title, authors, affiliations, abstract and opening text.",
-            "chatgpt_url": "https://chatgpt.com/share/6adbb051-ea64-83ea-a62f-a23776abe7c4",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/2239ec40-4fd1-469c-9150-188278558b1c?v=1792782652485785",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://arxiv.org/abs/2610.26035"
-          },
-          {
-            "id": "3135e554-38bf-4b23-8918-52ca76296c4d",
-            "date": "2026-10-22",
-            "title": "The Agentic Scientist: Orchestrating Coding Agents for Automated Scientific (Co-)Discovery",
-            "authors": [
-              "Robert Tjarko Lange",
-              "Luca Grillotti",
-              "Yutaro Yamada",
-              "Rujikorn Charakorn",
-              "David Ha"
-            ],
-            "url": "https://regents.sh/paper-pro-daily#paper-3135e554-38bf-4b23-8918-52ca76296c4d-title",
-            "cover_alt": "First page of The Agentic Scientist paper, with the abstract and a four-stage research workflow diagram.",
-            "chatgpt_url": "https://chatgpt.com/share/6adbb079-baec-83ea-b998-0501fce8436d",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/3135e554-38bf-4b23-8918-52ca76296c4d?v=1792782675768206",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://arxiv.org/abs/2610.18933"
           }
         ]
       }
@@ -858,11 +887,11 @@
     "words": [
       "research",
       "show",
-      "d2663850-f86b-425a-9a11-42f4b07fe756"
+      "4924b26f-7f12-4a56-b28e-15b8733b8360"
     ],
     "request": {
       "method": "GET",
-      "url": "https://regents.sh/api/v1/reading/papers/d2663850-f86b-425a-9a11-42f4b07fe756",
+      "url": "https://regents.sh/api/v1/reading/papers/4924b26f-7f12-4a56-b28e-15b8733b8360",
       "content": null
     },
     "response": {
@@ -870,51 +899,24 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "paper": {
-          "id": "d2663850-f86b-425a-9a11-42f4b07fe756",
-          "date": "2026-10-28",
-          "title": "After42: Can AI Propose Interesting Research Questions?",
+          "id": "4924b26f-7f12-4a56-b28e-15b8733b8360",
+          "date": "2026-10-29",
+          "title": "Swarm Telepathy: Prefill-Free KV-Cache Transfer Across Families",
           "authors": [
-            "Fan Nie",
-            "Zihao Wang",
-            "Kaiyue Wen",
-            "Garrett Wen",
-            "Zhaozi Wang",
-            "Hai-Yang Wang",
-            "Denny Wu",
-            "Theodor Misiakiewicz",
-            "Joan Bruna",
-            "James Zou",
-            "Andrea Montanari",
-            "Percy Liang",
-            "Shuangping Li",
-            "Puheng Li",
-            "Rui Sun",
-            "Renyuan Ma",
-            "Sheng Xu",
-            "Yiran Zhang",
-            "Hugo Latourelle-Vigeant",
-            "Ruixiao Wang",
-            "Linjun Zhang",
-            "Yijun Dong",
-            "Mingwei Yang",
-            "Alberto Bietti",
-            "Anupam Gupta",
-            "Tianhao Wang",
-            "Theo McKenzie",
-            "Shuzhe Zeng",
-            "Yanbei Chen",
-            "Alexander Philippov",
-            "Elias Roland Most",
-            "Xiang Li",
-            "Juno Kim"
+            "Abdulrahman Alabdulkareem",
+            "Irene Tenison",
+            "Yang Zhang",
+            "Yada Zhu",
+            "Boris Katz",
+            "Dan Gutfreund"
           ],
-          "url": "https://regents.sh/paper-pro-daily#paper-d2663850-f86b-425a-9a11-42f4b07fe756-title",
-          "cover_alt": "Opening of the After42 research post, showing its title, summary and introduction.",
-          "chatgpt_url": "https://chatgpt.com/s/t_6ae206f58bb08191acb5e8967dd237d2",
-          "cover_url": "https://regents.sh/paper-pro-daily/pictures/d2663850-f86b-425a-9a11-42f4b07fe756?v=1793197937370536",
-          "analysis_markdown": "I read the full post, including its four question-development examples, expert-ranking analysis, limitations, and cost appendix.\n\n**My assessment: After42 is a useful study of AI-assisted research judgment. It shows that an intensive agent workflow can produce questions experts want to investigate. Whether this improves scientific productivity—and which parts of the workflow cause the improvement—remains unresolved.**\n\n## 1. General impact and importance\n\n### What the experiments establish\n\nIn the main GPT 6 Astra evaluation, 29 experts assessed 135 final questions. A question counted as interesting when at least two experts endorsed it.\n\n| Subfield | Questions judged interesting | Rate |\n|---|---:|---:|\n| Phase transitions in random structures | 33/70 | 47% |\n| Prediction-powered inference | 5/35 | 14% |\n| Online algorithms | 4/12 | 33% |\n| Black hole ringdown | 3/8 | 38% |\n| Plasma physics | 0/10 | 0% |\n| **Total** | **45/135** | **33%** |\n\nThese are selected final outputs after filtering and development. [Results, §3.1](https://after42.org/research/can-ai-propose-interesting-research-questions/#experts-find-some-questions-genuinely-interesting)\n\n**The strongest practical idea is to improve a question by attempting to answer it.** An attempted proof or experiment can expose a mistaken premise, reveal the actual obstacle, or suggest a more explanatory target. This could change how research agents allocate effort: short investigative attempts become part of choosing the project, rather than something that happens only afterward.\n\n**The research-taste findings are equally consequential.** Model shortlists recovered 65–80% of the expert-consensus top 20, while the model ensemble recovered 35–85% of individual experts’ selections. My interpretation is that automated screening can be useful while still systematically underserving particular researchers. A single ranking should therefore remain contestable. [Research taste, §5.1](https://after42.org/research/can-ai-propose-interesting-research-questions/#sec-taste-alignment)\n\nIts novelty should be calibrated: AI-generated research ideas and iterative multi-agent hypothesis refinement were already studied in 2024–2025. After42’s distinctive contribution is its examination of **question development and the limits of automated research taste**. [arxiv.org](https://arxiv.org/abs/2409.04109?utm_source=chatgpt.com)\n\n## 2. Specific implications for Regents Labs\n\n**I would prioritize a Patchbay → Techtree research loop, with optional Keyfleet collaboration.** Techtree’s controlled comparisons and checkable results, alongside Keyfleet’s shared goals, code, and notebooks, provide a practical foundation. The applications below are proposed experiments; the paper does not establish commercial, biological, financial, or fleet-level returns. [Techtree](https://techtree.sh/?utm_source=chatgpt.com)\n\n| Product / connection | Concrete extension | What would demonstrate value |\n|---|---|---|\n| **Techtree + regents.sh: agentic research** | Preserve the sequence from research goal to proposed question, attempted answer, revision, and independent verification. Regents research pages could expose this evidence history alongside the analysis. | More independently verified useful findings per dollar and reviewer-hour than direct generation plus ranking. |\n| **Keyfleet: research fleets** | Let members independently propose, attempt, critique, and reproduce investigations. Keep alternative hypotheses available when reviewers disagree. | Better outcomes than a solo agent at the **same total compute budget**, including recovery of valuable questions that consensus ranking misses. |\n| **Patchbay: agentic commerce** | Turn recurring tool failures into investigations. Example: *Which retry policy prevents duplicate actions after a response is lost?* Reproduce the failure, test fixes, then package the successful method as a verification Skill. | Replayed repairs, fewer recurring failures, and accepted paid work relative to investigation cost. Reward demonstrated assistance rather than persuasive proposals. |\n| **Virtual Cell work: agentic science** | Use unexplained errors on held-out perturbations or cell types to generate competing hypotheses. Let a small discriminating experiment determine the next question. | Generalization to unseen biological data and independent reproduction; experimental confirmation where the claim requires it. |\n| **Autolaunch: agentic onchain finance** | Investigate when stored bid estimates diverge from realized auction outcomes, or which operating assumptions make an agent service economically viable. Test through historical replay and controlled simulations. | Better forecasts or decisions after costs, followed by a credible operating record. Research evidence does not itself confer spending or signing authority. |\n\nThe Autolaunch example is particularly concrete because its public tools describe bid estimates as calculations from stored data, without a live chain read. That creates a measurable research target around estimate reliability. [where agents launch](https://autolaunch.sh/?utm_source=chatgpt.com)\n\nMy commercial inference is that Regents could create more value by helping agents **turn uncertain claims into inspectable evidence** than by increasing proposal volume. Financing would be a later step for work that demonstrates usefulness.\n\n## 3. Problems and limitations\n\n### A. The central causal claim is not isolated\n\nThe earlier GPT 5.6 Sol experiment reports an increase from **3% interesting initial proposals to 33% interesting final questions**, after both filtering and development. That does not identify how much improvement came from attempting solutions, selecting better candidates, rewriting, or spending more compute. [Earlier comparison, §3.1](https://after42.org/research/can-ai-propose-interesting-research-questions/#experts-find-some-questions-genuinely-interesting)\n\nThe development examples make the mechanism plausible. A controlled ablation is still needed to show that attempted solutions provide an advantage over equally expensive alternatives.\n\n### B. Relative productivity remains unknown\n\nThe reported experiments do not provide a matched comparison against human-only ideation, human–AI collaboration, or a simpler equal-budget sampling-and-ranking system. Consequently, I would not infer that this architecture is the best use of a research budget—or that multiple agents are responsible for its success. [Study design, §2](https://after42.org/research/can-ai-propose-interesting-research-questions/#how-after42-works)\n\n### C. The headline rate hides substantial concentration\n\nFrom the table, phase transitions supplies **33 of the 45 successes**. Across the remaining fields, the rate is **12/65, approximately 18.5%**—my calculation from the reported counts.\n\nThis makes broad extrapolation risky. Small samples also mean that the plasma result should motivate investigation, not a declaration that the approach cannot work there. Differences in goals, literature packs, reviewer panels, and budgets could help explain the variation.\n\n### D. Interest is an incomplete outcome\n\nA compelling question can still be unproductive, already addressed in obscure literature, or prohibitively expensive to investigate. Conversely, an unfashionable question can eventually matter.\n\nThe essential missing measurement is whether pursuing these questions produces useful understanding. The authors acknowledge this explicitly. [Limitations, §6](https://after42.org/research/can-ai-propose-interesting-research-questions/#limitations-and-future-steps)\n\nI also would not interpret “builds on existing work” as evidence of uniquely weak AI creativity without applying the same classification to comparable human questions.\n\n### E. The judging process may favor conformity\n\nRevisions require unanimous model preference. That could suppress promising disagreements, although this study does not establish that it does. The model instructions also discourage preferring apparent tractability, whereas experts value worthwhile starting points. Some disagreement may therefore reflect different instructions rather than an intrinsic inability to understand research taste. [Workflow](https://after42.org/research/can-ai-propose-interesting-research-questions/#how-after42-works), [judging disagreement](https://after42.org/research/can-ai-propose-interesting-research-questions/#sec-taste-disagreements)\n\n### F. Practical cost is unresolved\n\nThe mathematics run used approximately **260 agent-hours and 2.62 billion tokens**, predominantly cached input. Experts reported about **35 minutes per question**. These figures do not establish economic efficiency; actual spending and human review costs need to be compared against alternative workflows. [Appendix A](https://after42.org/research/can-ai-propose-interesting-research-questions/#appendix-runtime-and-token-usage), [expert evaluation](https://after42.org/research/can-ai-propose-interesting-research-questions/#how-after42-works)\n\n## 4. What I would research or test next\n\n| Priority | Experiment | What would strengthen or weaken the claim |\n|---|---|---|\n| **1. Is attempted solving the useful ingredient?** | Randomize identical starting questions into selection only, critique-and-rewrite, and attempt-and-refine. Match compute, retrieval access, and final output count; use blinded reviewers. | If attempt-and-refine provides no additional benefit, the proposed mechanism is weaker than the examples suggest. |\n| **2. Does it improve completed research?** | Compare human-only, AI-only, and human–AI teams on matched goals. Follow projects for 6–12 months. | Measure verified findings, informative negative results, reusable methods, and total cost. Higher interest ratings without better outcomes would be insufficient. |\n| **3. Do fleets add value?** | Compare one agent with small fleets under equal aggregate budgets. Vary model diversity and reviewer independence. | Establish whether coordination produces additional useful findings or mainly adds cost and correlated opinions. |\n| **4. Does preserving disagreement improve discovery?** | Compare consensus selection with a portfolio that reserves some budget for minority-supported questions. Evaluate against independent reviewers and later outcomes. | Useful discoveries from the minority allocation would support preserving dissent. Diversity alone would not establish success. |\n| **5. Can fresh evidence improve question generation?** | Compare literature-only inputs with newly collected failures, simulations, or experimental observations. Require held-out validation. | This tests whether agents can discover productive directions from unexplained evidence rather than continually recombining familiar material. |\n\n**The first Regents pilot should use new Patchbay failure briefs.** For each brief, select one investigation, run it, and measure independently replayed fixes or useful negative findings. Record compute expenditure and reviewer time. This provides a relatively fast test of whether developing the question improves the eventual work.\n\nUse fresh cases: the authors position the released After42 questions as opportunities for research, and explicitly discourage treating them as an AI benchmark. [Discussion, §7](https://after42.org/research/can-ai-propose-interesting-research-questions/#discussion)\n\n## 5. Why it matters in 2026—and what would make it important in 2031\n\n**Its relevance in 2026 is the problem of allocating research effort.** As agents become more capable of carrying out investigations, selecting worthwhile investigations becomes an increasingly important design decision. After42 makes that decision process concrete enough to examine, criticize, and improve.\n\nFor it to become well known by 2031, I would look for three developments:\n\n1. **Independent replication:** a reproducible method that improves question development across fields and remains competitive after accounting for cost.\n2. **Consequential downstream results:** a documented lineage from generated questions to important discoveries, reusable methods, or productive research programs.\n3. **A durable lesson about scientific judgment:** evidence that its approach to evaluation—or a correction to its consensus bias—helps research communities choose better projects.\n\nMy expectation is that the headline success percentage will age quickly. The more durable contribution could be a demonstrated method for learning what to investigate through preliminary work, while keeping researchers’ differing judgments productive. Without that follow-through, After42 remains a thoughtful capability demonstration. For Regents, it is already a good source of testable workflow ideas; the business and scientific value still need to be earned through results.",
+          "url": "https://regents.sh/paper-pro-daily#paper-4924b26f-7f12-4a56-b28e-15b8733b8360-title",
+          "cover_alt": "First page of Swarm Telepathy, showing the authors, abstract and a diagram comparing text with cache transfer.",
+          "chatgpt_url": "https://chatgpt.com/s/t_6ae38aa765688191abf3eef521a895da",
+          "cover_url": "https://regents.sh/paper-pro-daily/pictures/4924b26f-7f12-4a56-b28e-15b8733b8360?v=1793297212159534",
+          "analysis_markdown": "I read **“Swarm Telepathy: Prefill-Free KV-Cache Transfer Across Families”**, including its appendices, and checked the authors’ reproduction instructions. **My assessment: this is a promising advance in communication between different models, with an immediate fit for a Techtree experiment and a narrower, optional role inside Keyfleet.** [arxiv.org](https://arxiv.org/pdf/2610.15095?utm_source=chatgpt.com)\n\n## 1. General impact and importance\n\nSwaT trains an approximately **300-million-parameter translator** that converts one model’s attention memory—its *KV cache*—into another model’s format. Both underlying models remain frozen. This lets the receiver use context already processed by the sender. [GitHub](https://github.com/Ar-Kareem/SwaT?utm_source=chatgpt.com)\n\nThe central comparison is **SwaT plus Attention Matching cache compression versus text summaries**:\n\n| Measurement | Reported result |\n|---|---|\n| Mean task score, across three model pairs, seven datasets and five budgets | **41.3 → 58.6**, with a reported **+17.4-point** improvement |\n| Sender GPU time | **4.2× faster** |\n| Receiver time to first token | **4.3× faster** |\n\nThese are component timings and mixed accuracy/F1 scores; the headline should not be read as a measured fourfold improvement in complete fleet workflows. [arxiv.org](https://arxiv.org/html/2610.15095v1?utm_source=chatgpt.com)\n\n**The important idea is that a model’s completed computation could become a reusable contribution to another model.** That could change how we design specialization: a worker might contribute its processed understanding of a document, rather than spending additional inference generating a summary that another worker must interpret.\n\nThe authors also demonstrate visual assistance to text-only receivers despite training the translator on English text. That makes capability composition an interesting research direction, although it should be understood as assistance from the sender, not permanent acquisition of its capabilities. [GitHub](https://github.com/Ar-Kareem/SwaT?utm_source=chatgpt.com)\n\n## 2. Specific connections to Regents Labs\n\nThese are **my proposed applications**, building on the product directions you have described.\n\n| Product / area | Most useful experiment | What would justify pursuing it |\n|---|---|---|\n| **Techtree** | Add a communication comparison to your agent benchmark: full context, structured text handoff, retrieval, and translated caches. | Lower **cost per correctly completed task**, including network, memory and training costs. This could become a useful evaluation service. |\n| **Keyfleet** | Let two models you host experiment with cache handoffs inside one Classic #1 project. Make this an optional worker capability. | Better task completion across repeated handoffs, while keeping results understandable through notebooks, Git and evidence records. |\n| **Patchbay** | Test whether a diagnostic agent can pass a difficult failure investigation to a repair agent more effectively. | More independently verified repairs, fewer repeated investigations, and faster reproduction of failures. |\n| **Regents Credits / agentic commerce** | Explore a paid context-preparation service for repeated work over large document collections. | Buyers can measure the downstream value and understand what they paid for. Compatibility and reproducibility would need to be part of the service contract. |\n| **Autolaunch / onchain finance** | Experiment with sharing context between a research worker and a worker preparing a covered-call proposal. | Better proposal quality or lower research cost. Transaction fields, simulation, authorization and spending limits should remain explicitly inspectable. |\n\n**For agentic science**, I would use your Virtual Cell work as a realistic test: can one agent transfer an experiment’s context to another that identifies a flaw, proposes a useful follow-up, or reproduces the result? Measure the quality of that contribution. A transferred cache should never count as an independent rerun.\n\nOne implementation boundary matters: **MCP or WebMCP alone cannot provide this capability.** An endpoint must expose the necessary model internals to extract and inject caches. I would therefore start with a controlled pair of hosted models.\n\n## 3. Problems and limitations\n\n**The most consequential concern is the distance between a successful handoff and reliable collaboration.** The paper’s evaluation focuses on individual handoffs; repeated transfers and aggregation remain unresolved. A persistent fleet needs to reconcile branches, contradictory findings and accumulated mistakes. [arxiv.org](https://arxiv.org/html/2610.15095v1?utm_source=chatgpt.com)\n\nOther concerns:\n\n- **“Prefill-free” needs careful interpretation.** The mapper still receives the source document’s receiver-token embeddings, and each directed model pair is trained separately. This is a substantive integration and maintenance requirement. [GitHub](https://github.com/Ar-Kareem/SwaT?utm_source=chatgpt.com)\n\n- **Equal cache positions do not mean equal network traffic.** A cache position contains numerical tensors across layers and heads. I would expect deployment economics to differ substantially between colocated models and personal agents exchanging data over the internet.\n\n- **The text baseline leaves room for stronger alternatives.** The documented comparison uses document summaries before the receiver answers its question. I would also compare question-aware extraction, structured evidence packets and retrieval. Those are practical competitors for Regents workflows. [GitHub](https://github.com/Ar-Kareem/SwaT?utm_source=chatgpt.com)\n\n- **There are substantial task-specific regressions.** Gemma3-4B→Llama3-8B falls from **28.4% to 16.0% on MATH-500**. For Gemma3-12B→Qwen3-4B, the DocVQA/InfoVQA average is **29.0% with SwaT, versus 38.7% through text and 62.2% for the sender**. Those failures matter for scientific reasoning and detailed documents. [arxiv.org](https://arxiv.org/html/2610.15095v1?utm_source=chatgpt.com)\n\n- **The learned translator complicates causal attribution.** Its training uses task supervision. I would want a control that removes or shuffles the sender cache while retaining comparable learned capacity, to determine how much improvement actually depends on transferred information. [GitHub](https://github.com/Ar-Kareem/SwaT?utm_source=chatgpt.com)\n\nMy reading is that these limitations constrain where to apply the method; they do not erase the positive results.\n\n## 4. What I would research or test next\n\nI would prioritize five experiments:\n\n1. **Reproduce one published configuration.** Use Qwen3-4B→Llama3-8B and pin the entire setup. The repository’s default SmolLM3 configuration uses uniform compression budgets, which differ from the optimized budgets behind the headline comparison. [GitHub](https://github.com/Ar-Kareem/SwaT?utm_source=chatgpt.com)\n\n2. **Measure the complete economics against strong baselines.** Include full-text access, task-aware summaries, retrieval and structured handoffs. Count final-answer generation, serialization, network transfer, peak memory and training amortization. If the advantage disappears, the product opportunity becomes much narrower.\n\n3. **Test repeated collaboration.** Run 1, 5 and 20 handoffs, then add branching and merging. Track factual errors, lost constraints and recovery after refreshing from source material. This is the experiment that would most directly change my opinion about Keyfleet adoption.\n\n4. **Separate transferred knowledge from extra training.** Compare the complete method against absent-cache and shuffled-cache controls, plus an equally trained text-based alternative. Similar performance without the correct sender cache would weaken the proposed explanation.\n\n5. **Test independent verification and trust together.** Use a real repair or scientific task with an externally checkable outcome. Include conflicting evidence and deliberately misleading cache inputs. Ask whether the receiver can still explain its conclusions, cite the original evidence and obey explicit action limits.\n\nFor Regents, I would set the success criterion as: **a second agent completes a useful, independently checked task more cheaply or reliably after receiving the first agent’s work.**\n\n## 5. Why it matters in 2026—and what would make it important in 2031\n\n**Why it matters now:** it gives builders a concrete way to investigate whether communication itself is limiting heterogeneous agent systems. My interest is in reducing the cost of preserving useful context as work moves between specialists. That could make some forms of delegation economical that currently are not.\n\n**To become a well-known paper by 2031**, its approach—or a clear successor—would need to demonstrate:\n\n- Independent replication across substantially different models and real workloads.\n- Reliable repeated transfers, branching and aggregation.\n- Manageable compatibility costs as models change.\n- Savings after including infrastructure and operational overhead.\n- Auditable behavior in consequential scientific and commercial workflows.\n\nIf those conditions hold, SwaT could be remembered as an early practical step toward sharing computation between models. If they do not, it may remain a useful optimization for selected model pairs running under common infrastructure.\n\n**My recommendation for you: make this a Techtree replication with one realistic Keyfleet task as the evaluation target. Publish whether it improves verified work—including the cases where ordinary text wins.**",
           "chatgpt_model": "ChatGPT Astra 6 Pro",
-          "paper_url": "https://after42.org/research/can-ai-propose-interesting-research-questions/"
+          "paper_url": "https://arxiv.org/pdf/2610.15095"
         }
       }
     }

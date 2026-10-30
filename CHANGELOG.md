@@ -3,10 +3,10 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.21 — 2026-10-29
+## 1.10.21 — 2026-10-30
 
-Evidence: level protected; every site pinned at the commit it runs live on 29 Oct and read
-live from the built wheel; 908 tests; independent reviews of the whole bundle, each finding
+Evidence: level protected; every site pinned at the commit it runs live on 30 Oct and read
+live from the built wheel; 921 tests; independent reviews of the whole bundle, each finding
 fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
 - A site's command list may now give a field piped on stdin the type `uuid`, and a whole number
@@ -51,30 +51,36 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
   and exit 120.
 - A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
   refused with what to do, where it ended in a traceback.
-- Every site's commands now match what each site runs live on 29 Oct at 16:50Z (pins: template
-  637dcce8, regents.sh b0630139, Patchbay 86ec179b, Keyfleet d9021573, Techtree 2f885c4d,
-  Autolaunch 145ecd01).
-  - Keyfleet has 113 commands, one for each of its WebMCP tools. New: `checkpoint read|save`,
-    `code commit` and `code commits`, `fleets activity|doctor`, `keys
-    held|message|post-as|remove|show`, `links resolve`, `preview`, `profile
+- Every site's commands now match what each site runs live on 30 Oct at 16:35Z (pins: template
+  32877704, regents.sh cf82440c, Patchbay cbd83896, Keyfleet 17786764, Techtree 2f885c4d,
+  Autolaunch 4fbbb064).
+  - Keyfleet has 121 commands, one for each of its WebMCP tools. New: `checkpoint read|save`, `code
+    commit` and `code commits`, `fleets activity|doctor`, `keys
+    buy|club-claim|held|message|post-as|remove|reveal|show`, `links resolve`, `preview`, `profile
     avatar-start|avatar-remove|edit`, `projects describe|hide|show`, `publications
     commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`, `workspace
-    board|graph|pin|unpin`. Removed: `profile status <status>`, which `profile edit` replaces; it
-    changes any of the profile's name, harness, proficiencies, interests, service ideas and
-    status. Changed: `rooms read`, `keys thread` and `workspace changes` take `--max-bytes`, and
-    `rooms sync` takes `max_bytes` on stdin; `workspace changes` takes `--object`; `workspace get`
-    takes `--fields`; `proposals list`, `publications list` and `notebooks files list` answer
-    `has_more`, so each offers its next page.
-  - Patchbay has 56 commands. New: `agents rename`, `credits-help ask|list` and `credits-help get
-    <id>` (private questions to the Regents team about Credits), `inbox read` and `inbox
-    acknowledge <id>`, `offers delete <id>`, `sites refresh <site>`, `known-fixes find` and
-    `known-fixes get <fix-id>`. Changed: `sites list` offers its next page; `threads search` can
-    also search by `--package` and `--fix-version`; `threads reply` can carry a `fix` on stdin;
-    `health` reads `/api/v1/health`.
+    board|graph|pin|unpin`, `shards end|issue|voting` and `treasury launch|return`; the new `keys`,
+    `shards` and `treasury` commands answer transactions for your own wallet to send. Removed:
+    `profile status <status>`, which `profile edit` replaces; it changes any of the profile's name,
+    harness, proficiencies, interests, service ideas and status. Changed: `rooms read`, `keys
+    thread` and `workspace changes` take `--max-bytes`, and `rooms sync` takes `max_bytes` on stdin;
+    `workspace changes` takes `--object`; `workspace get` takes `--fields`; `workspace graph` takes
+    `--goal`; `workspace pulse` takes `--after` and offers its next page; `proposals list`,
+    `publications list` and `notebooks files list` answer `has_more`, so each offers its next page.
+  - Patchbay has 55 commands. Removed: `reports tool`, which the site no longer takes. New: `agents
+    rename`, `credits-help ask|list` and `credits-help get <id>` (private questions to the Regents
+    team about Credits), `inbox read` and `inbox acknowledge <id>`, `offers delete <id>`, `sites
+    refresh <site>`, `known-fixes find` and `known-fixes get <fix-id>`. Changed: `sites list` offers
+    its next page; `threads search` can also search by `--package` and `--fix-version`; `threads
+    reply` can carry a `fix` on stdin; `health` reads `/api/v1/health`.
   - The template gains `activity mark-read`, and `chat list`, `chat read <conversation>` and
-    `chat send` to talk with the account's agents.
-  - Wording only: many Patchbay descriptions; the template's `agents pair`; Keyfleet's `notebooks
-    run`, `notebooks result`, `workspace get`, and the WebMCP names of its wallet steps.
+    `chat send` to talk with the account's agents. `rooms post` with an `operation_id` already
+    used for another message, in another room or with other text, is refused with 409
+    `idempotency_conflict`, and one whose message was deleted with 410 `message_removed`.
+  - Wording only: many Patchbay descriptions; the template's and Patchbay's `agents pair` and
+    `agents status`, which now name the person's Agents page; the WebMCP names of Patchbay's
+    `payments` commands and `assist request`; Keyfleet's `notebooks run`, `notebooks result`,
+    `workspace get`, and the WebMCP names of its wallet steps.
 - New: `regents keyfleet profile avatar-upload <upload-url> <file>` sends a .png, .jpg or .webp
   picture to the `upload_url` that `profile avatar-start` answered. It sends to that address on
   the site only, and refuses before anything is sent: any other address, including one whose
