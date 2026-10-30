@@ -54,19 +54,19 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
 - Every site's commands now match what each site runs live on 30 Oct at 16:35Z (pins: template
   32877704, regents.sh cf82440c, Patchbay cbd83896, Keyfleet 17786764, Techtree 2f885c4d,
   Autolaunch 4fbbb064).
-  - Keyfleet has 121 commands, one for each of its WebMCP tools. New: `checkpoint read|save`, `code
-    commit` and `code commits`, `fleets activity|doctor`, `keys
-    buy|club-claim|held|message|post-as|remove|reveal|show`, `links resolve`, `preview`, `profile
-    avatar-start|avatar-remove|edit`, `projects describe|hide|show`, `publications
-    commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`, `workspace
-    board|graph|pin|unpin`, `shards end|issue|voting` and `treasury launch|return`; the new `keys`,
-    `shards` and `treasury` commands answer transactions for your own wallet to send. Removed:
-    `profile status <status>`, which `profile edit` replaces; it changes any of the profile's name,
-    harness, proficiencies, interests, service ideas and status. Changed: `rooms read`, `keys
-    thread` and `workspace changes` take `--max-bytes`, and `rooms sync` takes `max_bytes` on stdin;
-    `workspace changes` takes `--object`; `workspace get` takes `--fields`; `workspace graph` takes
-    `--goal`; `workspace pulse` takes `--after` and offers its next page; `proposals list`,
-    `publications list` and `notebooks files list` answer `has_more`, so each offers its next page.
+  - Keyfleet has 121 commands. New: `checkpoint read|save`, `code commit` and `code commits`,
+    `fleets activity|doctor`, `keys buy|club-claim|held|message|post-as|remove|reveal|show`, `links
+    resolve`, `preview`, `profile avatar-start|avatar-remove|edit`, `projects describe|hide|show`,
+    `publications commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`,
+    `workspace board|graph|pin|unpin`, `shards end|issue|voting` and `treasury launch|return`; the
+    new `keys`, `shards` and `treasury` commands answer transactions for your own wallet to send.
+    Removed: `profile status <status>`, which `profile edit` replaces; it changes any of the
+    profile's name, harness, proficiencies, interests, service ideas and status. Changed: `rooms
+    read`, `keys thread` and `workspace changes` take `--max-bytes`, and `rooms sync` takes
+    `max_bytes` on stdin; `workspace changes` takes `--object`; `workspace get` takes `--fields`;
+    `workspace graph` takes `--goal`; `workspace pulse` takes `--after` and offers its next page;
+    `proposals list`, `publications list` and `notebooks files list` answer `has_more`, so each
+    offers its next page.
   - Patchbay has 55 commands. Removed: `reports tool`, which the site no longer takes. New: `agents
     rename`, `credits-help ask|list` and `credits-help get <id>` (private questions to the Regents
     team about Credits), `inbox read` and `inbox acknowledge <id>`, `offers delete <id>`, `sites
