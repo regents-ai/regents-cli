@@ -83,7 +83,7 @@ def test_an_unpaired_agent_is_sent_to_the_site_it_called(platform: Platform) -> 
     called = app.invocation(app.root(), [platform.name, "agents", "whoami", "--json"])
     person, redeem, again = for_failure(_raised(refused), called)
     assert (person.kind, person.say) == ("human", hint)
-    assert person.url == f"https://{platform.host}/account#shell-pairing"
+    assert person.url == f"https://{platform.host}/"
     assert redeem.command == f"regents {platform.name} agents pair"
     assert again.command == shlex.join(called.again)
 
@@ -93,7 +93,8 @@ def test_whoami_with_no_pairing_points_at_that_sites_pair_new_agent(platform: Pl
     whoami = next(c for c in platform.commands if c.words == ("agents", "whoami"))
     person, redeem, *_ = after(platform, whoami, {"data": {"pairing": None}}, {}, [], finished=True)
     assert person.kind == "human" and platform.host in person.say
-    assert person.url == f"https://{platform.host}/account#shell-pairing"
+    assert "Pair New Agent in the account menu" in person.say
+    assert person.url == f"https://{platform.host}/"
     assert redeem.command == f"regents {platform.name} agents pair"
 
 
@@ -464,6 +465,24 @@ def test_only_a_402_with_x402_terms_asks_for_a_signature() -> None:
     assert ["Sign" in for_failure(e, failed)[0].say for e in signs] == [True, False, False]
     assert signs[1].code == "http_402"
     assert [s.kind for s in for_failure(signs[2], failed)] == ["human", "done"]
+
+
+def test_a_refused_payment_with_terms_is_signed_again() -> None:
+    """Review of 1.10.21: Patchbay answers a payment signed by another wallet, or for other
+    terms, with payment_refused and the terms to sign again; that is not a stop."""
+    refused = httpx.Response(
+        402,
+        json={
+            "error": {
+                "code": "payment_refused",
+                "message": "The payment was signed by another wallet.",
+                "payment_terms": {"accepts": []},
+            }
+        },
+    )
+    (step,) = for_failure(_raised(refused), invocation("patchbay", "patchbay.help"))
+    assert step.kind == "run"
+    assert "Sign payment_terms" in step.say
 
 
 def test_a_202_is_followed_as_the_site_describes() -> None:

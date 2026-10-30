@@ -64,10 +64,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
 3. Every site is pinned to its live commit. In 1.10.21 (`platforms.lock.json`, read from each
-   site's live `/capabilities.json` `build.commit`, or Autolaunch's `/healthz`, on 30 Oct):
-   Patchbay `cbd83896`, Keyfleet `17786764`, Autolaunch `4fbbb064`, Techtree `2f885c4d`,
-   regents.sh `cf82440c`, ash-template `32877704`, and the signing contract from elixir-utils
-   `fe3aa1d5`. `make release-check` reads every public read live
+   site's live `/capabilities.json` `build.commit`, or Autolaunch's `/healthz`, on 30 Oct at
+   17:14Z): Patchbay `dd881f9f`, Keyfleet `e828c29a`, Autolaunch `c209b024`, Techtree
+   `2f885c4d`, regents.sh `42467c4d`, ash-template `3f8d628d`, and the signing contract from
+   elixir-utils `fe3aa1d5`. `make release-check` reads every public read live
    against these copies. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
    is the one command tree named apart from its site (`SIGN_IN_SITES` in
    `platforms/__init__.py`): it is regents.sh. `auth status` reads the site's `agents whoami`,

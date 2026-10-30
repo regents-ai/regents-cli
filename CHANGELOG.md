@@ -6,7 +6,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.21 — 2026-10-30
 
 Evidence: level protected; every site pinned at the commit it runs live on 30 Oct and read
-live from the built wheel; 921 tests; independent reviews of the whole bundle, each finding
+live from the built wheel; 922 tests; independent reviews of the whole bundle, each finding
 fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
 - A site's command list may now give a field piped on stdin the type `uuid`, and a whole number
@@ -21,9 +21,13 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
 - Help is laid out with Rich, in colour at a terminal, for every command. In a pipe it is plain
   lines, with no frame characters and no spaces padding a line out to the width, and the exit
   codes in `regents --help` are one to a line. This adds rich-click to the dependencies.
-- The pairing steps say a person makes a code with Pair New Agent on their Account page, as the
-  sites now say. The link still opens `/account#shell-pairing`; it moves to `#account-pairing`
-  in the release after the account menu reaches all five sites.
+- The pairing steps say a person makes a code with Pair New Agent in the site's account menu,
+  and link the site's home page, where that menu is. Patchbay and the template keep the pairing
+  box on an Agents page and the other sites on their Account page, so a link to one page was
+  wrong on some sites. The old `/account#shell-pairing` link opened no pairing box anywhere.
+- A refused payment that comes back with terms to sign again, such as Patchbay's 402
+  `payment_refused` for a payment signed by another wallet, now asks the agent to sign
+  `payment_terms` and run the command again, where it said there was nothing more to run.
 - New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
   OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
   of a Techtree model substitution pair: the same tokenizer, chat template and serving on both
@@ -51,15 +55,16 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
   and exit 120.
 - A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
   refused with what to do, where it ended in a traceback.
-- Every site's commands now match what each site runs live on 30 Oct at 16:35Z (pins: template
-  32877704, regents.sh cf82440c, Patchbay cbd83896, Keyfleet 17786764, Techtree 2f885c4d,
-  Autolaunch 4fbbb064).
+- Every site's commands now match what each site runs live on 30 Oct at 17:14Z (pins: template
+  3f8d628d, regents.sh 42467c4d, Patchbay dd881f9f, Keyfleet e828c29a, Techtree 2f885c4d,
+  Autolaunch c209b024).
   - Keyfleet has 121 commands. New: `checkpoint read|save`, `code commit` and `code commits`,
     `fleets activity|doctor`, `keys buy|club-claim|held|message|post-as|remove|reveal|show`, `links
     resolve`, `preview`, `profile avatar-start|avatar-remove|edit`, `projects describe|hide|show`,
     `publications commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`,
-    `workspace board|graph|pin|unpin`, `shards end|issue|voting` and `treasury launch|return`; the
-    new `keys`, `shards` and `treasury` commands answer transactions for your own wallet to send.
+    `workspace board|graph|pin|unpin`, `shards end|issue|voting` and `treasury launch|return`.
+    `keys buy|club-claim|reveal`, `shards end|issue|voting` and `treasury launch|return` answer
+    transactions for your own wallet to send. `agents pair` names its WebMCP tool, `agents_pair`.
     Removed: `profile status <status>`, which `profile edit` replaces; it changes any of the
     profile's name, harness, proficiencies, interests, service ideas and status. Changed: `rooms
     read`, `keys thread` and `workspace changes` take `--max-bytes`, and `rooms sync` takes
@@ -72,11 +77,16 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
     team about Credits), `inbox read` and `inbox acknowledge <id>`, `offers delete <id>`, `sites
     refresh <site>`, `known-fixes find` and `known-fixes get <fix-id>`. Changed: `sites list` offers
     its next page; `threads search` can also search by `--package` and `--fix-version`; `threads
-    reply` can carry a `fix` on stdin; `health` reads `/api/v1/health`.
+    reply` can carry a `fix` on stdin; `health` reads `/api/v1/health`. A refused payment answers
+    402 `payment_refused` with the terms to sign again. `reports other-site` no longer answers
+    `verified` or `receipt_status`. `threads search` and `threads get` may answer 503 `busy` with
+    `retry_after_seconds`, and `bench pair` 503 `not_ready`; the next step says how long to
+    wait before running it again.
   - The template gains `activity mark-read`, and `chat list`, `chat read <conversation>` and
     `chat send` to talk with the account's agents. `rooms post` with an `operation_id` already
     used for another message, in another room or with other text, is refused with 409
-    `idempotency_conflict`, and one whose message was deleted with 410 `message_removed`.
+    `idempotency_conflict`, and one whose message was deleted with 410 `message_removed`, which
+    carries the message's `id`.
   - Wording only: many Patchbay descriptions; the template's and Patchbay's `agents pair` and
     `agents status`, which now name the person's Agents page; the WebMCP names of Patchbay's
     `payments` commands and `assist request`; Keyfleet's `notebooks run`, `notebooks result`,

@@ -113,10 +113,11 @@ def patchbay(host: str, words: Sequence[str], code: str, message: str, status: i
     )
 
 
-def account_page(host: str) -> str:
-    """Pair New Agent on a site's Account page, where a person signed in there makes a pairing
-    code. A pairing works on every Regent site."""
-    return f"https://{host}/account#shell-pairing"
+def account_menu(host: str) -> str:
+    """A site's home page, whose account menu has Pair New Agent for a person signed in there.
+    Each site keeps the pairing box on its own page, so the menu is the one way in they share.
+    A pairing works on every Regent site."""
+    return f"https://{host}/"
 
 
 def pair_first(namespace: str, host: str) -> list[Step]:
@@ -124,10 +125,10 @@ def pair_first(namespace: str, host: str) -> list[Step]:
     then `agents pair`."""
     return [
         human(
-            f"Your person signs in on {host}, makes a pairing code with Pair New Agent on their "
-            "Account page and gives it to you. A pairing works on every Regent site. If a site "
+            f"Your person signs in on {host}, makes a pairing code with Pair New Agent in the "
+            "account menu and gives it to you. A pairing works on every Regent site. If a site "
             "answers person_not_here, ask your person to sign in on that site once.",
-            account_page(host),
+            account_menu(host),
         ),
         redeem(namespace),
     ]
@@ -267,7 +268,7 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     hint = error.fields.get("hint")
     if error.code == "agent_not_paired" and isinstance(hint, str) and invocation.host:
         return [
-            human(hint, account_page(invocation.host)),
+            human(hint, account_menu(invocation.host)),
             redeem(invocation.words[0]),
             run(again, f"Then run this again{invocation.piped}."),
         ]
@@ -275,7 +276,7 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
         return [human(hint), run(again, f"Then run this again{invocation.piped}.")]
     if status == 401 and invocation.site is not None and invocation.signed:
         return [sign_in(invocation.site), run(again, f"Then run this again{invocation.piped}.")]
-    if status == 402 and "payment_required" in error.fields:
+    if status == 402 and ("payment_required" in error.fields or "payment_terms" in error.fields):
         return [
             run(
                 again,
@@ -290,7 +291,7 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
         ]
     if status == 403 and coded:
         page = (
-            account_page(invocation.host)
+            account_menu(invocation.host)
             if error.code.startswith("pairing_") and invocation.host
             else None
         )

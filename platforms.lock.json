@@ -1,7 +1,7 @@
 {
   "ash-template": {
     "repository": "regents-ai/ash-template",
-    "commit": "32877704514fec48d3f430c3d9f54d81345f201c",
+    "commit": "3f8d628df94e9b18d1d3a4395f54b4b6d1c43610",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/ash-template/commands.json",
@@ -23,7 +23,7 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "4fbbb06465844631c949836150dc8b6bceb34fe2",
+    "commit": "c209b024643f1e01f8009dd50f98bf256f738023",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
@@ -45,7 +45,7 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "177867649390da09bcb0f512f645c1758b94cd9f",
+    "commit": "e828c29a92ba0c95be8916bd983e5b3235d2f48b",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
@@ -67,7 +67,7 @@
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "cbd83896a18ac8ac57bb9e3577090d15c639beb5",
+    "commit": "dd881f9f71a5eee32c6494f22c9a2824e98589f4",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
@@ -75,17 +75,17 @@
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/openapi.json",
-        "sha256": "cdc19a0c42cf6e69bd81f675c9da79af7ca3f54d20ffa318c3c59ffb0d47d146"
+        "sha256": "f8a2a3a71138e649fbfb3f71a405659a0fede375e61747f36d74947bb76d3451"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/patchbay.json",
-        "sha256": "5b21f055c80ad5224796363992ce7b5af7071b0e39bf13703ac49072b5c2c723"
+        "sha256": "7d65927b58d759f76931658c03512743d596e61cf00941c9b8747d418b421db4"
       }
     }
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "cf82440c082f4dcf3da4853e61cc38ab6823a90e",
+    "commit": "42467c4d4181064512cde9672436e222ad8bcd20",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",
