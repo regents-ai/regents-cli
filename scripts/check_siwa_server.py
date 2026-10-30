@@ -11,13 +11,15 @@ the same library as the packaged signing contract:
 
 It signs in to the server's `ash-template` and `patchbay` audiences with a throwaway key through
 `regents auth login`, then sends the site its signed `agents whoami` (GET /api/agents/v1/whoami),
-which the site checks with the sign-in server using its own key, as it checks every signed request:
-a read, a read with a query, one with a JSON body and one with an empty signed body are accepted; a
-changed query, a changed body, another site's sign-in and a replay are refused. The body cases send
-a GET with a body, so on a site's first run read them together: the JSON body accepted and the
-changed body refused is what shows the body reached the sign-in check, and the script fails unless
-both hold. Neither address has a default; point both at local copies, since a live site refuses a
-throwaway key's sign-in from a local server and every accepted case would fail.
+which the site checks with the sign-in server using its own key, as it checks every signed request.
+A signed read and a first send are accepted. A signed body is checked through a pairing with a
+made-up code (POST /api/agents/v1/pair): the site answers `pairing_failed` only once the sign-in
+server has accepted the proof, and the same body changed after signing is refused. Also refused,
+each for its own reason: another site's sign-in and a replay. That a signed query reaches the
+signature is proven byte for byte by the pinned contract fixtures, in `tests/test_contract.py` here
+and in the sign-in server's own tests. Neither address has a default; point both at local copies,
+since a live site refuses a throwaway key's sign-in from a local server and every accepted case
+would fail.
 """
 
 from __future__ import annotations
@@ -41,16 +43,18 @@ SITE = "ash-template"
 OTHER_SITE = "patchbay"
 
 
-def accepted(base: str, request: Request) -> bool:
-    """Whether the site accepts `request`, signed: 200, or refused with 401 or 409."""
+def refusal(base: str, request: Request) -> str | None:
+    """The site's refusal code for `request`, or None when it accepts it (200). A 400 comes only
+    after the proof was accepted, from the request itself."""
     try:
         answer = respond(base, request, 30_000)
     except CommandError as error:
         raise SystemExit(f"the site did not answer: {error.code}: {error.message}") from error
     if answer.status_code == 200:
-        return True
-    if answer.status_code in (401, 409):
-        return False
+        return None
+    if answer.status_code in (400, 401, 409):
+        code: str = answer.json()["error"]["code"]
+        return code
     raise SystemExit(f"the site answered {answer.status_code}: {answer.text[:300]}")
 
 
@@ -89,30 +93,23 @@ def main() -> int:
             return replace(request, headers=siwa.sign(request, by))
 
         read = Request(probe.method, probe.path)
-        query = Request(probe.method, probe.path, {"cursor": "2"})
-        body = Request(probe.method, probe.path, body={"note": "hello"})
-        empty = Request(probe.method, probe.path, body={})
         replayed = signed(read)
+        pairing = {"code": "CHCK-0000", "name": "Check", "harness": "claude_code"}
+        pair = Request("POST", probe.path.rsplit("/", 1)[0] + "/pair", body=pairing)
+        changed = replace(signed(pair), body={**pairing, "name": "Checc"})
         cases = [
-            ("a read", True, signed(read)),
-            ("a read with a query", True, signed(query)),
-            ("a read with a JSON body", True, signed(body)),
-            ("a read with an empty signed body", True, signed(empty)),
-            ("a changed body", False, replace(signed(body), body={"note": "changed"})),
-            (
-                "a changed query",
-                False,
-                replace(signed(query), query={"cursor": "3"}),
-            ),
-            (f"a sign-in made for {OTHER_SITE}", False, signed(read, other)),
-            ("a first send", True, replayed),
-            ("the same request again", False, replayed),
+            ("a read", None, signed(read)),
+            ("a signed body", "pairing_failed", signed(pair)),
+            ("a body changed after signing", "http_body_binding_invalid", changed),
+            (f"a sign-in made for {OTHER_SITE}", "receipt_binding_mismatch", signed(read, other)),
+            ("a first send", None, replayed),
+            ("the same request again", "request_replayed", replayed),
         ]
         failed = []
         for label, expected, request in cases:
-            answer = accepted(base, request)
-            print(f"{'accepted' if answer else 'refused '}  {label}")
-            if answer != expected:
+            code = refusal(base, request)
+            print(f"accepted  {label}" if code is None else f"refused   {label} ({code})")
+            if code != expected:
                 failed.append(label)
     if failed:
         print(f"the site and its sign-in server disagreed with regents on: {', '.join(failed)}")
