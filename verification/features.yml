@@ -19,6 +19,7 @@ features:
   - src/regents_cli/output.py
   - src/regents_cli/runner.py
   - src/regents_cli/siwa.py
+  - src/regents_cli/platforms/siwa/**
   - src/regents_cli/platforms/__init__.py
   - src/regents_cli/schemas/**
   entry:
@@ -2478,12 +2479,10 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 637dcce840d9d99d582b85e55821aaf8a1547ef2
+  commit: 06c30752351d4e52f4bae24f5b6aa98593ad26ab
   commands: 58
-  tools: 58
-  tools_with_no_command:
-  - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+  tools: 57
+  tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
   commit: 145ecd01e2b971679eb92f12ae1cab5b33636183

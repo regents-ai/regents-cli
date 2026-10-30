@@ -1,23 +1,23 @@
 {
   "ash-template": {
     "repository": "regents-ai/ash-template",
-    "commit": "637dcce840d9d99d582b85e55821aaf8a1547ef2",
+    "commit": "06c30752351d4e52f4bae24f5b6aa98593ad26ab",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/ash-template/commands.json",
-        "sha256": "fd095ec6da35efe9c82405bea573937dbc00fda39c9390607546f680dd720776"
+        "sha256": "6f85ab9b19247b423798fdbeac226c4037783d3a607b09c988cfa3fbcdd40646"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/ash-template/openapi.json",
-        "sha256": "b2ecc63a0522c3b95a955be6712bf8009411298bb63601c2bf657cee82c98f5c"
+        "sha256": "61df3b30e72f5f645bf043057b48bc573a61213431adcdd71108ca16a2c27d72"
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/ash-template/api-contract.openapiv3.yaml",
-        "sha256": "82d28eb5b215b32f6a55ed12edd1e01ad929d82bcfdcf74f484c35852f6bac08"
+        "sha256": "adfbd4d58485a032c1d368c912195f565bbb6e34eedb63c0821c94a5adfb1f14"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/ash-template.json",
-        "sha256": "d54aeae77d63cb050ae7c6ca8f4dfb8c2439c0409d4ef1960d1c6e4027326a74"
+        "sha256": "839add940807a1574fd69af32d338e3bbec14ed70a89a8caf9cf4051cd3b52c9"
       }
     }
   },
@@ -107,7 +107,7 @@
   },
   "siwa": {
     "repository": "regents-ai/elixir-utils",
-    "commit": "fe3aa1d512a98c9de57b7a1be46fb1852b1a9224",
+    "commit": "9ee47cc4cfafa9be0ec97795677f0d2b1f04224d",
     "files": {
       "siwa/contract/contract.json": {
         "copy": "src/regents_cli/platforms/siwa/contract.json",
@@ -115,7 +115,7 @@
       },
       "siwa/contract/fixtures.json": {
         "copy": "src/regents_cli/platforms/siwa/fixtures.json",
-        "sha256": "808b8112d56ae485cdf267fd424b344e3c054fb4c9231319ec88c0631e6bb0e5"
+        "sha256": "08264872ad3b5b92f758044f2e8bf78ac15398e7e12476990916f914b99205fa"
       }
     }
   },
