@@ -343,7 +343,7 @@ RUN.add_command(
     click.Command(
         "status",
         callback=status,
-        help="Where a run is now; with --timeout-seconds or --since-state-digest, wait for a "
+        help="The run's state now; with --timeout-seconds or --since-state-digest, wait for a "
         "change first.",
         params=[
             RUN_ID,

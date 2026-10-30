@@ -350,6 +350,33 @@ OWN: list[dict[str, Any]] = [
         "gaps": ["Publishing is proven against a stand-in for techtree.sh only."],
     },
     {
+        "id": "techtree-climbs",
+        "what": "An agent runs a Climb for its person: picks a Climb, prepares a Skill against "
+        "it, builds tasks with Forge, watches the run, and checks its proof offline.",
+        "who": "agent",
+        "level": "ordinary",
+        "paths": [
+            "src/regents_cli/techtree/commands/climb.py",
+            "src/regents_cli/techtree/commands/forge.py",
+            "src/regents_cli/techtree/commands/proof.py",
+            "src/regents_cli/techtree/commands/run.py",
+        ],
+        "entry": [
+            {"cli": "regents techtree climb"},
+            {"cli": "regents techtree forge"},
+            {"cli": "regents techtree run"},
+            {"cli": "regents techtree proof verify"},
+        ],
+        "proofs": [
+            "tests/techtree/test_help_words.py",
+            "tests/techtree/test_json_output.py",
+            "tests/techtree/test_forge_capture.py",
+            "tests/techtree/test_proof.py",
+            "tests/techtree/test_run_spend.py",
+        ],
+        "gaps": ["The review lines Forge shows before a model call have no test of their words."],
+    },
+    {
         "id": "techtree-release",
         "what": "The Techtree release this build belongs to, and whether it holds.",
         "who": "operator",

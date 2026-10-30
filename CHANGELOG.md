@@ -5,6 +5,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Next release
 
+- Techtree help and review lines open with the thing they name, never with "what" or "where":
+  for example `run status` now reads "The run's state now", and Forge's review reads "Sent to
+  the model:".
 - When a site's next step or a refusal's hint names one of its own commands as `regents <site>
   …`, such as Patchbay's "`regents patchbay threads create`" after an empty search, the next steps
   offer that command's `--help`, as they already did for a route. An empty search no longer ends

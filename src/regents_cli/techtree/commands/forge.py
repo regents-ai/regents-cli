@@ -361,7 +361,7 @@ def _plan_review(status: ForgePlanStatus) -> list[str]:
     return [
         f"Skill: {review.source_id}, {files} {_plural(files, 'file', 'files')} "
         f"({sum(file.size for file in disclosure.files)} bytes)",
-        "What the model is sent: those files, word for word, inside Techtree's planning "
+        "Sent to the model: those files, word for word, inside Techtree's planning "
         f"instructions; {disclosure.prompt_bytes} bytes in all, kept beside the plan as "
         "prompt.md.",
         *(f"  {file.path}, {file.size} bytes" for file in disclosure.files),
@@ -369,7 +369,7 @@ def _plan_review(status: ForgePlanStatus) -> list[str]:
         "The model call goes to that provider only, on the sign-in of your Hermes profile "
         f"{PROFILE_NAME} (Hermes Agent v{review.agent.version}); Techtree copies no credential "
         "and reads none.",
-        "What the planner can do: answer in text. It has no tools, so it cannot run commands, "
+        "The planner can only answer in text. It has no tools, so it cannot run commands, "
         "read or change files, search the web or remember anything.",
         f"Limits: one attempt, at most {limits.max_tasks} proposed "
         f"{_plural(limits.max_tasks, 'task', 'tasks')}, {limits.wall_seconds} seconds, an "
@@ -480,7 +480,7 @@ def _proposal_answer(home: TechtreePaths, status: ForgeProposalStatus) -> Told:
         f"- Digest: {record.proposal_digest[:19]}",
         f"- To correct: edit a copy of {Path(status.path) / 'claims-and-tasks.json'}",
         "",
-        "What this Skill claims to improve:",
+        "The Skill claims to improve:",
         *(f"  {line}" for line in _claim_lines(record.claims)),
         "",
         _KINDS_EXPLAINED,
@@ -592,10 +592,10 @@ def _construction_review(status: ForgeConstructionStatus) -> list[str]:
         f"Skill: {review.source_id}, {files} {_plural(files, 'file', 'files')} "
         f"({sum(file.size for file in disclosure.files)} bytes)",
         *corrected,
-        "What this Skill claims to improve:",
+        "The Skill claims to improve:",
         *(f"  {line}" for line in _claim_lines(review.claims)),
         _KINDS_EXPLAINED,
-        "What the model is sent, once for each task: that task as proposed, the claim it "
+        "Sent to the model, once for each task: that task as proposed, the claim it "
         "tests, and the Skill's files, word for word, inside Techtree's building instructions. "
         "Each prompt is kept in the construction's prompts folder.",
         *(
@@ -606,7 +606,7 @@ def _construction_review(status: ForgeConstructionStatus) -> list[str]:
         "The model calls go to that provider only, on the sign-in of your Hermes profile "
         f"{PROFILE_NAME} (Hermes Agent v{review.agent.version}); Techtree copies no credential "
         "and reads none.",
-        "What the creator can do: answer in text. It has no tools, so it cannot run commands, "
+        "The creator can only answer in text. It has no tools, so it cannot run commands, "
         "read or change files, search the web or remember anything. Techtree writes the files "
         "it answers with.",
         f"Limits: one call per task, {limits.calls} in all, each of at most "
@@ -1223,7 +1223,7 @@ def _comparison_answer(status: ForgeComparisonStatus) -> Told:
         "",
     ]
     if record.regressions:
-        lines.append("Where the Skill lost:")
+        lines.append("Tasks the Skill lost:")
         for regression in record.regressions:
             won = f"; won {_attempts(regression.attempts_won)}" if regression.attempts_won else ""
             lines.append(f"- {regression.task_id}: lost {_attempts(regression.attempts_lost)}{won}")

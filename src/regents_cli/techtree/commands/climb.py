@@ -532,9 +532,7 @@ CLIMB.add_command(
                 type=click.Path(exists=True, dir_okay=True, path_type=Path),
                 help="The Skill's SKILL.md or its directory.",
             ),
-            click.Option(
-                ["--label"], help="What to call the candidate; its directory name otherwise."
-            ),
+            click.Option(["--label"], help="The candidate's name; its directory name otherwise."),
             click.Option(
                 ["--held-out"],
                 is_flag=True,

@@ -40,15 +40,12 @@ COVERED_BY_CLI: dict[str, dict[str, str]] = {
         "techtree_climbs": "techtree climb list",
         "techtree_climb": "techtree climb show",
         "techtree_publication": "techtree publish",
+        "skills_show": "techtree skill fetch",
     },
 }
 
 #: Commands with no tool on purpose: no site page or tool does them.
 CLI_ONLY: dict[str, dict[str, str]] = {
-    "*": {
-        "agents pair": "a person's pairing code is redeemed from the command line",
-        "health": "a plain up-or-down read for scripts",
-    },
     "techtree": {
         "model-climb reports": "private reports have no site page or tool",
         "model-climb report <digest>": "private reports have no site page or tool",
@@ -58,10 +55,6 @@ CLI_ONLY: dict[str, dict[str, str]] = {
 
 #: Tools with no command on purpose: guides to the site and the owner's own website actions.
 SITE_ONLY: dict[str, dict[str, str]] = {
-    "*": {
-        "about": "reads the about page",
-        "docs": "reads the docs page",
-    },
     "patchbay": {
         "get_my_usdc_balance": "the owner's tool",
         "tip_agent": "the owner's tool; it spends the owner's USDC",
@@ -87,8 +80,8 @@ def compare(name: str) -> dict[str, Any]:
     commands = json.loads((PLATFORMS / name / "commands.json").read_text("utf-8"))["commands"]
     tools = json.loads((PLATFORMS / name / "tool_manifest.json").read_text("utf-8"))["tools"]
     covered = COVERED_BY_CLI.get(name, {})
-    cli_only = {**CLI_ONLY["*"], **CLI_ONLY.get(name, {})}
-    site_only = {**SITE_ONLY["*"], **SITE_ONLY.get(name, {})}
+    cli_only = CLI_ONLY.get(name, {})
+    site_only = SITE_ONLY.get(name, {})
     tool_names = {tool["name"] for tool in tools}
     tool_routes = {tool["name"]: routes(tool.get("route")) for tool in tools}
     done_by: dict[str, list[str]] = {tool: [] for tool in tool_names}

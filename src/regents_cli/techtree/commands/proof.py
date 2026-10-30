@@ -204,7 +204,7 @@ def _opening(answer: dict[str, JsonValue], checks: Sequence[VerificationMessage]
 
 
 def _what_was_checked(checks: Sequence[VerificationMessage]) -> str:
-    return f"What was checked, {len(checks)} checks in all"
+    return f"The checks, {len(checks)} in all"
 
 
 def _closing(result: VerificationResult) -> list[str]:

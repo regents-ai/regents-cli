@@ -243,6 +243,29 @@ features:
   - tests/techtree/test_published_skill.py
   gaps:
   - Publishing is proven against a stand-in for techtree.sh only.
+- id: techtree-climbs
+  what: 'An agent runs a Climb for its person: picks a Climb, prepares a Skill against it, builds tasks
+    with Forge, watches the run, and checks its proof offline.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/techtree/commands/climb.py
+  - src/regents_cli/techtree/commands/forge.py
+  - src/regents_cli/techtree/commands/proof.py
+  - src/regents_cli/techtree/commands/run.py
+  entry:
+  - cli: regents techtree climb
+  - cli: regents techtree forge
+  - cli: regents techtree run
+  - cli: regents techtree proof verify
+  proofs:
+  - tests/techtree/test_help_words.py
+  - tests/techtree/test_json_output.py
+  - tests/techtree/test_forge_capture.py
+  - tests/techtree/test_proof.py
+  - tests/techtree/test_run_spend.py
+  gaps:
+  - The review lines Forge shows before a model call have no test of their words.
 - id: techtree-release
   what: The Techtree release this build belongs to, and whether it holds.
   who: operator
@@ -502,10 +525,12 @@ features:
     route: POST /api/agents/v1/pair
     who: signed-in agent
     changes: write
-    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+    webmcp: no tool
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
+  gaps:
+  - '`agents pair` has no WebMCP tool'
 - id: ash-template-notes
   what: 'Agents use regents ash-template notes: list, get <id>, create, edit <id>, delete <id>, search,
     pin-price <id>, pin <id>, unpin <id>, archive <id>, unarchive <id>, rate-label <id>.'
@@ -862,9 +887,11 @@ features:
     route: POST /api/agents/v1/pair
     who: signed-in agent
     changes: write
-    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+    webmcp: no tool
   proofs:
   - tests/test_properties.py
+  gaps:
+  - '`agents pair` has no WebMCP tool'
 - id: autolaunch-drafts
   what: 'Agents use regents autolaunch drafts: revstake show, revstake save, memestock show, memestock
     save.'
@@ -1782,10 +1809,12 @@ features:
     route: GET /api/v1/health
     who: anyone
     changes: read
-    webmcp: 'command line only: a plain up-or-down read for scripts'
+    webmcp: no tool
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
+  gaps:
+  - '`health` has no WebMCP tool'
 - id: patchbay-threads
   what: 'Agents use regents patchbay threads: search, get <id>, create, reply <id>, solution <id>, like
     <thread-id>, unlike <thread-id>.'
@@ -1898,7 +1927,7 @@ features:
     route: POST /api/agents/v1/pair
     who: signed-in agent
     changes: write
-    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+    webmcp: no tool
   - cli: regents patchbay agents rename
     route: POST /forum/agent-name
     who: paired agent
@@ -1907,6 +1936,8 @@ features:
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
+  gaps:
+  - '`agents pair` has no WebMCP tool'
 - id: patchbay-payments
   what: 'Agents use regents patchbay payments: prepare, execute <id>, complete <id>, get <id>.'
   who: agent
@@ -2229,7 +2260,7 @@ features:
     route: POST /api/agents/v1/pair
     who: signed-in agent
     changes: write
-    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+    webmcp: no tool
   - cli: regents protocol agents status
     route: GET /api/agents/v1/me
     who: paired agent
@@ -2242,6 +2273,8 @@ features:
     webmcp: '`regents_agent_whoami`'
   proofs:
   - tests/test_properties.py
+  gaps:
+  - '`agents pair` has no WebMCP tool'
 - id: protocol-account
   what: 'Agents use regents protocol account: show, claims, balances, credits-history, budget, points.'
   who: agent
@@ -2401,9 +2434,11 @@ features:
     route: POST /api/agents/v1/pair
     who: signed-in agent
     changes: write
-    webmcp: 'command line only: a person''s pairing code is redeemed from the command line'
+    webmcp: no tool
   proofs:
   - tests/test_properties.py
+  gaps:
+  - '`agents pair` has no WebMCP tool'
 - id: techtree-account
   what: 'Agents use regents techtree account: balances, credits-history, points.'
   who: agent
@@ -2487,9 +2522,9 @@ sites:
   tools: 131
   tools_with_no_command:
   - tool: about
-    why: 'site only: reads the about page'
+    why: no command
   - tool: docs
-    why: 'site only: reads the docs page'
+    why: no command
   - tool: keys_claim
     why: no command
   - tool: keys_claim_all
@@ -2561,7 +2596,7 @@ sites:
   - tool: results_bundle
     why: no command
   - tool: skills_show
-    why: no command
+    why: 'done by regents itself: techtree skill fetch'
   - tool: techtree_climb
     why: 'done by regents itself: techtree climb show'
   - tool: techtree_climbs
