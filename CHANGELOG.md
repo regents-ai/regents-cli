@@ -3,7 +3,7 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.22 — not yet released (ships with the sign-in server in one window)
+## Next release — ships with the sign-in server in one window
 
 - Every signed request names the host it is sent to: the signing contract is version 2 (elixir-utils
   5d3721eb, contract id eaefcab9…), which covers `@authority` right after `@path`, the host
