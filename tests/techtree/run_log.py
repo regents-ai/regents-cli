@@ -142,7 +142,9 @@ def install(monkeypatch: pytest.MonkeyPatch, home: Path, log: RunLog) -> None:
     monkeypatch.setenv("HOME", str(home))
     receipt = siwa.Receipt("0x" + "1" * 40, "techtree", "test-only", "2099-01-01T00:00:00Z", "test")
     monkeypatch.setattr(siwa, "current", lambda _site, _timeout: receipt)
-    monkeypatch.setattr(siwa, "sign", lambda _request, _receipt: {"x-siwa-signature": "test-only"})
+    monkeypatch.setattr(
+        siwa, "sign", lambda _request, _receipt, _base: {"x-siwa-signature": "test-only"}
+    )
     for module in (publish_module, withdraw_module):
         monkeypatch.setattr(module, "packaged_publication_coordinates", lambda: COORDINATES)
         monkeypatch.setattr(module, "HttpsPublicationTransport", log.transport)
