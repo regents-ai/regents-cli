@@ -3,9 +3,9 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## 1.10.21 — 2026-10-30
+## 1.10.21 — 2026-10-31
 
-Evidence: level protected; every site pinned at the commit it runs live on 30 Oct and read
+Evidence: level protected; every site pinned at the commit it runs live on 31 Oct and read
 live from the built wheel; 927 tests; independent reviews of the whole bundle, each finding
 fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
 
@@ -61,9 +61,9 @@ fixed with a test that fails on the old code; Techtree release record climb-v0.7
   in `SIWA_BROKER`. `regents auth status` checks its pairing status the same way.
 - A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
   refused with what to do, where it ended in a traceback.
-- Every site's commands now match what each site runs live on 30 Oct at 22:00Z (pins: template
-  456a97fb, regents.sh 630474ba, Patchbay 0e180cb7, Keyfleet daa6dd6f, Techtree 2f885c4d,
-  Autolaunch 17764eb8).
+- Every site's commands now match what each site runs live on 31 Oct at 22:00Z (pins: template
+  456a97fb, regents.sh 71ef1ab2, Patchbay d7e65488, Keyfleet 5b34ce9b, Techtree 2f885c4d,
+  Autolaunch 436cd858).
   - Keyfleet has 121 commands. New: `checkpoint read|save`, `code commit` and `code commits`,
     `fleets activity|doctor`, `keys buy|club-claim|held|message|post-as|remove|reveal|show`, `links
     resolve`, `preview`, `profile avatar-start|avatar-remove|edit`, `projects describe|hide|show`,

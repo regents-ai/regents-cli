@@ -64,9 +64,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
 
 1. Repository cut, and 2. description format: done (TypeScript era, `457df04`, `25e1868`).
 3. Every site is pinned to its live commit. In 1.10.21 (`platforms.lock.json`, read from each
-   site's live `/capabilities.json` `build.commit`, or Autolaunch's `/healthz`, on 30 Oct at
-   22:00Z): Patchbay `0e180cb7`, Keyfleet `daa6dd6f`, Autolaunch `17764eb8`, Techtree
-   `2f885c4d`, regents.sh `630474ba`, ash-template `456a97fb`, and the signing contract from
+   site's live `/capabilities.json` `build.commit`, or Autolaunch's `/healthz`, on 31 Oct at
+   22:00Z): Patchbay `d7e65488`, Keyfleet `5b34ce9b`, Autolaunch `436cd858`, Techtree
+   `2f885c4d`, regents.sh `71ef1ab2`, ash-template `456a97fb`, and the signing contract from
    elixir-utils `fe3aa1d5`. `make release-check` reads every public read live
    against these copies. Every site has `agents pair`, `agents whoami` and its `account` reads. `protocol`
    is the one command tree named apart from its site (`SIGN_IN_SITES` in
