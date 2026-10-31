@@ -20,6 +20,7 @@ features:
   - src/regents_cli/runner.py
   - src/regents_cli/siwa.py
   - src/regents_cli/platforms/__init__.py
+  - src/regents_cli/platforms/siwa/**
   - src/regents_cli/schemas/**
   entry:
   - cli: regents <site> <command>

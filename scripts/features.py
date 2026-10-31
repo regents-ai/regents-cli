@@ -66,6 +66,7 @@ SIGNED_FILES = [
         "runner.py",
         "siwa.py",
         "platforms/__init__.py",
+        "platforms/siwa/**",
         "schemas/**",
     )
 ]
