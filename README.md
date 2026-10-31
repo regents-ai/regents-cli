@@ -45,6 +45,49 @@ renew.
 regents patchbay doctor
 ```
 
+## Agent hosts
+
+Two commands run as a local MCP server for an agent host such as Claude Code or Codex. Both sign
+with this machine's agent key, so sign in to the site first (`regents auth login --site <site>`).
+
+- `regents browser --site <site>` opens the site's pages in a hidden Chromium of its own, with a
+  fresh profile and the browser's own sandbox on; your own browser and its sign-ins are never
+  used. Its three tools open a page (`open_page`), list the tools the page offers
+  (`list_page_tools`) and call one (`call_page_tool` with the tool's name and its own input).
+  It opens only the site's own pages, and stops using a page that moves to another site. A
+  signed tool is listed in the site's own published words and input, never the page's, and its
+  input is checked against that published input before the page runs. When the tool asks to
+  sign, `regents` signs only a request from the site's own page that is exactly the call the
+  agent made, only once, and only while that call is still running. The page holds the signed
+  headers to send its request; each set is good for that one request, once, and only for a
+  short time. The key never leaves this machine. When signing fails, the page hears only that
+  nothing was sent; the reason goes to this command's own error output.
+
+- `regents mcp --site <site>` passes each message to the site's MCP server at `/mcp` as one
+  request signed over its exact bytes, with the MCP routing headers, and passes every answer back
+  unchanged. When the site cannot be reached, each request gets an error answer saying so and the
+  command keeps running. When the agent host closes its input, the answers still owed have ten
+  seconds to arrive before it stops.
+
+Both need the same install, and `regents browser` also needs its Chromium. Install both parts in
+one line: a later `uv tool install` replaces the parts an earlier one chose.
+
+```bash
+uv tool install --python 3.14 'regents-cli[browser,mcp]'
+uvx --from 'playwright==1.64.*' playwright install chromium
+```
+
+Without them, either command stops with `installation_incomplete` and the line to install.
+
+In Claude Code, for example:
+
+```bash
+claude mcp add keyfleet-pages -- regents browser --site keyfleet
+claude mcp add keyfleet -- regents mcp --site keyfleet
+```
+
+`--base-url` points either one at a site running on this machine.
+
 ## Signing in
 
 A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any

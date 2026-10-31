@@ -13,6 +13,7 @@ import httpx
 from rich_click import RichCommand
 
 from regents_cli import browser, next_steps, output, siwa
+from regents_cli.agent_hosts import browser_command, mcp_command
 from regents_cli.auth import auth_group
 from regents_cli.errors import (
     EXIT_CANCELLED,
@@ -49,6 +50,10 @@ Check a site answers, and your sign-in once you have one:
 
 Get this machine ready to run a Techtree Climb:
     regents techtree setup
+  Give your agent host a site's page tools, or its hosted MCP server,
+  signed with your agent key; add one as a local MCP server:
+    regents browser --site keyfleet
+    regents mcp --site keyfleet
 
 Add --help to any command to see what it does."""
 
@@ -83,6 +88,8 @@ def root() -> click.Group:
         group.add_command(platform_group(platform, custom_groups.pop(platform.name, None)))
     for custom in custom_groups.values():
         group.add_command(custom)
+    group.add_command(browser_command(platforms))
+    group.add_command(mcp_command(platforms))
     return group
 
 

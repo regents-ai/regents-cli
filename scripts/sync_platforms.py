@@ -1,7 +1,8 @@
 """Copy each platform's pinned files into this tree, and check the copies.
 
-Command descriptions and API documents go to src/regents_cli/platforms/ and ship in the package.
-WebMCP tool lists go to tool_manifests/; only the release check reads them, so they never ship.
+Command descriptions, API documents and WebMCP tool manifests go to src/regents_cli/platforms/
+and ship in the package; `regents browser` checks each signed page request against its site's
+tool manifest.
 
 A platform's command description and API documents live in its own repository, which may be
 private; platforms.lock.json names the commit, which must be on that repository's GitHub main,
@@ -30,7 +31,6 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 LOCK = ROOT / "platforms.lock.json"
 PLATFORMS = ROOT / "src/regents_cli/platforms"
-TOOL_MANIFESTS = ROOT / "tool_manifests"
 PACKAGE_FILES = {"__init__.py"}
 
 
@@ -59,8 +59,7 @@ def copies(lock: dict[str, Any]) -> int:
     pinned = pinned_files(lock)
     present = {
         str(path.relative_to(ROOT))
-        for folder in (PLATFORMS, TOOL_MANIFESTS)
-        for path in folder.rglob("*")
+        for path in PLATFORMS.rglob("*")
         if path.is_file() and "__pycache__" not in path.parts and path.name not in PACKAGE_FILES
     }
     problems = [f"{copy} is not in the lock" for copy in sorted(present - set(pinned))]

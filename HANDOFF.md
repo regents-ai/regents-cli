@@ -57,7 +57,8 @@ behind a site, and never holds one up (founder, 2026-09-28).
 - `scripts/check_live.py`: `make release-check` installs the wheel into a new environment, runs
   every public read against the live sites, and checks the Touch ID page is the live sign-in
   server's own.
-- `tool_manifests/`: each site's WebMCP tool list, pinned but not shipped;
+- `src/regents_cli/platforms/<site>/tool_manifest.json`: each site's WebMCP tool list, pinned
+  and shipped, since `regents browser` checks signed page requests against it;
   `scripts/webmcp_parity.py` reports tools and commands without a partner and never fails.
 
 ## Where the steps stand
@@ -224,6 +225,22 @@ behind a site, and never holds one up (founder, 2026-09-28).
   when the wheel's page differs from the live one. To take a new one, run that script from a
   siwa-server checkout with `--design-system <checkout> --cli <this checkout>`, then again with
   `--check`.
+
+- **Tool manifests, in the agent access joint release**: `regents browser` reads each signed
+  tool's `input_schema` as the tool's own input (hard cutover, branch
+  `agent-access/browser-signer-1028`). ash-template's copy is already the new manifest, byte for
+  byte from template `45fc0293` (`platform/priv/tool_manifest.json`, on the template's side
+  branch `agent-access/template-mcp-1028`, not on its main yet; it adds the three chat tools): the lock holds that copy's
+  sha256 under the old template commit `5a1fe29e`, so `make check` passes and `make
+  release-check` fails on that one file until the joint release moves the whole ash-template pin
+  to a template main commit that carries `45fc0293`. The other five sites' copies are still the
+  old `{input, request, proof}` shape with descriptions naming `prepare_agent_request`; on them
+  `regents browser` would list that wrapper as a signed tool's input. Hold: they re-pin at the
+  joint release, each once its site carries the template change (`make sync`, `make check`),
+  and `regents browser` ships only after all six are moved. Patchbay's signed tool `get_updates`
+  is titled "What changed on threads you name or follow", a W-word opening: Patchbay renames it
+  before its re-pin. The founder's joint-release go lifts this hold; the release check looks for
+  all six copies matching their pins in `make release-check`.
 
 - Queued pins and changes for the next release are in
   `/Users/sean/Documents/regent/docs/backlogs/regents-cli.md`, outside this repository.

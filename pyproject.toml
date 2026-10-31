@@ -31,6 +31,20 @@ dependencies = [
 check = [
   "jsonschema>=4.25,<5",
 ]
+# What `regents mcp` needs: the MCP SDK and the HTTP client its transport takes.
+mcp = [
+  "anyio>=4.15,<5",
+  "httpx2>=2.16,<3",
+  "mcp>=2.3,<3",
+  "mcp-types>=2.3,<3",
+]
+# What `regents browser` needs: the MCP SDK, Playwright with its Chromium installed beside it,
+# and the schema checker for a signed tool's input.
+browser = [
+  "jsonschema>=4.25,<5",
+  "mcp>=2.3,<3",
+  "playwright>=1.64,<1.65",
+]
 
 [project.scripts]
 regents = "regents_cli.app:run"
@@ -51,6 +65,12 @@ dev = [
   "hatchling>=1.27,<2",
   "hypothesis>=6.140,<7",
   "playwright>=1.64,<1.65",
+  # The `mcp` and `browser` extras, for the agent host commands' tests.
+  "anyio>=4.15,<5",
+  "httpx2>=2.16,<3",
+  "mcp>=2.3,<3",
+  "mcp-types>=2.3,<3",
+  "uvicorn>=0.54,<1",
 ]
 
 [build-system]
