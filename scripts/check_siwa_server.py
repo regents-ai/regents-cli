@@ -9,9 +9,10 @@ a local sign-in server built from the same library as the packaged signing contr
 It signs in to the server's `regents` audience with a throwaway key through `regents auth login`,
 then has the server check signed requests the way a site does (POST /api/shared/siwa/http-verify):
 a read with no body, a write with a JSON body, a read with an empty signed body and a read with
-a query are accepted; a changed body, a changed query, another site's audience and a replay are
-refused. Like a site, it sends the server only the body's digest, worked out here from the body's
-bytes, never the body. SIWA_BROKER has no default, so this never signs in to the live server.
+a query are accepted; a changed body, a changed query, another site's audience, a request signed
+for another host and a replay are refused. Like a site, it sends the server only the body's
+digest, worked out here from the body's bytes, never the body. SIWA_BROKER has no default, so
+this never signs in to the live server.
 """
 
 from __future__ import annotations
@@ -40,12 +41,19 @@ def body_digest(body: str) -> str:
 
 
 def verify(
-    broker: str, audience: str, request: Request, headers: dict[str, str], body: str | None
+    broker: str,
+    audience: str,
+    request: Request,
+    headers: dict[str, str],
+    body: str | None,
+    authority: str,
 ) -> bool:
-    """Whether the sign-in server accepts `headers` for `request` sent with `body`'s bytes."""
+    """Whether the sign-in server accepts `headers` for `request` sent to `authority` with
+    `body`'s bytes."""
     check: dict[str, object] = {
         "method": request.method,
         "path": request.target,
+        "authority": authority,
         "headers": headers,
     }
     if body is not None:
@@ -93,23 +101,47 @@ def main() -> int:
         receipt = siwa.load_receipt(SITE)
         assert receipt is not None
 
-        def signed(request: Request) -> dict[str, str]:
-            return siwa.sign(request, receipt)
+        listed = httpx.get(f"{broker}/api/shared/siwa/audiences", timeout=30).json()
+        [here, *_] = [
+            entry["origin"] for entry in listed["data"]["audiences"] if entry["audience"] == SITE
+        ]
+        elsewhere = "https://another-host.example"
+
+        def signed(request: Request, base: str = here) -> dict[str, str]:
+            return siwa.sign(request, receipt, base)
 
         read = Request("GET", "/api/agent/check")
         write = Request("POST", "/api/agent/check", body={"note": "hello"})
         empty = Request("GET", "/api/agent/check", body={})
         query = Request("GET", "/api/agent/check", {"cursor": "2"})
         replayed = signed(read)
+        at_here, at_elsewhere = siwa.authority_of(here), siwa.authority_of(elsewhere)
         cases = [
-            ("a read with no body", True, read, signed(read), None, SITE),
-            ("a write with a JSON body", True, write, signed(write), text(write), SITE),
-            ("a read with an empty signed body", True, empty, signed(empty), text(empty), SITE),
-            ("a read with a query", True, query, signed(query), None, SITE),
-            ("a changed body", False, write, signed(write), '{"note":"changed"}', SITE),
-            ("another site's audience", False, read, signed(read), None, "patchbay"),
-            ("a first send", True, read, replayed, None, SITE),
-            ("the same request again", False, read, replayed, None, SITE),
+            ("a read with no body", True, read, signed(read), None, SITE, at_here),
+            ("a write with a JSON body", True, write, signed(write), text(write), SITE, at_here),
+            (
+                "a read with an empty signed body",
+                True,
+                empty,
+                signed(empty),
+                text(empty),
+                SITE,
+                at_here,
+            ),
+            ("a read with a query", True, query, signed(query), None, SITE, at_here),
+            ("a changed body", False, write, signed(write), '{"note":"changed"}', SITE, at_here),
+            ("another site's audience", False, read, signed(read), None, "patchbay", at_here),
+            (
+                "a request for another host",
+                False,
+                read,
+                signed(read, elsewhere),
+                None,
+                SITE,
+                at_elsewhere,
+            ),
+            ("a first send", True, read, replayed, None, SITE, at_here),
+            ("the same request again", False, read, replayed, None, SITE, at_here),
             (
                 "a changed query",
                 False,
@@ -117,11 +149,12 @@ def main() -> int:
                 signed(query),
                 None,
                 SITE,
+                at_here,
             ),
         ]
         failed = []
-        for label, expected, request, headers, body, audience in cases:
-            accepted = verify(broker, audience, request, headers, body)
+        for label, expected, request, headers, body, audience, authority in cases:
+            accepted = verify(broker, audience, request, headers, body, authority)
             print(f"{'accepted' if accepted else 'refused '}  {label}")
             if accepted != expected:
                 failed.append(label)

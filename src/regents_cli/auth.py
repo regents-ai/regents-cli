@@ -239,10 +239,23 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         ],
     }
     mine = [site for site, receipt in receipts.items() if key and receipt.signed_by(key)]
-    if mine:
-        confirmation_site = site if site in mine else "regents" if "regents" in mine else mine[0]
+    addresses = {p.site: base_address(None, p.env_var, p.base_url) for p in pinned_platforms()}
+    confirmable = [site for site in mine if site in addresses]
+    if confirmable:
+        confirmation_site = (
+            site
+            if site in confirmable
+            else "regents"
+            if "regents" in confirmable
+            else confirmable[0]
+        )
+        confirmation_base = addresses[confirmation_site]
+        siwa.signs_for(confirmation_site, confirmation_base, timeout_ms)
         told = siwa.confirm(
-            confirmation_site, siwa.current(confirmation_site, timeout_ms), timeout_ms
+            confirmation_site,
+            siwa.current(confirmation_site, timeout_ms),
+            confirmation_base,
+            timeout_ms,
         )
         listing, person = told["agentRegistration"], told["agentBook"]
         answer["registry_listing"] = listing["registryUrl"] if listing else None
@@ -260,7 +273,7 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
             siwa.signs_for(selected, base, timeout_ms)
             request = Request(probe.method, probe.path)
             request = replace(
-                request, headers=siwa.sign(request, siwa.current(selected, timeout_ms))
+                request, headers=siwa.sign(request, siwa.current(selected, timeout_ms), base)
             )
             told = send(base, request, timeout_ms)
             answer["pairing_status"] = {"site": selected, **data_with(told)}

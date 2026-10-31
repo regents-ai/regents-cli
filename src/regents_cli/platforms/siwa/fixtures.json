@@ -1,5 +1,5 @@
 {
-  "contract_id": "53180b0986ba37fe13685d1a9fb0345605e926b5e6367d8d485174f524716060",
+  "contract_id": "eaefcab99cbdd8946764ba7c4ea61770cf6846d131adce7a6703c112b17aa0c3",
   "signer": {
     "private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
     "address": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf"
@@ -22,6 +22,9 @@
   },
   "verify": {
     "audience": "siwa-contract-fixture",
+    "authorities": [
+      "fixture.example"
+    ],
     "now": 1790000000
   },
   "signing": {
@@ -34,6 +37,40 @@
     "chain_id": 8453,
     "key_id": "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf"
   },
+  "authorities": [
+    {
+      "url": "https://fixture.example/fixture",
+      "authority": "fixture.example"
+    },
+    {
+      "url": "https://Fixture.EXAMPLE/fixture",
+      "authority": "fixture.example"
+    },
+    {
+      "url": "https://fixture.example:443/fixture",
+      "authority": "fixture.example"
+    },
+    {
+      "url": "https://fixture.example:8443/fixture",
+      "authority": "fixture.example:8443"
+    },
+    {
+      "url": "http://localhost:4000/fixture",
+      "authority": "localhost:4000"
+    },
+    {
+      "url": "http://127.0.0.1:4000/fixture",
+      "authority": "127.0.0.1:4000"
+    },
+    {
+      "url": "http://localhost/fixture",
+      "authority": "localhost"
+    },
+    {
+      "url": "http://[::1]:4000/fixture",
+      "authority": "[::1]:4000"
+    }
+  ],
   "signed": [
     {
       "name": "no_body",
@@ -41,6 +78,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -61,11 +99,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -73,7 +111,7 @@
           ]
         ]
       },
-      "signing_message": "\"@method\": get\n\"@path\": /fixture\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+      "signing_message": "\"@method\": get\n\"@path\": /fixture\n\"@authority\": fixture.example\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"@signature-params\": (\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
     },
     {
       "name": "json_body",
@@ -81,6 +119,7 @@
       "request": {
         "method": "POST",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": "{\"a\":1}",
         "headers": [
           [
@@ -105,11 +144,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:4pA8ZahF59N4c2rXgAWTTepJJFIP1AQq6+4NvdrRRaM/kZwfXz79IDFy3zUsUq0l0Gotj1dR9aSgWjzD1NYgFhs=:"
+            "sig1=:YYqL/VvUaOsB1T6l4zPpB83FVf2WN+50PYSjxiNzfVVn3SVybfH/51+IljQ/L5xI6l8Iy+XFLVT1FD7ZMt4ghBw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -117,7 +156,7 @@
           ]
         ]
       },
-      "signing_message": "\"@method\": post\n\"@path\": /fixture\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"content-digest\": sha-256=:AVq9f1zFei3ZS3WQ8ErYCEJzkF7jPsXOvq5iJ2qX+GI=:\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+      "signing_message": "\"@method\": post\n\"@path\": /fixture\n\"@authority\": fixture.example\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"content-digest\": sha-256=:AVq9f1zFei3ZS3WQ8ErYCEJzkF7jPsXOvq5iJ2qX+GI=:\n\"@signature-params\": (\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
     },
     {
       "name": "empty_object_body",
@@ -125,6 +164,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": "{}",
         "headers": [
           [
@@ -149,11 +189,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:nfBH6qjxnYzqcR2ueicI+a2SuWq2WoSkzNKLJFOw8xZYjgGyGnR6YO0QFRUUemgAKTWGEE60JgZ2NacWQ9CWSxw=:"
+            "sig1=:NZRHYblVFHQNv41Q3KBa+A9hYCHJq7vw0QbEcL0E+3IghaAI6PkfBPEXAicJGy74PFbKXxiMM79QUr48W6ig+xw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -161,7 +201,7 @@
           ]
         ]
       },
-      "signing_message": "\"@method\": get\n\"@path\": /fixture\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"content-digest\": sha-256=:RBNvo1WzZ4oRRq0W9+hknpT7T8If536DEMBg9hyq/4o=:\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+      "signing_message": "\"@method\": get\n\"@path\": /fixture\n\"@authority\": fixture.example\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"content-digest\": sha-256=:RBNvo1WzZ4oRRq0W9+hknpT7T8If536DEMBg9hyq/4o=:\n\"@signature-params\": (\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
     },
     {
       "name": "signed_query",
@@ -169,6 +209,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture?cursor=2",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -189,11 +230,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:qlPVN8yhcKUIN1IgLaGStrpFqzi41jhtWtZ6Jh5gWjYDbwC9SiMPppWrHuEqBak28UgxZW13Pn0mn7ZlKYlFZBs=:"
+            "sig1=:uELnHrBhbXd4j6TqiofYIpIIGrMqsv7K6EZDPAIPTtxO7WRJ1nH747v2LUi8QZPiZHdx9sWdhnblIR6NCffNZhw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -201,7 +242,7 @@
           ]
         ]
       },
-      "signing_message": "\"@method\": get\n\"@path\": /fixture?cursor=2\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"@signature-params\": (\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+      "signing_message": "\"@method\": get\n\"@path\": /fixture?cursor=2\n\"@authority\": fixture.example\n\"x-siwa-receipt\": eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8\n\"x-key-id\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-timestamp\": 1790000000\n\"x-agent-wallet-address\": 0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\n\"x-agent-chain-id\": 8453\n\"@signature-params\": (\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
     }
   ],
   "refused": [
@@ -211,6 +252,7 @@
       "request": {
         "method": "POST",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": "{\"a\":2}",
         "headers": [
           [
@@ -235,11 +277,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:4pA8ZahF59N4c2rXgAWTTepJJFIP1AQq6+4NvdrRRaM/kZwfXz79IDFy3zUsUq0l0Gotj1dR9aSgWjzD1NYgFhs=:"
+            "sig1=:YYqL/VvUaOsB1T6l4zPpB83FVf2WN+50PYSjxiNzfVVn3SVybfH/51+IljQ/L5xI6l8Iy+XFLVT1FD7ZMt4ghBw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\" \"content-digest\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -258,6 +300,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -278,11 +321,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -297,11 +340,12 @@
       "audience": "another-site"
     },
     {
-      "name": "replay",
+      "name": "other_authority",
       "query": "refuse",
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "other.example",
         "body": null,
         "headers": [
           [
@@ -322,11 +366,55 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+          ],
+          [
+            "x-timestamp",
+            "1790000000"
+          ]
+        ]
+      },
+      "checked_by": "verifier",
+      "reason": "authority_mismatch",
+      "status": 401,
+      "code": "http_signature_invalid"
+    },
+    {
+      "name": "replay",
+      "query": "refuse",
+      "request": {
+        "method": "GET",
+        "path": "/fixture",
+        "authority": "fixture.example",
+        "body": null,
+        "headers": [
+          [
+            "x-agent-chain-id",
+            "8453"
+          ],
+          [
+            "x-agent-wallet-address",
+            "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf"
+          ],
+          [
+            "x-key-id",
+            "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf"
+          ],
+          [
+            "x-siwa-receipt",
+            "eyJhdWQiOiJzaXdhLWNvbnRyYWN0LWZpeHR1cmUiLCJjaGFpbl9pZCI6ODQ1MywiZXhwIjoxNzkwMDAxODAwMDAwLCJpYXQiOjE3OTAwMDAwMDAwMDAsImp0aSI6InJlY2VpcHQtZml4dHVyZSIsImtleV9pZCI6IjB4N2U1ZjQ1NTIwOTFhNjkxMjVkNWRmY2I3YjhjMjY1OTAyOTM5NWJkZiIsIm5vbmNlIjoicmVjZWlwdC1ub25jZS1maXh0dXJlIiwic3ViIjoiMHg3ZTVmNDU1MjA5MWE2OTEyNWQ1ZGZjYjdiOGMyNjU5MDI5Mzk1YmRmIiwidHlwIjoic2l3YV93YWxsZXRfcmVjZWlwdCIsInZlcmlmaWVkIjoid2FsbGV0X3NpZ25hdHVyZSJ9.ITvyqWF1faY4adcNj5KDEx_rFUGjDHi75jn10Lj9co8"
+          ],
+          [
+            "x-siwa-signature",
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
+          ],
+          [
+            "x-siwa-signature-input",
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -346,6 +434,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -366,15 +455,15 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -391,6 +480,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -411,15 +501,15 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -436,6 +526,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -456,11 +547,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -481,6 +572,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -505,7 +597,7 @@
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -524,6 +616,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -544,11 +637,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:dJmsn29KZBAVs5Zn70fFTkqe0m+u4ODOOGulzucHBbxGu26ne0G2B0YIEm1T/cYP5tLcfDnb6KjkMDs4I46mEhw=:"
+            "sig1=:VP5ODaiInnkAFeJPfjWJ1ht54nu3IS8qYq+hATR2KI9LWHOpRTLhSZbD2qyGcpW8Zgyc3e3ZqgFx0GZvFrjR/hs=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1789999879;expires=1789999999;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1789999879;expires=1789999999;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -567,6 +660,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -587,11 +681,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:pev/6QEdOFJE8y7u32Dzp5NQu0iVIJ0a1MN2XRoxY2JMlKfP9i0EXvggaZZQDy2XcZKHTmuLwupyV1xy9VBJ4xw=:"
+            "sig1=:3o2JBD6akTe6Np02vmHyvYRY9yc2tDb5oZq95FP+j9Yxw0BSwC1NMZz+BMF/XyzNBDrDeqN/GiUj8tO2AqGBBRw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000301;expires=1790000421;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000301;expires=1790000421;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -610,6 +704,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -630,11 +725,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -653,6 +748,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -673,7 +769,7 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
@@ -696,6 +792,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": "{\"a\":1}",
         "headers": [
           [
@@ -716,11 +813,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -739,6 +836,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture?cursor=2",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -759,11 +857,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -780,6 +878,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture?cursor=3",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -800,11 +899,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:qlPVN8yhcKUIN1IgLaGStrpFqzi41jhtWtZ6Jh5gWjYDbwC9SiMPppWrHuEqBak28UgxZW13Pn0mn7ZlKYlFZBs=:"
+            "sig1=:uELnHrBhbXd4j6TqiofYIpIIGrMqsv7K6EZDPAIPTtxO7WRJ1nH747v2LUi8QZPiZHdx9sWdhnblIR6NCffNZhw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -825,6 +924,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -849,11 +949,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",
@@ -868,6 +968,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -888,11 +989,11 @@
           ],
           [
             "X-Siwa-Signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "X-Siwa-Signature-Input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "X-Timestamp",
@@ -907,6 +1008,7 @@
       "request": {
         "method": "GET",
         "path": "/fixture",
+        "authority": "fixture.example",
         "body": null,
         "headers": [
           [
@@ -935,11 +1037,11 @@
           ],
           [
             "x-siwa-signature",
-            "sig1=:P1PRdevJNvSMRRk8Yfo28Kxrd+twaomhvszHZbsBEeYQWqOlpOJ0G9GGSeMLzuosGciPMmBy8k7/fDzfWAczVhw=:"
+            "sig1=:mN/O6oGl+aJjCHKPv3Mh2ECp40/JIhAH/8+6p9vJk1Ucc8P55WnPtYde3KLZZKZc7hyLPKXAgKKz51rpk1OGwxw=:"
           ],
           [
             "x-siwa-signature-input",
-            "sig1=(\"@method\" \"@path\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
+            "sig1=(\"@method\" \"@path\" \"@authority\" \"x-siwa-receipt\" \"x-key-id\" \"x-timestamp\" \"x-agent-wallet-address\" \"x-agent-chain-id\");created=1790000000;expires=1790000120;nonce=\"sig-nonce-fixture\";keyid=\"0x7e5f4552091a69125d5dfcb7b8c2659029395bdf\""
           ],
           [
             "x-timestamp",

@@ -219,7 +219,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
                 again = command_line(platform, command, given, ["--phase", "send", *shared])
                 output.emit(ready, as_json=as_json, next_steps=[send_signed(ready, again)])
                 return
-            request = replace(request, headers=siwa.sign(request, receipt))
+            request = replace(request, headers=siwa.sign(request, receipt, base))
         response = respond(base, request, timeout_ms)
         told = answer(response)
         steps = after(platform, command, told, given, shared, finished=response.status_code != 202)
@@ -438,7 +438,7 @@ def in_words(names: list[str], joined: str = "and") -> str:
 
 def prepared(base: str, request: Request, receipt: siwa.Receipt) -> dict[str, Any]:
     """The exact request to sign and the message the caller personal_signs for it."""
-    headers, message = siwa.prepare(request, receipt)
+    headers, message = siwa.prepare(request, receipt, base)
     content = request.content
     body = {} if content is None else {"body": content.decode("utf-8")}
     return {
@@ -481,7 +481,7 @@ def signed_by_caller(command: Command, base: str, request: Request, timeout_ms: 
         raise UsageError("The prepared request is for another site, method or path.")
     if request.body is not None:
         request = replace(request, body=prepared_body(command, request, given["body"]))
-    headers, message = siwa.rebuild(request, given["headers"])
+    headers, message = siwa.rebuild(request, given["headers"], base)
     if message != given["message"]:
         raise UsageError("The prepared message does not match its request.")
     return replace(request, headers=siwa.with_signature(headers, signature))

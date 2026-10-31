@@ -68,10 +68,11 @@ class HttpsPublicationTransport:
                 details={"limit": MAX_REQUEST_BYTES},
             )
         # The independent participant proof stays byte-for-byte intact inside this envelope.
-        signed_request = Request("POST", urlsplit(endpoint).path, raw_content=body)
+        parts = urlsplit(endpoint)
+        signed_request = Request("POST", parts.path, raw_content=body)
         try:
             receipt = siwa.current("techtree", int(_TIMEOUT_SECONDS * 1000))
-            proof = siwa.sign(signed_request, receipt)
+            proof = siwa.sign(signed_request, receipt, f"{parts.scheme}://{parts.netloc}")
         except CommandError as error:
             # A signing command may include sensitive output in its error; never relay it.
             raise AuthenticationError(

@@ -107,15 +107,15 @@
   },
   "siwa": {
     "repository": "regents-ai/elixir-utils",
-    "commit": "fe3aa1d512a98c9de57b7a1be46fb1852b1a9224",
+    "commit": "5d3721ebd3a36f03cbea135969a9eefaf3ea0cec",
     "files": {
       "siwa/contract/contract.json": {
         "copy": "src/regents_cli/platforms/siwa/contract.json",
-        "sha256": "53180b0986ba37fe13685d1a9fb0345605e926b5e6367d8d485174f524716060"
+        "sha256": "eaefcab99cbdd8946764ba7c4ea61770cf6846d131adce7a6703c112b17aa0c3"
       },
       "siwa/contract/fixtures.json": {
         "copy": "src/regents_cli/platforms/siwa/fixtures.json",
-        "sha256": "808b8112d56ae485cdf267fd424b344e3c054fb4c9231319ec88c0631e6bb0e5"
+        "sha256": "48dc31f6ebbd9ad5c3a5ee98b45f34c14909a2f8a9590c97b0a0796181bd4dbf"
       }
     }
   },

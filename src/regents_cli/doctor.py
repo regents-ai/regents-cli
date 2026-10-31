@@ -44,7 +44,7 @@ def doctor_command(platform: Platform) -> click.Command:
             host = urlsplit(base).netloc
             checks.append(check(RELEASE, lambda: release_current(host, named)))
         if any(c.signed for c in platform.commands):
-            checks.append(check(SIGN_IN, lambda: sign_in_good(platform.site, timeout_ms)))
+            checks.append(check(SIGN_IN, lambda: sign_in_good(platform.site, base, timeout_ms)))
         found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
         failed = [c for c in checks if not c["ok"]]
         if failed:
@@ -186,7 +186,7 @@ def numbered(release: str) -> tuple[int, ...] | None:
     return tuple(int(p) for p in parts) if all(p.isdigit() for p in parts) else None
 
 
-def sign_in_good(site: str, timeout_ms: int) -> tuple[str, str]:
+def sign_in_good(site: str, base: str, timeout_ms: int) -> tuple[str, str]:
     key = siwa.load_key()
     if siwa.load_receipt(site) is None:
         return NOT_SIGNED_IN, "Not signed in yet; needed only for signed commands."
@@ -196,7 +196,8 @@ def sign_in_good(site: str, timeout_ms: int) -> tuple[str, str]:
             f"Signed in with your own key as {receipt.address} until "
             f"{receipt.receipt_expires_at}; only that key can sign a request to check it further."
         )
-    told = siwa.confirm(site, receipt, timeout_ms)
+    siwa.signs_for(site, base, timeout_ms)
+    told = siwa.confirm(site, receipt, base, timeout_ms)
     listing, person = told["agentRegistration"], told["agentBook"]
     listed = (
         f"listed in the agent registry at {listing['registryUrl']}"

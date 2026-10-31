@@ -32,11 +32,13 @@ def test_signed_bytes_stay_immutable_and_retries_get_fresh_proof(
     calls: list[Request] = []
     sent: list[httpx.Request] = []
 
-    def proof(request: Request, received: siwa.Receipt) -> dict[str, str]:
+    def proof(request: Request, received: siwa.Receipt, base: str) -> dict[str, str]:
         assert received is receipt
+        assert base == "https://techtree.sh"
         calls.append(request)
         return siwa.unsigned(
             request,
+            authority=siwa.authority_of(base),
             receipt=receipt.receipt,
             wallet_address=receipt.address,
             chain_id=8453,

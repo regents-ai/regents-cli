@@ -26,6 +26,7 @@ from datetime import datetime
 from functools import cache
 from pathlib import Path
 from typing import Any, Final
+from urllib.parse import urlsplit
 
 import httpx
 from eth_abi import abi
@@ -59,6 +60,7 @@ JSON_ESCAPES = {
     "\\": "\\\\",
 }
 RENEW_MARGIN_SECONDS = 60
+DEFAULT_PORTS: Final = {"http": 80, "https": 443}
 SIGNER_TIMEOUT_SECONDS = 300
 ADDRESS = re.compile(r"0x[0-9a-fA-F]{40}")
 SIGNATURE = re.compile(r"0x(?:[0-9a-fA-F]{2}){65,}")
@@ -426,9 +428,21 @@ def current(site: str, timeout_ms: int) -> Receipt:
     )
 
 
+def authority_of(base: str) -> str:
+    """The host a request to `base` is sent to, as `@authority` covers it: lowercase, an IPv6
+    address in brackets, and `:port` only when it is not the scheme's default."""
+    parts = urlsplit(base)
+    host = parts.hostname or ""
+    if ":" in host:
+        host = f"[{host}]"
+    port = parts.port
+    return host if port is None or port == DEFAULT_PORTS[parts.scheme] else f"{host}:{port}"
+
+
 def unsigned(
     request: Request,
     *,
+    authority: str,
     receipt: str,
     wallet_address: str,
     chain_id: int,
@@ -446,6 +460,7 @@ def unsigned(
     values: dict[str, str | int] = {
         "method": request.method.lower(),
         "path": request.target,
+        "authority": authority,
         "receipt": receipt,
         "key_id": key_id,
         "created": created,
@@ -481,10 +496,12 @@ def header_for(source: str) -> str:
     return str(header)
 
 
-def prepare(request: Request, receipt: Receipt) -> tuple[dict[str, str], str]:
+def prepare(request: Request, receipt: Receipt, base: str) -> tuple[dict[str, str], str]:
+    """The headers and message that sign `request` for sending to `base`."""
     created = int(time.time())
     return unsigned(
         request,
+        authority=authority_of(base),
         receipt=receipt.receipt,
         wallet_address=receipt.address,
         chain_id=chain_for(receipt.address),
@@ -495,8 +512,8 @@ def prepare(request: Request, receipt: Receipt) -> tuple[dict[str, str], str]:
     )
 
 
-def rebuild(request: Request, headers: dict[str, str]) -> tuple[dict[str, str], str]:
-    """The headers and message `prepare` gave for `request`, read back from its headers.
+def rebuild(request: Request, headers: dict[str, str], base: str) -> tuple[dict[str, str], str]:
+    """The headers and message `prepare` gave for `request` to `base`, read back from its headers.
 
     Anything other than exactly what `prepare` printed for this request is refused.
     """
@@ -517,6 +534,7 @@ def rebuild(request: Request, headers: dict[str, str]) -> tuple[dict[str, str], 
     wallet_address = headers.get(header_for("wallet_address"), "")
     expected, message = unsigned(
         request,
+        authority=authority_of(base),
         receipt=headers.get(header_for("receipt"), ""),
         wallet_address=wallet_address,
         chain_id=chain_for(wallet_address),
@@ -539,8 +557,8 @@ def with_signature(headers: dict[str, str], signature: str) -> dict[str, str]:
     return {**headers, rules["signature_header"]: f"{rules['label']}=:{encoded}:"}
 
 
-def sign(request: Request, receipt: Receipt) -> dict[str, str]:
-    """Signed headers for `request`, signed with the key on this machine."""
+def sign(request: Request, receipt: Receipt, base: str) -> dict[str, str]:
+    """Signed headers for `request` to `base`, signed with the key on this machine."""
     key = load_key()
     if key is None or not receipt.signed_by(key):
         raise CommandError(
@@ -549,12 +567,13 @@ def sign(request: Request, receipt: Receipt) -> dict[str, str]:
             "Sign with it yourself: --phase prepare, then --phase send.",
             exit_code=EXIT_AUTH,
         )
-    headers, message = prepare(request, receipt)
+    headers, message = prepare(request, receipt, base)
     return with_signature(headers, personal_sign(key, message))
 
 
-def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
-    """Have the sign-in server check a request signed with this sign-in, as the site does.
+def confirm(site: str, receipt: Receipt, base: str, timeout_ms: int) -> dict[str, Any]:
+    """Have the sign-in server check a request signed with this sign-in for the site at `base`,
+    as the site does.
 
     Answers what the sign-in server tells the site about the wallet: its agent registry
     listing (`agentRegistration`) and the World ID person it accepted (`agentBook`), each
@@ -563,7 +582,12 @@ def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
     request = Request("GET", "/")
     checked = _post(
         "/api/shared/siwa/http-verify",
-        {"method": request.method, "path": request.target, "headers": sign(request, receipt)},
+        {
+            "method": request.method,
+            "path": request.target,
+            "authority": authority_of(base),
+            "headers": sign(request, receipt, base),
+        },
         timeout_ms,
         headers={"x-siwa-audience": site},
     )

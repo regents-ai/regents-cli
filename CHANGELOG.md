@@ -3,6 +3,17 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.22 — not yet released (ships with the sign-in server in one window)
+
+- Every signed request names the host it is sent to: the signing contract is version 2 (elixir-utils
+  5d3721eb, contract id eaefcab9…), which covers `@authority` right after `@path`, the host
+  lowercased, an IPv6 address in brackets, and `:port` only when it is not the scheme's
+  default. A site and the sign-in server refuse a request signed for another host, and one
+  without it, so a request signed for one site can't be used at another. `--phase prepare`
+  prints the new message, and a request prepared by an earlier release can't be sent.
+  `regents auth status` and `regents <site> doctor` give the sign-in server the site's host
+  when they have it check a signed request, and check the site's address is listed first.
+
 ## 1.10.21 — 2026-10-31
 
 Evidence: level protected; every site pinned at the commit it runs live on 31 Oct and read
