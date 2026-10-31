@@ -107,7 +107,7 @@
   },
   "siwa": {
     "repository": "regents-ai/elixir-utils",
-    "commit": "5d3721ebd3a36f03cbea135969a9eefaf3ea0cec",
+    "commit": "644753647a6e3ab6bf945053e08d084bc665eb4f",
     "files": {
       "siwa/contract/contract.json": {
         "copy": "src/regents_cli/platforms/siwa/contract.json",
