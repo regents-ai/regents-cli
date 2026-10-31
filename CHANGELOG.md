@@ -5,10 +5,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.22 — 2026-11-01
 
-Ships in the sign-in window with the sign-in server and every site. Rollback: 1.10.21.
+Evidence: level protected; ships in one window with the sign-in server and every site; 935 tests;
+scripts/check_siwa_server.py against a local sign-in server on the same signing library: 10 of 10
+as expected, a request for another host refused; Techtree release record climb-v0.7.23.
 
 - Keyfleet pinned at 78438f8f, live on 1.10.21: its 39 newest tools now say they are released.
-
 - Every signed request names the host it is sent to: the signing contract is version 2 (elixir-utils
   64475364, contract id eaefcab9…), which covers `@authority` right after `@path`, the host
   lowercased, an IPv6 address in brackets, and `:port` only when it is not the scheme's
