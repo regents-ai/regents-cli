@@ -2524,7 +2524,7 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 5b34ce9bc7fe4c5474d34b21866ac76bdf9b00b0
+  commit: 78438f8fc83e4898e31ba4423472e71ef3654d4d
   commands: 121
   tools: 132
   tools_with_no_command:

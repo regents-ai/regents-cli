@@ -7,6 +7,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 Ships in the sign-in window with the sign-in server and every site. Rollback: 1.10.21.
 
+- Keyfleet pinned at 78438f8f, live on 1.10.21: its 39 newest tools now say they are released.
+
 - Every signed request names the host it is sent to: the signing contract is version 2 (elixir-utils
   64475364, contract id eaefcab9…), which covers `@authority` right after `@path`, the host
   lowercased, an IPv6 address in brackets, and `:port` only when it is not the scheme's

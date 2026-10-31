@@ -45,7 +45,7 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "5b34ce9bc7fe4c5474d34b21866ac76bdf9b00b0",
+    "commit": "78438f8fc83e4898e31ba4423472e71ef3654d4d",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
@@ -61,7 +61,7 @@
       },
       "platform/priv/tool_manifest.json": {
         "copy": "tool_manifests/keyfleet.json",
-        "sha256": "5c0def5a2811675f1d3360db343c004ee142fc7fb574c1f5450cd66fb258de64"
+        "sha256": "123291f87fc6dccf325c070165c58e3b0a93ef420e4a3da405ca03134013a629"
       }
     }
   },
