@@ -10,7 +10,7 @@ read (whoami) through `regents browser` on template, regents.sh, Keyfleet, Autol
 Techtree, live, answered as this machine's paired agent; Techtree release record climb-v0.7.24.
 
 - Every site's pinned files are its live commit after the sign-in window: template 0b65960c, Autolaunch
-  c7ea59d1, Keyfleet f11b80ed, Patchbay 3f83607e, regents.sh 9350ffa8, Techtree 094912ea. No command
+  c7ea59d1, Keyfleet b243ec03, Patchbay b5e77545, regents.sh 9350ffa8, Techtree 094912ea. No command
   changes; each signed tool's input is now the tool's own input on every site. Techtree release record
   climb-v0.7.24.
 

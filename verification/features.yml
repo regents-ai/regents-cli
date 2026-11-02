@@ -2482,7 +2482,7 @@ sites:
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: f11b80ed054ae5b1b39341fbc57ae14a72667ef3
+  commit: b243ec03d06b4898396bcd421c248da52eebf2e5
   commands: 121
   tools: 131
   tools_with_no_command:
@@ -2512,7 +2512,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 3f83607edac087dd14f1603eb947b3521219d58e
+  commit: b5e77545ba2fa2314a5943d7b0dd2303fba71f3c
   commands: 55
   tools: 61
   tools_with_no_command:

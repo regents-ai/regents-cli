@@ -45,7 +45,7 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "f11b80ed054ae5b1b39341fbc57ae14a72667ef3",
+    "commit": "b243ec03d06b4898396bcd421c248da52eebf2e5",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
@@ -53,7 +53,7 @@
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/keyfleet/openapi.json",
-        "sha256": "5b7e4341c2905cef2eb881cd592dc40046f5a0e7721327589aaf0ddf18bc1788"
+        "sha256": "06f89c0b053604c7f9a2d30f5224839482f297cc449b2844663ab3ea7220715a"
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/keyfleet/api-contract.openapiv3.yaml",
@@ -67,7 +67,7 @@
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "3f83607edac087dd14f1603eb947b3521219d58e",
+    "commit": "b5e77545ba2fa2314a5943d7b0dd2303fba71f3c",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
