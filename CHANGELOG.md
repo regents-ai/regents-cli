@@ -5,6 +5,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.23 — 2026-11-02
 
+Evidence: level protected; first release of `regents browser` and `regents mcp`; 1017 tests; a signed
+read (whoami) through `regents browser` on template, regents.sh, Keyfleet, Autolaunch, Patchbay and
+Techtree, live, answered as this machine's paired agent; Techtree release record climb-v0.7.24.
+
 - Every site's pinned files are its live commit after the sign-in window: template 0b65960c, Autolaunch
   c7ea59d1, Keyfleet f11b80ed, Patchbay 3f83607e, regents.sh 9350ffa8, Techtree 094912ea. No command
   changes; each signed tool's input is now the tool's own input on every site. Techtree release record
@@ -27,6 +31,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   Not proven yet: a page frame's address is read when the tool asks to sign, so a frame that
   moves at that moment is not covered; `--base-url` lets the person point it at any address
   they choose, and it trusts that address as the site.
+- A signed page tool takes its input as it is, the shape every site's pages use, and `open_page`
+  waits for the page to settle so its tools are listed at once. Tried on all six live sites: a
+  signed read through `regents browser` answered as this machine's paired agent.
 - `regents browser` and `regents mcp` sign each request for the site's host, as every signed
   command does from 1.10.22, so a page's signed request is good only at the site it came from.
 - New: `regents mcp --site <site>` gives an agent host the site's MCP server at `/mcp`: each

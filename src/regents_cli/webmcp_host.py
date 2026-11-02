@@ -8,7 +8,7 @@ address is refused, and a page that leaves the site, by a redirect or later, is 
 
 A signed tool is one the site's pinned tool manifest names: its title, description, input schema
 and annotations come from that manifest, never from the page. The agent calls it with its own
-input, which is checked against that schema and handed to the page as `{input}`. The page builds
+input, which is checked against that schema and handed to the page as it is. The page builds
 its exact request and asks `window.regentsSign` to sign it. That binding is this module's
 `Bridge`, outside the page: it signs only when the request comes from the site's own address,
 names the site's audience, has the method and path the manifest's route gives for the call the
@@ -402,7 +402,7 @@ class PageHost:
     async def open(self, address: str) -> dict[str, str]:
         url = site_address(self.bridge.origin, address)
         page = await self._page()
-        await page.goto(url, wait_until="load")
+        await page.goto(url, wait_until="networkidle")
         if not self._on_site(page):
             await page.goto("about:blank")
             raise RefusalError(
@@ -431,18 +431,16 @@ class PageHost:
 
     async def call(self, name: str, given: dict[str, Any]) -> Any:
         page = self._site_page()
-        arguments: dict[str, Any] = given
-        if (entry := self.bridge.signed_tool(name)) is not None:
-            if (problem := input_problem(entry, given)) is not None:
-                raise RefusalError(
-                    "invalid_input",
-                    f"{name} does not take that input, so nothing was sent: {problem}",
-                    "Call list_page_tools for the input schema, then call the tool again.",
-                )
-            arguments = {"input": given}
+        entry = self.bridge.signed_tool(name)
+        if entry is not None and (problem := input_problem(entry, given)) is not None:
+            raise RefusalError(
+                "invalid_input",
+                f"{name} does not take that input, so nothing was sent: {problem}",
+                "Call list_page_tools for the input schema, then call the tool again.",
+            )
         invocation = self.bridge.expect(name, given)
         try:
-            return await page.webmcp.call_tool(name, arguments, timeout=TOOL_TIMEOUT_MS)
+            return await page.webmcp.call_tool(name, given, timeout=TOOL_TIMEOUT_MS)
         finally:
             self.bridge.forget(invocation)
 
