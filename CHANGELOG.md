@@ -3,7 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Next release — regents browser and regents mcp
+## 1.10.23 — 2026-11-02
+
+- Every site's pinned files are its live commit after the sign-in window: template 0b65960c, Autolaunch
+  c7ea59d1, Keyfleet f11b80ed, Patchbay 3f83607e, regents.sh 9350ffa8, Techtree 094912ea. No command
+  changes; each signed tool's input is now the tool's own input on every site. Techtree release record
+  climb-v0.7.24.
 
 - New: `regents browser --site <site>` gives an agent host a site's pages and the WebMCP tools
   each page offers, as a local MCP server with three tools: `open_page`, `list_page_tools` and
@@ -51,10 +56,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
     When the agent host closes its input, the answers still owed arrive before it stops.
   - The install line names both parts, `'regents-cli[browser,mcp]'`, since installing one after
     the other removed the first.
-  - ash-template's pinned tool list is its new one (template `456a97fb`, with the three chat
-    tools): each signed tool's input is the tool's own input, and `prepare_agent_request` is gone. `regents browser` reads
-    each signed tool's `input_schema`. The other five sites' tool lists move at the joint
-    release.
+  - `regents browser` reads each signed tool's `input_schema`.
 
 ## 1.10.22 — 2026-11-01
 

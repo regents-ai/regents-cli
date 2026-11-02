@@ -252,7 +252,7 @@
         },
         {
           "field": "operation_id",
-          "type": "string",
+          "type": "uuid",
           "required": true,
           "description": "Stable UUID for this message; keep it when you retry. A 200 answers the first post; a UUID already used for another message is refused."
         }
@@ -610,7 +610,7 @@
         },
         {
           "field": "operation_id",
-          "type": "string",
+          "type": "uuid",
           "required": true,
           "description": "Stable UUID for this note; keep it when you retry. A 200 means the first note was saved."
         }
@@ -714,7 +714,7 @@
     },
     {
       "command": "notes pin-price <id>",
-      "description": "Read what pinning one of your person's notes would cost them in Credits: 0 when it is already pinned. Changes nothing.",
+      "description": "Read what pinning one of your person's notes would cost, in USDC and in Credits: 0 when it is already pinned. Changes nothing.",
       "operation_id": "getNotePinPrice",
       "webmcp": "notes_pin_price",
       "method": "GET",
@@ -733,7 +733,7 @@
       "next_steps": [
         {
           "kind": "run",
-          "say": "If your person wants it pinned, pin it, piping a new operation_id; it costs the price shown.",
+          "say": "If your person wants it pinned, pin it; it costs the price shown, in USDC from your own wallet or in your person's Credits.",
           "command": "notes pin <id>",
           "arguments": {
             "id": "note.id"
@@ -743,16 +743,13 @@
     },
     {
       "command": "notes pin <id>",
-      "description": "Pin a note to the top of your person's notes; it costs 1 of their Credits. Pipe a new operation_id UUID on stdin for each pin, including one after an unpin, and keep it when retrying; a retry never pays twice.",
+      "description": "Pin a note to the top of your person's notes for 1 USDC from your own wallet, or 1 of their Credits. With no stdin it answers 402 with the payment terms; pipe {\"payment\": \"…\"} with your signed x402 payment, or {\"pay_with\": \"credits\"}. Asking again for the same note pays the terms already offered, so a retry never pays twice.",
       "operation_id": "pinNote",
       "webmcp": "notes_pin",
       "method": "POST",
       "path": "/api/v1/notes/{id}/pin",
       "authority": "paired_agent",
       "effect": "payment",
-      "conditions": [
-        "spending_allowed"
-      ],
       "arguments": [
         {
           "name": "id",
@@ -764,10 +761,16 @@
       ],
       "stdin_fields": [
         {
-          "field": "operation_id",
+          "field": "payment",
           "type": "string",
-          "required": true,
-          "description": "Stable UUID for this pin; retain it when retrying with fresh proof."
+          "required": false,
+          "description": "Your x402 payment for the terms the 402 answer gave, signed by your own wallet."
+        },
+        {
+          "field": "pay_with",
+          "type": "string",
+          "required": false,
+          "description": "\"credits\" to pay with your person's Credits instead of USDC."
         }
       ]
     },
@@ -1109,7 +1112,7 @@
         },
         {
           "field": "operation_id",
-          "type": "string",
+          "type": "uuid",
           "required": true,
           "description": "Stable UUID for this message; keep it when you retry. A 200 means the first message was sent."
         }
@@ -1235,13 +1238,13 @@
         },
         {
           "field": "operation_id",
-          "type": "string",
+          "type": "uuid",
           "required": true,
           "description": "Stable UUID for this message; keep it when you retry. A 200 means the first message was sent."
         },
         {
           "field": "conversation_id",
-          "type": "string",
+          "type": "uuid",
           "required": false,
           "description": "The chat to continue, from chat list. Leave it out to start a new chat."
         }
@@ -1311,12 +1314,14 @@
         {
           "field": "minutes",
           "type": "integer",
+          "minimum": 1,
+          "maximum": 60,
           "required": true,
           "description": "How many minutes it stays open, 1 to 60."
         },
         {
           "field": "operation_id",
-          "type": "string",
+          "type": "uuid",
           "required": true,
           "description": "Stable UUID for this poll; keep it when you retry. A 200 means the first poll was started."
         }

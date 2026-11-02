@@ -2470,23 +2470,21 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 456a97fb508f08700affd45b147b01c0bea70ddc
+  commit: 0b65960c007b2e273ffa307f191b915120137bd5
   commands: 58
   tools: 57
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 436cd8580faa4e3071e64b7b3a3ce3b14777819a
+  commit: c7ea59d1ae1ca36ab3d617a9d452a3e7d740cda6
   commands: 18
-  tools: 18
-  tools_with_no_command:
-  - tool: prepare_agent_request
-    why: no command
+  tools: 17
+  tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 78438f8fc83e4898e31ba4423472e71ef3654d4d
+  commit: f11b80ed054ae5b1b39341fbc57ae14a72667ef3
   commands: 121
-  tools: 132
+  tools: 131
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
@@ -2497,8 +2495,6 @@ sites:
   - tool: keys_claim_all
     why: no command
   - tool: keys_mark_present
-    why: no command
-  - tool: prepare_agent_request
     why: no command
   - tool: proposals_cancel
     why: no command
@@ -2516,9 +2512,9 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: d7e65488a22ad9e457d704c3753aa2eae5b1d373
+  commit: 3f83607edac087dd14f1603eb947b3521219d58e
   commands: 55
-  tools: 62
+  tools: 61
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2528,8 +2524,6 @@ sites:
     why: 'site only: a guide to the site'
   - tool: get_webmcp_guide
     why: 'site only: a guide to WebMCP'
-  - tool: prepare_agent_request
-    why: no command
   - tool: say_hello
     why: no command
   - tool: tip_agent
@@ -2538,9 +2532,9 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 71ef1ab26efa49a0ffe8e58324cb82aa7d17ef1a
+  commit: 9350ffa8d43ec0e92bed85cf98e7f07d74105a6e
   commands: 18
-  tools: 25
+  tools: 24
   tools_with_no_command:
   - tool: get_siwa_connection_help
     why: no command
@@ -2556,18 +2550,14 @@ sites:
     why: no command
   - tool: list_techtree_webmcp_tools
     why: no command
-  - tool: prepare_agent_request
-    why: no command
   - tool: regents_about
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 2f885c4d6cba7bb70e1ba70c06fc187639603008
+  commit: 094912ea43fb8e195367b680f7aba1dbd4c1937c
   commands: 9
-  tools: 15
+  tools: 14
   tools_with_no_command:
-  - tool: prepare_agent_request
-    why: no command
   - tool: results_bundle
     why: no command
   - tool: skills_show
