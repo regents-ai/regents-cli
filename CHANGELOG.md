@@ -8,8 +8,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `regents <site> account balances`, `account credits-history` and `account points` read
   `/api/v1/account/balances`, `/api/v1/account/credits/history` and `/api/v1/account/points` on
   every site, as the template does, signed as before. Pinned at each site's Points release branch:
-  the template f942d3b4, Patchbay 1da5407e, Keyfleet 0e90bac2; the other sites follow as each sends
-  its release.
+  the template f942d3b4, Patchbay 1da5407e, Keyfleet 48d512e8, Autolaunch 0908b2c8, regents.sh
+  1d7af9ea; Techtree follows when it sends its release.
+- `regents protocol account budget` is gone: `account balances` shows the spending grant.
+- Autolaunch's account commands say the command signs its own request.
 
 ## 1.10.22 — 2026-11-01
 

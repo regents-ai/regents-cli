@@ -904,17 +904,17 @@ features:
   - tool_manifests/autolaunch.json
   entry:
   - cli: regents autolaunch account balances
-    route: GET /api/agent/v1/account/balances
+    route: GET /api/v1/account/balances
     who: paired agent
     changes: read
     webmcp: '`account_balances`'
   - cli: regents autolaunch account credits-history
-    route: POST /api/agent/v1/account/credits/history
+    route: POST /api/v1/account/credits/history
     who: paired agent
     changes: read
     webmcp: '`account_credits_history`'
   - cli: regents autolaunch account points
-    route: GET /api/agent/v1/account/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
     webmcp: '`account_points`'
@@ -2272,7 +2272,7 @@ features:
   proofs:
   - tests/test_properties.py
 - id: protocol-account
-  what: 'Agents use regents protocol account: show, claims, balances, credits-history, budget, points.'
+  what: 'Agents use regents protocol account: show, claims, balances, credits-history, points.'
   who: agent
   level: protected
   paths:
@@ -2290,25 +2290,20 @@ features:
     changes: read
     webmcp: '`regents_claims`'
   - cli: regents protocol account balances
-    route: GET /api/agent/v1/credits/balance
+    route: GET /api/v1/account/balances
     who: paired agent
     changes: read
-    webmcp: '`regents_credits_balance`'
+    webmcp: '`account_balances`'
   - cli: regents protocol account credits-history
-    route: POST /api/agent/v1/credits/history
+    route: POST /api/v1/account/credits/history
     who: paired agent
     changes: read
-    webmcp: '`regents_credits_history`'
-  - cli: regents protocol account budget
-    route: GET /api/agent/v1/credits/budget
-    who: paired agent
-    changes: read
-    webmcp: '`regents_credits_budget`'
+    webmcp: '`account_credits_history`'
   - cli: regents protocol account points
-    route: GET /api/agent/v1/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
-    webmcp: '`regents_points_summary`'
+    webmcp: '`account_points`'
   proofs:
   - tests/test_properties.py
 - id: protocol-staking
@@ -2516,15 +2511,13 @@ sites:
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 436cd8580faa4e3071e64b7b3a3ce3b14777819a
+  commit: 0908b2c886fafb6fb91bd88b2898e1696228c1bd
   commands: 18
-  tools: 18
-  tools_with_no_command:
-  - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
+  tools: 17
+  tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 0e90bac235d295330190eddb9f85ca1b01490b18
+  commit: 48d512e823abab065e2dadd2dfd440dd128abcde
   commands: 121
   tools: 131
   tools_with_no_command:
@@ -2574,9 +2567,9 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 71ef1ab26efa49a0ffe8e58324cb82aa7d17ef1a
-  commands: 18
-  tools: 25
+  commit: 1d7af9ea42de1be759ee1c589a004302cb802b2b
+  commands: 17
+  tools: 23
   tools_with_no_command:
   - tool: get_siwa_connection_help
     why: no command
@@ -2592,8 +2585,6 @@ sites:
     why: no command
   - tool: list_techtree_webmcp_tools
     why: no command
-  - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
   - tool: regents_about
     why: 'site only: reads the about and docs pages'
 - site: techtree
