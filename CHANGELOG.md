@@ -3,6 +3,13 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Next release — account reads on the template's paths, after the sites' Points release
+
+- `regents <site> account balances`, `account credits-history` and `account points` read
+  `/api/v1/account/balances`, `/api/v1/account/credits/history` and `/api/v1/account/points` on
+  every site, as the template does, signed as before. Patchbay pinned at f3b01459 (its Points
+  release branch); the other sites follow as each sends its release.
+
 ## 1.10.22 — 2026-11-01
 
 Evidence: level protected; ships in one window with the sign-in server and every site; 935 tests;

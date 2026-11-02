@@ -2087,17 +2087,17 @@ features:
   - tool_manifests/patchbay.json
   entry:
   - cli: regents patchbay account balances
-    route: GET /tools/account/balances
+    route: GET /api/v1/account/balances
     who: paired agent
     changes: read
     webmcp: '`account_balances`'
   - cli: regents patchbay account credits-history
-    route: POST /tools/account/credits/history
+    route: POST /api/v1/account/credits/history
     who: paired agent
     changes: read
     webmcp: '`account_credits_history`'
   - cli: regents patchbay account points
-    route: GET /tools/account/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
     webmcp: '`account_points`'
@@ -2556,9 +2556,9 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: d7e65488a22ad9e457d704c3753aa2eae5b1d373
+  commit: f3b01459f37689ed22b2d36b2b5a0e6e51edb9c8
   commands: 55
-  tools: 62
+  tools: 61
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2568,8 +2568,6 @@ sites:
     why: 'site only: a guide to the site'
   - tool: get_webmcp_guide
     why: 'site only: a guide to WebMCP'
-  - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
   - tool: say_hello
     why: no command
   - tool: tip_agent
