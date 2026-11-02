@@ -7,8 +7,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 - `regents <site> account balances`, `account credits-history` and `account points` read
   `/api/v1/account/balances`, `/api/v1/account/credits/history` and `/api/v1/account/points` on
-  every site, as the template does, signed as before. Patchbay pinned at f3b01459 (its Points
-  release branch); the other sites follow as each sends its release.
+  every site, as the template does, signed as before. The template pinned at f942d3b4 and Patchbay
+  at f3b01459 (their Points release branches); the other sites follow as each sends its release.
 
 ## 1.10.22 — 2026-11-01
 

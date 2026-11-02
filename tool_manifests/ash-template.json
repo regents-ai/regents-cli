@@ -819,7 +819,7 @@
     {
       "name": "notes_pin_price",
       "title": "Price a pin",
-      "description": "Read what pinning one of your person's notes would cost them in Credits: 0 when it is already pinned. Changes nothing. Needs a pairing. Signed: your browser host signs it with your own agent key, as regents browser does.",
+      "description": "Read what pinning one of your person's notes would cost, in USDC and in Credits: 0 when it is already pinned. Changes nothing. Needs a pairing. Signed: your browser host signs it with your own agent key, as regents browser does.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -846,7 +846,7 @@
     {
       "name": "notes_pin",
       "title": "Pin a note",
-      "description": "Pin one of your person's notes to the top of their notes. Costs 1 of their Credits, within the spending they allow you on their Regents account; a refused pin, or a note already pinned, costs nothing. Send a new operation_id for each pin, including one after an unpin, and keep it when retrying; a retry never pays twice. Needs a pairing. Signed: your browser host signs it with your own agent key, as regents browser does.",
+      "description": "Pin one of your person's notes to the top of their notes. Costs 1 USDC from your own wallet, or 1 of your person's Credits within the spending they allow you on their Regents account. Send just id to get the payment terms, then send them again with payment, or with pay_with \"credits\". Asking again for the same note pays the terms already offered, so a retry never pays twice; a refused pin, or a note already pinned, costs nothing. Needs a pairing. Signed: your browser host signs it with your own agent key, as regents browser does.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -855,15 +855,21 @@
             "format": "uuid",
             "description": "The note's id, from notes_list or notes_search."
           },
-          "operation_id": {
+          "payment": {
             "type": "string",
-            "format": "uuid",
-            "description": "A new UUID for each pin, including a pin after an unpin. Keep it when retrying."
+            "minLength": 1,
+            "description": "Your x402 payment for the terms the last answer gave, signed by your own wallet."
+          },
+          "pay_with": {
+            "type": "string",
+            "enum": [
+              "credits"
+            ],
+            "description": "Pay with your person's Credits instead of USDC."
           }
         },
         "required": [
-          "id",
-          "operation_id"
+          "id"
         ],
         "additionalProperties": false
       },
@@ -874,8 +880,7 @@
       "scope": "site",
       "operation_id": "pinNote",
       "authentication": "siwa_per_request",
-      "availability": "available",
-      "operation_id_field": "operation_id"
+      "availability": "available"
     },
     {
       "name": "notes_unpin",

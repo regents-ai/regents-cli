@@ -2510,7 +2510,7 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 456a97fb508f08700affd45b147b01c0bea70ddc
+  commit: f942d3b4e3bf4144e1ded9d767dfc4de16ed2846
   commands: 58
   tools: 57
   tools_with_no_command: []
