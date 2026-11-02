@@ -1702,17 +1702,17 @@ features:
   - tool_manifests/keyfleet.json
   entry:
   - cli: regents keyfleet account balances
-    route: GET /api/v1/agent/account/balances
+    route: GET /api/v1/account/balances
     who: paired agent
     changes: read
     webmcp: '`account_balances`'
   - cli: regents keyfleet account credits-history
-    route: POST /api/v1/agent/account/credits/history
+    route: POST /api/v1/account/credits/history
     who: paired agent
     changes: read
     webmcp: '`account_credits_history`'
   - cli: regents keyfleet account points
-    route: GET /api/v1/agent/account/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
     webmcp: '`account_points`'
@@ -2524,9 +2524,9 @@ sites:
     why: 'done by regents itself: regents signs each request itself'
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 78438f8fc83e4898e31ba4423472e71ef3654d4d
+  commit: 0e90bac235d295330190eddb9f85ca1b01490b18
   commands: 121
-  tools: 132
+  tools: 131
   tools_with_no_command:
   - tool: about
     why: 'site only: reads the about page'
@@ -2538,8 +2538,6 @@ sites:
     why: no command
   - tool: keys_mark_present
     why: no command
-  - tool: prepare_agent_request
-    why: 'done by regents itself: regents signs each request itself'
   - tool: proposals_cancel
     why: no command
   - tool: proposals_carry_out
