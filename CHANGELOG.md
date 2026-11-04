@@ -3,6 +3,13 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Next release — packages to latest
+
+- Every dependency and the release tools are on their newest versions: anyio 4.16.0, filelock 4.2.7,
+  hatchling 1.33.0, hypothesis 6.170.14, mypy 2.4.1, playwright 1.64.1, pydantic 2.14.2, pytest 9.2.0,
+  ruff 0.17.3, types-pyyaml 6.0.12.20261103, setup-uv 10.3.3, docker login 4.7.0, PyPI publish 1.14.3,
+  and the packages they bring with them.
+
 ## 1.10.23 — 2026-11-02
 
 Evidence: level protected; first release of `regents browser` and `regents mcp`; 1017 tests; a signed
