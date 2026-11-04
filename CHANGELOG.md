@@ -3,12 +3,31 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Next release — packages to latest
+## 1.10.24 — 2026-11-04
+
+Evidence: level protected; features techtree-release, techtree-evaluation-engine, release-gates;
+1017 tests; every taskset checked again on the new engines (36/10/6/6) and a free stand-in Hello
+World run whose proof verifies offline (355 checks); Techtree release record climb-v0.7.25.
 
 - Every dependency and the release tools are on their newest versions: anyio 4.16.0, filelock 4.2.7,
   hatchling 1.33.0, hypothesis 6.170.14, mypy 2.4.1, playwright 1.64.1, pydantic 2.14.2, pytest 9.2.0,
   ruff 0.17.3, types-pyyaml 6.0.12.20261103, setup-uv 10.3.3, docker login 4.7.0, PyPI publish 1.14.3,
   and the packages they bring with them.
+- Security update for the libraries Techtree Climbs install: every Climb's engine moves mcp from
+  2.0.0 to 2.3.0, which closes its four advisories, and takes the newest version of everything
+  else it installs, including anthropic 2.4.0, huggingface-hub 2.4.0 and multidict 7.2.1. The
+  engines install Verifiers from Regents' copy, now `0.4.0+regents.2` (commit `d7a9421`), which
+  differs from the last only in that mcp version. The tasks, the scoring and the images are the
+  same.
+- Because the engines changed, every Climb's engine has a new fingerprint and the Climb catalog
+  that names them is new. The Climbs keep their names (`hello-world-climb@3`,
+  `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). A proof made with 1.10.23 still
+  verifies, but `climb prepare --rerun-of` can't rerun it, since its Campaign names the old
+  engine; run the Skill again on the Climb instead.
+- One library stays behind in the engines: Verifiers stays at 0.4.0. Prime Intellect's 0.4.1 takes
+  away the command every Climb run uses, so moving to it is its own release.
+- Every site's pinned files are its live commit on 4 Nov: template eb94293d, Autolaunch 75cc00df,
+  Keyfleet 1b2764d5, Patchbay 6cab9b26, regents.sh 908621cd, Techtree a3f660a4.
 
 ## 1.10.23 — 2026-11-02
 

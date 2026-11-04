@@ -213,6 +213,13 @@ behind a site, and never holds one up (founder, 2026-09-28).
    valid), release `climb-v0.7.21`, ReleaseCore `sha256:0dcc4234…8614`. The sample proof is now
    `run_4d719cc5…` (free stand-in run on the new engines, 72 episodes, 355 checks). Proofs
    made under 1.10.19 still verify but can no longer be rerun with `--rerun-of`.
+7e. 1.10.24 (2026-11-04): every package to its newest version; engines take mcp 2.3.0 through
+   Verifiers `0.4.0+regents.2` (`d7a9421`), new engine digests, catalog `sha256:5b3b7b58…d1d`
+   (36/10/6/6 valid), release `climb-v0.7.25`. The sample proof is now `run_2f61593b…` (free
+   stand-in run, 72 episodes, 355 checks). Verifiers 0.4.1 is the next engine move, parked on
+   branch `cli/engines-verifiers-041` (fork tag `v0.4.1+regents.1`): it removes `vf-eval`, the
+   Tasksmith wheel asks for exactly 0.4.0, and the images need rebuilding, so it needs paid
+   recertification on the founder's letter.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

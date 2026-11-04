@@ -70,6 +70,11 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-11-04, a free run against a local stand-in model on `hello-world-climb@3`
+  (`climb-v0.7.25`, the engines with mcp 2.3.0 on Verifiers `0.4.0+regents.2`, Prime-key route,
+  `run_2f61593b079047dbbffce1c413bf79ac`): all 72 episodes finished and the proof verifies
+  offline (355 checks). That run's proof is now the test fixture in `tests/techtree/fixtures/run`.
+
 - 2026-10-28, a free run against a local stand-in model on `hello-world-climb@3`
   (`climb-v0.7.21`, the patched engines with msgpack 1.2.3, Prime-key route,
   `run_4d719cc590124e0ebad42d1d19d2ad78`): all 72 episodes finished and the proof verifies

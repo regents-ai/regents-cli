@@ -15,6 +15,6 @@
     "linux/amd64",
     "linux/arm64"
   ],
-  "verifiers_revision": "04dfb708dbb162700e3b678a6c78ff5d4de49b94",
-  "verifiers_version": "0.4.0+regents.1"
+  "verifiers_revision": "d7a9421396c8fe104f5d3b29acaf99521315b14b",
+  "verifiers_version": "0.4.0+regents.2"
 }
