@@ -75,6 +75,8 @@ class Engine:
     description: str
     #: Verifiers extras the taskset needs, such as `harbor` for tasks graded in their own box.
     verifiers_extras: tuple[str, ...] = ()
+    #: Versions the lock must hold for packages the taskset only brings in indirectly.
+    constraints: tuple[str, ...] = ()
     hub: HubPackage | None = None
 
     @property
@@ -104,6 +106,8 @@ ENGINES: Final = (
         description="Pinned Verifiers environment and the Prime Environments Hub taskset "
         "techtree/hf-tasksmith-v1 for Techtree.",
         verifiers_extras=("harbor",),
+        # Newer litellm releases keep filelock below 4; its advisory fixes start at 4.2.1.
+        constraints=("filelock>=4.2.1",),
         hub=HubPackage(
             name="techtree/hf-tasksmith-v1",
             version="0.2.0",
@@ -137,11 +141,18 @@ dependencies = [
 [tool.uv]
 # The engine project is an environment, not a distribution. Nothing installs it.
 package = false
-
+{constraint_dependencies(engine)}
 [tool.uv.sources]
 {engine.package} = {package_source(engine)}
 verifiers = {{ git = "{VERIFIERS_REPOSITORY}", rev = "{VERIFIERS_REVISION}" }}
 """
+
+
+def constraint_dependencies(engine: Engine) -> str:
+    """The `[tool.uv]` line naming the engine's constraints, when it has any."""
+    if not engine.constraints:
+        return ""
+    return f"constraint-dependencies = {json.dumps(list(engine.constraints))}\n"
 
 
 def package_source(engine: Engine) -> str:

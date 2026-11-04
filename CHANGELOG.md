@@ -26,7 +26,9 @@ World run whose proof verifies offline (355 checks); Techtree release record cli
   engine; run the Skill again on the Climb instead.
 - One library stays behind in the engines: Verifiers stays at 0.4.0. Prime Intellect's 0.4.1 takes
   away the command every Climb run uses, so moving to it is its own release.
-- Every site's pinned files are its live commit on 4 Nov: template eb94293d, Autolaunch e8281ec2,
+- Tasksmith's engine stays on litellm 1.103.10: every newer litellm keeps filelock below 4, and
+  filelock's security fixes start at 4.2.1. That engine now requires the fixed filelock.
+- Every site's pinned files are its live commit on 4 Nov: template ff1eb3c3, Autolaunch e8281ec2,
   Keyfleet 1b2764d5, Patchbay 6950a1d5, regents.sh d15bc48c, Techtree 86a5cf94.
 - regents.sh's Reading commands now give each paper's own page as its `url`, such as
   `https://regents.sh/paper-pro-daily/b879e39c`.
