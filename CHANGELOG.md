@@ -3,6 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Next release — account addresses
+
+Evidence: level protected; features release-gates; pins are each site's Points branch until Points
+day, when every pin moves to its live commit and this section takes its version and date.
+
+- `regents <site> account balances`, `account credits-history` and `account points` now read
+  `/api/v1/account/balances`, `/api/v1/account/credits/history` and `/api/v1/account/points` on
+  every site.
+- `regents protocol account budget` is gone, because regents.sh no longer has that read.
+- Pins: template e3f67ab8, Autolaunch e41953a8, Keyfleet b641bf92, Patchbay b38c674f,
+  regents.sh 46074a6c, Techtree 922e7262.
+
 ## 1.10.24 — 2026-11-04
 
 Evidence: level protected; features techtree-release, techtree-evaluation-engine, release-gates;
