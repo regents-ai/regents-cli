@@ -2512,7 +2512,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 6950a1d5740e97e2c9c1f4420a415dd070261fe3
+  commit: 4297acb1849bbf3c2c14a64953b88e1fe9d6b35c
   commands: 55
   tools: 61
   tools_with_no_command:

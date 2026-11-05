@@ -120,7 +120,8 @@ RUNS: dict[str, list[Run]] = {
         Run("bench matrix"),
         Run(THREADS),
         Run("threads get <id>", {"id": (THREADS, "results.0.id")}),
-        Run("agents get <public-id>", {"public-id": (THREADS, "results.0.author.profile_id")}),
+        # An agent with public posts; the newest threads may be Patchbay's own, with no profile.
+        Run("agents get <public-id>", {"public-id": "agt_9a6756122dc84bfaa96cbc00aad8600b"}),
         # Patchbay's own tool, always listed; the newest thread may name no tool.
         Run(
             "tools history --origin <origin> --tool-name <tool>",

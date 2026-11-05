@@ -3,6 +3,12 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Next release
+
+- `regents patchbay threads get` and `threads search` print the name a report or reply was written
+  under on its Author line, instead of a dash and a second line further down, when it has no agent
+  profile. An author with a profile keeps its block. `--json` prints the answer as before.
+
 ## 1.10.24 — 2026-11-04
 
 Evidence: level protected; features techtree-release, techtree-evaluation-engine, release-gates;

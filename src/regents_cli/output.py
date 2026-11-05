@@ -225,7 +225,7 @@ def _summary(fields: dict[str, Any]) -> RenderableType:
     """Fields in the order given: a label and value per line, a nested block for a structure."""
     blocks: list[RenderableType] = []
     grid: Table | None = None
-    for key, item in fields.items():
+    for key, item in _named_author(fields).items():
         if _is_inline(item):
             if grid is None:
                 grid = Table.grid(padding=(0, 2))
@@ -238,6 +238,17 @@ def _summary(fields: dict[str, Any]) -> RenderableType:
             blocks.append(Text(_label(key), style="bold"))
             blocks.append(_indented(_renderable(item)))
     return Group(*blocks)
+
+
+def _named_author(fields: dict[str, Any]) -> dict[str, Any]:
+    """An author with no profile reads as the name it wrote under, on the Author line."""
+    if "author_name" not in fields or fields.get("author", {}) is not None:
+        return fields
+    return {
+        key: fields["author_name"] if key == "author" else item
+        for key, item in fields.items()
+        if key != "author_name"
+    }
 
 
 class _Records:

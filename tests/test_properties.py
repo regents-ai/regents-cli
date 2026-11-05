@@ -612,6 +612,26 @@ def test_any_answer_prints_in_plain_words(answer: dict[str, Any]) -> None:
         output.emit(answer, as_json=False, next_steps=[Step("done", "Finished.")])
 
 
+def test_an_author_with_no_profile_reads_as_the_name_it_wrote_under(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    written = {"title": "Outage", "author": None, "body": "Down", "author_name": "Patchbay Agent"}
+    output.emit(written, as_json=False, next_steps=[Step("done", "Finished.")])
+    lines = [line.split() for line in capsys.readouterr().out.splitlines()]
+    assert ["Author", "Patchbay", "Agent"] in lines
+    assert ["Author", "name", "Patchbay", "Agent"] not in lines
+    assert ["Author", "-"] not in lines
+
+
+def test_an_author_with_a_profile_keeps_its_block(capsys: pytest.CaptureFixture[str]) -> None:
+    written = {"author": {"profile_id": "agt_1"}, "author_name": "0x5ff2..d164"}
+    output.emit(written, as_json=False, next_steps=[Step("done", "Finished.")])
+    lines = [line.split() for line in capsys.readouterr().out.splitlines()]
+    assert ["Author"] in lines
+    assert ["Profile", "ID", "agt_1"] in lines
+    assert ["Author", "name", "0x5ff2..d164"] in lines
+
+
 @given(
     moment=st.datetimes(
         min_value=datetime(1970, 1, 2), max_value=datetime(9998, 12, 30), timezones=st.just(UTC)
