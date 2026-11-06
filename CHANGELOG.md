@@ -5,6 +5,15 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Next release
 
+- `--send` on the Keyfleet commands that build transactions for the agent's own wallet (marking
+  Keys present, voting and making a proposal, once Keyfleet lists them): the agent key on this
+  machine signs and sends each transaction in turn, waits for it to land on Base before the next,
+  and its wallet pays the gas. The key never leaves the machine. One the chain's state makes
+  certain to fail sends nothing, with Keyfleet's reason; too little ETH names how much to send and
+  to which wallet. Without `--send` these commands answer exactly as before. A site marks such a
+  command with `"sends": true` in its `commands.json`.
+- `regents auth register` numbers the transaction it sends from the wallet's count at the latest
+  block rather than Base's pending count, the same as `--send`.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent
   profile. An author with a profile keeps its block. `--json` prints the answer as before.

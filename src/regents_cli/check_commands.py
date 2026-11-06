@@ -257,6 +257,8 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
             )
         if "stdin_fields" in entry and entry["authority"] == "public":
             say("only signed commands read body fields from stdin")
+        if entry.get("sends") and entry["authority"] == "public":
+            say("only signed commands send transactions with the agent key")
         if "conditions" in entry and entry["authority"] != "paired_agent":
             say("only paired_agent commands take conditions")
         for name in entry.get("required_one_of", []):

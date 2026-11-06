@@ -372,7 +372,7 @@ def register(
                 f"not transactions. Send it from that wallet: --wallet-address {wallet}.",
                 exit_code=EXIT_AUTH,
             )
-        transaction, needs = base.priced(step, timeout_ms)
+        transaction, needs = base.priced(step, base.nonce(step["from"], timeout_ms), timeout_ms)
         show_signing(step, transaction, needs, as_json)
         try:
             tx_hash = base.send(key, transaction, needs, timeout_ms)
