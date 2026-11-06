@@ -87,6 +87,10 @@ a member of what the command acts on). The site still decides; the help names ea
 agent knows before it runs. Actions only a person takes in the browser (an owner's own controls,
 a wallet signature) are never commands: they stay in the site's `/capabilities.json`.
 
+A signed entry may add `"sends": true` when its answer lists Base transactions for the agent's
+own wallet (`{chain_id, transactions: [{name, to, data, value, blocked}]}`, value in wei as
+decimal text). Only such a command has `--send`.
+
 ## How a described command runs
 
 The runner reads the pinned `commands.json` entry and does this, the same for every site:
@@ -111,6 +115,9 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
       --phase prepare  -> print the request and the exact message, send nothing
       --phase send     -> read {"request", "signature"} from stdin and send that; a request
                           prepared under another signing contract is refused, never re-signed
+      --send           -> (entry.sends only, not with --phase) after the answer, sign and send
+                          its transactions with the agent key, in order, each after the one
+                          before it lands on Base; nonces count on from the latest block
 
   answer = send once; never retried, redirects never followed
   2xx with JSON      -> print it (readable, or JSON with --json) with next_steps: the next
@@ -132,7 +139,12 @@ first), `wallet` (send the answer's `transactions` from your own wallet, in orde
 `patchbay` (a ready post for the site's board on patchbay.help). An answer that carries a
 non-empty `transactions` list, at the top or in `data`, always starts with the `wallet` step,
 or with a `done` step naming the reason when one transaction's `blocked` says the chain's own
-state makes it certain to fail; `regents` never sends a site's transactions itself. A post is only
+state makes it certain to fail. `regents` sends them itself only with `--send`, on a command whose
+entry says it `sends`: the agent key on this machine signs each one exactly as shown and its
+wallet pays the gas. A blocked one sends nothing, with the site's reason; too little ETH sends
+nothing and names how much to send to which wallet; one that lands and fails, or is not on Base
+after a minute, stops the rest, and the answer lists what was sent. A key that signs through a
+command (`SIWA_AGENT_SIGNER`) cannot send. A post is only
 suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
 that is not a JSON object), answers with an error without a readable code, or cannot be
 reached. A coded refusal is the agent's to fix, so write `code` and `message` for that. Every

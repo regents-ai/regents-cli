@@ -126,6 +126,22 @@ OWN: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "agent-send",
+        "what": "An agent sends the Base transactions a site built for its own wallet: the agent "
+        "key on this machine signs each one as shown and sends it after the one before it lands, "
+        "and its wallet pays the gas.",
+        "who": "agent",
+        "level": "protected",
+        "paths": ["src/regents_cli/transactions.py"],
+        "entry": [{"cli": "regents <site> <command> --send"}],
+        "proofs": ["tests/test_send.py"],
+        "regressions": [],
+        "gaps": [
+            "Proven against a stand-in Base node; the first send on Base is from a test agent's "
+            "wallet before release."
+        ],
+    },
+    {
         "id": "site-doctor",
         "what": "An agent checks a site: it answers, its public reads answer, and this machine's "
         "sign-in is good, or not made yet; a site that fails is searched for on patchbay.help, "

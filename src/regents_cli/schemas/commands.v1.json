@@ -125,6 +125,10 @@
             "payment"
           ]
         },
+        "sends": {
+          "description": "The answer is {chain_id, transactions: [{name, to, data, value, blocked}]}: Base transactions for the agent's own wallet, value in wei as decimal text. With --send, regents signs and sends each in order with the agent key, after the one before it lands (signed commands only).",
+          "const": true
+        },
         "arguments": {
           "description": "One entry per angle-bracket word in `command`, in order.",
           "type": "array",

@@ -25,6 +25,7 @@ from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError
 from regents_cli.next_steps import Step, human
 
 BASE_RPC = "https://mainnet.base.org"
+CHAIN_ID = 8453
 #: What it means when the node refuses each call.
 REFUSED = {
     "eth_estimateGas": "The Base node says this transaction would fail",
@@ -72,16 +73,21 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
     )
 
 
-def priced(step: dict[str, Any], timeout_ms: int) -> tuple[dict[str, str], int]:
-    """`step` (from, to, data, value, chainId) priced at the latest block, as the 0x fields the
-    key signs, and the most it can take from its sender in wei."""
+def nonce(address: str, timeout_ms: int) -> int:
+    """The nonce of `address`'s next transaction: its count at the latest block. A sender that
+    waits for each transaction to land counts on from it, never reading Base's pending count."""
+    return number(call("eth_getTransactionCount", [address, "latest"], timeout_ms))
+
+
+def priced(step: dict[str, Any], nonce: int, timeout_ms: int) -> tuple[dict[str, str], int]:
+    """`step` (from, to, data, value, chainId) with `nonce`, priced at the latest block, as the 0x
+    fields the key signs, and the most it can take from its sender in wei."""
     sender = step["from"]
     fields = {"from": sender, "to": step["to"], "data": step["data"], "value": step["value"]}
     gas = number(call("eth_estimateGas", [fields], timeout_ms)) * 6 // 5
     tip = number(call("eth_maxPriorityFeePerGas", [], timeout_ms))
     latest = call("eth_getBlockByNumber", ["latest", False], timeout_ms)
     base_fee = number(latest.get("baseFeePerGas") if isinstance(latest, dict) else None)
-    nonce = number(call("eth_getTransactionCount", [sender, "pending"], timeout_ms))
     fee = base_fee * 2 + tip
     size = len(step["data"]) // 2 - 1 + UNSIGNED_OVERHEAD
     upper_bound = keccak(text="getL1FeeUpperBound(uint256)")[:4].hex() + f"{size:064x}"

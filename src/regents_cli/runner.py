@@ -20,7 +20,7 @@ from urllib.parse import quote, urlsplit
 
 import click
 
-from regents_cli import output, siwa
+from regents_cli import output, siwa, transactions
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
 from regents_cli.http import Request, answer, base_address, respond, same_origin
@@ -197,9 +197,22 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         help_text += "".join(f"\n\n{f.field}: {f.description}" for f in command.stdin_fields)
         if command.stdin_fields:
             help_text += "\n\n\b\nExample:\n  " + example(platform, command)
+    if command.sends:
+        params.append(
+            click.Option(
+                ["--send"],
+                is_flag=True,
+                help="Sign and send the transactions with the agent key on this machine, in "
+                "order, each after the one before it lands on Base. The key never leaves this "
+                "machine, and its wallet pays the gas.",
+            )
+        )
 
     def run(as_json: bool, base_url: str | None, timeout_ms: int, **values: Any) -> None:
         phase = values.pop("phase", None)
+        send = values.pop("send", False)
+        if send and phase is not None:
+            raise UsageError("--send signs with the agent key on this machine; leave out --phase.")
         given = {spec.name: values[spec.name.replace("-", "_")] for spec in command.inputs}
         missing = [name for name in command.required_one_of if given[name] is None]
         if command.required_one_of and len(missing) == len(command.required_one_of):
@@ -222,6 +235,23 @@ def build_command(platform: Platform, command: Command) -> click.Command:
             request = replace(request, headers=siwa.sign(request, receipt, base))
         response = respond(base, request, timeout_ms)
         told = answer(response)
+        found = transactions.listed(told) if send else []
+        if found and not any(t["blocked"] for t in found):
+            again = command_line(platform, command, given, ["--send", *shared])
+            fresh = (
+                as_described(
+                    (platform.name, *command.group_words),
+                    command.description,
+                    "Run it again for transactions built from the chain as it is now.",
+                )
+                if command.stdin_fields
+                else run_step(
+                    again, "Run it again for transactions built from the chain as it is now."
+                )
+            )
+            sent = transactions.send(found, fresh, as_json, timeout_ms)
+            output.emit(sent, as_json=as_json, next_steps=transactions.finished(sent))
+            return
         steps = after(platform, command, told, given, shared, finished=response.status_code != 202)
         output.emit(told, as_json=as_json, next_steps=steps)
 
