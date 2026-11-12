@@ -402,14 +402,19 @@ OWN: list[dict[str, Any]] = [
             {"cli": "regents techtree model-climb submit <proof-folder>"},
             {"cli": "regents techtree proof verify <proof-folder>"},
         ],
-        "proofs": ["tests/techtree/test_model_climb.py"],
+        "proofs": [
+            "tests/techtree/test_model_climb.py",
+            "tests/techtree/test_model_climb_walk.py",
+        ],
         "gaps": [
-            "The paid test's command has no test: only its submit-once rule is proven, "
-            "against a simulated provider, and no machine has been rented from this build.",
-            "plan and submit have no test against a stand-in for the provider or techtree.sh; "
-            "a proof's checks are proven on this machine only.",
-            "The model-free check's container is not built or run by make check.",
-            "No property test yet: grant limits and money amounts are checked on chosen inputs.",
+            "The paid test, plan and submit are proven against stand-ins for the GPU provider "
+            "and techtree.sh only; no machine has been rented from this build.",
+            "The model-free check's container is not built or run by make check: the walk "
+            "stands in for its answer.",
+            "No command writes the uplift report yet; the walk seals one by hand before "
+            "sending its proof.",
+            "A cancelled or refused job, and a provider charge above the grant, are not "
+            "walked end to end.",
         ],
     },
     {

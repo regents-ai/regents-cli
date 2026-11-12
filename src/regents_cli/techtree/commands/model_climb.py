@@ -560,12 +560,18 @@ def grant_issue(
         "--max-attempts": max_attempts,
         "--expires-in": expires_in,
     }
-    missing = [name for name, value in given.items() if value is None]
-    if missing:
+    if (
+        plan is None
+        or operation is None
+        or max_usd is None
+        or max_hours is None
+        or max_attempts is None
+        or expires_in is None
+    ):
+        missing = [name for name, value in given.items() if value is None]
         raise ValidationError(
             f"a grant binds every limit; give {', '.join(missing)}", details={"missing": missing}
         )
-    assert plan and operation and max_usd and max_hours and max_attempts and expires_in
     plan_digest = validate_digest(plan)
     granted = cast(GrantedOperation, operation)
     limits = grants.Limits(
