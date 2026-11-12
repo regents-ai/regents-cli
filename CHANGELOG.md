@@ -30,7 +30,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   instead of stopping. The method and protocol version headers are encoded as the protocol asks,
   so a value outside plain ASCII reaches the site.
 - `regents browser`: tool calls made at the same moment before a page is open share one browser
-  instead of each starting its own.
+  instead of each starting its own, and a start that fails or is cancelled leaves nothing running.
 
 ## 1.10.24 — 2026-11-04
 

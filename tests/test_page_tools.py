@@ -709,3 +709,55 @@ async def test_two_first_calls_at_once_share_one_browser(signed_in: None) -> Non
         assert first is second
     finally:
         await host.close()
+
+
+async def test_a_start_that_fails_stops_what_it_started(
+    signed_in: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from playwright.async_api import BrowserType
+    from playwright.async_api._context_manager import PlaywrightContextManager
+
+    launch, stop = BrowserType.launch, PlaywrightContextManager.__aexit__
+    stopped: list[object] = []
+
+    async def refused(self: BrowserType, **options: Any) -> Any:
+        raise RuntimeError("no browser here")
+
+    async def counted(self: PlaywrightContextManager, *args: Any) -> None:
+        stopped.append(self)
+        await stop(self, *args)
+
+    monkeypatch.setattr(BrowserType, "launch", refused)
+    monkeypatch.setattr(PlaywrightContextManager, "__aexit__", counted)
+    host = PageHost(Bridge(SITE, MANIFEST, key_signer("ash-template", SITE)), show=False)
+    with pytest.raises(RuntimeError, match="no browser here"):
+        await host._page()
+    assert len(stopped) == 1
+    assert (host.playwright, host.browser, host.page) == (None, None, None)
+
+    monkeypatch.setattr(BrowserType, "launch", launch)
+    try:
+        assert await host._page() is host.page
+    finally:
+        await host.close()
+    assert len(stopped) == 2
+
+
+async def test_a_start_cancelled_at_once_stops_what_it_started(
+    signed_in: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from playwright.async_api._context_manager import PlaywrightContextManager
+
+    stop = PlaywrightContextManager.__aexit__
+    stopped: list[object] = []
+
+    async def counted(self: PlaywrightContextManager, *args: Any) -> None:
+        stopped.append(self)
+        await stop(self, *args)
+
+    monkeypatch.setattr(PlaywrightContextManager, "__aexit__", counted)
+    host = PageHost(Bridge(SITE, MANIFEST, key_signer("ash-template", SITE)), show=False)
+    with anyio.move_on_after(0.001):
+        await host._page()
+    assert len(stopped) == 1
+    assert (host.playwright, host.browser, host.page) == (None, None, None)

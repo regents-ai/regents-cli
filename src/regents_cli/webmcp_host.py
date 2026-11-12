@@ -44,7 +44,7 @@ from regents_cli.http import Request, same_origin
 from regents_cli.platforms import Platform
 
 if TYPE_CHECKING:
-    from playwright.async_api import Browser, BrowserContext, Page, Playwright
+    from playwright.async_api import Browser, Page, Playwright
 
 #: The Chromium feature that turns on WebMCP (`document.modelContext`).
 WEBMCP_FLAG: Final = "--enable-features=WebMCP"
@@ -397,7 +397,6 @@ class PageHost:
     show: bool
     playwright: Playwright | None = None
     browser: Browser | None = None
-    context: BrowserContext | None = None
     page: Page | None = None
     #: Held while the first call starts the browser, so calls at once share one.
     starting: anyio.Lock = field(default_factory=anyio.Lock)
@@ -469,21 +468,30 @@ class PageHost:
                 return self.page
             from playwright.async_api import async_playwright
 
-            self.playwright = await async_playwright().start()
-            self.browser = await self.playwright.chromium.launch(
-                headless=not self.show, chromium_sandbox=True, args=[WEBMCP_FLAG]
-            )
-            self.context = await self.browser.new_context()
-
             async def regents_sign(source: dict[str, Any], *given: Any) -> dict[str, Any]:
                 """`window.regentsSign(prepared)`: one argument, or a refusal; never a failure."""
                 if len(given) != 1:
                     return {"error": unreadable_request().as_json()}
                 return await self.bridge.answer(source["frame"].url, given[0])
 
-            await self.context.expose_binding("regentsSign", regents_sign)
-            self.page = await self.context.new_page()
-            return self.page
+            # Kept only once the page is open: a start that fails, or is cancelled through its
+            # anyio scope, stops what it started, so the next call starts from nothing. The
+            # driver's own start is shielded, since a cancel inside it leaves the driver running.
+            with anyio.CancelScope(shield=True):
+                playwright = await async_playwright().start()
+            try:
+                browser = await playwright.chromium.launch(
+                    headless=not self.show, chromium_sandbox=True, args=[WEBMCP_FLAG]
+                )
+                context = await browser.new_context()
+                await context.expose_binding("regentsSign", regents_sign)
+                page = await context.new_page()
+            except BaseException:
+                with anyio.CancelScope(shield=True):
+                    await playwright.stop()
+                raise
+            self.playwright, self.browser, self.page = playwright, browser, page
+            return page
 
     async def close(self) -> None:
         if self.browser is not None:

@@ -95,22 +95,21 @@ class SiteClient(httpx2.AsyncClient):
     async def send(self, request: httpx2.Request, **options: Any) -> httpx2.Response:
         try:
             return await super().send(request, **options)
-        except CommandError as failure:
-            # Signing comes before sending, so nothing reached the site.
-            return self.undelivered(
-                request, f"regents could not sign for {self.site}: {failure.message.rstrip('.')}"
-            )
-        except httpx2.TransportError as failure:
+        except (CommandError, httpx2.TransportError) as failure:
+            # Only a POST carries a message to answer. A GET or DELETE gets the reason itself;
+            # the SDK logs it, and retries a GET as it does any failed one.
             if request.method != "POST":
                 raise
-            # Only a failed connection is certain not to have reached the site.
-            unreached = isinstance(failure, httpx2.ConnectError | httpx2.ConnectTimeout)
-            return self.undelivered(
-                request,
-                f"regents could not reach {self.site}"
-                if unreached
-                else f"regents had no answer from {self.site}, which may have acted on it",
-            )
+            return self.undelivered(request, self.cause(failure))
+
+    def cause(self, failure: CommandError | httpx2.TransportError) -> str:
+        if isinstance(failure, CommandError):
+            # Signing comes before sending, so nothing reached the site.
+            return f"regents could not sign for {self.site}: {failure.message.rstrip('.')}"
+        # Only a failed connection is certain not to have reached the site.
+        if isinstance(failure, httpx2.ConnectError | httpx2.ConnectTimeout):
+            return f"regents could not reach {self.site}"
+        return f"regents had no answer from {self.site}, which may have acted on it"
 
     @staticmethod
     def undelivered(request: httpx2.Request, what: str) -> httpx2.Response:

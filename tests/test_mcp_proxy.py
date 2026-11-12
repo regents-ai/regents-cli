@@ -342,6 +342,9 @@ async def test_a_message_it_cannot_sign_gets_an_answer_and_reaches_no_site(
             noted = await client.post(
                 "/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}
             )
+            # The SDK's listener and session end carry nothing to answer: the reason reaches it.
+            with pytest.raises(CommandError, match="Sign in"):
+                await client.get("/mcp")
         with pytest.raises(TimeoutError):
             listening.accept()
     finally:
