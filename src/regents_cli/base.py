@@ -1,11 +1,11 @@
 """Sending one transaction on Base from the agent key on this machine.
 
 `priced` prices a transaction at the latest block, with the most it can cost: its value, its gas
-and Base's fee for writing it to Ethereum. The caller shows it, and `send` signs exactly that,
-checks the signed bytes say the same, and hands them to a Base node once. The agent's wallet pays,
-so `send` first checks it holds that most. `SIWA_BASE_RPC` names the node, shared with the SIWA
-agent client. A node's own words never reach the screen, and of its address only the host does:
-the rest can carry a key.
+and Base's fee for writing it to Ethereum. The caller shows it, `signed` signs exactly that and
+checks the signed bytes say the same, and `broadcast` hands them to a Base node once. The agent's
+wallet pays, so `signed` first checks it holds that most. `SIWA_BASE_RPC` names the node, shared
+with the SIWA agent client. A node's own words never reach the screen, and of its address only the
+host does: the rest can carry a key.
 """
 
 from __future__ import annotations
@@ -70,6 +70,14 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
         if not response.is_success:
             raise unreachable()
         body = response.json()
+    except httpx.InvalidURL:
+        raise CommandError(
+            "base_address_unreadable",
+            "SIWA_BASE_RPC does not hold a web address regents can call, so nothing was sent.",
+            next_steps=[
+                human(f"Your person fixes SIWA_BASE_RPC to name a Base node, such as {BASE_RPC}.")
+            ],
+        ) from None
     except (httpx.HTTPError, ValueError, RecursionError):
         raise unreachable() from None
     if isinstance(body, dict) and "result" in body:
@@ -199,24 +207,6 @@ def eth(wei: int) -> str:
     """Wei as ETH, every digit kept: 1500000000000000 is 0.0015."""
     whole, part = divmod(wei, 10**18)
     return f"{whole}.{part:018d}".rstrip("0").rstrip(".")
-
-
-def send(key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int) -> str:
-    """Sign exactly `transaction` with `key`, send it once, answer its hash. `needs` is the most
-    it can take from the wallet, in wei.
-
-    When the node does not confirm taking it, the transaction may still be on its way: the error
-    carries its hash as `tx_hash`, so the caller can check it rather than send a second one."""
-    raw, tx_hash = signed(key, transaction, needs, timeout_ms)
-    if not broadcast(raw, timeout_ms):
-        raise CommandError(
-            "base_send_unclear",
-            f"The Base node {rpc_host()} did not confirm taking the transaction, so it may be "
-            f"on its way: {tx_hash}.",
-            exit_code=EXIT_UNREACHABLE,
-            tx_hash=tx_hash,
-        )
-    return tx_hash
 
 
 def signed(

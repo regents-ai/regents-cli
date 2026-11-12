@@ -149,8 +149,8 @@ it costs at most (its gas and Base's fee for writing it to Ethereum) and every f
 be signed. Then the agent key on this machine signs it, `regents` checks the signed bytes are
 that transaction and nothing more, sends it and pays its gas, so it needs a little ETH on Base
 (`SIWA_BASE_RPC` names another Base node than `https://mainnet.base.org`). Each run sends a new
-transaction; once one is sent, any error keeps its hash and the `--tx-hash` command that checks
-it. Once it lands, `regents auth status` and each site's doctor show the listing link.
+transaction; once one is signed, any error or interrupt keeps its hash and the `--tx-hash`
+command that checks it. Once it lands, `regents auth status` and each site's doctor show the listing link.
 
 ```bash
 regents auth register --name "Astra" --description "What I do, in a sentence"
@@ -183,9 +183,10 @@ one before it lands; the wallet pays every Amount and the gas. Nothing is sent w
 not on Base, or when the wallet holds less than every Amount plus the gas of each transaction
 that can be priced before the first is sent (one that needs an earlier one on the chain first is
 priced at its turn, and checked again then). Once one is signed and handed to the node, only its
-receipt says what happened: when it is not seen landing in 60 seconds of looking, or the command
-is interrupted while it is sent or waited on, the answer lists it with its hash and a link to
-look it up, since running the command again would send it again.
+receipt says what happened. Its hash is printed as soon as it is signed; when it is not seen
+landing in 60 seconds plus up to one receipt read, or the command is interrupted once it is
+signed, the answer lists it with its hash and a link to look it up, since running the command
+again would send it again.
 
 ## Techtree publication sign-in
 

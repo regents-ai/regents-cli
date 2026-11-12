@@ -16,6 +16,7 @@ from typing import Any
 import httpx
 import pytest
 from eth_account.typed_transactions.typed_transaction import TypedTransaction
+from eth_utils.crypto import keccak
 from hexbytes import HexBytes
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
@@ -477,3 +478,116 @@ def test_one_the_chain_would_refuse_is_built_afresh_not_sent_to_another_node(
     assert node.raw == []
     assert [s["kind"] for s in answer["next_steps"]] == ["run"]
     assert "--send" in answer["next_steps"][0]["command"]
+
+
+@pytest.mark.parametrize(
+    "address",
+    [
+        "https://zq7user:hunter2@base-node.test/v2/KEY123\x7f",
+        "https://zq7user:hunter2@base-node.test:abc/v2/KEY123",
+        "https://zq7user:hunter2@[::zz]/v2/KEY123",
+    ],
+    ids=["control character", "port", "ipv6 host"],
+)
+def test_a_node_address_regents_cannot_call_names_the_setting_and_nothing_else(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch, address: str
+) -> None:
+    monkeypatch.setenv("SIWA_BASE_RPC", address)
+    # httpx reads the address as it sends; reading it alone keeps this test off the network.
+    monkeypatch.setattr(httpx, "post", lambda url, **_: httpx.URL(url))
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = app.main([*PRESENCE, "--send", "--json"])
+    answer = json.loads(out.getvalue())
+    assert code == EXIT_FAILED
+    assert [s["kind"] for s in answer["next_steps"]] == ["human"]
+    for secret in ("zq7user", "hunter2", "KEY123"):
+        assert secret not in out.getvalue() + err.getvalue()
+
+
+def test_a_value_over_the_balance_names_the_eth_to_send_before_any_estimate(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Like a real node, the gas estimate refuses a value the wallet cannot cover.
+    site["answer"] = {**site["answer"], "transactions": [step("stake", value=str(10**18))]}
+    node = Base(
+        balance=10**17, fault=lambda method, _: refused() if method == "eth_estimateGas" else None
+    )
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert (code, answer["error"]["code"]) == (EXIT_FAILED, "base_needs_eth")
+    assert ADDRESS in answer["next_steps"][0]["say"]
+    assert node.raw == []
+
+
+def test_a_failure_after_one_landed_keeps_what_a_person_must_do_first(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+    sign = siwa.sign_transaction
+    monkeypatch.setattr(
+        siwa,
+        "sign_transaction",
+        lambda key, tx: sign(key, tx if tx["nonce"] == hex(7) else {**tx, "value": "0x1"}),
+    )
+    node = Base(statuses=["0x1"])
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert (code, answer["error"]["code"]) == (EXIT_AUTH, "signed_transaction_differs")
+    assert [s["kind"] for s in answer["next_steps"]] == ["human", "run"]
+    assert len(node.raw) == 1
+
+
+def test_an_interrupt_after_the_receipt_wait_still_keeps_the_hash(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(transactions, "LANDING_WAIT_SECONDS", 0)
+    record = transactions.record
+    calls: list[int] = []
+
+    def interrupted_once(*args: Any) -> dict[str, Any]:
+        calls.append(1)
+        if len(calls) == 1:
+            raise KeyboardInterrupt
+        return record(*args)
+
+    monkeypatch.setattr(transactions, "record", interrupted_once)
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+    node = Base()
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_CANCELLED
+    assert_look_up_first(answer, sent=1)
+
+
+def test_the_hash_is_on_screen_before_the_node_is_handed_it(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    err = io.StringIO()
+    seen: list[bool] = []
+
+    def look(method: str, params: list[Any]) -> None:
+        if method == "eth_sendRawTransaction":
+            seen.append("0x" + keccak(hexstr=params[0]).hex() in err.getvalue())
+
+    node = Base(statuses=["0x1"], fault=look)
+    monkeypatch.setattr(httpx, "post", node.post)
+    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+        assert app.main([*PRESENCE, "--send", "--json"]) == 0
+    assert seen == [True]
+
+
+def test_a_blocked_reason_of_only_spaces_blocks_nothing(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    site["answer"] = {**site["answer"], "transactions": [step("present", blocked="  ")]}
+    node = Base(statuses=["0x1"])
+    code, _, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == 0
+    assert len(node.raw) == 1
+
+
+def test_no_agent_key_sends_nothing(site: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(siwa, "sign", lambda *_: {})
+    monkeypatch.setattr(siwa, "load_key", lambda: None)
+    node = Base()
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert (code, answer["error"]["code"]) == (EXIT_AUTH, "no_agent_key")
+    assert node.raw == []

@@ -11,7 +11,13 @@ from typing import Any
 import click
 
 from regents_cli import base, output, siwa
-from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
+from regents_cli.errors import (
+    EXIT_AUTH,
+    EXIT_CANCELLED,
+    EXIT_UNREACHABLE,
+    CommandError,
+    UsageError,
+)
 from regents_cli.http import Request, base_address, data_with, send
 from regents_cli.next_steps import Step, done, human, pair_first, run, run_piped
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform, pinned_platforms
@@ -372,27 +378,34 @@ def register(
                 f"not transactions. Send it from that wallet: --wallet-address {wallet}.",
                 exit_code=EXIT_AUTH,
             )
+        base.on_base(timeout_ms)
         transaction, needs = base.priced(step, base.nonce(step["from"], timeout_ms), timeout_ms)
         show_signing(step, transaction, needs, as_json)
+        raw, tx_hash = base.signed(key, transaction, needs, timeout_ms)
+        check_again = run([*again, "--tx-hash", tx_hash], "Check it before sending another.")
         try:
-            tx_hash = base.send(key, transaction, needs, timeout_ms)
-        except CommandError as error:
-            if error.code != "base_send_unclear":
-                raise
-            sent = error.fields["tx_hash"]
+            if not base.broadcast(raw, timeout_ms):
+                raise CommandError(
+                    "base_send_unclear",
+                    f"The Base node {base.rpc_host()} did not confirm taking the transaction, so "
+                    f"it may be on its way: {tx_hash}.",
+                    exit_code=EXIT_UNREACHABLE,
+                    next_steps=[check_again],
+                    tx_hash=tx_hash,
+                )
+            listed = listing(profile, tx_hash, check_again, timeout_ms)
+        except KeyboardInterrupt:
             raise CommandError(
-                error.code,
-                error.message,
-                exit_code=error.exit_code,
-                next_steps=[run([*again, "--tx-hash", sent], "Check it before sending another.")],
-                tx_hash=sent,
+                "cancelled",
+                f"The command was interrupted once the listing was signed, so it may be on its "
+                f"way: {tx_hash}.",
+                exit_code=EXIT_CANCELLED,
+                next_steps=[check_again],
+                tx_hash=tx_hash,
             ) from None
-    check_again = run([*again, "--tx-hash", tx_hash], "Check it before sending another.")
-    listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
-    deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
-    while listed is None and time.monotonic() < deadline:
-        time.sleep(REGISTRATION_POLL_SECONDS)
-        listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
+    else:
+        check_again = run([*again, "--tx-hash", tx_hash], "Check it before sending another.")
+        listed = listing(profile, tx_hash, check_again, timeout_ms)
     if listed is None:
         output.emit(
             {"wallet_address": wallet.lower(), "tx_hash": tx_hash, "listed": False},
@@ -417,6 +430,18 @@ def register(
         as_json=as_json,
         next_steps=[done("The agent is listed; nothing more to run.")],
     )
+
+
+def listing(
+    profile: dict[str, str], tx_hash: str, check_again: Step, timeout_ms: int
+) -> dict[str, Any] | None:
+    """The sign-in server's listing for `tx_hash`, asked until it has one or the wait is over."""
+    listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
+    deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
+    while listed is None and time.monotonic() < deadline:
+        time.sleep(REGISTRATION_POLL_SECONDS)
+        listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
+    return listed
 
 
 def show_signing(

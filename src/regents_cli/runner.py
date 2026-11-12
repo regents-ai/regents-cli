@@ -239,7 +239,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         response = respond(base, request, timeout_ms)
         told = answer(response)
         found = transactions.listed(told) if send else []
-        if found and not any(t["blocked"] for t in found):
+        if found and not any(map(transactions.blocked, found)):
             again = command_line(platform, command, given, ["--send", *shared])
             fresh = (
                 as_described(
@@ -652,7 +652,7 @@ def to_send(answer: dict[str, Any]) -> list[Step]:
     blocked = [
         f"{t.get('name', number)} ({t['blocked']})"
         for number, t in enumerate(listed, 1)
-        if isinstance(t.get("blocked"), str) and t["blocked"].strip()
+        if transactions.blocked(t)
     ]
     if blocked:
         return [

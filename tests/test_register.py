@@ -74,6 +74,7 @@ class Stand:
         self.garble: tuple[str, Any] | None = None
         #: How the sign-in server answers the listing check: a status, or None when unreachable.
         self.outcome_status: int | None = 200
+        self.chain_id = 8453
 
     def post(self, url: str, *, json: dict[str, Any], **_: Any) -> httpx.Response:
         if url == f"{SIGN_IN}/api/shared/siwa/agent/register-step":
@@ -95,6 +96,7 @@ class Stand:
             "eth_getBalance": hex(self.prices["balance"]),
             "eth_call": f"0x{self.prices['l1']:064x}",
             "eth_sendRawTransaction": "0x" + "00" * 32,
+            "eth_chainId": hex(self.chain_id),
         }
         if self.garble is not None and self.garble[0] == method:
             said = self.garble[1]
@@ -516,3 +518,38 @@ def test_once_sent_a_failed_listing_check_keeps_the_hash_and_how_to_check_it(
     assert f"--tx-hash {tx_hash}" in json.dumps(told["next_steps"])
     assert "secret server words" not in out + err
     assert "Traceback" not in err
+
+
+@pytest.mark.parametrize("on", ["eth_sendRawTransaction", "registered"])
+def test_an_interrupt_once_signed_keeps_the_hash_and_the_check_never_sends_another(
+    on: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {"name": "Probe", "description": "A test agent."}
+    stand = Stand(built(profile), plenty())
+    answer = stand.post
+
+    def post(url: str, *, json: dict[str, Any], **kw: Any) -> httpx.Response:
+        told = answer(url, json=json, **kw)
+        if url.endswith(f"/{on}") or (url == NODE and json["method"] == on):
+            raise KeyboardInterrupt
+        return told
+
+    stand.post = post  # type: ignore[method-assign]
+    code, out, _ = register(stand, profile, tmp_path, monkeypatch, "--json")
+    told = json.loads(out)
+    tx_hash = told["error"]["tx_hash"]
+    assert code == 130
+    assert len(stand.sent()) == 1
+    assert [s["kind"] for s in told["next_steps"]] == ["run"]
+    assert f"--tx-hash {tx_hash}" in told["next_steps"][0]["command"]
+
+
+def test_a_node_on_another_chain_signs_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {"name": "Probe", "description": "A test agent."}
+    stand = Stand(built(profile), plenty())
+    stand.chain_id = 1
+    code, out, _ = register(stand, profile, tmp_path, monkeypatch, "--json")
+    assert (code, json.loads(out)["error"]["code"]) == (1, "base_wrong_chain")
+    assert stand.sent() == []
