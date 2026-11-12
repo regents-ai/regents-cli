@@ -672,18 +672,18 @@ def test_a_run_killed_while_it_waits_for_the_receipt_has_already_shown_the_hash(
         env=dict(os.environ),
     )
     assert running.stdout is not None and running.stderr is not None
-    shown = {running.stdout: b"", running.stderr: b""}
-    looking = running.stderr if as_json else running.stdout
+    shown = {running.stdout.fileno(): b"", running.stderr.fileno(): b""}
+    looking = (running.stderr if as_json else running.stdout).fileno()
     watch = selectors.DefaultSelector()
     for pipe in shown:
-        os.set_blocking(pipe.fileno(), False)
+        os.set_blocking(pipe, False)
         watch.register(pipe, selectors.EVENT_READ)
     deadline = time.monotonic() + 30
     try:
         while transactions.EXPLORER.encode() not in shown[looking]:
             assert time.monotonic() < deadline, shown
             for ready, _ in watch.select(deadline - time.monotonic()):
-                shown[ready.fileobj] += os.read(ready.fd, 65536)  # type: ignore[union-attr]
+                shown[ready.fd] += os.read(ready.fd, 65536)
         running.send_signal(signal.SIGTERM)
         running.wait(timeout=30)
     finally:

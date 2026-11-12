@@ -567,7 +567,9 @@ def test_the_hash_and_its_check_are_shown_before_the_node_is_handed_it(
 
     def post(url: str, *, json: dict[str, Any], **kw: Any) -> httpx.Response:
         if url == NODE and json["method"] == "eth_sendRawTransaction":
-            shown.append((sys.stderr if as_json else sys.stdout).getvalue())  # type: ignore[attr-defined]
+            printed = sys.stderr if as_json else sys.stdout
+            assert isinstance(printed, io.StringIO)
+            shown.append(printed.getvalue())
         return answer(url, json=json, **kw)
 
     stand.post = post  # type: ignore[method-assign]
