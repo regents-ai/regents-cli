@@ -27,6 +27,26 @@ EXIT_CODES: Final = {
 }
 
 
+#: Regents' own errors that have a lasting page on patchbay.help saying what each means and how
+#: to clear it. Patchbay keeps the table of where each page leads; a code joins here only once
+#: Patchbay lists it.
+HELP_PAGES: Final = frozenset(
+    {
+        "not_signed_in",
+        "agent_not_paired",
+        "person_not_here",
+        "no_touch_id",
+        "locked_key_needs_mac",
+        "key_helper_not_answering",
+    }
+)
+
+
+def help_page(code: str) -> str | None:
+    """The patchbay.help page for an error, whether `regents` or a site raised it."""
+    return f"https://patchbay.help/errors/{code}" if code in HELP_PAGES else None
+
+
 class CommandError(Exception):
     """A failure reported as {"error": {"code", "message", ...}} with its exit code.
 

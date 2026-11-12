@@ -23,6 +23,14 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent
   profile. An author with a profile keeps its block. `--json` prints the answer as before.
+- A failure whose error has a page on patchbay.help prints it under the error, as
+  `Help: https://patchbay.help/errors/<code>`, and `--json` puts it in `help` beside `error`.
+  The page says what the error means and how to clear it. The errors with a page are
+  `not_signed_in`, `agent_not_paired`, `person_not_here`, `no_touch_id`,
+  `locked_key_needs_mac` and `key_helper_not_answering`, whether `regents` or a site raised it.
+  When the site's own words already end with that link, it is printed once.
+- A site's hint that the next steps already say word for word is no longer printed a second
+  time under the error.
 
 ## 1.10.24 — 2026-11-04
 

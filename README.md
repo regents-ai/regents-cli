@@ -23,7 +23,8 @@ Every command answers the same way:
 
 - readable output by default, and `--json` for the site's answer with `next_steps`;
 - an empty HTTP 204 is success, shown as an empty object with `next_steps`;
-- errors as `{"error": {"code": "…", "message": "…"}}`;
+- errors as `{"error": {"code": "…", "message": "…"}}`, with `help` beside `error`, the
+  error's page on patchbay.help, for the errors that have one, such as `not_signed_in`;
 - the same exit codes everywhere (`regents --help` lists them);
 - the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address;
   a signed command signs only for an address the sign-in server lists for the site;
