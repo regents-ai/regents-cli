@@ -5,7 +5,9 @@ writes its `used` line before its job is submitted, and `grant revoke` writes `r
 line names the grant's digest and nonce and is signed with this machine's Techtree identity key,
 so a line edited by hand, or copied from another grant, never counts. It is the operator's own
 record on the operator's own machine: it stops mistakes and repeats, and nobody else has checked
-it. The provider's lookup by intent id is what stops a second submission.
+it. Lines are not linked to each other, so a removed line goes unnoticed: a grant whose `used` or
+`revoked` line is removed is admitted again. The provider's lookup by intent id is what stops a
+second submission.
 """
 
 from __future__ import annotations
@@ -132,7 +134,7 @@ def lines(
 def _invalid(path: Path, number: int, reason: str) -> PolicyError:
     return PolicyError(
         f"line {number} of the grant ledger does not hold: {reason}. No grant is admitted "
-        "until a person has looked at the file.",
+        "while that line is in the file; show the file to your person.",
         code=APPROVAL_REQUIRED,
         details={"reason": "grant_ledger_invalid", "path": str(path), "line": number},
     )

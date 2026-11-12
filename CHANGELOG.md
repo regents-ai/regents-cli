@@ -8,9 +8,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `regents techtree model-climb` is new: it fine-tunes an open model privately and measures
   whether it got better. This release covers the Qwen3.5 9B compatibility profile: a check on
   this machine that rents nothing; a plan with the GPU rate and the most the test can cost; a
-  grant confirmed at an interactive terminal on this machine, signed with this machine's key and
-  limited to its plan, dollars, hours and one use; the paid test on rented GPUs under that
-  grant; and `submit`, which checks a proof this machine signed and sends it, only to an
+  grant made when someone confirms at a terminal on this machine, signed with this machine's own
+  key and limited to its plan, dollars, hours and one use, which stops mistakes but not a
+  program on this machine that sets out to get round it, so the compute account's own spending
+  limit stays the real cap; the paid test on rented GPUs under that grant; and `submit`, which checks a proof this machine signed and sends it, only to an
   address Techtree's sign-in lists, for Techtree to keep privately for your person.
   `regents techtree proof verify` also checks a Model Climb proof folder.
 - Techtree help and review lines open with the thing they name, never with "what" or "where":

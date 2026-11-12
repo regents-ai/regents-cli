@@ -1,11 +1,12 @@
 """Execution grants (contract section 6): one operation, on one resolved plan, within limits.
 
 A local grant is drawn from the stored plan and its study, so every field it binds is the plan's
-own, and it is signed with this machine's Techtree identity key. It is operator-attested: the
-key belongs to the person who runs this machine, and that is all the signature proves.
-`admit` is the only check a command makes before it spends or deploys under a grant; a grant id
-alone authorizes nothing. `use` then spends one of the grant's uses on an attempt, before that
-attempt's job is submitted, and `revoke` ends a grant for good. All three read the grant ledger.
+own, and it is signed with this machine's Techtree identity key. The signature proves only that
+this machine's key signed it: any program running as this machine's user can use that key, so a
+grant never proves that a person confirmed it. `admit` is the only check a command makes before
+it spends or deploys under a grant; a grant id alone authorizes nothing. `use` then spends one of
+the grant's uses on an attempt, before that attempt's job is submitted, and `revoke` records that
+a grant has ended. All three read the grant ledger.
 """
 
 from __future__ import annotations

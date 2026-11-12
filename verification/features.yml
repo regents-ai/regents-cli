@@ -268,8 +268,8 @@ features:
   - The review lines Forge shows before a model call have no test of their words.
 - id: techtree-model-climb
   what: An agent checks an open-model fine-tuning profile on this machine, plans its paid test, runs the
-    test on rented GPUs only under a grant confirmed at this machine's terminal, and sends a signed proof
-    to its person's private Techtree records.
+    test on rented GPUs only under a grant made at this machine's terminal and signed with its own key,
+    and sends a signed proof to its person's private Techtree records.
   who: agent
   level: protected
   paths:
@@ -297,6 +297,10 @@ features:
     no machine has been rented from this build.
   - 'The model-free check''s container is not built or run by make check: the walk stands in for its answer.'
   - No command writes the uplift report yet; the walk seals one by hand before sending its proof.
+  - 'A grant is confirmed at this machine''s terminal, signed with this machine''s own key and its use
+    recorded in a file on this machine, so it stops mistakes but not a program here that sets out to get
+    round it: such a program could confirm for itself, sign its own grant, or remove the record of a used
+    or revoked grant. The spending limit on the compute provider''s account is the real cap on money.'
 - id: techtree-release
   what: The Techtree release this build belongs to, and whether it holds.
   who: operator

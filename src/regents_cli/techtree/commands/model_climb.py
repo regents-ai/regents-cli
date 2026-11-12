@@ -1,7 +1,8 @@
 """`regents techtree model-climb …` (contract model-climb-v1): what this machine can run, the
 model-free compatibility check, the plan and local execution grants for its paid step (M0), and
 sending a signed proof to the person's private Techtree records (M3). Only `profile test` rents
-a machine, and only under a grant confirmed at an interactive terminal on this machine."""
+a machine, and only under a grant made at a terminal on this machine and signed with its own key
+(the grant review says what that does not stop)."""
 
 from __future__ import annotations
 
@@ -422,8 +423,8 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
         as_json=as_json,
         next_steps=[
             human(
-                "Show your person this plan. Its grant is confirmed at an interactive "
-                f"terminal on this machine, by running: {issue}"
+                "Show your person this plan; they issue its grant at a terminal on this "
+                f"machine by running: {issue}"
             )
         ],
         shown=[
@@ -637,7 +638,7 @@ def grant_issue(
         covers = profile_test.build_notice(grant.max_cents, minutes, grant.gpu_count)
     if as_json or not (sys.stdin.isatty() and sys.stdout.isatty()):
         raise PolicyError(
-            "a grant is issued only at an interactive terminal on this machine, where the "
+            "a grant is issued only at a terminal on this machine, where the "
             "account's spending limit is answered for and the grant's maximum, "
             f"{dollars}, is typed to confirm. Show your person the review; they run this "
             "command themselves.",
@@ -781,8 +782,14 @@ def _grant_review(grant: ExecutionGrant) -> list[str]:
         ),
         "May reach: " + (", ".join(grant.egress) if grant.egress else "nothing beyond the job"),
         f"Workspace {grant.workspace}; used only with this machine's signing key",
-        f"Approved by {grant.approving_human} on this machine, operator-attested",
+        f"Issued as user {grant.approving_human} at a terminal on this machine and signed with "
+        "this machine's own key; the record of its use sits in a file on this machine",
         f"Valid {grant.issued_at.isoformat()} until {grant.expires_at.isoformat()}",
+        "Stops mistakes and accidental spending, and holds an agent that follows the rules",
+        "Does not stop a program on this machine that sets out to get round it: such a program "
+        "could confirm for itself, sign its own grant, or remove the record of a used or revoked "
+        "grant",
+        "The real limit on money is the spending limit on the compute provider's account",
     ]
 
 
@@ -916,12 +923,12 @@ PROFILE.add_command(
     )
 )
 
-GRANT = click.Group("grant", help="Execution grants for this machine, operator-attested.")
+GRANT = click.Group("grant", help="Grants made at a terminal on this machine, signed with its key.")
 GRANT.add_command(
     click.Command(
         "issue",
         callback=grant_issue,
-        help="Issue a grant for one operation on one resolved plan, at an interactive terminal "
+        help="Issue a grant for one operation on one resolved plan, at a terminal "
         "on this machine, after you answer for the account's spending limit and type the "
         "grant's maximum. It is signed with this machine's key and limited to its plan, its "
         "dollars and hours, and its attempts (one for a profile test). Spends nothing itself.",
@@ -945,8 +952,8 @@ GRANT.add_command(
     click.Command(
         "revoke",
         callback=grant_revoke,
-        help="End a grant on this machine: nothing is admitted under it again. A job already "
-        "running is not stopped by this.",
+        help="End a grant in this machine's records, so nothing more is admitted under it. A job "
+        "already running is not stopped by this.",
         params=[click.Argument(["grant_id"], metavar="GRANT_ID"), JSON],
     )
 )
