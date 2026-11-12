@@ -17,10 +17,15 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 - `--send` on the Keyfleet commands that build transactions for the agent's own wallet (marking
   Keys present, voting and making a proposal, once Keyfleet lists them): the agent key on this
   machine signs and sends each transaction in turn, waits for it to land on Base before the next,
-  and its wallet pays the gas. The key never leaves the machine. One the chain's state makes
-  certain to fail sends nothing, with Keyfleet's reason; too little ETH names how much to send and
-  to which wallet. Without `--send` these commands answer exactly as before. A site marks such a
-  command with `"sends": true` in its `commands.json`.
+  and its wallet pays the gas and any ETH a transaction carries, shown as its Amount. The key
+  never leaves the machine. One the chain's state makes certain to fail sends nothing, with
+  Keyfleet's reason, and so does a node that is not on Base. Before the first is sent, the wallet
+  must hold every Amount plus the gas of each transaction that can be priced then, or nothing is
+  sent and the answer names how much ETH to send to which wallet. One that does not land within a
+  minute, or that the node never confirms taking, is listed with its hash and a link to look it
+  up; nothing offers to run the command again, which would send it again. Of the Base node's
+  address only its host is ever printed. Without `--send` these commands answer exactly as
+  before. A site marks such a command with `"sends": true` in its `commands.json`.
 - `regents auth register` numbers the transaction it sends from the wallet's count at the latest
   block rather than Base's pending count, the same as `--send`.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written

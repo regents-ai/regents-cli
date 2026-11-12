@@ -141,9 +141,16 @@ non-empty `transactions` list, at the top or in `data`, always starts with the `
 or with a `done` step naming the reason when one transaction's `blocked` says the chain's own
 state makes it certain to fail. `regents` sends them itself only with `--send`, on a command whose
 entry says it `sends`: the agent key on this machine signs each one exactly as shown and its
-wallet pays the gas. A blocked one sends nothing, with the site's reason; too little ETH sends
-nothing and names how much to send to which wallet; one that lands and fails, or is not on Base
-after a minute, stops the rest, and the answer lists what was sent. A key that signs through a
+wallet pays the gas and each transaction's `value`, shown as its Amount and listed in `sent` as
+`value_eth`. A blocked one sends nothing, with the site's reason. A node that is not on Base
+sends nothing. Before the first is sent, the wallet must hold every transaction's value plus the
+gas of each the node can price now; one that needs an earlier one on the chain first (a stake
+after its approve) is priced at its turn. Too little sends nothing and names how much to send to
+which wallet; each is checked again before it is sent, so gas that rises on the way can still
+stop a later one. One that lands and fails stops the rest. One whose receipt is not read within
+a minute, including one the node never confirmed taking, stops the rest too: the answer lists it
+in `sent` with its hash and the one step is to look it up, since running the command again sends
+it again. A key that signs through a
 command (`SIWA_AGENT_SIGNER`) cannot send. A post is only
 suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
 that is not a JSON object), answers with an error without a readable code, or cannot be

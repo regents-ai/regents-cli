@@ -204,7 +204,10 @@ def build_command(platform: Platform, command: Command) -> click.Command:
                 is_flag=True,
                 help="Sign and send the transactions with the agent key on this machine, in "
                 "order, each after the one before it lands on Base. The key never leaves this "
-                "machine, and its wallet pays the gas.",
+                "machine. Its wallet pays the gas and any ETH a transaction carries, shown as "
+                "its Amount. Nothing is sent unless the node is on Base and the wallet holds "
+                "every Amount and the gas of each transaction that can be priced before the "
+                "first is sent.",
             )
         )
 

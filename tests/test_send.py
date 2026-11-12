@@ -7,6 +7,8 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
+from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -41,20 +43,31 @@ def step(name: str, data: str = "0xabcdef01", value: str = "0", blocked: str | N
 
 
 class Base:
-    """A Base node: prices, balances, and each sent transaction's receipt."""
+    """A Base node: prices, balances, and each sent transaction's receipt. `fault` may answer a
+    call in its own way (or drop the connection) instead."""
 
-    def __init__(self, nonce: int = 7, balance: int = 10**18, statuses: list[str] | None = None):
-        self.nonce, self.balance = nonce, balance
+    def __init__(
+        self,
+        nonce: int = 7,
+        balance: int = 10**18,
+        statuses: list[str] | None = None,
+        chain_id: int = 8453,
+        fault: Callable[[str, list[Any]], httpx.Response | None] = lambda *_: None,
+    ):
+        self.nonce, self.balance, self.chain_id, self.fault = nonce, balance, chain_id, fault
         self.statuses = list(statuses or [])
         self.calls: list[tuple[str, list[Any]]] = []
         self.raw: list[str] = []
 
     def post(self, url: str, *, json: dict[str, Any], **_: Any) -> httpx.Response:
-        assert url == NODE
+        assert url == os.environ["SIWA_BASE_RPC"]
         method, params = json["method"], json["params"]
         self.calls.append((method, params))
         if method == "eth_sendRawTransaction":
             self.raw.append(params[0])
+        faulty = self.fault(method, params)
+        if faulty is not None:
+            return faulty
         landed = method == "eth_getTransactionReceipt" and self.statuses
         receipt = {"status": self.statuses.pop(0)} if landed else None
         answers = {
@@ -66,6 +79,7 @@ class Base:
             "eth_call": f"0x{10**9:064x}",
             "eth_sendRawTransaction": "0x" + "00" * 32,
             "eth_getTransactionReceipt": receipt,
+            "eth_chainId": hex(self.chain_id),
         }
         return httpx.Response(200, json={"jsonrpc": "2.0", "id": 1, "result": answers[method]})
 
@@ -262,4 +276,112 @@ def test_a_key_that_signs_only_messages_sends_nothing(
     code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
     assert code == EXIT_AUTH
     assert answer["error"]["code"] == "signer_cannot_send"
+    assert node.raw == []
+
+
+def refused(*_: Any) -> httpx.Response:
+    return httpx.Response(200, json={"jsonrpc": "2.0", "id": 1, "error": {"code": -32000}})
+
+
+def dropped(method: str, _: list[Any]) -> httpx.Response | None:
+    if method == "eth_sendRawTransaction":
+        raise httpx.RemoteProtocolError("Server disconnected without sending a response.")
+    return None
+
+
+def assert_look_up_first(answer: dict[str, Any], sent: int) -> None:
+    """Stopped after `sent` were handed to the node: each listed with its hash as not confirmed,
+    and the one step is to look the last up, never to run it again."""
+    assert answer["error"]["code"] == "transaction_not_landed"
+    listed = answer["error"]["sent"]
+    assert len(listed) == sent and all(t["tx_hash"].startswith("0x") for t in listed)
+    assert listed[-1]["landed"] == "not yet"
+    assert [s["kind"] for s in answer["next_steps"]] == ["human"]
+    assert answer["next_steps"][0]["url"] == transactions.EXPLORER + listed[-1]["tx_hash"]
+
+
+def test_a_send_the_node_drops_is_looked_up_never_sent_again(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(transactions, "LANDING_WAIT_SECONDS", 0)
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+    node = Base(fault=dropped)
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_UNREACHABLE
+    assert_look_up_first(answer, sent=1)
+    assert len(node.raw) == 1
+
+
+@pytest.mark.parametrize(
+    "receipt",
+    [
+        refused,
+        lambda *_: httpx.Response(200, json={"jsonrpc": "2.0", "id": 1, "result": {"status": 1}}),
+    ],
+    ids=["refused", "unreadable"],
+)
+def test_a_receipt_that_cannot_be_read_after_a_send_is_looked_up_never_sent_again(
+    site: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    receipt: Callable[..., httpx.Response],
+) -> None:
+    monkeypatch.setattr(transactions, "LANDING_WAIT_SECONDS", 0)
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+    node = Base(
+        fault=lambda method, params: receipt() if method == "eth_getTransactionReceipt" else None
+    )
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_UNREACHABLE
+    assert_look_up_first(answer, sent=1)
+    assert len(node.raw) == 1
+
+
+def test_too_little_eth_for_all_of_them_sends_none(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The stake cannot be priced until the approve lands, but its value is known now.
+    site["answer"] = {
+        **site["answer"],
+        "transactions": [step("approve"), step("stake", data="0xdead", value=str(10**18))],
+    }
+    node = Base(
+        balance=10**17,
+        statuses=["0x1", "0x1"],
+        fault=lambda method, params: (
+            refused() if method == "eth_estimateGas" and params[0]["data"] == "0xdead" else None
+        ),
+    )
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_FAILED
+    assert answer["error"]["code"] == "base_needs_eth"
+    assert node.raw == []
+
+
+def test_a_credentialed_node_address_is_never_printed(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(transactions, "LANDING_WAIT_SECONDS", 0)
+    monkeypatch.setenv("SIWA_BASE_RPC", "https://zq7user:hunter2@base-node.test/v2/KEY123?k=TOKEN9")
+
+    def unreachable(*_: Any) -> httpx.Response:
+        raise httpx.ConnectError("refused")
+
+    for fault in (unreachable, refused, dropped):
+        out, err = io.StringIO(), io.StringIO()
+        monkeypatch.setattr(httpx, "post", Base(fault=fault).post)
+        for flags in (["--json"], []):
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                app.main([*PRESENCE, "--send", *flags])
+        printed = out.getvalue() + err.getvalue()
+        for secret in ("zq7user", "hunter2", "KEY123", "TOKEN9"):
+            assert secret not in printed
+
+
+def test_a_node_on_another_chain_sends_nothing(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    node = Base(chain_id=1, statuses=["0x1"])
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_FAILED
+    assert answer["error"]["code"] == "base_wrong_chain"
     assert node.raw == []

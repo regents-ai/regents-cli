@@ -4,7 +4,8 @@
 and Base's fee for writing it to Ethereum. The caller shows it, and `send` signs exactly that,
 checks the signed bytes say the same, and hands them to a Base node once. The agent's wallet pays,
 so `send` first checks it holds that most. `SIWA_BASE_RPC` names the node, shared with the SIWA
-agent client. A node's own words never reach the screen.
+agent client. A node's own words never reach the screen, and of its address only the host does:
+the rest can carry a key.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from __future__ import annotations
 import os
 import re
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
 from eth_account import Account
@@ -28,6 +30,7 @@ BASE_RPC = "https://mainnet.base.org"
 CHAIN_ID = 8453
 #: What it means when the node refuses each call.
 REFUSED = {
+    "eth_chainId": "The Base node would not say which chain it is on",
     "eth_estimateGas": "The Base node says this transaction would fail",
     "eth_getBalance": "The Base node would not say how much the wallet holds",
     "eth_sendRawTransaction": "The Base node refused the signed transaction",
@@ -47,11 +50,19 @@ def rpc_address() -> str:
     return os.environ.get("SIWA_BASE_RPC", BASE_RPC).strip()
 
 
+def rpc_host() -> str:
+    """The node's host, the one part of its address ever printed: never its user, password, path
+    or query."""
+    try:
+        return urlsplit(rpc_address()).hostname or "named by SIWA_BASE_RPC"
+    except ValueError:
+        return "named by SIWA_BASE_RPC"
+
+
 def call(method: str, params: list[Any], timeout_ms: int) -> Any:
-    address = rpc_address()
     try:
         response = httpx.post(
-            address,
+            rpc_address(),
             json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
             timeout=timeout_ms / 1000,
             follow_redirects=False,
@@ -60,14 +71,14 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
     except (httpx.HTTPError, ValueError, RecursionError):
         raise CommandError(
             "base_unreachable",
-            f"The Base node {address} could not be reached, or did not answer in time.",
+            f"The Base node {rpc_host()} could not be reached, or did not answer in time.",
             exit_code=EXIT_UNREACHABLE,
         ) from None
     if isinstance(body, dict) and "result" in body:
         return body["result"]
     raise CommandError(
         "base_refused",
-        REFUSED.get(method, f"The Base node {address} would not price this transaction")
+        REFUSED.get(method, f"The Base node {rpc_host()} would not price this transaction")
         + ", so nothing was sent.",
         next_steps=[another_node()],
     )
@@ -77,6 +88,38 @@ def nonce(address: str, timeout_ms: int) -> int:
     """The nonce of `address`'s next transaction: its count at the latest block. A sender that
     waits for each transaction to land counts on from it, never reading Base's pending count."""
     return number(call("eth_getTransactionCount", [address, "latest"], timeout_ms))
+
+
+def on_base(timeout_ms: int) -> None:
+    """Refuse, before anything is signed, a node that is not on Base."""
+    chain = number(call("eth_chainId", [], timeout_ms))
+    if chain != CHAIN_ID:
+        raise CommandError(
+            "base_wrong_chain",
+            f"The node {rpc_host()} is on chain {chain}, not Base ({CHAIN_ID}). Nothing was "
+            "signed or sent.",
+            next_steps=[human("Your person names a Base node with SIWA_BASE_RPC.")],
+        )
+
+
+def balance(address: str, timeout_ms: int) -> int:
+    """What `address` holds on Base at the latest block, in wei."""
+    return number(call("eth_getBalance", [address, "latest"], timeout_ms))
+
+
+def needs_eth(address: str, holds: int, needs: int, what: str) -> CommandError:
+    """`address` holds less than the `needs` wei that `what` can take."""
+    return CommandError(
+        "base_needs_eth",
+        f"{address} holds {eth(holds)} ETH on Base, and {what} can take up to {eth(needs)} ETH "
+        "with its gas. Nothing was signed or sent.",
+        next_steps=[
+            human(
+                f"Your person sends at least {eth(needs - holds)} ETH on Base to {address}, then "
+                "run this again."
+            )
+        ],
+    )
 
 
 def priced(step: dict[str, Any], nonce: int, timeout_ms: int) -> tuple[dict[str, str], int]:
@@ -118,8 +161,7 @@ def number(answer: Any) -> int:
 def unreadable() -> CommandError:
     return CommandError(
         "base_answer_unreadable",
-        f"The Base node {rpc_address()} answered in a way regents cannot read, so nothing was "
-        "sent.",
+        f"The Base node {rpc_host()} answered in a way regents cannot read, so nothing was sent.",
         next_steps=[another_node()],
     )
 
@@ -127,7 +169,7 @@ def unreadable() -> CommandError:
 def another_node() -> Step:
     return human(
         f"Run this again in a minute. If it happens again, your person names another Base node "
-        f"than {rpc_address()} with SIWA_BASE_RPC."
+        f"than {rpc_host()} with SIWA_BASE_RPC."
     )
 
 
@@ -143,19 +185,9 @@ def send(key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int
 
     When the node does not confirm the send, the transaction may still be on its way: the error
     carries its hash as `tx_hash`, so the caller can check it rather than send a second one."""
-    holds = number(call("eth_getBalance", [key.address, "latest"], timeout_ms))
+    holds = balance(key.address, timeout_ms)
     if holds < needs:
-        raise CommandError(
-            "base_needs_eth",
-            f"{key.address} holds {eth(holds)} ETH on Base, and this transaction can take up to "
-            f"{eth(needs)} ETH with its gas. Nothing was signed or sent.",
-            next_steps=[
-                human(
-                    f"Your person sends at least {eth(needs - holds)} ETH on Base to "
-                    f"{key.address}, then run this again."
-                )
-            ],
-        )
+        raise needs_eth(key.address, holds, needs, "this transaction")
     raw = siwa.sign_transaction(key, transaction)
     if not signs(raw, key.address, transaction):
         raise CommandError(
@@ -178,7 +210,7 @@ def send(key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int
             raise
         raise CommandError(
             "base_send_unclear",
-            f"The Base node {rpc_address()} did not confirm the send, so the transaction may be "
+            f"The Base node {rpc_host()} did not confirm the send, so the transaction may be "
             f"on its way: {tx_hash}.",
             exit_code=EXIT_UNREACHABLE,
             tx_hash=tx_hash,

@@ -5,10 +5,14 @@ transactions the site built for the agent's own wallet, in the order to send the
 the agent key signs and sends each in turn and waits for it to land before the next, so their
 nonces follow from the first one read at the latest block. One the chain's own state makes
 certain to fail (its `blocked` reason) is never sent; that stops all of them, before any is sent.
+So does a node that is not on Base, or a wallet that cannot cover all of them as far as they can
+be priced before the first is sent. Once one is handed to the node, only its receipt says what
+happened to it: until one is read, it has not landed, and nothing offers to send it again.
 """
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import time
@@ -80,26 +84,34 @@ def send(
             "transactions. Send them from that wallet instead: leave out --send.",
             exit_code=EXIT_AUTH,
         )
+    base.on_base(timeout_ms)
     sent: list[dict[str, Any]] = []
     nonce = base.nonce(key.address, timeout_ms)
-    for transaction in found:
-        step = {
+    steps = [
+        {
             "from": key.address,
             "to": transaction["to"],
             "data": transaction["data"],
             "value": hex(int(transaction["value"])),
             "chainId": base.CHAIN_ID,
         }
+        for transaction in found
+    ]
+    covers(key.address, steps, nonce, timeout_ms)
+    for transaction, step in zip(found, steps, strict=True):
         try:
             signed, needs = base.priced(step, nonce, timeout_ms)
             show(transaction, signed, needs, key.address, as_json)
             tx_hash = base.send(key, signed, needs, timeout_ms)
         except CommandError as error:
-            raise with_sent(error, sent) from None
+            if error.code != "base_send_unclear":
+                raise with_sent(error, sent) from None
+            tx_hash = error.fields["tx_hash"]
         status = landed(tx_hash, timeout_ms)
         sent.append(
             {
                 "name": transaction["name"],
+                "value_eth": base.eth(int(transaction["value"])),
                 "tx_hash": tx_hash,
                 "landed": {True: "succeeded", False: "failed", None: "not yet"}[status],
             }
@@ -107,8 +119,8 @@ def send(
         if status is None:
             raise CommandError(
                 "transaction_not_landed",
-                f"{transaction['name']} was sent as {tx_hash} but is not on Base after "
-                f"{LANDING_WAIT_SECONDS} seconds, so the ones after it were not sent.",
+                f"{transaction['name']} was handed to the Base node as {tx_hash} but is not on "
+                f"Base after {LANDING_WAIT_SECONDS} seconds, so the ones after it were not sent.",
                 exit_code=EXIT_UNREACHABLE,
                 next_steps=[
                     human(
@@ -131,6 +143,23 @@ def send(
     return {"wallet_address": key.address, "chain_id": base.CHAIN_ID, "sent": sent}
 
 
+def covers(address: str, steps: list[dict[str, Any]], nonce: int, timeout_ms: int) -> None:
+    """Before the first is sent: `address` holds every transaction's value, and the gas of each
+    the node can price now. One that needs an earlier one on the chain first, such as a stake
+    after its approve, is priced only when its turn comes, so until then only its value counts."""
+    total = 0
+    for offset, step in enumerate(steps):
+        try:
+            total += base.priced(step, nonce + offset, timeout_ms)[1]
+        except CommandError as error:
+            if offset == 0 or error.code != "base_refused":
+                raise
+            total += int(step["value"], 16)
+    holds = base.balance(address, timeout_ms)
+    if holds < total:
+        raise base.needs_eth(address, holds, total, f"these {len(steps)} transactions")
+
+
 def with_sent(error: CommandError, sent: list[dict[str, Any]]) -> CommandError:
     """`error`, saying which transactions were sent and landed before it."""
     if not sent:
@@ -149,17 +178,14 @@ def with_sent(error: CommandError, sent: list[dict[str, Any]]) -> CommandError:
 
 def landed(tx_hash: str, timeout_ms: int) -> bool | None:
     """Whether the transaction succeeded on Base, read at the latest block; None when it has not
-    landed in time. A node that does not answer a check is asked again until then."""
+    landed in time. A receipt the node does not give, refuses or gives unreadably says nothing
+    about the transaction, so the node is asked again until then."""
     deadline = time.monotonic() + LANDING_WAIT_SECONDS
     while True:
-        try:
+        with contextlib.suppress(CommandError):
             receipt = base.call("eth_getTransactionReceipt", [tx_hash], timeout_ms)
-        except CommandError as error:
-            if error.code != "base_unreachable":
-                raise
-            receipt = None
-        if isinstance(receipt, dict):
-            return base.number(receipt.get("status")) == 1
+            if isinstance(receipt, dict):
+                return base.number(receipt.get("status")) == 1
         if time.monotonic() >= deadline:
             return None
         time.sleep(LANDING_POLL_SECONDS)

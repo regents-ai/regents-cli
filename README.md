@@ -176,7 +176,15 @@ With a wallet of your own, `--phase prepare --wallet-address 0x…` prints the n
 message to sign; add its `signature` to that answer and pipe it to `--phase send`.
 
 `regents` never signs a payment. A paid command takes your own x402 payment signature on stdin.
-The one transaction it ever sends is the agent's registry listing above.
+Besides the registry listing above, it sends transactions only with `--send`, on a command whose
+answer lists Base transactions for the agent's own wallet. The agent key on this machine signs
+each one as shown, Amount (the ETH it carries) included, and sends them in order, each after the
+one before it lands; the wallet pays every Amount and the gas. Nothing is sent when the node is
+not on Base, or when the wallet holds less than every Amount plus the gas of each transaction
+that can be priced before the first is sent (one that needs an earlier one on the chain first is
+priced at its turn, and checked again then). Once one is handed to the node and its receipt is
+not read in time, the answer lists it with its hash and a link to look it up: running the
+command again would send it again.
 
 ## Techtree publication sign-in
 
