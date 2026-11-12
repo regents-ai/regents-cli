@@ -220,6 +220,15 @@ def test_an_errors_help_page_is_printed_once(
     assert json.loads(capsys.readouterr().out)["help"].endswith(refusal["code"])
 
 
+def test_a_longer_link_does_not_hide_the_help_line(capsys: pytest.CaptureFixture[str]) -> None:
+    """The help line was left out when any printed text merely started with its link."""
+    error = CommandError(
+        "no_touch_id", "No Touch ID.", hint="See https://patchbay.help/errors/no_touch_id_extra"
+    )
+    output.emit_error(error, [], as_json=False)
+    assert "Help: https://patchbay.help/errors/no_touch_id\n" in capsys.readouterr().err
+
+
 @pytest.mark.parametrize(
     "error",
     [
@@ -622,15 +631,59 @@ def test_a_site_that_names_its_command_gets_that_command_not_a_done_tick() -> No
     assert searched.command == "regents patchbay threads search --help"
     assert hinted(patchbay, "Ask with regents keyfleet rooms post.", []) == []
     assert hinted(patchbay, "Try regents patchbay nothing-here.", []) == []
+    assert hinted(patchbay, "See sub-regents patchbay threads create.", []) == []
 
 
-def test_a_missing_record_is_never_a_done_tick() -> None:
-    """A 404 got a green tick and nothing to run, though the agent's next move is to correct the
-    id and run it again."""
-    error = CommandError("not_found", "There is no thread with that id.", status=404)
-    failed = invocation("patchbay", "patchbay.help")
-    (step,) = for_failure(error, failed)
-    assert step.kind == "run" and step.command == shlex.join(failed.again)
+@pytest.mark.parametrize(
+    ("args", "hint", "commands"),
+    [
+        (
+            ["keyfleet", "profile", "get", "--json"],
+            "Make one with regents keyfleet profile join NAME.",
+            ["regents keyfleet profile join --help", "regents keyfleet profile --help"],
+        ),
+        (["keyfleet", "profile", "get", "--json"], None, ["regents keyfleet profile --help"]),
+        (
+            ["keyfleet", "rooms", "read", "my-fleet", "general", "--json"],
+            "Make one with regents keyfleet profile join NAME.",
+            [
+                "regents keyfleet profile join --help",
+                "regents keyfleet rooms read my-fleet general --json",
+            ],
+        ),
+        (
+            ["patchbay", "threads", "get", "t-1", "--json"],
+            None,
+            ["regents patchbay threads get t-1 --json"],
+        ),
+    ],
+)
+def test_a_missing_record_is_never_a_done_tick(
+    args: list[str], hint: str | None, commands: list[str], capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A 404 got a green tick and nothing to run. Then (1.10.25 review) `keyfleet profile get`,
+    which takes no name or id, led with running itself again, which could only fail again. The
+    site's pointer comes first, since it knows what is missing; running again to correct a name
+    or id is offered only when the command was given one."""
+    error = CommandError("profile_not_found", "No such record.", status=404, hint=hint)
+    app._failed(error, app.root(), args)
+    steps = json.loads(capsys.readouterr().out)["next_steps"]
+    assert [step["command"] for step in steps] == commands
+    assert all(step["kind"] == "run" for step in steps)
+
+
+@pytest.mark.parametrize("code", ["agent_not_paired", "person_not_here", "agent_limit"])
+def test_a_hinted_step_is_offered_once(code: str, capsys: pytest.CaptureFixture[str]) -> None:
+    """These hints are already a step, and one naming `regents keyfleet agents pair` added the
+    same words again, and for agent_not_paired `agents pair --help` right after `agents pair`."""
+    hint = "Pair with regents keyfleet agents pair."
+    error = CommandError(code, "Refused.", status=403, hint=hint)
+    app._failed(error, app.root(), ["keyfleet", "agents", "whoami", "--json"])
+    steps = json.loads(capsys.readouterr().out)["next_steps"]
+    said = [step["say"] for step in steps]
+    commands = {step.get("command") for step in steps}
+    assert len(said) == len(set(said))
+    assert not {"regents keyfleet agents pair", "regents keyfleet agents pair --help"} <= commands
 
 
 def test_a_hinted_command_runs_where_the_refused_one_ran(

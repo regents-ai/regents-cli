@@ -150,14 +150,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _failed(error: CommandError, cli: click.Group, args: list[str], *, unread: bool = False) -> int:
-    words, given = _read(cli, args)
-    called = _invocation(words, given, args)
+    words, given, typed = _read(cli, args)
+    called = _invocation(words, given, typed, args)
     # After a usage error Click may not have read every option, so a --json anywhere counts.
     as_json = given.get("as_json") is True or (unread and "--json" in args)
     steps = next_steps.for_failure(error, called)
     platform = next((p for p in pinned_platforms() if (p.name,) == called.words[:1]), None)
-    if platform is not None and isinstance(error.fields.get("status"), int):
-        # The site's pointer goes before a closing "nothing more to run".
+    status = error.fields.get("status")
+    if platform is not None and isinstance(status, int):
         base_url = given.get("base_url")
         shared = [
             *(
@@ -167,21 +167,31 @@ def _failed(error: CommandError, cli: click.Group, args: list[str], *, unread: b
             ),
             *(["--json"] if as_json else []),
         ]
-        extra = [s for s in hinted(platform, error.fields.get("hint"), shared) if s not in steps]
+        # A step is offered once, and a command's help never beside a step that runs it.
+        said = {s.say for s in steps}
+        ran = {s.command for s in steps}
+        extra = [
+            s
+            for s in hinted(platform, error.fields.get("hint"), shared)
+            if s.say not in said and (s.command or "").removesuffix(" --help") not in ran
+        ]
+        # The site's pointer goes first for a missing record, since the site knows what is
+        # missing, and otherwise before a closing "nothing more to run".
         last = len(steps) - 1 if steps and steps[-1].kind == "done" else len(steps)
-        steps[last:last] = extra
+        at = 0 if status == 404 else last
+        steps[at:at] = extra
     output.emit_error(error, steps, as_json=as_json)
     return error.exit_code
 
 
 def invocation(cli: click.Group, args: list[str]) -> next_steps.Invocation:
     """The command the arguments name, its site and that site's host."""
-    words, given = _read(cli, args)
-    return _invocation(words, given, args)
+    words, given, typed = _read(cli, args)
+    return _invocation(words, given, typed, args)
 
 
 def _invocation(
-    words: list[str], given: dict[str, object], args: list[str]
+    words: list[str], given: dict[str, object], typed: set[str], args: list[str]
 ) -> next_steps.Invocation:
     platforms = pinned_platforms()
     platform: Platform | None = None
@@ -208,13 +218,19 @@ def _invocation(
         description=described.description if described is not None else None,
         elsewhere=_elsewhere(platform, described, words, given),
         signed=described is None or described.signed,
+        named=bool(typed - SETTINGS),
     )
 
 
-def _read(cli: click.Group, args: list[str]) -> tuple[list[str], dict[str, object]]:
+#: Options that set where and how a command runs, never which record it asks for.
+SETTINGS = frozenset({"base_url", "timeout_ms", "phase"})
+
+
+def _read(cli: click.Group, args: list[str]) -> tuple[list[str], dict[str, object], set[str]]:
     """The command words and options in the arguments, read as Click reads them to run a
     command, with nothing run: it follows groups as its shell completion does, and stops at an
-    argument it cannot read."""
+    argument it cannot read. Last, the names of the arguments and option values the command line
+    itself gave."""
     words: list[str] = []
     try:
         context = cli.make_context("regents", list(args), resilient_parsing=True)
@@ -227,8 +243,15 @@ def _read(cli: click.Group, args: list[str]) -> tuple[list[str], dict[str, objec
             context = command.make_context(name, rest, parent=context, resilient_parsing=True)
             rest = context._protected_args + context.args
     except click.ClickException:
-        return words, {}
-    return words, dict(context.params)
+        return words, {}, set()
+    typed = {
+        p.name
+        for p in context.command.params
+        if p.name is not None
+        and not (isinstance(p, click.Option) and p.is_flag)
+        and context.get_parameter_source(p.name) is click.core.ParameterSource.COMMANDLINE
+    }
+    return words, dict(context.params), typed
 
 
 def _elsewhere(

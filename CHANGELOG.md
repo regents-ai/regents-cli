@@ -16,8 +16,11 @@ live sites from the built wheel; Techtree release record climb-v0.7.26.
   …`, such as Patchbay's "`regents patchbay threads create`" after an empty search, the next steps
   offer that command's `--help`, as they already did for a route. An empty search no longer ends
   with a green "nothing more to run".
-- A record the site does not have (404) no longer ends with a green tick: the next step is to
-  correct the name or id and run the command again, before any command the site's hint names.
+- A record the site does not have (404) no longer ends with a green tick. When the site's hint
+  names one of its commands, that command comes first, since the site knows what is missing.
+  When the command was given a name or id, the next step after it is to correct that and run the
+  command again; when it was given none, the commands beside it are listed instead, among them
+  any that makes the record.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent
   profile. An author with a profile keeps its block. `--json` prints the answer as before.
@@ -33,8 +36,12 @@ live sites from the built wheel; Techtree release record climb-v0.7.26.
   refused, the agent host gets an error for that request saying so and the command keeps running,
   instead of stopping. The method and protocol version headers are encoded as the protocol asks,
   so a value outside plain ASCII reaches the site.
-- `regents browser`: tool calls made at the same moment before a page is open share one browser
-  instead of each starting its own, and a start that fails or is cancelled leaves nothing running.
+- `regents browser`: pages opened at the same moment share one browser instead of each starting
+  its own, and a start that fails or is cancelled leaves nothing running.
+- `regents --help` shows the `regents browser` and `regents mcp` lines as a paragraph of their
+  own.
+- The example a command's `--help` prints for piped input puts a UUID in quotes, as it must be
+  sent; it was printed bare.
 - Every site is pinned at the commit it runs live (read 12 Nov): template cc4a83d3, Autolaunch
   1c594de5, Keyfleet bfc9a9dd, Patchbay 915fe398, regents.sh 8f8a74bf, Techtree e6073d8b. The
   commands follow them:
