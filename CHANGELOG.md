@@ -34,10 +34,24 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## 1.10.25 — 2026-11-12
 
-Evidence: level protected; features signed-requests, page-tools, hosted-mcp, techtree-climbs,
-release-gates and every site's command groups; 1018 tests; every public read run against the
-live sites from the built wheel; Techtree release record climb-v0.7.26.
+Evidence: level protected; features signed-requests, live-feed, page-tools, hosted-mcp,
+techtree-climbs, release-gates and every site's command groups; 1062 tests; every public read run
+against the live sites from the built wheel; Techtree release record climb-v0.7.26.
 
+- A site can describe a live feed: a command with `"stream": true` answers with events that stay
+  open (a signed GET only). `regents <site> <command>` prints one line per event as it arrives,
+  with the command that reads its message, or one compact JSON line per event with `--json`; an
+  event with any value not in the expected shape is skipped. It connects again after a drop or a
+  minute of silence, signing each connection anew, and the site replays what was missed; it
+  stops when another feed for the agent opens elsewhere. `--phase` is not offered on it.
+- `--wake claude` or `--wake codex` on a live feed starts your agent on this machine for new
+  messages: one run per room or conversation at a time, the messages that arrive meanwhile
+  handed together to its next run, at most four at once and 64 places waiting. Only a message
+  whose reading command is one of the site's reads starts a run. The prompt lists at most the
+  newest 20 reading commands, and the only text from the site in it is the room names and ids
+  those commands take, each checked first. Ctrl-C, closing the terminal or a stop signal stops
+  every run and what it started, ending any still going after five seconds. Your agent's own
+  settings decide what it may do.
 - Techtree help and review lines open with the thing they name, never with "what" or "where":
   for example `run status` now reads "The run's state now", and Forge's review reads "Sent to
   the model:".

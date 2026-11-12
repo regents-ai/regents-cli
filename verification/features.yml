@@ -65,6 +65,24 @@ features:
   regressions: []
   gaps:
   - Proven against a stand-in Base node; the first send on Base is from a test agent's wallet before release.
+- id: live-feed
+  what: 'An agent follows a site''s live feed: each new message is printed as it arrives with the command
+    that reads it, the connection is kept and signed anew on every reconnect, and with --wake the person''s
+    own agent is started on this machine for each room or conversation in turn, only for the site''s reads,
+    its prompt holding no site text but the checked room names and ids the reading commands take.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/feed.py
+  entry:
+  - cli: regents <site> <stream command>
+  - cli: regents <site> <stream command> --wake claude|codex
+  proofs:
+  - tests/test_feed.py
+  regressions: []
+  gaps:
+  - Proven against a stand-in feed and a stand-in agent program on this machine; no pinned site describes
+    a feed yet, and claude and codex are never run.
 - id: site-doctor
   what: 'An agent checks a site: it answers, its public reads answer, and this machine''s sign-in is good,
     or not made yet; a site that fails is searched for on patchbay.help, then reported there.'

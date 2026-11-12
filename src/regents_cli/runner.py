@@ -20,7 +20,7 @@ from urllib.parse import quote, urlsplit
 
 import click
 
-from regents_cli import output, siwa, transactions
+from regents_cli import feed, output, siwa, transactions
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
 from regents_cli.http import Request, answer, base_address, respond, same_origin
@@ -175,7 +175,21 @@ def build_command(platform: Platform, command: Command) -> click.Command:
     help_text = command.description
     if command.webmcp is not None:
         help_text += f"\n\nSame as the WebMCP tool {command.webmcp} on {platform.host}."
-    if command.signed:
+    if command.stream:
+        params.append(
+            click.Option(
+                ["--wake"],
+                type=click.Choice(list(feed.ASKS)),
+                help="Start your agent on this machine when new messages arrive: one run per "
+                f"room or conversation at a time, at most {feed.MOST_RUNS} at once. Your agent's "
+                "own settings decide what it may do.",
+            )
+        )
+        help_text += (
+            "\n\nRuns until you stop it with Ctrl-C, printing each event as it arrives with the "
+            "command that reads it, and connects again after a drop."
+        )
+    if command.signed and not command.stream:
         params.append(
             click.Option(
                 ["--phase"],
@@ -184,6 +198,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
                 'sign; send reads {"request": …, "signature": …} on stdin.',
             )
         )
+    if command.signed:
         help_text += f"\n\nSign in first: regents auth login --site {platform.site}."
         if command.authority == "paired_agent":
             help_text += " " + needs_pairing(platform, command)
@@ -216,6 +231,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         send = values.pop("send", False)
         if send and phase is not None:
             raise UsageError("--send signs with the agent key on this machine; leave out --phase.")
+        wake = values.pop("wake", None)
         given = {spec.name: values[spec.name.replace("-", "_")] for spec in command.inputs}
         missing = [name for name in command.required_one_of if given[name] is None]
         if command.required_one_of and len(missing) == len(command.required_one_of):
@@ -223,6 +239,12 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         base = base_address(base_url, platform.env_var, platform.base_url)
         request = request_for(command, given, base)
         shared = [*(["--base-url", base_url] if base_url else []), *(["--json"] if as_json else [])]
+        if command.stream:
+            reads = ["--base-url", base_url] if base_url else []
+            feed.follow(
+                platform, request, base, timeout_ms, as_json=as_json, wake=wake, shared=reads
+            )
+            return
         if command.signed:
             siwa.signs_for(platform.site, base, timeout_ms)
         if command.signed and phase == "send":

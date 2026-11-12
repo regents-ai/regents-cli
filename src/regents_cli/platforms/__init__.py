@@ -123,6 +123,8 @@ class Command:
     webmcp: str | None
     #: Whether --send signs and sends the answer's transactions with the agent key.
     sends: bool
+    #: Whether the answer is a live feed of server-sent events that stays open.
+    stream: bool
 
     @property
     def signed(self) -> bool:
@@ -164,6 +166,7 @@ class Command:
             next_steps=tuple(FollowUp.parse(s) for s in raw.get("next_steps", [])),
             webmcp=raw.get("webmcp"),
             sends=raw.get("sends", False),
+            stream=raw.get("stream", False),
         )
 
 

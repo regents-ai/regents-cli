@@ -205,6 +205,10 @@
           "minimum": 1000,
           "maximum": 300000
         },
+        "stream": {
+          "description": "The answer is a live feed of server-sent events that stays open (text/event-stream): `regents` prints each event as it arrives and connects again after a drop. Only on a signed GET with no body, stdin fields, pagination or webmcp.",
+          "const": true
+        },
         "next_steps": {
           "description": "What to do after a successful answer, in order; `regents` adds a next-page step for `pagination` itself. Without it, the answer ends the work, unless the answer carries a top-level `next_step` sentence of its own, which `regents` shows. Answers never carry a top-level `next_steps` of their own: `regents` puts the steps there.",
           "type": "array",
