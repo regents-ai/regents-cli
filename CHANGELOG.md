@@ -3,7 +3,11 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Next release
+## 1.10.25 — 2026-11-12
+
+Evidence: level protected; features signed-requests, page-tools, hosted-mcp, techtree-climbs,
+release-gates and every site's command groups; 1017 tests; every public read run against the
+live sites from the built wheel; Techtree release record climb-v0.7.26.
 
 - Techtree help and review lines open with the thing they name, never with "what" or "where":
   for example `run status` now reads "The run's state now", and Forge's review reads "Sent to

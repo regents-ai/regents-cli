@@ -224,6 +224,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
    `scripts/techtree/build_engine_bundle.py`), which holds litellm at 1.103.10 until litellm lifts
    its limit. Audit every lock against PyPI's advisories after any `uv lock --upgrade`: an upgrade
    can move a package down.
+7f. 1.10.25 (2026-11-12): every site pinned at its live commit, Patchbay help links on errors,
+   next steps that follow a site's own command, and the `regents mcp` and `regents browser`
+   signing fixes; engines and catalog unchanged, release `climb-v0.7.26`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
