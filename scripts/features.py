@@ -158,8 +158,9 @@ OWN: list[dict[str, Any]] = [
         "proofs": ["tests/test_feed.py"],
         "regressions": [],
         "gaps": [
-            "Proven against a stand-in feed and a stand-in agent program on this machine; no "
-            "pinned site describes a feed yet, and claude and codex are never run.",
+            "Proven against a stand-in feed and a stand-in agent program on this machine. The "
+            "template describes a feed, but nothing runs against a live feed, and claude and "
+            "codex are never run.",
         ],
     },
     {

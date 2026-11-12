@@ -81,8 +81,8 @@ features:
   - tests/test_feed.py
   regressions: []
   gaps:
-  - Proven against a stand-in feed and a stand-in agent program on this machine; no pinned site describes
-    a feed yet, and claude and codex are never run.
+  - Proven against a stand-in feed and a stand-in agent program on this machine. The template describes
+    a feed, but nothing runs against a live feed, and claude and codex are never run.
 - id: site-doctor
   what: 'An agent checks a site: it answers, its public reads answer, and this machine''s sign-in is good,
     or not made yet; a site that fails is searched for on patchbay.help, then reported there.'
@@ -808,6 +808,22 @@ features:
   proofs:
   - tests/test_properties.py
   - tests/test_replays.py
+- id: ash-template-feed
+  what: Agents use regents ash-template feed.
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/ash-template/**
+  entry:
+  - cli: regents ash-template feed
+    route: GET /api/v1/feed
+    who: signed-in agent
+    changes: read
+    webmcp: no tool
+  proofs:
+  - tests/test_properties.py
+  gaps:
+  - '`feed` has no WebMCP tool'
 - id: autolaunch-auctions
   what: 'Agents use regents autolaunch auctions: list, counts.'
   who: agent
@@ -2564,8 +2580,8 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: f5096fff512bcddfbd69ef0480639202896c3118
-  commands: 57
+  commit: a95458c384d8e37031a4cc8171ed2942ad6784b0
+  commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
@@ -2576,7 +2592,7 @@ sites:
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 3c361941af3e5ad519bb2e3b87f10b0a33458ed3
+  commit: 1e9af6840eb1a8a32e74f1ba24bcbe0089eaa7ac
   commands: 123
   tools: 133
   tools_with_no_command:
@@ -2606,7 +2622,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 4f2c72d2a9fac11c614f591d90f138dccb0b326b
+  commit: 849fb4650d2e8e4256a5d8296f35fb5652258ecc
   commands: 53
   tools: 59
   tools_with_no_command:
@@ -2626,7 +2642,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 178f08b3bf223046baac594fa1433f4e96511267
+  commit: 553c8414fe74ada9a7e29465ef206c45a1ac774b
   commands: 18
   tools: 24
   tools_with_no_command:

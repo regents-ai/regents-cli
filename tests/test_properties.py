@@ -277,7 +277,13 @@ def regents(monkeypatch: pytest.MonkeyPatch, args: list[str], stdin: str) -> str
     return shown.getvalue()
 
 
-SIGNED = [(platform, command) for platform, command in COMMANDS if command.signed]
+def phased(command: Command) -> bool:
+    """Whether the command offers --phase: every signed one but a live feed, which signs each
+    connection itself (tests/test_feed.py)."""
+    return command.signed and not command.stream
+
+
+SIGNED = [(platform, command) for platform, command in COMMANDS if phased(command)]
 
 
 def flags_for(command: Command, data: st.DataObject) -> dict[str, Any]:
@@ -412,7 +418,7 @@ def test_a_printed_command_runs_the_same_request(
     }
     # Each command `regents` prints, with the values it should run with: after --phase prepare,
     # the next page, and a site's follow-up.
-    send = ["--phase", "send"] if command.signed else []
+    send = ["--phase", "send"] if phased(command) else []
     printed = [(runner.command_line(platform, command, values, [*SHARED, *send]), values)]
     if command.pagination is not None:
         flag = next(spec for spec in command.flags if spec.name == command.pagination.flag)
@@ -442,7 +448,7 @@ def test_a_printed_command_runs_the_same_request(
         assert read_values == expected
         assert (read["base_url"], read["as_json"]) == ("https://example.com", True)
     phase = read_back(shlex.join(printed[0][0])).get("phase")
-    assert phase == ("send" if command.signed else None)
+    assert phase == ("send" if phased(command) else None)
 
 
 #: An upload that is sent, which each example changes in one way.
