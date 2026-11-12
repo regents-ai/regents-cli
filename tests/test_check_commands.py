@@ -95,7 +95,7 @@ def described(**changes: Any) -> dict[str, Any]:
             {"authority": "signed_agent", "conditions": ["member"]},
             "only paired_agent commands take conditions",
         ),
-        ({"authority": "paired_agent", "conditions": ["spending_allowed", "member"]}, None),
+        ({"authority": "paired_agent", "conditions": ["member"]}, None),
     ],
 )
 def test_body_and_conditions(changes: dict[str, Any], problem: str | None) -> None:

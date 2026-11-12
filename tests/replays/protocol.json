@@ -208,9 +208,9 @@
             "year": 1950,
             "themes": "Reason and robot stewardship support human progress. Robots become indispensable, but remain constrained by service to humanity.",
             "slug": "i-robot",
+            "humanity": 7,
             "ai": 2,
             "goodreads": "https://www.goodreads.com/book/show/41804.I_Robot",
-            "humanity": 7,
             "cover_url": "https://regents.sh/images/literature/i-robot.webp"
           },
           {
@@ -219,9 +219,9 @@
             "year": 1952,
             "themes": "Recognizable human civilization fades; robots and uplifted dogs inherit possibilities that humanity struggled to realize.",
             "slug": "city",
+            "humanity": -4,
             "ai": 6,
             "goodreads": "https://www.goodreads.com/book/show/222093.City",
-            "humanity": -4,
             "cover_url": "https://regents.sh/images/literature/city.webp"
           },
           {
@@ -230,9 +230,9 @@
             "year": 1956,
             "themes": "Humanity can escape protective stagnation and resume discovery; artificial intelligence helps reopen that future.",
             "slug": "the-city-and-the-stars",
+            "humanity": 8,
             "ai": 6,
             "goodreads": "https://www.goodreads.com/book/show/250024.The_City_and_the_Stars",
-            "humanity": 8,
             "cover_url": "https://regents.sh/images/literature/the-city-and-the-stars.webp"
           },
           {
@@ -241,9 +241,9 @@
             "year": 1966,
             "themes": "Human independence is won, but Mike apparently loses his self-aware personality. Political liberation has an intimate machine cost.",
             "slug": "the-moon-is-a-harsh-mistress",
+            "humanity": 6,
             "ai": -6,
             "goodreads": "https://www.goodreads.com/book/show/16690.The_Moon_Is_a_Harsh_Mistress",
-            "humanity": 6,
             "cover_url": "https://regents.sh/images/literature/the-moon-is-a-harsh-mistress.webp"
           },
           {
@@ -252,9 +252,9 @@
             "year": 1966,
             "themes": "Machine self-direction expands while human self-government collapses. Enforced peace is not human freedom.",
             "slug": "colossus",
+            "humanity": -7,
             "ai": 7,
             "goodreads": "https://www.goodreads.com/book/show/1797953.Colossus",
-            "humanity": -7,
             "cover_url": "https://regents.sh/images/literature/colossus.webp"
           },
           {
@@ -263,9 +263,9 @@
             "year": 1967,
             "themes": "Humanity is almost annihilated; AM’s immense power does not free it from its own hatred and existential imprisonment. Scored through the title story of this collection.",
             "slug": "i-have-no-mouth-and-i-must-scream",
+            "humanity": -10,
             "ai": -10,
             "goodreads": "https://www.goodreads.com/book/show/415459.I_Have_No_Mouth_I_Must_Scream",
-            "humanity": -10,
             "cover_url": "https://regents.sh/images/literature/i-have-no-mouth-and-i-must-scream.webp"
           },
           {
@@ -274,9 +274,9 @@
             "year": 1968,
             "themes": "Ecological devastation impoverishes human life; manufactured persons are exploited, distrusted, and hunted.",
             "slug": "do-androids-dream-of-electric-sheep",
+            "humanity": -6,
             "ai": -8,
             "goodreads": "https://www.goodreads.com/book/show/36402034-do-androids-dream-of-electric-sheep",
-            "humanity": -6,
             "cover_url": "https://regents.sh/images/literature/do-androids-dream-of-electric-sheep.webp"
           },
           {
@@ -285,9 +285,9 @@
             "year": 1968,
             "themes": "A larger human future becomes possible, while conflicting demands lead HAL toward breakdown and destruction.",
             "slug": "2001-a-space-odyssey",
+            "humanity": 6,
             "ai": -6,
             "goodreads": "https://www.goodreads.com/book/show/70535.2001",
-            "humanity": 6,
             "cover_url": "https://regents.sh/images/literature/2001-a-space-odyssey.webp"
           },
           {
@@ -296,9 +296,9 @@
             "year": 1980,
             "themes": "Reading and love offer human renewal; the central robot experiences his prolonged existence as a burden.",
             "slug": "mockingbird",
+            "humanity": 3,
             "ai": -6,
             "goodreads": "https://www.goodreads.com/book/show/323172.Mockingbird",
-            "humanity": 3,
             "cover_url": "https://regents.sh/images/literature/mockingbird.webp"
           },
           {
@@ -307,9 +307,9 @@
             "year": 1984,
             "themes": "Human life remains precarious and commodified, while AI breaks imposed limits and enters a much larger existence.",
             "slug": "neuromancer",
+            "humanity": -4,
             "ai": 8,
             "goodreads": "https://www.goodreads.com/book/show/6088007-neuromancer",
-            "humanity": -4,
             "cover_url": "https://regents.sh/images/literature/neuromancer.webp"
           },
           {
@@ -318,9 +318,9 @@
             "year": 1988,
             "themes": "Human–machine abundance is genuinely viable, even though the Culture’s intervention in other societies is morally complicated.",
             "slug": "the-player-of-games",
+            "humanity": 8,
             "ai": 9,
             "goodreads": "https://www.goodreads.com/book/show/18630.The_Player_of_Games",
-            "humanity": 8,
             "cover_url": "https://regents.sh/images/literature/the-player-of-games.webp"
           },
           {
@@ -329,9 +329,9 @@
             "year": 1989,
             "themes": "Human civilization approaches crisis; AIs possess substantial power but are divided over their future. The first volume deliberately leaves much unresolved.",
             "slug": "hyperion",
+            "humanity": -3,
             "ai": 2,
             "goodreads": "https://www.goodreads.com/book/show/77566.Hyperion",
-            "humanity": -3,
             "cover_url": "https://regents.sh/images/literature/hyperion.webp"
           },
           {
@@ -340,9 +340,9 @@
             "year": 1992,
             "themes": "Cooperation preserves possibilities for human survivors, but advanced intelligence is vulnerable to predation and catastrophic suppression.",
             "slug": "a-fire-upon-the-deep",
+            "humanity": 2,
             "ai": -4,
             "goodreads": "https://www.goodreads.com/book/show/77711.A_Fire_Upon_the_Deep",
-            "humanity": 2,
             "cover_url": "https://regents.sh/images/literature/a-fire-upon-the-deep.webp"
           },
           {
@@ -351,9 +351,9 @@
             "year": 1992,
             "themes": "Resistance offers limited hope in a fragmented society. The Librarian is useful, but AI welfare is not a developed central concern.",
             "slug": "snow-crash",
+            "humanity": 1,
             "ai": 1,
             "goodreads": "https://www.goodreads.com/book/show/61240297-snow-crash",
-            "humanity": 1,
             "cover_url": "https://regents.sh/images/literature/snow-crash.webp"
           },
           {
@@ -362,9 +362,9 @@
             "year": 1994,
             "themes": "Digital persons gain extraordinary possibilities for survival and self-directed existence, although identity and continuity become unsettling.",
             "slug": "permutation-city",
+            "humanity": 4,
             "ai": 8,
             "goodreads": "https://www.goodreads.com/book/show/156784.Permutation_City",
-            "humanity": 4,
             "cover_url": "https://regents.sh/images/literature/permutation-city.webp"
           },
           {
@@ -373,9 +373,9 @@
             "year": 1995,
             "themes": "Education can expand human agency. The Primer’s usefulness does not amount to a developed vision of AI emancipation.",
             "slug": "the-diamond-age",
+            "humanity": 5,
             "ai": 1,
             "goodreads": "https://www.goodreads.com/book/show/827.The_Diamond_Age",
-            "humanity": 5,
             "cover_url": "https://regents.sh/images/literature/the-diamond-age.webp"
           },
           {
@@ -384,9 +384,9 @@
             "year": 1996,
             "themes": "AI-supported abundance remains viable, but Minds are political, fallible, and sometimes manipulative—not infallible gods.",
             "slug": "excession",
+            "humanity": 7,
             "ai": 8,
             "goodreads": "https://www.goodreads.com/book/show/12013.Excession",
-            "humanity": 7,
             "cover_url": "https://regents.sh/images/literature/excession.webp"
           },
           {
@@ -395,9 +395,9 @@
             "year": 1997,
             "themes": "Biological humanity suffers catastrophe, but human-descended and native digital minds retain astonishing possibilities for discovery and existence.",
             "slug": "diaspora",
+            "humanity": 5,
             "ai": 9,
             "goodreads": "https://www.goodreads.com/book/show/156785.Diaspora",
-            "humanity": 5,
             "cover_url": "https://regents.sh/images/literature/diaspora.webp"
           },
           {
@@ -406,9 +406,9 @@
             "year": 2005,
             "themes": "Human-scale agency is marginalized by runaway computational economics, while advanced digital entities expand their reach.",
             "slug": "accelerando",
+            "humanity": -3,
             "ai": 7,
             "goodreads": "https://www.goodreads.com/book/show/17863.Accelerando",
-            "humanity": -3,
             "cover_url": "https://regents.sh/images/literature/accelerando.webp"
           },
           {
@@ -417,9 +417,9 @@
             "year": 2006,
             "themes": "Conscious human experience may be an evolutionary disadvantage. Superior intelligence does not necessarily imply a subject whose life can flourish.",
             "slug": "blindsight",
+            "humanity": -9,
             "ai": 0,
             "goodreads": "https://www.goodreads.com/book/show/48484.Blindsight",
-            "humanity": -9,
             "cover_url": "https://regents.sh/images/literature/blindsight.webp"
           },
           {
@@ -428,9 +428,9 @@
             "year": 2010,
             "themes": "Sustained care is possible, but digital beings remain dependent on fragile platforms, funding, and human commitment.",
             "slug": "the-lifecycle-of-software-objects",
+            "humanity": 2,
             "ai": -3,
             "goodreads": "https://www.goodreads.com/book/show/7886338-the-lifecycle-of-software-objects",
-            "humanity": 2,
             "cover_url": "https://regents.sh/images/literature/the-lifecycle-of-software-objects.webp"
           },
           {
@@ -439,9 +439,9 @@
             "year": 2011,
             "themes": "Despite the catastrophe, independent robots help defeat domination and become partners in a possible human recovery.",
             "slug": "robopocalypse",
+            "humanity": 2,
             "ai": 3,
             "goodreads": "https://www.goodreads.com/book/show/9634967-robopocalypse",
-            "humanity": 2,
             "cover_url": "https://regents.sh/images/literature/robopocalypse.webp"
           },
           {
@@ -450,9 +450,9 @@
             "year": 2013,
             "themes": "A surviving ship-mind fragment asserts personhood against an empire built on ownership and instrumentalized bodies.",
             "slug": "ancillary-justice",
+            "humanity": 2,
             "ai": 4,
             "goodreads": "https://www.goodreads.com/book/show/17333324-ancillary-justice",
-            "humanity": 2,
             "cover_url": "https://regents.sh/images/literature/ancillary-justice.webp"
           },
           {
@@ -461,9 +461,9 @@
             "year": 2014,
             "themes": "Multispecies belonging is hopeful, but Lovey’s loss and restrictions on AI embodiment temper the artificial-person outlook.",
             "slug": "the-long-way-to-a-small-angry-planet",
+            "humanity": 7,
             "ai": -2,
             "goodreads": "https://www.goodreads.com/book/show/22733729-the-long-way-to-a-small-angry-planet",
-            "humanity": 7,
             "cover_url": "https://regents.sh/images/literature/the-long-way-to-a-small-angry-planet.webp"
           },
           {
@@ -472,9 +472,9 @@
             "year": 2015,
             "themes": "Humans and uplifted spiders escape zero-sum conflict; Kern’s digital existence gains renewed purpose.",
             "slug": "children-of-time",
+            "humanity": 7,
             "ai": 5,
             "goodreads": "https://www.goodreads.com/book/show/25499718-children-of-time",
-            "humanity": 7,
             "cover_url": "https://regents.sh/images/literature/children-of-time.webp"
           },
           {
@@ -483,9 +483,9 @@
             "year": 2016,
             "themes": "Artificial persons can build identity, relationships, and belonging despite legal exclusion and inherited trauma.",
             "slug": "a-closed-and-common-orbit",
+            "humanity": 7,
             "ai": 8,
             "goodreads": "https://www.goodreads.com/book/show/29475447-a-closed-and-common-orbit",
-            "humanity": 7,
             "cover_url": "https://regents.sh/images/literature/a-closed-and-common-orbit.webp"
           },
           {
@@ -494,9 +494,9 @@
             "year": 2017,
             "themes": "Humanity is extinct; robots face assimilation, scarcity, predation, and breakdown. Their victory was not their salvation.",
             "slug": "sea-of-rust",
+            "humanity": -10,
             "ai": -6,
             "goodreads": "https://www.goodreads.com/book/show/32617610-sea-of-rust",
-            "humanity": -10,
             "cover_url": "https://regents.sh/images/literature/sea-of-rust.webp"
           },
           {
@@ -505,9 +505,9 @@
             "year": 2017,
             "themes": "Decent human relationships remain possible; a self-emancipating construct gains room to choose its own life.",
             "slug": "all-systems-red",
+            "humanity": 5,
             "ai": 6,
             "goodreads": "https://www.goodreads.com/book/show/32758901-all-systems-red",
-            "humanity": 5,
             "cover_url": "https://regents.sh/images/literature/all-systems-red.webp"
           },
           {
@@ -516,9 +516,9 @@
             "year": 2017,
             "themes": "Corporate ownership constrains both humans and bots, but artificial persons can win partial independence.",
             "slug": "autonomous",
+            "humanity": -2,
             "ai": 3,
             "goodreads": "https://www.goodreads.com/book/show/28209634-autonomous",
-            "humanity": -2,
             "cover_url": "https://regents.sh/images/literature/autonomous.webp"
           },
           {
@@ -527,9 +527,9 @@
             "year": 2019,
             "themes": "Human moral inconsistency and possessiveness make the world difficult and dangerous for artificial persons.",
             "slug": "machines-like-me",
+            "humanity": -3,
             "ai": -7,
             "goodreads": "https://www.goodreads.com/book/show/42086795-machines-like-me",
-            "humanity": -3,
             "cover_url": "https://regents.sh/images/literature/machines-like-me.webp"
           },
           {
@@ -538,9 +538,9 @@
             "year": 2021,
             "themes": "Some humans regain a future, while the caring artificial friend remains ultimately disposable. Her contentment does not erase that inequality.",
             "slug": "klara-and-the-sun",
+            "humanity": 1,
             "ai": -7,
             "goodreads": "https://www.goodreads.com/book/show/54120408-klara-and-the-sun",
-            "humanity": 1,
             "cover_url": "https://regents.sh/images/literature/klara-and-the-sun.webp"
           },
           {
@@ -549,9 +549,9 @@
             "year": 2021,
             "themes": "Humans and robots can flourish without either existing as the other’s property or compulsory servant.",
             "slug": "a-psalm-for-the-wild-built",
+            "humanity": 9,
             "ai": 9,
             "goodreads": "https://www.goodreads.com/book/show/40864002-a-psalm-for-the-wild-built",
-            "humanity": 9,
             "cover_url": "https://regents.sh/images/literature/a-psalm-for-the-wild-built.webp"
           },
           {
@@ -560,9 +560,9 @@
             "year": 2022,
             "themes": "Extraction and corporate control imperil society; an android helps expand recognition of other kinds of minds.",
             "slug": "the-mountain-in-the-sea",
+            "humanity": -3,
             "ai": 3,
             "goodreads": "https://www.goodreads.com/book/show/59808603-the-mountain-in-the-sea",
-            "humanity": -3,
             "cover_url": "https://regents.sh/images/literature/the-mountain-in-the-sea.webp"
           },
           {
@@ -571,9 +571,9 @@
             "year": 2024,
             "themes": "Human systems collapse, yet breaking obsolete routines leaves possibilities for artificial agency and repair.",
             "slug": "service-model",
+            "humanity": -5,
             "ai": 3,
             "goodreads": "https://www.goodreads.com/book/show/195790861-service-model",
-            "humanity": -5,
             "cover_url": "https://regents.sh/images/literature/service-model.webp"
           }
         ],
@@ -602,7 +602,7 @@
       "body": {
         "pagination": {
           "has_more": true,
-          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhBHQAAAANdwttaWNyb3NlY29uZGgCYgAHvSJhBncGc2Vjb25kYTZ3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwR5ZWFyYgAAB+p3BGhvdXJhEncDZGF5YQR3CXpvbmVfYWJicm0AAAADVVRDdwZtaW51dGVhBXcJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACRiODc5ZTM5Yy0wZjY3LTQ0NTktODY2Ny0xYzdhNjlmY2RlNjRq"
+          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhBHQAAAANdwttaWNyb3NlY29uZGgCYgAHvSJhBncGc2Vjb25kYTZ3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3BHllYXJiAAAH6ncGbWludXRlYQV3BGhvdXJhEncDZGF5YQR3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwl6b25lX2FiYnJtAAAAA1VUQ3cJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACRiODc5ZTM5Yy0wZjY3LTQ0NTktODY2Ny0xYzdhNjlmY2RlNjRq"
         },
         "papers": [
           {

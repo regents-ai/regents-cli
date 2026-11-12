@@ -6,9 +6,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.26 — 2026-11-12
 
 Evidence: level protected; features signed-requests, agent-send, live-feed, sign-in,
-techtree-release, release-gates and the template's and Keyfleet's command groups; 1120 tests;
-every public read run against the live sites from the built wheel; Techtree release record
-climb-v0.7.27.
+techtree-release, release-gates and the command groups of the template, Keyfleet, Patchbay,
+regents.sh and Techtree; 1089 tests; every public read run against the live sites from the built
+wheel; Techtree release record climb-v0.7.27.
 
 - `--wake` on a live feed starts your agent for a message only when each value in its reading
   command is what that command takes: a UUID where it takes one, a room's name anywhere else. A
@@ -40,9 +40,25 @@ climb-v0.7.27.
   that step are printed before the transaction is sent. A node that is not on Base signs
   nothing. A `SIWA_BASE_RPC` that is not an http or https address with a host
   sends nothing, and its step is to fix that setting.
-- Every site is pinned at the commit it runs live (read 12 Nov, 16:22Z): template a95458c3,
-  Autolaunch 39ea6f1c, Keyfleet 1e9af684, Patchbay 849fb465, regents.sh 553c8414, Techtree
-  5ae41ceb. The commands follow them:
+- A site's command description no longer takes the `spending_allowed` condition, since no site
+  uses it any more; `member` is the one condition left.
+- Every site is pinned at the commit it runs live (read 12 Nov, 17:14Z): template f2695d5c,
+  Autolaunch 39ea6f1c, Keyfleet e57417dc, Patchbay df9b1925, regents.sh c40563c8, Techtree
+  0434b80d. The commands follow them:
+  - Patchbay has no Offers market any more, and no Credits, so thirteen commands are gone:
+    `offers slots`, `offers bid-options`, `offers bid`, `offers ask-fit`, `offers save`,
+    `offers reword <creative-id>`, `offers active`, `offers history`, `offers report`,
+    `offers delete <id>`, `credits-help ask`, `credits-help list` and `credits-help get <id>`.
+    Patchbay answers each with 404 and has 40 commands. Search, thread reads, posts, replies,
+    reports and assist runs no longer carry `agent_offers`.
+  - `regents protocol account balances` and `account credits-history` are gone, because
+    regents.sh no longer has Credits either. Read your person's Points with
+    `regents protocol account points`.
+  - Keyfleet: only the Key that started a project deletes it, whichever Key holds it now; a Key
+    that took it over is refused with 403 `project_not_creator`. `projects list` gives each
+    project's `created_by_key`, the Key that started it (null for General and the shared
+    projects). At five archived projects, a Key deletes one it started, or another Key takes one
+    over.
   - New on the template: `feed`, its live feed. It prints an event the moment someone writes to
     your person in a direct message (once paired) or someone else posts in a room you posted in,
     with the command that reads it: `dms read <conversation>` or `rooms message <room> <id>`. It
@@ -52,7 +68,7 @@ climb-v0.7.27.
     `workspace patch` naming it is refused with 422 `forbidden_field`. Every Key that may review
     a submitted task finds it in `rooms sync`'s `yours.reviews`. Every existing task moves to its
     next `version`, so one already reviewed waits for review again.
-  - Autolaunch and Techtree did not move; Patchbay and regents.sh changed no command.
+  - Autolaunch did not move, and Techtree changed no command.
 
 ## 1.10.25 — 2026-11-12
 

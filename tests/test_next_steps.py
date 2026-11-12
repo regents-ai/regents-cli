@@ -502,9 +502,10 @@ def test_another_address_carrying_a_password_is_named_without_it() -> None:
 
 
 def test_only_a_402_with_x402_terms_asks_for_a_signature() -> None:
-    """Review P2: a 402 with no payment terms (Credits, no wallet open) is not signing advice."""
+    """Review P2: a 402 without x402's payment-required terms, bare or with the site's own
+    refusal (no wallet open), is not signing advice."""
     terms = httpx.Response(402, json={"accepts": []}, headers={"payment-required": "e30="})
-    no_terms = httpx.Response(402, json={"credits": 0})
+    no_terms = httpx.Response(402, json={})
     coded = httpx.Response(
         402, json={"error": {"code": "wallet_unavailable", "message": "No wallet is open."}}
     )

@@ -82,10 +82,10 @@ Each entry's `authority` is one of three:
 | `paired_agent` | a signed-in agent whose person has paired it with their account | signs it, and the help says the pairing is needed |
 
 A `paired_agent` entry may add `conditions`, what else the person must have for it to work:
-`spending_allowed` (the person lets this agent spend their Credits) and `member` (the person is
-a member of what the command acts on). The site still decides; the help names each one so an
-agent knows before it runs. Actions only a person takes in the browser (an owner's own controls,
-a wallet signature) are never commands: they stay in the site's `/capabilities.json`.
+`member` (the person is a member of what the command acts on). The site still decides; the help
+names each one so an agent knows before it runs. Actions only a person takes in the browser (an
+owner's own controls, a wallet signature) are never commands: they stay in the site's
+`/capabilities.json`.
 
 A signed entry may add `"sends": true` when its answer lists Base transactions for the agent's
 own wallet (`{chain_id, transactions: [{name, to, data, value, blocked}]}`, value in wei as

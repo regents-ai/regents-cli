@@ -285,7 +285,6 @@ def build_command(platform: Platform, command: Command) -> click.Command:
 
 #: What each condition asks of a paired agent's person, in the help.
 CONDITIONS = {
-    "spending_allowed": "let it spend their Credits",
     "member": "be a member of what it acts on",
 }
 

@@ -230,8 +230,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
 7g. 1.10.26 (2026-11-12): `--send` for the transactions a site builds for the agent's own wallet
    (no site marks a command for it yet), `auth register` numbering from the latest block and
    keeping its hash however a run ends, `--wake` checking each value as its command takes it, and
-   four sites re-pinned at their live commits with the template's `feed`; engines and catalog
-   unchanged, release `climb-v0.7.27`.
+   five sites re-pinned at their live commits: the template's `feed` is new, and Patchbay's
+   thirteen Offers and Credits help commands and regents.sh's two Credits reads left with those
+   sites' Credits, as did the `spending_allowed` condition; engines and catalog unchanged,
+   release `climb-v0.7.27`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

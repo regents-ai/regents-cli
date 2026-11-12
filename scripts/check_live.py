@@ -116,7 +116,6 @@ RUNS: dict[str, list[Run]] = {
     "patchbay": [
         Run("health"),
         Run("sites list"),
-        Run("offers slots"),
         Run("bench matrix"),
         Run(THREADS),
         Run("threads get <id>", {"id": (THREADS, "results.0.id")}),

@@ -104,13 +104,12 @@
           ]
         },
         "conditions": {
-          "description": "What else a paired agent's person must have for it to work (paired_agent commands only). spending_allowed: the person lets this agent spend their Credits. member: the person is a member of what the command acts on.",
+          "description": "What else a paired agent's person must have for it to work (paired_agent commands only). member: the person is a member of what the command acts on.",
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
             "enum": [
-              "spending_allowed",
               "member"
             ]
           }

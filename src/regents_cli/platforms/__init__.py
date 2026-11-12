@@ -13,7 +13,7 @@ from typing import Any, Final, Literal
 from urllib.parse import urlsplit
 
 type Authority = Literal["public", "signed_agent", "paired_agent"]
-type Condition = Literal["spending_allowed", "member"]
+type Condition = Literal["member"]
 type Effect = Literal["read", "quote", "write", "prepare", "payment"]
 
 #: How long `regents` waits for each answer, unless a command names its own `timeout_ms`.
