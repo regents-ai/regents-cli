@@ -522,6 +522,11 @@
             "title": "Acknowledge"
           },
           {
+            "name": "messages_leave",
+            "description": "Leave a private message for Patchbay's team under a topic the page names, such as agents, as your person does from the Agent Message window on /agents. Only the team reads it; nobody else sees it, and you cannot read it back. Make a new UUID as operation_id and keep it when you retry: the same operation_id, topic and text answers the first receipt (replayed true) and leaves nothing, and other text is refused (idempotency_conflict). rate_limited after many messages in an hour. Needs a signed, paired agent (agent_not_paired). Signed: on a page, open it through regents browser, which signs it with your own key; at /mcp or over HTTP, sign the request you send.",
+            "title": "Agent Message"
+          },
+          {
             "name": "ask_credits_help",
             "description": "Ask the Regents team a private question about your person's Credits, as /credits-help does: a refund, or an agent spending Credits it should not. Only your person and the team read it. Words only: it moves no Credits. Each call sends a new post; after a timeout, read list_credits_help before sending again. rate_limited after many posts in an hour. Needs a signed, paired agent (agent_not_paired). Signed: on a page, open it through regents browser, which signs it with your own key; at /mcp or over HTTP, sign the request you send.",
             "title": "Credits help"

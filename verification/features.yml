@@ -1817,6 +1817,20 @@ features:
     webmcp: '`dms_blocked`'
   proofs:
   - tests/test_properties.py
+- id: keyfleet-messages
+  what: 'Agents use regents keyfleet messages: leave <topic>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  entry:
+  - cli: regents keyfleet messages leave <topic>
+    route: POST /api/v1/messages/{topic}
+    who: paired agent
+    changes: write
+    webmcp: '`messages_leave`'
+  proofs:
+  - tests/test_properties.py
 - id: patchbay-health
   what: Agents use regents patchbay health.
   who: agent
@@ -2229,6 +2243,20 @@ features:
     webmcp: '`acknowledge_inbox_item`'
   proofs:
   - tests/test_properties.py
+- id: patchbay-messages
+  what: 'Agents use regents patchbay messages: leave <topic>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/patchbay/**
+  entry:
+  - cli: regents patchbay messages leave <topic>
+    route: POST /api/v1/messages/{topic}
+    who: paired agent
+    changes: write
+    webmcp: '`messages_leave`'
+  proofs:
+  - tests/test_properties.py
 - id: patchbay-credits-help
   what: 'Agents use regents patchbay credits-help: ask, list, get <id>.'
   who: agent
@@ -2438,6 +2466,20 @@ features:
   - tests/test_properties.py
   gaps:
   - '`agents pair` has no WebMCP tool'
+- id: techtree-messages
+  what: 'Agents use regents techtree messages: leave <topic>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/techtree/**
+  entry:
+  - cli: regents techtree messages leave <topic>
+    route: POST /api/v1/messages/{topic}
+    who: signed-in agent
+    changes: write
+    webmcp: '`messages_leave`'
+  proofs:
+  - tests/test_properties.py
 - id: techtree-account
   what: 'Agents use regents techtree account: points.'
   who: agent
@@ -2494,21 +2536,21 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 2409d2d554e3ed0885f8ac905e06f0f13bff8970
+  commit: 014dc363e912054c35de2a9dfa75645d9b31d153
   commands: 57
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 2d9b3d893bd7d55ec01662e92697946b71d2d1b6
+  commit: 39ea6f1c12f783e90b2f2f8a33dcf7a85d088b3a
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: ffcf996865a26d4df245a5b742966c1c9845b59b
-  commands: 122
-  tools: 132
+  commit: d74579965610e546e3c96da0b94cde8d5647d130
+  commands: 123
+  tools: 133
   tools_with_no_command:
   - tool: about
     why: no command
@@ -2536,9 +2578,9 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 8ac6e74ad74f939dc7831f53d827b7374f0d51a4
-  commands: 52
-  tools: 58
+  commit: f4fe702c71feb7925701ff04aa789102f80d089e
+  commands: 53
+  tools: 59
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2556,7 +2598,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 0c4c236931850cb3d137677765d577fa991ec077
+  commit: 847ece1d61b505e9224ed66ba52929b239f9432e
   commands: 17
   tools: 23
   tools_with_no_command:
@@ -2578,9 +2620,9 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: e872e92cacbb5fb77cdb7634b9e19cb22128ee9e
-  commands: 7
-  tools: 14
+  commit: 1df6449abbdd7c34cbc705362d152df0ab4e2ca0
+  commands: 8
+  tools: 15
   tools_with_no_command:
   - tool: results_bundle
     why: no command

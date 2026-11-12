@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Regents public API",
-    "version": "5.2.0",
+    "version": "5.3.0",
     "description": "Public service health, the product directory, owner-authorized historical name and stake reads, and agent pairing: an agent signs with its own SIWA key to pair with a person's account and to check in. Does not describe wallet transactions, session changes, or separate product APIs. Signed agent reads use current pairings and shared balances, history and budgets.",
     "contact": {
       "name": "Regents Labs"
@@ -64,7 +64,7 @@
       "get": {
         "operationId": "getHealth",
         "summary": "Read whether the site and its database answer",
-        "description": "The same check as /healthz, answered in JSON. Responses use Cache-Control: no-store.",
+        "description": "The same check as /healthz, answered in JSON, with whether every migration this release carries is applied. Responses use Cache-Control: no-store.",
         "responses": {
           "200": {
             "description": "The site and its database answer",
@@ -1719,11 +1719,11 @@
     "/capabilities.json": {
       "get": {
         "operationId": "getCapabilities",
-        "summary": "Read the manifest of browser and HTTP agent operations, and the commit this site runs",
+        "summary": "Read the manifest of browser and HTTP agent operations, the regents-cli release to install, and the commit this site runs",
         "security": [],
         "responses": {
           "200": {
-            "description": "Public operation manifest with authentication and availability metadata, and the running build",
+            "description": "Public operation manifest with authentication and availability metadata, the regents-cli release and command namespace for this site, and the running build",
             "content": {
               "application/json": {
                 "schema": {
@@ -1732,6 +1732,7 @@
                     "audience",
                     "proof_headers",
                     "tools",
+                    "cli",
                     "build"
                   ],
                   "properties": {
@@ -1748,6 +1749,25 @@
                       "type": "array",
                       "items": {
                         "type": "object"
+                      }
+                    },
+                    "cli": {
+                      "type": "object",
+                      "required": [
+                        "package",
+                        "release",
+                        "namespace"
+                      ],
+                      "properties": {
+                        "package": {
+                          "type": "string"
+                        },
+                        "release": {
+                          "type": "string"
+                        },
+                        "namespace": {
+                          "type": "string"
+                        }
                       }
                     },
                     "build": {
@@ -2577,12 +2597,17 @@
       "Health": {
         "type": "object",
         "required": [
-          "status"
+          "status",
+          "migrations_applied"
         ],
         "properties": {
           "status": {
             "type": "string",
             "const": "ok"
+          },
+          "migrations_applied": {
+            "type": "boolean",
+            "description": "False when this release carries a migration the site's database has not applied."
           }
         }
       },
