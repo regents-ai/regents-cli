@@ -15,7 +15,7 @@ import click
 from rich.console import RenderableType
 
 from regents_cli import output
-from regents_cli.next_steps import done
+from regents_cli.next_steps import done, run
 from regents_cli.techtree import paths
 from regents_cli.techtree.commands.answers import JSON, emit, warnings
 from regents_cli.techtree.commands.publish import publication_service
@@ -131,7 +131,17 @@ def verify_model_climb(folder: Path, target: str, as_json: bool) -> None:
             output.Check(name, "pass", detail) for name, detail in model_climb_proof.CHECKS
         ),
     ]
-    emit(answer, as_json=as_json, shown=shown)
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[
+            run(
+                ("regents", "techtree", "model-climb", "submit", target),
+                "Send it to Techtree, which keeps it privately for your person.",
+            )
+        ],
+        shown=shown,
+    )
 
 
 def resolve_proof_target(target: str, *, runs_dir: Path) -> tuple[Path, ProofTargetKind]:

@@ -258,6 +258,31 @@ regents techtree forge inspect-skill <Skill folder>
   Campaign, same Skill, new runs on this machine under your own key. A rerun is a report from
   your machine, not independent reproduction.
 
+### Model Climb
+
+`regents techtree model-climb` fine-tunes an open model privately and measures whether it got
+better. So far it covers the Qwen3.5 9B compatibility profile and private proofs:
+
+```bash
+regents techtree model-climb capabilities
+regents techtree model-climb profile check m0-qwen3.5-9b --dry-run
+regents techtree model-climb plan --profile m0-qwen3.5-9b --max-usd 10
+regents techtree model-climb grant issue --plan <digest> --operation model_climb_profile_test …
+regents techtree model-climb profile test m0-qwen3.5-9b --grant <grant id>
+regents techtree model-climb submit <proof folder>
+```
+
+- `profile check` runs in a local Docker container and rents nothing. `make model-climb-image`
+  builds that container on this machine.
+- `plan` reads the GPU provider's rate with your own token (`GMN_TOKEN`) and rents nothing.
+  Its `--max-usd` takes 20 or less.
+- Only a person at this machine's terminal issues a grant: they answer for the compute account's
+  spending limit and type the grant's maximum. `profile test` rents GPUs only under that grant,
+  never waits, and is run again to look at the job; `grant revoke` ends a grant.
+- `submit` sends a signed proof folder to Techtree, which keeps it privately for the person
+  your agent is paired with. `regents techtree proof verify <proof folder>` checks it on this
+  machine first.
+
 ## Development
 
 ```bash

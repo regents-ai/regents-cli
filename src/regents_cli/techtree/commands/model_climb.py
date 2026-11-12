@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import sys
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -18,6 +19,7 @@ import click
 
 from regents_cli import output, siwa
 from regents_cli.http import Request, send
+from regents_cli.next_steps import Step, done, human, run
 from regents_cli.techtree import fs, paths
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes, validate_digest
 from regents_cli.techtree.commands.answers import BASE_URL, JSON, emit
@@ -66,6 +68,7 @@ ATTESTATIONS: Final = {
 }
 _DURATION: Final = re.compile(r"^(\d+)([mhd])$")
 _UNITS: Final = {"m": "minutes", "h": "hours", "d": "days"}
+COMMAND: Final = ("regents", "techtree", "model-climb")
 
 
 def _store() -> ModelClimbStore:
@@ -77,10 +80,18 @@ def _store() -> ModelClimbStore:
 
 def capabilities(as_json: bool) -> None:
     docker = profiles.docker_available()
-    next_action = (
-        f"regents techtree model-climb profile check {profiles.M0.name} --dry-run"
+    steps = (
+        [
+            run(
+                (*COMMAND, "profile", "check", profiles.M0.name, "--dry-run"),
+                "Run the profile's model-free check on this machine. It rents nothing.",
+            )
+        ]
         if docker
-        else "Start Docker, then run regents techtree model-climb capabilities again."
+        else [
+            human("Your person starts Docker on this machine."),
+            run((*COMMAND, "capabilities"), "Then run this again."),
+        ]
     )
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
@@ -98,11 +109,11 @@ def capabilities(as_json: bool) -> None:
         ],
         "docker": docker,
         "operations": list(BUILT_OPERATIONS),
-        "next_actions": [next_action],
     }
     emit(
         answer,
         as_json=as_json,
+        next_steps=steps,
         shown=[
             output.report(
                 "\n".join(
@@ -115,8 +126,6 @@ def capabilities(as_json: bool) -> None:
                             for profile in profiles.PROFILES.values()
                         ),
                         f"- Docker: {'ready' if docker else 'not answering'}",
-                        "",
-                        f"Next: {next_action}",
                     ]
                 )
             )
@@ -166,13 +175,16 @@ def profile_check(profile_name: str, dry_run: bool, as_json: bool) -> None:
         "operation_id": PROFILE_CHECK,
         **report,
         "report_path": str(report_path),
-        "next_actions": [
-            f"regents techtree model-climb plan --profile {profile.name} --max-usd 10"
-        ],
     }
     emit(
         answer,
         as_json=as_json,
+        next_steps=[
+            run(
+                (*COMMAND, "plan", "--profile", profile.name, "--max-usd", "10"),
+                "Write the plan for the paid test. It reads the provider's rate and rents nothing.",
+            )
+        ],
         shown=[
             output.report(
                 "\n".join(
@@ -331,10 +343,24 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
         if builds is not None
         else "The provider's usage shows no image builds this month."
     )
-    next_action = (
-        f"regents techtree model-climb grant issue --plan {drafted.plan.digest} "
-        f"--operation {PROFILE_TEST} --max-usd {_dollars(max_cents)} --max-hours {hours} "
-        "--max-attempts 1 --expires-in 12h"
+    issue = shlex.join(
+        (
+            *COMMAND,
+            "grant",
+            "issue",
+            "--plan",
+            drafted.plan.digest,
+            "--operation",
+            PROFILE_TEST,
+            "--max-usd",
+            _dollars(max_cents),
+            "--max-hours",
+            str(hours),
+            "--max-attempts",
+            "1",
+            "--expires-in",
+            "12h",
+        )
     )
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
@@ -364,11 +390,16 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
         "installs": profile_test.INSTALLS,
         "limitations": list(profile_test.LIMITATIONS),
         "expires_at": spec.expires_at.isoformat(),
-        "next_actions": [next_action],
     }
     emit(
         answer,
         as_json=as_json,
+        next_steps=[
+            human(
+                "Show your person this plan. Only they issue its grant, at this machine's "
+                f"terminal, by running: {issue}"
+            )
+        ],
         shown=[
             output.report(
                 "\n".join(
@@ -390,8 +421,6 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
                         f"- Installs: {profile_test.INSTALLS}",
                         f"- Stands on the model-free report {drafted.report_path}",
                         f"- Expires {spec.expires_at.isoformat()}",
-                        "",
-                        f"Next, at this machine's terminal: {next_action}",
                     ]
                 )
             )
@@ -420,7 +449,7 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
     reached = profile_test.advance(
         store, service, Autoresearch.signed_in(), profile, envelope, now=datetime.now(UTC)
     )
-    again = f"regents techtree model-climb profile test {profile.name} --grant {grant_id}"
+    again = (*COMMAND, "profile", "test", profile.name, "--grant", grant_id)
     if isinstance(reached, profile_test.Waiting):
         emit(
             {
@@ -433,9 +462,11 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
                 "job_status": reached.status,
                 "queue_wait_reason": reached.wait_reason,
                 "max_cost_cents": reached.max_cost_cents,
-                "next_actions": [again],
             },
             as_json=as_json,
+            next_steps=[
+                run(again, "The job keeps running at the provider: run this again to look at it.")
+            ],
             shown=[
                 output.report(
                     "\n".join(
@@ -448,8 +479,6 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
                             )
                             + f", which puts its maximum at ${_dollars(reached.max_cost_cents)}. "
                             "Closing this terminal does not stop it.",
-                            "",
-                            f"Look again: {again}",
                         ]
                     )
                 )
@@ -487,9 +516,9 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
             "profile_digest": reached.digest,
             "profile_path": str(reached.path),
             "measured_profile": document,
-            "next_actions": ["Send the measured profile to Techtree (contract 7.4)."],
         },
         as_json=as_json,
+        next_steps=[done("The measured profile is on this machine; nothing more to run.")],
         shown=[
             output.report(
                 "\n".join(
@@ -617,11 +646,19 @@ def grant_issue(
         "grant_id": grant.grant_id,
         "grant": grant.model_dump(mode="json"),
         "path": str(path),
-        "next_actions": [],
     }
+    tests = [
+        run(
+            (*COMMAND, "profile", "test", profile.name, "--grant", grant.grant_id),
+            "Run the paid test under this grant: it rents the GPUs the plan names.",
+        )
+        for profile in profiles.PROFILES.values()
+        if grant.operation == PROFILE_TEST and profile_test.mission_name(profile) == grant.mission
+    ]
     emit(
         answer,
         as_json=False,
+        next_steps=tests or [done("The grant is issued; nothing more to run.")],
         shown=[
             output.report(
                 f"Grant {grant.grant_id} issued for {grant.operation} on plan "
@@ -646,7 +683,7 @@ def grant_revoke(grant_id: str, as_json: bool) -> None:
         # Revoking writes to this machine only. A job already at the provider is cancelled by
         # the paid test's own command, which is the one that holds the provider's token.
         cancel = [
-            f"regents techtree model-climb profile test {profile.name} --grant {grant_id}"
+            (*COMMAND, "profile", "test", profile.name, "--grant", grant_id)
             for profile in profiles.PROFILES.values()
             if envelope.payload.operation == PROFILE_TEST
             and profile_test.mission_name(profile) == envelope.payload.mission
@@ -658,15 +695,13 @@ def grant_revoke(grant_id: str, as_json: bool) -> None:
         "grant_id": grant_id,
         "revoked": True,
         "job_may_be_running": bool(cancel),
-        "next_actions": [*cancel],
     }
     said = f"Grant {grant_id} is revoked. Nothing new is submitted under it."
+    steps: list[Step] = [done("The grant is revoked; nothing more to run.")]
     if cancel:
-        said += (
-            " A job submitted under it has not been collected and may still be running; "
-            f"this cancels it: {cancel[0]}"
-        )
-    emit(answer, as_json=as_json, shown=[output.report(said)])
+        said += " A job submitted under it has not been collected and may still be running."
+        steps = [run(cancel[0], "Cancel that job at the provider.")]
+    emit(answer, as_json=as_json, next_steps=steps, shown=[output.report(said)])
 
 
 def _dollars(cents: int) -> str:
@@ -741,13 +776,14 @@ def submit(folder: str, base_url: str | None, as_json: bool) -> None:
     base = site_base(base_url)
     request = Request("POST", REPORTS_PATH, headers={"idempotency-key": key}, raw_content=data)
     receipt = siwa.current("techtree", SUBMIT_TIMEOUT_MS)
-    request = replace(request, headers={**request.headers, **siwa.sign(request, receipt)})
+    request = replace(request, headers={**request.headers, **siwa.sign(request, receipt, base)})
     answer = send(base, request, SUBMIT_TIMEOUT_MS)
     report = answer["report"]
     results = report["results"]
     emit(
         answer,
         as_json=as_json,
+        next_steps=[done("Techtree keeps the report privately; nothing more to run.")],
         shown=[
             output.report(
                 "\n".join(
@@ -759,9 +795,6 @@ def submit(folder: str, base_url: str | None, as_json: bool) -> None:
                         f"- Comparison: {results['comparison']}",
                         f"- Release gate: {results['release_gate']}",
                         f"- Signed by: {report['signer_key_id']}",
-                        "",
-                        f"Read it again: regents techtree model-climb report "
-                        f"{report['report_digest']}",
                     ]
                 )
             )

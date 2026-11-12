@@ -266,6 +266,38 @@ features:
   - tests/techtree/test_run_spend.py
   gaps:
   - The review lines Forge shows before a model call have no test of their words.
+- id: techtree-model-climb
+  what: An agent checks an open-model fine-tuning profile on this machine, plans its paid test, runs the
+    test on rented GPUs only under a grant its person issued at this machine's terminal, and sends a signed
+    proof to its person's private Techtree records.
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/techtree/cli.py
+  - src/regents_cli/techtree/ids.py
+  - src/regents_cli/techtree/paths.py
+  - src/regents_cli/techtree/commands/model_climb.py
+  - src/regents_cli/techtree/model_climb/**
+  - src/regents_cli/techtree/resources/model-climb-image/**
+  - scripts/techtree/export_model_climb_schema.py
+  entry:
+  - cli: regents techtree model-climb capabilities
+  - cli: regents techtree model-climb profile check <profile> --dry-run
+  - cli: regents techtree model-climb plan --profile <profile> --max-usd <dollars>
+  - cli: regents techtree model-climb grant issue
+  - cli: regents techtree model-climb grant revoke <grant>
+  - cli: regents techtree model-climb profile test <profile> --grant <grant>
+  - cli: regents techtree model-climb submit <proof-folder>
+  - cli: regents techtree proof verify <proof-folder>
+  proofs:
+  - tests/techtree/test_model_climb.py
+  gaps:
+  - 'The paid test''s command has no test: only its submit-once rule is proven, against a simulated provider,
+    and no machine has been rented from this build.'
+  - plan and submit have no test against a stand-in for the provider or techtree.sh; a proof's checks
+    are proven on this machine only.
+  - The model-free check's container is not built or run by make check.
+  - 'No property test yet: grant limits and money amounts are checked on chosen inputs.'
 - id: techtree-release
   what: The Techtree release this build belongs to, and whether it holds.
   who: operator
