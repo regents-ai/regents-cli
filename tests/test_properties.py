@@ -674,7 +674,8 @@ def test_every_help_reads_as_plain_lines_in_a_pipe() -> None:
 
 def test_each_command_in_the_root_help_is_a_line_of_its_own() -> None:
     root = app.root()
-    text = root.get_help(root.context_class(root, info_name="regents"))
+    # Without its colours: a host that shows them, such as a CI log, gets the help styled.
+    text = click.unstyle(root.get_help(root.context_class(root, info_name="regents")))
     commands = [line.strip() for line in text.splitlines() if line.strip().startswith("regents ")]
     assert "regents browser --site keyfleet" in commands
     assert all("  " not in command for command in commands), commands

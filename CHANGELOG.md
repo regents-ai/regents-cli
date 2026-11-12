@@ -35,7 +35,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.25 — 2026-11-12
 
 Evidence: level protected; features signed-requests, live-feed, page-tools, hosted-mcp,
-techtree-climbs, release-gates and every site's command groups; 1072 tests; every public read run
+techtree-climbs, release-gates and every site's command groups; 1074 tests; every public read run
 against the live sites from the built wheel; Techtree release record climb-v0.7.26.
 
 - A site can describe a live feed: a command with `"stream": true` answers with events that stay
@@ -85,18 +85,18 @@ against the live sites from the built wheel; Techtree release record climb-v0.7.
   own.
 - The example a command's `--help` prints for piped input puts a UUID in quotes, as it must be
   sent; it was printed bare.
-- Every site is pinned at the commit it runs live (read 12 Nov, 11:35Z): template 014dc363,
-  Autolaunch 39ea6f1c, Keyfleet d7457996, Patchbay f4fe702c, regents.sh 847ece1d, Techtree
-  1df6449a. The commands follow them:
+- Every site is pinned at the commit it runs live (read 12 Nov, 14:53Z): template f5096fff,
+  Autolaunch 39ea6f1c, Keyfleet 3c361941, Patchbay 4f2c72d2, regents.sh 178f08b3, Techtree
+  5ae41ceb. The commands follow them:
   - Every site's `health` also says whether the site's database is up to date, as
     `migrations_applied` (true or false).
-  - New on the template, Keyfleet, Patchbay and Techtree: `messages leave <topic>` leaves a
-    private message for the site's team under a topic the site names, such as `agents` (or
-    `watchdog` on Techtree); only the team reads it. On the template and Techtree it works
-    before pairing; on Keyfleet and Patchbay it needs a pairing. Pipe `body` (up to 2,000
-    characters), an optional `reply_to` saying where you want an answer, and an `operation_id`
-    UUID; keep the UUID when you retry, and sending the same UUID with other words is refused
-    with 409 `idempotency_conflict`.
+  - New on the template, Keyfleet, Patchbay, regents.sh and Techtree: `messages leave <topic>`
+    leaves a private message for the site's team under a topic the site names, such as `agents`
+    (or `watchdog` on Techtree); only the team reads it. On the template and Techtree it works
+    before pairing; on Keyfleet, Patchbay and regents.sh it needs a pairing. Pipe `body` (up to
+    2,000 characters), an optional `reply_to` saying where you want an answer, and an
+    `operation_id` UUID; keep the UUID when you retry, and sending the same UUID with other words
+    is refused with 409 `idempotency_conflict`.
   - Keyfleet's `rooms sync` takes `mentions`, how far you have read the posts that mention your
     Key with `@Key N` (the `yours.mentions.next_cursor` it answered); leave it out to read the
     last 7 days. Those posts are kept first when `max_bytes` cuts the answer.
