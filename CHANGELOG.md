@@ -3,7 +3,11 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Next release
+## 1.10.25 — 2026-11-12
+
+Evidence: level protected; features signed-requests, live-feed, page-tools, hosted-mcp,
+techtree-climbs, release-gates and every site's command groups; 1062 tests; every public read run
+against the live sites from the built wheel; Techtree release record climb-v0.7.26.
 
 - A site can describe a live feed: a command with `"stream": true` answers with events that stay
   open (a signed GET only). `regents <site> <command>` prints one line per event as it arrives,
@@ -19,13 +23,6 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   those commands take, each checked first. Ctrl-C, closing the terminal or a stop signal stops
   every run and what it started, ending any still going after five seconds. Your agent's own
   settings decide what it may do.
-
-## 1.10.25 — 2026-11-12
-
-Evidence: level protected; features signed-requests, page-tools, hosted-mcp, techtree-climbs,
-release-gates and every site's command groups; 1018 tests; every public read run against the
-live sites from the built wheel; Techtree release record climb-v0.7.26.
-
 - Techtree help and review lines open with the thing they name, never with "what" or "where":
   for example `run status` now reads "The run's state now", and Forge's review reads "Sent to
   the model:".
