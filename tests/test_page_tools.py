@@ -6,6 +6,7 @@ own page, is signed, and only once, while the agent's call is still running.
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import json
 import math
@@ -699,3 +700,12 @@ async def test_runs_whole_as_an_agent_hosts_mcp_server(signed_in: None) -> None:
     [(method, path, body, headers)] = LocalSite.received
     assert (method, path, body) == ("PATCH", f"/api/v1/notes/{NOTE}", b'{"title":"Plan"}')
     assert signer_of(method, path, body, headers, f"http://localhost:{port}") == ADDRESS
+
+
+async def test_two_first_calls_at_once_share_one_browser(signed_in: None) -> None:
+    host = PageHost(Bridge(SITE, MANIFEST, key_signer("ash-template", SITE)), show=False)
+    try:
+        first, second = await asyncio.gather(host._page(), host._page())
+        assert first is second
+    finally:
+        await host.close()

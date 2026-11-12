@@ -32,6 +32,7 @@ from mcp_types import JSONRPCNotification, JSONRPCRequest, JSONRPCResponse
 
 from regents_cli import app, mcp_proxy
 from regents_cli.agent_hosts import key_signer
+from regents_cli.errors import CommandError
 from tests.signed_agent import ADDRESS, sign_in, signer_of
 
 pytestmark = pytest.mark.anyio
@@ -322,3 +323,46 @@ async def test_a_site_that_takes_a_request_and_never_answers_may_have_acted(
     error = answer.json()["error"]
     assert answer.json()["id"] == 3
     assert "no answer" in error["message"] and "could not reach" not in error["message"]
+
+
+async def test_a_message_it_cannot_sign_gets_an_answer_and_reaches_no_site(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    async def renew_first(_request: Any) -> dict[str, str]:
+        raise CommandError("siwa_expired", "Sign in to ash-template again.")
+
+    listening = socket.socket()
+    listening.bind(("127.0.0.1", 0))
+    listening.listen()
+    listening.settimeout(0.5)
+    site = f"http://127.0.0.1:{listening.getsockname()[1]}"
+    try:
+        async with mcp_proxy.SiteClient(site, renew_first) as client:
+            answer = await client.post("/mcp", json={"jsonrpc": "2.0", "id": 4, "method": "ping"})
+            noted = await client.post(
+                "/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}
+            )
+        with pytest.raises(TimeoutError):
+            listening.accept()
+    finally:
+        listening.close()
+    assert answer.json()["id"] == 4
+    assert answer.json()["error"]["message"] == (
+        f"regents could not sign for {site}: Sign in to ash-template again"
+    )
+    assert noted.status_code == 202
+    assert capsys.readouterr().err.strip() == (
+        f"regents mcp: regents could not sign for {site}: Sign in to ash-template again; a "
+        "message was not delivered."
+    )
+
+
+@given(method=st.text(min_size=1), version=st.text(min_size=1))
+def test_routing_headers_carry_any_method_and_version_safely(method: str, version: str) -> None:
+    routing = mcp_proxy.Routing()
+    meta = {"_meta": {"io.modelcontextprotocol/protocolVersion": version}}
+    headers = routing.outgoing(JSONRPCNotification(jsonrpc="2.0", method=method, params=meta))
+    lowered = {key.lower(): value for key, value in headers.items()}
+    assert decode_header_value(lowered["mcp-method"]) == method
+    assert decode_header_value(lowered["mcp-protocol-version"]) == version
+    assert all(value.isascii() and value.isprintable() for value in headers.values())

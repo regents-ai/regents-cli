@@ -25,6 +25,12 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   When the site's own words already end with that link, it is printed once.
 - A site's hint that the next steps already say word for word is no longer printed a second
   time under the error.
+- `regents mcp`: when the agent key cannot sign a message, for example because Touch ID was
+  refused, the agent host gets an error for that request saying so and the command keeps running,
+  instead of stopping. The method and protocol version headers are encoded as the protocol asks,
+  so a value outside plain ASCII reaches the site.
+- `regents browser`: tool calls made at the same moment before a page is open share one browser
+  instead of each starting its own.
 
 ## 1.10.24 — 2026-11-04
 
