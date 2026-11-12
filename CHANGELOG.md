@@ -56,9 +56,9 @@ against the live sites from the built wheel; Techtree release record climb-v0.7.
   own.
 - The example a command's `--help` prints for piped input puts a UUID in quotes, as it must be
   sent; it was printed bare.
-- Every site is pinned at the commit it runs live (read 12 Nov, 14:12Z): template 0f35bfb8,
-  Autolaunch 39ea6f1c, Keyfleet 3c361941, Patchbay 4f2c72d2, regents.sh 89a24877, Techtree
-  2e14e560. The commands follow them:
+- Every site is pinned at the commit it runs live (read 12 Nov, 14:48Z): template f5096fff,
+  Autolaunch 39ea6f1c, Keyfleet 3c361941, Patchbay 4f2c72d2, regents.sh df548fe5, Techtree
+  5ae41ceb. The commands follow them:
   - Every site's `health` also says whether the site's database is up to date, as
     `migrations_applied` (true or false).
   - New on the template, Keyfleet, Patchbay, regents.sh and Techtree: `messages leave <topic>`
