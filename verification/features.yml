@@ -54,8 +54,8 @@ features:
 - id: live-feed
   what: 'An agent follows a site''s live feed: each new message is printed as it arrives with the command
     that reads it, the connection is kept and signed anew on every reconnect, and with --wake the person''s
-    own agent is started on this machine for each room or conversation in turn, its prompt holding no
-    one else''s words.'
+    own agent is started on this machine for each room or conversation in turn, only for the site''s reads,
+    its prompt holding no site text but the checked room names and ids the reading commands take.'
   who: agent
   level: protected
   paths:
