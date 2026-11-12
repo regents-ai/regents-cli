@@ -15,7 +15,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal, Protocol
 
-from regents_cli.techtree.errors import TechtreeError
+from pydantic import ValidationError as PydanticValidationError
+
+from regents_cli.techtree.errors import TechtreeError, ValidationError
 from regents_cli.techtree.models.base import NonEmptyString, ProtocolModel
 
 JOB_INDETERMINATE: Final = "job_indeterminate"
@@ -49,8 +51,25 @@ class Journal:
     def facts(self) -> list[JournalFact]:
         if not self.path.exists():
             return []
-        lines = self.path.read_text(encoding="utf-8").splitlines()
-        return [JournalFact.model_validate_json(line) for line in lines if line]
+        lines = self.path.read_text(encoding="utf-8", errors="replace").splitlines()
+        facts: list[JournalFact] = []
+        for number, line in enumerate(lines, start=1):
+            if not line:
+                continue
+            try:
+                facts.append(JournalFact.model_validate_json(line))
+            except PydanticValidationError as error:
+                # A line cut short or changed may hide a submission, so nothing goes on until
+                # a person has looked: guessing could start a second paid job.
+                attempt = self.path.parent.name
+                raise ValidationError(
+                    f"line {number} of the journal of attempt {attempt} cannot be read, so "
+                    "nothing was sent or looked up for it. Your person looks at that file and at "
+                    "the provider's jobs page before anything more is run for this attempt: the "
+                    f"file is {self.path}.",
+                    details={"intent_id": attempt, "journal": str(self.path), "line": number},
+                ) from error
+        return facts
 
     def latest(self) -> JournalFact | None:
         facts = self.facts()

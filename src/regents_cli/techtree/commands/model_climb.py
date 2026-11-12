@@ -13,12 +13,12 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal, DecimalException
 from pathlib import Path
-from typing import Final, cast, get_args
+from typing import Any, Final, cast, get_args
 
 import click
 
 from regents_cli import output, siwa
-from regents_cli.http import Request, send
+from regents_cli.http import Request, holds, send
 from regents_cli.next_steps import Step, done, human, run
 from regents_cli.techtree import fs, paths
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes, validate_digest
@@ -790,21 +790,51 @@ def _duration(value: str) -> timedelta:
             f"--expires-in {value!r} must be a whole number of minutes, hours or days, "
             "such as 90m, 24h or 7d"
         )
-    return timedelta(**{_UNITS[parsed[2]]: int(parsed[1])})
+    try:
+        return timedelta(**{_UNITS[parsed[2]]: int(parsed[1])})
+    except OverflowError as error:
+        raise ValidationError(
+            f"--expires-in {value!r} is longer than any grant can last; a grant ends no later "
+            "than its plan, so give a duration within the plan's life, such as 12h"
+        ) from error
 
 
 # submit
 
 
 def submit(folder: str, base_url: str | None, as_json: bool) -> None:
-    data = proof.document(Path(folder))
-    key = sha256_digest_bytes(data)
+    # Every check runs before anything is signed or sent: the whole proof, its signer, and the
+    # address, which must be one the site's own sign-in sends a signed request to.
+    verified = proof.verify(Path(folder))
+    signer = IdentityStore(paths.home()).load_public().key_id
+    if verified.signer_key_id != signer:
+        raise PolicyError(
+            f"the proof in {folder} is signed by key {verified.signer_key_id}, not by this "
+            f"machine's key {signer}, so nothing was sent. Send only a proof this machine wrote.",
+            details={"signer_key_id": verified.signer_key_id, "this_machine": signer},
+        )
     base = site_base(base_url)
-    request = Request("POST", REPORTS_PATH, headers={"idempotency-key": key}, raw_content=data)
+    siwa.signs_for("techtree", base, SUBMIT_TIMEOUT_MS)
+    request = Request(
+        "POST",
+        REPORTS_PATH,
+        headers={"idempotency-key": sha256_digest_bytes(verified.document)},
+        raw_content=verified.document,
+    )
     receipt = siwa.current("techtree", SUBMIT_TIMEOUT_MS)
     request = replace(request, headers={**request.headers, **siwa.sign(request, receipt, base)})
     answer = send(base, request, SUBMIT_TIMEOUT_MS)
-    report = answer["report"]
+    report: Any = answer.get("report")
+    if not (
+        holds(report, "report_digest", "signer_key_id", "results")
+        and holds(report["results"], "outcome", "comparison", "release_gate")
+    ):
+        raise TechtreeError(
+            "Techtree answered without the report it kept, so there is nothing to show. "
+            "Sending the same proof again changes nothing: run this command again, and if the "
+            "answer is the same, update regents-cli.",
+            code="invalid_response",
+        )
     results = report["results"]
     emit(
         answer,

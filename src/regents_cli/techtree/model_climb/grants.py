@@ -106,7 +106,8 @@ def draft_grant(
         ),
         (plan.spec.expires_at <= now, f"the plan expired at {expiry}"),
         (
-            now + limits.expires_in > plan.spec.expires_at,
+            # Compared as durations: a very long one cannot be added to a date.
+            limits.expires_in > plan.spec.expires_at - now,
             f"the grant would outlive the plan, which expires at {expiry}",
         ),
         (

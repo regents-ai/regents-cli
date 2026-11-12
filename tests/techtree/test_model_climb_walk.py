@@ -5,9 +5,10 @@ or after it was revoked; a job left running after its grant was revoked or its m
 over the grant; an attempt closed before the provider's final receipt, or spent without a job
 because an answer that may hide a job was taken as a refusal; a resumed attempt submitted
 without checking the account again; a provider's charge that never reaches the attempt's
-record; a proof Techtree keeps twice; a job given more minutes than its grant pays for at the
-plan's rate; and one grant spending more paid attempts than it allows, or one attempt spending
-two.
+record; a test certified as passing although a step never reported; a proof Techtree keeps
+twice, or one signed and sent to an address the sign-in server does not list, sent unchecked or
+signed by another machine; a job given more minutes than its grant pays for at the plan's rate;
+and one grant spending more paid attempts than it allows, or one attempt spending two.
 """
 
 from __future__ import annotations
@@ -154,18 +155,26 @@ class Provider:
 @dataclass
 class Techtree:
     """Techtree's private reports: it keeps a proof once under its idempotency key, and only
-    when the paired agent's key signed exactly what arrived."""
+    when the paired agent's key signed exactly what arrived. It also stands in for the sign-in
+    server, which lists this one address for Techtree."""
 
     base: str = ""
     kept: dict[str, bytes] = field(default_factory=dict)
     signers: list[str] = field(default_factory=list)
+    #: What it answers in place of the kept report, when set.
+    reply: dict[str, Any] | None = None
 
     def answer(self, target: str, body: bytes, headers: dict[str, str]) -> object:
+        if target == "/api/shared/siwa/audiences":
+            listed = [{"audience": "techtree", "origin": self.base}]
+            return {"code": "audiences", "data": {"audiences": listed}}
         # x-regent-client names the command for the site's counts; no signature covers it.
         signed = {name: value for name, value in headers.items() if name != "x-regent-client"}
         self.signers.append(signer_of("POST", target, body, signed, self.base))
         self.kept.setdefault(headers["idempotency-key"], body)
         report = json.loads(body)["manifest"]["payload"]["report"]
+        if self.reply is not None:
+            return self.reply
         return {
             "report": {
                 "report_digest": report,
@@ -215,6 +224,7 @@ def stand_ins(monkeypatch: pytest.MonkeyPatch) -> Iterator[tuple[Provider, Techt
     base = f"http://127.0.0.1:{server.server_address[1]}"
     site.base = base
     monkeypatch.setattr(provider, "BASE_URL", base)
+    monkeypatch.setenv("SIWA_BROKER", base)
     monkeypatch.setenv(provider.TOKEN_ENV, TOKEN)
     try:
         yield gpu, site
@@ -691,6 +701,120 @@ def test_a_grant_revoked_while_its_job_runs_cancels_the_job_at_the_next_look(
     assert closed is not None and closed["exit_reason"] == "cancelled"
     assert closed["charged_usd_micros"] == CHARGED
     assert len(gpu.submissions) == 1 and len(gpu.cancels) == 1
+
+
+# Steps a check or a job never reported.
+
+
+def test_a_model_free_check_that_reports_no_fixture_or_modules_never_passes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+
+    def skipped(profile: profiles.Profile) -> profiles.Ran:
+        ran = container_check(profile)
+        answer = ran.answer.model_copy(update={"fixtures": None, "modules": None})
+        return profiles.Ran(answer=answer, image_id=ran.image_id, log="")
+
+    monkeypatch.setattr(profiles, "run_check", skipped)
+    code, answer = regents(capsys, "profile", "check", M0.name, "--dry-run")
+    assert code != 0 and answer["error"]["code"] == "verification_error"
+    code, answer = regents(capsys, "plan", "--profile", M0.name, "--max-usd", "10")
+    assert code != 0 and answer["next_steps"]
+
+
+def test_a_paid_test_whose_job_reports_only_that_it_completed_never_passes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    gpu, _ = stand_ins
+    _, grant_id = granted(monkeypatch, tmp_path, capsys)
+    bare = {"profile": M0.name, "completed": True, "gpu_peak_memory_mib": {}}
+    gpu.looks = [queued(), ended(result=bare)]
+    code, _ = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code == 0
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code != 0 and answer["error"]["code"] == "verification_error"
+    assert len(gpu.submissions) == 1
+
+
+# Sending a proof.
+
+
+def a_proof(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    signed_elsewhere: bool = False,
+) -> Path:
+    """A proof of a report on a plan this machine wrote, signed with this machine's key, or
+    with another machine's."""
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    sign_in_to_techtree(tmp_path, monkeypatch)
+    monkeypatch.setattr(profiles, "run_check", container_check)
+    store = ModelClimbStore(paths.home().model_climb_dir)
+    assert regents(capsys, "profile", "check", M0.name, "--dry-run")[0] == 0
+    code, planned = regents(capsys, "plan", "--profile", M0.name, "--max-usd", "10")
+    assert code == 0
+    report = a_report(store, grants.stored_plan(store, planned["plan"]), "attempt-1")
+    if signed_elsewhere:
+        monkeypatch.setenv("HOME", str(tmp_path / "elsewhere"))
+    folder = tmp_path / "proof"
+    proof.write(store, IdentityService(IdentityStore(paths.home())), report, folder)
+    monkeypatch.setenv("HOME", str(home))
+    return folder
+
+
+def test_a_proof_is_signed_and_sent_only_to_an_address_the_sign_in_server_lists(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    _, site = stand_ins
+    folder = a_proof(monkeypatch, tmp_path, capsys)
+    elsewhere = site.base.rsplit(":", 1)[0] + ":9"
+    code, answer = regents(capsys, "submit", str(folder), "--base-url", elsewhere)
+    assert code != 0 and answer["error"]["code"] == "address_not_listed"
+    monkeypatch.setenv("TECHTREE_BASE_URL", elsewhere)
+    code, answer = regents(capsys, "submit", str(folder))
+    assert code != 0 and answer["error"]["code"] == "address_not_listed"
+    assert site.kept == {} and site.signers == []
+
+
+@pytest.mark.parametrize("broken", ["object_missing", "signed_elsewhere"])
+def test_a_proof_that_fails_its_check_or_another_machine_signed_is_never_sent(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+    broken: str,
+) -> None:
+    _, site = stand_ins
+    folder = a_proof(monkeypatch, tmp_path, capsys, signed_elsewhere=broken == "signed_elsewhere")
+    if broken == "object_missing":
+        next((folder / "objects").iterdir()).unlink()
+    code, answer = regents(capsys, "submit", str(folder), "--base-url", site.base)
+    assert code != 0 and answer["next_steps"]
+    assert site.kept == {} and site.signers == []
+
+
+def test_a_techtree_answer_without_its_report_is_a_clean_refusal(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    _, site = stand_ins
+    folder = a_proof(monkeypatch, tmp_path, capsys)
+    for reply in ({"ok": True}, {"report": {"report_digest": "x", "signer_key_id": "y"}}):
+        site.reply = reply
+        code, answer = regents(capsys, "submit", str(folder), "--base-url", site.base)
+        assert code != 0 and answer["error"]["code"] == "invalid_response"
+        assert answer["next_steps"]
 
 
 # The money rules, for every input.

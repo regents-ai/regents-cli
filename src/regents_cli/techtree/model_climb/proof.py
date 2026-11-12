@@ -166,7 +166,7 @@ def document(folder: Path) -> bytes:
         raise ValidationError(f"{folder} has no objects/ folder", details={"folder": str(folder)})
     objects: dict[str, JsonValue] = {}
     for path in objects_dir.iterdir():
-        named = _OBJECT_FILE.fullmatch(path.name)
+        named = _OBJECT_FILE.fullmatch(path.name) if path.is_file() else None
         value = read_json(path) if named else None
         if (
             named is None
@@ -261,11 +261,14 @@ class Verified:
     report: Digest
     signer_key_id: str
     objects: int
+    #: The canonical bytes that were checked, which are what is sent to Techtree.
+    document: bytes
 
 
 def verify(folder: Path) -> Verified:
     """Check the proof in `folder`; a refusal names the first check that did not hold."""
-    sent = json.loads(document(folder))
+    data = document(folder)
+    sent = json.loads(data)
     _document(sent)
     objects = _objects(sent["objects"])
     payload = _manifest(sent["manifest"])
@@ -282,7 +285,7 @@ def verify(folder: Path) -> Verified:
         )
     _graph(objects)
     _schema(objects)
-    return Verified(report["digest"], payload["signer"]["key_id"], len(objects))
+    return Verified(report["digest"], payload["signer"]["key_id"], len(objects), data)
 
 
 def _document(sent: object) -> None:

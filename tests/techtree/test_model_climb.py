@@ -2,8 +2,9 @@
 
 The costly failures: a digest that drifts or covers operational fields, so the same science gets
 two names or a changed plan keeps its name; a grant that still admits work after a bound field
-changed; a LoRA run that silently trains fewer modules than the recipe names; and a second paid
-job submitted after a first submission's outcome was unknown.
+changed; a LoRA run that silently trains fewer modules than the recipe names; a second paid job
+submitted after a first submission's outcome was unknown or behind a journal line that cannot be
+read; and a damaged file or an out-of-range duration ending a command in a raw crash.
 """
 
 from __future__ import annotations
@@ -355,6 +356,40 @@ def test_an_amount_that_is_not_a_number_issues_no_grant(
     assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
 
 
+@pytest.mark.parametrize("duration", ["9999999999d", "999999999d", "99999999999h"])
+def test_a_grant_lasting_longer_than_any_date_issues_no_grant(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    duration: str,
+) -> None:
+    store, plan_digest = stored_plan(monkeypatch, tmp_path)
+    words = issue(plan_digest, "--json")
+    words[words.index("--expires-in") + 1] = duration
+    assert main(words) == 1
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["error"]["code"] == "validation_error" and answer["next_steps"]
+    assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
+
+
+@pytest.mark.parametrize("damage", ["{}", '{"checks": [1], "recipe": null}'])
+def test_a_damaged_model_free_report_is_a_clean_refusal(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    damage: str,
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    store = ModelClimbStore(paths.home().model_climb_dir)
+    folder = store.profiles_dir / profiles.M0.name
+    folder.mkdir(parents=True)
+    (folder / "20261112T000000Z-dry-run.json").write_text(damage)
+    words = ["techtree", "model-climb", "plan", "--profile", profiles.M0.name]
+    assert main([*words, "--max-usd", "10", "--json"]) == 1
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["error"]["code"] == "validation_error" and answer["next_steps"]
+
+
 def test_a_plan_for_an_amount_that_is_not_a_number_is_refused(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -487,6 +522,18 @@ def test_a_lookup_that_finds_nothing_submits_nothing(tmp_path: Path) -> None:
     assert provider.submissions == 0
 
 
+def test_a_journal_line_that_cannot_be_read_submits_nothing(tmp_path: Path) -> None:
+    journal = attempts.Journal(tmp_path / "attempt-1" / "journal.jsonl")
+    journal.append(attempts.JournalFact(state="intent", intent_id="attempt-1"))
+    with journal.path.open("a", encoding="utf-8") as handle:
+        handle.write('{"state": "submitted", "intent_id": "att')
+    provider = SimulatedProvider(lose_the_answer=False)
+    with pytest.raises(TechtreeError) as refused:
+        attempts.submit_once(journal, provider, "attempt-1")
+    assert refused.value.details["intent_id"] == "attempt-1"
+    assert provider.submissions == 0
+
+
 # The proof sent to Techtree (contract 3.5)
 
 
@@ -545,6 +592,14 @@ def test_a_proof_larger_than_techtree_keeps_is_refused_before_sending(tmp_path: 
     with pytest.raises(TechtreeError) as refused:
         proof.document(tmp_path)
     assert refused.value.details["check"] == "document"
+
+
+def test_a_folder_among_a_proofs_objects_is_a_clean_refusal(tmp_path: Path) -> None:
+    (tmp_path / "objects" / ("a" * 64 + ".json")).mkdir(parents=True)
+    (tmp_path / "manifest.json").write_text("{}")
+    with pytest.raises(TechtreeError) as refused:
+        proof.document(tmp_path)
+    assert refused.value.details["check"] == "objects"
 
 
 def test_a_proof_the_site_accepts_is_refused_when_an_object_it_refers_to_is_missing(

@@ -282,9 +282,10 @@ regents techtree model-climb submit <proof folder>
   key and limited to its plan, dollars, hours and one use. `profile test` rents GPUs only under
   that grant,
   never waits, and is run again to look at the job; `grant revoke` ends a grant.
-- `submit` sends a signed proof folder to Techtree, which keeps it privately for the person
-  your agent is paired with. `regents techtree proof verify <proof folder>` checks it on this
-  machine first.
+- `submit` sends a proof folder to Techtree, which keeps it privately for the person your agent
+  is paired with. It first runs every check `regents techtree proof verify <proof folder>`
+  runs, and sends only a proof signed with this machine's key, only to an address Techtree's
+  sign-in lists.
 
 ## Development
 

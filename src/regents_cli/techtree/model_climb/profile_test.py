@@ -205,9 +205,18 @@ def dry_run_report(store: ModelClimbStore, profile: profiles.Profile) -> tuple[P
     settings as they are now, and its digest."""
     folder = store.profiles_dir / profile.name
     for path in sorted(folder.glob("*-dry-run.json"), reverse=True):
-        report: Any = fs.read_json(path)
-        passed = [check["status"] == "pass" for check in report["checks"]]
-        if report["recipe"] == profile.recipe and all(passed):
+        try:
+            report: Any = fs.read_json(path)
+            passed = [check["status"] == "pass" for check in report["checks"]]
+            current = report["recipe"] == profile.recipe
+        except (ValidationError, KeyError, TypeError) as error:
+            raise ValidationError(
+                f"the model-free report {path} is damaged, so no plan can stand on it. Delete "
+                f"that file and run regents techtree model-climb profile check {profile.name} "
+                "--dry-run again.",
+                details={"profile": profile.name, "report": str(path)},
+            ) from error
+        if current and all(passed):
             return path, digest_object(report)
     raise ValidationError(
         f"no model-free check of {profile.name} with its current settings has found no "
