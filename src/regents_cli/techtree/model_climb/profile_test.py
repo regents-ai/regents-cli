@@ -691,8 +691,8 @@ _CASE_DETAIL: Final[dict[OutputCase, str]] = {
 def judge(
     profile: profiles.Profile, job: Job, result: JobResult | None, layer_types: list[str]
 ) -> list[output.Check]:
-    """The measured profile's checks. A step the job never reached has no check, and the
-    first check says where the job stopped."""
+    """The measured profile's checks. A step the job never reached has no check of its own: the
+    first check says where the job stopped, and the second names every step it did not report."""
     checks: list[output.Check] = []
 
     def check(label: str, holds: bool, detail: str) -> None:
@@ -707,6 +707,25 @@ def judge(
         job.status == "succeeded" and result.completed,
         f"the job ended {job.status}"
         + (f"; it stopped at {stopped.step}: {stopped.reason}" if stopped else ""),
+    )
+    missing = [
+        name
+        for name, reported in (
+            ("the machine", result.environment),
+            ("the model download", result.download),
+            ("the training", result.train),
+            ("the adapter", result.adapter),
+            ("the verifiers fixture", result.verifiers),
+            ("the answers", result.answers),
+        )
+        if reported is None
+    ]
+    check(
+        "Every step",
+        not missing,
+        "the job reported every step"
+        if not missing
+        else "the job's result says nothing of " + ", ".join(missing),
     )
     if result.environment is not None:
         seen = result.environment

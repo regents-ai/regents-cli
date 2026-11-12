@@ -229,6 +229,22 @@ def _profile_report(
         if answer.dry_run.succeeded
         else f"prime-rl's dry run stopped (exit {answer.dry_run.exit_code})",
     )
+    missing = [
+        name
+        for name, reported in (
+            ("the resolved training configuration", answer.dry_run.resolved is not None),
+            ("the loss-mask fixtures", bool(answer.fixtures)),
+            ("the model's modules", answer.modules is not None),
+        )
+        if not reported
+    ]
+    check(
+        "Every step",
+        not missing,
+        "the check reported every step"
+        if not missing
+        else "the check's answer says nothing of " + ", ".join(missing),
+    )
     fixtures: list[JsonValue] = []
     for fixture in answer.fixtures or []:
         only_answers = (
