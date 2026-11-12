@@ -27,6 +27,7 @@ from regents_cli.techtree.errors import NotFoundError, PolicyError, TechtreeErro
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
 from regents_cli.techtree.model_climb import grants, ledger, profile_test, profiles, proof
+from regents_cli.techtree.model_climb.attempts import Journal
 from regents_cli.techtree.model_climb.contracts import (
     CONTRACT,
     OPERATION_SCHEMA_VERSION,
@@ -707,14 +708,23 @@ def grant_revoke(grant_id: str, as_json: bool) -> None:
     # whether the grant has a job: what the answer says about a job is then exact.
     with ledger.held(store.ledger_path):
         grants.revoke(store, service, envelope, now=datetime.now(UTC))
+        intent_id = (
+            profile_test.unfinished(store, identity, envelope)
+            if envelope.payload.operation == PROFILE_TEST
+            else None
+        )
+        # A submission has left for the provider only once the attempt's journal holds it.
+        sent = (
+            intent_id is not None
+            and Journal(store.attempts_dir / intent_id / profile_test.JOURNAL_FILE).latest()
+            is not None
+        )
         # Revoking writes to this machine only. A job already at the provider is cancelled by
         # the paid test's own command, which is the one that holds the provider's token.
         cancel = [
             (*COMMAND, "profile", "test", profile.name, "--grant", grant_id)
             for profile in profiles.PROFILES.values()
-            if envelope.payload.operation == PROFILE_TEST
-            and profile_test.mission_name(profile) == envelope.payload.mission
-            and profile_test.unfinished(store, identity, envelope) is not None
+            if sent and profile_test.mission_name(profile) == envelope.payload.mission
         ]
     answer: dict[str, JsonValue] = {
         "schema_version": OPERATION_SCHEMA_VERSION,
@@ -728,6 +738,11 @@ def grant_revoke(grant_id: str, as_json: bool) -> None:
     if cancel:
         said += " A job submitted under it has not been collected and may still be running."
         steps = [run(cancel[0], "Cancel that job at the provider.")]
+    elif intent_id is not None:
+        said += (
+            f" Its use was spent on attempt {intent_id}, and nothing was sent to the provider "
+            "for it, so no job runs under this grant."
+        )
     emit(answer, as_json=as_json, next_steps=steps, shown=[output.report(said)])
 
 
