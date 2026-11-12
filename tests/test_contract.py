@@ -33,8 +33,11 @@ def test_signs_as_the_library_does(
     assert request.target == sent["path"]
     assert request.content == (None if sent["body"] is None else sent["body"].encode("utf-8"))
     principal, signing = FIXTURES["principal"], FIXTURES["signing"]
+    base = f"https://{sent['authority']}"
+    assert siwa.authority_of(base) == sent["authority"]
     headers, message = siwa.unsigned(
         request,
+        authority=sent["authority"],
         receipt=FIXTURES["receipt"]["token"],
         wallet_address=principal["wallet_address"],
         chain_id=principal["chain_id"],
@@ -46,4 +49,9 @@ def test_signs_as_the_library_does(
     assert message == case["signing_message"]
     signature = passkey.sign_message_with(FIXTURES["signer"]["private_key"], message)
     assert siwa.with_signature(headers, signature) == dict(sent["headers"])
-    assert siwa.rebuild(request, headers) == (headers, message)
+    assert siwa.rebuild(request, headers, base) == (headers, message)
+
+
+@pytest.mark.parametrize("case", FIXTURES["authorities"], ids=lambda case: case["url"])
+def test_names_the_host_as_the_library_does(case: dict[str, str]) -> None:
+    assert siwa.authority_of(case["url"]) == case["authority"]

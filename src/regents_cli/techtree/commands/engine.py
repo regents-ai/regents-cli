@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import click
 
+from regents_cli.next_steps import done
 from regents_cli.techtree import paths
 from regents_cli.techtree.canonical import validate_digest
 from regents_cli.techtree.commands.answers import JSON, emit
@@ -75,7 +76,7 @@ def _emit_report(engines: list[EngineStatus], headline: list[str], *, as_json: b
     }
     sections = [line for engine in engines for line in ["", *engine_lines(engine)]]
     answer["report"] = "\n".join([*headline, *sections])
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[done("Nothing more to run for the engines.")])
 
 
 ENGINE = click.Group(

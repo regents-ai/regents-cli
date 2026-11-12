@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import json
 import re
-import shlex
 import time
 from dataclasses import replace
 from typing import Any
@@ -12,9 +12,10 @@ import click
 
 from regents_cli import base, output, siwa
 from regents_cli.errors import EXIT_AUTH, CommandError, UsageError
-from regents_cli.http import Request, base_address, send
+from regents_cli.http import Request, base_address, data_with, send
+from regents_cli.next_steps import Step, done, human, pair_first, run, run_piped
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform, pinned_platforms
-from regents_cli.runner import read_stdin
+from regents_cli.runner import read_stdin, unpaired
 
 TIMEOUT = click.Option(
     ["--timeout-ms"],
@@ -59,7 +60,10 @@ def auth_group(sites: list[str]) -> click.Group:
                 JSON,
                 TIMEOUT,
             ],
-            help="Sign in to a site. Creates the agent key on first use.",
+            help="Sign in to a site. Ask your person first: the first time it makes this "
+            "machine's agent key, and on a Mac it prints a Touch ID page your person opens and "
+            "confirms. After each restart, the first signed command prints that page again; "
+            "regents --open-browser <command> opens it too.",
         )
     )
     group.add_command(
@@ -89,7 +93,7 @@ def auth_group(sites: list[str]) -> click.Group:
             params=[
                 click.Option(["--name"], required=True, help="The agent's public name."),
                 click.Option(
-                    ["--description"], required=True, help="What the agent does, in a sentence."
+                    ["--description"], required=True, help="The agent's work, in a sentence."
                 ),
                 click.Option(["--image"], help="An https address of the agent's picture."),
                 click.Option(
@@ -105,9 +109,10 @@ def auth_group(sites: list[str]) -> click.Group:
                 TIMEOUT,
             ],
             help="List the agent in the agent registry on Base (optional; sign-in never needs "
-            "it). The agent key on this machine sends the one transaction and pays its gas, so "
-            f"it needs a little ETH on Base; {base.BASE_RPC} carries it unless SIWA_BASE_RPC "
-            "names another Base node. Each run sends a new transaction.",
+            "it). regents builds the one transaction, shows it and what it can cost, then the "
+            "agent key on this machine signs and sends it and pays its gas, so it needs a little "
+            f"ETH on Base; {base.BASE_RPC} carries it unless SIWA_BASE_RPC names another Base "
+            "node. Each run sends a new transaction.",
         )
     )
     group.add_command(
@@ -160,7 +165,15 @@ def login(
     if (phase == "prepare") != (wallet_address is not None):
         raise UsageError("--wallet-address goes with --phase prepare, and only with it.")
     if phase == "prepare" and wallet_address is not None:
-        output.emit(siwa.challenge(site, wallet_address, timeout_ms), as_json=as_json)
+        challenge = siwa.challenge(site, wallet_address, timeout_ms)
+        piped = json.dumps({**challenge, "signature": "<signature of message>"})
+        signed = run_piped(
+            piped,
+            ["regents", "auth", "login", "--site", site, "--phase", "send", *_json(as_json)],
+            f"Sign message with {wallet_address}, put the signature in place of <signature of "
+            "message>, and send it.",
+        )
+        output.emit(challenge, as_json=as_json, next_steps=[signed])
         return
     created = False
     if phase == "send":
@@ -169,7 +182,8 @@ def login(
         if not isinstance(signed, dict) or set(signed) != fields:
             raise UsageError(
                 'stdin must hold {"wallet_address", "nonce", "message", "signature"}: the '
-                "answer of --phase prepare with the message's signature added."
+                "answer of --phase prepare, less its next_steps, with the message's signature "
+                "added."
             )
         receipt = siwa.verify(site, signed, timeout_ms)
     else:
@@ -185,7 +199,25 @@ def login(
     }
     if created:
         answer["key_created"] = str(siwa.key_file())
-    output.emit(answer, as_json=as_json)
+    output.emit(answer, as_json=as_json, next_steps=after_sign_in(site, as_json))
+
+
+def after_sign_in(site: str, as_json: bool) -> list[Step]:
+    """Signed in: check the pairing where the site can say, or the sign-in is all there was."""
+    try:
+        platform, probe = identity_probe(site)
+    except CommandError:
+        return [done(f"Signed in to {site}; nothing more to run.")]
+    return [
+        run(
+            ["regents", platform.name, *probe.words, *_json(as_json)],
+            "Check whether this agent is paired to a person's account.",
+        )
+    ]
+
+
+def _json(as_json: bool) -> list[str]:
+    return ["--json"] if as_json else []
 
 
 def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
@@ -207,10 +239,23 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         ],
     }
     mine = [site for site, receipt in receipts.items() if key and receipt.signed_by(key)]
-    if mine:
-        confirmation_site = site if site in mine else "regents" if "regents" in mine else mine[0]
+    addresses = {p.site: base_address(None, p.env_var, p.base_url) for p in pinned_platforms()}
+    confirmable = [site for site in mine if site in addresses]
+    if confirmable:
+        confirmation_site = (
+            site
+            if site in confirmable
+            else "regents"
+            if "regents" in confirmable
+            else confirmable[0]
+        )
+        confirmation_base = addresses[confirmation_site]
+        siwa.signs_for(confirmation_site, confirmation_base, timeout_ms)
         told = siwa.confirm(
-            confirmation_site, siwa.current(confirmation_site, timeout_ms), timeout_ms
+            confirmation_site,
+            siwa.current(confirmation_site, timeout_ms),
+            confirmation_base,
+            timeout_ms,
         )
         listing, person = told["agentRegistration"], told["agentBook"]
         answer["registry_listing"] = listing["registryUrl"] if listing else None
@@ -224,15 +269,50 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         except CommandError as error:
             answer["pairing_status"] = {"site": selected, **error.as_json()}
         else:
+            base = base_address(None, platform.env_var, platform.base_url)
+            siwa.signs_for(selected, base, timeout_ms)
             request = Request(probe.method, probe.path)
             request = replace(
-                request, headers=siwa.sign(request, siwa.current(selected, timeout_ms))
+                request, headers=siwa.sign(request, siwa.current(selected, timeout_ms), base)
             )
-            told = send(
-                base_address(None, platform.env_var, platform.base_url), request, timeout_ms
+            told = send(base, request, timeout_ms)
+            answer["pairing_status"] = {"site": selected, **data_with(told)}
+    output.emit(answer, as_json=as_json, next_steps=after_status(answer, receipts))
+
+
+def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> list[Step]:
+    """Sign in where there is no fresh sign-in, pair where the site says it is not paired."""
+    if not receipts and answer.get("agent_key") is None:
+        return [
+            run(
+                ["regents", "auth", "login", "--site", "<site>"],
+                "Ask your person first. This makes this machine's agent key, then signs in to the "
+                "site you need, such as patchbay. On a Mac it prints a Touch ID page your person "
+                "opens and confirms within 5 minutes.",
             )
-            answer["pairing_status"] = {"site": selected, **told["data"]}
-    output.emit(answer, as_json=as_json)
+        ]
+    if not receipts:
+        return [
+            run(
+                ["regents", "auth", "login", "--site", "<site>"],
+                "Sign in to the site you need, such as patchbay. On a Mac, the first signed "
+                "command after a restart prints a Touch ID page your person confirms, so ask them "
+                "first.",
+            )
+        ]
+    steps = [
+        run(
+            ["regents", "auth", "login", "--site", site],
+            f"The {site} sign-in has run out; sign in again before using {site}.",
+        )
+        for site, receipt in receipts.items()
+        if not receipt.fresh()
+    ]
+    pairing = answer.get("pairing_status")
+    if isinstance(pairing, dict) and unpaired(pairing):
+        platform = next(p for p in pinned_platforms() if p.site == pairing["site"])
+        steps += pair_first(platform.name, platform.host)
+    return steps or [done("Signed in and nothing waits; nothing more to run.")]
 
 
 def register(
@@ -260,6 +340,10 @@ def register(
             "--site <site>, or list your own wallet with --wallet-address.",
             exit_code=EXIT_AUTH,
         )
+    for flag, value in (("--name", name), ("--description", description), ("--image", image)):
+        # Bytes that are not UTF-8 reach Python as lone surrogates, which no JSON or digest takes.
+        if value is not None and any("\ud800" <= char <= "\udfff" for char in value):
+            raise UsageError(f"{flag} holds bytes that are not text. Give it as plain text.")
     profile = {"wallet_address": wallet, "name": name, "description": description}
     if image is not None:
         profile["image"] = image
@@ -272,8 +356,13 @@ def register(
             output.emit(
                 step,
                 as_json=as_json,
-                hint=f"Send this one transaction from {wallet} on Base with your wallet, then "
-                f"run: {shlex.join([*again, '--tx-hash', '<its hash>'])}",
+                next_steps=[
+                    run(
+                        [*again, "--tx-hash", "<its hash>"],
+                        f"Send this one transaction from {wallet} on Base with your wallet, "
+                        "then check it with its hash.",
+                    )
+                ],
             )
             return
         if key is None or key.signer is not None:
@@ -283,8 +372,10 @@ def register(
                 f"not transactions. Send it from that wallet: --wallet-address {wallet}.",
                 exit_code=EXIT_AUTH,
             )
+        transaction, needs = base.priced(step, timeout_ms)
+        show_signing(step, transaction, needs, as_json)
         try:
-            tx_hash = base.send(key, step, timeout_ms)
+            tx_hash = base.send(key, transaction, needs, timeout_ms)
         except CommandError as error:
             if error.code != "base_send_unclear":
                 raise
@@ -293,23 +384,27 @@ def register(
                 error.code,
                 error.message,
                 exit_code=error.exit_code,
+                next_steps=[run([*again, "--tx-hash", sent], "Check it before sending another.")],
                 tx_hash=sent,
-                hint="Check it before sending another: " + shlex.join([*again, "--tx-hash", sent]),
             ) from None
-    outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
+    check_again = run([*again, "--tx-hash", tx_hash], "Check it before sending another.")
+    listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
     deadline = time.monotonic() + REGISTRATION_WAIT_SECONDS
-    while outcome["code"] == "registration_pending" and time.monotonic() < deadline:
+    while listed is None and time.monotonic() < deadline:
         time.sleep(REGISTRATION_POLL_SECONDS)
-        outcome = siwa.registration_outcome(profile, tx_hash, timeout_ms)
-    if outcome["code"] == "registration_pending":
+        listed = siwa.registration_outcome(profile, tx_hash, check_again, timeout_ms)
+    if listed is None:
         output.emit(
             {"wallet_address": wallet.lower(), "tx_hash": tx_hash, "listed": False},
             as_json=as_json,
-            hint="The transaction is not on Base yet. Check again with: "
-            + shlex.join([*again, "--tx-hash", tx_hash]),
+            next_steps=[
+                run(
+                    [*again, "--tx-hash", tx_hash],
+                    "The transaction is not on Base yet. Check again in a minute.",
+                )
+            ],
         )
         return
-    listed = outcome["data"]
     output.emit(
         {
             "wallet_address": listed["walletAddress"],
@@ -320,6 +415,40 @@ def register(
             "tx_hash": listed["txHash"],
         },
         as_json=as_json,
+        next_steps=[done("The agent is listed; nothing more to run.")],
+    )
+
+
+def show_signing(
+    step: dict[str, Any], transaction: dict[str, str], needs: int, as_json: bool
+) -> None:
+    """What the agent key is about to sign, before it signs: the sender, the chain, the registry,
+    the profile, the amount and the most the gas can cost, then the transaction exactly as signed.
+    A person reads it on stdout; with --json it goes to stderr, so stdout keeps one answer."""
+    if as_json:
+        signing = {
+            "from": step["from"],
+            "agentUri": step["agentUri"],
+            "most_it_costs": base.eth(needs),
+            "transaction": transaction,
+        }
+        output.stderr.out(json.dumps({"signing": signing}), highlight=False)
+        return
+    sender = step["from"]
+    gas = needs - int(transaction["value"], 16)
+    output.show(
+        output.review(
+            [
+                f"{sender}, the agent key on this machine, signs and sends this on Base "
+                f"(chain {step['chainId']}).",
+                f"It calls register on the agent registry {step['to']}, listing the profile at "
+                f"{step['agentUri']}.",
+                f"Amount: {base.eth(int(transaction['value'], 16))} ETH. Gas: at most "
+                f"{base.eth(gas)} ETH, paid by {sender}.",
+                "Signed exactly as:",
+                *(f"  {field}: {value}" for field, value in transaction.items()),
+            ]
+        )
     )
 
 
@@ -340,14 +469,23 @@ def accept_world_id(
     if human_id is not None and not HUMAN_ID.fullmatch(human_id):
         raise UsageError("--human-id must be 0x followed by 64 hex characters.")
     if phase == "prepare" and wallet_address is not None:
+        challenge = siwa.agent_book_challenge(wallet_address, timeout_ms)
+        piped = json.dumps({**challenge, "signature": "<signature of message>"})
         output.emit(
-            siwa.agent_book_challenge(wallet_address, timeout_ms),
+            challenge,
             as_json=as_json,
-            hint="Check that human_id is your person's World ID number: accepting is for good, "
-            "and the wallet can never accept another person. Then sign the message "
-            f'with {wallet_address}, add the signature to this answer as "signature", and '
-            "pipe it to: regents auth accept-world-id --phase send. The message lasts five "
-            "minutes.",
+            next_steps=[
+                human(
+                    "Ask your person whether human_id is their World ID number: accepting is "
+                    "for good, and the wallet can never accept another person."
+                ),
+                run_piped(
+                    piped,
+                    ["regents", "auth", "accept-world-id", "--phase", "send", *_json(as_json)],
+                    f"If it is theirs, sign message with {wallet_address} within five minutes, "
+                    "put the signature in place of <signature of message>, and send it.",
+                ),
+            ],
         )
         return
     if phase == "send":
@@ -355,13 +493,14 @@ def accept_world_id(
         fields = {"wallet_address", "human_id", "nonce", "message", "signature"}
         if not isinstance(signed, dict) or set(signed) != fields:
             raise UsageError(
-                "stdin must hold the answer of --phase prepare with the message's signature "
-                'added as "signature".'
+                "stdin must hold the answer of --phase prepare, less its next_steps, with the "
+                'message\'s signature added as "signature".'
             )
         proof = {field: signed[field] for field in ("wallet_address", "nonce", "message")}
         output.emit(
             siwa.accept_agent_book({**proof, "signature": signed["signature"]}, None, timeout_ms),
             as_json=as_json,
+            next_steps=[ACCEPTED],
         )
         return
     key = siwa.load_key()
@@ -375,14 +514,19 @@ def accept_world_id(
     found = siwa.agent_book_challenge(key.address, timeout_ms)
     if human_id is None:
         named = {field: found[field] for field in ("wallet_address", "human_id")}
-        hint = (
-            "World's AgentBook names this person behind the agent. Anyone with a World ID can put "
-            "their number on any wallet, so ask your person whether this is their World ID "
-            "number. Accepting is for good: the agent can never accept another person. If it is "
-            "theirs, run: "
-            + shlex.join(["regents", "auth", "accept-world-id", "--human-id", found["human_id"]])
+        accept = ["regents", "auth", "accept-world-id", "--human-id", found["human_id"]]
+        output.emit(
+            named,
+            as_json=as_json,
+            next_steps=[
+                human(
+                    "World's AgentBook names this person behind the agent, but anyone with a "
+                    "World ID can put their number on any wallet. Ask your person whether this "
+                    "is their World ID number: accepting is for good."
+                ),
+                run([*accept, *_json(as_json)], "If it is theirs, accept it."),
+            ],
         )
-        output.emit(named, as_json=as_json, hint=hint)
         return
     if human_id.lower() != found["human_id"]:
         raise CommandError(
@@ -397,7 +541,14 @@ def accept_world_id(
         "message": found["message"],
         "signature": siwa.personal_sign(key, found["message"]),
     }
-    output.emit(siwa.accept_agent_book(signed, siwa.signer_name(key), timeout_ms), as_json=as_json)
+    output.emit(
+        siwa.accept_agent_book(signed, siwa.signer_name(key), timeout_ms),
+        as_json=as_json,
+        next_steps=[ACCEPTED],
+    )
+
+
+ACCEPTED = done("The agent's wallet accepted its World ID person; nothing more to run.")
 
 
 def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
@@ -414,7 +565,7 @@ def identity_probe(site: str) -> tuple[Platform, Command]:
                 command.words == ("agents", "whoami")
                 and command.method == "GET"
                 and command.effect == "read"
-                and command.authority == "wallet-proof"
+                and command.authority == "signed_agent"
                 and not command.inputs
                 and command.body is None
             ):
@@ -428,4 +579,8 @@ def identity_probe(site: str) -> tuple[Platform, Command]:
 
 
 def logout(site: str, as_json: bool) -> None:
-    output.emit({"site": site, "signed_out": siwa.remove_receipt(site)}, as_json=as_json)
+    output.emit(
+        {"site": site, "signed_out": siwa.remove_receipt(site)},
+        as_json=as_json,
+        next_steps=[done(f"Signed out of {site}; nothing more to run.")],
+    )

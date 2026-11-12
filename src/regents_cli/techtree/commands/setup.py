@@ -6,8 +6,10 @@ from typing import Final
 
 import click
 
+from regents_cli.next_steps import run
 from regents_cli.techtree import paths
 from regents_cli.techtree.commands.answers import JSON, emit
+from regents_cli.techtree.commands.doctor import not_ready
 from regents_cli.techtree.commands.engine import engine_lines
 from regents_cli.techtree.doctor.service import DoctorService
 from regents_cli.techtree.engines.bundle import shipped_engines
@@ -42,6 +44,7 @@ def setup(as_json: bool) -> None:
                 "failed_checks": list(identifiers),
                 "blocking_failures": [check.model_dump(mode="json") for check in blocking],
             },
+            next_steps=not_ready(["regents", "techtree", "setup"]),
         )
     installer = EngineInstaller(home, EngineRegistry(home), find_uv())
     engines = [installer.verify(installer.install(digest).digest) for digest in shipped_engines()]
@@ -60,7 +63,8 @@ def setup(as_json: bool) -> None:
             f"- Key: {identity.key_id}",
         ]
     )
-    emit(answer, as_json=as_json)
+    climbs = run(["regents", "techtree", "climb", "list"], "See the Climbs you can run.")
+    emit(answer, as_json=as_json, next_steps=[climbs])
 
 
 SETUP = click.Command(

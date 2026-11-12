@@ -35,8 +35,8 @@ ROOT: Final = Path(__file__).resolve().parents[2]
 ENGINES_ROOT: Final = ROOT / "src/regents_cli/techtree/resources/engines"
 
 #: An exact commit, never a branch, tag or range.
-VERIFIERS_REPOSITORY: Final = "https://github.com/PrimeIntellect-ai/verifiers"
-VERIFIERS_REVISION: Final = "fc73e02ea99594407bf7579c53f7711f7434635a"
+VERIFIERS_REPOSITORY: Final = "https://github.com/regents-ai/verifiers"
+VERIFIERS_REVISION: Final = "d7a9421396c8fe104f5d3b29acaf99521315b14b"
 PYTHON_SERIES: Final = "3.12"
 
 HUB_API: Final = "https://api.primeintellect.ai/api/v1/environmentshub"
@@ -75,6 +75,8 @@ class Engine:
     description: str
     #: Verifiers extras the taskset needs, such as `harbor` for tasks graded in their own box.
     verifiers_extras: tuple[str, ...] = ()
+    #: Versions the lock must hold for packages the taskset only brings in indirectly.
+    constraints: tuple[str, ...] = ()
     hub: HubPackage | None = None
 
     @property
@@ -104,13 +106,15 @@ ENGINES: Final = (
         description="Pinned Verifiers environment and the Prime Environments Hub taskset "
         "techtree/hf-tasksmith-v1 for Techtree.",
         verifiers_extras=("harbor",),
+        # Newer litellm releases keep filelock below 4; its advisory fixes start at 4.2.1.
+        constraints=("filelock>=4.2.1",),
         hub=HubPackage(
             name="techtree/hf-tasksmith-v1",
-            version="0.1.0",
-            content_hash="d0f95ca8af13821fc0c1a215ca4bac60afe1d7c56db3adb53951c75294516d22",
-            wheel_url="https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/"
-            "hf_tasksmith_v1-0.1.0-py3-none-any.whl",
-            wheel_sha256="3c7d549f89d77bcf047a8b0252a745ab6d4c46b7a783c530799fb2fa04cbbaf3",
+            version="0.2.0",
+            content_hash="c279a5b47013d453c46301d9a5bd6bef02c1dcf5f5102b1b0c99b33ea3d03941",
+            wheel_url="https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@c279a5b4/"
+            "hf_tasksmith_v1-0.2.0-py3-none-any.whl",
+            wheel_sha256="b7175513d33b7e9db88217d7106bb31bc87eff1ee7da78dba1e06dfc27c4f151",
         ),
     ),
 )
@@ -137,11 +141,18 @@ dependencies = [
 [tool.uv]
 # The engine project is an environment, not a distribution. Nothing installs it.
 package = false
-
+{constraint_dependencies(engine)}
 [tool.uv.sources]
 {engine.package} = {package_source(engine)}
 verifiers = {{ git = "{VERIFIERS_REPOSITORY}", rev = "{VERIFIERS_REVISION}" }}
 """
+
+
+def constraint_dependencies(engine: Engine) -> str:
+    """The `[tool.uv]` line naming the engine's constraints, when it has any."""
+    if not engine.constraints:
+        return ""
+    return f"constraint-dependencies = {json.dumps(list(engine.constraints))}\n"
 
 
 def package_source(engine: Engine) -> str:

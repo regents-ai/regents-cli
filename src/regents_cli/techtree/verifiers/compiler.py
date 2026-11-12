@@ -38,7 +38,10 @@ from regents_cli.techtree.verifiers.config import (
     EvalToml,
     HarborEnvToml,
     HermesHarnessToml,
+    ProviderErrorRetryToml,
+    RetriesToml,
     SamplingToml,
+    SelectToml,
     SingleAgentEnvToml,
     SubjectAgentToml,
     TaskImagesToml,
@@ -172,6 +175,9 @@ def compile_variant_config(
         # timeout_seconds bounds one subject rollout; the variant's own bound is the
         # supervisor's hard deadline.
         timeout=TimeoutToml(rollout=float(campaign.execution.timeout_seconds)),
+        retries=RetriesToml(
+            rules=[ProviderErrorRetryToml(max_retries=campaign.execution.retry_limit)]
+        ),
     )
     env: EnvToml
     match experiment.configuration.environment.id:
@@ -191,7 +197,7 @@ def compile_variant_config(
         client=EvalClientToml(api_key_var=endpoint.api_key_var, base_url=endpoint.base_url),
         sampling=SamplingToml(reasoning_effort=subject.sampling.reasoning_effort),
         env=env,
-        num_tasks=taskset.selection.num_tasks,
+        select=SelectToml(limit=taskset.selection.num_tasks),
         max_concurrent=variant_max_concurrent,
         output_dir=str(output_dir),
     )
@@ -366,7 +372,7 @@ def compile_plans(
             verifiers_input_config_path=str(run_paths.variant_input_config(variant)),
             verifiers_output_dir=str(Path(config.output_dir) / EVAL_RUN_NAME),
             skill_paths=list(config.env.seat.harness.skills),
-            task_count=config.num_tasks,
+            task_count=config.select.limit,
             max_concurrent=config.max_concurrent,
         )
     return plans[VariantName.BASELINE], plans[VariantName.CANDIDATE]

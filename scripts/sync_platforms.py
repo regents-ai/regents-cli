@@ -1,4 +1,8 @@
-"""Copy each platform's pinned files into src/regents_cli/platforms/, and check the copies.
+"""Copy each platform's pinned files into this tree, and check the copies.
+
+Command descriptions, API documents and WebMCP tool manifests go to src/regents_cli/platforms/
+and ship in the package; `regents browser` checks each signed page request against its site's
+tool manifest.
 
 A platform's command description and API documents live in its own repository, which may be
 private; platforms.lock.json names the commit, which must be on that repository's GitHub main,

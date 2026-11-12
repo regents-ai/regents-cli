@@ -11,6 +11,7 @@ from typing import Final
 
 import click
 
+from regents_cli.next_steps import done
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import validate_digest
@@ -76,7 +77,7 @@ def withdraw(bundle_digest: str, yes: bool, reviewed_on: ReviewedOn, as_json: bo
             f"- Signed by: {outcome.key_id}",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[done("Withdrawn; nothing more to run.")])
 
 
 def review_lines(bundle_digest: Digest, endpoint: str) -> list[str]:

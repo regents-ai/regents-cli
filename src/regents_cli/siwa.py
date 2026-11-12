@@ -5,7 +5,8 @@ The agent key and each site's receipt live where the SIWA agent client keeps the
 the client and `regents` share one identity. The key holds a private key, the same key locked
 with a passkey on a Mac (see `passkey`), or names a shell command that signs on Base or
 Ethereum. `regents auth login --site <name>` signs in to that site's
-audience and keeps the receipt; every wallet-proof request is then signed with the key.
+audience and keeps the receipt; every request of a signed_agent or paired_agent command is
+then signed with the key.
 Someone who keeps their own key instead signs the exact messages printed here.
 """
 
@@ -20,18 +21,22 @@ import secrets
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
+from urllib.parse import urlsplit
 
 import httpx
+from eth_abi import abi
 from eth_account import Account
+from eth_utils.crypto import keccak
 
 from regents_cli import passkey
 from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError, UsageError
-from regents_cli.http import Request, answer, origin
+from regents_cli.http import Request, answer, data_with, holds, origin, unreadable
+from regents_cli.next_steps import Step, human
 
 BASE = 8453
 CHAINS = (BASE, 1)
@@ -40,7 +45,22 @@ BROKER = "https://siwa.regents.sh"
 #: platforms.lock.json: the headers, covered components, signature parameters and lifetime every
 #: SIWA signer and verifier follows. Its sha-256 is the contract id.
 CONTRACT = Path(__file__).parent / "platforms" / "siwa" / "contract.json"
+#: The ERC-8004 agent registry on Base, where `regents auth register` lists an agent.
+REGISTRY = "0x8004a169fb4a3325136eb29fa0ceb6d2e539a432"
+REGISTRY_CHAIN = 8453
+#: The fields of a listing `regents auth register` shows.
+LISTING = ("walletAddress", "agentId", "registryUrl", "profileUrl", "txHash")
+JSON_ESCAPES = {
+    "\b": "\\b",
+    "\t": "\\t",
+    "\n": "\\n",
+    "\f": "\\f",
+    "\r": "\\r",
+    '"': '\\"',
+    "\\": "\\\\",
+}
 RENEW_MARGIN_SECONDS = 60
+DEFAULT_PORTS: Final = {"http": 80, "https": 443}
 SIGNER_TIMEOUT_SECONDS = 300
 ADDRESS = re.compile(r"0x[0-9a-fA-F]{40}")
 SIGNATURE = re.compile(r"0x(?:[0-9a-fA-F]{2}){65,}")
@@ -110,6 +130,9 @@ class Receipt:
         return key.address == self.address
 
 
+RECEIPT_FIELDS: Final = {field.name for field in fields(Receipt)}
+
+
 def _write_private(path: Path, value: Any) -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     path.parent.chmod(0o700)
@@ -129,7 +152,14 @@ def _read_private(path: Path) -> Any:
             f"{path} can be read by other users. Run chmod 600 {path}.",
             exit_code=EXIT_AUTH,
         )
-    return json.loads(path.read_text("utf-8"))
+    try:
+        return json.loads(path.read_text("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise CommandError(
+            "unreadable_file",
+            f"{path} is not readable JSON. Move it aside, then set it up again.",
+            exit_code=EXIT_AUTH,
+        ) from error
 
 
 def load_key() -> Key | None:
@@ -181,7 +211,19 @@ def chain_for(address: str) -> int:
 
 def load_receipt(site: str) -> Receipt | None:
     stored = _read_private(receipt_file(site))
-    return Receipt(**stored) if stored is not None else None
+    if stored is None:
+        return None
+    if not (
+        isinstance(stored, dict)
+        and set(stored) == RECEIPT_FIELDS
+        and all(isinstance(value, str) for value in stored.values())
+    ):
+        raise CommandError(
+            "unreadable_file",
+            f"{receipt_file(site)} is not a sign-in. Move it aside, then sign in again.",
+            exit_code=EXIT_AUTH,
+        )
+    return Receipt(**stored)
 
 
 def receipts() -> dict[str, Receipt]:
@@ -275,13 +317,45 @@ def _post(
             follow_redirects=False,
         )
     except httpx.HTTPError:
-        raise CommandError(
-            "unreachable",
-            f"The sign-in server {address} could not be reached, or did not answer in time.",
-            exit_code=EXIT_UNREACHABLE,
-            hint="Check that it is up and the address is right: SIWA_BROKER names another.",
-        ) from None
+        raise unreachable(address) from None
     return answer(response)
+
+
+def unreachable(address: str) -> CommandError:
+    return CommandError(
+        "unreachable",
+        f"The sign-in server {address} could not be reached, or did not answer in time.",
+        exit_code=EXIT_UNREACHABLE,
+    )
+
+
+def signs_for(site: str, base: str, timeout_ms: int) -> None:
+    """Refuse, before anything is signed or sent, an address the sign-in server does not list
+    for `site`: a request signed with this sign-in is good for a short while wherever it lands,
+    so it goes only where the site's own sign-in sends it."""
+    address = broker()
+    try:
+        response = httpx.get(
+            address + "/api/shared/siwa/audiences",
+            timeout=timeout_ms / 1000,
+            follow_redirects=False,
+        )
+    except httpx.HTTPError:
+        raise unreachable(address) from None
+    listed = data_with(answer(response), "audiences")["audiences"]
+    if not isinstance(listed, list) or not all(
+        holds(entry, "audience", "origin") for entry in listed
+    ):
+        raise unreadable()
+    origins = [entry["origin"] for entry in listed if entry["audience"] == site]
+    if base not in origins:
+        raise CommandError(
+            "address_not_listed",
+            f"{base} is not an address the sign-in server {address} lists for {site}, so "
+            f"nothing was signed or sent. Its addresses: {', '.join(origins) or 'none'}. A copy "
+            "of the site elsewhere signs in through its own sign-in server, named in SIWA_BROKER.",
+            exit_code=EXIT_AUTH,
+        )
 
 
 def challenge(site: str, wallet_address: str, timeout_ms: int) -> dict[str, str]:
@@ -293,7 +367,7 @@ def challenge(site: str, wallet_address: str, timeout_ms: int) -> dict[str, str]
         {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address), "audience": site},
         timeout_ms,
     )
-    data = issued["data"]
+    data = data_with(issued, "nonce", "message")
     return {
         "wallet_address": wallet_address.lower(),
         "nonce": data["nonce"],
@@ -308,7 +382,7 @@ def verify(site: str, signed: dict[str, str], timeout_ms: int) -> Receipt:
         {"chain_id": chain_for(signed["wallet_address"]), "audience": site, **signed},
         timeout_ms,
     )
-    data = verified["data"]
+    data = data_with(verified, "walletAddress", "receipt", "receiptExpiresAt", "keyId")
     receipt = Receipt(
         address=data["walletAddress"],
         audience=site,
@@ -316,6 +390,13 @@ def verify(site: str, signed: dict[str, str], timeout_ms: int) -> Receipt:
         receipt_expires_at=data["receiptExpiresAt"],
         key_id=data["keyId"],
     )
+    # A receipt that can't be read back would break every later command for the site.
+    if not all(isinstance(value, str) for value in asdict(receipt).values()):
+        raise unreadable()
+    try:
+        receipt.fresh()
+    except ValueError:
+        raise unreadable() from None
     _write_private(receipt_file(site), asdict(receipt))
     return receipt
 
@@ -347,9 +428,21 @@ def current(site: str, timeout_ms: int) -> Receipt:
     )
 
 
+def authority_of(base: str) -> str:
+    """The host a request to `base` is sent to, as `@authority` covers it: lowercase, an IPv6
+    address in brackets, and `:port` only when it is not the scheme's default."""
+    parts = urlsplit(base)
+    host = parts.hostname or ""
+    if ":" in host:
+        host = f"[{host}]"
+    port = parts.port
+    return host if port is None or port == DEFAULT_PORTS[parts.scheme] else f"{host}:{port}"
+
+
 def unsigned(
     request: Request,
     *,
+    authority: str,
     receipt: str,
     wallet_address: str,
     chain_id: int,
@@ -367,6 +460,7 @@ def unsigned(
     values: dict[str, str | int] = {
         "method": request.method.lower(),
         "path": request.target,
+        "authority": authority,
         "receipt": receipt,
         "key_id": key_id,
         "created": created,
@@ -402,10 +496,12 @@ def header_for(source: str) -> str:
     return str(header)
 
 
-def prepare(request: Request, receipt: Receipt) -> tuple[dict[str, str], str]:
+def prepare(request: Request, receipt: Receipt, base: str) -> tuple[dict[str, str], str]:
+    """The headers and message that sign `request` for sending to `base`."""
     created = int(time.time())
     return unsigned(
         request,
+        authority=authority_of(base),
         receipt=receipt.receipt,
         wallet_address=receipt.address,
         chain_id=chain_for(receipt.address),
@@ -416,8 +512,8 @@ def prepare(request: Request, receipt: Receipt) -> tuple[dict[str, str], str]:
     )
 
 
-def rebuild(request: Request, headers: dict[str, str]) -> tuple[dict[str, str], str]:
-    """The headers and message `prepare` gave for `request`, read back from its headers.
+def rebuild(request: Request, headers: dict[str, str], base: str) -> tuple[dict[str, str], str]:
+    """The headers and message `prepare` gave for `request` to `base`, read back from its headers.
 
     Anything other than exactly what `prepare` printed for this request is refused.
     """
@@ -438,6 +534,7 @@ def rebuild(request: Request, headers: dict[str, str]) -> tuple[dict[str, str], 
     wallet_address = headers.get(header_for("wallet_address"), "")
     expected, message = unsigned(
         request,
+        authority=authority_of(base),
         receipt=headers.get(header_for("receipt"), ""),
         wallet_address=wallet_address,
         chain_id=chain_for(wallet_address),
@@ -460,8 +557,8 @@ def with_signature(headers: dict[str, str], signature: str) -> dict[str, str]:
     return {**headers, rules["signature_header"]: f"{rules['label']}=:{encoded}:"}
 
 
-def sign(request: Request, receipt: Receipt) -> dict[str, str]:
-    """Signed headers for `request`, signed with the key on this machine."""
+def sign(request: Request, receipt: Receipt, base: str) -> dict[str, str]:
+    """Signed headers for `request` to `base`, signed with the key on this machine."""
     key = load_key()
     if key is None or not receipt.signed_by(key):
         raise CommandError(
@@ -470,12 +567,13 @@ def sign(request: Request, receipt: Receipt) -> dict[str, str]:
             "Sign with it yourself: --phase prepare, then --phase send.",
             exit_code=EXIT_AUTH,
         )
-    headers, message = prepare(request, receipt)
+    headers, message = prepare(request, receipt, base)
     return with_signature(headers, personal_sign(key, message))
 
 
-def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
-    """Have the sign-in server check a request signed with this sign-in, as the site does.
+def confirm(site: str, receipt: Receipt, base: str, timeout_ms: int) -> dict[str, Any]:
+    """Have the sign-in server check a request signed with this sign-in for the site at `base`,
+    as the site does.
 
     Answers what the sign-in server tells the site about the wallet: its agent registry
     listing (`agentRegistration`) and the World ID person it accepted (`agentBook`), each
@@ -484,7 +582,12 @@ def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
     request = Request("GET", "/")
     checked = _post(
         "/api/shared/siwa/http-verify",
-        {"method": request.method, "path": request.target, "headers": sign(request, receipt)},
+        {
+            "method": request.method,
+            "path": request.target,
+            "authority": authority_of(base),
+            "headers": sign(request, receipt, base),
+        },
         timeout_ms,
         headers={"x-siwa-audience": site},
     )
@@ -494,25 +597,110 @@ def confirm(site: str, receipt: Receipt, timeout_ms: int) -> dict[str, Any]:
             f"The sign-in server did not accept a request signed for {site}.",
             exit_code=EXIT_AUTH,
         )
-    told: dict[str, Any] = checked["data"]
+    told = data_with(checked, "agentRegistration", "agentBook")
+    listing, person = told["agentRegistration"], told["agentBook"]
+    if (listing and not holds(listing, "registryUrl")) or (
+        person and not holds(person, "humanId", "agentCount")
+    ):
+        raise unreadable()
     return told
 
 
 def registration_step(profile: dict[str, str], timeout_ms: int) -> dict[str, Any]:
-    """The one transaction that lists `profile` in the agent registry, for its wallet to send."""
-    step: dict[str, Any] = _post("/api/shared/siwa/agent/register-step", profile, timeout_ms)[
-        "data"
+    """The one transaction that lists `profile` in the agent registry, for its wallet to send.
+
+    regents builds it itself, and the sign-in server must offer exactly the same one: anything
+    else is refused before anything is signed or shown to send."""
+    built = registration_transaction(profile)
+    offered = _post("/api/shared/siwa/agent/register-step", profile, timeout_ms).get("data")
+    if offered != built:
+        raise CommandError(
+            "registration_step_differs",
+            "The sign-in server offered a registration transaction other than the one regents "
+            f"builds for this profile: register on the agent registry {REGISTRY} on Base, "
+            "sending no ETH. Nothing was signed or sent.",
+            exit_code=EXIT_AUTH,
+            next_steps=[
+                human(
+                    "Send nothing. Tell your person regents and the sign-in server disagree on "
+                    "this registration, so regents needs an update before it can register."
+                )
+            ],
+        )
+    return built
+
+
+def registration_transaction(profile: dict[str, str]) -> dict[str, Any]:
+    """`register(agentURI)` on the Base agent registry, sending no ETH, built as the sign-in
+    server builds it. The URI is the profile's page on the sign-in server, named by a digest of
+    the wallet, name, description and image, so sending it consents to exactly that profile."""
+    fields = [
+        profile["wallet_address"].lower(),
+        profile["name"],
+        profile["description"],
+        profile.get("image", ""),
     ]
-    return step
+    listed = "[" + ",".join(_json_string(field) for field in fields) + "]"
+    uri = f"{broker()}/agent-profiles/{hashlib.sha256(listed.encode()).digest()[:16].hex()}"
+    call = keccak(text="register(string)")[:4] + abi.encode(["string"], [uri])
+    return {
+        "chainId": REGISTRY_CHAIN,
+        "from": fields[0],
+        "to": REGISTRY,
+        "data": "0x" + call.hex(),
+        "value": "0x0",
+        "agentUri": uri,
+    }
 
 
-def registration_outcome(profile: dict[str, str], tx_hash: str, timeout_ms: int) -> dict[str, Any]:
-    """What the sign-in server read of the registration sent as `tx_hash`, at the latest block:
-    `registration_pending` until it lands, then `agent_registered` with the listing."""
-    outcome: dict[str, Any] = _post(
-        "/api/shared/siwa/agent/registered", {**profile, "tx_hash": tx_hash}, timeout_ms
+def _json_string(text: str) -> str:
+    """`text` as the sign-in server writes it in JSON: control characters as upper-case \\u00XX,
+    everything else as itself."""
+    return (
+        '"'
+        + "".join(
+            JSON_ESCAPES.get(char) or (f"\\u{ord(char):04X}" if ord(char) < 0x20 else char)
+            for char in text
+        )
+        + '"'
     )
-    return outcome
+
+
+def registration_outcome(
+    profile: dict[str, str], tx_hash: str, check_again: Step, timeout_ms: int
+) -> dict[str, Any] | None:
+    """What the sign-in server read of the registration sent as `tx_hash`, at the latest block:
+    None until it lands, then the listing. When the server cannot say, the error keeps the hash
+    and `check_again`, so nobody sends a second registration in its place."""
+    try:
+        outcome = _post(
+            "/api/shared/siwa/agent/registered", {**profile, "tx_hash": tx_hash}, timeout_ms
+        )
+    except CommandError as error:
+        raise CommandError(
+            "registration_unchecked",
+            f"The sign-in server could not say whether the registration {tx_hash} is listed. It "
+            "may still land on Base.",
+            exit_code=error.exit_code,
+            next_steps=[check_again],
+            tx_hash=tx_hash,
+        ) from None
+    listed = outcome.get("data")
+    if outcome.get("code") == "registration_pending":
+        return None
+    if (
+        outcome.get("code") == "agent_registered"
+        and isinstance(listed, dict)
+        and all(isinstance(listed.get(field), str) for field in LISTING)
+    ):
+        return listed
+    raise CommandError(
+        "registration_unchecked",
+        f"The sign-in server answered about the registration {tx_hash} in a way regents cannot "
+        "read. It may still land on Base.",
+        next_steps=[check_again],
+        tx_hash=tx_hash,
+    )
 
 
 def signer_name(key: Key) -> str:
@@ -527,11 +715,17 @@ def agent_book_challenge(wallet_address: str, timeout_ms: int) -> dict[str, Any]
     signs to accept them."""
     if not ADDRESS.fullmatch(wallet_address):
         raise UsageError(f"{wallet_address!r} is not an address.")
-    data = _post(
-        "/api/shared/siwa/agent-book/challenge",
-        {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address)},
-        timeout_ms,
-    )["data"]
+    data = data_with(
+        _post(
+            "/api/shared/siwa/agent-book/challenge",
+            {"wallet_address": wallet_address, "chain_id": chain_for(wallet_address)},
+            timeout_ms,
+        ),
+        "walletAddress",
+        "humanId",
+        "nonce",
+        "message",
+    )
     return {
         "wallet_address": data["walletAddress"],
         "human_id": data["humanId"],
@@ -544,10 +738,14 @@ def accept_agent_book(
     signed: dict[str, str], signer: str | None, timeout_ms: int
 ) -> dict[str, Any]:
     """Hand the signed challenge back; the sign-in server keeps the person for good."""
-    data = _post(
-        "/api/shared/siwa/agent-book/accept",
-        {"chain_id": chain_for(signed["wallet_address"]), **signed},
-        timeout_ms,
-        headers={"x-agent-signer": signer} if signer is not None else None,
-    )["data"]
+    data = data_with(
+        _post(
+            "/api/shared/siwa/agent-book/accept",
+            {"chain_id": chain_for(signed["wallet_address"]), **signed},
+            timeout_ms,
+            headers={"x-agent-signer": signer} if signer is not None else None,
+        ),
+        "walletAddress",
+        "humanId",
+    )
     return {"wallet_address": data["walletAddress"], "human_id": data["humanId"]}

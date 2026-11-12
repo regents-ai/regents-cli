@@ -1,12 +1,12 @@
 [project]
 name = "hf-tasksmith-v1"
-version = "0.1.0"
+version = "0.2.0"
 description = "Twelve HF Tasksmith tasks, each worked in its own agent image and graded in its own grader image"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT AND Apache-2.0 AND LicenseRef-HF-ML-Tasksmith"
 license-files = ["LICENSES/*"]
-dependencies = ["verifiers[harbor]==0.3.2.dev147"]
+dependencies = ["verifiers[harbor]==0.4.0"]
 
 [build-system]
 requires = ["hatchling>=1.27"]

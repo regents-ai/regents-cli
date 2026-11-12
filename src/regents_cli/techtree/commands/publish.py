@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 import click
 
 from regents_cli import output
+from regents_cli.next_steps import done
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve, asked
 from regents_cli.techtree.commands.answers import JSON, emit
@@ -134,7 +135,7 @@ def publish(
             "changes this run's own files, which are final.",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[done("Published; nothing more to run.")])
 
 
 def review_lines(

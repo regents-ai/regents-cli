@@ -16,7 +16,8 @@ dependencies = [
 [tool.uv]
 # The engine project is an environment, not a distribution. Nothing installs it.
 package = false
+constraint-dependencies = ["filelock>=4.2.1"]
 
 [tool.uv.sources]
-hf-tasksmith-v1 = { url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@d0f95ca8/hf_tasksmith_v1-0.1.0-py3-none-any.whl" }
-verifiers = { git = "https://github.com/PrimeIntellect-ai/verifiers", rev = "fc73e02ea99594407bf7579c53f7711f7434635a" }
+hf-tasksmith-v1 = { url = "https://hub.primeintellect.ai/techtree/hf-tasksmith-v1/@c279a5b4/hf_tasksmith_v1-0.2.0-py3-none-any.whl" }
+verifiers = { git = "https://github.com/regents-ai/verifiers", rev = "d7a9421396c8fe104f5d3b29acaf99521315b14b" }

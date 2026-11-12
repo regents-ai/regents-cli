@@ -13,7 +13,7 @@ from urllib.parse import quote, urlsplit
 import httpx
 
 from regents_cli.errors import EXIT_UNREACHABLE, CommandError
-from regents_cli.http import answer, base_address
+from regents_cli.http import answer, base_address, client_header
 from regents_cli.techtree.release.document import packaged_release_core_bytes, parse_release_core
 
 BASE_URL_VARIABLE: Final = "TECHTREE_BASE_URL"
@@ -39,7 +39,9 @@ def get_json(base: str, *segments: str, client: httpx.Client | None = None) -> A
     owned = client is None
     session = client or httpx.Client(timeout=_TIMEOUT_SECONDS)
     try:
-        request = session.build_request("GET", base + path, headers={"accept": "application/json"})
+        request = session.build_request(
+            "GET", base + path, headers={"accept": "application/json", **client_header()}
+        )
         # SECURITY: no redirect is followed, so an answer always comes from the address named.
         response = session.send(request, stream=True, follow_redirects=False)
         try:

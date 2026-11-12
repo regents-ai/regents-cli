@@ -1,0 +1,420 @@
+"""What an agent does after any `regents` output: always one or more of five kinds of step.
+
+done: the work is finished. run: run this `regents` command next. human: a person has to do
+something first. wallet: send the answer's transactions from your own wallet, which `regents`
+never does for a site's command. patchbay: post the problem on patchbay.help, because a site
+broke, answered in a way `regents` can't act on, or stays unreachable, and only its team can fix
+that. A post always follows a public search of patchbay.help for the same problem, which needs
+no sign-in.
+
+Every answer and every failure carries its steps: in `--json` as `next_steps` beside the answer's
+fields or beside `error`, and on screen as a short "Next" block at the bottom.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import shlex
+from collections.abc import Sequence
+from dataclasses import dataclass
+from importlib.metadata import version
+from typing import Literal
+from uuid import uuid4
+
+from regents_cli.errors import (
+    EXIT_AUTH,
+    EXIT_CANCELLED,
+    EXIT_NOT_FOUND,
+    EXIT_UNREACHABLE,
+    EXIT_USAGE,
+    CommandError,
+)
+
+type Kind = Literal["done", "run", "human", "wallet", "patchbay"]
+
+PATCHBAY_SEARCH = ("regents", "patchbay", "threads", "search")
+PATCHBAY_POST = ("regents", "patchbay", "threads", "create")
+TITLE_LIMIT = 160
+
+
+@dataclass(frozen=True, slots=True)
+class Step:
+    kind: Kind
+    say: str
+    command: str | None = None
+    url: str | None = None
+
+    def as_json(self) -> dict[str, str]:
+        found = {"kind": self.kind, "say": self.say, "command": self.command, "url": self.url}
+        return {key: value for key, value in found.items() if value is not None}
+
+
+def done(say: str) -> Step:
+    return Step("done", say)
+
+
+def run(command: Sequence[str], say: str) -> Step:
+    return Step("run", say, shlex.join(command))
+
+
+def run_piped(piped: str, command: Sequence[str], say: str) -> Step:
+    """A command that reads JSON on stdin, written so it runs as shown."""
+    return Step("run", say, f"printf '%s' {shlex.quote(piped)} | {shlex.join(command)}")
+
+
+def human(say: str, url: str | None = None) -> Step:
+    return Step("human", say, url=url)
+
+
+def wallet(say: str) -> Step:
+    return Step("wallet", say)
+
+
+def report(
+    host: str, words: Sequence[str], code: str, message: str, status: int | None
+) -> list[Step]:
+    """A public search of the site's board on patchbay.help, then a ready post there for when
+    the search finds nothing that helps."""
+    return [search(host, code), patchbay(host, words, code, message, status)]
+
+
+def search(host: str, code: str | None) -> Step:
+    """What patchbay.help already holds about this problem on this site, or about the site."""
+    words = ("--query", code) if code is not None else ()
+    return run(
+        (*PATCHBAY_SEARCH, *words, "--origin", host),
+        "Before posting, search patchbay.help: someone may have posted this already, with a fix. "
+        "Searching needs no sign-in.",
+    )
+
+
+def patchbay(host: str, words: Sequence[str], code: str, message: str, status: int | None) -> Step:
+    """A ready post for the site's board on patchbay.help, naming the command but none of the
+    values it was given, since the post is public."""
+    named = " ".join(("regents", *words))
+    body = [f"`{named}` (regents-cli {version('regents-cli')}) failed.", "", f"- Error: `{code}`"]
+    body.append(f"- Message: {message}")
+    if status is not None:
+        body.append(f"- Status: {status}")
+    post = {
+        "site": host,
+        "title": f"{named}: {code}"[:TITLE_LIMIT],
+        "body_markdown": "\n".join(body),
+        "client_request_id": str(uuid4()),
+    }
+    piped = json.dumps(post, ensure_ascii=False)
+    return Step(
+        "patchbay",
+        "If the search finds nothing that helps, read this post, then run it to put the problem "
+        "on patchbay.help for the site's team: posts are public. It needs a Patchbay sign-in and "
+        "a paired agent.",
+        f"printf '%s' {shlex.quote(piped)} | {shlex.join(PATCHBAY_POST)}",
+    )
+
+
+def account_menu(host: str) -> str:
+    """A site's home page, whose account menu has Pair New Agent for a person signed in there.
+    Each site keeps the pairing box on its own page, so the menu is the one way in they share.
+    A pairing works on every Regent site."""
+    return f"https://{host}/"
+
+
+def pair_first(namespace: str, host: str) -> list[Step]:
+    """The two steps that pair an agent: a person's code, made on the site the agent called,
+    then `agents pair`."""
+    return [
+        human(
+            f"Your person signs in on {host}, makes a pairing code with Pair New Agent in the "
+            "account menu and gives it to you. A pairing works on every Regent site. If a site "
+            "answers person_not_here, ask your person to sign in on that site once.",
+            account_menu(host),
+        ),
+        redeem(namespace),
+    ]
+
+
+def redeem(namespace: str) -> Step:
+    return run(
+        ("regents", namespace, "agents", "pair"),
+        'Pair with that code: pipe {"code": …, "name": …, "harness": …}, or run it at a '
+        "terminal and it asks.",
+    )
+
+
+def sign_in(site: str) -> Step:
+    return run(
+        ("regents", "auth", "login", "--site", site),
+        f"Sign in to {site}. On a Mac your person may need to confirm a Touch ID page, so ask "
+        "them first.",
+    )
+
+
+#: Flags a rerun leaves out: an agreement covers one go, so a rerun asks for a new one.
+AGREEMENT_FLAGS = {"--yes": 0, "--reviewed-on": 1}
+#: Flags whose value a rerun shows only as a placeholder, as the approval review does.
+PRIVATE_FLAGS = {"--address": "<private-address>"}
+#: Flags whose value a rerun shows as that placeholder only when it carries a user or password.
+ADDRESS_FLAGS = frozenset({"--base-url"})
+
+
+def shown_address(value: str) -> str:
+    """`value`, or the placeholder when it could carry a user or password: any "@" at all, since
+    an address written without a scheme or slashes still reaches the server with them."""
+    return PRIVATE_FLAGS["--address"] if "@" in value else value
+
+
+@dataclass(frozen=True, slots=True)
+class Invocation:
+    """The command a failure came from, as far as `regents` could read it."""
+
+    args: tuple[str, ...]
+    #: The names of the command that ran, such as ("patchbay", "threads", "get").
+    words: tuple[str, ...]
+    #: The site its namespace signs in to, and that site's host, when it names one.
+    site: str | None
+    host: str | None
+    takes_stdin: bool
+    #: What a site's described command does, and its description, when it is one.
+    effect: str | None = None
+    description: str | None = None
+    #: The address it ran against, when --base-url or the site's variable named another than
+    #: the site's own: a failure there is not the site's to hear about.
+    elsewhere: str | None = None
+    #: False for a site's public command, which no sign-in changes: a 401 there is the site's
+    #: own refusal, such as an expired upload address.
+    signed: bool = True
+
+    @property
+    def again(self) -> tuple[str, ...]:
+        """The same command, without an earlier agreement and without private values."""
+        kept: list[str] = []
+        skip = 0
+        address_next = False
+        for arg in self.args:
+            name, has_value, value = arg.partition("=")
+            if address_next:
+                kept.append(shown_address(arg))
+                address_next = False
+            elif skip:
+                skip -= 1
+            elif name in AGREEMENT_FLAGS:
+                skip = 0 if has_value else AGREEMENT_FLAGS[name]
+            elif name in PRIVATE_FLAGS:
+                kept += [name, PRIVATE_FLAGS[name]]
+                skip = 0 if has_value else 1
+            elif name in ADDRESS_FLAGS:
+                kept.append(f"{name}={shown_address(value)}" if has_value else name)
+                address_next = not has_value
+            elif "://" in arg:
+                # An address anywhere else, such as one Click read as some other value, may
+                # carry a user or password too.
+                named = has_value and name.startswith("-")
+                kept.append(f"{name}={shown_address(value)}" if named else shown_address(arg))
+            else:
+                kept.append(arg)
+        return ("regents", *kept)
+
+    @property
+    def piped(self) -> str:
+        return ", piping the same JSON on stdin" if self.takes_stdin else ""
+
+
+def as_described(group: Sequence[str], description: str, why: str) -> Step:
+    """For an outcome only the site's own description says how to follow: its group's help,
+    which lists the command that does, and the description itself."""
+    return run(
+        ("regents", *group, "--help"),
+        f'{why} The site says: "{description}" Its commands are listed here.',
+    )
+
+
+def for_failure(error: CommandError, invocation: Invocation) -> list[Step]:
+    """The failure's own steps, or the ones its kind calls for."""
+    if error.next_steps:
+        return list(error.next_steps)
+    if error.code == "techtree_home_unusable":
+        return [
+            human(
+                "This command needs writable local storage at ~/.regents/techtree. "
+                "Ask the runtime owner to provide it, then retry. "
+                "Do not move or replace your signer to fix local storage."
+            )
+        ]
+    status = error.fields.get("status")
+    described = invocation.description
+    if invocation.effect == "payment" and described is not None:
+        if _unsure(error, status):
+            return _unsure_payment(error, status, invocation, described)
+        if _refused_unread(error, status):
+            return [
+                as_described(invocation.words[:-1], described, "The site refused this."),
+                *_broken(error, status if isinstance(status, int) else None, invocation),
+            ]
+    if isinstance(status, int):
+        return _site_refused(error, status, invocation)
+    return _failed(error, invocation)
+
+
+#: Refusals only the person can clear, in the site's own words (its `hint`): sign in there
+#: once, or unpair an agent when the account has as many as it may.
+HINTED = ("account_missing", "person_not_here", "agent_limit")
+
+
+def _site_refused(error: CommandError, status: int, invocation: Invocation) -> list[Step]:
+    """A site answered with an error: `status` is its HTTP status."""
+    again = invocation.again
+    coded = not (error.code.startswith("http_") or error.code == "redirected")
+    hint = error.fields.get("hint")
+    if error.code == "agent_not_paired" and isinstance(hint, str) and invocation.host:
+        return [
+            human(hint, account_menu(invocation.host)),
+            redeem(invocation.words[0]),
+            run(again, f"Then run this again{invocation.piped}."),
+        ]
+    if error.code in HINTED and isinstance(hint, str):
+        return [human(hint), run(again, f"Then run this again{invocation.piped}.")]
+    if status == 401 and invocation.site is not None and invocation.signed:
+        return [sign_in(invocation.site), run(again, f"Then run this again{invocation.piped}.")]
+    if status == 402 and ("payment_required" in error.fields or "payment_terms" in error.fields):
+        return [
+            run(
+                again,
+                "Nothing was paid. Sign payment_terms with your wallet, then run this again "
+                'piping {"payment_signature": "<the signature>"} on stdin.',
+            )
+        ]
+    if status == 402:
+        return [
+            human(f"Nothing was paid, and this needs your person first: {error.message}"),
+            done("Otherwise that is the site's answer; nothing more to run."),
+        ]
+    if status == 403 and coded:
+        page = (
+            account_menu(invocation.host)
+            if error.code.startswith("pairing_") and invocation.host
+            else None
+        )
+        return [human(f"Ask your person about this first: {error.message}", page)]
+    if status == 404 and coded:
+        return [
+            run(
+                again,
+                "There is no such record: correct the name or id if it was mistyped, then run "
+                f"this again{invocation.piped}.",
+            )
+        ]
+    if status == 429:
+        return [
+            run(
+                again,
+                f"Too many requests: wait {_wait(error)}, then run this again{invocation.piped}.",
+            )
+        ]
+    if coded and status in (502, 503, 504):
+        return [
+            run(
+                again,
+                f"The site is not taking this right now: wait {_wait(error)}, "
+                f"then run this again{invocation.piped}.",
+            )
+        ]
+    if coded and status < 500:
+        return [
+            run(
+                again,
+                "Only if the message names something you sent that you can change: change it, "
+                f"then run this again{invocation.piped}.",
+            ),
+            done("Otherwise that is the site's answer; nothing more to run."),
+        ]
+    return [run(again, f"Run it once more{invocation.piped}."), *_broken(error, status, invocation)]
+
+
+def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
+    """A failure `regents` found itself, before or without a site's error answer."""
+    again = invocation.again
+    if error.code in ("not_signed_in", "sign_in_expired", "no_agent_key") and invocation.site:
+        return [sign_in(invocation.site), run(again, f"Then run this again{invocation.piped}.")]
+    if error.exit_code == EXIT_USAGE:
+        return [
+            run(
+                ("regents", *invocation.words, "--help"),
+                "Read how it is used, then run it again with what the message names fixed.",
+            )
+        ]
+    if error.exit_code == EXIT_CANCELLED:
+        return [run(again, f"Run it again when ready{invocation.piped}.")]
+    if error.exit_code == EXIT_NOT_FOUND:
+        return [
+            run(
+                again,
+                "There is no such record: correct the name or id if it was mistyped, then run "
+                f"this again{invocation.piped}.",
+            )
+        ]
+    if error.exit_code == EXIT_UNREACHABLE:
+        return [
+            run(again, f"Run it once more{invocation.piped}."),
+            *_broken(error, None, invocation),
+        ]
+    if error.exit_code == EXIT_AUTH:
+        return [human(f"Your person has to sort this out first: {error.message}")]
+    if error.code == "invalid_response":
+        return _broken(error, None, invocation)
+    return [run(again, f"Do what the message says, then run this again{invocation.piped}.")]
+
+
+def _unsure(error: CommandError, status: object) -> bool:
+    """Whether a request may have reached the site and done its work, unanswered or unclear."""
+    if isinstance(status, int):
+        return error.code == "redirected" or status == 409 or status >= 500
+    return error.exit_code in (EXIT_UNREACHABLE, EXIT_CANCELLED) or error.code == "invalid_response"
+
+
+def _refused_unread(error: CommandError, status: object) -> bool:
+    """A refusal without a readable code, other than the ones `regents` knows how to follow."""
+    return error.code.startswith("http_") and status not in (401, 402, 429)
+
+
+def _unsure_payment(
+    error: CommandError, status: object, invocation: Invocation, description: str
+) -> list[Step]:
+    """A payment that may have gone through is never sent again; the site says how to finish
+    it. A site that failed is also reported."""
+    finish = as_described(
+        invocation.words[:-1],
+        description,
+        "The payment may have gone through: run this again only if the site says a repeat "
+        "never pays twice, and otherwise finish it the way the site says.",
+    )
+    if error.exit_code == EXIT_CANCELLED or status == 409:
+        return [finish]
+    return [finish, *_broken(error, status if isinstance(status, int) else None, invocation)]
+
+
+def _broken(error: CommandError, status: int | None, invocation: Invocation) -> list[Step]:
+    """Search patchbay.help, then report it there; when Patchbay itself is what broke, or the
+    command ran against another address than the site's own, a person has to."""
+    if invocation.elsewhere is not None:
+        return [elsewhere(invocation.elsewhere, error.message)]
+    if invocation.host is None or invocation.words[:1] == ("patchbay",):
+        return [human(f"If it keeps failing, tell your person: {error.message}")]
+    return report(invocation.host, invocation.words, error.code, error.message, status)
+
+
+def elsewhere(address: str, message: str) -> Step:
+    """A failure at an address other than the usual one: not one for the site's board."""
+    return human(
+        f"This ran against {shown_address(address)}, not the usual address, so it is not one "
+        f"to post on patchbay.help. If it keeps failing, tell your person: {message}"
+    )
+
+
+def _wait(error: CommandError) -> str:
+    seconds = error.fields.get("retry_after")
+    return (
+        f"{seconds} seconds"
+        if isinstance(seconds, str) and re.fullmatch("[0-9]+", seconds)
+        else "a minute"
+    )

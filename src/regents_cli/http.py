@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
+from importlib.metadata import version
 from typing import Any
 from urllib.parse import urlencode, urlsplit
 
+import click
 import httpx
 
 from regents_cli.errors import (
@@ -24,7 +26,14 @@ LOOPBACK = frozenset({"localhost", "127.0.0.1", "::1"})
 
 def origin(value: str, source: str) -> str:
     """An HTTPS origin, or HTTP on this machine, with no credentials, path, query or fragment."""
-    parts = urlsplit(value)
+    refused = UsageError(
+        f"{source} must be an HTTPS origin such as https://example.com, with no path; "
+        "HTTP is allowed only for this machine."
+    )
+    try:
+        parts = urlsplit(value)
+    except ValueError:
+        raise refused from None
     local = parts.scheme == "http" and parts.hostname in LOOPBACK
     if (
         (parts.scheme != "https" and not local)
@@ -35,11 +44,30 @@ def origin(value: str, source: str) -> str:
         or parts.query
         or parts.fragment
     ):
-        raise UsageError(
-            f"{source} must be an HTTPS origin such as https://example.com, with no path; "
-            "HTTP is allowed only for this machine."
-        )
+        raise refused
     return f"{parts.scheme}://{parts.netloc}"
+
+
+def same_origin(one: str, other: str) -> bool:
+    """Whether two addresses are one origin: the same scheme, host and port, written either way.
+    An address that cannot be read, or whose port is not a number, is no origin, so it is never
+    the same as another."""
+    keys = _origin_key(one), _origin_key(other)
+    return None not in keys and keys[0] == keys[1]
+
+
+def _origin_key(value: str) -> tuple[str, str | None, int | None] | None:
+    try:
+        parts = urlsplit(value.strip())
+        port = parts.port
+    except ValueError:
+        return None
+    scheme = parts.scheme.lower()
+    return (
+        scheme,
+        parts.hostname,
+        port if port is not None else {"https": 443, "http": 80}.get(scheme),
+    )
 
 
 def base_address(flag: str | None, env_var: str, site: str) -> str:
@@ -79,7 +107,7 @@ class Request:
         return json.dumps(self.body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
-def send(base: str, request: Request, timeout_ms: int) -> Any:
+def send(base: str, request: Request, timeout_ms: int) -> dict[str, Any]:
     """Send once, never follow a redirect, and return the JSON answer or raise its error."""
     return answer(respond(base, request, timeout_ms))
 
@@ -107,11 +135,23 @@ def unreadable_address(error: httpx.InvalidURL) -> CommandError:
     )
 
 
+def client_header() -> dict[str, str]:
+    """`x-regent-client`: this release and the words of the command being run, such as
+    `regents-cli/1.10.18 patchbay rooms list`, so a site can count its calls by command. Click
+    builds the words from command names alone, so no argument or flag value is ever in it. A
+    signature does not cover it. Nothing when no command is running."""
+    context = click.get_current_context(silent=True)
+    if context is None:
+        return {}
+    words = context.command_path.split(" ")[1:]
+    return {"x-regent-client": f"regents-cli/{version('regents-cli')} {' '.join(words)}"}
+
+
 def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
     """Send once and never follow a redirect."""
     content = request.content
-    headers = {"accept": "application/json", **request.headers}
-    if content is not None:
+    headers = {"accept": "application/json", **client_header(), **request.headers}
+    if content is not None and "content-type" not in request.headers:
         headers["content-type"] = "application/json"
     try:
         return httpx.request(
@@ -133,41 +173,70 @@ def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
             "unreachable",
             f"{base} could not be reached. The request was not retried.",
             exit_code=EXIT_UNREACHABLE,
-            hint="Check that the site is up and this is its address; --base-url names another.",
         ) from None
 
 
-def answer(response: httpx.Response) -> Any:
+def _not_json(constant: str) -> Any:
+    """NaN and Infinity are not JSON; an answer holding one is an unreadable answer."""
+    raise ValueError(f"{constant} is not JSON")
+
+
+def answer(response: httpx.Response) -> dict[str, Any]:
+    if response.status_code == 204 and not response.content:
+        return {}
     try:
-        body = response.json()
-    except ValueError:
+        body = json.loads(response.content, parse_constant=_not_json)
+    except (ValueError, RecursionError):
         body = None
-    if response.is_success and body is not None:
+    if response.is_success and isinstance(body, dict):
         return body
     if response.is_success:
-        raise CommandError("invalid_response", "The site answered, but not with JSON.")
+        raise CommandError("invalid_response", "The site answered, but not with a JSON object.")
     raise _error_for(response, body)
+
+
+def holds(value: Any, *fields: str) -> bool:
+    """Whether `value` is a JSON object with each of `fields`."""
+    return isinstance(value, dict) and all(field in value for field in fields)
+
+
+def unreadable() -> CommandError:
+    return CommandError(
+        "invalid_response", "The answer is JSON, but not in the shape regents reads."
+    )
+
+
+def data_with(answered: dict[str, Any], *fields: str) -> dict[str, Any]:
+    """An answer's `data` object, holding each of `fields`; any other answer is unreadable."""
+    data = answered.get("data")
+    if isinstance(data, dict) and holds(data, *fields):
+        return data
+    raise unreadable()
+
+
+def exit_code_for(status: int) -> int:
+    """The exit code a refusal with this status ends `regents` with."""
+    if status in (502, 503, 504):
+        return EXIT_UNREACHABLE
+    return {401: EXIT_AUTH, 403: EXIT_AUTH, 404: EXIT_NOT_FOUND}.get(status, EXIT_FAILED)
 
 
 def _error_for(response: httpx.Response, body: Any) -> CommandError:
     status = response.status_code
-    exit_code = {401: EXIT_AUTH, 403: EXIT_AUTH, 404: EXIT_NOT_FOUND}.get(status, EXIT_FAILED)
-    if status in (502, 503, 504):
-        exit_code = EXIT_UNREACHABLE
+    exit_code = exit_code_for(status)
     fields: dict[str, Any] = {"status": status}
     if retry_after := response.headers.get("retry-after"):
         fields["retry_after"] = retry_after
     error = body.get("error") if isinstance(body, dict) else None
     if isinstance(error, dict) and isinstance(error.get("code"), str):
         message = error.get("message")
-        said = {key: value for key, value in error.items() if key not in ("code", "message")}
-        return CommandError(
+        return CommandError.refused(
             error["code"],
             message if isinstance(message, str) else f"The site refused the request ({status}).",
             exit_code=exit_code,
-            **{**said, **fields},
+            fields={**error, **fields},
         )
-    if status == 402 and isinstance(body, dict):
+    if status == 402 and isinstance(body, dict) and "payment-required" in response.headers:
         return _payment_required(response, body, fields)
     if response.is_redirect:
         return CommandError(
@@ -185,10 +254,9 @@ def _payment_required(
     response: httpx.Response, body: dict[str, Any], fields: dict[str, Any]
 ) -> CommandError:
     """A 402 that offers terms: the whole answer, with the x402 `payment-required` header."""
-    if header := response.headers.get("payment-required"):
-        fields = {**fields, "payment_required": header}
-    return CommandError(
+    return CommandError.refused(
         "payment_required",
         "Nothing was paid. Sign payment_terms with your wallet, then send the signature.",
-        **{**body, **fields},
+        exit_code=EXIT_FAILED,
+        fields={**body, **fields, "payment_required": response.headers["payment-required"]},
     )

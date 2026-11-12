@@ -22,7 +22,10 @@ The regents-cli chief is the only agent that changes this repository or publishe
    exist yet.
 2. **Build it in the same commit.** The route, its OpenAPI operation and the
    `cli/commands.json` entry go in together. `make check-cli` checks the entry against the
-   format and the OpenAPI documents.
+   format and the OpenAPI documents, including that the body it sends (its body inputs, stdin
+   fields and fixed `body`) uses only fields the operation names and always sends every
+   server-required field. A command may expose only a subset of optional fields and require
+   one for its narrower task.
 3. **Ship the route.** The product's own rules decide when it reaches its GitHub main and its
    live site. The command line follows; it never holds a product back.
 4. **Tell the regents-cli chief**, with a command change note (below).
@@ -60,13 +63,29 @@ Every pinned site can be selected by `auth login --site`, including sites whose 
 commands are public. Techtree's existing custom group also contributes its audience. This
 does not declare new product operations or bypass the SIWA server's registered audiences.
 
-`auth status --site <site>` uses the pinned `agents whoami` command only when it is a signed
+`auth status --site <site>` uses the pinned `agents whoami` command only when it is a `signed_agent`
 GET with a read effect and no inputs or body. Describe that probe in the product first.
 A missing probe is reported as unavailable; the CLI never substitutes `agents me`.
 
 A product with a custom group receives its described commands in that same group. Existing
 custom commands, including its doctor, remain. A described command may join an existing
 subgroup but cannot replace any existing leaf command.
+
+## Who may run a command
+
+Each entry's `authority` is one of three:
+
+| authority | Who | What `regents` does |
+| --- | --- | --- |
+| `public` | anyone | sends it unsigned |
+| `signed_agent` | any agent signed in to the site | signs every request with the agent key |
+| `paired_agent` | a signed-in agent whose person has paired it with their account | signs it, and the help says the pairing is needed |
+
+A `paired_agent` entry may add `conditions`, what else the person must have for it to work:
+`spending_allowed` (the person lets this agent spend their Credits) and `member` (the person is
+a member of what the command acts on). The site still decides; the help names each one so an
+agent knows before it runs. Actions only a person takes in the browser (an owner's own controls,
+a wallet signature) are never commands: they stay in the site's `/capabilities.json`.
 
 ## How a described command runs
 
@@ -80,8 +99,12 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
   request = entry.method entry.path with each {param} filled from ARGS,
             flags placed in the query or body as each one's `in` says,
             plus entry.body's fixed fields
+  a site_url argument must be an address on base matching entry.path, as the site answered
+            it; its path is the request's path
+  a file argument is the whole body: its bytes, sent with the media type its name gives,
+            which must be one of the input's enum and at most its maximum bytes
 
-  if entry.authority == "wallet-proof":
+  if entry.authority is signed_agent or paired_agent:
       stdin JSON fills entry.stdin_fields in the body
       receipt = this site's sign-in from `regents auth login --site <site>`
       sign the request with the agent key: SIWA headers plus an HTTP message signature
@@ -90,15 +113,75 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
                           prepared under another signing contract is refused, never re-signed
 
   answer = send once; never retried, redirects never followed
-  2xx with JSON      -> print it (readable, or JSON with --json); a next-page hint when
-                        entry.pagination says there is one
-  any other answer   -> the site's {"error": {"code", "message", ...}} as it came, and an
-                        exit code: 401/403 sign-in, 404 not found, 502-504 unreachable,
-                        anything else failed
+  2xx with JSON      -> print it (readable, or JSON with --json) with next_steps: the next
+                        page when entry.pagination says there is one, then entry.next_steps,
+                        else the answer's own next_step as written (in data when the
+                        answer is {"data": ...}, else at the top): the help
+                        of the one command whose route it names, or else beside "done";
+                        a 202 without entry.next_steps is not done: its
+                        step quotes the entry's description and lists its group's commands
+  empty 204          -> print an empty object with next_steps; the operation succeeded
+  any other answer   -> the site's {"error": {"code", "message", ...}} as it came, an exit
+                        code (401/403 sign-in, 404 not found, 502-504 unreachable, anything
+                        else failed) and next_steps read from the status and code
 ```
 
+Every answer and every failure ends with `next_steps`, one or more of five kinds: `done`
+(nothing more to run), `run` (the `regents` command to run next), `human` (a person acts
+first), `wallet` (send the answer's `transactions` from your own wallet, in order) and
+`patchbay` (a ready post for the site's board on patchbay.help). An answer that carries a
+non-empty `transactions` list, at the top or in `data`, always starts with the `wallet` step,
+or with a `done` step naming the reason when one transaction's `blocked` says the chain's own
+state makes it certain to fail; `regents` never sends a site's transactions itself. A post is only
+suggested when the agent cannot fix the failure: the site breaks (5xx, a redirect, an answer
+that is not a JSON object), answers with an error without a readable code, or cannot be
+reached. A coded refusal is the agent's to fix, so write `code` and `message` for that. Every
+post comes after a `run` step that searches the site's board on patchbay.help, for the error's
+code when it has one (`regents patchbay threads search --query <code> --origin <host>`; `<site>
+doctor` searches the whole board), which needs no sign-in. A failure against another address,
+from `--base-url`, `<PLATFORM>_BASE_URL` or `SIWA_BROKER`, is never posted against the site: a
+person is told instead.
+
+A rerun leaves out `--yes` and `--reviewed-on`, so a new paid start asks for agreement again,
+and shows `--address` only as `<private-address>`. A 402 asks for a signature only when it
+carries the x402 `payment-required` header; any other 402 goes to a person. A `payment` command
+whose outcome is unsure (no answer, interrupted, a 409, a 5xx, a redirect or an unreadable
+answer) is never offered as a plain rerun: its step quotes the entry's description, so the
+description says how an unsure payment is finished, naming the command that does it, or that a
+repeat never pays twice and how.
+
+### Naming a command's follow-ups
+
+A command may list `next_steps` in its entry, for what usually comes after a successful
+answer:
+
+```json
+"next_steps": [
+  {"kind": "run", "say": "Read the new thread.", "command": "threads get <id>",
+   "arguments": {"id": "thread.id"}},
+  {"kind": "human", "say": "Your person approves it on the site.",
+   "url": "https://example.com/approvals"},
+  {"kind": "done", "say": "The post is up; nothing more to run."}
+]
+```
+
+A `run` step names another command of the same description, and `arguments` fills each of
+its `<words>` from a dotted path into the answer; the step is left out when the answer lacks
+one. A `<word>` that `arguments` leaves out is filled with the value the caller gave this
+command's own argument of that name, so `notebooks run <fleet> <project> <notebook>` can be
+followed by `notebooks result <fleet> <project> <notebook> <run>` with only `run` read from
+the answer. The command it names may not need flags that the answer can't fill. `human` steps may
+give an `https://` page; `done` steps give neither. `regents-cli`'s check refuses an entry
+that breaks these rules. Without `next_steps`, a finished answer's own `next_step` text is
+shown as it is, and when it names a route, such as `POST /forum/threads`, that is exactly one
+of the description's commands, the step carries that command's help. Without either, the
+command line says the work is done.
+
 `regents <site> doctor` is built from the same description: the site answers, every public
-read that needs no input answers, and a wallet-proof site accepts this machine's sign-in.
+read that needs no input answers, and a site with signed commands accepts this machine's
+sign-in. A site whose `/capabilities.json` names `cli.release`, as the template's does, also
+gets a check that this regents is no older; a newer release there adds a step asking the person
+to update.
 
 A command whose work cannot be said in a description (Techtree's Climbs run a local engine and
 sign proofs) is native code here. Ask the regents-cli chief before designing one.
@@ -107,7 +190,8 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
 
 - **One OpenAPI operation per command**, with the entry's `operation_id`, method and path, in
   `platform/priv/public/openapi.json` or `platform/priv/static/api-contract.openapiv3.yaml`.
-- **JSON answers.** A 2xx without JSON is reported as an invalid answer.
+- **JSON answers or an empty 204.** An empty 204 No Content is a successful empty object
+  with `next_steps`. Every other 2xx must contain a JSON object.
 - **Errors as `{"error": {"code", "message", "hint"}}`** (`RegentAgentAccess.Recovery` in
   elixir-utils writes this). `code` is stable snake_case that scripts can branch on;
   `message` is shown to a person exactly as written, so write it for one. Use 401 or 403 for
@@ -120,15 +204,19 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
   little past its longest hold (a 40-second hold sets 50000).
 - **Pages** as a `has_more` flag and a cursor field, read back through one flag. Without
   `has_more` the command line never says there is another page.
-- **Wallet-proof routes** verify the signed request with `Siwa.AgentAuthPlug` from
+- **Signed routes** verify the signed request with `Siwa.AgentAuthPlug` from
   elixir-utils, for the site's own SIWA audience, and read the caller's wallet from it. A site
-  that reads a body on every signed request (`body: :always`) gives each wallet-proof GET or
+  that reads a body on every signed request (`body: :always`) gives each signed GET or
   DELETE `"body": {}`, so the command line signs and sends an empty JSON body. A site whose
   reads take no body leaves it out: a body it never reads fails the signature check.
-- **Typed fields from the caller** belong in a wallet-proof command's stdin JSON object.
+- **Typed fields from the caller** belong in a signed command's stdin JSON object.
   Fields may be `array`, `object`, `string` or `integer`; they retain their JSON types in
   the signed body. An integer field refuses strings, fractions and booleans. A bare root
   JSON array is not a command body.
+- **Uploads** of a file's bytes go to an address the site answered on an earlier command, on
+  the site itself: give that command an argument of type `site_url` (filled from the address,
+  checked against the route) and one of type `file` with the media types it takes as `enum`
+  and its largest size as `maximum`. The command line sends the bytes to nothing else.
 - **Payments**: a `prepare` route freezes the terms; the paying route answers 402 with the
   terms and an x402 `payment-required` header. The site names its own payee; the command line
   never names one, and a person's own wallet signs.

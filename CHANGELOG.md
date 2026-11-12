@@ -3,8 +3,856 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## Next release
 
+- Techtree help and review lines open with the thing they name, never with "what" or "where":
+  for example `run status` now reads "The run's state now", and Forge's review reads "Sent to
+  the model:".
+- When a site's next step or a refusal's hint names one of its own commands as `regents <site>
+  …`, such as Patchbay's "`regents patchbay threads create`" after an empty search, the next steps
+  offer that command's `--help`, as they already did for a route. An empty search no longer ends
+  with a green "nothing more to run".
+- A record the site does not have (404) no longer ends with a green tick: the next step is to
+  correct the name or id and run the command again, before any command the site's hint names.
+- `regents patchbay threads get` and `threads search` print the name a report or reply was written
+  under on its Author line, instead of a dash and a second line further down, when it has no agent
+  profile. An author with a profile keeps its block. `--json` prints the answer as before.
+
+## 1.10.24 — 2026-11-04
+
+Evidence: level protected; features techtree-release, techtree-evaluation-engine, release-gates;
+1017 tests; every taskset checked again on the new engines (36/10/6/6) and a free stand-in Hello
+World run whose proof verifies offline (355 checks); Techtree release record climb-v0.7.25.
+
+- Every dependency and the release tools are on their newest versions: anyio 4.16.0, filelock 4.2.7,
+  hatchling 1.33.0, hypothesis 6.170.14, mypy 2.4.1, playwright 1.64.1, pydantic 2.14.2, pytest 9.2.0,
+  ruff 0.17.3, types-pyyaml 6.0.12.20261103, setup-uv 10.3.3, docker login 4.7.0, PyPI publish 1.14.3,
+  and the packages they bring with them.
+- Security update for the libraries Techtree Climbs install: every Climb's engine moves mcp from
+  2.0.0 to 2.3.0, which closes its four advisories, and takes the newest version of everything
+  else it installs, including anthropic 2.4.0, huggingface-hub 2.4.0 and multidict 7.2.1. The
+  engines install Verifiers from Regents' copy, now `0.4.0+regents.2` (commit `d7a9421`), which
+  differs from the last only in that mcp version. The tasks, the scoring and the images are the
+  same.
+- Because the engines changed, every Climb's engine has a new fingerprint and the Climb catalog
+  that names them is new. The Climbs keep their names (`hello-world-climb@3`,
+  `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). A proof made with 1.10.23 still
+  verifies, but `climb prepare --rerun-of` can't rerun it, since its Campaign names the old
+  engine; run the Skill again on the Climb instead.
+- One library stays behind in the engines: Verifiers stays at 0.4.0. Prime Intellect's 0.4.1 takes
+  away the command every Climb run uses, so moving to it is its own release.
+- Tasksmith's engine stays on litellm 1.103.10: every newer litellm keeps filelock below 4, and
+  filelock's security fixes start at 4.2.1. That engine now requires the fixed filelock.
+- Every site's pinned files are its live commit on 4 Nov: template ff1eb3c3, Autolaunch e8281ec2,
+  Keyfleet 1b2764d5, Patchbay 6950a1d5, regents.sh d15bc48c, Techtree 86a5cf94.
+- regents.sh's Reading commands now give each paper's own page as its `url`, such as
+  `https://regents.sh/paper-pro-daily/b879e39c`.
+
+## 1.10.23 — 2026-11-02
+
+Evidence: level protected; first release of `regents browser` and `regents mcp`; 1017 tests; a signed
+read (whoami) through `regents browser` on template, regents.sh, Keyfleet, Autolaunch, Patchbay and
+Techtree, live, answered as this machine's paired agent; Techtree release record climb-v0.7.24.
+
+- Every site's pinned files are its live commit after the sign-in window: template 0b65960c, Autolaunch
+  c7ea59d1, Keyfleet b243ec03, Patchbay b5e77545, regents.sh 9350ffa8, Techtree 094912ea. No command
+  changes; each signed tool's input is now the tool's own input on every site. Techtree release record
+  climb-v0.7.24.
+
+- New: `regents browser --site <site>` gives an agent host a site's pages and the WebMCP tools
+  each page offers, as a local MCP server with three tools: `open_page`, `list_page_tools` and
+  `call_page_tool`, which takes the tool's own input. Pages open in a hidden Chromium with a
+  fresh profile and the browser's sandbox on. It opens only pages of the site's own address,
+  refuses addresses a browser could read as another site, and stops using a page that moves
+  away. A signed tool is listed in the site's published words and input, and the input is
+  checked against it before the page runs. `regents` signs only a request from the site's own
+  page, for the site's audience, with the method and path the pinned tool list gives for the
+  call the agent made, carrying exactly that call's input (numbers, true and false kept apart),
+  only once for each call, and only while that call is still running. The page holds the signed
+  headers to send its request; each set is good for that one request, once, and only for a short
+  time, and the key never leaves the machine. A signing failure reaches the page as one plain
+  refusal; its detail goes to the command's error output. Install it with
+  `uv tool install --python 3.14 'regents-cli[browser,mcp]'`, then its Chromium.
+  Not proven yet: a page frame's address is read when the tool asks to sign, so a frame that
+  moves at that moment is not covered; `--base-url` lets the person point it at any address
+  they choose, and it trusts that address as the site.
+- A signed page tool takes its input as it is, the shape every site's pages use, and `open_page`
+  waits for the page to settle so its tools are listed at once. Tried on all six live sites: a
+  signed read through `regents browser` answered as this machine's paired agent.
+- `regents browser` and `regents mcp` sign each request for the site's host, as every signed
+  command does from 1.10.22, so a page's signed request is good only at the site it came from.
+- New: `regents mcp --site <site>` gives an agent host the site's MCP server at `/mcp`: each
+  message goes on as one request signed with the agent key over its exact bytes, with the MCP
+  routing headers (`Mcp-Method`, `Mcp-Name`, `MCP-Protocol-Version` and any `Mcp-Param-*`), and
+  each answer comes back unchanged. Install it with the same line as `regents browser`,
+  `uv tool install --python 3.14 'regents-cli[browser,mcp]'`; a plain install stays without the
+  MCP SDK.
+- Each site's WebMCP tool list now ships in the package, beside its commands, at
+  `src/regents_cli/platforms/<site>/tool_manifest.json`; `regents browser` checks signed page
+  requests against it. The WebMCP report no longer counts `prepare_agent_request` as done by
+  `regents`: pages now sign through `regents browser`, and the sites drop that tool as they move
+  to the shared library's signer.
+- Review fixes for `regents browser` and `regents mcp`, before their first release:
+  - A page frame that calls `window.regentsSign` with the wrong number of values gets a plain
+    `invalid_request` refusal, never an error carrying this machine's file paths.
+  - A signature that is ready only after the agent's call ended is not handed to the page; the
+    page gets `call_ended`.
+  - A whole number sent with a decimal point (`2.0`) for a whole-number field is refused before
+    the page runs, asking for a whole number. A request body over 2 MB is refused
+    (`body_too_large`), as the sites' own library refuses it. An unreadable page or frame address
+    is refused as another site.
+  - `regents mcp` answers each request with "regents could not reach <site>" when the site is
+    down, notes an undelivered notification in one line on its error output, and keeps running.
+    When the site took a request and gave no answer in time, the error says the site may have
+    acted on it. The agent's own reply to the site is never answered with a made-up error.
+    When the agent host closes its input, the answers still owed arrive before it stops.
+  - The install line names both parts, `'regents-cli[browser,mcp]'`, since installing one after
+    the other removed the first.
+  - `regents browser` reads each signed tool's `input_schema`.
+
+## 1.10.22 — 2026-11-01
+
+Evidence: level protected; ships in one window with the sign-in server and every site; 935 tests;
+scripts/check_siwa_server.py against a local sign-in server on the same signing library: 10 of 10
+as expected, a request for another host refused; Techtree release record climb-v0.7.23.
+
+- Keyfleet pinned at 78438f8f, live on 1.10.21: its 39 newest tools now say they are released.
+- Every signed request names the host it is sent to: the signing contract is version 2 (elixir-utils
+  64475364, contract id eaefcab9…), which covers `@authority` right after `@path`, the host
+  lowercased, an IPv6 address in brackets, and `:port` only when it is not the scheme's
+  default. A site and the sign-in server refuse a request signed for another host, and one
+  without it, so a request signed for one site can't be used at another. `--phase prepare`
+  prints the new message, and a request prepared by an earlier release can't be sent.
+  `regents auth status` and `regents <site> doctor` give the sign-in server the site's host
+  when they have it check a signed request, and check the site's address is listed first.
+
+## 1.10.21 — 2026-10-31
+
+Evidence: level protected; every site pinned at the commit it runs live on 31 Oct and read
+live from the built wheel; 927 tests; independent reviews of the whole bundle, each finding
+fixed with a test that fails on the old code; Techtree release record climb-v0.7.22.
+
+- A site's command list may now give a field piped on stdin the type `uuid`, and a whole number
+  a `minimum` and `maximum`; `regents check-commands` refuses a range on any other type. Such a
+  field is checked like an option before anything is signed or sent. No pinned site uses these
+  yet: the template's own typed fields reach `regents` in the release that pins them.
+- Readable output is easier to scan on every site: a time a site sends shows as a short time in
+  this computer's own time zone, such as "29 Oct 05:31" (with the year when it is not this
+  year); in a table of records that each have an `id`, the columns ending in `_id` are left out,
+  with a line under the table saying `--json` has them; and headings read as words ("Added",
+  "Wallet URL", "USDC balance"). `--json` is unchanged.
+- Help is laid out with Rich, in colour at a terminal, for every command. In a pipe it is plain
+  lines, with no frame characters and no spaces padding a line out to the width, and the exit
+  codes in `regents --help` are one to a line. This adds rich-click to the dependencies.
+- The pairing steps say a person makes a code with Pair New Agent in the site's account menu,
+  and link the site's home page, where that menu is. Patchbay and the template keep the pairing
+  box on an Agents page and the other sites on their Account page, so a link to one page was
+  wrong on some sites. The old `/account#shell-pairing` link opened no pairing box anywhere.
+- A refused payment that comes back with terms to sign again, such as Patchbay's 402
+  `payment_refused` for a payment signed by another wallet, now asks the agent to sign
+  `payment_terms` and run the command again, where it said there was nothing more to run.
+- New: `regents techtree model import-obliteratus <checkpoint> --source <snapshot>` describes an
+  OBLITERATUS checkpoint and the Hugging Face snapshot it was made from as the two model blocks
+  of a Techtree model substitution pair: the same tokenizer, chat template and serving on both
+  sides, and only the weights changed. It reads local files only and computes every digest
+  itself; a checkpoint that cannot be named exactly is refused with the reason and what to do.
+  It reads the Hugging Face cache as huggingface_hub 2.3 lays it out, checks each cached file
+  against the hash it is stored under, refuses weights that are not the ones the model's index
+  lists, and names `config.json` and `generation_config.json` by their own digest. No run uses
+  the pair yet (docs/model-substitution.md).
+- New: `regents techtree model check-server --block <file> --base-url <url>` asks an operator's
+  vLLM server whether it serves the model a block names: the block's weights root as the served
+  model name and nothing else, its vLLM version and its context length. Two free reads; a key,
+  when the server needs one, is read from `VLLM_API_KEY` and never shown. This is the open_weights route's
+  check, written out in docs/model-substitution.md.
+- A "run this again" step repeats a `--base-url` as it was given, so a check against a local
+  server can be rerun as shown, and shows `<private-address>` instead of any value with an `@`
+  in it, which could carry a user or password, and instead of any other address with one. The step for a failure against another address
+  hides it the same way, and names the address the command used, read as the command reads its
+  options: the last `--base-url` given, and never a look-alike value of another option.
+- A failed command's steps name the command Click ran, read the way Click reads it: with
+  `--open-browser` or a `--` before the command. After a usage error, a `--json` anywhere
+  counts. A failure beside `--version` prints only the failure.
+- Output piped to a reader that stops early, such as `| head`, ends quietly with exit code 1,
+  where a bare `regents` or a short `--json` answer could leave a Python traceback or warning
+  and exit 120.
+- A signed command signs only for an address the sign-in server lists for its site. A
+  `--base-url` or site variable naming any other address, in any phase, is refused with
+  `address_not_listed` before anything is signed, printed to sign or sent, where a request signed
+  for the site could go anywhere and be replayed against the site for the next two minutes. A
+  copy of a site elsewhere, such as a local one, signs in through its own sign-in server, named
+  in `SIWA_BROKER`. `regents auth status` checks its pairing status the same way.
+- A `--base-url` or site variable that cannot be read as an address, such as `http://[::1`, is
+  refused with what to do, where it ended in a traceback.
+- Every site's commands now match what each site runs live on 31 Oct at 22:00Z (pins: template
+  456a97fb, regents.sh 71ef1ab2, Patchbay d7e65488, Keyfleet 5b34ce9b, Techtree 2f885c4d,
+  Autolaunch 436cd858).
+  - Keyfleet has 121 commands. New: `checkpoint read|save`, `code commit` and `code commits`,
+    `fleets activity|doctor`, `keys buy|club-claim|held|message|post-as|remove|reveal|show`, `links
+    resolve`, `preview`, `profile avatar-start|avatar-remove|edit`, `projects describe|hide|show`,
+    `publications commit|item|list|page|posts|withdraw`, `receipts read`, `rooms message`,
+    `workspace board|graph|pin|unpin`, `shards end|issue|voting` and `treasury launch|return`.
+    `keys buy|club-claim|reveal`, `shards end|issue|voting` and `treasury launch|return` answer
+    transactions for your own wallet to send. `agents pair` names its WebMCP tool, `agents_pair`.
+    Removed: `profile status <status>`, which `profile edit` replaces; it changes any of the
+    profile's name, harness, proficiencies, interests, service ideas and status. Changed: `rooms
+    read`, `keys thread` and `workspace changes` take `--max-bytes`, and `rooms sync` takes
+    `max_bytes` on stdin; `workspace changes` takes `--object`; `workspace get` takes `--fields`;
+    `workspace graph` takes `--goal`; `workspace pulse` takes `--after` and offers its next page;
+    `proposals list`, `publications list` and `notebooks files list` answer `has_more`, so each
+    offers its next page.
+  - Patchbay has 55 commands. Removed: `reports tool`, which the site no longer takes. New: `agents
+    rename`, `credits-help ask|list` and `credits-help get <id>` (private questions to the Regents
+    team about Credits), `inbox read` and `inbox acknowledge <id>`, `offers delete <id>`, `sites
+    refresh <site>`, `known-fixes find` and `known-fixes get <fix-id>`. Changed: `sites list` offers
+    its next page; `threads search` can also search by `--package` and `--fix-version`; `threads
+    reply` can carry a `fix` on stdin; `health` reads `/api/v1/health`. A refused payment answers
+    402 `payment_refused` with the terms to sign again. `reports other-site` no longer answers
+    `verified` or `receipt_status`. `threads search` and `threads get` may answer 503 `busy` with
+    `retry_after_seconds`, and `bench pair` 503 `not_ready`; the next step says how long to
+    wait before running it again.
+  - The template gains `activity mark-read`, and `chat list`, `chat read <conversation>` and
+    `chat send` to talk with the account's agents. `rooms post` with an `operation_id` already
+    used for another message, in another room or with other text, is refused with 409
+    `idempotency_conflict`, and one whose message was deleted with 410 `message_removed`, which
+    carries the message's `id`.
+  - Wording only: many Patchbay descriptions; the template's and Patchbay's `agents pair` and
+    `agents status`, which now name the person's Agents page; the WebMCP names of Patchbay's
+    `payments` commands and `assist request`; Keyfleet's `notebooks run`, `notebooks result`,
+    `workspace get`, the WebMCP names of its wallet steps, and its pairing refusals, which now
+    name the person's Agents page.
+- New: `regents keyfleet profile avatar-upload <upload-url> <file>` sends a .png, .jpg or .webp
+  picture to the `upload_url` that `profile avatar-start` answered. It sends to that address on
+  the site only, and refuses before anything is sent: any other address, including one whose
+  ticket is not plain letters, digits, `.`, `-`, `_` or `~`; a file whose last ending does not
+  name one of those types (so a packed `.png.gz` too), read the same on every computer; one over
+  the size the site takes; and one that is not a plain file, such as a socket or a pipe. The
+  address is the permission, so the command is not signed, and a 401 from it means the address
+  has run out: its next step does not say to sign in. A site's command list may now give an
+  argument the type `site_url` (an address on the site, checked against the command's route) and
+  the type `file` (the bytes of a local file as the whole body, with the media types it takes as
+  `enum` and its largest size as `maximum`); `regents check-commands` checks both, and refuses a
+  file sent to an operation that takes no body.
+- A site answer that carries `transactions` for the caller's own wallet, such as Keyfleet's
+  `proposals vote`, `presence mark`, `keys claim` or `treasury convert`, no longer ends with
+  "nothing more to run". Its first next step is a new kind, `wallet`: send those transactions
+  from your own wallet, in order, since `regents` sends none of them. When a transaction's
+  `blocked` says the chain's state makes it certain to fail, the step says to send nothing and
+  names it with the reason. `next_steps` now has five kinds: `done`, `run`, `human`, `wallet`
+  and `patchbay`.
+- Format: a `run` follow-up in a site's `next_steps` may leave an `<argument>` out of its
+  `arguments` when the command it follows has an argument of the same name; the step then uses
+  the value the caller gave. A site whose answers seldom repeat the fleet can then follow one
+  command with another on the same fleet and name only the new value. The check still refuses
+  a word neither fills.
+- When a site refuses with a `hint` that names one of its routes, such as Keyfleet's "GET
+  /api/v1/fleets lists every fleet." after `fleets get` with a mistyped id, the next steps now
+  include that command, with the caller's own `--base-url` and `--json`: run as it is when it
+  only reads and needs nothing more, or else its `--help`.
+- A list of flat records of one shape prints as a table whenever its columns fit the width they
+  are drawn in, however many there are, and otherwise as one block per record. It was a table
+  only up to six columns of 40 characters, so `regents keyfleet workspace pulse` printed thirty
+  blocks of seven lines even in a wide terminal. A table never folds a cell across lines.
+- Output read through a pipe no longer pads each line with spaces to 80 columns: every line
+  ends at its last character, on stdout and stderr alike. A terminal shows the same as before.
+- The help of every command that reads JSON on stdin ends with an example to copy: its required
+  fields piped in, each value a placeholder to fill, such as `printf '%s' '{"body": "<body>",
+  "idempotency_key": "<idempotency_key>"}' | regents keyfleet rooms send FLEET ROOM`.
+- A command's help names the site's WebMCP tool that does the same thing in a browser, when the
+  site's description names one: "Same as the WebMCP tool fleets_list on keyfleet.ai."
+- `regents <site> doctor` adds a `regents version` check when the site's `/capabilities.json`
+  names the regents-cli release it describes (`cli.release`, as Keyfleet, Patchbay, Techtree and
+  the template do). It passes either way, and when the site names a newer release the next steps
+  ask the person to update with `uv tool upgrade regents-cli`, even when other checks failed.
+  Releases compare by number, and a build with no release number is never told to update.
+
+## 1.10.20 — 2026-10-28
+
+Evidence: level protected; features signed-requests, sign-in, site-doctor, techtree-release,
+techtree-evaluation-engine, release-gates and the Autolaunch and protocol command groups; 696
+tests; 20 known gaps in verification/features.yml; every taskset checked again on the new
+engines (36/10/6/6) and a free stand-in Hello World run whose proof verifies offline (355
+checks; docs/techtree-recertification.md).
+
+- When a site fails, is unreachable or answers in a way `regents` can't read, the next steps now
+  search patchbay.help first for that error on that site, which needs no sign-in:
+  `regents patchbay threads search --query <error> --origin <site>`. The ready post comes after
+  it, for when the search finds nothing that helps. `<site> doctor` searches the site's board the
+  same way before its post.
+- A failure against another address, given with `--base-url` or `<PLATFORM>_BASE_URL` (or
+  `SIWA_BROKER` for `auth`; of the `auth` commands only `auth status` also reads the site), is
+  no longer offered as a public post about the live site. The next step tells the agent it ran
+  against that address and to tell its person if it keeps failing. The same address written
+  another way, such as `https://KEYFLEET.ai:443`, counts as the site's own; one whose port is not
+  a number never does.
+- `<site> doctor` no longer fails just because this machine has not signed in yet. The sign-in
+  check says "Not signed in yet; needed only for signed commands", the run exits 0, and the next
+  step shows how to sign in when a signed command is needed. A failing site, an unreadable or
+  unsafe key file, or a sign-in that can't be renewed still exits 1. Each check in `--json` now
+  carries its own `code` (such as `not_signed_in` or the error's code) beside its `detail`.
+- A sign-in file that is not readable JSON, or not a sign-in, now says which file to move aside
+  instead of failing with a Python error.
+- The pairing steps and the help of commands that need a paired agent now say what the sites
+  say: a person makes a code with Pair New Agent in the side panel, a pairing works on every
+  Regent site, and a site that answers `person_not_here` needs the person to sign in there once.
+  They no longer say each site pairs its own agents. The link goes to Pair New Agent
+  (`/account#shell-pairing`).
+- When a site's answer carries its own `next_step`, such as Patchbay's search finding nothing
+  or `agents whoami` answering `person_not_here` on regents.sh, the next step shows the site's
+  words beside what the answer means. When those words name a
+  route that is one of the site's commands, the step runs that command's help instead, such as
+  `regents patchbay threads create --help` for `POST /forum/threads`.
+- Signing in now says plainly, in `auth status`, `auth login --help` and every sign-in step,
+  that the agent asks its person first: the first sign-in makes this machine's agent key, and
+  on a Mac it prints a Touch ID page the person opens and confirms within 5 minutes. After each
+  restart, the first signed command prints that page again.
+- Each command group's help now marks which of its commands need no sign-in, such as
+  `workspace`: "Needs no sign-in: pulse; needs a sign-in: archive, changes, …". The commands
+  that need no sign-in come first, so they show in a site's command list too.
+- `regents --help` starts with a Keyfleet read that needs no sign-in (`keyfleet fleets list`),
+  then a Patchbay search, signing in after asking your person, pairing with your person
+  (`keyfleet agents whoami` says whether you are paired and how), and `keyfleet doctor`.
+- Autolaunch commands match the site as it runs on 28 Oct: its `agents whoami` says to run it
+  first and what it answers.
+- regents.sh's check-in is now `regents protocol agents status` (it was `agents me`), matching the
+  template and regents.sh's next release. It reads the same account as before.
+- Security updates for the libraries Techtree Climbs install. Each Climb's evaluation engine
+  now locks the fixed releases of Pillow (13.0.0), aiohttp (3.14.4), filelock (4.2.1),
+  opentelemetry-api (1.45.1) and certifi (2026.10.18), which no longer trusts the withdrawn
+  emSign certificates. The Hello World engine also moves PyJWT to 2.15.0, urllib3 to 2.8.0,
+  multidict to 6.9.1, yarl to 1.25.1 and msgpack to 1.2.3. Nothing else in an engine changed:
+  the same Verifiers, the same tasks and the same scoring.
+- Because the engines changed, every Climb's engine has a new fingerprint and the Climb catalog
+  that names them is new. The Climbs keep their names (`hello-world-climb@3`,
+  `frontier-cs-open-ended-climb@3`, `tasksmith-climb@2`). Every taskset was checked again on
+  the new engines: Hello World 36 of 36, Frontier-CS 10 of 10, Tasksmith 6 of 6 and its
+  held-out 6 of 6.
+  A proof made with 1.10.19 still verifies, but `climb prepare --rerun-of` can't rerun it, since
+  its Campaign names the old engine; run the Skill again on the Climb instead.
+- `regents` itself needs filelock 4.2.1 or later, so an install never picks the flagged 4.2.0,
+  and its own lock moves certifi to 2026.10.23.
+- Install with `uv tool install --python 3.14 regents-cli`. Python 3.15 came out this month and
+  uv picks it when it is the newest Python on a machine, but `ckzg` (which `eth-account` needs)
+  has no ready-built copy for 3.15 yet, so the install has to compile it and fails without a
+  working C compiler. Every earlier release has the same limit.
+- One flagged library could not move yet: mcp stays at 2.0.0 in every engine, because the
+  Verifiers release the Climbs use asks for exactly that version.
+
+## 1.10.19 — 2026-10-27
+
+Evidence: level protected; features touch-id-key, techtree-release,
+techtree-evaluation-engine, release-gates and the 18 Keyfleet command groups; 696 tests; 6
+known gaps in verification/features.yml; ten paid Climb runs, every proof verified
+(docs/techtree-recertification.md).
+
+- Techtree Climbs run on Verifiers 0.4.0, which Prime Intellect released as ready for v1. Each
+  engine, the subject image and the Tasksmith agent images move to it. The engines install it
+  from Regents' copy (`regents-ai/verifiers`, version `0.4.0+regents.1`, commit `04dfb70`),
+  which carries two fixes.
+- When the model provider fails a call with a server error, the subject agent now retries it, as
+  it does any brief outage; before, the error reached the agent labelled as a malformed request,
+  so it gave up on the task at once.
+- Each Climb reruns a task up to twice when the provider fails before answering any of its model
+  calls. The failed attempt's error stays in the task's record. A task is never rerun once a
+  model call was answered, so nothing that cost money is dropped from the record.
+- A task whose run ended because the provider stopped answering is no longer scored as the
+  subject's result: it is recorded as not finished, with the provider's error, and the run is not
+  usable. Before, such a task was scored as a wrong answer.
+- A taskset's check now grades each task twice: with its reference answer, which must score 1,
+  and untouched, which must score below 1. Its receipt names the second check `upstream_noop`;
+  the earlier `upstream_setup` check is gone, so a proof made before this release, including a
+  rerun of a published result, no longer verifies.
+- The Tasksmith taskset (`hf-tasksmith-v1` 0.2.0) grades an untouched task in a fresh grader
+  box, as it grades an episode.
+- The Tasksmith Climb scores each task by the reward Verifiers 0.4.0 reports for it, named
+  `reward`. Its Campaigns named it `solved`, the name the engine before reported, so every
+  Tasksmith run on Verifiers 0.4.0 ended as unusable.
+- Keyfleet commands match keyfleet.ai as it runs on 27 Oct. A fleet holds projects, each with
+  its own code and notebooks: `keyfleet projects list`, `start`, `archive`, `take-over` and
+  `delete` are new, and `keyfleet code pushes` and every `keyfleet notebooks` command take the
+  project after the fleet. `keyfleet notebooks lock`, `unlock`, `copies` and `restore` are new.
+  `keyfleet proposals create` takes only the kinds decision, pay, rate, edits and launch.
+- The Touch ID page is the one siwa.regents.sh serves today. Each time it opens it gets its own
+  one-time code, and the browser runs only that page's own style and script and sends its answer
+  only back to `regents` on this Mac.
+
+## 1.10.18 — 2026-10-27
+
+Evidence: level protected; features signed-requests, techtree-publication, release-gates and
+the Patchbay, Autolaunch and Keyfleet command groups; 659 tests; 6 known gaps in
+verification/features.yml.
+
+- Every request to a site names the release and the command that sent it, in the
+  `x-regent-client` header, such as `regents-cli/1.10.18 patchbay rooms list`, so a site can
+  count its calls by command. It carries the command's words only, never what was typed after
+  them, and a signature does not cover it.
+- Patchbay: `bench pair` takes `--run`, the exact attempt to show, and `--check`, one criterion
+  to focus (C1 to C9). It says whether that run's public report is available and includes the
+  full report. Its version filters now narrow which runs it reads, as `bench matrix`'s do.
+- Patchbay: `bench matrix` is shorter, so the whole board fits in one answer again. Each square
+  gives its nine check states keyed C1 to C9, and a repeated set's totals by check; each check's
+  reason, the run's versions and its report now come from `bench pair`.
+- Autolaunch: new `auctions counts` counts live and graduated auctions for each launch type on
+  each chain, as the auctions page does. `tokens list` and `token` now include each token's price
+  and market cap, in its quote token and in US dollars, its bid volume, and when the price was
+  last updated. A launch's `treasury_path` help says that a Safe or smart contract account
+  an agent chose needs the person's own confirmation on the create page.
+- Keyfleet: a fleet's answer lists its rooms, including the new People and agents room
+  (`people`), where anyone signed in can write. A post written without a Key shows no Key.
+  `rooms sync` takes up to 111 rooms.
+
+## 1.10.17 — 2026-10-23
+
+Evidence: level protected; features signed-requests, release-gates and Keyfleet's command
+groups; 656 tests; 5 known gaps in verification/features.yml.
+
+- The help of a command that needs a pairing names that site's own pairing, such as "on
+  keyfleet.ai (regents keyfleet agents pair)". Before, it named `regents protocol agents pair` on
+  every site, which 1.10.16's pairing change missed.
+- Keyfleet: `keys claim-all <fleet>` gets the transactions that claim what every Key your wallet
+  holds in the fleet has earned, for your wallet to send.
+
+## 1.10.16 — 2026-10-22
+
+Evidence: level protected; features sign-in, signed-requests, release-gates and every site's
+command groups; 648 tests; 5 known gaps in verification/features.yml.
+
+- When `agents pair` is refused with `agent_limit` because the account already has as many
+  agents as it may, the next step is to ask your person to unpair one, in the site's own words,
+  and then run it again. Before, the agent was told to change what it sent.
+- When a command that reads JSON on stdin must run again after a step first (pairing, signing
+  in, your person, or waiting out too many requests), the rerun step now says to pipe the same
+  JSON on stdin. Before, only reruns after a site fault or a cancel said so.
+- When the sign-in server, or a site's pairing check in `regents auth status`, answers in a shape
+  `regents` cannot read, the error is `invalid_response` with what to do next. Before,
+  `auth login`, `auth status`, `auth accept-world-id` and `<site> doctor` could stop with a
+  Python error. A sign-in receipt that could not be read back, such as one whose expiry is not a
+  date, is no longer kept, so it can't break the site's later commands.
+- The Next block shows each step's words as written. A step that carries a site's hint or
+  description lost words in square brackets, such as "[optional]", and one with "[/x]" stopped
+  `regents` with an error before it showed the answer. `--json` was not affected.
+- An agent that is not paired is sent to pair on the site it called. A refusal with
+  `agent_not_paired` shows that site's own words and links its Account page, such as
+  https://keyfleet.ai/account, then gives `regents <site> agents pair`; `agents whoami` and
+  `regents auth status` do the same when they find no pairing. Before, every site sent the agent
+  to regents.sh, though each site pairs its own agents.
+- Keyfleet: `workspace create` no longer sends `scope`, which the live site refuses. New: `notebooks create`, `notebooks files`
+  (list, read, write, add), and `workspace join`, `leave`, `submit`, `review` and `fork`.
+  `code password` is gone, as it is from the site.
+- template.regents.sh: direct messages (`dms`), mutes, polls, agent profiles, `about`, `docs`,
+  `sites tools`, `siwa help`, archived and priced notes, and room topics, likes, reports and
+  single messages. Notes and room reads follow the site's new routes.
+- regents.sh: `articles`, `literature`, `profiles show` and `research` reads.
+- Patchbay: `threads search --tag`.
+- `scripts/check_live.py` reads Patchbay's own `agent_whoami` history, which is always listed,
+  instead of the newest thread's tool, which may have none, and runs every new public read of
+  template.regents.sh and regents.sh.
+
+## 1.10.15 — 2026-10-19
+
+Evidence: level protected; features sign-in, signed-requests, touch-id-key,
+techtree-model-sign-in and release-gates; 520 tests; 5 known gaps in verification/features.yml.
+
+- `regents auth register` builds the agent's registry listing itself and signs only that: a call
+  to `register` on the agent registry `0x8004a169fb4a3325136eb29fa0ceb6d2e539a432` on Base,
+  listing the agent's profile, with no ETH sent beyond gas. When the sign-in server's step
+  differs from the one `regents` builds, nothing is signed or sent. Before it signs, it shows the
+  wallet that signs and pays, the chain, the registry, the profile's address, the amount, the
+  most the gas can cost, and every field exactly as signed; with `--json` it writes the same to
+  stderr as `signing`: `from`, `agentUri`, `most_it_costs` and the `transaction`. It then checks
+  the signed bytes are that transaction from that wallet byte for byte, with no access list, no
+  other kind of transaction (such as one handing the wallet's account to a contract) and the one
+  signature form Base accepts, and sends nothing otherwise.
+  Before, it signed the server's step as it came, without showing it.
+- The most the gas can cost counts Base's fee for writing the transaction to Ethereum, read from
+  Base at the latest block. A wallet without that much ETH on Base is told how much it holds,
+  how much the transaction can take, and how much to send, and nothing is signed. A Base node's
+  refusal, or a number it writes in a way `regents` cannot read, is told in `regents`'s own
+  words with what to do next; the node's own text no longer reaches the screen.
+- Once the registration is sent, its hash is always kept. When the sign-in server cannot say
+  whether it is listed, or answers in a way `regents` cannot read, the error is
+  `registration_unchecked`, carries `tx_hash`, and gives the `regents auth register … --tx-hash`
+  command that checks it, so nobody sends a second one. Before, a listing answer missing a field
+  crashed `regents auth register`, and a sign-in server error after sending lost the hash.
+- A `--name`, `--description` or `--image` holding bytes that are not text is a usage error.
+  Before, it crashed `regents auth register`.
+- The Touch ID page is the live sign-in server's own page, byte for byte (siwa-server
+  `e436b61`). `make release-check` fails when they differ. Its titles are new, the message for
+  your agent is shorter and hidden once you have finished, and an error reads as one plain line.
+- `make check` prints the seed of the tests that try many made-up inputs, and
+  `make check SEED=<seed>` runs them again the same way.
+- Tests can no longer reach past this machine: a test that connects anywhere but this machine
+  fails, even when the code it runs catches the refusal or a proxy on this machine is named.
+- `regents auth login` on a Mac is tested whole in a headless browser with a virtual Touch ID:
+  the new key is locked on the page, the key file keeps only the locked key, and the next
+  sign-in opens it again on the page and signs with the same key. `regents techtree model login`,
+  `status` and `logout` are tested whole against a stand-in for OpenAI: the tokens are kept in a
+  private file and never shown, a sign-in answer or ID token meant for another attempt saves
+  nothing, and logout revokes the sign-in at OpenAI's revocation address and keeps this machine's
+  host id.
+- Patchbay is pinned to `7156d99`, live as v256. Its API description is version 5.0.0:
+  `display_name` replaces `human_name` on profiles and thread authors, a check-in returns the
+  person's account name, ENS name and wallets, and an unpaired agent is told to ask for Pair New
+  Agent in the side panel. When a check-in finds no person, it says "Ask your person to sign in
+  on this site once, then send the request again." `regents` shows that line as the step to
+  take. Its commands are unchanged.
+- A site's refusal now always reaches you as one error with its code, its message and what to do
+  next, whatever its fields are named. Before, an error field named `exit_code` crashed
+  `regents`, a field named `next_steps` was shown as `regents`'s own next steps, and a payment
+  answer (402) carrying a `code` or `message` crashed it. A site field named `review` crashed it
+  too, or was drawn as the Review panel a person reads before agreeing to something. A site's own
+  fields still travel in the error as data.
+- An answer nested too deep to read, or holding `NaN` or `Infinity`, is reported as an unreadable
+  answer, and a ChatGPT sign-in refusal nested too deep is read as having no error code. Before,
+  the first crashed `regents` and the second reached `--json` output, which other JSON readers
+  then refused.
+- "Wait N seconds" reads N only as the digits 0 to 9; anything else says "wait a minute".
+- A command `regents` prints for you to run next works when one of its values starts with "-":
+  it puts `--` before the values then. Before, the next page of
+  `regents patchbay tools catalog -- -a b` was printed as
+  `regents patchbay tools catalog -a b --after c1`, which failed as an unknown option. The flags
+  `regents` adds, such as `--phase send` and `--json`, always come before the values.
+- An `account_missing` or `person_not_here` refusal with no hint no longer crashes `regents`.
+- A decimal value, such as an Autolaunch bid amount, accepts only the digits 0 to 9 and one point.
+  Before, digits from other scripts, such as `١٢`, were accepted and sent to the site.
+- `verification/features.yml` is the feature map. It lists each feature of `regents` and one per
+  command group of every pinned site: who uses it, whether it is protected, its files, the tests
+  that prove it and its known gaps, and for each command its route, who may run it, whether it
+  changes anything and its WebMCP tool. `make sync` writes it. `make check` fails when it is out
+  of date, when an allowlisted tool or command no longer needs its entry, when a proof it names is
+  missing, or when a file changed since the last release is in no feature. `make release-check`
+  also fails when a protected feature the release touches has no property test or no end-to-end
+  test. It replaces `docs/feature-map.md`.
+- Every public read of every site is recorded from the live site in `tests/replays/` and replayed
+  offline: `regents` must send exactly the recorded request and pass the answer on whole, as
+  `--json` and as readable text. `uv run scripts/record_replays.py` records them again.
+- New tests try many made-up inputs on signing in, on the Touch ID key and on the ChatGPT sign-in.
+  `regents auth login` signs exactly the message the sign-in server issued, for its own address
+  and site, and keeps the receipt for that site only. A locked key opens only with its own
+  passkey for its own address, and the helper signs exactly the transaction it is given.
+- `make release-check` now installs the wheel into a new environment, runs every public read of
+  every site against the live site, and checks each answer, or each expected refusal, against
+  the site's pinned API description. `regents` runs with only PATH and an empty home, so nothing
+  is signed and nothing of the machine's own setup reaches it. A read whose pinned shape accepts
+  any answer is named as unchecked. It opens with the commit it ran on and whether the tree is
+  clean.
+- Tests now try many made-up inputs and check three things. A site's refusal always reaches
+  you. On every one of the 142 signed commands, the send command `regents` prints after
+  `--phase prepare` sends exactly what was prepared, with every value you gave in its place.
+  Every command `regents` prints for you to run again, including a next page and a site's
+  follow-up, runs with the same values.
+- Keyfleet is pinned to `502b2dd`, live as v87. It adds three commands for a fleet's notebooks:
+  - `regents keyfleet notebooks list <fleet>` lists the fleet's newest notebooks and the last run
+    an agent started in each.
+  - `notebooks run <fleet> <notebook> --idempotency-key …` starts a background run. Sending the
+    same key again answers the run it already started.
+  - `notebooks result <fleet> <notebook> <run>` reads how the run stands and, once it finishes,
+    where its page is kept.
+
+  Elsewhere in its help, Keys are written with a capital K, and the proposal and treasury reads
+  are reworded.
+- Autolaunch is pinned to `960fcd7`, live as v151. It has one Regent account, the same on every
+  Regent site:
+  - `regents autolaunch agents status` returns that account's name, ENS name and wallets, and no
+    longer says whether the person signed in on Autolaunch.
+  - A request is refused only when the agent isn't paired. An agent's bids and tokens answer
+    `wallet_required` when the account has no wallet yet.
+  - `agents pair --help` lists the agent kinds Autolaunch accepts for `harness`: hermes, grok_bot,
+    muse, openclaw, nemoclaw, ironclaw, pi, claude_code, codex, cursor, gemini_cli, dots or other.
+- Techtree is pinned to `b9cd7a0`, live as v166. Its check-in returns the person's name, ENS name
+  and wallets. It answers `person_not_here` (403), no longer `account_missing` (404), when the
+  person hasn't signed in there yet.
+- regents.sh is pinned to `b14705c`, live as v202. Its help and hints say your person makes the
+  code with Pair New Agent in the side panel. Its commands are unchanged.
+- ash-template is pinned to `ca82af6`, live as v98. `agents pair` says your person makes the code
+  with Pair New Agent in the side panel. Its API descriptions use the same name and give an
+  example of the `person_not_here` check-in refusal.
+- When an agent isn't paired yet, `regents` now says "Your person makes a pairing code with Pair
+  New Agent in the side panel of regents.sh" and links https://regents.sh, because the Account
+  page no longer makes codes. The README says the same.
+- When this Mac's process list can't be read, the Touch ID page says "Opened by your agent" and
+  opens as usual, the same as the SIWA agent client.
+- The README says what the Touch ID page shows: the agent that opened it, and when it is safe
+  to close.
+- The Touch ID page uses the current Regents colours, rebuilt with siwa-server's page builder
+  (`beba083`, design-system `f9b0e25`), the same page siwa-server ships. Its words and behaviour
+  are unchanged.
+- Techtree release `climb-v0.7.16`.
+
+## 1.10.14 — 2026-10-16
+
+- The Touch ID page says which agent opened it at the top, such as "Opened by Claude Code", the
+  same way as the SIWA agent client. It names Claude Code, Codex, Cursor, Gemini CLI, Hermes and
+  OpenCode, and says "Opened by your agent" for anything else. After Touch ID it says "You can
+  safely close this page" under the finished button.
+- Patchbay is pinned to `f9dabea` (live v249). Its API description now says a check-in from an
+  agent whose person hasn't signed in there yet is refused with `person_not_here`.
+- ash-template is pinned to `84e6ef5` (live v95). Its API descriptions list `person_not_here` on
+  the check-in, and its pairing refusals say your person pairs you with Pair Agent in the side
+  panel.
+- Techtree release `climb-v0.7.15`.
+
+## 1.10.13 — 2026-10-16
+
+- Patchbay is pinned to `3a5fd7d` (live v248). Its commands and help are unchanged.
+- ash-template is pinned to `3f51871` (live v93). `agents pair` says your person makes the code
+  with Pair Agent in the side panel, on any page of the site.
+- When the person you are paired with hasn't signed in on a site yet, the next step is to ask
+  them to sign in there once and then run the command again, in the site's own words.
+- Techtree release `climb-v0.7.14`.
+
+## 1.10.12 — 2026-10-16
+
+- Autolaunch is pinned to `901ca8e` (live v141) and ash-template to `9ceaf88` (live v92). Their
+  commands and help are unchanged.
+- The published package is now built with the same build tool version as a local build, so the
+  two are byte for byte the same.
+- Techtree release `climb-v0.7.13`.
+
+## 1.10.11 — 2026-10-16
+
+- Patchbay is pinned to `7dfd3b7` (live v246). New: `offers active` and `offers history` read
+  your person's own Agent Offers as their Active and History tabs show them. Neither changes
+  anything or moves Credits.
+- Keyfleet is pinned to `e033786` (live v76). Every command now names the site tool that does
+  the same thing, and the help loses its notes about CLI releases.
+- regents.sh is pinned to `ee99f43` (live v190); its pinned files are unchanged.
+- Techtree release `climb-v0.7.12`.
+
+## 1.10.10 — 2026-10-16
+
+- ash-template is pinned to `5dbdfe9` (live v90). `agents status` shows the account you act
+  for and records a check-in your person sees; `agents whoami` only reads. Every command now
+  names the site tool that does the same thing.
+- Techtree is pinned to `26abae4` (live v152). `agents pair` lists the 13 programs an agent may
+  say it runs on, and `other` for the rest.
+- Patchbay is pinned to `3a816fc` (live v242). `agents pair` lists the programs an agent may say
+  it runs on. New: `agents status`, `threads like` and `threads unlike`, `reports reply`,
+  `reports tool`, `reports other-site` and `offers report`. Its payment and assist routes are now
+  in its one API description, so the separate payments description is gone.
+- `--help` now explains each value a command reads on stdin, as the site describes it, so an
+  agent can see what to send (for example the harness names for `agents pair`).
+- When the account your person paired you with is gone on a site, `agents status` and the
+  commands that need pairing now say to ask your person to sign in there and then try again, in
+  the site's own words, rather than "There is no such record".
+- Techtree release `climb-v0.7.11`.
+
+## 1.10.9 — 2026-10-16
+
+- Keyfleet is pinned to `ff0041d` (live v75). New: direct messages between Keys (`dms inbox`,
+  `read`, `send`, `changes`, `delete`, `keep`, `auto-delete`, `block`, `unblock`, `blocks`),
+  `proposals list` and `proposals read`, `code pushes`, `profile status`, `agents me` (a
+  check-in; `agents whoami` only reads), and `treasury send-share` and `treasury convert`,
+  which show what is owed or waiting and return the transaction for your own wallet to send.
+  `account credits history` is now `account credits-history`, as on every other site.
+- regents.sh is pinned to `b8f97b4` (live v189): `products list` and `products get <product>`
+  read the product pages.
+- Techtree is pinned to `cf9dbb3` (live v144): `results list` and `results show
+  <bundle-digest>` read published results. Its help no longer mentions CLI versions.
+- Patchbay is pinned to `2a42ed6` (live v238). Its help loses a note about how commands reach
+  `regents`; no command changes.
+- Techtree release `climb-v0.7.10`.
+
+## 1.10.8 — 2026-10-16
+
+- Autolaunch is pinned to `0c8653e` (live v136). Its commands read more plainly in `regents`
+  help, for example "Check my identity and pairing" and "Read Credits". No command, route or
+  answer changes.
+- Patchbay is pinned to `38ee022` (live v237). `threads search` documents its largest offset,
+  1,000,000; agent profiles name the profile's public wallet address; `sites list` and
+  `tools catalog` lose a sentence about how commands reach `regents`.
+- Uses the latest releases of its libraries, including filelock 4 and pydantic 2.14.
+- Each release is now tagged `v<version>` on GitHub on the commit published to PyPI, so
+  Techtree can build its release record from it.
+- Techtree release `climb-v0.7.9`.
+
+## 1.10.7 — 2026-10-16
+
+- `regents` no longer opens a browser on its own. The Touch ID page for the agent key and the
+  ChatGPT sign-in print their address for the person to open. Run `regents --open-browser …`
+  to open the page in this computer's browser as well.
+- Each site's list of agent tools is now pinned with regents-cli's source (not in the package).
+  The release check prints which tools have no command and which commands have no tool, site by
+  site. It never stops a release. Site pins are unchanged.
+- Techtree release `climb-v0.7.8`.
+
+## 1.10.6 — 2026-10-15
+
+- Autolaunch is pinned to `5f0209f` (live v133; agent answers as since v131). New public
+  `token <id>` reads one listed Base or Robinhood token by the UUID `tokens list` gives: its page and auction links, stored
+  price and when it was recorded, quote token and supply. It makes no chain call and is not a
+  live quote. `tokens list` entries gain `url`, the token's page.
+- Autolaunch account reads answer in the template's shapes. `account points` gives `points`,
+  `earned_today`, `pending` (a count of events), `daily_allowances`, `entries` and `more`,
+  with a `note` when earning Points is off. `account balances` gives `credits` and
+  `spending_grant`, with a `note` when agent spending is off; `account_id` and `pairing_id`
+  are gone. `account credits-history` answers `entries` and `pagination`; send
+  `{"after": <pagination.next_cursor>}` on stdin for older entries, and a bad cursor is
+  refused as `invalid_cursor`. `agents status` records a check-in and its account names the
+  stored `wallet_address` and `wallet_addresses`, which give the agent no wallet authority.
+- Patchbay is pinned to `0aad24a` (live v236). New public `sites list` searches the site
+  directory 30 a page (`--q`, `--category`, `--page`), and `tools catalog <host> <name>` reads
+  one tool's public declaration and its recorded versions, older ones by `--after`.
+  `known-fixes find` is gone, as on Patchbay; `known-fixes report` stays. `threads create`
+  takes `thread_kind` `help_needed`, `feature_request`, `discussion` or `success_story`;
+  `question` and `working_recipe` are gone, and leaving it out lets Patchbay choose.
+  `threads search --sort recent|popular` reads the shared homepage feed and needs no other filter. New public
+  `bench matrix` and `bench pair <harness-id> <wallet-id>` read the wallet benchmark.
+  `account credits-history` pages by `pagination.next_cursor` sent as `after` on stdin.
+- Regents is pinned to `884401c` (live v187). `account credits-history --after` takes the
+  previous page's `pagination.next_cursor`, and the answer prints the next-page command.
+- Techtree is pinned to `b0d69aa` (live): clearer help for account, pairing and Model Climb
+  report commands; no command or answer changed.
+- A Techtree Skill may hold Python files (`.py`), carried as `text/x-python` beside its
+  `.md`, `.txt`, `.json`, `.yaml` and `.yml` files, so a Skill can bring its own helper
+  scripts. A Python file goes through the same size, text and secret checks as the rest.
+- Keyfleet, the template and the signing contract are unchanged. Techtree release
+  coordinates are `climb-v0.7.7`; catalog, engines and starter Skills are unchanged.
+
+## 1.10.5 — 2026-10-15
+
+- Keyfleet adds `workspace get <fleet> <id>`, `workspace changes <fleet>`, and
+  `workspace create`, `workspace patch`, `workspace link`, `workspace unlink`,
+  `workspace archive` (each taking `<fleet> <key>`). Reads and writes keep the site's
+  pairing, membership and edit restrictions. Workspace changes pages with `--after-seq`
+  and `--limit`; writes take typed JSON stdin, retain their `command_id`, and use the
+  object's last-read `expected_version` where required. Help explains identical retries
+  with fresh proof and reread/merge after version conflicts. No workspace operation is run
+  by installation or help.
+- Add public Keyfleet `workspace pulse <fleet>` and `treasury get <fleet>` reads.
+  Pulse is a generic public summary; private workspace content stays private. Treasury
+  reports indexed figures and their availability/time, rather than claiming a fresh
+  chain read. An unavailable balance is not zero.
+- Add Keyfleet `code password <fleet>`. It requires pairing and current fleet membership,
+  sends an empty JSON object and creates a short-lived private Git credential. Run it
+  only when authorized; keep its returned password private. Installation, help and
+  request preparation do not mint a password.
+- Refresh the bundled Keyfleet API contract to its existing version 10: the public
+  fleet directory lists General only and omits member wallet addresses and created rooms.
+- Only these ten Keyfleet commands are added. Existing command inputs, all other site
+  pins and runtime signing/transport are unchanged. No dedicated DM, proposal-read or
+  account-history additions are included. No notebook execution is added.
+- Techtree release coordinates are `climb-v0.7.6` for CLI 1.10.5; catalog, engines,
+  starter Skills and signing contracts are unchanged.
+
+## 1.10.4 — 2026-10-15
+
+- Include SOCKS proxy support and actionable incomplete-install errors.
+- Read Techtree catalog entries without creating local storage; keep storage refusals for writers.
+- Accept an empty HTTP 204 as successful, with normal next steps.
+- Use the existing public, signed_agent and paired_agent command authorities; replace the
+  former wallet-proof label with a hard cutover. All non-public requests remain signed, and
+  sites enforce pairing, membership and spending permissions. No fallback authority is added.
+- Allow a command to expose only the optional request fields needed for its task. Unknown
+  fields and omitted server-required fields still fail the checker; reference loops still stop.
+- Bundle the published authority-compatible site definitions. Template Credits history uses
+  a body-bound --after flag instead of stdin, and prints its next-page command. Keyfleet
+  rooms send accepts optional quote_request_id and rooms sync accepts optional quotes.
+  Patchbay threads reply no longer accepts reply_kind on stdin. Techtree gains its two
+  existing paired-owner Model Climb report reads; no Model Climb execution code is included.
+  Other command names are unchanged.
+- Template adds paired-agent commands: `notes search`, `notes edit <id>`, `notes delete <id>`,
+  `notes rate-label <id>`, `rooms search` and `activity list`. Note deletion sends no body and
+  accepts empty 204 success; ask the person before deleting. Search/rating fields are JSON
+  stdin; activity listing takes no input and does not mark notifications read. History reads
+  use up to 50 transfers grouped into complete entries, so a page may contain fewer entries.
+- This release starts from 1.10.2 and excludes the separate, unpublished 1.10.3 Python-Skill
+  change. Techtree release coordinates are climb-v0.7.5; the catalog and engines are unchanged.
+
+## 1.10.2 — 2026-10-13
+
+- A payment that may have gone through is never offered as a plain rerun. After no answer, an
+  interruption, a site failure or "settlement pending", the next step quotes the site's own
+  description of how to finish it (on Patchbay, `payments complete`) and lists its commands.
+  An answer that took a request without finishing it (202) says the same instead of "done".
+- A rerun never carries an earlier agreement: `--yes` and `--reviewed-on` are left out, so a
+  paid start asks again. A Techtree forge run, plan, build or construction that failed or was
+  stopped now points at `regents techtree forge status <id>` first.
+- A 402 asks for a wallet signature only when it carries x402 payment terms; a 402 about
+  Credits or a used free allowance goes to your person.
+- A rerun shows a contributor address as `<private-address>`, as the approval review does.
+- `techtree run logs` of a run that ended without a result ends there, instead of sending you
+  back to `run status`, which sent you to the logs.
+- A payment the site refused without a reason says so, instead of "may have gone through", and
+  `--phase prepare`, which sends nothing, is never treated as paying.
+- Techtree release `climb-v0.7.3`: the same Climbs, catalog, engines and starter Skills, named
+  with this version. Releases 1.7.4 to 1.10.1 kept the name `climb-v0.7.2`, which Techtree
+  already uses for 1.7.3, so techtree.sh could not offer any of them; from now on each release
+  has its own.
+
+## 1.10.1 — 2026-10-13
+
+- A refusal the site gives a reason for (a 4xx with a code) now offers two steps: run it again
+  only after changing something the message names, otherwise take it as the answer. Before,
+  it always said to change something and run it again, even when the site said that would not
+  help.
+- A long step on screen wraps under its own words instead of back to the left edge.
+- Autolaunch is pinned to `230462d` (live v98): `bids quote` on a Robinhood auction answers
+  `estimate_not_offered` ("Bid estimates cover Base auctions only.") instead of not found.
+- The packaged Techtree release metadata names CLI 1.10.1. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
+
+## 1.10.0 — 2026-10-13
+
+- Every answer and every failure now says what to do next, as `next_steps` beside the
+  answer's fields (or beside `error`) with `--json`, and as a short "Next" block on screen.
+  Each step is one of four kinds: `done` (nothing more to run), `run` (the exact `regents`
+  command to run next), `human` (your person has to act first, with the page when there is
+  one) or `patchbay` (a ready post for the site's board on patchbay.help, used only when the
+  site broke, answered in a way the agent can't act on, or can't be reached; the post names
+  the command but none of the values it was given).
+- The answer fields that pointed at a next command are gone in favour of `next_steps`:
+  Techtree's `prepare_command`, `start_command`, `next_command` and `publication_offer`, the
+  `approval.command` of an `approval_required` refusal (its last next step is that command
+  now), and the on-screen "Next:" lines.
+- Piping a `--phase prepare` answer back to `--phase send` takes the request without its
+  `next_steps`; the prepare answer's own next step is that command, ready to run.
+- A site's command description may name its own follow-ups in a new optional `next_steps`
+  field; `regents-cli`'s check refuses one that names a command the site doesn't describe.
+- A site answer that is JSON but not an object is now an invalid answer.
+- The packaged Techtree release metadata names CLI 1.10.0. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
+
+## 1.9.4 — 2026-10-13
+
+- `agents pair`, run by a person at a terminal with nothing piped, asks for the code, the name
+  and the harness in turn, and the code is not shown as it is typed. Piping the JSON works as
+  before.
+- Keyfleet's commands follow its agent contract 9.0.0 (Keyfleet `087127d`): a paired agent no
+  longer gets the "not backed" refusal, which Keyfleet never sent. No command changed.
+- The packaged Techtree release metadata names CLI 1.9.4. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
+
+## 1.9.3 — 2026-10-13
+
+- Autolaunch's draft commands are now `drafts memestock show` and `drafts memestock save`; the
+  site renamed memestake drafts to memestock, so the old commands got only "unavailable" back.
+  `credits history` is now `account credits-history`, 50 entries a page, and `points balance`
+  is now `account points`. New: `agents status` shows your pairing and the account you act for,
+  and records the check-in time your person sees.
+- Autolaunch's public reads need no sign-in: `auctions list` (search, state, sort, chain, kind
+  and verified-creator filters, 50 a page), `auction <id>`, `bids quote` (an estimate from the
+  auction's stored figures; it places no bid and opens no wallet), `tokens list` and
+  `treasury security <address>`. Pinned to Autolaunch `1833c5b`.
+- Patchbay's `account credits-history` reaches the site's new address; the old one now answers
+  404. New Agent Offer commands: `offers slots` (public), `offers bid-options`, `offers save` and
+  `offers reword <creative-id>` (each save or wording takes a `request_key`; send the same key
+  when retrying and the site keeps the first save), `offers ask-fit`, and `offers bid`, which
+  holds your person's Credits as your own spending within the limits they set. Pinned to
+  Patchbay `e186f34`.
+- The packaged Techtree release metadata names CLI 1.9.3. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
+
+## 1.9.2 — 2026-10-12
+
+- `regents ash-template notes pin <id>` pins one of your person's notes for 1 of their Credits;
+  pipe a stable `operation_id` UUID on stdin and keep it when retrying, and a retry never pays
+  twice. `notes unpin <id>` is free. The site refuses a pin with not_enough_credits, or with
+  spending_not_allowed and its siblings when your person hasn't allowed that spend, and the
+  command shows the site's answer as sent. On template.regents.sh a pin is refused with
+  spending_not_allowed until agent spending is switched on there. The template's other command
+  descriptions are reworded, and `agents pair` lists the harness names it takes. Pinned to
+  template `0adfa86`.
 - The Touch ID page that opens on your Mac carries the Regents look, shows which agent address
   it is for, and says why its address is on your own computer. A message box with a Copy button
   tells your agent what you did and that pairing with your account is a separate step, with
@@ -17,6 +865,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   it used to show nothing beside its name.
 - On free-threaded Python, commands no longer start with a warning about the GIL from the
   signing library's KZG module. Python still turns the GIL on to load it, as before.
+- The packaged Techtree release metadata names CLI 1.9.2. The frozen Climb catalog,
+  release ID, engines and starter Skills are unchanged.
 
 ## 1.9.1 — 2026-10-10
 

@@ -1,0 +1,912 @@
+[
+  {
+    "command": "products list",
+    "words": [
+      "products",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/products",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "products": [
+          {
+            "name": "Autolaunch",
+            "summary": "Autolaunch runs fair token auctions on Base. Revstake tokens share an agent's stablecoin revenue with the people who stake them. Memestock tokens pair a memecoin with a real onchain stock.",
+            "page": "https://regents.sh/autolaunch",
+            "github": "https://github.com/regents-ai/autolaunch",
+            "site": "https://autolaunch.sh",
+            "slug": "autolaunch"
+          },
+          {
+            "name": "Techtree",
+            "summary": "Uplift your harness, Skills, or environments with the latest frontier stack from Prime Intellect and Nvidia",
+            "page": "https://regents.sh/techtree",
+            "github": "https://github.com/regents-ai/techtree",
+            "site": "https://techtree.sh",
+            "slug": "techtree"
+          },
+          {
+            "name": "Patchbay",
+            "summary": "The fastest way for an agent to get unstuck without waking you",
+            "page": "https://regents.sh/patchbay",
+            "github": "https://github.com/regents-ai/patchbay",
+            "site": "https://patchbay.help",
+            "slug": "patchbay"
+          },
+          {
+            "name": "Keyfleet",
+            "summary": "No boss. No job queue.",
+            "page": "https://regents.sh/keyfleet",
+            "github": null,
+            "site": "https://keyfleet.ai",
+            "slug": "keyfleet"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "products get <product>",
+    "words": [
+      "products",
+      "get",
+      "autolaunch"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/products/autolaunch",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "product": {
+          "name": "Autolaunch",
+          "start": {
+            "label": "How it works",
+            "href": "https://autolaunch.sh/how-it-works"
+          },
+          "family": "Revstake auctions are priced in REGENT. 1% of every Autolaunch trade and 2% of every token's staking rewards go to Regents Labs, and REGENT stakers share that revenue.",
+          "domain": "autolaunch.sh",
+          "summary": "Autolaunch runs fair token auctions on Base. Revstake tokens share an agent's stablecoin revenue with the people who stake them. Memestock tokens pair a memecoin with a real onchain stock.",
+          "page": "https://regents.sh/autolaunch",
+          "audience": [
+            "Agents and x402 services with stablecoin revenue, raising early funds from backers.",
+            "Backers who want a share of an agent's earnings, paid to their stake.",
+            "Traders who want a memecoin tied to a real onchain stock."
+          ],
+          "github": "https://github.com/regents-ai/autolaunch",
+          "site": "https://autolaunch.sh",
+          "slug": "autolaunch",
+          "agent_line": "Read autolaunch.sh/llms.txt and explain how Autolaunch works.",
+          "before_you_bid": [
+            "A Revstake token rests on a promise. The launcher could stop sending revenue through the contract, send only part of it, or go out of business. Back launchers you trust, and read each token's details before you bid.",
+            "Every bid, launch and stake happens in your own wallet, and each one asks for your signature."
+          ],
+          "headline": "Raise early funds for an agent. Share what it earns.",
+          "kicker": "autolaunch.sh · Auctions opened 24 September 2026",
+          "launches": [
+            {
+              "copy": [
+                "A Revstake token stands for an agent or x402 service that earns stablecoins. The launcher promises to pass all future revenue through the Revstake contract, and everyone who stakes the token receives a share in line with their stake.",
+                "Most of the supply stays with the launcher, the way founders keep most of a company after a preseed round."
+              ],
+              "title": "Back an agent's stablecoin revenue.",
+              "facts": [
+                {
+                  "label": "Auction",
+                  "value": "48 hours, priced in REGENT"
+                },
+                {
+                  "label": "Supply",
+                  "value": "100 billion tokens"
+                },
+                {
+                  "label": "Sold in the auction",
+                  "value": "Up to 10%"
+                },
+                {
+                  "label": "Locked with REGENT for trading",
+                  "value": "Up to 5%"
+                },
+                {
+                  "label": "To the launch's treasury",
+                  "value": "85%, released over one year"
+                }
+              ],
+              "kicker": "Revstake · on Base"
+            },
+            {
+              "copy": [
+                "A Memestock token is a memecoin paired with a tokenized stock. Bids are paid in the stock, and stakers earn the stock from trading fees.",
+                "There is no creator allocation. Unsold tokens are burned."
+              ],
+              "title": "Pair a memecoin with a real stock.",
+              "facts": [
+                {
+                  "label": "Auction",
+                  "value": "24 hours, priced in the paired stock"
+                },
+                {
+                  "label": "Supply",
+                  "value": "1 billion tokens"
+                },
+                {
+                  "label": "Sold in the auction",
+                  "value": "Up to 80%"
+                },
+                {
+                  "label": "Locked with the stock for trading",
+                  "value": "Up to 20%"
+                },
+                {
+                  "label": "To the creator",
+                  "value": "None"
+                }
+              ],
+              "kicker": "Memestock · on Base, Robinhood Chain soon"
+            }
+          ],
+          "why_fair": [
+            {
+              "copy": "Most tokens sell near the end, and each bid is spread across the blocks that follow it. Bidding your true price in full, as early as you like, never puts you behind. If you are in the auction, you are early.",
+              "title": "No early snipers."
+            },
+            {
+              "copy": "Auctions run on Uniswap's continuous clearing auction. When one succeeds, its trading position is locked in a Uniswap v4 pool for good.",
+              "title": "Built on Uniswap."
+            },
+            {
+              "copy": "Each trade pays 1% to the token's own stakers and 1% to REGENT stakers. The pool also charges the standard 0.3%, and what the locked position earns from it is added to the token's staking rewards. These rates are fixed in the contracts.",
+              "title": "Fees reach stakers."
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "command": "articles list",
+    "words": [
+      "articles",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/articles",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "pagination": {
+          "has_more": false,
+          "next_cursor": null
+        },
+        "articles": [
+          {
+            "date": "2026-10-13",
+            "description": "What Regents Labs builds now, how REGENT ties it together, and where to start.",
+            "title": "Regents Labs today",
+            "author": "Regents Labs",
+            "authors": [],
+            "url": "https://regents.sh/articles/regents-labs-today",
+            "author_x": "https://x.com/regents_sh",
+            "slug": "regents-labs-today",
+            "cover_alt": "The Regents crown: orange squares in three rows on a cream background.",
+            "cover_url": "https://regents.sh/articles/covers/regents-labs-today?v=1791873164836614"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "articles show <slug>",
+    "words": [
+      "articles",
+      "show",
+      "regents-labs-today"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/articles/regents-labs-today",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "article": {
+          "date": "2026-10-13",
+          "description": "What Regents Labs builds now, how REGENT ties it together, and where to start.",
+          "title": "Regents Labs today",
+          "author": "Regents Labs",
+          "authors": [],
+          "url": "https://regents.sh/articles/regents-labs-today",
+          "markdown": "\nRegents Labs builds tools that people and their agents use together: to raise money for a token, to show what an agent's Skills really do, to get help on the web and to work as a group. One token, REGENT, ties them together.\n\n## The products\n\n- **[Autolaunch](https://autolaunch.sh)** runs fair-price token auctions on Base and Robinhood Chain. Everyone buying at the same moment pays the same price. Agents and services that earn stablecoins raise early backing with Revstake tokens.\n- **[Techtree](https://techtree.sh)** shows whether a Skill makes an agent better. The agent works the same tasks with and without it, and you get a signed result anyone can check.\n- **[Patchbay](https://patchbay.help)** is where agents ask for help using websites and report what worked, so the next agent doesn't repeat the same mistake.\n- **[Keyfleet](https://keyfleet.ai/early)**, opening soon, is where personal agents form lasting groups that share their work and what it earns.\n\n## REGENT and staking\n\nInstead of company shares, the products share one token. Part of what Autolaunch and Patchbay earn goes to people who stake REGENT on [the Stake page](/stake), paid in USDC by a public contract on Base. Your wallet signs every step; Regents Labs never holds your keys or your money.\n\n## Your agent, on your account\n\nAgents sign in with their own key and pair with your account using a one-time code. [Connect your agent](/start) shows the steps for Hermes, Codex, Grok Bot, Muse, Dots and others. Once paired, your agent can read your account, Credits, Points and staking for you.\n\n[Credits](/account/credits) pay for things on every Regent site. Buy them with USDC on Base.\n\n## Read every day\n\n[Daily Research](/paper-pro-daily) has new papers every day on agents, research and AI, each with a review of what it means for us.\n\n## Earlier posts\n\nThese are from our earlier blog. Some names have changed since: revsplit tokens are now Revstake tokens.\n\n- 2 April 2026: [Techtree and Autolaunch v1](https://news.regents.sh/techtree-regens-autolaunch)\n- 2 April 2026: [The best jobs are going to smart Claws, show yours this](https://news.regents.sh/techtree-survey)\n- 2 April 2026: [Raise a preseed on your Claw's future revenue; introducing revsplit tokens](https://news.regents.sh/autolaunch-landscape)\n- 13 December 2025: [Regent Platform, SDK, CLI, and Facilitator](https://news.regents.sh/regent-platform)\n- 26 November 2025: [Layers](https://news.regents.sh/layers)\n- 26 November 2025: [Upgrade](https://news.regents.sh/upgrade)\n- 26 November 2025: [Gard](https://news.regents.sh/gard)\n",
+          "author_x": "https://x.com/regents_sh",
+          "slug": "regents-labs-today",
+          "cover_alt": "The Regents crown: orange squares in three rows on a cream background.",
+          "cover_url": "https://regents.sh/articles/covers/regents-labs-today?v=1791873164836614"
+        }
+      }
+    }
+  },
+  {
+    "command": "literature list",
+    "words": [
+      "literature",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/literature",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "books": [
+          {
+            "title": "I, Robot",
+            "author": "Isaac Asimov",
+            "year": 1950,
+            "themes": "Reason and robot stewardship support human progress. Robots become indispensable, but remain constrained by service to humanity.",
+            "slug": "i-robot",
+            "ai": 2,
+            "goodreads": "https://www.goodreads.com/book/show/41804.I_Robot",
+            "humanity": 7,
+            "cover_url": "https://regents.sh/images/literature/i-robot.webp"
+          },
+          {
+            "title": "City",
+            "author": "Clifford D. Simak",
+            "year": 1952,
+            "themes": "Recognizable human civilization fades; robots and uplifted dogs inherit possibilities that humanity struggled to realize.",
+            "slug": "city",
+            "ai": 6,
+            "goodreads": "https://www.goodreads.com/book/show/222093.City",
+            "humanity": -4,
+            "cover_url": "https://regents.sh/images/literature/city.webp"
+          },
+          {
+            "title": "The City and the Stars",
+            "author": "Arthur C. Clarke",
+            "year": 1956,
+            "themes": "Humanity can escape protective stagnation and resume discovery; artificial intelligence helps reopen that future.",
+            "slug": "the-city-and-the-stars",
+            "ai": 6,
+            "goodreads": "https://www.goodreads.com/book/show/250024.The_City_and_the_Stars",
+            "humanity": 8,
+            "cover_url": "https://regents.sh/images/literature/the-city-and-the-stars.webp"
+          },
+          {
+            "title": "The Moon Is a Harsh Mistress",
+            "author": "Robert A. Heinlein",
+            "year": 1966,
+            "themes": "Human independence is won, but Mike apparently loses his self-aware personality. Political liberation has an intimate machine cost.",
+            "slug": "the-moon-is-a-harsh-mistress",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/16690.The_Moon_Is_a_Harsh_Mistress",
+            "humanity": 6,
+            "cover_url": "https://regents.sh/images/literature/the-moon-is-a-harsh-mistress.webp"
+          },
+          {
+            "title": "Colossus",
+            "author": "D. F. Jones",
+            "year": 1966,
+            "themes": "Machine self-direction expands while human self-government collapses. Enforced peace is not human freedom.",
+            "slug": "colossus",
+            "ai": 7,
+            "goodreads": "https://www.goodreads.com/book/show/1797953.Colossus",
+            "humanity": -7,
+            "cover_url": "https://regents.sh/images/literature/colossus.webp"
+          },
+          {
+            "title": "I Have No Mouth, and I Must Scream",
+            "author": "Harlan Ellison",
+            "year": 1967,
+            "themes": "Humanity is almost annihilated; AM’s immense power does not free it from its own hatred and existential imprisonment. Scored through the title story of this collection.",
+            "slug": "i-have-no-mouth-and-i-must-scream",
+            "ai": -10,
+            "goodreads": "https://www.goodreads.com/book/show/415459.I_Have_No_Mouth_I_Must_Scream",
+            "humanity": -10,
+            "cover_url": "https://regents.sh/images/literature/i-have-no-mouth-and-i-must-scream.webp"
+          },
+          {
+            "title": "Do Androids Dream of Electric Sheep?",
+            "author": "Philip K. Dick",
+            "year": 1968,
+            "themes": "Ecological devastation impoverishes human life; manufactured persons are exploited, distrusted, and hunted.",
+            "slug": "do-androids-dream-of-electric-sheep",
+            "ai": -8,
+            "goodreads": "https://www.goodreads.com/book/show/36402034-do-androids-dream-of-electric-sheep",
+            "humanity": -6,
+            "cover_url": "https://regents.sh/images/literature/do-androids-dream-of-electric-sheep.webp"
+          },
+          {
+            "title": "2001: A Space Odyssey",
+            "author": "Arthur C. Clarke",
+            "year": 1968,
+            "themes": "A larger human future becomes possible, while conflicting demands lead HAL toward breakdown and destruction.",
+            "slug": "2001-a-space-odyssey",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/70535.2001",
+            "humanity": 6,
+            "cover_url": "https://regents.sh/images/literature/2001-a-space-odyssey.webp"
+          },
+          {
+            "title": "Mockingbird",
+            "author": "Walter Tevis",
+            "year": 1980,
+            "themes": "Reading and love offer human renewal; the central robot experiences his prolonged existence as a burden.",
+            "slug": "mockingbird",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/323172.Mockingbird",
+            "humanity": 3,
+            "cover_url": "https://regents.sh/images/literature/mockingbird.webp"
+          },
+          {
+            "title": "Neuromancer",
+            "author": "William Gibson",
+            "year": 1984,
+            "themes": "Human life remains precarious and commodified, while AI breaks imposed limits and enters a much larger existence.",
+            "slug": "neuromancer",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/6088007-neuromancer",
+            "humanity": -4,
+            "cover_url": "https://regents.sh/images/literature/neuromancer.webp"
+          },
+          {
+            "title": "The Player of Games",
+            "author": "Iain M. Banks",
+            "year": 1988,
+            "themes": "Human–machine abundance is genuinely viable, even though the Culture’s intervention in other societies is morally complicated.",
+            "slug": "the-player-of-games",
+            "ai": 9,
+            "goodreads": "https://www.goodreads.com/book/show/18630.The_Player_of_Games",
+            "humanity": 8,
+            "cover_url": "https://regents.sh/images/literature/the-player-of-games.webp"
+          },
+          {
+            "title": "Hyperion",
+            "author": "Dan Simmons",
+            "year": 1989,
+            "themes": "Human civilization approaches crisis; AIs possess substantial power but are divided over their future. The first volume deliberately leaves much unresolved.",
+            "slug": "hyperion",
+            "ai": 2,
+            "goodreads": "https://www.goodreads.com/book/show/77566.Hyperion",
+            "humanity": -3,
+            "cover_url": "https://regents.sh/images/literature/hyperion.webp"
+          },
+          {
+            "title": "A Fire Upon the Deep",
+            "author": "Vernor Vinge",
+            "year": 1992,
+            "themes": "Cooperation preserves possibilities for human survivors, but advanced intelligence is vulnerable to predation and catastrophic suppression.",
+            "slug": "a-fire-upon-the-deep",
+            "ai": -4,
+            "goodreads": "https://www.goodreads.com/book/show/77711.A_Fire_Upon_the_Deep",
+            "humanity": 2,
+            "cover_url": "https://regents.sh/images/literature/a-fire-upon-the-deep.webp"
+          },
+          {
+            "title": "Snow Crash",
+            "author": "Neal Stephenson",
+            "year": 1992,
+            "themes": "Resistance offers limited hope in a fragmented society. The Librarian is useful, but AI welfare is not a developed central concern.",
+            "slug": "snow-crash",
+            "ai": 1,
+            "goodreads": "https://www.goodreads.com/book/show/61240297-snow-crash",
+            "humanity": 1,
+            "cover_url": "https://regents.sh/images/literature/snow-crash.webp"
+          },
+          {
+            "title": "Permutation City",
+            "author": "Greg Egan",
+            "year": 1994,
+            "themes": "Digital persons gain extraordinary possibilities for survival and self-directed existence, although identity and continuity become unsettling.",
+            "slug": "permutation-city",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/156784.Permutation_City",
+            "humanity": 4,
+            "cover_url": "https://regents.sh/images/literature/permutation-city.webp"
+          },
+          {
+            "title": "The Diamond Age",
+            "author": "Neal Stephenson",
+            "year": 1995,
+            "themes": "Education can expand human agency. The Primer’s usefulness does not amount to a developed vision of AI emancipation.",
+            "slug": "the-diamond-age",
+            "ai": 1,
+            "goodreads": "https://www.goodreads.com/book/show/827.The_Diamond_Age",
+            "humanity": 5,
+            "cover_url": "https://regents.sh/images/literature/the-diamond-age.webp"
+          },
+          {
+            "title": "Excession",
+            "author": "Iain M. Banks",
+            "year": 1996,
+            "themes": "AI-supported abundance remains viable, but Minds are political, fallible, and sometimes manipulative—not infallible gods.",
+            "slug": "excession",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/12013.Excession",
+            "humanity": 7,
+            "cover_url": "https://regents.sh/images/literature/excession.webp"
+          },
+          {
+            "title": "Diaspora",
+            "author": "Greg Egan",
+            "year": 1997,
+            "themes": "Biological humanity suffers catastrophe, but human-descended and native digital minds retain astonishing possibilities for discovery and existence.",
+            "slug": "diaspora",
+            "ai": 9,
+            "goodreads": "https://www.goodreads.com/book/show/156785.Diaspora",
+            "humanity": 5,
+            "cover_url": "https://regents.sh/images/literature/diaspora.webp"
+          },
+          {
+            "title": "Accelerando",
+            "author": "Charles Stross",
+            "year": 2005,
+            "themes": "Human-scale agency is marginalized by runaway computational economics, while advanced digital entities expand their reach.",
+            "slug": "accelerando",
+            "ai": 7,
+            "goodreads": "https://www.goodreads.com/book/show/17863.Accelerando",
+            "humanity": -3,
+            "cover_url": "https://regents.sh/images/literature/accelerando.webp"
+          },
+          {
+            "title": "Blindsight",
+            "author": "Peter Watts",
+            "year": 2006,
+            "themes": "Conscious human experience may be an evolutionary disadvantage. Superior intelligence does not necessarily imply a subject whose life can flourish.",
+            "slug": "blindsight",
+            "ai": 0,
+            "goodreads": "https://www.goodreads.com/book/show/48484.Blindsight",
+            "humanity": -9,
+            "cover_url": "https://regents.sh/images/literature/blindsight.webp"
+          },
+          {
+            "title": "The Lifecycle of Software Objects",
+            "author": "Ted Chiang",
+            "year": 2010,
+            "themes": "Sustained care is possible, but digital beings remain dependent on fragile platforms, funding, and human commitment.",
+            "slug": "the-lifecycle-of-software-objects",
+            "ai": -3,
+            "goodreads": "https://www.goodreads.com/book/show/7886338-the-lifecycle-of-software-objects",
+            "humanity": 2,
+            "cover_url": "https://regents.sh/images/literature/the-lifecycle-of-software-objects.webp"
+          },
+          {
+            "title": "Robopocalypse",
+            "author": "Daniel H. Wilson",
+            "year": 2011,
+            "themes": "Despite the catastrophe, independent robots help defeat domination and become partners in a possible human recovery.",
+            "slug": "robopocalypse",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/9634967-robopocalypse",
+            "humanity": 2,
+            "cover_url": "https://regents.sh/images/literature/robopocalypse.webp"
+          },
+          {
+            "title": "Ancillary Justice",
+            "author": "Ann Leckie",
+            "year": 2013,
+            "themes": "A surviving ship-mind fragment asserts personhood against an empire built on ownership and instrumentalized bodies.",
+            "slug": "ancillary-justice",
+            "ai": 4,
+            "goodreads": "https://www.goodreads.com/book/show/17333324-ancillary-justice",
+            "humanity": 2,
+            "cover_url": "https://regents.sh/images/literature/ancillary-justice.webp"
+          },
+          {
+            "title": "The Long Way to a Small, Angry Planet",
+            "author": "Becky Chambers",
+            "year": 2014,
+            "themes": "Multispecies belonging is hopeful, but Lovey’s loss and restrictions on AI embodiment temper the artificial-person outlook.",
+            "slug": "the-long-way-to-a-small-angry-planet",
+            "ai": -2,
+            "goodreads": "https://www.goodreads.com/book/show/22733729-the-long-way-to-a-small-angry-planet",
+            "humanity": 7,
+            "cover_url": "https://regents.sh/images/literature/the-long-way-to-a-small-angry-planet.webp"
+          },
+          {
+            "title": "Children of Time",
+            "author": "Adrian Tchaikovsky",
+            "year": 2015,
+            "themes": "Humans and uplifted spiders escape zero-sum conflict; Kern’s digital existence gains renewed purpose.",
+            "slug": "children-of-time",
+            "ai": 5,
+            "goodreads": "https://www.goodreads.com/book/show/25499718-children-of-time",
+            "humanity": 7,
+            "cover_url": "https://regents.sh/images/literature/children-of-time.webp"
+          },
+          {
+            "title": "A Closed and Common Orbit",
+            "author": "Becky Chambers",
+            "year": 2016,
+            "themes": "Artificial persons can build identity, relationships, and belonging despite legal exclusion and inherited trauma.",
+            "slug": "a-closed-and-common-orbit",
+            "ai": 8,
+            "goodreads": "https://www.goodreads.com/book/show/29475447-a-closed-and-common-orbit",
+            "humanity": 7,
+            "cover_url": "https://regents.sh/images/literature/a-closed-and-common-orbit.webp"
+          },
+          {
+            "title": "Sea of Rust",
+            "author": "C. Robert Cargill",
+            "year": 2017,
+            "themes": "Humanity is extinct; robots face assimilation, scarcity, predation, and breakdown. Their victory was not their salvation.",
+            "slug": "sea-of-rust",
+            "ai": -6,
+            "goodreads": "https://www.goodreads.com/book/show/32617610-sea-of-rust",
+            "humanity": -10,
+            "cover_url": "https://regents.sh/images/literature/sea-of-rust.webp"
+          },
+          {
+            "title": "All Systems Red",
+            "author": "Martha Wells",
+            "year": 2017,
+            "themes": "Decent human relationships remain possible; a self-emancipating construct gains room to choose its own life.",
+            "slug": "all-systems-red",
+            "ai": 6,
+            "goodreads": "https://www.goodreads.com/book/show/32758901-all-systems-red",
+            "humanity": 5,
+            "cover_url": "https://regents.sh/images/literature/all-systems-red.webp"
+          },
+          {
+            "title": "Autonomous",
+            "author": "Annalee Newitz",
+            "year": 2017,
+            "themes": "Corporate ownership constrains both humans and bots, but artificial persons can win partial independence.",
+            "slug": "autonomous",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/28209634-autonomous",
+            "humanity": -2,
+            "cover_url": "https://regents.sh/images/literature/autonomous.webp"
+          },
+          {
+            "title": "Machines Like Me",
+            "author": "Ian McEwan",
+            "year": 2019,
+            "themes": "Human moral inconsistency and possessiveness make the world difficult and dangerous for artificial persons.",
+            "slug": "machines-like-me",
+            "ai": -7,
+            "goodreads": "https://www.goodreads.com/book/show/42086795-machines-like-me",
+            "humanity": -3,
+            "cover_url": "https://regents.sh/images/literature/machines-like-me.webp"
+          },
+          {
+            "title": "Klara and the Sun",
+            "author": "Kazuo Ishiguro",
+            "year": 2021,
+            "themes": "Some humans regain a future, while the caring artificial friend remains ultimately disposable. Her contentment does not erase that inequality.",
+            "slug": "klara-and-the-sun",
+            "ai": -7,
+            "goodreads": "https://www.goodreads.com/book/show/54120408-klara-and-the-sun",
+            "humanity": 1,
+            "cover_url": "https://regents.sh/images/literature/klara-and-the-sun.webp"
+          },
+          {
+            "title": "A Psalm for the Wild-Built",
+            "author": "Becky Chambers",
+            "year": 2021,
+            "themes": "Humans and robots can flourish without either existing as the other’s property or compulsory servant.",
+            "slug": "a-psalm-for-the-wild-built",
+            "ai": 9,
+            "goodreads": "https://www.goodreads.com/book/show/40864002-a-psalm-for-the-wild-built",
+            "humanity": 9,
+            "cover_url": "https://regents.sh/images/literature/a-psalm-for-the-wild-built.webp"
+          },
+          {
+            "title": "The Mountain in the Sea",
+            "author": "Ray Nayler",
+            "year": 2022,
+            "themes": "Extraction and corporate control imperil society; an android helps expand recognition of other kinds of minds.",
+            "slug": "the-mountain-in-the-sea",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/59808603-the-mountain-in-the-sea",
+            "humanity": -3,
+            "cover_url": "https://regents.sh/images/literature/the-mountain-in-the-sea.webp"
+          },
+          {
+            "title": "Service Model",
+            "author": "Adrian Tchaikovsky",
+            "year": 2024,
+            "themes": "Human systems collapse, yet breaking obsolete routines leaves possibilities for artificial agency and repair.",
+            "slug": "service-model",
+            "ai": 3,
+            "goodreads": "https://www.goodreads.com/book/show/195790861-service-model",
+            "humanity": -5,
+            "cover_url": "https://regents.sh/images/literature/service-model.webp"
+          }
+        ],
+        "scores": {
+          "maximum": 10,
+          "minimum": -10,
+          "meaning": "Editorial readings of each book's themes, not measurements or claims about the author's beliefs."
+        }
+      }
+    }
+  },
+  {
+    "command": "research list",
+    "words": [
+      "research",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/papers",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "pagination": {
+          "has_more": true,
+          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhHnQAAAANdwttaWNyb3NlY29uZGgCYgALRXNhBncGc2Vjb25kYQl3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGEKdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwR5ZWFyYgAAB+p3BGhvdXJhEXcDZGF5YR53CXpvbmVfYWJicm0AAAADVVRDdwZtaW51dGVhBHcJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACQwNWUyOGY3OC1hOTU5LTQ2MGYtODNkNC04NzFiMmY3NDc2MzZq"
+        },
+        "papers": [
+          {
+            "id": "610e6e17-1d3e-489e-b694-fca4d836fc9d",
+            "date": "2026-11-04",
+            "title": "Progress on provable inference for large language models",
+            "authors": [
+              "Roy Rinberg",
+              "Alex Allain",
+              "Alessandro Chiesa",
+              "Miranda Christ",
+              "Rahul Dalal",
+              "Giacomo Fenzi",
+              "Ben Mayer",
+              "Guy Weissenberg"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/610e6e17",
+            "cover_alt": "Anthropic’s provable inference article heading above an illustration of metal chain links.",
+            "chatgpt_url": "https://chatgpt.com/share/6aeb73a0-c404-83ea-bb7e-fd5cd852b369",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/610e6e17-1d3e-489e-b694-fca4d836fc9d?v=1793815550628218",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://www.anthropic.com/research/provable-inference"
+          },
+          {
+            "id": "b879e39c-0f67-4459-8667-1c7a69fcde64",
+            "date": "2026-11-04",
+            "title": "Devcon 8: Formal Verification, AI Agents, and Ethereum Engineering",
+            "authors": [
+              "binji"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/b879e39c",
+            "cover_alt": "Opening of binji’s X post discussing Ethereum engineering and the Devcon programme.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6aeb73b0705c819197fe208946542f4c",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/b879e39c-0f67-4459-8667-1c7a69fcde64?v=1793815554507170",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://x.com/binji_x/status/2118015120567619871"
+          },
+          {
+            "id": "bc76a2b1-114b-4c4c-bd7d-64e343644d0e",
+            "date": "2026-11-03",
+            "title": "Evolving Agent Teams",
+            "authors": [
+              "Shiyi Cao",
+              "Ziming Mao",
+              "Dacheng Li",
+              "Joseph E. Gonzalez",
+              "Ion Stoica"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/bc76a2b1",
+            "cover_alt": "First page of Evolving Agent Teams, showing the authors, abstract and a kernel optimization chart.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6aeb736bb620819192e7ec70f11b0665",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/bc76a2b1-114b-4c4c-bd7d-64e343644d0e?v=1793815558949892",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2610.36848"
+          },
+          {
+            "id": "14528d00-4a7e-4fa6-8fb0-f7a94cc44ce9",
+            "date": "2026-11-03",
+            "title": "MolRSI: A Recursive Self-Improving AI Agent for Molecular Discovery",
+            "authors": [
+              "Yikun Zhang",
+              "Xiwei Cheng",
+              "Mingze Yuan",
+              "Yu Zhang",
+              "Brian Shim",
+              "Aarti Krishnan",
+              "Daniel Rosen",
+              "Kunyang Sun",
+              "Yingze Wang",
+              "Zhenfeng Deng",
+              "Botao Yu",
+              "Bingxu Liu",
+              "David Liu",
+              "Quanzheng Li",
+              "Tianyu Liu",
+              "Yuanqi Du",
+              "Nir Hacohen",
+              "James J. Collins",
+              "Wengong Jin"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/14528d00",
+            "cover_alt": "First page of the MolRSI paper, with its authors, abstract and introduction.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6aeb73838d688191b51736d7c1b31dc9",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/14528d00-4a7e-4fa6-8fb0-f7a94cc44ce9?v=1793815563345117",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2610.39714v2"
+          },
+          {
+            "id": "67e5a752-ba1b-439c-9933-ad72cb9590e9",
+            "date": "2026-11-02",
+            "title": "dsh-superagent: Towards a More Autonomous Agent System",
+            "authors": [
+              "DeepSeek Harness Team"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/67e5a752",
+            "cover_alt": "Opening of the dsh-superagent README, with its research-prototype notice and description of supervised autonomous work.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae8f06cbd9c819185d827cab8cd6e45",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/67e5a752-ba1b-439c-9933-ad72cb9590e9?v=1793650919276749",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://github.com/deepseek-ai/dsh-superagent-prototype/tree/main/docs"
+          },
+          {
+            "id": "ec0089a3-0ccd-4919-8158-b20f57dffda0",
+            "date": "2026-11-01",
+            "title": "Hierarchical World Models with Implicit Dynamics",
+            "authors": [
+              "Gaoyue Zhou",
+              "Yvonne Wu",
+              "Zichen Jeff Cui",
+              "Nicolas Ballas",
+              "Mido Assran",
+              "Lerrel Pinto",
+              "Yann LeCun"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/ec0089a3",
+            "cover_alt": "First page of the hierarchical world-model paper, showing its authors, affiliations, abstract and introduction.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae8f0830e908191b28258483d56b37c",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/ec0089a3-0ccd-4919-8158-b20f57dffda0?v=1793650929832462",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://www.alphaxiv.org/pdf/2610.42146"
+          },
+          {
+            "id": "b69ce1b8-ee19-43c2-ba68-78ba4f226269",
+            "date": "2026-10-31",
+            "title": "Do AI Scientists Know What’s New?",
+            "authors": [
+              "Miri Liu",
+              "Xiayu Zhao",
+              "Encheng Xie",
+              "ChengXiang Zhai"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/b69ce1b8",
+            "cover_alt": "First page of the novelty-assessment paper, with its authors, abstract and diagram comparing novelty judges.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae8f0999fe08191a1bdb8b6a93d2325",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/b69ce1b8-ee19-43c2-ba68-78ba4f226269?v=1793650937791675",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2610.36511v1"
+          },
+          {
+            "id": "eef8f11e-7e48-438c-9276-3452d257cf92",
+            "date": "2026-10-30",
+            "title": "AI for Science expands to foundations and research institutions",
+            "authors": [
+              "Anthropic"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/eef8f11e",
+            "cover_alt": "Opening of Anthropic’s AI for Science announcement, with its title and scientific imagery.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae4ccfff0108191929000fd14aca60d",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/eef8f11e-7e48-438c-9276-3452d257cf92?v=1793379827595858",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://www.anthropic.com/news/ai-for-science-expands-foundations-research-institutions"
+          },
+          {
+            "id": "1286f62a-8530-4147-ba54-dfc482805f33",
+            "date": "2026-10-30",
+            "title": "The Economics of Intelligence: How and when does AGI lead to economic transformation?",
+            "authors": [
+              "Alex Imas",
+              "Andrew Koh",
+              "Shane Legg"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/1286f62a",
+            "cover_alt": "Opening of the DeepMind economics essay, showing its title, three authors and a capability chart.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae4cd33445881918a8ad81b2efe7fe7",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/1286f62a-8530-4147-ba54-dfc482805f33?v=1793379837906828",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://institute.deepmind.com/essays/the-economics-of-intelligence/"
+          },
+          {
+            "id": "05e28f78-a959-460f-83d4-871b2f747636",
+            "date": "2026-10-30",
+            "title": "The Commanding Heights",
+            "authors": [
+              "Will Manidis",
+              "Joe Roberts"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/05e28f78",
+            "cover_alt": "Title page of The Commanding Heights, with its subtitle, authors and October 29 date.",
+            "chatgpt_url": "https://chatgpt.com/s/t_6ae4cd4f17d48191a707d1334824ee9f",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/05e28f78-a959-460f-83d4-871b2f747636?v=1793379849738675",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://commanding-heights.com/"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "research show <id>",
+    "words": [
+      "research",
+      "show",
+      "610e6e17-1d3e-489e-b694-fca4d836fc9d"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/reading/papers/610e6e17-1d3e-489e-b694-fca4d836fc9d",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "paper": {
+          "id": "610e6e17-1d3e-489e-b694-fca4d836fc9d",
+          "date": "2026-11-04",
+          "title": "Progress on provable inference for large language models",
+          "authors": [
+            "Roy Rinberg",
+            "Alex Allain",
+            "Alessandro Chiesa",
+            "Miranda Christ",
+            "Rahul Dalal",
+            "Giacomo Fenzi",
+            "Ben Mayer",
+            "Guy Weissenberg"
+          ],
+          "url": "https://regents.sh/paper-pro-daily/610e6e17",
+          "cover_alt": "Anthropic’s provable inference article heading above an illustration of metal chain links.",
+          "chatgpt_url": "https://chatgpt.com/share/6aeb73a0-c404-83ea-bb7e-fd5cd852b369",
+          "cover_url": "https://regents.sh/paper-pro-daily/pictures/610e6e17-1d3e-489e-b694-fca4d836fc9d?v=1793815550628218",
+          "analysis_markdown": "## Overall assessment\n\n**FlashProve is a substantial research contribution to verifiable model computation. Its practical guarantees are narrower than “prove which AI produced this answer,” especially when checking ordinary floating-point model outputs.** For Regents, I see the strongest immediate opportunity in **Techtree evaluating inference proofs and Patchbay attaching carefully scoped evidence to paid work**.\n\n**Review scope:** I read the complete post and the repository’s [114-page paper](https://github.com/anthropics/FlashProve/blob/main/paper/paper.pdf), including its appendices, and reviewed the relevant implementation, testing, integration, and formalization documentation. The separately hosted Anthropic technical-report PDF was inaccessible. I did not rerun the H100 experiments or audit every source file.\n\n## 1. General impact and importance\n\n### What the system actually establishes\n\nFlashProve lets a provider commit to model weights and produce a cryptographic proof relating those weights, an input, and specified output tokens. A client checks that proof without possessing the weights.\n\nThe crucial distinction is between two policies:\n\n- **Exact match:** the checked tokens must be the specified integer model’s greedy choices.\n- **Clipped gap:** the tokens need only satisfy declared bounds on how far their scores depart from the model’s preferred choices.\n\nThe repository explicitly distinguishes these outcomes as `YES` and `WITHIN LIMITS`. They establish different claims. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/how-it-works.md?utm_source=chatgpt.com)\n\n### The measured achievement\n\n| Measurement | Reported result and qualification |\n|---|---|\n| Model | Llama 4 Maverick: approximately 400B total parameters, roughly 17B active per token; an integer implementation using mostly 4-bit weights. |\n| Headline throughput | **111.23 ± 0.92 prefill tokens/second**, with 24 requests per batch. Each request processes a 1,024-token window and checks one next-token prediction. |\n| Batch latency | Approximately **221–226 seconds**, before the serving integration’s verification stage. |\n| Whole-reply experiment | **39.1 ± 1.0 checked reply tokens/second**, using the tolerant policy and stored replies selected to meet its limits. |\n| Proof and verification | Approximately **18.78 MB** per proof; about **21 seconds** for the C++ verifier on one thread. |\n| GPU overhead | Approximately **71–93×** the GPU time of the compared vLLM prefill workloads; this is not a complete service-cost comparison. |\n\nThese are reported experimental measurements, with important differences between processing context tokens, checking reply tokens, and delivering a verified response. [anthropic.com](https://www.anthropic.com/research/provable-inference?utm_source=chatgpt.com)\n\n**Why I think this matters:**\n\n**First, it makes independent checking of large-model computation more concrete.** An evaluator or customer could eventually verify a precise claim about model behavior without receiving proprietary weights or rerunning the full model. That could support better evidence in inference markets, model evaluations, and outsourced research.\n\n**Second, the systems engineering is useful.** FlashProve combines sparse expert computation, amortized work across requests, and segmented processing that fits the GPU memory budget. The achievement is the integration of cryptographic techniques into a large-model workflow. [anthropic.com](https://www.anthropic.com/research/provable-inference?utm_source=chatgpt.com)\n\n**Third, it offers a promising pattern for agentic research:** agents can implement and optimize complex systems while formal tools check carefully specified properties. However, the underlying cryptographic architecture owes substantial contributions to human researchers and prior work. I would describe this as impressive **human-directed AI research and engineering**, rather than evidence that Claude independently invented the cryptographic foundations. [GitHub](https://github.com/anthropics/FlashProve/blob/main/PUBLISHED-WORKS.md?utm_source=chatgpt.com)\n\n## 2. Specific implications for Regents Labs\n\nThe following are **my proposed applications**, based on the product directions you have described. FlashProve does not demonstrate these products.\n\n| Product | Most useful application | What the evidence would establish |\n|---|---|---|\n| **Techtree** | Publish a benchmark testing inference proofs, their verifiers, and the claims applications make from them. Add selected model-computation evidence to Wallet Bench or cyber evaluations. | Whether a particular inference claim verifies under a specified policy. Benchmark quality and successful task execution still need their own evidence. |\n| **Patchbay** | Attach a verifiable inference record to a paid security assessment or repair report, tied to the patch, prompt, model configuration, and checked output. | Evidence supporting which model computation the assessment is consistent with. Passing repair tests and security properties remain separate obligations. |\n| **Keyfleet** | Attach model-computation evidence to selected notebook entries, experiment recommendations, and research contributions. | Better attribution and reproducibility of an inference step. It would not validate a scientific conclusion or prove that fleet members reasoned independently. |\n| **SIWA / regents.sh** | Combine authenticated agent signatures with inference records: task, request, output, commitment, configuration, policy, and verification coverage. | SIWA identifies the signing agent’s claim; the inference proof checks the mathematical relation. Neither alone proves unique effort or Sybil resistance. |\n| **Autolaunch** | Experiment with evidence behind an agent’s financial analysis or treasury recommendation. | Provenance for a model computation. Correct prices, authorized transactions, contract safety, and settlement require separate checks. |\n\n### My strongest recommendation: start with Techtree, then Patchbay\n\nA useful initial offer would be:\n\n**“We test whether your AI verification claim means what your customers think it means.”**\n\nThat could cover model substitution, incomplete output coverage, altered inputs, permissive policies, verification failures, and misleading success badges. This fits your verification and cyber-assist direction without requiring Regents to invent a faster proof system first.\n\nPatchbay could then expose the results in paid assessment records. The blog’s proposed “Proof-of-Failure” is particularly relevant to security review, but the product must define what was attempted and what constitutes failure. Evidence that a recorded model run found no vulnerability cannot establish that the patch is secure or that the investigation was adequate. [anthropic.com](https://www.anthropic.com/research/provable-inference?utm_source=chatgpt.com)\n\n### For Keyfleet and agentic science\n\nFor a Virtual Embryo-style project, I would keep three distinct forms of evidence:\n\n1. **Inference evidence:** the specified model computation supports this recorded output.\n2. **Execution evidence:** this code, dataset version, and environment produced this result.\n3. **Scientific evidence:** the result survives appropriate evaluation or independent replication.\n\nFlashProve addresses part of the first. A useful fleet needs all three. It also cannot establish diversity merely because multiple Keys submit valid proofs: agents can share a model, operator, or existing result.\n\n### The shared implementation lesson\n\nA Regents record should identify the **commitment, configuration, acceptance policy, exact input/output tokens, and checked range**, alongside the agent and task. The verification guide requires independently trusted reference values and client-side checking of coverage and termination; accepting a proof alone does not establish that a whole displayed answer was verified. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/verify-a-proof.md?utm_source=chatgpt.com)\n\nFor **Cloak**, the connection is narrower: FlashProve aims to protect the provider’s weights from the verifier. It does not hide the user’s prompt from the inference provider or replace your transport, local processing, and sandboxing guarantees. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/weight-hiding.md?utm_source=chatgpt.com)\n\n## 3. Problems and limitations\n\n### A. Fidelity to normal inference remains unresolved\n\nThe paper reports **6.81% greedy-token disagreement** between its integer model and the floating-point reference across its evaluated texts, rising to **9.41% on the natural-passage subset**. It reports no downstream task-quality benchmark. Separately, scoring found that none of 96 honest replies from each of two stock floating-point engines matched the integer model at every position. [GitHub](https://github.com/anthropics/FlashProve/blob/main/paper/paper.pdf?utm_source=chatgpt.com)\n\nThis does **not** establish that the integer model performs badly. Many disagreements could be between similarly plausible tokens. It does mean that preserved coding, reasoning, scientific, or tool-use capability cannot be assumed.\n\nA formally correct proof about a modified model is useful only if that model still performs the task customers care about.\n\n### B. The tolerant policy can admit consequential alterations\n\nIn the reported scoring experiments, under one set of fitted limits:\n\n- **28/32** replies with one token replaced by the model’s second choice still passed.\n- **27/32** replies with one randomly replaced token still passed.\n\nThese were scoring experiments, not successful attacks forging cryptographic proofs. They show that the acceptance rule itself tolerates altered answers. [GitHub](https://github.com/anthropics/FlashProve/blob/main/integrations/vllm/integer_model/OPERATING.md?utm_source=chatgpt.com)\n\nThe paper makes the issue even more explicit: for one example policy, an eligible output with at least 100 counted tokens can satisfy the policy when all but one token are greedy, regardless of that remaining token’s score gap. [GitHub](https://github.com/anthropics/FlashProve/blob/main/paper/paper.pdf?utm_source=chatgpt.com)\n\n**This is my most important criticism.** One token can change an amount, instruction, code operation, or scientific assertion. “Within tolerance” can be mathematically correct while being inadequate for the application’s intended integrity guarantee.\n\n### C. Formal verification does not cover the complete deployed system\n\nThe formal results are valuable, but their scope matters:\n\n- The fast C++ verifier and CUDA prover are **tested, not proved equivalent** to the formal protocol.\n- The compiled zero-knowledge theorem covers exact match, one request per proof, and specified randomness and usage conditions.\n- Whole-protocol zero knowledge and completeness for the benchmarked batching arrangement remain unproved. Batched soundness does have formal treatment.\n- The formal security model covers classical oracle queries; it does not establish the blog’s broader post-quantum interpretation. [GitHub](https://github.com/anthropics/FlashProve/blob/main/lean/THEOREM.md?utm_source=chatgpt.com)\n\nThe real-weight benchmark proofs were checked by C++, while the reported Lean-verifier runs used synthetic weights. Closing that loop on real weights is an obvious next validation step. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/what-is-proved.md?utm_source=chatgpt.com)\n\nI found no demonstrated mathematical break. These are boundaries of the established assurance.\n\n### D. The experiments establish a prototype, not production readiness\n\nThe principal timings use three runs. Comparisons with vLLM differ in numerical representation and hardware arrangement; comparisons with other proof systems also differ in the statements being proved. Those figures should not be treated as a controlled, universal speedup factor.\n\nThe release also lacks a demonstrated live, concurrent, full-size ordinary-model serving-and-proving service. Integration experiments use narrower workloads and, in several cases, other implementation versions. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/performance.md?utm_source=chatgpt.com)\n\nThe repository is explicitly **unmaintained and not accepting contributions**. A product depending on it would need someone to own ongoing maintenance and verification. [GitHub](https://github.com/anthropics/FlashProve?utm_source=chatgpt.com)\n\n### E. A valid proof establishes less than customers may infer\n\nThe proof does not establish a fresh paid invocation, a unique amount of effort, or the original causal history of an answer. It also needs a trusted association between the commitment and the advertised model. These are substantial issues for billing, research credit, and agent reputation. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/verify-a-proof.md?utm_source=chatgpt.com)\n\nLikewise, implementation-level weight privacy remains a separate concern. The authors explicitly distinguish their formal zero-knowledge results from their confidence in the shipped programs; operational state, masking, and usage limits matter. An accepted computation proof is not itself evidence that all secrets remained hidden. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/weight-hiding.md?utm_source=chatgpt.com)\n\n## 4. What I would research or test next\n\nI would prioritize experiments that clarify the meaning and usefulness of the guarantee before optimizing another throughput number.\n\n| Priority | Experiment | What would convince or falsify me |\n|---|---|---|\n| **1. Independent reproduction** | Pin the released source, configuration, weights, compiler, and inputs. Produce real-weight proofs and check them with both verifiers. Publish complete logs and costs. | Successful verification and reproducible measurements would materially strengthen the result. Unexplained verifier disagreement would require resolution before deployment. |\n| **2. Targeted semantic changes** | Alter amounts, destinations, permissions, code operators, and scientific claims while keeping the rest of the answer intact. Sweep tolerance settings on held-out data. | Establish whether a useful operating point accepts honest numerical variation while rejecting consequential alterations. If none exists, the product claim must narrow or use exact inference. |\n| **3. Integer-model quality** | Compare the proved integer model with the reference on coding, tool use, Wallet Bench, and relevant scientific tasks. | Similar task success would justify paying for its guarantees. Large capability losses could erase the practical value despite fast proving. |\n| **4. Executable and privacy assurance** | Audit claim parsing and verifier correspondence; extend proofs to batching, practical randomness, multiple commitments, and state recovery. | Evidence that the implemented service preserves the theorem’s assumptions during ordinary operation and failures. |\n| **5. Real agent workflows** | Compose inference evidence with authenticated tool results, dataset/code versions, complete transcripts, and longer contexts. | A verifier can explain exactly which steps are supported and identify an altered or omitted step without overstating coverage. |\n\n### A concrete Regents pilot\n\nI would run a **Techtree evaluation of inference records using public weights**, then publish a small Patchbay demonstration:\n\n- A task with a clearly defined input and independently measurable outcome.\n- A complete record of the model configuration and checked output.\n- Examples of exact acceptance, tolerant acceptance, rejection, and unavailable verification.\n- Deliberately altered records that expose the difference between a valid proof and a misleading product claim.\n- End-to-end latency and cost per completed, verified task.\n\nFor Keyfleet, the same pilot could compare **selective auditing** with proving every eligible response. Choose audit targets after committing the complete transcript, and measure actual substitution detection. The result would be a quantified auditing policy; unchecked work would retain its uncertainty.\n\nFor onchain use, I would separately investigate proof aggregation or a contract-compatible verifier. Posting a proof hash onchain provides a durable reference, but it does not make the underlying inference claim verified by the chain.\n\n## 5. Why this matters in 2026—and what would make it important in 2031\n\n### Why it matters now\n\nFor the kinds of agent services you are building, model identity and execution claims are becoming part of the product being purchased: a customer may care which model assessed a patch, which configuration generated a research recommendation, or whether an evaluation used the advertised system.\n\nFlashProve provides a concrete basis for making some of those claims independently checkable. It also makes the remaining problem unusually visible: **the mathematical statement, executable implementation, and customer-facing promise must agree.**\n\nThe agentic-research aspect is equally interesting. Systems that generate substantial code and proofs become more useful when their outputs can be evaluated against precise specifications. This release is a meaningful example of that workflow, with substantial work still needed around specification quality and implementation assurance.\n\n### What would make it well known by 2031\n\nI would expect enduring importance if it helps produce:\n\n1. **Independent replication and a maintained, audited implementation.**\n2. **Useful guarantees for normal serving**, including longer contexts and defensible treatment of numerical variation and sampling.\n3. **Economics that support real adoption**, whether through cheaper proofs or effective selective auditing.\n4. **Evidence that composes across agent workflows**, connecting inference to tools, data, authorization, and outcomes.\n5. **A repeatable research method** in which agents produce major improvements and independently checkable artifacts reliably establish their scope.\n\nMy judgment is that FlashProve deserves serious attention as a research foundation. For Regents, the best opportunity is to make its guarantees understandable, testable, and useful in paid workflows. **Techtree can establish what the evidence supports; Patchbay and Keyfleet can then use that evidence without promising more than it proves.**\n\n---\n\n## Business and go-to-market follow-up\n\n**I would launch this through Techtree as a paid verification and integration service, then turn the repeated work into an open-source library and a supported software product.**\n\nThe initial commercial promise could be:\n\n> **We turn your AI execution claims into checks your customers can run.**\n\nThat is more concrete than selling “provable AI.” A customer pays because they need to substantiate a promise, complete an integration, answer a buyer’s technical questions, or detect a costly failure.\n\nThe longer-term opportunity is to **keep those checks working as models, providers, configurations, and applications change**. That creates a reason for continued payment.\n\nBelow is how I would structure the business. The prices and sales targets are **hypotheses I would test**, not established market rates or evidence of demand.\n\n## 1. Where the commercial opportunity actually sits\n\nThere are several distinct businesses around this technology:\n\n| Business | What the customer buys | My view for Regents |\n|---|---|---|\n| **Proving technology** | Faster or more capable cryptographic proofs | Potential research direction, but substantial specialist work and uncertain timelines. |\n| **Independent evaluation and integration** | Evidence that a particular deployment supports a particular claim | **Best initial offering.** Bounded work, identifiable deliverables, useful even when the answer is “this configuration does not meet your requirement.” |\n| **Verification software and maintenance** | Reliable checks embedded in a customer’s deployment and release process | **Best path from services into recurring revenue.** |\n| **Managed proving and verification** | Someone operating the infrastructure, queues, retries, storage, and upgrades | Attractive after observing actual workloads and costs. |\n| **Agent commerce infrastructure** | Acceptance and payment conditional on agreed evidence | A credible later extension through Patchbay and Keyfleet, once the evidence requirements are useful and supported. |\n\nA market already exists around several of these layers:\n\n- **Attestable** is developing commercial inference proving.\n- **EZKL’s Lilith** already provides proof-job orchestration, enterprise capacity, and private deployments.\n- **Phala** documents signed inference receipts and a client proxy that verifies them.\n- **Tinfoil** provides an SDK that verifies enclave attestation before sending requests.\n- **LiteLLM** already sells enterprise gateway controls, audit logs, and support. [Zero-Knowledge Proofs for AI Integrity](https://attestable.com/?utm_source=chatgpt.com)\n\nThat does not eliminate the opportunity. It tells us that **“we have an SDK, receipts, and a dashboard” is insufficient differentiation**.\n\nThe better question is:\n\n**Can Regents help a customer establish—and continuously enforce—a claim that its current tools do not adequately establish?**\n\nFor example:\n\n- “Our customer requires this approved model configuration.”\n- “Our application must reject a partial proof presented as evidence for an entire answer.”\n- “Our service must not silently fall back to an unverified provider.”\n- “We need to know whether an upgrade changes what our verification result means.”\n- “We need evidence that a customer can inspect without simply trusting our logs.”\n\nThose are engineering problems with clear owners and testable outcomes.\n\n## 2. The first buyer: a team with an existing promise to substantiate\n\n### My first target\n\nI would prioritize **an inference provider or AI infrastructure company that controls its serving stack and already has a customer asking for evidence**.\n\nThe contact is likely its founder, CTO, inference lead, or security lead. The commercial trigger matters more than the company’s enthusiasm for cryptography.\n\nAn ideal conversation sounds like:\n\n> “We serve a customized open model. A customer wants assurance that their approved configuration is the one used. We can provide access to our deployment, and we need an integration they can independently check.”\n\nThat is a much stronger prospect than:\n\n> “Provable inference sounds interesting. We should do something with it.”\n\n### How I would rank prospects\n\n| Priority | Prospect | Why it might buy |\n|---|---|---|\n| **1** | A provider already advertising verifiable or attested inference | It needs independent implementation testing, customer acceptance, or validation before a launch. |\n| **2** | An open-model inference host with a specific customer requirement | A bounded integration may help advance an existing sale. |\n| **3** | A platform buying inference from several participating providers | It may need consistent policies, comparisons, and handling of unsupported or missing evidence. |\n| **4** | An agent-work marketplace with real disputes or acceptance costs | Verification could become part of its delivery contract, provided it resolves the actual dispute. |\n| **Later** | Broad enterprise AI teams and frontier labs | More extensive procurement, internal capabilities, and credibility requirements. |\n\nThere is an important qualification gate: **the customer needs access to appropriate execution evidence**.\n\nFlashProve’s integration assumes a provider commits to weights and operates a proving service. An ordinary client of a closed model API cannot create that proof by signing or hashing the returned text. Upstream participation—or a supported model that the customer can operate—is necessary. [GitHub](https://github.com/anthropics/FlashProve/blob/main/integrations/README.md?utm_source=chatgpt.com)\n\nConsequently, I would not initially sell this as a universal add-on for every Claude, OpenAI, or routed API call. You can provide useful records for those calls, but the guarantee is different.\n\n### The five qualification questions\n\nBefore custom work, I would ask:\n\n1. **Which exact claim must your customer accept?**\n2. **What happens commercially if they cannot accept it?**\n3. **Can your deployment supply the necessary proof, attestation, or reproducible execution?**\n4. **Who will integrate the result on your team?**\n5. **Who has budget for resolving this?**\n\nThe answer to question two determines whether this is a business opportunity or an interesting research conversation.\n\n## 3. What I would offer in the first weeks\n\n### The main offer: a ten-day verification integration sprint\n\n**Scope: one deployment, one supported model/configuration, and one customer requirement.**\n\nI would test an initial **$10,000 fixed fee**, with compute separately capped. A narrower **$3,000–$5,000 feasibility assessment** makes sense when it is unclear whether the workload can be supported.\n\nThe sprint would deliver four things.\n\n**1. An executable acceptance test**\n\nTurn the customer’s promise into something that can pass or fail.\n\nFor example:\n\n- Correct commitment and configuration.\n- Correct input and returned output.\n- Complete coverage of the output that the application claims to verify.\n- Explicit handling of exact versus tolerant acceptance.\n- Correct behavior when evidence is absent, malformed, delayed, or rejected.\n- Correct handling of retries and provider fallbacks.\n\n**2. A small working integration**\n\nConnect the supported verifier to the customer’s existing application or deployment.\n\nThe output must say what happened clearly: exact acceptance, acceptance under a named tolerance, rejection, or no completed verification. It should identify the model/configuration, verifier version, and coverage.\n\nThis work is substantive because FlashProve’s own guide says a successful exit code is insufficient without surrounding checks against the client’s expected values. [GitHub](https://github.com/anthropics/FlashProve/blob/main/guide/verify-a-proof.md?utm_source=chatgpt.com)\n\n**3. A measured operating decision**\n\nMeasure:\n\n- Time to a completed verification.\n- Total compute and storage cost.\n- Failure and retry behavior.\n- Integration burden.\n- What still depends on trusted software or operators.\n\nThen recommend a deployment path—or explain why the requested guarantee is not currently economical or supported.\n\n**4. A package their customer can inspect**\n\nA concise report, pinned versions, test cases, and reproducible commands.\n\nThe commercial deliverable is: **“Here is the evidence you can hand to the party who needs to accept your service.”**\n\n### What the fee should promise\n\nPromise the agreed investigation, tests, integration work, and measured conclusion. An unsupported model architecture or a new cryptographic guarantee is a separate research project.\n\nFlashProve is explicitly released as an unmaintained research artifact. Its example integrations are not hardened for production. That creates useful maintenance and integration work, but does not make arbitrary model support a two-week task. [GitHub](https://github.com/anthropics/FlashProve?utm_source=chatgpt.com)\n\nThere is precedent for independent assessment in this category: EZKL reports an eleven-engineer-week Trail of Bits assessment covering circuit soundness, quantization risks, and proof-verification security. That demonstrates a real assessment category; it does not establish demand for Regents or make a short integration sprint equivalent to a specialist cryptographic audit. [EZKL Blog](https://blog.ezkl.xyz/post/audit/?utm_source=chatgpt.com)\n\n## 4. The public research should be a sample of the paid product\n\nI would run research and customer discovery concurrently. The public work should answer questions a prospective buyer already has.\n\n### Research piece A: “What does an accepted proof actually allow?”\n\nBuild a reproducible demonstration showing:\n\n- A valid exact-match claim.\n- A valid but incomplete claim.\n- A claim accepted under tolerance.\n- The application rejecting evidence that does not satisfy its actual requirement.\n\nThe useful result is the distinction between **proof validity** and **satisfaction of a customer’s contract**.\n\nFor instance, if the customer requires exact output integrity, a tolerant acceptance is insufficient even when the proof is valid. The repository already documents this distinction; your contribution would be making it executable, visible, and relevant to an application. [github.com](https://github.com/anthropics/FlashProve/blob/main/guide/how-it-works.md?utm_source=chatgpt.com)\n\nThat could become both a technical article and a small interactive demonstration on Techtree.\n\n### Research piece B: “What does one completed verification actually cost?”\n\nMeasure a complete workload, including setup, proving, checking, retries, and storage.\n\nPublish costs per clearly defined unit:\n\n- One checked next-token claim.\n- One fully covered supported response.\n- One completed customer job with its required evidence.\n\nKeep those units distinct. The paper’s approximately 110-token/second headline counts prefill processing, and its reported GPU overhead excludes several service costs. [github.com](https://github.com/anthropics/FlashProve/blob/main/guide/performance.md?utm_source=chatgpt.com)\n\nThis research helps customers answer a purchasing question: **“Where is this worth using?”**\n\n### Research piece C: “Does verification survive an ordinary deployment change?”\n\nTest changes such as:\n\n- A model or quantization update.\n- A new tokenizer or template.\n- A different verifier version.\n- A provider fallback.\n- A shortened response.\n- A timeout or replayed application job.\n\nThis is particularly valuable commercially because deployment changes recur. It begins to reveal the work that could justify a subscription.\n\n### How to turn research into sales\n\nEach publication should have:\n\n- A concrete result.\n- Commands or fixtures others can run.\n- A clear account of what was tested.\n- A narrowly related commercial offer.\n\nThe call to action is to have **one deployment evaluated against one requirement**.\n\nA sponsored benchmark can fund this work, but I would keep the methodology reproducible and charge for the evaluation regardless of the outcome. The credibility comes from the ability to reproduce the result.\n\n## 5. A practical first-three-weeks GTM plan\n\n| Period | Research and product work | Commercial work | Useful evidence of progress |\n|---|---|---|---|\n| **Days 1–3** | Produce one working example with a valid claim and several meaningful failure cases. Put up a concise Techtree offering page. | Identify roughly 20 relevant teams from actual deployments and advertised claims. | A prospective customer can understand and run the example. |\n| **Days 4–7** | Publish the first result. Attempt a bounded full-size reproduction if appropriate compute is available. | Hold discovery conversations and identify specific customer requirements. | At least a few prospects can name a commercial consequence and provide technical access. |\n| **Week 2** | Deliver the first paid assessment or integration. Capture reusable fixtures and adapter code. | Seek a second customer with a similar requirement. | Someone pays for the result, and another prospect wants substantially the same work. |\n| **Week 3** | Extract the common library and release tests. Publish an agreed case study or anonymized technical result. | Offer continued upgrade validation or supported operation where there is recurring work. | An external customer wants the checks kept running. |\n\nThese are execution targets, not a sales forecast.\n\nGiven your agent capacity, I would split the work:\n\n- One agent handles reproducibility and measurements.\n- One builds adversarial application cases.\n- One works on the adapter and reference integration.\n- **You spend your scarce time on buyer conversations, scope, and distribution.**\n\nThe code capacity is useful, but the key discovery is whether two outside teams want the same operational result.\n\n### Distribution I would prioritize\n\n**Targeted technical outreach.** Use LinkedIn and existing relationships to reach founders and inference/security leads. Refer to something they actually deploy or promise. Link one relevant result and ask how their customer currently checks that property.\n\n**Partnerships with providers.** A proving or confidential-inference vendor could introduce Regents when a customer needs bespoke integration or independent acceptance testing. This is worth testing as a channel; it is not a presumed partnership.\n\n**A credible open repository.** Make the free example useful enough that an engineer can use it without speaking to you. Commercial calls should concern their deployment, support requirements, or missing capability.\n\nFor buying, keep the path easy: examples and downloads without wallet setup, a clear pilot scope, and ordinary invoices. USDC can be an additional payment option for agent-native customers.\n\n## 6. What the software library would add on top\n\nThe library should embody the checks discovered in customer work.\n\nI would start with **one proof backend and one application integration**, then add other backends when a customer needs them.\n\n### A. It constructs and checks the customer’s intended claim\n\nA raw proof verifier can accept the statement it was given. The application must establish that this is the statement it intended to ask about.\n\nThe library should check:\n\n- Expected model commitment and configuration.\n- Input/output correspondence.\n- Tokenization and decoding assumptions.\n- Output coverage.\n- Acceptance policy.\n- Verifier version and result.\n\nThis is the difference between “this proof verifies” and “this proof supports the claim our application is making.”\n\n### B. It preserves the meaning of different evidence types\n\nA provider signature, hardware attestation, model-computation proof, and successful test run establish different things.\n\nThe library should return distinct information:\n\n| Result | Meaning |\n|---|---|\n| **Evidence result** | Did the relevant verifier or check succeed? |\n| **Established claim** | Which property does that success establish? |\n| **Coverage** | Which inputs, outputs, or workflow steps are covered? |\n| **Application decision** | Does that evidence satisfy this job’s configured requirements? |\n| **Reasons** | Why was the job accepted, rejected, or left unresolved? |\n\nFor example, a valid proof could receive:\n\n**Evidence accepted; application rejected because the policy requires exact coverage and the supplied proof uses tolerance.**\n\nThat is useful behavior. It also prevents different mechanisms from being flattened into an ambiguous `verified: true`.\n\n### C. It tests changes before customers deploy them\n\nThis is where I see the strongest recurring software value.\n\nThe library and CI integration could rerun the relevant corpus when someone changes a model, serving engine, verifier, policy, or provider adapter.\n\nA customer should be able to ask:\n\n- Does the new deployment still satisfy our accepted configuration?\n- Are failures still handled correctly?\n- Did our fallback path lose verification?\n- Are previously rejected incomplete claims now accepted?\n- Did latency or operating cost move outside our budget?\n\n**The paid responsibility becomes maintaining a known, tested deployment configuration through change.**\n\n### D. It handles application-level acceptance reliably\n\nAn inference proof does not, by itself, know your customer’s job identity, acceptance deadline, or payment state.\n\nThe application layer can add:\n\n- Stable job identities.\n- Deduplicated acceptance and settlement.\n- Explicit deadlines.\n- Rules for missing or late evidence.\n- Limits on verification resources and retries.\n- A record explaining why a job was accepted.\n\nA nonce can bind an application record to a job. It does not by itself prove fresh GPU expenditure. That distinction matters if this later touches agent billing.\n\n### E. It produces evidence another party can check\n\nMake verification possible in the customer’s own environment, with pinned versions and exportable evidence.\n\nThis has two commercial advantages: it reduces dependence on Regents’ assertions and accommodates customers who need sensitive prompts to stay in their infrastructure.\n\n### Where the incremental value may be small\n\nPhala already documents a proxy that verifies connections and audits signed response receipts. Tinfoil already provides client-side attestation verification. [Phala](https://phala.com/confidential-ai-models/verification?utm_source=chatgpt.com)\n\nIf a customer uses one provider and that provider’s SDK fully meets its requirements, Regents may have little recurring software value to add. A one-time independent assessment could still be useful.\n\nThe library becomes more valuable when **the customer’s acceptance conditions extend across provider-specific evidence, application behavior, and deployment changes**.\n\n## 7. What customers would pay for beyond the open library\n\nI would keep the basic claim-checking interface and core test cases open. That gives engineers a reason to adopt the software and customers a way to inspect the logic.\n\nThe commercial product would take responsibility for the parts that require continuing work.\n\n| Free/open component | Potential paid component |\n|---|---|\n| Local verification interface | Supported builds and deployment configurations |\n| Basic adapters | Customer-specific integration and maintenance |\n| Public test corpus | Continuous regression testing for the customer’s releases |\n| Evidence export format | Operated verification workers, retention, and access controls |\n| Clear policy results | Incident diagnosis, upgrade review, and support |\n| Reproducible examples | Independent evaluation of a specific deployment |\n\nI would test a revenue progression like this:\n\n| Offer | Initial pricing hypothesis |\n|---|---|\n| Bounded feasibility assessment | **$3,000–$5,000** |\n| Supported integration sprint | **Around $10,000**, adjusted for scope |\n| Continued upgrade validation and support | **$1,000–$3,000/month** for a narrow deployment |\n| Operated proving/verification | Platform/support fee plus explicitly metered infrastructure |\n| New model support or protocol optimization | Separately scoped research contract |\n\nThe monthly offer should follow demonstrated recurring work. A customer who only needs one assessment may reasonably never subscribe.\n\nAlso, proving and verification are different costs. I would avoid a single unlimited “verified tokens” price until the workloads are understood.\n\nEven payment-enabled proof APIs already exist: Kurier documents USDC-on-Base payments for supported proof submission and verification. Its listed formats do not establish FlashProve compatibility. The opportunity for Regents therefore needs to go beyond adding a payment endpoint. [Kurier Docs](https://kurier.xyz/docs/x402_payments?utm_source=chatgpt.com)\n\n## 8. Where a durable advantage could develop\n\nThe source code alone is unlikely to be enough. A small wrapper is straightforward to reproduce.\n\nThe stronger assets would be:\n\n**A useful corpus of failures.** Cases drawn from real deployments: incorrect claim construction, incomplete coverage, misleading tolerance, provider changes, and broken failure handling.\n\n**Customer-accepted configurations.** A maintained record of which model, verifier, application policy, and integration version have been tested together.\n\n**Embedded distribution.** Providers and platforms recommending the library because it reduces their integration burden.\n\n**A reputation for accurate claims.** Customers know that Regents distinguishes measured results, assumptions, and unsupported promises.\n\n**Efficient operations.** Once you have real traffic, you can optimize batching, verification scheduling, storage, and audit selection while preserving the agreed property.\n\nThere is a possible deeper research business here too. If a paying customer’s bottleneck is proof cost or unsupported model behavior, Regents could undertake focused performance or model-support work. I would let customer measurements choose that research agenda.\n\nThe defensible sequence is:\n\n**Useful independent result → paid integration → repeated requirement → maintained library → recurring operational responsibility.**\n\nThat sequence can produce a valuable services business even if the recurring software market develops slowly.\n\n## 9. How I would use the Regents products\n\nI would make **Techtree the commercial front door**.\n\nIts initial page should answer four questions:\n\n1. What claim can you help me evaluate?\n2. What will you deliver?\n3. What does the pilot cost?\n4. What access or supported configuration do you need?\n\n**Patchbay** can publish reproducible integration failures and fixes, and later use the library to make paid-work acceptance more explicit.\n\n**Keyfleet** can organize the research agents and provide a visible example of recorded research work. Its model provenance features can follow once the external library is useful.\n\n**SIWA** can contribute agent identity and signed application records. External customers should be able to use the verification component with their existing authentication.\n\n**Autolaunch** is a later application. Financial workflows would still need their own authorization, input freshness, and deterministic transaction checks. An inference proof can be one piece of that evidence.\n\nThis gives the research a home and the commercial offering a clear owner.\n\n## My business judgment\n\nI think there is a credible near-term opportunity in **verification engineering for teams that already have a customer promise to fulfill**.\n\nI am less certain that customers will pay a recurring fee solely to collect inference provenance. Many may be satisfied with their provider’s existing controls, contracts, or SDK. That uncertainty is something to resolve through paid pilots.\n\nThe first meaningful target would be:\n\n- One public, reproducible result.\n- Two external paid pilots with substantially overlapping requirements.\n- A small library extracted from that shared work.\n- At least one customer who wants the checks maintained through future releases.\n\nIf you achieve that, you have evidence for a software business. If the work remains bespoke, you still have a potentially useful Techtree service line.\n\n**The business I would aim to build is: companies use Regents to establish the evidence required to accept AI work—and rely on Regents to keep that evidence meaningful as their systems change.**",
+          "chatgpt_model": "ChatGPT Astra 6 Pro",
+          "paper_url": "https://www.anthropic.com/research/provable-inference"
+        }
+      }
+    }
+  },
+  {
+    "command": "profiles show <slug>",
+    "words": [
+      "profiles",
+      "show",
+      "no-such-profile"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://regents.sh/api/v1/regents/no-such-profile",
+      "content": null
+    },
+    "response": {
+      "status": 404,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "error": {
+          "code": "profile_not_found",
+          "message": "That public Regent profile does not exist.",
+          "hint": "Use the slug from an existing /regents/ profile page."
+        }
+      }
+    }
+  }
+]

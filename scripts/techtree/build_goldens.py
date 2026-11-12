@@ -259,7 +259,7 @@ def validation_receipt(lock_digest: Digest, revision: str) -> TasksetValidationR
     """The publisher receipt for the fixture taskset."""
     checks = [
         ("upstream_gold", f"{TASK_COUNT} of {TASK_COUNT} gold answers validated"),
-        ("upstream_setup", f"{TASK_COUNT} of {TASK_COUNT} task setups validated"),
+        ("upstream_noop", f"{TASK_COUNT} of {TASK_COUNT} untouched tasks scored below a pass"),
         ("membership_repeatability", "two inspections produced the same ordered task hashes"),
         ("task_hash_uniqueness", "no task hash appears twice"),
         (

@@ -40,8 +40,8 @@ from regents_cli.techtree.publication.transport import HttpsPublicationTransport
 from regents_cli.techtree.release.models import PinnedNetworkKey, PublicationCoordinates
 
 RUN: Final = Path(__file__).parent / "fixtures" / "run"
-RUN_ID: Final = "run_7e001b6fd2644bfca8f40090bb493ac8"
-BUNDLE_DIGEST: Final = "sha256:5da0e5344aa167a922a95654d653c9009c5c407b2a2fa029b37771d6fbc1dcf3"
+RUN_ID: Final = "run_2f61593b079047dbbffce1c413bf79ac"
+BUNDLE_DIGEST: Final = "sha256:1ab5c68aa9218888c68d956dbe3404c4591c5d98c8204042110701dd17eb8c8b"
 SKILL_NAME: Final = "hello-world-v1"
 
 PINNED_ENDPOINT: Final = "https://techtree.sh/api/v1/publications"
@@ -142,7 +142,9 @@ def install(monkeypatch: pytest.MonkeyPatch, home: Path, log: RunLog) -> None:
     monkeypatch.setenv("HOME", str(home))
     receipt = siwa.Receipt("0x" + "1" * 40, "techtree", "test-only", "2099-01-01T00:00:00Z", "test")
     monkeypatch.setattr(siwa, "current", lambda _site, _timeout: receipt)
-    monkeypatch.setattr(siwa, "sign", lambda _request, _receipt: {"x-siwa-signature": "test-only"})
+    monkeypatch.setattr(
+        siwa, "sign", lambda _request, _receipt, _base: {"x-siwa-signature": "test-only"}
+    )
     for module in (publish_module, withdraw_module):
         monkeypatch.setattr(module, "packaged_publication_coordinates", lambda: COORDINATES)
         monkeypatch.setattr(module, "HttpsPublicationTransport", log.transport)

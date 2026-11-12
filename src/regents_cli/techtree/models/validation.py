@@ -22,7 +22,7 @@ from regents_cli.techtree.models.campaign import TasksetRef
 #: Every check a receipt must report on; one silently omitted is unreadable, not weaker.
 REQUIRED_VALIDATION_CHECKS: Final[tuple[str, ...]] = (
     "upstream_gold",
-    "upstream_setup",
+    "upstream_noop",
     "membership_repeatability",
     "task_hash_uniqueness",
     "committed_membership_match",
@@ -66,7 +66,7 @@ class ValidationCheck(ProtocolModel):
 class UpstreamValidationSummary(ProtocolModel):
     """What the upstream validator reported, in aggregate."""
 
-    mode: Literal["all", "gold", "setup"]
+    mode: Literal["all", "gold", "setup", "noop"]
     total: int = Field(ge=0)
     recorded: int = Field(ge=0)
     valid: int = Field(ge=0)
@@ -109,7 +109,7 @@ class ValidationEvidenceTask(ProtocolModel):
     position: int = Field(ge=0)
     task_hash: Digest
     gold: ValidationTaskOutcome
-    setup: ValidationTaskOutcome
+    noop: ValidationTaskOutcome
 
 
 class ValidationEvidenceSummary(ProtocolModel):

@@ -6,13 +6,17 @@ from __future__ import annotations
 
 import io
 import json
+import shlex
 from pathlib import Path
 from typing import Any
 
+import click
+import httpx
 import pytest
 
 from regents_cli import app, runner, siwa
 from regents_cli.http import Request
+from tests.techtree.run_log import Terminal
 
 SIGNATURE = "0x" + "ab" * 65
 
@@ -41,20 +45,34 @@ def signed_in(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[Request]:
     monkeypatch.setenv("SIWA_AGENT_HOME", str(home))
     sent: list[Request] = []
 
-    def send(base: str, request: Request, timeout_ms: int) -> Any:
+    def respond(base: str, request: Request, timeout_ms: int) -> httpx.Response:
         sent.append(request)
-        return {}
+        return httpx.Response(200, json={})
 
-    monkeypatch.setattr(runner, "send", send)
+    monkeypatch.setattr(runner, "respond", respond)
+
+    def audiences(url: str, **_: Any) -> httpx.Response:
+        assert url == siwa.BROKER + "/api/shared/siwa/audiences"
+        return httpx.Response(200, json={"code": "audiences", "data": {"audiences": AUDIENCES}})
+
+    monkeypatch.delenv("SIWA_BROKER", raising=False)
+    monkeypatch.setattr(httpx, "get", audiences)
     return sent
 
 
-ME = ["protocol", "agents", "me"]
+#: Where the sign-in server says each site signs in.
+AUDIENCES = [
+    {"audience": "regents", "origin": "https://regents.sh"},
+    {"audience": "patchbay", "origin": "https://patchbay.help"},
+]
+
+
+CHECK_IN = ["protocol", "agents", "status"]
 FREE_FIX = ["patchbay", "assist", "free"]
 
 
 def run(
-    monkeypatch: pytest.MonkeyPatch, phase: str, stdin: str = "", command: list[str] = ME
+    monkeypatch: pytest.MonkeyPatch, phase: str, stdin: str = "", command: list[str] = CHECK_IN
 ) -> tuple[int, str, str]:
     monkeypatch.setattr("sys.stdin", io.StringIO(stdin))
     out, err = io.StringIO(), io.StringIO()
@@ -65,13 +83,19 @@ def run(
 
 
 def prepare(
-    monkeypatch: pytest.MonkeyPatch, contract: str, stdin: str = "", command: list[str] = ME
+    monkeypatch: pytest.MonkeyPatch, contract: str, stdin: str = "", command: list[str] = CHECK_IN
 ) -> dict[str, Any]:
     monkeypatch.setattr(siwa, "contract_id", lambda: contract)
     code, out, err = run(monkeypatch, "prepare", stdin, command)
     assert code == 0, err
     prepared: dict[str, Any] = json.loads(out)
     assert prepared["contract"] == contract
+    # The one next step sends this request back: the answer less its next_steps.
+    [step] = prepared.pop("next_steps")
+    printf, _, piped, pipe, *sent = shlex.split(step["command"])
+    assert (printf, pipe) == ("printf", "|")
+    assert json.loads(piped) == {"request": prepared, "signature": "<signature of message>"}
+    assert sent == ["regents", *command, "--phase", "send", "--json"]
     return prepared
 
 
@@ -118,7 +142,8 @@ def test_send_refuses_a_changed_body(
 def test_typed_stdin_keeps_arrays_and_integers_in_both_phases(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Do not stringify typed JSON, or accept booleans as integers when sending a proof."""
+    """Do not stringify typed JSON, accept booleans as integers, or let an id that is not a UUID
+    or an integer out of range reach the site, when signing or when sending a proof."""
     from dataclasses import replace
 
     from regents_cli.errors import UsageError
@@ -132,22 +157,46 @@ def test_typed_stdin_keeps_arrays_and_integers_in_both_phases(
         arguments=(),
         flags=(),
         stdin_fields=(
-            StdinField("items", "array", True, "The selected items."),
-            StdinField("limit", "integer", True, "The result limit."),
+            StdinField("items", "array", True, "The selected items.", None, None),
+            StdinField("limit", "integer", True, "The result limit.", 1, 60),
+            StdinField("operation_id", "uuid", False, "Stable UUID.", None, None),
         ),
     )
-    request = runner.request_for(command, {})
-    good = '{"items":["one","two"],"limit":2}'
+    request = runner.request_for(command, {}, "https://example.com")
+    good = '{"items":["one","two"],"limit":2,"operation_id":"0b6e4a4e-5c1d-4f0e-9a51-2f1f3f7e8d21"}'
     monkeypatch.setattr("sys.stdin", io.StringIO(good))
     built = runner.with_stdin_fields(command, request, 1000)
     assert built.content == good.encode()
     assert runner.prepared_body(command, request, good) == json.loads(good)
-    for value in (True, 2.5, "2", None):
-        wrong = json.dumps({"items": ["one"], "limit": value}, separators=(",", ":"))
+    refused = [({"limit": v}, "limit must be an integer") for v in (True, 2.5, "2", None, 0, 61)]
+    refused += [({"operation_id": v}, "operation_id must be a UUID") for v in ("op-1", 7, "")]
+    for fields, problem in refused:
+        piped = {"items": ["one"], "limit": 2, **fields}
+        wrong = json.dumps(piped, separators=(",", ":"))
         monkeypatch.setattr("sys.stdin", io.StringIO(wrong))
-        with pytest.raises(UsageError, match="limit must be an integer"):
+        with pytest.raises(UsageError, match=problem):
             runner.with_stdin_fields(command, request, 1000)
-        with pytest.raises(UsageError, match="limit must be an integer"):
+        with pytest.raises(UsageError, match=problem):
             runner.prepared_body(command, request, wrong)
     with pytest.raises(UsageError, match="limit is required"):
         runner.prepared_body(command, request, '{"items":[]}')
+
+
+def test_at_a_terminal_agents_pair_asks_for_the_code_without_showing_it(
+    signed_in: list[Request], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A person pairing by hand types the code where nothing echoes it: it reaches the request
+    and never the screen or the answer."""
+    terminal = Terminal("regents-cli test\nclaude_code\n")
+    monkeypatch.setattr("sys.stdin", terminal)
+    monkeypatch.setattr(click.termui, "hidden_prompt_func", lambda _text: "PAIR-CODE-1234")
+    out, err = io.StringIO(), io.StringIO()
+    monkeypatch.setattr("sys.stdout", out)
+    monkeypatch.setattr("sys.stderr", err)
+    assert app.main(["protocol", "agents", "pair", "--json"]) == 0
+    assert signed_in[0].body == {
+        "code": "PAIR-CODE-1234",
+        "name": "regents-cli test",
+        "harness": "claude_code",
+    }
+    assert "PAIR-CODE-1234" not in out.getvalue() + err.getvalue()

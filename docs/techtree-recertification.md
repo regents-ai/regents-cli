@@ -70,10 +70,90 @@ If a run fails, or its cost or proof is wrong, stop. Report it before running th
 
 ## What has run
 
+- 2026-11-04, a free run against a local stand-in model on `hello-world-climb@3`
+  (`climb-v0.7.25`, the engines with mcp 2.3.0 on Verifiers `0.4.0+regents.2`, Prime-key route,
+  `run_2f61593b079047dbbffce1c413bf79ac`): all 72 episodes finished and the proof verifies
+  offline (355 checks). That run's proof is now the test fixture in `tests/techtree/fixtures/run`.
+
+- 2026-10-28, a free run against a local stand-in model on `hello-world-climb@3`
+  (`climb-v0.7.21`, the patched engines with msgpack 1.2.3, Prime-key route,
+  `run_4d719cc590124e0ebad42d1d19d2ad78`): all 72 episodes finished and the proof verifies
+  offline (355 checks). That run's proof is now the test fixture in `tests/techtree/fixtures/run`.
+  It replaces `run_6932c346b0184d15b2c2cc0b6fb36b97`, the same run on the engine before msgpack
+  moved.
+
+- 2026-10-27, a free run against a local stand-in model on `tasksmith-climb@2` after the fix
+  below (`run_203f5fbb350a44ec82461c65dedff3dd`), and one on its held-out tasks
+  (`run_7f8bc1dbf2684e7ead353d5eedba5e4f`): in each, all 12 episodes finished and were scored
+  under `reward`, and the proof verifies offline (115 checks). The stand-in answers every call "done",
+  so every task scores 0; the run proves only that a Tasksmith run completes and is scored.
+
+- 2026-10-27, the first paid Tasksmith run on `tasksmith-climb@2`
+  (`run_1abd03c1f1534b5d8a970be482239865`, about $0.85) ended as unusable. Verifiers 0.4.0 names
+  a Harbor task's score by its reward key, `reward`; the engine before named it after the
+  scoring method, `solved`, and both Tasksmith Campaigns still asked for `solved`, so every
+  trace failed the rubric check. The scores themselves were sound (one candidate task solved).
+  Nine provider "502"s and one "520" during the run were all retried inside their tasks. The
+  Campaigns now ask for `reward`; a free stand-in Tasksmith run comes before any paid one,
+  because the catalog's own checks grade tasks without the episode's scorer.
+
+- 2026-10-27, paid recertification on `climb-v0.7.20` (regents-cli 1.10.19, Verifiers
+  `0.4.0+regents.1`, Prime-key route, billed to Regents Labs): Hello World 1, 2 and 3
+  (`run_3f0e618b05834b33b37b051ff2325da6`, `run_c811e1636b504b38a0147b0e9473b39c`,
+  `run_4c1fa831752f4e2eb46cd798f3bd9f50`) each finished all 72 episodes with candidate 24 of 36
+  and baseline 0 of 36, about $0.13 to $0.14 each, proofs verified (355 checks). Run 1 absorbed
+  20 provider "502"s by retrying them. Frontier-CS 1 (`run_e7b22e46920742f9aa0106f97ee8372f`)
+  finished all 20 episodes, candidate mean 0.539 against 0.531, 6 wins and 3 losses, about
+  $0.48, proof verified (147 checks).
+  Tasksmith (`run_6a4b4b5ed5e14ac1921baaf279258c9e`) finished all 12 episodes: candidate 1 of
+  6 against baseline 2 of 6, one loss and five ties, $0.92, proof verified (115 checks).
+  Tasksmith held-out (`run_10f7ba0bc8da47149e5870fb6da0f4ab`): candidate 4 of 6 against 5 of 6,
+  one loss and five ties, $0.78, proof verified (115 checks). The starter Skill does not help on
+  Tasksmith; a losing result is a valid run. Three earlier Hello World 1 attempts and the
+  first Tasksmith attempt above ended unusable. The six runs and those attempts cost $3.68 of
+  the $5.50 approved.
+
+- 2026-10-27, repeat runs on the same release: Hello World 4
+  (`run_d2e7e61d709d416b893f11aa912d7246`) 24 of 36 against 0, $0.14, 355 checks; Frontier-CS 2
+  (`run_d59aa9f77ec44dc09a5a16efa73f1378`) 0.512 against 0.499, 8 wins and 1 loss, $0.49, 147
+  checks; Tasksmith 2 (`run_e883bb256d904fa38b302213efc44bc5`) and Tasksmith held-out 2
+  (`run_76239b312a964872908f57c44bc1b910`) repeated the first runs' scores exactly (1 of 6 against
+  2 of 6, and 4 of 6 against 5 of 6), $0.81 and $0.73, 115 checks each. Every proof verified.
+  The four cost $2.17 of the $4.70 approved.
+
+- 2026-10-27, why the two runs below lost tasks. Verifiers relayed every failed provider call to
+  Hermes labelled as a bad request, and Hermes never retries a bad request, so one "502" ended
+  the task. When that happened on a task's first model call the task ended as an error and the
+  run was unusable. When it happened later, Hermes stopped cleanly, Verifiers counted the
+  failure as handled and the task was scored on what was left, without any error on the record.
+  regents-cli 1.10.19 installs Regents' copy of Verifiers (`regents-ai/verifiers`, version
+  `0.4.0+regents.1`), which labels a provider's server errors as server errors, so Hermes
+  retries them, and reruns a task, up to twice, whose provider failed before answering any
+  model call. Every Climb now sets `retry_limit` to 2. A task whose last model call failed on
+  the provider's side is recorded as not finished, so a run can no longer score it silently.
+  Read with that rule, the saved records of Hello World run 3
+  (`run_5f49476ae32c435bb01060e8a60babc9`) and the hill-climb's third run
+  (`run_fb2a75504ca24b31b7acce2c4bd7f133`) each hold one task that was scored this way: one
+  baseline task in each, cut off by a "502" after 3 and 5 model calls. Both stay published as
+  they are (founder, "3 a"); neither result changes direction.
+
+- 2026-10-27, two paid Hello World runs on `hello-world-climb@3` (`climb-v0.7.20`, Verifiers
+  0.4.0, Prime-key route, billed to Regents Labs) stopped as unusable because Prime answered
+  some model calls with "502 Service temporarily unavailable. Please retry.":
+  `run_df7a4732ee6a4108b9b2b9d38479258e` lost 2 of 72 tasks (about $0.13) and
+  `run_807eb67afc874cf6a4750c82266fea6d` lost 4 (about $0.12). No model call is retried, in
+  this engine or the one before it, and every Climb sets `retry_limit` to 0, so one such answer
+  makes a run unusable. An earlier attempt at 03:35Z found the Regents Labs wallet empty and
+  cost nothing.
+
+- 2026-10-27, a free run against a local stand-in model on `hello-world-climb@3`
+  (`climb-v0.7.20`, Verifiers 0.4.0, Prime-key route): all 72 episodes finished and the proof
+  verifies offline (355 checks). That run's proof was the test fixture until 2026-10-28.
+
 - 2026-10-05, a free run against a local stand-in model on `hello-world-climb@3`
   (`climb-v0.7.0`, each task scored on the environment's weighted total of its rewards): all 72
-  episodes finished and the proof verifies offline (351 checks). That run's proof is now the
-  test fixture in `tests/techtree/fixtures/run`.
+  episodes finished and the proof verifies offline (351 checks). That run's proof was the test
+  fixture until 2026-10-27.
 
 - 2026-10-02, a free run against a local stand-in model on `hello-world-climb@2`
   (`climb-v0.6.0`, regents-cli 1.4.0): all 72 episodes finished and the proof verifies offline

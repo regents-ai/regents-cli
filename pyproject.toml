@@ -1,6 +1,6 @@
 [project]
 name = "regents-cli"
-version = "1.9.1"
+version = "1.10.24"
 description = "The regents command: every Regents Labs site from one command line."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -10,23 +10,40 @@ authors = [{ name = "Regents Labs" }]
 keywords = ["regents", "cli", "agents"]
 dependencies = [
   "click>=8.2,<9",
-  "cryptography>=50.0.1,<51",
+  "cryptography>=50.0.2,<51",
+  "eth-abi>=6,<7",
   "eth-account>=0.13,<1",
+  "eth-keys>=0.8,<1",
   "eth-utils>=6,<7",
-  "filelock>=3.18,<4",
-  "httpx>=0.28,<1",
+  "filelock>=4.2.7,<5",
+  "httpx[socks]>=0.28,<1",
   "markdown-it-py>=4,<5",
-  "pydantic>=2.12,<3",
+  "pydantic>=2.14.2,<3",
   "pyjwt[crypto]>=2.15,<3",
   "pyyaml>=6,<7",
   "rfc8785>=0.1,<1",
   "rich>=14,<16",
+  "rich-click>=1.9.9,<2",
 ]
 
 [project.optional-dependencies]
 # What a site's `make check-cli` needs to run regents_cli.check_commands.
 check = [
   "jsonschema>=4.25,<5",
+]
+# What `regents mcp` needs: the MCP SDK and the HTTP client its transport takes.
+mcp = [
+  "anyio>=4.16,<5",
+  "httpx2>=2.16,<3",
+  "mcp>=2.3,<3",
+  "mcp-types>=2.3,<3",
+]
+# What `regents browser` needs: the MCP SDK, Playwright with its Chromium installed beside it,
+# and the schema checker for a signed tool's input.
+browser = [
+  "jsonschema>=4.25,<5",
+  "mcp>=2.3,<3",
+  "playwright>=1.64.1,<1.65",
 ]
 
 [project.scripts]
@@ -40,16 +57,24 @@ Issues = "https://github.com/regents-ai/regents-cli/issues"
 dev = [
   # make check runs regents_cli.check_commands, which the `check` extra carries for sites.
   "jsonschema>=4.25,<5",
-  "mypy>=1.17,<2",
-  "pytest>=9.1.1,<10",
-  "ruff>=0.12,<1",
+  "mypy>=2.4.1,<3",
+  "pytest>=9.2,<10",
+  "ruff>=0.17.3,<1",
   "types-pyyaml>=6,<7",
   "types-jsonschema>=4.25,<5",
-  "hatchling>=1.27,<2",
+  "hatchling>=1.33,<2",
+  "hypothesis>=6.170,<7",
+  "playwright>=1.64.1,<1.65",
+  # The `mcp` and `browser` extras, for the agent host commands' tests.
+  "anyio>=4.16,<5",
+  "httpx2>=2.16,<3",
+  "mcp>=2.3,<3",
+  "mcp-types>=2.3,<3",
+  "uvicorn>=0.54,<1",
 ]
 
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling==1.32.4"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
@@ -63,6 +88,13 @@ path = "scripts/stamp_provenance.py"
 
 [tool.uv]
 default-groups = ["dev"]
+build-constraint-dependencies = [
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.7.0",
+    "tomlkit==0.15.2",
+    "trove-classifiers==2026.9.21.13",
+]
 
 [tool.ruff]
 line-length = 100
@@ -79,11 +111,13 @@ select = ["B", "E", "F", "I", "N", "RUF", "SIM", "UP", "W"]
 python_version = "3.12"
 strict = true
 files = ["src", "scripts", "tests"]
-mypy_path = ["src"]
+mypy_path = ["src", "scripts"]
 # The engine bundle imports Verifiers, and the Model Climb check imports prime-rl; each lives
 # only in its own environment.
 exclude = ["^src/regents_cli/techtree/resources/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/test_replays.py reads the answer shapes scripts/check_live.py checks the live sites with.
+pythonpath = ["scripts"]
 addopts = ["-ra", "--strict-config", "--strict-markers"]

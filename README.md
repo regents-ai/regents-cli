@@ -5,38 +5,103 @@ One command line for every Regents Labs site: `regents patchbay …`, `regents t
 site's commands; deployment readiness is stated in that site's agent guide.
 
 ```bash
-uv tool install regents-cli
+uv tool install --python 3.14 regents-cli
 regents
 ```
 
+It runs on Python 3.12 to 3.14. Python 3.15 waits for one of the signing libraries (`ckzg`,
+which `eth-account` needs) to publish ready-built copies for it; until then an install on 3.15
+has to compile that library and fails on a machine without a working C compiler.
+
 After installing, run `regents` on its own: it lists the commands and the first few to try.
+
+SOCKS proxy support is included. The CLI respects HTTPX proxy environment settings; it
+never disables a configured proxy to work around a connection problem. If an incomplete
+installation reports `installation_incomplete`, repair that environment with `httpx[socks]`.
 
 Every command answers the same way:
 
-- readable output by default, and `--json` for exactly the site's answer;
+- readable output by default, and `--json` for the site's answer with `next_steps`;
+- an empty HTTP 204 is success, shown as an empty object with `next_steps`;
 - errors as `{"error": {"code": "…", "message": "…"}}`;
 - the same exit codes everywhere (`regents --help` lists them);
-- the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address.
+- the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address;
+  a signed command signs only for an address the sign-in server lists for the site;
+- each request names the release and the command's words in `x-regent-client`, such as
+  `regents-cli/1.10.18 patchbay rooms list`, never what was typed after them.
 
 ## Checking a site
 
 `regents <site> doctor` runs the same checks for every site: the site answers, each public read
-that needs no input answers, and, for a site with wallet-proof commands, the sign-in server
-accepts a request signed with your sign-in, as the site would. It exits 1 when any check fails.
+that needs no input answers, this regents is no older than the release the site names in its
+`/capabilities.json` (`cli.release`; an older one gets a step to update), and, for a site with
+signed commands, the sign-in server accepts
+a request signed with your sign-in, as the site would. Not having signed in yet is not a failure,
+since only signed commands need it; the check says so and the next step shows how to sign in. It
+exits 1 when any other check fails, including a key file it can't use or a sign-in it can't
+renew.
 
 ```bash
 regents patchbay doctor
 ```
 
+## Agent hosts
+
+Two commands run as a local MCP server for an agent host such as Claude Code or Codex. Both sign
+with this machine's agent key, so sign in to the site first (`regents auth login --site <site>`).
+
+- `regents browser --site <site>` opens the site's pages in a hidden Chromium of its own, with a
+  fresh profile and the browser's own sandbox on; your own browser and its sign-ins are never
+  used. Its three tools open a page (`open_page`), list the tools the page offers
+  (`list_page_tools`) and call one (`call_page_tool` with the tool's name and its own input).
+  It opens only the site's own pages, and stops using a page that moves to another site. A
+  signed tool is listed in the site's own published words and input, never the page's, and its
+  input is checked against that published input before the page runs. When the tool asks to
+  sign, `regents` signs only a request from the site's own page that is exactly the call the
+  agent made, only once, and only while that call is still running. The page holds the signed
+  headers to send its request; each set is good for that one request, once, and only for a
+  short time. The key never leaves this machine. When signing fails, the page hears only that
+  nothing was sent; the reason goes to this command's own error output.
+
+- `regents mcp --site <site>` passes each message to the site's MCP server at `/mcp` as one
+  request signed over its exact bytes, with the MCP routing headers, and passes every answer back
+  unchanged. When the site cannot be reached, each request gets an error answer saying so and the
+  command keeps running. When the agent host closes its input, the answers still owed have ten
+  seconds to arrive before it stops.
+
+Both need the same install, and `regents browser` also needs its Chromium. Install both parts in
+one line: a later `uv tool install` replaces the parts an earlier one chose.
+
+```bash
+uv tool install --python 3.14 'regents-cli[browser,mcp]'
+uvx --from 'playwright==1.64.*' playwright install chromium
+```
+
+Without them, either command stops with `installation_incomplete` and the line to install.
+
+In Claude Code, for example:
+
+```bash
+claude mcp add keyfleet-pages -- regents browser --site keyfleet
+claude mcp add keyfleet -- regents mcp --site keyfleet
+```
+
+`--base-url` points either one at a site running on this machine.
+
 ## Signing in
 
-A site's wallet-proof commands need a wallet sign-in (SIWA). One agent key lives on this
-machine and signs every request. It is the same key the SIWA agent client
+A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any
+signed-in agent, and `paired_agent` commands also need your person to have paired this agent
+with their account (`regents <site> agents pair`) and to have signed in on that site once.
+One agent key lives on this machine and signs every request. It is the same key the SIWA agent client
 (`https://siwa.regents.sh/skill.md`) uses: `~/.siwa-agent/key.json`, with each site's sign-in
 in `~/.siwa-agent/receipts/`. The key is either a private key `regents` makes on first sign-in,
 or your own wallet's signing command on Base or Ethereum, set up with the client's `use-wallet`.
 On a Mac, the key `regents` makes is locked with a passkey: your person confirms with Touch ID on
-a page that opens on this Mac, once after each restart, for `regents` and the client alike. The
+a page on this Mac, once after each restart, for `regents` and the client alike. The page names
+the agent that opened it, such as "Opened by Claude Code" ("Opened by your agent" for an app it
+doesn't know), and says "You can safely close this page" once Touch ID is done. `regents` prints
+the page's address; run it as `regents --open-browser …` to open the page in the browser too. The
 client's `show-key` shows the plain key to copy. Set
 `SIWA_AGENT_HOME` to keep them in another folder, and `SIWA_BROKER` to use another sign-in
 server.
@@ -59,9 +124,12 @@ to sign, and `--phase send` reads `{"request": …, "signature": …}` and sends
 The prepared request names the signing contract it was built under; a `regents` that signs under
 another one refuses it, so prepare it again.
 
-On regents.sh, a person pairs the agent with their account: they make a code on their Account
-page, and the agent supplies string `code`, `name` and `harness` fields through private JSON
-stdin to `regents protocol agents pair`.
+A pairing works on every Regent site. A person signed in on a site makes a code with Pair New
+Agent in the site's account menu, such as on https://keyfleet.ai/, and the agent supplies
+string `code`, `name` and `harness` fields through private JSON stdin to that site's `agents pair`:
+`regents keyfleet agents pair` for Keyfleet, `regents protocol agents pair` for regents.sh. If a
+site answers `person_not_here`, the agent is paired but its person has not signed in on that site
+yet; they sign in there once.
 `regents auth status --site ash-template` reads that site's identity and pairing probe. It
 never sends the legacy check-in or awards Points. Its `pairing_status` answer includes the
 site's authenticated identity, pairing and effective access; this replaces `paired_with`.
@@ -74,10 +142,14 @@ Authentication does not imply that a site exposes private commands or that its l
 are open. See each site's `/agents.md` before performing work.
 
 An agent may also list itself in the ERC-8004 agent registry on Base. It is optional; sign-in
-never needs it. The sign-in server builds the one transaction and hosts the agent's profile;
-the agent key on this machine sends it and pays its gas, so it needs a little ETH on Base
+never needs it. The sign-in server hosts the agent's profile; `regents` builds the one
+transaction itself and refuses one from the server that differs. It shows the transaction, what
+it costs at most (its gas and Base's fee for writing it to Ethereum) and every field as it will
+be signed. Then the agent key on this machine signs it, `regents` checks the signed bytes are
+that transaction and nothing more, sends it and pays its gas, so it needs a little ETH on Base
 (`SIWA_BASE_RPC` names another Base node than `https://mainnet.base.org`). Each run sends a new
-transaction. Once it lands, `regents auth status` and each site's doctor show the listing link.
+transaction; once one is sent, any error keeps its hash and the `--tx-hash` command that checks
+it. Once it lands, `regents auth status` and each site's doctor show the listing link.
 
 ```bash
 regents auth register --name "Astra" --description "What I do, in a sentence"
@@ -190,8 +262,23 @@ regents techtree forge inspect-skill <Skill folder>
 
 ```bash
 uv sync --all-extras
+uv run playwright install chromium
 uv run regents --help
 make check
 ```
+
+`make check` runs the linters, the type checker, the tests and the wheel check. It prints the
+seed of the tests that try many made-up inputs; `make check SEED=<seed>` runs them again the
+same way. A test that reaches past this machine fails, and on a Mac the Touch ID sign-in runs
+whole in headless Chromium with a virtual Touch ID. It also fails when
+[verification/features.yml](verification/features.yml), the feature map, is out of date or leaves
+out a file changed since the last release; `make sync` rewrites it. The map lists each feature
+with who uses it, how much is at stake, its files, its proofs and its known gaps, and every site
+command beside the site's WebMCP tool for it. Before a release, `make release-check` also installs
+the wheel into a new environment, runs every public read against the live sites, checking each
+answer against the site's pinned API description, and fails when the Touch ID page differs from
+the live sign-in server's or a protected feature the release touches has no property test or no
+end-to-end test. `uv run scripts/record_replays.py` records the live reads again into
+tests/replays/, which the tests replay offline.
 
 MIT licensed.

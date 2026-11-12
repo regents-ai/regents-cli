@@ -33,7 +33,11 @@ MEDIA_TYPES: Final[dict[str, str]] = {
     ".json": "application/json",
     ".yaml": "application/yaml",
     ".yml": "application/yaml",
+    ".py": "text/x-python",
 }
+
+#: The kinds of file a Skill may hold, as messages name them: ".md, .txt, … and .py".
+ALLOWED_KINDS: Final = ", ".join(list(MEDIA_TYPES)[:-1]) + " and " + list(MEDIA_TYPES)[-1]
 
 #: A directory holding more entries than this is not a Skill.
 MAX_ENTRIES: Final = 4096
@@ -61,11 +65,7 @@ UNSUPPORTED_WORDS: Final[dict[UnsupportedReason, str]] = {
     "symlink": "is a link, and what a link points to depends on the machine",
     "special": "is not a regular file",
     "unreadable": "cannot be read",
-    "file_type": (
-        "is a kind of file Techtree does not carry; only "
-        + ", ".join(sorted(MEDIA_TYPES))
-        + " text is"
-    ),
+    "file_type": f"is a kind of file Techtree does not carry; only {ALLOWED_KINDS} text is",
     "not_text": "is not UTF-8 text",
     "too_large": f"is larger than the {MAX_SKILL_FILE_BYTES} byte limit for one file",
     "case_collision": "differs from another path only by letter case",

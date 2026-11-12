@@ -32,8 +32,9 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
+from regents_cli import browser
 from regents_cli.errors import EXIT_AUTH, CommandError
-from regents_cli.output import stderr
+from regents_cli.next_steps import human
 
 BOX_INFO = b"agent key box"
 PASSKEY_WAIT_SECONDS = 300
@@ -41,10 +42,27 @@ HELPER_START_SECONDS = 10
 #: The helper only signs, which takes milliseconds; one that is silent this long is stuck.
 HELPER_ANSWER_SECONDS = 10
 ASKS = {
-    "lock": "Ask your person to lock your new key: they press Use Touch ID on the page that "
-    "just opened on this Mac.",
-    "unlock": "Ask your person to unlock your key: they press Use Touch ID on the page that "
-    "just opened on this Mac. They are asked once after each restart.",
+    "lock": "Ask your person to lock your new key: they open this page on this Mac and press "
+    "Use Touch ID.",
+    "unlock": "Ask your person to unlock your key: they open this page on this Mac and press "
+    "Use Touch ID. They are asked once after each restart.",
+}
+#: The page may run only its own style and script, show only its embedded pictures and fonts,
+#: and send its answer only back to this helper. The same policy as the SIWA agent client.
+PASSKEY_POLICY = (
+    "default-src 'none'; script-src 'nonce-{nonce}'; style-src 'nonce-{nonce}'; "
+    "img-src data:; font-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; "
+    "frame-ancestors 'none'"
+)
+#: Agent apps the Touch ID page names; any other app is shown as "your agent".
+APP_NAMES = {
+    "claude": "Claude Code",
+    "codex": "Codex",
+    "cursor": "Cursor",
+    "cursor-agent": "Cursor",
+    "gemini": "Gemini CLI",
+    "hermes": "Hermes",
+    "opencode": "OpenCode",
 }
 
 
@@ -56,13 +74,44 @@ def _box_cipher(secret: str) -> AESGCM:
     return AESGCM(derived)
 
 
+def _opener() -> str:
+    """The agent app that started this command: the nearest parent process whose program or
+    script is a known agent, found the same way as in the SIWA agent client."""
+    try:
+        processes = subprocess.run(
+            ["/bin/ps", "-A", "-o", "pid=,ppid=,args="], capture_output=True, text=True, check=True
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return "your agent"
+    table: dict[int, tuple[int, list[str]]] = {}
+    for line in processes.splitlines():
+        process, parent, *args = line.split()
+        table[int(process)] = (int(parent), [os.path.basename(arg).lower() for arg in args[:2]])
+    pid = os.getppid()
+    while pid > 1 and pid in table:
+        ppid, names = table[pid]
+        for name in names:
+            if name in APP_NAMES:
+                return APP_NAMES[name]
+        pid = ppid
+    return "your agent"
+
+
 def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[str, str]:
-    """Open a page on this Mac where the person confirms with Touch ID; answer the passkey's id
+    """Serve a page on this Mac where the person confirms with Touch ID; answer the passkey's id
     and secret."""
     token = secrets.token_urlsafe(24)
-    setup = json.dumps({"mode": mode, "address": address, "credentialId": credential_id})
+    nonce = secrets.token_urlsafe(18)
+    # Written inside the page's script: "<" is escaped so no value can end the script early.
+    setup = json.dumps(
+        {"mode": mode, "address": address, "credentialId": credential_id, "opener": _opener()}
+    ).replace("<", "\\u003c")
     page = (
-        files("regents_cli").joinpath("passkey.html").read_text("utf-8").replace("__SETUP__", setup)
+        files("regents_cli")
+        .joinpath("passkey.html")
+        .read_text("utf-8")
+        .replace("__NONCE__", nonce)
+        .replace("__SETUP__", setup)
     ).encode("utf-8")
     answer: dict[str, str] = {}
     answered = threading.Event()
@@ -75,6 +124,7 @@ def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[
             self.send_response(200)
             self.send_header("content-type", "text/html; charset=utf-8")
             self.send_header("cache-control", "no-store")
+            self.send_header("content-security-policy", PASSKEY_POLICY.format(nonce=nonce))
             self.end_headers()
             self.wfile.write(page)
 
@@ -93,14 +143,13 @@ def _passkey_secret(mode: str, address: str, credential_id: str | None) -> dict[
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Page)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     url = f"http://localhost:{server.server_port}/{token}"
-    stderr.print(f"{ASKS[mode]} {url}", soft_wrap=True)
-    subprocess.run(["open", url], check=False)
+    browser.offer(ASKS[mode], url)
     try:
         if not answered.wait(PASSKEY_WAIT_SECONDS):
             raise CommandError(
                 "no_touch_id",
                 f"No Touch ID within {PASSKEY_WAIT_SECONDS // 60} minutes. Run the command again "
-                "and ask your person to confirm on the page it opens.",
+                "and ask your person to confirm on the page it names.",
                 exit_code=EXIT_AUTH,
             )
     finally:
@@ -160,9 +209,13 @@ def _ask_helper(path: str, request: dict[str, Any]) -> dict[str, Any] | None:
             f"{HELPER_ANSWER_SECONDS} seconds, so this command stopped and sent nothing. Anything "
             "the helper signed after that stays with it.",
             exit_code=EXIT_AUTH,
-            hint="Stop the stuck helper (the process running regents_cli.passkey or "
-            "siwa_agent key-helper) or restart this Mac, then run the command again; Touch ID "
-            "is asked once.",
+            next_steps=[
+                human(
+                    "Your person stops the stuck helper (the process running regents_cli.passkey "
+                    "or siwa_agent key-helper) or restarts this Mac. Then run the command again; "
+                    "Touch ID is asked once."
+                )
+            ],
         ) from None
     except (FileNotFoundError, ConnectionRefusedError, BrokenPipeError, ConnectionResetError):
         return None
@@ -225,21 +278,25 @@ def sign_message_with(private_key: str, text: str) -> str:
 def sign_transaction_with(private_key: str, transaction: dict[str, str]) -> str:
     """Sign a transaction given as 0x quantities (chainId, nonce, value, gas, fees) and 0x hex
     (to, data), the shape the helper takes."""
-    signed = Account.sign_transaction(
-        {
-            "type": 2,
-            "chainId": int(transaction["chainId"], 16),
-            "nonce": int(transaction["nonce"], 16),
-            "to": bytes.fromhex(transaction["to"].removeprefix("0x")),
-            "data": transaction["data"],
-            "value": int(transaction["value"], 16),
-            "gas": int(transaction["gas"], 16),
-            "maxFeePerGas": int(transaction["maxFeePerGas"], 16),
-            "maxPriorityFeePerGas": int(transaction["maxPriorityFeePerGas"], 16),
-        },
-        private_key=private_key,
-    )
+    signed = Account.sign_transaction(dynamic_fee(transaction), private_key=private_key)
     return "0x" + bytes(signed.raw_transaction).hex()
+
+
+def dynamic_fee(transaction: dict[str, str]) -> dict[str, Any]:
+    """`transaction`, in the helper's 0x shape, as the one kind of transaction the agent key
+    signs: EIP-1559, with no access list."""
+    return {
+        "type": 2,
+        "chainId": int(transaction["chainId"], 16),
+        "nonce": int(transaction["nonce"], 16),
+        "to": bytes.fromhex(transaction["to"].removeprefix("0x")),
+        "data": transaction["data"],
+        "value": int(transaction["value"], 16),
+        "gas": int(transaction["gas"], 16),
+        "maxFeePerGas": int(transaction["maxFeePerGas"], 16),
+        "maxPriorityFeePerGas": int(transaction["maxPriorityFeePerGas"], 16),
+        "accessList": [],
+    }
 
 
 def _serve(path: str) -> None:

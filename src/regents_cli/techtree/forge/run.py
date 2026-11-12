@@ -80,7 +80,7 @@ from regents_cli.techtree.forge.models import (
     ForgeRunStatus,
 )
 from regents_cli.techtree.forge.qualify import grade_task, read_skill_task_facts
-from regents_cli.techtree.forge.records import inspect_command, read_record
+from regents_cli.techtree.forge.records import inspect_first, read_record
 from regents_cli.techtree.forge.skill import SKILL_DIRNAME, scan_skill_spec, snapshot_skill
 from regents_cli.techtree.fs import atomic_write_bytes, atomic_write_json
 from regents_cli.techtree.ids import new_id, validate_id
@@ -240,7 +240,7 @@ def _recorded_run(
         except Exception:
             receipt_written = False
         raise RunError(
-            f"{failure.message}. Inspect: {inspect_command(run_id)}"
+            failure.message
             + ("" if receipt_written else "; final failure receipt could not be written"),
             code=failure.code,
             details={
@@ -249,6 +249,7 @@ def _recorded_run(
                 "attempts_recorded": len(record.attempts),
                 "failure_recorded": receipt_written,
             },
+            next_steps=[inspect_first(run_id)],
         ) from error
     return ForgeRunStatus(run_id=run_id, path=str(run_dir), spec=spec, record=record)
 

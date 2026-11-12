@@ -115,7 +115,7 @@ def validate_taskset(
         json.dumps(
             {
                 "taskset": taskset.document(),
-                "num_tasks": lock.task_count,
+                "select": {"limit": lock.task_count},
                 "runtime": {"type": runtime}
                 | ({} if docker_image is None else {"image": docker_image}),
                 "output_dir": str(output_dir),
@@ -161,7 +161,7 @@ def validate_taskset(
         )
     checks = [
         _upstream_check("upstream_gold", document["checks"]["gold"]),
-        _upstream_check("upstream_setup", document["checks"]["setup"]),
+        _upstream_check("upstream_noop", document["checks"]["noop"]),
         ValidationCheck(
             id="membership_repeatability",
             status="passed",

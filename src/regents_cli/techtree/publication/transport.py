@@ -18,7 +18,7 @@ import httpx
 
 from regents_cli import siwa
 from regents_cli.errors import CommandError
-from regents_cli.http import Request
+from regents_cli.http import Request, client_header
 from regents_cli.techtree.errors import AuthenticationError, TechtreeError, ValidationError
 from regents_cli.techtree.release.models import PublicationCoordinates
 
@@ -68,10 +68,11 @@ class HttpsPublicationTransport:
                 details={"limit": MAX_REQUEST_BYTES},
             )
         # The independent participant proof stays byte-for-byte intact inside this envelope.
-        signed_request = Request("POST", urlsplit(endpoint).path, raw_content=body)
+        parts = urlsplit(endpoint)
+        signed_request = Request("POST", parts.path, raw_content=body)
         try:
             receipt = siwa.current("techtree", int(_TIMEOUT_SECONDS * 1000))
-            proof = siwa.sign(signed_request, receipt)
+            proof = siwa.sign(signed_request, receipt, f"{parts.scheme}://{parts.netloc}")
         except CommandError as error:
             # A signing command may include sensitive output in its error; never relay it.
             raise AuthenticationError(
@@ -80,7 +81,7 @@ class HttpsPublicationTransport:
                 "Protected publication also requires a current account pairing.",
                 code=error.code,
             ) from None
-        headers = {"Content-Type": _MEDIA_TYPE, "Accept": _MEDIA_TYPE}
+        headers = {"Content-Type": _MEDIA_TYPE, "Accept": _MEDIA_TYPE, **client_header()}
         if contributor_address is not None:
             headers[CONTRIBUTOR_ADDRESS_HEADER] = contributor_address
         if skill_name is not None:

@@ -7,6 +7,7 @@ from typing import Final
 import click
 
 from regents_cli import output
+from regents_cli.next_steps import Step, done, human, run
 from regents_cli.techtree import paths
 from regents_cli.techtree.catalog.service import CatalogService
 from regents_cli.techtree.commands.answers import JSON, emit
@@ -17,6 +18,19 @@ from regents_cli.techtree.models.base import JsonValue
 from regents_cli.techtree.models.campaign import CampaignSpecV4
 
 ENVIRONMENT_NOT_READY: Final = "environment_not_ready"
+
+
+def not_ready(again: list[str]) -> list[Step]:
+    """What a machine that failed a blocking check needs: a person to fix it, then a recheck."""
+    return [
+        human(
+            "Your person fixes on this machine what each blocking failure names, such as a "
+            "missing program."
+        ),
+        run(again, "Then run this again."),
+    ]
+
+
 _MARK: Final[dict[CheckStatus, output.CheckStatus]] = {
     CheckStatus.PASS: "pass",
     CheckStatus.WARN: "warn",
@@ -41,6 +55,7 @@ def doctor(for_evaluation: bool, climb: str | None, as_json: bool) -> None:
                 "failed_checks": list(identifiers),
                 "blocking_failures": [check.model_dump(mode="json") for check in blocking],
             },
+            next_steps=not_ready(["regents", "techtree", "doctor"]),
         )
     report = service.report(checks)
     answer: dict[str, JsonValue] = report.model_dump(mode="json")
@@ -60,6 +75,7 @@ def doctor(for_evaluation: bool, climb: str | None, as_json: bool) -> None:
                 for check in report.checks
             ),
         ],
+        next_steps=[done("This machine is ready; nothing more to run.")],
     )
 
 

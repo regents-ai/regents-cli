@@ -85,8 +85,9 @@ Hidden, for Techtree's own use: `regents techtree _worker --run-id <id>` (the de
 - **Approval.** `techtree/approval.py: approve(review, command)`. With `--yes` it goes ahead.
   When a person is at a terminal (stdin and stdout are terminals, and there's no `--json`), it
   asks. Otherwise it raises `approval_required` (exit 1), which carries `review` (lines) and
-  `approval.command`: the exact command with `--yes --reviewed-on host-agent`, as shell text
-  quoted by `shlex.join`, so `shlex.split` gives back the arguments. It never waits for input it
+  two next steps: a human step (show the review and ask), then a run step whose `command` is
+  the exact command with `--yes --reviewed-on host-agent`, as shell text quoted by
+  `shlex.join`, so `shlex.split` gives back the arguments. It never waits for input it
   can't get.
 - **Home.** `~/.regents/techtree`, with no flag to move it. The worker finds it the same way.
 - **Models.** V2 shapes only. Enums in signed records keep only the values actually written.

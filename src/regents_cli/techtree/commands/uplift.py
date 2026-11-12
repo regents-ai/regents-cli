@@ -13,6 +13,7 @@ from typing import Final
 import click
 
 from regents_cli import output
+from regents_cli.next_steps import done, run
 from regents_cli.techtree import paths
 from regents_cli.techtree.approval import REVIEWED_ON, YES, ReviewedOn, approve
 from regents_cli.techtree.canonical import canonical_json_bytes
@@ -68,7 +69,6 @@ def context(comparison_id: str, as_json: bool) -> None:
         "This context is working material, not evidence. It is not signed, nothing verifies "
         "it, and nothing uploads it."
     )
-    next_command = f"regents techtree uplift skill-source {improvement.candidate_run_id}"
     report = [
         f"Built improvement context for {comparison_id} from {len(improvement.examples)} of "
         "its task attempts.",
@@ -99,17 +99,18 @@ def context(comparison_id: str, as_json: bool) -> None:
         *(f"- {item}" for item in improvement.prohibited_material),
         "",
         f"- {warning}",
-        "",
-        f"Next: {next_command}",
     ]
     answer: Answer = {
         "context": improvement.model_dump(mode="json"),
         "relative_path": _CONTEXT_PATH.as_posix(),
         "warnings": [{"id": "improvement_context_is_not_proof", "text": warning}],
-        "next_command": next_command,
         "report": "\n".join(report),
     }
-    emit(answer, as_json=as_json)
+    source = run(
+        ["regents", "techtree", "uplift", "skill-source", improvement.candidate_run_id],
+        "Read the Skill this comparison measured, to revise it.",
+    )
+    emit(answer, as_json=as_json, next_steps=[source])
 
 
 # ---------------------------------------------------------------------------
@@ -118,14 +119,16 @@ def context(comparison_id: str, as_json: bool) -> None:
 
 
 def skill_source(run_id: str, as_json: bool) -> None:
-    run = read_run_status(paths.home(), run_id)
-    if run.spec.skill is None:
+    measured = read_run_status(paths.home(), run_id)
+    if measured.spec.skill is None:
         raise ValidationError(
             "this run carried no Skill, so there is no text to read; name a run that carried one",
             code="forge_run_without_skill",
             details={"run_id": run_id},
         )
-    skill = read_owned_skill(run.spec.skill, Path(run.path) / SKILL_DIRNAME, owner_id=run_id)
+    skill = read_owned_skill(
+        measured.spec.skill, Path(measured.path) / SKILL_DIRNAME, owner_id=run_id
+    )
     heading = [
         f"This is run {run_id}'s own copy of {skill.entrypoint_path}, re-verified against the "
         "Skill the run measured as it was read.",
@@ -139,12 +142,7 @@ def skill_source(run_id: str, as_json: bool) -> None:
         "",
         f"{skill.entrypoint_path} ({skill.entrypoint_size} bytes)",
     ]
-    next_line = (
-        "Next: write the revised Skill in a new folder, then "
-        "regents techtree uplift prepare --from-run COMPARISON_ID --candidate-skill NEW_PATH, "
-        f"with the comparison that measured this run. {NO_REVISION_YET}"
-    )
-    report = [*heading, "", skill.entrypoint_text, "", next_line]
+    report = [*heading, "", skill.entrypoint_text, "", NO_REVISION_YET]
     answer: Answer = {
         "source_run_id": run_id,
         "skill_name": skill.name,
@@ -156,13 +154,30 @@ def skill_source(run_id: str, as_json: bool) -> None:
         "file_count": skill.file_count,
         "report": "\n".join(report),
     }
+    prepare = [
+        "regents",
+        "techtree",
+        "uplift",
+        "prepare",
+        "--from-run",
+        "<comparison id>",
+        "--candidate-skill",
+        "<new folder>",
+    ]
     emit(
         answer,
         as_json=as_json,
+        next_steps=[
+            run(
+                prepare,
+                "Write the revised Skill in a new folder, then prepare it against the comparison "
+                "that measured this run.",
+            )
+        ],
         shown=[
             output.report("\n".join(heading)),
             output.verbatim(skill.entrypoint_text),
-            output.report(next_line),
+            output.report(NO_REVISION_YET),
         ],
     )
 
@@ -181,7 +196,6 @@ def prepare(from_run: str, candidate_skill: Path, label: str | None, as_json: bo
         label=label,
     )
     shown = shown_revision(home, revision)
-    next_command = f"regents techtree uplift start {revision.revision_id}"
     emit(
         _revision_answer(
             shown,
@@ -191,10 +205,14 @@ def prepare(from_run: str, candidate_skill: Path, label: str | None, as_json: bo
                 "",
             ],
             warnings=_screening_warnings(shown),
-            next_line=next_command,
-            next_command=next_command,
         ),
         as_json=as_json,
+        next_steps=[
+            run(
+                ["regents", "techtree", "uplift", "start", revision.revision_id],
+                "Measure it: it shows what the run uses and asks before starting.",
+            )
+        ],
     )
 
 
@@ -237,7 +255,6 @@ def start(revision_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -
         if ungraded
         else []
     )
-    next_command = f"regents techtree uplift context {measured.comparison.comparison_id}"
     emit(
         _revision_answer(
             shown,
@@ -247,10 +264,15 @@ def start(revision_id: str, yes: bool, reviewed_on: ReviewedOn, as_json: bool) -
                 "",
             ],
             warnings=[*_screening_warnings(shown), *run_warnings],
-            next_line=f"{next_command}, which is where a further revision starts",
-            next_command=next_command,
         ),
         as_json=as_json,
+        next_steps=[
+            run(
+                ["regents", "techtree", "uplift", "context", measured.comparison.comparison_id],
+                "Build the context a further revision starts from, if you want another round.",
+            ),
+            done("Or stop here: the revision is measured and kept."),
+        ],
     )
 
 
@@ -295,8 +317,6 @@ def _revision_answer(
     heading: list[str],
     *,
     warnings: list[tuple[str, str]],
-    next_line: str,
-    next_command: str,
 ) -> Answer:
     """A revision as the agent that wrote it may read it."""
     held_out = shown.held_out_tasks
@@ -337,11 +357,9 @@ def _revision_answer(
     lines += ["", *(verdict for verdict in (shown.verdict, shown.study_verdict) if verdict)]
     if warnings:
         lines += ["", *(f"- {text}" for _, text in warnings)]
-    lines += ["", f"Next: {next_line}"]
     answer: Answer = shown.model_dump(mode="json")
     if warnings:
         answer["warnings"] = [{"id": warning_id, "text": text} for warning_id, text in warnings]
-    answer["next_command"] = next_command
     answer["report"] = "\n".join(lines)
     return answer
 

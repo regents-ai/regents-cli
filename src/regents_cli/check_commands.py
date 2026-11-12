@@ -18,9 +18,10 @@ import json
 import re
 import sys
 from collections import Counter
+from collections.abc import Set
 from importlib.resources import files
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import yaml
 from jsonschema import Draft202012Validator
@@ -42,36 +43,149 @@ def is_json(kind: str) -> bool:
 
 
 def answers_json(document: Any, operation: dict[str, Any]) -> bool:
-    """Whether every success answer of `operation` can be JSON, the only answer `regents`
-    reads: never 204 No Content, and any content it declares is JSON."""
     shared = (document.get("components") or {}).get("responses") or {}
     for code, response in (operation.get("responses") or {}).items():
-        if str(code) == "204":
-            return False
         if str(code).startswith("2"):
             name = response.get("$ref", "").removeprefix("#/components/responses/")
             content = (shared.get(name, {}) if name else response).get("content") or {}
+            if str(code) == "204" and content:
+                return False
             if not all(map(is_json, content)):
                 return False
     return True
 
 
-def operations_in(documents: list[Any]) -> dict[str, tuple[str, str, bool]]:
+class Body(NamedTuple):
+    """The fields an operation's JSON request body names, and those it requires. `fields` is
+    None when the body is not one set of named fields: oneOf, anyOf, or an open object that
+    names none."""
+
+    fields: frozenset[str] | None
+    required: frozenset[str]
+    #: The media types the body may be sent as.
+    media: frozenset[str] = frozenset()
+
+
+class Operation(NamedTuple):
+    method: str
+    route: str
+    answers_json: bool
+    body: Body | None  # None: the operation takes no request body
+
+
+def followed(document: Any, node: Any) -> Any:
+    """`node`, or what its local `$ref` points to in `document`, followed to the end."""
+    seen = set()
+    while "$ref" in node:
+        reference = node["$ref"]
+        if reference in seen:
+            raise ValueError(f"$ref {reference} leads back to itself")
+        seen.add(reference)
+        node = document
+        for part in reference.removeprefix("#/").split("/"):
+            node = node[part.replace("~1", "/").replace("~0", "~")]
+    return node
+
+
+def body_named_in(document: Any, schema: Any, *, in_all_of: bool = False) -> Body:
+    """The named fields of one request-body schema, `allOf` parts merged."""
+    schema = followed(document, schema)
+    required = set(schema.get("required") or [])
+    fields = set(schema.get("properties") or {})
+    known = "oneOf" not in schema and "anyOf" not in schema
+    for part in schema.get("allOf", []):
+        inner = body_named_in(document, part, in_all_of=True)
+        if inner.fields is None:
+            known = False
+        else:
+            fields |= inner.fields
+        required |= inner.required
+    closed = schema.get("additionalProperties") is False or schema.get("maxProperties") == 0
+    named = frozenset(fields) if known and (fields or closed or in_all_of) else None
+    return Body(named, frozenset(required))
+
+
+def request_body(document: Any, operation: dict[str, Any]) -> Body | None:
+    if "requestBody" not in operation:
+        return None
+    content = followed(document, operation["requestBody"]).get("content") or {}
+    media = frozenset(media.split(";")[0].strip().lower() for media in content)
+    schemas = [
+        kind["schema"] for media, kind in content.items() if is_json(media) and "schema" in kind
+    ]
+    if len(schemas) != 1:
+        return Body(None, frozenset(), media)
+    return body_named_in(document, schemas[0])._replace(media=media)
+
+
+def operations_in(documents: list[Any]) -> dict[str, Operation]:
     found = {}
     for document in documents:
         for route, item in (document.get("paths") or {}).items():
             for method in METHODS:
                 operation = (item or {}).get(method) or {}
                 if "operationId" in operation:
-                    found[operation["operationId"]] = (
+                    found[operation["operationId"]] = Operation(
                         method.upper(),
                         route,
                         answers_json(document, operation),
+                        request_body(document, operation),
                     )
     return found
 
 
-def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) -> list[str]:
+def body_problems(entry: dict[str, Any], body: Body | None) -> list[str]:
+    """Where the body this command sends differs from its operation's request body."""
+    inputs = [i for i in entry.get("arguments", []) + entry.get("flags", []) if i["in"] == "body"]
+    stdin = entry.get("stdin_fields", [])
+    fixed = set(entry.get("body", {}))
+    sent = {i["field"] for i in inputs} | {f["field"] for f in stdin} | fixed
+    always = (
+        {i["field"] for i in entry.get("arguments", []) if i["in"] == "body"}
+        | {i["field"] for i in entry.get("flags", []) if i["in"] == "body" and i.get("required")}
+        | {f["field"] for f in stdin if f.get("required")}
+    )
+    operation = entry["operation_id"]
+    if body is None:
+        return [f"sends {named(sent)}, but operation {operation} takes no body"] if sent else []
+    problems = []
+    if body.fields is not None and (unknown := sent - body.fields):
+        problems.append(f"sends {named(unknown)}, which operation {operation}'s body does not name")
+    if optional := body.required - always - fixed:
+        problems.append(f"operation {operation} requires {named(optional)}, which it may leave out")
+    return problems
+
+
+def file_problems(entry: dict[str, Any], operation: Operation | None) -> list[str]:
+    """A file argument is the whole body: the command sends nothing else in it, says which
+    content types and how many bytes it may send, and the operation takes each of those types."""
+    files = [i for i in entry.get("arguments", []) if i["type"] == "file"]
+    if not files:
+        return []
+    others = [i for i in entry.get("arguments", []) + entry.get("flags", []) if i["in"] == "body"]
+    problems = []
+    if any(f["in"] != "body" for f in files):
+        problems.append("a file argument fills the body")
+    if len(files) > 1 or others != files[:1] or "stdin_fields" in entry or "body" in entry:
+        problems.append("a file argument is the whole body: nothing else may fill it")
+    if any("enum" not in f or "maximum" not in f for f in files):
+        problems.append("a file argument names its content types (enum) and its most bytes")
+    if entry["method"] not in ("POST", "PUT"):
+        problems.append("a file is sent with POST or PUT")
+    sent = {t for f in files for t in f.get("enum", [])}
+    body = operation.body if operation is not None else None
+    if operation is not None and body is None:
+        problems.append(f"operation {entry['operation_id']} takes no body")
+    if body is not None and (unknown := sent - body.media):
+        problems.append(f"operation {entry['operation_id']} takes no {named(unknown)} body")
+    return problems
+
+
+def named(fields: Set[str]) -> str:
+    return ", ".join(sorted(fields))
+
+
+def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]:
     schema = json.loads(
         files("regents_cli.schemas").joinpath("commands.v1.json").read_text("utf-8")
     )
@@ -83,6 +197,7 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) 
     shapes = Counter(re.sub(r"<[^>]+>", "<>", c["command"]) for c in description["commands"])
     problems += [f'two commands have the shape "{shape}"' for shape, n in shapes.items() if n > 1]
 
+    described = {c["command"]: c for c in description["commands"]}
     for entry in description["commands"]:
 
         def say(message: str, entry: dict[str, Any] = entry) -> None:
@@ -112,22 +227,38 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) 
                 f"must fill exactly {entry['path']}"
             )
         for i in inputs:
-            if "enum" in i and i["type"] != "string":
-                say(f"{i['name']}: only string inputs take enum")
-            if ("minimum" in i or "maximum" in i) and i["type"] != "integer":
-                say(f"{i['name']}: only integer inputs take minimum and maximum")
+            if "enum" in i and i["type"] not in ("string", "file"):
+                say(f"{i['name']}: only string and file inputs take enum")
+            if "minimum" in i and i["type"] != "integer":
+                say(f"{i['name']}: only integer inputs take minimum")
+            if "maximum" in i and i["type"] not in ("integer", "file"):
+                say(f"{i['name']}: only integer and file inputs take maximum")
+        for problem in file_problems(entry, operations.get(entry["operation_id"])):
+            say(problem)
+        site_urls = [i for i in args if i["type"] == "site_url"]
+        if [i for i in flags if i["type"] in ("site_url", "file")]:
+            say("site_url and file inputs are arguments, not flags")
+        if site_urls and [i for i in inputs if i["in"] == "path"] != site_urls[:1]:
+            say("a site_url argument is the command's only path input")
+        if any(i["in"] != "path" for i in site_urls):
+            say("a site_url argument fills the path")
+        for f in entry.get("stdin_fields", []):
+            if ("minimum" in f or "maximum" in f) and f["type"] != "integer":
+                say(f"stdin {f['field']}: only integer fields take minimum and maximum")
 
         fills_body = any(i["in"] == "body" for i in inputs) or "stdin_fields" in entry
-        empty_signed_body = entry.get("body") == {} and entry["authority"] == "wallet-proof"
+        empty_signed_body = entry.get("body") == {} and entry["authority"] != "public"
         if entry["method"] in ("GET", "DELETE") and (
             fills_body or ("body" in entry and not empty_signed_body)
         ):
             say(
                 f"{entry['method']} sends no body, except an empty signed one: "
-                "body {} on a wallet-proof command"
+                "body {} on a signed command"
             )
-        if "stdin_fields" in entry and entry["authority"] != "wallet-proof":
-            say("only wallet-proof commands read body fields from stdin")
+        if "stdin_fields" in entry and entry["authority"] == "public":
+            say("only signed commands read body fields from stdin")
+        if "conditions" in entry and entry["authority"] != "paired_agent":
+            say("only paired_agent commands take conditions")
         for name in entry.get("required_one_of", []):
             if name not in flag_names:
                 say(f"required_one_of names --{name}, which is not a flag")
@@ -135,16 +266,43 @@ def problems_in(description: Any, operations: dict[str, tuple[str, str, bool]]) 
         if pagination and pagination["flag"] not in flag_names:
             say(f"pagination passes the cursor as --{pagination['flag']}, which is not a flag")
 
+        for step in entry.get("next_steps", []):
+            if step["kind"] == "done" and "url" in step:
+                say("next_steps: only a human step names a url")
+            if step["kind"] != "run":
+                continue
+            target = described.get(step["command"])
+            if target is None:
+                say(f"next_steps runs {step['command']}, which is not one of its commands")
+                continue
+            words = [w[1:-1] for w in step["command"].split(" ") if w.startswith("<")]
+            filled = step.get("arguments", {})
+            own = {a["name"] for a in entry.get("arguments", [])}
+            if not set(filled) <= set(words) or not set(words) - set(filled) <= own:
+                say(
+                    f"next_steps: arguments and this command's own arguments must fill exactly "
+                    f"the <words> of {step['command']}"
+                )
+            if target.get("required_one_of") or any(
+                f.get("required") for f in target.get("flags", [])
+            ):
+                say(f"next_steps runs {step['command']}, which needs flags a step can't fill")
+
         operation = operations.get(entry["operation_id"])
         if operation is None:
             say(f"operation {entry['operation_id']} is not in the site's OpenAPI documents")
-        elif operation[:2] != (entry["method"], entry["path"]):
+        elif (operation.method, operation.route) != (entry["method"], entry["path"]):
             say(
-                f"operation {entry['operation_id']} is {' '.join(operation[:2])}, "
+                f"operation {entry['operation_id']} is {operation.method} {operation.route}, "
                 f"not {entry['method']} {entry['path']}"
             )
-        elif not operation[2]:
-            say(f"operation {entry['operation_id']} does not answer JSON on success")
+        elif not operation.answers_json:
+            say(
+                f"operation {entry['operation_id']} does not answer JSON or an empty 204 on success"
+            )
+        else:
+            for problem in body_problems(entry, operation.body):
+                say(problem)
     return problems
 
 

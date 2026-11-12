@@ -10,8 +10,10 @@ import json
 from dataclasses import dataclass
 from importlib.resources import files
 from typing import Any, Final, Literal
+from urllib.parse import urlsplit
 
-type Authority = Literal["public", "wallet-proof"]
+type Authority = Literal["public", "signed_agent", "paired_agent"]
+type Condition = Literal["spending_allowed", "member"]
 type Effect = Literal["read", "quote", "write", "prepare", "payment"]
 
 #: How long `regents` waits for each answer, unless a command names its own `timeout_ms`.
@@ -25,7 +27,7 @@ SIGN_IN_SITES: Final = {"protocol": "regents"}
 @dataclass(frozen=True, slots=True)
 class Input:
     name: str
-    type: Literal["string", "integer", "decimal", "uuid", "address"]
+    type: Literal["string", "integer", "decimal", "uuid", "address", "site_url", "file"]
     location: Literal["path", "query", "body"]
     field: str
     description: str
@@ -52,9 +54,11 @@ class Input:
 @dataclass(frozen=True, slots=True)
 class StdinField:
     field: str
-    type: Literal["array", "object", "string", "integer"]
+    type: Literal["array", "object", "string", "integer", "uuid"]
     required: bool
     description: str
+    minimum: int | None
+    maximum: int | None
 
     @classmethod
     def parse(cls, raw: dict[str, Any]) -> StdinField:
@@ -63,6 +67,8 @@ class StdinField:
             type=raw["type"],
             required=raw.get("required", False),
             description=raw["description"],
+            minimum=raw.get("minimum"),
+            maximum=raw.get("maximum"),
         )
 
 
@@ -74,6 +80,28 @@ class Pagination:
 
 
 @dataclass(frozen=True, slots=True)
+class FollowUp:
+    """A step the site names for after a command's answer: another of its commands, filled from
+    the answer, something a person does, or the end of the work."""
+
+    kind: Literal["run", "human", "done"]
+    say: str
+    command: str | None
+    arguments: dict[str, str]
+    url: str | None
+
+    @classmethod
+    def parse(cls, raw: dict[str, Any]) -> FollowUp:
+        return cls(
+            kind=raw["kind"],
+            say=raw["say"],
+            command=raw.get("command"),
+            arguments=raw.get("arguments", {}),
+            url=raw.get("url"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class Command:
     words: tuple[str, ...]
     description: str
@@ -81,6 +109,7 @@ class Command:
     method: str
     path: str
     authority: Authority
+    conditions: tuple[Condition, ...]
     effect: Effect
     arguments: tuple[Input, ...]
     flags: tuple[Input, ...]
@@ -89,6 +118,14 @@ class Command:
     stdin_fields: tuple[StdinField, ...]
     timeout_ms: int
     pagination: Pagination | None
+    next_steps: tuple[FollowUp, ...]
+    #: The site's WebMCP tool that does the same thing in a browser, when it names one.
+    webmcp: str | None
+
+    @property
+    def signed(self) -> bool:
+        """Whether every request is signed by the agent's key: all but public commands."""
+        return self.authority != "public"
 
     @property
     def group_words(self) -> tuple[str, ...]:
@@ -113,6 +150,7 @@ class Command:
             method=raw["method"],
             path=raw["path"],
             authority=raw["authority"],
+            conditions=tuple(raw.get("conditions", [])),
             effect=raw["effect"],
             arguments=tuple(Input.parse(a, argument=True) for a in raw.get("arguments", [])),
             flags=tuple(Input.parse(f, argument=False) for f in raw.get("flags", [])),
@@ -121,6 +159,8 @@ class Command:
             stdin_fields=tuple(StdinField.parse(s) for s in raw.get("stdin_fields", [])),
             timeout_ms=raw.get("timeout_ms", DEFAULT_TIMEOUT_MS),
             pagination=Pagination(**pagination) if pagination else None,
+            next_steps=tuple(FollowUp.parse(s) for s in raw.get("next_steps", [])),
+            webmcp=raw.get("webmcp"),
         )
 
 
@@ -135,6 +175,11 @@ class Platform:
     def site(self) -> str:
         """The site this command tree signs in to."""
         return SIGN_IN_SITES.get(self.name, self.name)
+
+    @property
+    def host(self) -> str:
+        """The site's host, such as keyfleet.ai."""
+        return urlsplit(self.base_url).netloc
 
     @property
     def env_var(self) -> str:

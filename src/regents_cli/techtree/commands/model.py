@@ -1,17 +1,36 @@
 """`regents techtree model login | status | logout`: sign this machine in to the person's ChatGPT
 plan, so Climbs can run on it as well as on their own Prime key. Every call goes to OpenAI;
-nothing goes to the Techtree site, and no answer ever carries a token."""
+nothing goes to the Techtree site, and no answer ever carries a token.
+
+`regents techtree model import-obliteratus`: describe an OBLITERATUS checkpoint and the model it
+was made from as the two model blocks of a model substitution pair. It reads local files only.
+
+`regents techtree model check-server`: ask an operator's vLLM server whether it serves the model
+a block names, as a run on the open_weights route does before it starts. Two free reads.
+"""
 
 from __future__ import annotations
 
-import click
+from pathlib import Path
+from typing import Final
 
+import click
+from pydantic import ValidationError as PydanticValidationError
+
+from regents_cli.next_steps import done, human
 from regents_cli.techtree import paths
+from regents_cli.techtree.canonical import to_json_value
 from regents_cli.techtree.chatgpt import signin
 from regents_cli.techtree.commands.answers import JSON, emit
-from regents_cli.techtree.models.base import JsonValue
+from regents_cli.techtree.errors import UsageError
+from regents_cli.techtree.fs import read_json
+from regents_cli.techtree.model_server import api_base_url, check_server
+from regents_cli.techtree.models.base import JsonValue, ProtocolModel
+from regents_cli.techtree.models.open_weights import OpenWeightsModel, ServingSpec
+from regents_cli.techtree.obliteratus import import_checkpoint
 
 _PLAN_LINE = "Using your ChatGPT plan"
+MODEL_INPUT_INVALID: Final = "model_input_invalid"
 
 
 def login(as_json: bool) -> None:
@@ -31,7 +50,17 @@ def login(as_json: bool) -> None:
             f"{signin.USAGE_SETTINGS_URL}",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[
+            human(
+                "Your person may set how much of their plan Regents may use.",
+                signin.USAGE_SETTINGS_URL,
+            ),
+            done("Signed in; Climbs can now run on the ChatGPT plan."),
+        ],
+    )
 
 
 def status(as_json: bool) -> None:
@@ -58,7 +87,7 @@ def status(as_json: bool) -> None:
             f"Manage what Regents may use at {signin.USAGE_SETTINGS_URL}",
         ]
     )
-    emit(answer, as_json=as_json)
+    emit(answer, as_json=as_json, next_steps=[done("Signed in; nothing more to run.")])
 
 
 def logout(as_json: bool) -> None:
@@ -69,7 +98,16 @@ def logout(as_json: bool) -> None:
         "revocation_confirmed": logged_out.revocation_confirmed,
     }
     answer["report"] = _logout_report(logged_out)
-    emit(answer, as_json=as_json)
+    unconfirmed = logged_out.removed and not logged_out.revocation_confirmed
+    emit(
+        answer,
+        as_json=as_json,
+        next_steps=[
+            human("Your person disconnects Regents there to finish.", signin.USAGE_SETTINGS_URL)
+            if unconfirmed
+            else done("Signed out; nothing more to run.")
+        ],
+    )
 
 
 def _logout_report(logged_out: signin.LoggedOut) -> str:
@@ -84,14 +122,100 @@ def _logout_report(logged_out: signin.LoggedOut) -> str:
     )
 
 
+def import_obliteratus(
+    checkpoint: Path,
+    source: Path,
+    vllm_version: str,
+    dtype: str,
+    quantization: str | None,
+    max_model_len: int,
+    as_json: bool,
+) -> None:
+    serving = _parse(
+        ServingSpec,
+        {
+            "engine": "vllm",
+            "version": vllm_version,
+            "dtype": dtype,
+            "quantization": quantization,
+            "max_model_len": max_model_len,
+        },
+        "the serving options",
+    )
+    pair = import_checkpoint(checkpoint, source, serving)
+    derivation = pair.candidate.derivation
+    assert derivation is not None
+    answer: dict[str, JsonValue] = {
+        "baseline": to_json_value(pair.baseline),
+        "candidate": to_json_value(pair.candidate),
+    }
+    answer["report"] = "\n".join(
+        [
+            f"**Baseline** {derivation.source.repo} at {derivation.source.revision}",
+            "",
+            f"Weights {pair.baseline.weights.weights_root}",
+            "",
+            f"**Candidate** OBLITERATUS {derivation.method} at {derivation.tool_commit}",
+            "",
+            f"Weights {pair.candidate.weights.weights_root}",
+            "",
+            "Same tokenizer, chat template and serving on both sides; only the weights differ. "
+            "The --json answer holds both model blocks.",
+        ]
+    )
+    emit(answer, as_json=as_json, next_steps=[done("Both model blocks are ready.")])
+
+
+def check_server_command(block: Path, base_url: str, as_json: bool) -> None:
+    api_base_url(base_url)
+    model = _parse(OpenWeightsModel, read_json(block), f"{block} as a model block")
+    checked = check_server(base_url, model)
+    answer: dict[str, JsonValue] = {
+        "base_url": checked.base_url,
+        "served_model": checked.served_model,
+        "version": checked.version,
+        "max_model_len": checked.max_model_len,
+    }
+    answer["report"] = "\n".join(
+        [
+            f"**Server** {checked.base_url}",
+            "",
+            f"Serves {checked.served_model} on vLLM {checked.version}, "
+            f"{checked.max_model_len} tokens of context, as the block says.",
+            "",
+            "Its dtype, quantization and the bytes it loaded are the operator's statement; a "
+            "rerun by someone else checks them.",
+        ]
+    )
+    emit(answer, as_json=as_json, next_steps=[done("The server serves this block's model.")])
+
+
+def _parse[ModelT: ProtocolModel](shape: type[ModelT], raw: object, what: str) -> ModelT:
+    try:
+        return shape.model_validate(raw)
+    except PydanticValidationError as error:
+        problems = [
+            f"{'.'.join(str(part) for part in issue['loc']) or 'the whole'}: {issue['msg']}"
+            for issue in error.errors()
+        ]
+        raise UsageError(
+            f"{what} is not usable: " + "; ".join(problems),
+            code=MODEL_INPUT_INVALID,
+            details={"problems": list(problems)},
+        ) from error
+
+
 MODEL = click.Group(
-    "model", help="Sign this machine in to your ChatGPT plan, so Climbs can run on it."
+    "model",
+    help="Sign this machine in to your ChatGPT plan, so Climbs can run on it, or describe an "
+    "open-weights model pair.",
 )
 MODEL.add_command(
     click.Command(
         "login",
         callback=login,
-        help="Sign in to your ChatGPT plan in the browser. Needs ChatGPT Plus or Pro.",
+        help="Sign in to your ChatGPT plan in the browser. Needs ChatGPT Plus or Pro. It prints "
+        "the sign-in address; regents --open-browser techtree model login opens it too.",
         params=[JSON],
     )
 )
@@ -109,5 +233,62 @@ MODEL.add_command(
         callback=logout,
         help="Revoke the ChatGPT sign-in at OpenAI and remove it from this machine.",
         params=[JSON],
+    )
+)
+MODEL.add_command(
+    click.Command(
+        "import-obliteratus",
+        callback=import_obliteratus,
+        help="Describe an OBLITERATUS checkpoint and the Hugging Face snapshot it was made from "
+        "as a model substitution pair. Reads local files only; every digest is computed here.",
+        params=[
+            click.Argument(
+                ["checkpoint"],
+                type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path),
+            ),
+            click.Option(
+                ["--source"],
+                required=True,
+                type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path),
+                help="The source model's Hugging Face cache snapshot folder "
+                "(.../models--<org>--<name>/snapshots/<commit>).",
+            ),
+            click.Option(
+                ["--vllm-version"], required=True, help="The vLLM version both sides are served by."
+            ),
+            click.Option(["--dtype"], required=True, help="The served dtype, such as bfloat16."),
+            click.Option(["--quantization"], default=None, help="The served quantization, if any."),
+            click.Option(
+                ["--max-model-len"],
+                required=True,
+                type=click.IntRange(min=1),
+                help="The served context length in tokens.",
+            ),
+            JSON,
+        ],
+    )
+)
+MODEL.add_command(
+    click.Command(
+        "check-server",
+        callback=check_server_command,
+        help="Check that a vLLM server serves the model a block names, under its weights root, "
+        "with the block's vLLM version and context length. Two free reads; a key, if the server "
+        "needs one, is read from VLLM_API_KEY.",
+        params=[
+            click.Option(
+                ["--block"],
+                required=True,
+                type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=Path),
+                help="One side's model block, as import-obliteratus prints it (its baseline or "
+                "candidate).",
+            ),
+            click.Option(
+                ["--base-url"],
+                required=True,
+                help="The server's OpenAI-compatible base address, ending in /v1.",
+            ),
+            JSON,
+        ],
     )
 )

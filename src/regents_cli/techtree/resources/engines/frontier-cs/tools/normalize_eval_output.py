@@ -325,13 +325,32 @@ def ending_of(trace: Any) -> str:
     return LIMIT_ENDINGS.get(trace.stop_condition or "", "completed")
 
 
+def provider_failure(trace: Any) -> Any | None:
+    """The provider failure a finished rollout ended on, or nothing.
+
+    Verifiers counts a harness that finishes cleanly after a failed model call
+    as having handled it, and scores what it left. When that call failed on
+    the provider's side (no answer, a rate limit or a server error), the
+    harness gave up because the provider stopped answering, and its score is
+    not the subject's result.
+    """
+    if not trace.ok or not trace.calls:
+        return None
+    error = trace.calls[-1].error
+    if error is None:
+        return None
+    status = error.status_code
+    return error if status is None or status == 429 or status >= 500 else None
+
+
 def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
     """Project one subject rollout.
 
     Verifiers stops a rollout whose stage deadline expired as a clean stop, and
     still scores it. A Campaign's timeouts are part of the experiment, so a
     rollout that ran out of time did not complete it: it is projected as not
-    ok, and its score is never counted as a result.
+    ok, and its score is never counted as a result. A rollout that ended on a
+    provider failure is not ok either, with that failure among its errors.
     """
     seat = ENGINE_SEATS[experiment["configuration"]["environment"]["id"]]
     if trace.agent.name != seat:
@@ -351,11 +370,12 @@ def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
             "produced by an engine installed from the pinned source"
         )
 
+    failure = provider_failure(trace)
     return {
         "trace_id": trace.id,
         "agent_role": SUBJECT_ROLE,
         "task_hash": normalize_task_hash(trace.task.hash),
-        "ok": bool(trace.ok) and not trace.is_timeout,
+        "ok": bool(trace.ok) and not trace.is_timeout and failure is None,
         "ending": ending_of(trace),
         "verifiers_version": trace.verifiers.version,
         "verifiers_revision": revision,
@@ -386,7 +406,10 @@ def normalize_trace(trace: Any, experiment: dict[str, Any]) -> dict[str, Any]:
         "model_calls": len(trace.calls),
         "num_turns": int(trace.num_turns),
         "last_reply": trace.last_reply or None,
-        "errors": [normalize_error(error) for error in trace.errors],
+        "errors": [
+            normalize_error(error)
+            for error in [*trace.errors, *([] if failure is None else [failure])]
+        ],
         "raw_trace_digest": digest_json(trace.model_dump(mode="json")),
     }
 

@@ -27,7 +27,13 @@ from pydantic import ValidationError as ModelValidationError
 
 from regents_cli.techtree.approval import ReviewedOn
 from regents_cli.techtree.canonical import digest_object, sha256_digest_bytes
-from regents_cli.techtree.errors import ConflictError, NotFoundError, RunError, ValidationError
+from regents_cli.techtree.errors import (
+    ConflictError,
+    NotFoundError,
+    RunError,
+    TechtreeError,
+    ValidationError,
+)
 from regents_cli.techtree.forge import calls, skill2env
 from regents_cli.techtree.forge.models import (
     FORGE_PLAN_SCHEMA_VERSION,
@@ -49,7 +55,8 @@ from regents_cli.techtree.forge.models import (
     proposal_content,
 )
 from regents_cli.techtree.forge.records import (
-    inspect_command,
+    inspect_first,
+    read_back_first,
     read_optional,
     read_record,
     write_approval,
@@ -256,11 +263,13 @@ def start_plan(
         except KeyboardInterrupt as interrupt:
             raise RunError(
                 "planning was stopped with Ctrl-C while the planner was working, so the "
-                "provider may or may not have answered or charged. It is not retried. "
-                f"Inspect: {inspect_command(plan_id)}",
+                "provider may or may not have answered or charged. It is not retried.",
                 code="forge_planning_interrupted",
                 details={"plan_id": plan_id, "path": str(directory)},
+                next_steps=[inspect_first(plan_id)],
             ) from interrupt
+        except TechtreeError as error:
+            raise read_back_first(error, plan_id, directory) from error
     return read_plan_status(paths, plan_id)
 
 

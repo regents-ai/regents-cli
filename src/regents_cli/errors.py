@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Final
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Final
+
+if TYPE_CHECKING:
+    from regents_cli.next_steps import Step
 
 EXIT_OK: Final = 0
 EXIT_FAILED: Final = 1
@@ -26,20 +30,45 @@ EXIT_CODES: Final = {
 class CommandError(Exception):
     """A failure reported as {"error": {"code", "message", ...}} with its exit code.
 
-    Extra fields travel into the error object; never put a secret in them.
+    Extra fields travel into the error object; never put a secret in them. `next_steps` says
+    what to do about it when the place that raises it knows better than its kind does, and
+    `review` is what a person reads before they are asked to agree to something.
     """
 
     def __init__(
-        self, code: str, message: str, *, exit_code: int = EXIT_FAILED, **fields: Any
+        self,
+        code: str,
+        message: str,
+        *,
+        exit_code: int = EXIT_FAILED,
+        next_steps: Sequence[Step] = (),
+        review: Sequence[str] = (),
+        **fields: Any,
     ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.exit_code = exit_code
+        self.next_steps = tuple(next_steps)
+        self.review = tuple(review)
         self.fields = fields
 
+    @classmethod
+    def refused(
+        cls, code: str, message: str, *, exit_code: int, fields: Mapping[str, Any]
+    ) -> CommandError:
+        """A site's refusal. The site's fields travel in the error whatever they are named, as
+        data: one named exit_code, next_steps or review changes nothing, and code and message are
+        always these."""
+        error = cls(code, message, exit_code=exit_code)
+        error.fields = {k: v for k, v in fields.items() if k not in ("code", "message")}
+        return error
+
     def as_json(self) -> dict[str, Any]:
-        return {"error": {"code": self.code, "message": self.message, **self.fields}}
+        error = {"code": self.code, "message": self.message, **self.fields}
+        if self.review:
+            error["review"] = list(self.review)
+        return {"error": error}
 
 
 class UsageError(CommandError):

@@ -1,7 +1,7 @@
 """The Verifiers Taskset that scores BranchCode v1 procedure transfer.
 
-Spec section 22.5. Shapes here were proven against the pinned Verifiers commit
-`fc73e02ea99594407bf7579c53f7711f7434635a` with `vf-validate` and a model-free evaluation.
+Spec section 22.5. Shapes here were proven against Verifiers 0.4.0, commit
+`6e69354ffe1b445603b493b722d0ecffbca6686d`, with `vf-validate` and a model-free evaluation.
 
 The prompt deliberately carries the *name* of the procedure and the *shape* of
 the expected answer, and nothing else. BranchCode v1 itself — letter values,

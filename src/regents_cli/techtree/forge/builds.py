@@ -25,7 +25,7 @@ from regents_cli.techtree.forge.models import (
     ForgeQualification,
 )
 from regents_cli.techtree.forge.qualify import qualify_build
-from regents_cli.techtree.forge.records import inspect_command, read_optional, read_record
+from regents_cli.techtree.forge.records import inspect_first, read_optional, read_record
 from regents_cli.techtree.forge.report import task_verdict
 from regents_cli.techtree.forge.skill2env import skill_source
 from regents_cli.techtree.fs import atomic_write_json
@@ -99,17 +99,18 @@ def qualify_package(
             code = "forge_build_failed"
             message = f"unexpected {type(error).__name__}; inspect the build logs"
         raise RunError(
-            f"{message}. Inspect: {inspect_command(build_id)}",
+            message,
             code=code,
             details={"build_id": build_id, "path": str(build_dir)},
+            next_steps=[inspect_first(build_id)],
         ) from error
     if not qualification.qualified_task_ids:
         raise RunError(
             "Qualification finished with no usable task. "
-            + "; ".join(task_verdict(task) for task in qualification.tasks)
-            + f". Inspect: {inspect_command(build_id)}",
+            + "; ".join(task_verdict(task) for task in qualification.tasks),
             code="forge_no_usable_tasks",
             details={"build_id": build_id, "path": str(build_dir), "usable_tasks": 0},
+            next_steps=[inspect_first(build_id)],
         )
     return read_build_status(paths, build_id)
 
