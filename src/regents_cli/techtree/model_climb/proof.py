@@ -205,8 +205,8 @@ def document(folder: Path) -> bytes:
 
 # -- Checking a proof ----------------------------------------------------------------------
 #
-# The site's eight checks (Techtree.ModelClimb.Proof), in its order, with its check names and
-# sentences, so a proof this command accepts is one the site accepts. Then the two steps only
+# The site's eight checks (Techtree.ModelClimb.Proof), in its order and under its check names,
+# so a proof this command accepts is one the site accepts. Then the two steps only
 # this command runs: `graph` and `schema`.
 
 OBJECT_SCHEMA_VERSION: Final = "techtree.model-climb.v1alpha1"
@@ -233,16 +233,19 @@ _DIGEST: Final = re.compile(DIGEST_PATTERN)
 
 #: Each check's name and what it means when it holds, in the order they run.
 CHECKS: Final = (
-    ("document", "at most 1,048,576 bytes, the three members, this version, at most 64 objects"),
+    ("document", "at most 1,048,576 bytes, its three parts, this version, at most 64 objects"),
     ("objects", "every object recomputes to its digest, once each"),
-    ("manifest", "the manifest is exactly as contract 3.5 says and its payload_digest recomputes"),
-    ("signature", "the signer's key_id fingerprints its key and the signature verifies"),
+    (
+        "manifest",
+        "the manifest has exactly the parts a proof's manifest has, and its digest recomputes",
+    ),
+    ("signature", "the signer's key id is the fingerprint of its key, and the signature verifies"),
     ("carried", "the objects carried are exactly the ones the manifest lists"),
-    ("report", "the report is a ModelUpliftReport whose numbers add up"),
+    ("report", "the report is a model uplift report whose numbers add up"),
     ("references", "the report's artifact and benchmark release are carried"),
-    ("attestation", "the report claims only participant"),
+    ("attestation", "the report claims only that this agent took part"),
     ("graph", "every object any carried object refers to is carried"),
-    ("schema", "every object matches the pinned schema d77f64d6 field by field"),
+    ("schema", "every object matches, field by field, the format this release of regents reads"),
 )
 
 
@@ -386,13 +389,13 @@ def _report(payload: dict[str, Any], objects: dict[str, dict[str, Any]]) -> dict
     named = payload["report"]
     report = objects.get(named) if isinstance(named, str) else None
     if report is None or report["kind"] != "ModelUpliftReport":
-        raise _refusal("report", "report names no ModelUpliftReport the proof carries")
+        raise _refusal("report", "the manifest names no model uplift report the proof carries")
     spec = report["spec"]
     if not _exact(spec, _REPORT_FIELDS):
-        raise _refusal("report", "the report's spec has exactly the fields section 3.2 names")
+        raise _refusal("report", "the report has exactly the fields a model uplift report has")
     outputs = spec["evaluator_outputs"]
     if not (isinstance(outputs, list) and outputs and all(_is_digest(item) for item in outputs)):
-        raise _refusal("report", "evaluator_outputs is at least one digest")
+        raise _refusal("report", "the report names at least one evaluator output by its digest")
     if not _paired_outcomes(spec["paired_outcomes"]):
         raise _refusal("report", "the paired outcomes do not add up")
     if not _uncertainty(spec["uncertainty"]):
@@ -405,7 +408,9 @@ def _report(payload: dict[str, Any], objects: dict[str, dict[str, Any]]) -> dict
         _exact(results, tuple(_RESULTS))
         and all(results[field] in values for field, values in _RESULTS.items())
     ):
-        raise _refusal("report", "the result fields take only the values section 3.3 lists")
+        raise _refusal(
+            "report", "each of the report's results takes only one of its allowed values"
+        )
     limitations = spec["limitations"]
     if not (isinstance(limitations, list) and all(_sentence(item) for item in limitations)):
         raise _refusal("report", "limitations is a list of sentences")

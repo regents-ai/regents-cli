@@ -107,7 +107,7 @@ def _look_up(journal: Journal, provider: Provider, intent_id: str) -> str:
     upstream = provider.find(intent_id)
     if upstream is None:
         raise TechtreeError(
-            f"the provider has no job for intent {intent_id} yet, and the submission's outcome "
+            f"the provider has no job for attempt {intent_id} yet, and the submission's outcome "
             "is unknown, so nothing was submitted again. Look again later, or decide whether "
             "to start a new attempt.",
             code=JOB_INDETERMINATE,

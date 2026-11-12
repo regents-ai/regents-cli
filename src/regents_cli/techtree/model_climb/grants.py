@@ -69,9 +69,7 @@ def stored_plan(store: ModelClimbStore, digest: Digest) -> ResolvedModelPlan:
             ) from error
         raise
     if not isinstance(plan, ResolvedModelPlan):
-        raise ValidationError(
-            f"{digest} is a {plan.kind}, not a ResolvedModelPlan", details={"plan": digest}
-        )
+        raise ValidationError(f"{digest} is not a plan", details={"plan": digest})
     return plan
 
 
@@ -98,7 +96,8 @@ def draft_grant(
     refusals = _failed(
         (
             bool(empty),
-            f"{', '.join(empty)} is empty, which only a compatibility test's plan may be",
+            f"the plan leaves {', '.join(empty)} empty, which only a compatibility test's "
+            "plan may do",
         ),
         (
             budget.enforcement == "estimate_only",
@@ -209,8 +208,8 @@ def admit(
     )
     if empty:
         raise ValidationError(
-            f"the plan cannot be run: {', '.join(empty)} is empty, which only a compatibility "
-            "test's plan may be",
+            f"the plan cannot be run: it leaves {', '.join(empty)} empty, which only a "
+            "compatibility test's plan may do",
             details={"plan": plan_digest, "empty_fields": empty},
         )
     return grant
@@ -225,21 +224,13 @@ def empty_fields(
     benchmark = store.get(plan.spec.benchmark_release)
     held: list[tuple[str, object]] = []
     if isinstance(study, ModelStudySpec):
-        held.append(
-            (
-                "ModelStudySpec harness.decision_policy_digest",
-                study.spec.harness.decision_policy_digest,
-            )
-        )
+        held.append(("the study's decision policy", study.spec.harness.decision_policy_digest))
     if isinstance(dataset, DatasetRelease):
-        held.append(("DatasetRelease transformation_digest", dataset.spec.transformation_digest))
+        held.append(("the dataset's transformation", dataset.spec.transformation_digest))
     if isinstance(benchmark, BenchmarkRelease):
-        held.append(("BenchmarkRelease scorer_test_digest", benchmark.spec.scorer_test_digest))
+        held.append(("the benchmark's scorer test", benchmark.spec.scorer_test_digest))
         held.append(
-            (
-                "BenchmarkRelease qualification_report_digest",
-                benchmark.spec.qualification_report_digest,
-            )
+            ("the benchmark's qualification report", benchmark.spec.qualification_report_digest)
         )
     return [name for name, value in held if value is None]
 

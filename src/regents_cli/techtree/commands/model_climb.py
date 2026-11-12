@@ -67,6 +67,15 @@ ATTESTATIONS: Final = {
         "Is the account's balance no more than its monthly spending limit?"
     ),
 }
+#: Each operation a grant may admit, as a person reads it.
+OPERATION_NAMES: Final[dict[GrantedOperation, str]] = {
+    "model_climb_profile_test": "the compatibility profile's paid test",
+    "model_climb_start": "a training run",
+    "model_climb_prove": "a proof of a training run",
+    "model_climb_deployment_apply": "putting a model into service",
+    "model_climb_deployment_promote": "promoting a model in service",
+    "model_climb_deployment_rollback": "rolling back a model in service",
+}
 _DURATION: Final = re.compile(r"^(\d+)([mhd])$")
 _UNITS: Final = {"m": "minutes", "h": "hours", "d": "days"}
 COMMAND: Final = ("regents", "techtree", "model-climb")
@@ -689,8 +698,8 @@ def grant_issue(
         next_steps=tests or [done("The grant is issued; nothing more to run.")],
         shown=[
             output.report(
-                f"Grant {grant.grant_id} issued for {grant.operation} on plan "
-                f"{grant.plan}, signed with this machine's key. It is at {path}."
+                f"Grant {grant.grant_id} issued for {OPERATION_NAMES[grant.operation]} on "
+                f"plan {grant.plan}, signed with this machine's key. It is at {path}."
             )
         ],
     )
@@ -755,7 +764,7 @@ def _dollars(cents: int) -> str:
 def _grant_review(grant: ExecutionGrant) -> list[str]:
     hours = Decimal(grant.max_wall_time_seconds) / 3600
     return [
-        f"Admits one operation: {grant.operation}",
+        f"Admits one thing: {OPERATION_NAMES[grant.operation]}",
         f"On plan {grant.plan}",
         f"  dataset {grant.dataset_release}",
         f"  benchmark {grant.benchmark_release}",
@@ -771,7 +780,7 @@ def _grant_review(grant: ExecutionGrant) -> list[str]:
             f"${_dollars(grant.max_cents * grant.max_attempts)} of GPU time over all of them"
         ),
         "May reach: " + (", ".join(grant.egress) if grant.egress else "nothing beyond the job"),
-        f"Workspace {grant.workspace}; for actor {grant.actor_key_id}",
+        f"Workspace {grant.workspace}; used only with this machine's signing key",
         f"Approved by {grant.approving_human} on this machine, operator-attested",
         f"Valid {grant.issued_at.isoformat()} until {grant.expires_at.isoformat()}",
     ]
