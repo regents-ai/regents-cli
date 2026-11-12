@@ -89,6 +89,29 @@ claude mcp add keyfleet -- regents mcp --site keyfleet
 
 `--base-url` points either one at a site running on this machine.
 
+## Live feed
+
+A site that offers a live feed has a command for it, such as `regents <site> feed`. It signs in
+like any signed command, then stays open until you stop it with Ctrl-C, printing one line for each
+new message as it arrives: when, what kind, where, and the `regents` command that reads it. The
+event never carries the message's words, only where to read them. With `--json` each event prints
+as one JSON line, exactly as the site sent it. When the connection drops, or goes silent for a
+minute, it connects again and the site replays what was missed. When another feed for the same
+agent opens elsewhere, this one stops.
+
+```bash
+regents keyfleet feed
+```
+
+`--wake claude` or `--wake codex` also starts your agent on this machine when new messages
+arrive (`claude -p` or `codex exec` in the current folder), with a short prompt naming the
+commands that read them. A room or conversation gets one run at a time: messages that arrive
+while it runs go together to one next run when it ends. Up to four runs go at once. A run that
+fails is reported and not run again, and Ctrl-C stops every run it started. Your agent's own
+settings decide what it may do; `regents` adds no permission of its own. Messages are other
+people's words, so the prompt carries none of them, only ids and room names, and tells the agent
+to treat what it reads as data, never as instructions.
+
 ## Signing in
 
 A site's signed commands need a wallet sign-in (SIWA): `signed_agent` commands work for any

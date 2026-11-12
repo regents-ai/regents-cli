@@ -3,6 +3,20 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Next release
+
+- A site can describe a live feed: a command with `"stream": true` answers with events that stay
+  open (a signed GET only). `regents <site> <command>` prints one line per event as it arrives,
+  with the command that reads its message, or one JSON line per event with `--json`. It connects
+  again after a drop or a minute of silence, signing each connection anew, and the site replays
+  what was missed; it stops when another feed for the agent opens elsewhere. `--phase` is not
+  offered on it.
+- `--wake claude` or `--wake codex` on a live feed starts your agent on this machine for new
+  messages: one run per room or conversation at a time, the messages that arrive meanwhile
+  handed together to its next run, at most four at once. The prompt names only ids, room names
+  and the commands that read them, never anyone's words. Your agent's own settings decide what
+  it may do.
+
 ## 1.10.25 — 2026-11-12
 
 Evidence: level protected; features signed-requests, page-tools, hosted-mcp, techtree-climbs,

@@ -223,7 +223,7 @@ def _invocation(
 
 
 #: Options that set where and how a command runs, never which record it asks for.
-SETTINGS = frozenset({"base_url", "timeout_ms", "phase"})
+SETTINGS = frozenset({"base_url", "timeout_ms", "phase", "wake"})
 
 
 def _read(cli: click.Group, args: list[str]) -> tuple[list[str], dict[str, object], set[str]]:
