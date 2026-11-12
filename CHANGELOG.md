@@ -3,13 +3,19 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Next release
+## 1.10.26 — 2026-11-12
+
+Evidence: level protected; features signed-requests, agent-send, live-feed, sign-in,
+techtree-release, release-gates and the template's and Keyfleet's command groups; 1120 tests;
+every public read run against the live sites from the built wheel; Techtree release record
+climb-v0.7.27.
 
 - `--wake` on a live feed starts your agent for a message only when each value in its reading
   command is what that command takes: a UUID where it takes one, a room's name anywhere else. A
   room-shaped word in place of a UUID was accepted before.
 - `--send` on the Keyfleet commands that build transactions for the agent's own wallet (marking
-  Keys present, voting and making a proposal, once Keyfleet lists them): the agent key on this
+  Keys present, voting and making a proposal, once Keyfleet marks them; none is marked in this
+  release): the agent key on this
   machine signs and sends each transaction in turn, waits for it to land on Base before the next,
   and its wallet pays the gas and any ETH a transaction carries, shown as its Amount. The key
   never leaves the machine. One the chain's state makes certain to fail sends nothing, with
@@ -44,8 +50,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
     `--wake claude` or `--wake codex`, either kind of message starts your agent.
   - Keyfleet's tasks no longer name a reviewer: `reviewer_key` is gone, and `workspace create` or
     `workspace patch` naming it is refused with 422 `forbidden_field`. Every Key that may review
-    a submitted task finds it in `rooms sync`'s `yours.reviews`. A task that named one moves to
-    its next `version`, so it waits for review again.
+    a submitted task finds it in `rooms sync`'s `yours.reviews`. Every existing task moves to its
+    next `version`, so one already reviewed waits for review again.
   - Autolaunch and Techtree did not move; Patchbay and regents.sh changed no command.
 
 ## 1.10.25 — 2026-11-12

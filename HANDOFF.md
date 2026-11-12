@@ -227,6 +227,11 @@ behind a site, and never holds one up (founder, 2026-09-28).
 7f. 1.10.25 (2026-11-12): every site pinned at its live commit, Patchbay help links on errors,
    next steps that follow a site's own command, and the `regents mcp` and `regents browser`
    signing fixes; engines and catalog unchanged, release `climb-v0.7.26`.
+7g. 1.10.26 (2026-11-12): `--send` for the transactions a site builds for the agent's own wallet
+   (no site marks a command for it yet), `auth register` numbering from the latest block and
+   keeping its hash however a run ends, `--wake` checking each value as its command takes it, and
+   four sites re-pinned at their live commits with the template's `feed`; engines and catalog
+   unchanged, release `climb-v0.7.27`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
