@@ -18,6 +18,7 @@ import contextlib
 import io
 import json
 import re
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -260,7 +261,7 @@ def shown_by_json(profile: dict[str, str]) -> dict[str, str]:
     stand = Stand(built(profile), plenty())
     with tempfile.TemporaryDirectory() as folder, pytest.MonkeyPatch.context() as monkeypatch:
         _code, _out, err = register(stand, profile, Path(folder), monkeypatch, "--json")
-    shown: dict[str, str] = json.loads(err)["signing"]["transaction"]
+    shown: dict[str, str] = json.loads(err.splitlines()[0])["signing"]["transaction"]
     return shown
 
 
@@ -553,3 +554,24 @@ def test_a_node_on_another_chain_signs_nothing(
     code, out, _ = register(stand, profile, tmp_path, monkeypatch, "--json")
     assert (code, json.loads(out)["error"]["code"]) == (1, "base_wrong_chain")
     assert stand.sent() == []
+
+
+@pytest.mark.parametrize("as_json", [False, True], ids=["readable", "json"])
+def test_the_hash_and_its_check_are_shown_before_the_node_is_handed_it(
+    as_json: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {"name": "Probe", "description": "A test agent."}
+    stand = Stand(built(profile), plenty())
+    answer = stand.post
+    shown: list[str] = []
+
+    def post(url: str, *, json: dict[str, Any], **kw: Any) -> httpx.Response:
+        if url == NODE and json["method"] == "eth_sendRawTransaction":
+            shown.append((sys.stderr if as_json else sys.stdout).getvalue())  # type: ignore[attr-defined]
+        return answer(url, json=json, **kw)
+
+    stand.post = post  # type: ignore[method-assign]
+    code, _, err = register(stand, profile, tmp_path, monkeypatch, *(["--json"] if as_json else []))
+    assert code == 0, err
+    [before] = shown
+    assert f"--tx-hash {sent_hash(stand)}" in before

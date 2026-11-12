@@ -21,7 +21,7 @@ from typing import Any
 
 from regents_cli import base, output, siwa
 from regents_cli.errors import EXIT_AUTH, EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
-from regents_cli.next_steps import Step, done, human
+from regents_cli.next_steps import Step, done, human, person_first
 
 #: A transaction as a site answers it for --send, value in wei as decimal text.
 ADDRESS = re.compile(r"0x[0-9a-fA-F]{40}")
@@ -135,7 +135,7 @@ def send(
                 raw, tx_hash = base.signed(key, signing, needs, timeout_ms)
             except CommandError as error:
                 raise with_sent(error, sent, fresh) from None
-            handing_over(name, tx_hash, as_json)
+            handing_over(name, tx_hash, look_up(tx_hash), as_json)
             taken = base.broadcast(raw, timeout_ms)
             status = landed(tx_hash, timeout_ms)
             sent.append(record(transaction, tx_hash, status))
@@ -182,15 +182,25 @@ def send(
     return {"wallet_address": key.address, "chain_id": base.CHAIN_ID, "sent": sent}
 
 
-def handing_over(name: str, tx_hash: str, as_json: bool) -> None:
-    """The hash of a signed transaction, shown before it is handed to the node, so a run that
-    ends any way at all leaves it to look up; with --json on stderr, as the signing review is."""
+def handing_over(name: str, tx_hash: str, then: Step, as_json: bool) -> None:
+    """The hash of a signed transaction and where to look it up, shown before it is handed to
+    the node, so a run that ends any way at all leaves both behind; with --json on stderr, as the
+    signing review is."""
     if as_json:
-        output.stderr.out(
-            json.dumps({"sending": {"name": name, "tx_hash": tx_hash}}), highlight=False
-        )
+        sending = {"name": name, "tx_hash": tx_hash, "next_step": then.as_json()}
+        output.stderr.out(json.dumps({"sending": sending}), highlight=False)
         return
-    output.show(output.verbatim(f"Sending {name}: {tx_hash}"))
+    exact = ["  " + text for text in (then.command, then.url) if text is not None]
+    output.show(output.verbatim("\n".join([f"Sending {name}: {tx_hash}", then.say, *exact])))
+
+
+def look_up(tx_hash: str) -> Step:
+    """A transaction handed to the node whose receipt is not read yet: only looking it up says
+    whether it landed, and running the command again would send it again."""
+    return human(
+        "Look it up before running this again: running it now sends the transactions again.",
+        url=EXPLORER + tx_hash,
+    )
 
 
 def record(transaction: dict[str, Any], tx_hash: str, status: bool | None) -> dict[str, Any]:
@@ -206,19 +216,12 @@ def record(transaction: dict[str, Any], tx_hash: str, status: bool | None) -> di
 def not_landed(
     message: str, tx_hash: str, sent: list[dict[str, Any]], exit_code: int
 ) -> CommandError:
-    """A transaction handed to the node whose receipt was not read: only looking it up says
-    whether it landed, and running the command again would send it again."""
+    """A transaction handed to the node whose receipt was not read."""
     return CommandError(
         "transaction_not_landed",
         message,
         exit_code=exit_code,
-        next_steps=[
-            human(
-                "Look it up before running this again: running it now sends the transactions "
-                "again.",
-                url=EXPLORER + tx_hash,
-            )
-        ],
+        next_steps=[look_up(tx_hash)],
         sent=sent,
     )
 
@@ -249,7 +252,7 @@ def with_sent(error: CommandError, sent: list[dict[str, Any]], fresh: Step) -> C
     chain refused (would fail) is built afresh the same way."""
     if not sent and error.code != "transaction_would_fail":
         return error
-    first = [s for s in error.next_steps if s.kind == "human"]
+    first = person_first(error)
     names = ", ".join(t["name"] for t in sent if t["landed"] == "succeeded")
     message, again = error.message, fresh
     if names:

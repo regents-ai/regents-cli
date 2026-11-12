@@ -10,7 +10,7 @@ from typing import Any
 
 import click
 
-from regents_cli import base, output, siwa
+from regents_cli import base, output, siwa, transactions
 from regents_cli.errors import (
     EXIT_AUTH,
     EXIT_CANCELLED,
@@ -383,6 +383,7 @@ def register(
         show_signing(step, transaction, needs, as_json)
         raw, tx_hash = base.signed(key, transaction, needs, timeout_ms)
         check_again = run([*again, "--tx-hash", tx_hash], "Check it before sending another.")
+        transactions.handing_over("the listing", tx_hash, check_again, as_json)
         try:
             if not base.broadcast(raw, timeout_ms):
                 raise CommandError(

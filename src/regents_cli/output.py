@@ -113,14 +113,16 @@ def show(*blocks: RenderableType) -> None:
 
 
 def _print(console: Console, block: RenderableType) -> None:
-    """Printed whole. In a pipe each line ends at its last character, not padded with spaces to
-    the width, which agents and diffs would read as part of the answer."""
+    """Printed whole, and at once: a run that is killed mid-way has already shown it. In a pipe
+    each line ends at its last character, not padded with spaces to the width, which agents and
+    diffs would read as part of the answer."""
     if console.is_terminal:
         console.print(block, crop=False)
         return
     with console.capture() as captured:
         console.print(block, crop=False)
     console.file.write("".join(line.rstrip() + "\n" for line in captured.get().splitlines()))
+    console.file.flush()
 
 
 def report(markdown: str) -> RenderableType:

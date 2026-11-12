@@ -21,11 +21,13 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   never leaves the machine. One the chain's state makes certain to fail sends nothing, with
   Keyfleet's reason, and so does a node that is not on Base. Before the first is sent, the wallet
   must hold every Amount plus the gas of each transaction that can be priced then, or nothing is
-  sent and the answer names how much ETH to send to which wallet. Each one's hash is printed as
-  soon as it is signed. From then on only its receipt says what happened: one not seen landing in
+  sent and the answer names how much ETH to send to which wallet. Each one's hash and a link to
+  look it up are printed as soon as it is signed, before it is sent, so even a run that is
+  killed leaves them behind. From then on only its receipt says what happened: one not seen landing in
   60 seconds plus up to one receipt read, or interrupted once it is signed, is listed with its hash
   and a link to look it up; nothing offers to run the command again, which would send it again. A failure after
-  some landed lists them, and its step runs the command again for only what is left. Of the Base
+  some landed lists them, then any step only the person can take first, such as Touch ID that
+  was cancelled, and then the command again for only what is left. Of the Base
   node's address only its host is ever printed. Without `--send` these commands answer exactly as
   before. A site marks such a command with `"sends": true` in its `commands.json`.
 - `regents auth register` numbers the transaction it sends from the wallet's count at the latest
@@ -34,8 +36,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   when the node did not answer, since a refused one may still be on its way. A Base node that
   cannot be reached, or answers other than 2xx, is named with the step to try another node, and
   no ready post for patchbay.help. Interrupted once the listing is signed, it keeps the hash and
-  the `--tx-hash` step too, so a second listing is never sent by running it again. A node that
-  is not on Base signs nothing.
+  the `--tx-hash` step too, so a second listing is never sent by running it again. The hash and
+  that step are printed before the transaction is sent. A node that is not on Base signs
+  nothing. A `SIWA_BASE_RPC` that is empty, has no `https://`, or names another kind of address
+  sends nothing, and its step is to fix that setting.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent
   profile. An author with a profile keeps its block. `--json` prints the answer as before.

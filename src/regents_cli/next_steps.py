@@ -331,6 +331,16 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     return [run(again, f"Run it once more{invocation.piped}."), *_broken(error, status, invocation)]
 
 
+def person_first(error: CommandError) -> list[Step]:
+    """What only the person can do before anything runs again: the failure's own such steps, or,
+    for one only they can sort out, that."""
+    if error.next_steps:
+        return [step for step in error.next_steps if step.kind == "human"]
+    if error.exit_code == EXIT_AUTH:
+        return [human(f"Your person has to sort this out first: {error.message}")]
+    return []
+
+
 def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
     """A failure `regents` found itself, before or without a site's error answer."""
     again = invocation.again
@@ -359,7 +369,7 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
             *_broken(error, None, invocation),
         ]
     if error.exit_code == EXIT_AUTH:
-        return [human(f"Your person has to sort this out first: {error.message}")]
+        return person_first(error)
     if error.code == "invalid_response":
         return _broken(error, None, invocation)
     return [run(again, f"Do what the message says, then run this again{invocation.piped}.")]

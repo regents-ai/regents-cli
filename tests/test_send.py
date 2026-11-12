@@ -8,6 +8,12 @@ import contextlib
 import io
 import json
 import os
+import re
+import selectors
+import signal
+import subprocess
+import sys
+import time
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
@@ -28,6 +34,7 @@ from regents_cli.errors import (
     EXIT_FAILED,
     EXIT_UNREACHABLE,
     EXIT_USAGE,
+    CommandError,
 )
 from regents_cli.http import Request
 from regents_cli.platforms import pinned_platforms
@@ -486,8 +493,11 @@ def test_one_the_chain_would_refuse_is_built_afresh_not_sent_to_another_node(
         "https://zq7user:hunter2@base-node.test/v2/KEY123\x7f",
         "https://zq7user:hunter2@base-node.test:abc/v2/KEY123",
         "https://zq7user:hunter2@[::zz]/v2/KEY123",
+        "",
+        "zq7user:hunter2@base-node.test/v2/KEY123",
+        "ftp://zq7user:hunter2@base-node.test/v2/KEY123",
     ],
-    ids=["control character", "port", "ipv6 host"],
+    ids=["control character", "port", "ipv6 host", "empty", "no scheme", "ftp"],
 )
 def test_a_node_address_regents_cannot_call_names_the_setting_and_nothing_else(
     site: dict[str, Any], monkeypatch: pytest.MonkeyPatch, address: str
@@ -499,7 +509,7 @@ def test_a_node_address_regents_cannot_call_names_the_setting_and_nothing_else(
     with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
         code = app.main([*PRESENCE, "--send", "--json"])
     answer = json.loads(out.getvalue())
-    assert code == EXIT_FAILED
+    assert (code, answer["error"]["code"]) == (EXIT_FAILED, "base_address_unreadable")
     assert [s["kind"] for s in answer["next_steps"]] == ["human"]
     for secret in ("zq7user", "hunter2", "KEY123"):
         assert secret not in out.getvalue() + err.getvalue()
@@ -591,3 +601,95 @@ def test_no_agent_key_sends_nothing(site: dict[str, Any], monkeypatch: pytest.Mo
     code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
     assert (code, answer["error"]["code"]) == (EXIT_AUTH, "no_agent_key")
     assert node.raw == []
+
+
+def test_a_key_refusal_after_one_landed_says_what_the_person_sorts_out_first(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+    sign = siwa.sign_transaction
+
+    def refuses_the_second(key: siwa.Key, tx: dict[str, str]) -> str:
+        if tx["nonce"] == hex(7):
+            return sign(key, tx)
+        raise CommandError("key_helper_refused", "Touch ID was cancelled.", exit_code=EXIT_AUTH)
+
+    monkeypatch.setattr(siwa, "sign_transaction", refuses_the_second)
+    node = Base(statuses=["0x1"])
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert (code, answer["error"]["code"]) == (EXIT_AUTH, "key_helper_refused")
+    assert [s["kind"] for s in answer["next_steps"]] == ["human", "run"]
+    assert "Touch ID was cancelled." in answer["next_steps"][0]["say"]
+    assert len(node.raw) == 1
+
+
+#: `regents keyfleet presence mark --send` in its own process, against the same stand-in site and
+#: a Base node that takes the transaction and never gives its receipt.
+KILLED = f"""
+import sys
+from dataclasses import replace
+import httpx
+from regents_cli import app, runner
+from regents_cli.platforms import pinned_platforms
+
+audiences = {{"code": "audiences", "data": {{"audiences": [
+    {{"audience": "keyfleet", "origin": "https://keyfleet.ai"}}]}}}}
+httpx.get = lambda url, **_: httpx.Response(200, json=audiences)
+answer = {{"chain_id": 8453, "says": None, "transactions": [{step("present")!r}], "keys": []}}
+runner.respond = lambda *_: httpx.Response(200, json=answer)
+answers = {{
+    "eth_estimateGas": hex(50_000),
+    "eth_maxPriorityFeePerGas": hex(10**6),
+    "eth_getBlockByNumber": {{"baseFeePerGas": hex(10**7)}},
+    "eth_getTransactionCount": "0x7",
+    "eth_getBalance": hex(10**18),
+    "eth_call": "0x{10**9:064x}",
+    "eth_sendRawTransaction": "0x" + "00" * 32,
+    "eth_getTransactionReceipt": None,
+    "eth_chainId": hex(8453),
+}}
+httpx.post = lambda url, *, json, **_: httpx.Response(
+    200, json={{"jsonrpc": "2.0", "id": 1, "result": answers[json["method"]]}}
+)
+platforms = [
+    replace(p, commands=tuple(replace(c, sends=c.words == ("presence", "mark", "<fleet>"))
+        for c in p.commands)) if p.name == "keyfleet" else p
+    for p in pinned_platforms()
+]
+app.pinned_platforms = lambda: platforms
+sys.exit(app.main([*{PRESENCE!r}, "--send", *sys.argv[1:]]))
+"""
+
+
+@pytest.mark.parametrize("as_json", [False, True], ids=["readable", "json"])
+def test_a_run_killed_while_it_waits_for_the_receipt_has_already_shown_the_hash(
+    site: dict[str, Any], as_json: bool
+) -> None:
+    running = subprocess.Popen(
+        [sys.executable, "-c", KILLED, *(["--json"] if as_json else [])],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=dict(os.environ),
+    )
+    assert running.stdout is not None and running.stderr is not None
+    shown = {running.stdout: b"", running.stderr: b""}
+    looking = running.stderr if as_json else running.stdout
+    watch = selectors.DefaultSelector()
+    for pipe in shown:
+        os.set_blocking(pipe.fileno(), False)
+        watch.register(pipe, selectors.EVENT_READ)
+    deadline = time.monotonic() + 30
+    try:
+        while transactions.EXPLORER.encode() not in shown[looking]:
+            assert time.monotonic() < deadline, shown
+            for ready, _ in watch.select(deadline - time.monotonic()):
+                shown[ready.fileobj] += os.read(ready.fd, 65536)  # type: ignore[union-attr]
+        running.send_signal(signal.SIGTERM)
+        running.wait(timeout=30)
+    finally:
+        running.kill()
+        running.wait()
+        watch.close()
+    assert running.returncode == -signal.SIGTERM
+    hashes = re.findall(rb"0x[0-9a-f]{64}", shown[looking])
+    assert hashes and transactions.EXPLORER.encode() + hashes[0] in shown[looking]

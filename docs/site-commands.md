@@ -147,15 +147,17 @@ sends nothing. Before the first is sent, the wallet must hold every transaction'
 gas of each the node can price now; one that needs an earlier one on the chain first (a stake
 after its approve) is priced at its turn. Too little sends nothing and names how much to send to
 which wallet; each is checked again before it is sent, so gas that rises on the way can still
-stop a later one. One that lands and fails stops the rest. Each one's hash is printed as soon as
-it is signed, before it is handed to the node (with `--json`, on stderr as `sending`). From then
+stop a later one. One that lands and fails stops the rest. Each one's hash and a link to look it
+up are printed as soon as it is signed, before it is handed to the node (with `--json`, on stderr
+as `sending`, with its `next_step`), so even a run that is killed leaves them behind. From then
 on only its receipt says what happened, whatever the node answered: one whose receipt is not read
 in 60 seconds plus up to one receipt read, or that is interrupted once it is signed, stops the
 rest. The answer lists it in `sent` with its hash and the one step is to look it up, since
 running the command again sends it again. When a failure comes after some landed, the answer
 lists them, keeps any step a person must take first, and ends with the command again, which
 builds only what is left from the chain as it is now. An address in `SIWA_BASE_RPC` that is not
-one regents can call sends nothing, and its step is to fix that setting. A Base node that cannot be reached
+an http or https address with a host, or one regents cannot call, sends nothing, and its step is
+to fix that setting. A Base node that cannot be reached
 or answers other than 2xx is the node's failure, not the site's: its step is to try again or
 name another node with `SIWA_BASE_RPC`, never a post. A key that signs through a
 command (`SIWA_AGENT_SIGNER`) cannot send. A post is only

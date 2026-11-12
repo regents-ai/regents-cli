@@ -50,16 +50,32 @@ def rpc_address() -> str:
 
 def rpc_host() -> str:
     """The node's host, the one part of its address ever printed: never its user, password, path
-    or query."""
+    or query. An address that names no host to reach over the web is refused before anything is
+    sent."""
     try:
-        return urlsplit(rpc_address()).hostname or "named by SIWA_BASE_RPC"
+        parts = urlsplit(rpc_address())
+        host = parts.hostname if parts.scheme in ("http", "https") else None
     except ValueError:
-        return "named by SIWA_BASE_RPC"
+        host = None
+    if not host:
+        raise address_unreadable()
+    return host
+
+
+def address_unreadable() -> CommandError:
+    return CommandError(
+        "base_address_unreadable",
+        "SIWA_BASE_RPC does not hold a web address regents can call, so nothing was sent.",
+        next_steps=[
+            human(f"Your person fixes SIWA_BASE_RPC to name a Base node, such as {BASE_RPC}.")
+        ],
+    )
 
 
 def call(method: str, params: list[Any], timeout_ms: int) -> Any:
     """The node's `result` for one JSON-RPC call. An answer other than 2xx is the node or a
     gateway in front of it failing, whatever its body says."""
+    rpc_host()
     try:
         response = httpx.post(
             rpc_address(),
@@ -71,13 +87,7 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
             raise unreachable()
         body = response.json()
     except httpx.InvalidURL:
-        raise CommandError(
-            "base_address_unreadable",
-            "SIWA_BASE_RPC does not hold a web address regents can call, so nothing was sent.",
-            next_steps=[
-                human(f"Your person fixes SIWA_BASE_RPC to name a Base node, such as {BASE_RPC}.")
-            ],
-        ) from None
+        raise address_unreadable() from None
     except (httpx.HTTPError, ValueError, RecursionError):
         raise unreachable() from None
     if isinstance(body, dict) and "result" in body:
