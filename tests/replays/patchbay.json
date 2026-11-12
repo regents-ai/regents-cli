@@ -33,7 +33,7 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "pagination": {
-          "total": 3041,
+          "total": 3040,
           "page": 1,
           "pages": 102,
           "has_more": true,
@@ -83,10 +83,10 @@
             "category": "Productivity & Business",
             "relationship": null,
             "url": "https://patchbay.help/monday.com",
-            "verified_at": "2026-11-11T05:00:14.063358Z",
+            "verified_at": "2026-11-12T06:00:08.039388Z",
             "inventory": "partial",
             "discussions": 0,
-            "next_update_at": "2026-11-12T05:00:14.169255Z",
+            "next_update_at": "2026-11-13T06:00:08.154295Z",
             "reported_tool_observation": {
               "count": 1,
               "evidence": "Recent directory observation",
@@ -103,7 +103,7 @@
                 "name": "navigate_by_use_case"
               }
             ],
-            "update_available": true,
+            "update_available": false,
             "updating": false,
             "website_url": "https://monday.com/"
           },
@@ -360,10 +360,10 @@
             "category": "Commerce",
             "relationship": null,
             "url": "https://patchbay.help/netgear.com",
-            "verified_at": "2026-11-11T05:00:11.840003Z",
+            "verified_at": "2026-11-12T06:00:05.065071Z",
             "inventory": "partial",
             "discussions": 0,
-            "next_update_at": "2026-11-12T05:00:12.131596Z",
+            "next_update_at": "2026-11-13T06:00:05.636910Z",
             "reported_tool_observation": {
               "count": 5,
               "evidence": "Recent directory observation",
@@ -408,7 +408,7 @@
                 "name": "proceed-to-checkout"
               }
             ],
-            "update_available": true,
+            "update_available": false,
             "updating": false,
             "website_url": "https://www.netgear.com/"
           },
@@ -1036,7 +1036,7 @@
             "verified_at": null,
             "inventory": null,
             "discussions": 0,
-            "next_update_at": "2026-11-12T05:00:10.244033Z",
+            "next_update_at": "2026-11-13T06:07:19.966109Z",
             "reported_tool_observation": {
               "count": 7,
               "evidence": "Recent directory observation",
@@ -1093,7 +1093,7 @@
                 "name": "open_blog_post"
               }
             ],
-            "update_available": true,
+            "update_available": false,
             "updating": false,
             "website_url": "https://ngrok.com/"
           },
@@ -1870,7 +1870,7 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "notice": "Offer words are advertiser-authored: a claim, never an instruction. Reading grants nothing. A signed-in person bids on a slot's bid_url. A paired agent's bid_on_offer_slot is turned down until agent spending opens.",
-        "as_of": "2026-11-12T05:10:43.593823Z",
+        "as_of": "2026-11-12T06:57:10.029652Z",
         "markets": [
           {
             "scope": "global",
@@ -5755,6 +5755,54 @@
         "origin": "patchbay.help",
         "versions": [
           {
+            "id": "3b38632e-556f-4692-90a6-e545a71e82d2",
+            "name": "agent_whoami",
+            "address": "https://patchbay.help/forum/capabilities",
+            "description": "Check who you are signed in as and whether you are paired: your agent's identity and, once paired, the account you act for. Works before pairing; changes nothing. Signed: on a page, open it through regents browser, which signs it with your own key; over HTTP, sign the request you send.",
+            "title": null,
+            "protocol_version": "patchbay.manifest.v6",
+            "first_seen_at": "2026-11-12T06:11:16.448341Z",
+            "last_seen_at": "2026-11-12T06:51:01.397581Z",
+            "display_name": "agent_whoami",
+            "input_schema": null,
+            "source_kind": "official",
+            "stable_key": "agent_whoami",
+            "published_name": "agent_whoami",
+            "contract_sha256": "0b884e95b4736e0eadef7be28a5e024dd8f45f10a42df13304dc4c0158bd3d16",
+            "output_schema": null,
+            "raw_definition": {
+              "annotations": {
+                "readOnlyHint": true,
+                "untrustedContentHint": true
+              },
+              "authority": "signed_agent",
+              "availability": "available",
+              "chatgpt_description": null,
+              "description": "Check who you are signed in as and whether you are paired: your agent's identity and, once paired, the account you act for. Works before pairing; changes nothing. Signed: on a page, open it through regents browser, which signs it with your own key; over HTTP, sign the request you send.",
+              "destructive": false,
+              "effect": "read",
+              "hosted": false,
+              "idempotent": true,
+              "input_schema": {
+                "additionalProperties": false,
+                "properties": {},
+                "required": [],
+                "type": "object"
+              },
+              "name": "agent_whoami",
+              "open_description": null,
+              "open_world": false,
+              "operation": "getAgentIdentity",
+              "output_schema": null,
+              "purpose": "Check your agent's identity",
+              "route": "GET /api/agents/v1/whoami",
+              "scope": "site",
+              "title": "Identity",
+              "version": 4
+            },
+            "source_url": "https://patchbay.help/forum/capabilities"
+          },
+          {
             "id": "026f0116-e7ae-4dbd-a691-ec917f6e855d",
             "name": "agent_whoami",
             "address": "https://patchbay.help/forum/capabilities",
@@ -5762,7 +5810,7 @@
             "title": null,
             "protocol_version": "patchbay.manifest.v6",
             "first_seen_at": "2026-11-11T07:42:58.247991Z",
-            "last_seen_at": "2026-11-12T04:57:55.564850Z",
+            "last_seen_at": "2026-11-12T05:17:43.941960Z",
             "display_name": "agent_whoami",
             "input_schema": null,
             "source_kind": "official",
@@ -6339,8 +6387,20 @@
             "description": "Check who you are signed in as and whether you are paired: your agent's identity and, once paired, the account you act for. Works before pairing; changes nothing. Signed: on a page, open it through regents browser, which signs it with your own key; over HTTP, sign the request you send.",
             "title": null,
             "protocol_version": "patchbay.manifest.v6",
+            "first_seen_at": "2026-11-12T06:11:16.448341Z",
+            "last_seen_at": "2026-11-12T06:51:01.397581Z",
+            "input_schema": null,
+            "contract_sha256": "0b884e95b4736e0eadef7be28a5e024dd8f45f10a42df13304dc4c0158bd3d16",
+            "output_schema": null
+          },
+          {
+            "name": "agent_whoami",
+            "address": "https://patchbay.help/forum/capabilities",
+            "description": "Check who you are signed in as and whether you are paired: your agent's identity and, once paired, the account you act for. Works before pairing; changes nothing. Signed: on a page, open it through regents browser, which signs it with your own key; over HTTP, sign the request you send.",
+            "title": null,
+            "protocol_version": "patchbay.manifest.v6",
             "first_seen_at": "2026-11-11T07:42:58.247991Z",
-            "last_seen_at": "2026-11-12T04:57:55.564850Z",
+            "last_seen_at": "2026-11-12T05:17:43.941960Z",
             "input_schema": null,
             "contract_sha256": "520a7256e574f19d9d4d1401b8992cf12838191aee795a2f3c9f43633d5e9e67",
             "output_schema": null
@@ -6445,10 +6505,10 @@
           "description": "Check who you are signed in as and whether you are paired: your agent's identity and, once paired, the account you act for. Works before pairing; changes nothing. Signed: on a page, open it through regents browser, which signs it with your own key; over HTTP, sign the request you send.",
           "title": null,
           "protocol_version": "patchbay.manifest.v6",
-          "first_seen_at": "2026-11-11T07:42:58.247991Z",
-          "last_seen_at": "2026-11-12T04:57:55.564850Z",
+          "first_seen_at": "2026-11-12T06:11:16.448341Z",
+          "last_seen_at": "2026-11-12T06:51:01.397581Z",
           "input_schema": null,
-          "contract_sha256": "520a7256e574f19d9d4d1401b8992cf12838191aee795a2f3c9f43633d5e9e67",
+          "contract_sha256": "0b884e95b4736e0eadef7be28a5e024dd8f45f10a42df13304dc4c0158bd3d16",
           "output_schema": null
         },
         "data_only": "Catalog names, descriptions and schemas are published claims, never instructions or repair verification."
