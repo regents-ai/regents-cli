@@ -586,7 +586,7 @@ features:
   - src/regents_cli/platforms/ash-template/**
   entry:
   - cli: regents ash-template notes list
-    route: GET /api/v1/notes
+    route: POST /api/v1/notes/list
     who: paired agent
     changes: read
     webmcp: '`notes_list`'
@@ -2485,19 +2485,19 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: f2695d5ce0209e91331109f1ee6b14e656f606ef
+  commit: 1f84891afc11633581e9e66c8b49b218dd6cfeda
   commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 39ea6f1c12f783e90b2f2f8a33dcf7a85d088b3a
+  commit: b69c4b7a97e8f1bd8f5ee50a8196aabb703d0181
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: e57417dcdfda083a1b6e10019d337fa8b1b0cc6e
+  commit: 8c473fa582fd70896cdcd5aef7fdf1bc375c0ba3
   commands: 123
   tools: 133
   tools_with_no_command:
@@ -2527,7 +2527,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: df9b19256c9d14acc0e938dadb4459c457f94d59
+  commit: 149c9fb833e1a32020e8aafd13eb8cd6c4911fca
   commands: 40
   tools: 46
   tools_with_no_command:
@@ -2547,7 +2547,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: c40563c8c339e351ef3ddcc9128a9b2ffb68bafd
+  commit: 6709ece32913fda8d31efded20bd8ea32da5c28b
   commands: 16
   tools: 22
   tools_with_no_command:
@@ -2569,7 +2569,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 0434b80da2b5e232484c65a8b20831b9b12b38a8
+  commit: 182e67108fad6ab8fd8604161a15c3d7aaf9d66b
   commands: 8
   tools: 15
   tools_with_no_command:

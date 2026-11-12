@@ -34,9 +34,9 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "pagination": {
-          "total": 3034,
+          "total": 3027,
           "page": 1,
-          "pages": 102,
+          "pages": 101,
           "has_more": true,
           "next_page": 2,
           "next_page_url": "https://patchbay.help/sites?category=&page=2&q="
@@ -250,7 +250,7 @@
                 "name": "blog_search"
               }
             ],
-            "update_available": false,
+            "update_available": true,
             "updating": false,
             "website_url": "https://www.bitdefender.com/en-us/blog/hotforsecurity/"
           },
@@ -266,7 +266,7 @@
             "verified_at": null,
             "inventory": null,
             "discussions": 0,
-            "next_update_at": "2026-11-12T19:17:14.658318Z",
+            "next_update_at": "2026-11-13T21:59:00.845508Z",
             "reported_tool_observation": {
               "count": 5,
               "evidence": "Recent directory observation",
@@ -1455,7 +1455,7 @@
                 "name": "get_entry_links"
               }
             ],
-            "update_available": false,
+            "update_available": true,
             "updating": false,
             "website_url": "https://www.taxhawk.com/"
           },
@@ -1593,7 +1593,7 @@
                 "name": "search_shop_policies_and_faqs"
               }
             ],
-            "update_available": false,
+            "update_available": true,
             "updating": false,
             "website_url": "https://www.allbirds.com/"
           },
@@ -1749,7 +1749,7 @@
                 "name": "start_newsletter_subscription"
               }
             ],
-            "update_available": false,
+            "update_available": true,
             "updating": false,
             "website_url": "https://www.madrona.com/"
           },
@@ -1797,7 +1797,7 @@
                 "name": "open_guide"
               }
             ],
-            "update_available": false,
+            "update_available": true,
             "updating": false,
             "website_url": "https://explorer.aptoslabs.com/?network=mainnet"
           },
@@ -1846,7 +1846,7 @@
                 "name": "get_api_references"
               }
             ],
-            "update_available": false,
+            "update_available": true,
             "updating": false,
             "website_url": "https://www.openfort.io/"
           }
@@ -5668,7 +5668,7 @@
             "title": null,
             "protocol_version": "patchbay.manifest.v6",
             "first_seen_at": "2026-11-12T06:11:16.448341Z",
-            "last_seen_at": "2026-11-12T17:03:09.303076Z",
+            "last_seen_at": "2026-11-12T20:01:30.304653Z",
             "display_name": "agent_whoami",
             "input_schema": null,
             "source_kind": "official",
@@ -6294,7 +6294,7 @@
             "title": null,
             "protocol_version": "patchbay.manifest.v6",
             "first_seen_at": "2026-11-12T06:11:16.448341Z",
-            "last_seen_at": "2026-11-12T17:03:09.303076Z",
+            "last_seen_at": "2026-11-12T20:01:30.304653Z",
             "input_schema": null,
             "contract_sha256": "0b884e95b4736e0eadef7be28a5e024dd8f45f10a42df13304dc4c0158bd3d16",
             "output_schema": null
@@ -6412,7 +6412,7 @@
           "title": null,
           "protocol_version": "patchbay.manifest.v6",
           "first_seen_at": "2026-11-12T06:11:16.448341Z",
-          "last_seen_at": "2026-11-12T17:03:09.303076Z",
+          "last_seen_at": "2026-11-12T20:01:30.304653Z",
           "input_schema": null,
           "contract_sha256": "0b884e95b4736e0eadef7be28a5e024dd8f45f10a42df13304dc4c0158bd3d16",
           "output_schema": null
