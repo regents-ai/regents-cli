@@ -281,9 +281,7 @@ def test_a_wallet_short_of_eth_is_told_exactly_how_much_and_nothing_is_signed(
     assert stand.sent() == []
 
 
-@pytest.mark.parametrize(
-    "method", ["eth_estimateGas", "eth_call", "eth_getBalance", "eth_sendRawTransaction"]
-)
+@pytest.mark.parametrize("method", ["eth_estimateGas", "eth_call", "eth_getBalance"])
 def test_a_node_refusal_is_told_in_regents_words(
     method: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

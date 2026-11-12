@@ -21,7 +21,13 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from regents_cli import app, runner, siwa, transactions
-from regents_cli.errors import EXIT_AUTH, EXIT_FAILED, EXIT_UNREACHABLE, EXIT_USAGE
+from regents_cli.errors import (
+    EXIT_AUTH,
+    EXIT_CANCELLED,
+    EXIT_FAILED,
+    EXIT_UNREACHABLE,
+    EXIT_USAGE,
+)
 from regents_cli.http import Request
 from regents_cli.platforms import pinned_platforms
 
@@ -385,3 +391,89 @@ def test_a_node_on_another_chain_sends_nothing(
     assert code == EXIT_FAILED
     assert answer["error"]["code"] == "base_wrong_chain"
     assert node.raw == []
+
+
+def interrupted(on: str) -> Callable[[str, list[Any]], httpx.Response | None]:
+    def fault(method: str, _: list[Any]) -> httpx.Response | None:
+        if method == on:
+            raise KeyboardInterrupt
+        return None
+
+    return fault
+
+
+@pytest.mark.parametrize("on", ["eth_sendRawTransaction", "eth_getTransactionReceipt"])
+def test_an_interrupt_once_one_is_signed_keeps_its_hash_and_never_offers_a_rerun(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch, on: str
+) -> None:
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+    node = Base(fault=interrupted(on))
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_CANCELLED
+    assert_look_up_first(answer, sent=1)
+    assert len(node.raw) == 1
+
+
+def test_a_node_failure_after_one_landed_builds_the_rest_afresh_and_blames_no_site(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+
+    def fault(method: str, _: list[Any]) -> httpx.Response | None:
+        if node.raw and method == "eth_estimateGas":
+            raise httpx.ConnectError("refused")
+        return None
+
+    node = Base(statuses=["0x1"], fault=fault)
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_UNREACHABLE
+    assert [t["landed"] for t in answer["error"]["sent"]] == ["succeeded"]
+    kinds = [s["kind"] for s in answer["next_steps"]]
+    assert "patchbay" not in kinds and kinds[-1] == "run"
+    assert "--send" in answer["next_steps"][-1]["command"]
+
+
+@pytest.mark.parametrize(
+    "answer_to_send",
+    [
+        lambda: httpx.Response(504, json={"jsonrpc": "2.0", "id": 1, "error": {"code": -32000}}),
+        lambda: httpx.Response(
+            200, json={"jsonrpc": "2.0", "id": 1, "error": {"code": -32000, "message": "known"}}
+        ),
+    ],
+    ids=["gateway-504", "already-known"],
+)
+def test_a_send_the_node_refuses_is_looked_up_by_its_receipt(
+    site: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    answer_to_send: Callable[[], httpx.Response],
+) -> None:
+    site["answer"] = {**site["answer"], "transactions": [step("approve"), step("stake")]}
+    node = Base(
+        statuses=["0x1", "0x1"],
+        fault=lambda method, _: answer_to_send() if method == "eth_sendRawTransaction" else None,
+    )
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == 0
+    assert [t["landed"] for t in answer["sent"]] == ["succeeded", "succeeded"]
+
+
+def test_transactions_under_data_are_sent(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    site["answer"] = {"data": {"chain_id": 8453, "transactions": [step("present")]}}
+    node = Base(statuses=["0x1"])
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == 0
+    assert [t["landed"] for t in answer["sent"]] == ["succeeded"]
+
+
+def test_one_the_chain_would_refuse_is_built_afresh_not_sent_to_another_node(
+    site: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    node = Base(fault=lambda method, _: refused() if method == "eth_estimateGas" else None)
+    code, answer, _ = regents(node, monkeypatch, *PRESENCE, "--send")
+    assert code == EXIT_FAILED
+    assert node.raw == []
+    assert [s["kind"] for s in answer["next_steps"]] == ["run"]
+    assert "--send" in answer["next_steps"][0]["command"]

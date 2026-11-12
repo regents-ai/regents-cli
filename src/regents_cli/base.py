@@ -31,9 +31,7 @@ CHAIN_ID = 8453
 #: What it means when the node refuses each call.
 REFUSED = {
     "eth_chainId": "The Base node would not say which chain it is on",
-    "eth_estimateGas": "The Base node says this transaction would fail",
     "eth_getBalance": "The Base node would not say how much the wallet holds",
-    "eth_sendRawTransaction": "The Base node refused the signed transaction",
 }
 #: Base's contract that prices writing a transaction to Ethereum.
 GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F"
@@ -60,6 +58,8 @@ def rpc_host() -> str:
 
 
 def call(method: str, params: list[Any], timeout_ms: int) -> Any:
+    """The node's `result` for one JSON-RPC call. An answer other than 2xx is the node or a
+    gateway in front of it failing, whatever its body says."""
     try:
         response = httpx.post(
             rpc_address(),
@@ -67,19 +67,26 @@ def call(method: str, params: list[Any], timeout_ms: int) -> Any:
             timeout=timeout_ms / 1000,
             follow_redirects=False,
         )
+        if not response.is_success:
+            raise unreachable()
         body = response.json()
     except (httpx.HTTPError, ValueError, RecursionError):
-        raise CommandError(
-            "base_unreachable",
-            f"The Base node {rpc_host()} could not be reached, or did not answer in time.",
-            exit_code=EXIT_UNREACHABLE,
-        ) from None
+        raise unreachable() from None
     if isinstance(body, dict) and "result" in body:
         return body["result"]
     raise CommandError(
         "base_refused",
         REFUSED.get(method, f"The Base node {rpc_host()} would not price this transaction")
         + ", so nothing was sent.",
+        next_steps=[another_node()],
+    )
+
+
+def unreachable() -> CommandError:
+    return CommandError(
+        "base_unreachable",
+        f"The Base node {rpc_host()} could not be reached, or did not answer in time.",
+        exit_code=EXIT_UNREACHABLE,
         next_steps=[another_node()],
     )
 
@@ -107,12 +114,17 @@ def balance(address: str, timeout_ms: int) -> int:
     return number(call("eth_getBalance", [address, "latest"], timeout_ms))
 
 
-def needs_eth(address: str, holds: int, needs: int, what: str) -> CommandError:
-    """`address` holds less than the `needs` wei that `what` can take."""
+def needs_eth(address: str, holds: int, needs: int, count: int = 1) -> CommandError:
+    """`address` holds less than the `needs` wei that the next `count` transactions can take."""
+    what, unsent = (
+        ("this transaction", "It was not signed or sent.")
+        if count == 1
+        else (f"these {count} transactions", "None of them was signed or sent.")
+    )
     return CommandError(
         "base_needs_eth",
         f"{address} holds {eth(holds)} ETH on Base, and {what} can take up to {eth(needs)} ETH "
-        "with its gas. Nothing was signed or sent.",
+        f"with gas. {unsent}",
         next_steps=[
             human(
                 f"Your person sends at least {eth(needs - holds)} ETH on Base to {address}, then "
@@ -127,7 +139,17 @@ def priced(step: dict[str, Any], nonce: int, timeout_ms: int) -> tuple[dict[str,
     fields the key signs, and the most it can take from its sender in wei."""
     sender = step["from"]
     fields = {"from": sender, "to": step["to"], "data": step["data"], "value": step["value"]}
-    gas = number(call("eth_estimateGas", [fields], timeout_ms)) * 6 // 5
+    try:
+        estimate = call("eth_estimateGas", [fields], timeout_ms)
+    except CommandError as error:
+        if error.code != "base_refused":
+            raise
+        raise CommandError(
+            "transaction_would_fail",
+            "The Base node says this transaction would fail on the chain as it is now, so "
+            "nothing was sent.",
+        ) from None
+    gas = number(estimate) * 6 // 5
     tip = number(call("eth_maxPriorityFeePerGas", [], timeout_ms))
     latest = call("eth_getBlockByNumber", ["latest", False], timeout_ms)
     base_fee = number(latest.get("baseFeePerGas") if isinstance(latest, dict) else None)
@@ -183,11 +205,28 @@ def send(key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int
     """Sign exactly `transaction` with `key`, send it once, answer its hash. `needs` is the most
     it can take from the wallet, in wei.
 
-    When the node does not confirm the send, the transaction may still be on its way: the error
+    When the node does not confirm taking it, the transaction may still be on its way: the error
     carries its hash as `tx_hash`, so the caller can check it rather than send a second one."""
+    raw, tx_hash = signed(key, transaction, needs, timeout_ms)
+    if not broadcast(raw, timeout_ms):
+        raise CommandError(
+            "base_send_unclear",
+            f"The Base node {rpc_host()} did not confirm taking the transaction, so it may be "
+            f"on its way: {tx_hash}.",
+            exit_code=EXIT_UNREACHABLE,
+            tx_hash=tx_hash,
+        )
+    return tx_hash
+
+
+def signed(
+    key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int
+) -> tuple[str, str]:
+    """`transaction` signed by `key`, checked to be exactly that, and its hash. `needs` is the
+    most it can take from the wallet, in wei, which must hold it."""
     holds = balance(key.address, timeout_ms)
     if holds < needs:
-        raise needs_eth(key.address, holds, needs, "this transaction")
+        raise needs_eth(key.address, holds, needs)
     raw = siwa.sign_transaction(key, transaction)
     if not signs(raw, key.address, transaction):
         raise CommandError(
@@ -202,20 +241,17 @@ def send(key: siwa.Key, transaction: dict[str, str], needs: int, timeout_ms: int
                 )
             ],
         )
-    tx_hash = "0x" + keccak(hexstr=raw).hex()
+    return raw, "0x" + keccak(hexstr=raw).hex()
+
+
+def broadcast(raw: str, timeout_ms: int) -> bool:
+    """Hand the signed `raw` to the node once; whether it confirmed taking it. A refusal is no
+    proof it was not taken ("already known" means the node has it), so only a receipt tells."""
     try:
         call("eth_sendRawTransaction", [raw], timeout_ms)
-    except CommandError as error:
-        if error.code != "base_unreachable":
-            raise
-        raise CommandError(
-            "base_send_unclear",
-            f"The Base node {rpc_host()} did not confirm the send, so the transaction may be "
-            f"on its way: {tx_hash}.",
-            exit_code=EXIT_UNREACHABLE,
-            tx_hash=tx_hash,
-        ) from None
-    return tx_hash
+    except CommandError:
+        return False
+    return True
 
 
 def signs(raw: Any, address: str, transaction: dict[str, str]) -> bool:

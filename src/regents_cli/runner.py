@@ -645,8 +645,7 @@ def to_send(answer: dict[str, Any]) -> list[Step]:
     """An answer's `transactions`, at the top or in `data`, are for the caller's own wallet to
     send in order; `regents` sends none of them. One the chain's state makes certain to fail
     (its `blocked` reason) stops them all, since the later ones depend on it."""
-    data = answer.get("data")
-    holder = answer if "transactions" in answer else data if isinstance(data, dict) else {}
+    holder = transactions.holder(answer)
     listed = holder.get("transactions")
     if not (isinstance(listed, list) and listed and all(isinstance(t, dict) for t in listed)):
         return []

@@ -16,10 +16,11 @@ import contextlib
 import json
 import re
 import time
+from dataclasses import replace
 from typing import Any
 
 from regents_cli import base, output, siwa
-from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError
+from regents_cli.errors import EXIT_AUTH, EXIT_CANCELLED, EXIT_UNREACHABLE, CommandError
 from regents_cli.next_steps import Step, done, human
 
 #: A transaction as a site answers it for --send, value in wei as decimal text.
@@ -32,17 +33,24 @@ LANDING_POLL_SECONDS = 0.5
 EXPLORER = "https://basescan.org/tx/"
 
 
+def holder(answer: dict[str, Any]) -> dict[str, Any]:
+    """The part of a site's answer that holds its `transactions`: the answer, or its `data`."""
+    data = answer.get("data")
+    return answer if "transactions" in answer else data if isinstance(data, dict) else {}
+
+
 def listed(answer: dict[str, Any]) -> list[dict[str, Any]]:
-    """The answer's transactions, in order; [] when it lists none."""
-    found = answer.get("transactions")
+    """The answer's transactions, at the top or in `data`, in order; [] when it lists none."""
+    held = holder(answer)
+    found = held.get("transactions")
     if not (isinstance(found, list) and found):
         return []
     if not all(map(readable, found)):
         raise unreadable()
-    if answer.get("chain_id") != base.CHAIN_ID:
+    if held.get("chain_id") != base.CHAIN_ID:
         raise CommandError(
             "not_on_base",
-            f"The site's transactions are for chain {answer.get('chain_id')!r}, and regents "
+            f"The site's transactions are for chain {held.get('chain_id')!r}, and regents "
             f"sends only on Base ({base.CHAIN_ID}). Nothing was sent.",
         )
     return found
@@ -71,11 +79,11 @@ def unreadable() -> CommandError:
 
 
 def send(
-    found: list[dict[str, Any]], again: Step, as_json: bool, timeout_ms: int
+    found: list[dict[str, Any]], fresh: Step, as_json: bool, timeout_ms: int
 ) -> dict[str, Any]:
     """Sign and send each of `found` in order with the agent key, each after the one before it
-    lands. `again` is the step that builds them afresh. Answers what was sent and how each
-    landed; a failure on the way carries what was sent before it."""
+    lands. `fresh` is the step that builds them afresh from the chain. Answers what was sent and
+    how each landed; a failure on the way carries what was sent before it."""
     key = siwa.load_key()
     if key is None or key.signer is not None:
         raise CommandError(
@@ -97,79 +105,131 @@ def send(
         }
         for transaction in found
     ]
-    covers(key.address, steps, nonce, timeout_ms)
+    try:
+        covers(key.address, steps, nonce, timeout_ms)
+    except CommandError as error:
+        raise with_sent(error, sent, fresh) from None
     for transaction, step in zip(found, steps, strict=True):
+        name = transaction["name"]
         try:
-            signed, needs = base.priced(step, nonce, timeout_ms)
-            show(transaction, signed, needs, key.address, as_json)
-            tx_hash = base.send(key, signed, needs, timeout_ms)
+            signing, needs = base.priced(step, nonce, timeout_ms)
+            show(transaction, signing, needs, key.address, as_json)
+            raw, tx_hash = base.signed(key, signing, needs, timeout_ms)
         except CommandError as error:
-            if error.code != "base_send_unclear":
-                raise with_sent(error, sent) from None
-            tx_hash = error.fields["tx_hash"]
-        status = landed(tx_hash, timeout_ms)
-        sent.append(
-            {
-                "name": transaction["name"],
-                "value_eth": base.eth(int(transaction["value"])),
-                "tx_hash": tx_hash,
-                "landed": {True: "succeeded", False: "failed", None: "not yet"}[status],
-            }
-        )
+            raise with_sent(error, sent, fresh) from None
+        except KeyboardInterrupt:
+            if not sent:
+                raise
+            cancelled = CommandError(
+                "cancelled",
+                f"The command was interrupted before {name} was signed, so it was not sent.",
+                exit_code=EXIT_CANCELLED,
+            )
+            raise with_sent(cancelled, sent, fresh) from None
+        status: bool | None = None
+        try:
+            taken = base.broadcast(raw, timeout_ms)
+            status = landed(tx_hash, timeout_ms)
+        except KeyboardInterrupt:
+            sent.append(record(transaction, tx_hash, None))
+            raise not_landed(
+                f"The command was interrupted while {name} ({tx_hash}) was being sent or "
+                "waited on, so it may still land on Base. The ones after it were not sent.",
+                tx_hash,
+                sent,
+                EXIT_CANCELLED,
+            ) from None
+        sent.append(record(transaction, tx_hash, status))
         if status is None:
-            raise CommandError(
-                "transaction_not_landed",
-                f"{transaction['name']} was handed to the Base node as {tx_hash} but is not on "
-                f"Base after {LANDING_WAIT_SECONDS} seconds, so the ones after it were not sent.",
-                exit_code=EXIT_UNREACHABLE,
-                next_steps=[
-                    human(
-                        "Look it up before running this again: running it now sends the "
-                        "transactions again.",
-                        url=EXPLORER + tx_hash,
-                    )
-                ],
-                sent=sent,
+            raise not_landed(
+                (
+                    f"{name} was sent as {tx_hash}"
+                    if taken
+                    else f"The Base node did not confirm taking {name} ({tx_hash}), and it"
+                )
+                + f" is not on Base after {LANDING_WAIT_SECONDS} seconds of looking, so the ones "
+                "after it were not sent.",
+                tx_hash,
+                sent,
+                EXIT_UNREACHABLE,
             )
         if status is False:
             raise CommandError(
                 "transaction_failed",
-                f"{transaction['name']} landed on Base but failed ({tx_hash}), so the ones after "
-                "it were not sent. The chain changed after the site built it.",
-                next_steps=[again],
+                f"{name} landed on Base but failed ({tx_hash}), so the ones after it were not "
+                "sent. The chain may have changed after the site built it.",
+                next_steps=[fresh],
                 sent=sent,
             )
         nonce += 1
     return {"wallet_address": key.address, "chain_id": base.CHAIN_ID, "sent": sent}
 
 
+def record(transaction: dict[str, Any], tx_hash: str, status: bool | None) -> dict[str, Any]:
+    """One transaction handed to the node, as `sent` lists it."""
+    return {
+        "name": transaction["name"],
+        "value_eth": base.eth(int(transaction["value"])),
+        "tx_hash": tx_hash,
+        "landed": {True: "succeeded", False: "failed", None: "not yet"}[status],
+    }
+
+
+def not_landed(
+    message: str, tx_hash: str, sent: list[dict[str, Any]], exit_code: int
+) -> CommandError:
+    """A transaction handed to the node whose receipt was not read: only looking it up says
+    whether it landed, and running the command again would send it again."""
+    return CommandError(
+        "transaction_not_landed",
+        message,
+        exit_code=exit_code,
+        next_steps=[
+            human(
+                "Look it up before running this again: running it now sends the transactions "
+                "again.",
+                url=EXPLORER + tx_hash,
+            )
+        ],
+        sent=sent,
+    )
+
+
 def covers(address: str, steps: list[dict[str, Any]], nonce: int, timeout_ms: int) -> None:
     """Before the first is sent: `address` holds every transaction's value, and the gas of each
     the node can price now. One that needs an earlier one on the chain first, such as a stake
-    after its approve, is priced only when its turn comes, so until then only its value counts."""
+    after its approve, would fail now, so until its turn only its value counts."""
     total = 0
     for offset, step in enumerate(steps):
         try:
             total += base.priced(step, nonce + offset, timeout_ms)[1]
         except CommandError as error:
-            if offset == 0 or error.code != "base_refused":
+            if offset == 0 or error.code != "transaction_would_fail":
                 raise
             total += int(step["value"], 16)
     holds = base.balance(address, timeout_ms)
     if holds < total:
-        raise base.needs_eth(address, holds, total, f"these {len(steps)} transactions")
+        raise base.needs_eth(address, holds, total, len(steps))
 
 
-def with_sent(error: CommandError, sent: list[dict[str, Any]]) -> CommandError:
-    """`error`, saying which transactions were sent and landed before it."""
+def with_sent(error: CommandError, sent: list[dict[str, Any]], fresh: Step) -> CommandError:
+    """`error`, before which every one of `sent` landed. Its next step builds what is left from
+    the chain as it is now, after what a person must do first; one the chain refused (would
+    fail) is built afresh the same way."""
     if not sent:
-        return error
+        if error.code != "transaction_would_fail":
+            return error
+        return CommandError(error.code, error.message, next_steps=[fresh])
     names = ", ".join(t["name"] for t in sent)
+    first = [s for s in error.next_steps if s.kind == "human" and error.code == "base_needs_eth"]
     return CommandError(
         error.code,
-        f"{error.message} Sent and landed before it: {names}.",
+        f"{error.message} Before it, {names} landed on Base.",
         exit_code=error.exit_code,
-        next_steps=error.next_steps,
+        next_steps=[
+            *first,
+            replace(fresh, say=f"{names} landed already. {fresh.say} It builds only what is left."),
+        ],
         review=error.review,
         **error.fields,
         sent=sent,
