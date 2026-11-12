@@ -426,8 +426,8 @@ def checked(platform: Platform, event: dict[str, Any], shared: list[str]) -> Eve
 
 def reader(platform: Platform, read: str, shared: list[str]) -> str | None:
     """The `regents <site> …` line for the pinned command `read` routes to: only one the site
-    marks as a read, not a feed, taking its values in its path, each a UUID or a room's
-    name."""
+    marks as a read, not a feed, taking its values in its path: a UUID where the command
+    takes one, a room's name anywhere else."""
     found = READ.fullmatch(read)
     if found is None:
         return None
@@ -445,9 +445,15 @@ def reader(platform: Platform, read: str, shared: list[str]) -> str | None:
         "([^/]+)" if part.startswith("{") else re.escape(part) for part in command.path.split("/")
     )
     matched = re.fullmatch(pattern, path)
-    if matched is None or not all(uuid(v) or room_name(v) for v in matched.groups()):
+    if matched is None:
         return None
-    return read_line(platform, command, dict(zip(names, matched.groups(), strict=True)), shared)
+    values = dict(zip(names, matched.groups(), strict=True))
+    takes_uuid = {spec.field for spec in command.arguments if spec.type == "uuid"}
+    if not all(
+        uuid(value) if name in takes_uuid else room_name(value) for name, value in values.items()
+    ):
+        return None
+    return read_line(platform, command, values, shared)
 
 
 def read_line(

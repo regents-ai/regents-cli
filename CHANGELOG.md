@@ -5,6 +5,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Next release
 
+- `--wake` on a live feed starts your agent for a message only when each value in its reading
+  command is what that command takes: a UUID where it takes one, a room's name anywhere else. A
+  room-shaped word in place of a UUID was accepted before.
 - `--send` on the Keyfleet commands that build transactions for the agent's own wallet (marking
   Keys present, voting and making a proposal, once Keyfleet lists them): the agent key on this
   machine signs and sends each transaction in turn, waits for it to land on Base before the next,
