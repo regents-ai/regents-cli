@@ -182,9 +182,10 @@ each one as shown, Amount (the ETH it carries) included, and sends them in order
 one before it lands; the wallet pays every Amount and the gas. Nothing is sent when the node is
 not on Base, or when the wallet holds less than every Amount plus the gas of each transaction
 that can be priced before the first is sent (one that needs an earlier one on the chain first is
-priced at its turn, and checked again then). Once one is handed to the node and its receipt is
-not read in time, the answer lists it with its hash and a link to look it up: running the
-command again would send it again.
+priced at its turn, and checked again then). Once one is signed and handed to the node, only its
+receipt says what happened: when it is not seen landing in 60 seconds of looking, or the command
+is interrupted while it is sent or waited on, the answer lists it with its hash and a link to
+look it up, since running the command again would send it again.
 
 ## Techtree publication sign-in
 

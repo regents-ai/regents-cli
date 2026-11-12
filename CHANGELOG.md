@@ -21,13 +21,19 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   never leaves the machine. One the chain's state makes certain to fail sends nothing, with
   Keyfleet's reason, and so does a node that is not on Base. Before the first is sent, the wallet
   must hold every Amount plus the gas of each transaction that can be priced then, or nothing is
-  sent and the answer names how much ETH to send to which wallet. One that does not land within a
-  minute, or that the node never confirms taking, is listed with its hash and a link to look it
-  up; nothing offers to run the command again, which would send it again. Of the Base node's
-  address only its host is ever printed. Without `--send` these commands answer exactly as
+  sent and the answer names how much ETH to send to which wallet. Once one is signed and handed to
+  the Base node, only its receipt says what happened: one not seen landing in 60 seconds of
+  looking, or interrupted while it is sent or waited on, is listed with its hash and a link to
+  look it up; nothing offers to run the command again, which would send it again. A failure after
+  some landed lists them, and its step runs the command again for only what is left. Of the Base
+  node's address only its host is ever printed. Without `--send` these commands answer exactly as
   before. A site marks such a command with `"sends": true` in its `commands.json`.
 - `regents auth register` numbers the transaction it sends from the wallet's count at the latest
-  block rather than Base's pending count, the same as `--send`.
+  block rather than Base's pending count, the same as `--send`. When the Base node refuses the
+  signed transaction it keeps its hash and the `--tx-hash` step that checks it, as it already did
+  when the node did not answer, since a refused one may still be on its way. A Base node that
+  cannot be reached, or answers other than 2xx, is named with the step to try another node, and
+  no ready post for patchbay.help.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent
   profile. An author with a profile keeps its block. `--json` prints the answer as before.

@@ -143,7 +143,7 @@ def send(
         if status is None:
             raise not_landed(
                 (
-                    f"{name} was sent as {tx_hash}"
+                    f"{name} was sent as {tx_hash}, and it"
                     if taken
                     else f"The Base node did not confirm taking {name} ({tx_hash}), and it"
                 )
