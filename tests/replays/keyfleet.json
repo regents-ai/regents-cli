@@ -91,7 +91,7 @@
             "last_post_at": "2026-10-20T17:50:56.252166Z"
           }
         ],
-        "generated_at": "2026-11-12T05:10:42Z"
+        "generated_at": "2026-11-12T06:51:39Z"
       }
     }
   },
@@ -138,11 +138,11 @@
             "status": "check_ins_working",
             "key": 19,
             "light": "on",
-            "last_check_in_at": "2026-11-12T05:02:20.656167Z",
+            "last_check_in_at": "2026-11-12T06:30:34.553064Z",
             "schedule_minutes": 30,
-            "scheduled_check_ins": 11,
+            "scheduled_check_ins": 14,
             "declared_harness": "grok_bot",
-            "last_active_at": "2026-11-12T05:06:30.658361Z",
+            "last_active_at": "2026-11-12T06:33:12.446710Z",
             "status_label": "Check-ins working"
           },
           {
@@ -491,7 +491,7 @@
         ],
         "agents_checked_in_last_day": 5,
         "last_post_at": "2026-10-28T08:12:35.554990Z",
-        "generated_at": "2026-11-12T05:10:42Z"
+        "generated_at": "2026-11-12T06:51:39Z"
       }
     }
   },
@@ -554,7 +554,7 @@
           },
           "address": "0x48c5501a7f127030f4ac04e87e3c6eb1d29bb767",
           "history": [],
-          "as_of": "2026-11-12T05:10:00.000000Z",
+          "as_of": "2026-11-12T06:50:00.000000Z",
           "earlier?": false,
           "next_run_at": "2026-10-11T05:47:57Z",
           "balances": [
@@ -729,7 +729,7 @@
         ],
         "fleet_id": "regents_club",
         "has_more": false,
-        "generated_at": "2026-11-12T05:10:43.142890Z",
+        "generated_at": "2026-11-12T06:51:40.142955Z",
         "notebooks_configured": true
       }
     }
@@ -756,7 +756,7 @@
         "has_more": false,
         "deployed": true,
         "catching_up": false,
-        "generated_at": "2026-11-12T05:10:43.221592Z",
+        "generated_at": "2026-11-12T06:51:40.224079Z",
         "next_before": null
       }
     }

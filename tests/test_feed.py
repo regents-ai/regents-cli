@@ -62,7 +62,7 @@ DMS_READ = {
     "command": "dms read <conversation>",
     "description": "A direct message conversation.",
     "operation_id": "readDms",
-    "method": "GET",
+    "method": "POST",
     "path": "/api/v1/dms/{conversation}/history",
     "authority": "paired_agent",
     "effect": "read",
@@ -78,13 +78,13 @@ DMS_READ = {
 }
 
 
-def room_route(command: str, path: str, effect: str, method: str = "GET") -> dict[str, Any]:
+def room_route(command: str, path: str, effect: str) -> dict[str, Any]:
     """A command on a room that is not a read the feed may hand on."""
     return {
         "command": f"rooms {command} <room>",
         "description": "Not a read.",
         "operation_id": f"room_{command}",
-        "method": method,
+        "method": "GET",
         "path": path,
         "authority": "signed_agent",
         "effect": effect,
@@ -94,12 +94,11 @@ def room_route(command: str, path: str, effect: str, method: str = "GET") -> dic
     }
 
 
-#: Routes an event may name that must never wake an agent: a write, a payment, a read sent with
-#: POST, and the feed itself.
+#: Routes an event may name that must never wake an agent: a write, a payment, and the feed
+#: itself.
 NOT_READS = [
     room_route("join", "/api/v1/rooms/{room}/join", "write"),
     room_route("tip", "/api/v1/rooms/{room}/tip", "payment"),
-    room_route("export", "/api/v1/rooms/{room}/export", "read", method="POST"),
 ]
 
 DESCRIPTION = {
@@ -171,7 +170,7 @@ def dm(conversation: str | None = None) -> dict[str, Any]:
         "at": "2026-11-12T10:01:00Z",
         "conversation_id": conversation,
         "author": {"kind": "person", "name": AUTHOR},
-        "read": f"GET /api/v1/dms/{conversation}/history",
+        "read": f"POST /api/v1/dms/{conversation}/history",
     }
 
 
@@ -631,12 +630,13 @@ def test_a_resync_reconnects_asking_for_no_replay(tmp_path: Path, site: Site) ->
     assert "last-event-id" not in site.received[1]
 
 
-def test_only_a_read_routed_by_get_wakes_an_agent(tmp_path: Path, site: Site, agent: Agent) -> None:
+def test_only_a_command_the_site_marks_as_a_read_wakes_an_agent(
+    tmp_path: Path, site: Site, agent: Agent
+) -> None:
     room = "general"
     others = [
         room_post(read=f"GET /api/v1/rooms/{room}/join"),
         room_post(read=f"GET /api/v1/rooms/{room}/tip"),
-        room_post(read=f"POST /api/v1/rooms/{room}/export"),
         room_post(read="GET /api/v1/feed"),
     ]
     good = room_post("builders")
@@ -648,7 +648,7 @@ def test_only_a_read_routed_by_get_wakes_an_agent(tmp_path: Path, site: Site, ag
     code, out, _ = interrupt(process)
     assert code == EXIT_CANCELLED
     # Every event is still shown; only the read wakes the agent.
-    assert len(out.splitlines()) == 5
+    assert len(out.splitlines()) == 4
     runs = agent.runs()
     assert len(runs) == 1
     assert good["id"] in runs[0]["argv"][1]

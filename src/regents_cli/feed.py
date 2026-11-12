@@ -71,7 +71,7 @@ ROOM_LENGTH = 40
 KIND = re.compile(r"[a-z][a-z0-9_]{0,31}")
 AT = re.compile(output.MOMENT.pattern, re.ASCII)
 #: An event's `read`: the route that reads its message, such as "GET /api/v1/rooms/general".
-READ = re.compile(r"GET (/\S*)")
+READ = re.compile(r"(GET|POST) (/\S*)")
 #: Where an event stream's lines end.
 LINE_END = re.compile(rb"\r\n|\r|\n")
 #: Why a site closes a feed: replaced stops it, pairing_changed connects again.
@@ -425,13 +425,14 @@ def checked(platform: Platform, event: dict[str, Any], shared: list[str]) -> Eve
 
 
 def reader(platform: Platform, read: str, shared: list[str]) -> str | None:
-    """The `regents <site> …` line for the pinned command `read` routes to: only a GET read that is
-    not a feed, taking its values in its path, each a UUID or a room's name."""
+    """The `regents <site> …` line for the pinned command `read` routes to: only one the site
+    marks as a read, not a feed, taking its values in its path, each a UUID or a room's
+    name."""
     found = READ.fullmatch(read)
     if found is None:
         return None
-    path = found.group(1)
-    command = runner.routed_command(platform, "GET", path)
+    method, path = found.groups()
+    command = runner.routed_command(platform, method, path)
     if (
         command is None
         or command.effect != "read"
