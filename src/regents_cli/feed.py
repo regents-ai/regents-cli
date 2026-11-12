@@ -217,6 +217,9 @@ class Feed:
         if event_id is not None:
             self.last_id = event_id
         if kind == "resync":
+            # What was missed is listed afresh, so the next connection asks for no replay: a
+            # resync has no id of its own, and the old one would only bring another resync.
+            self.last_id = None
             self.wait = FIRST_WAIT_SECONDS
             self.print_json(text)
             note(
@@ -420,8 +423,8 @@ class Wakes:
                 note(f"{self.program} could not start for {place}: {error.strerror}.")
                 due += self.turns.finish(place)
                 continue
-            note(f"Started {self.program} for {place} ({counted(len(wakeups))}).")
             self.runs[place] = run
+            note(f"Started {self.program} for {place} ({counted(len(wakeups))}).")
             threading.Thread(
                 target=self.ended, args=(place, run, len(wakeups)), daemon=True
             ).start()
