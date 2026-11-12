@@ -1,7 +1,7 @@
 {
   "ash-template": {
     "repository": "regents-ai/ash-template",
-    "commit": "e09a86784b5a7f5d75aba1eb879798ef7545b565",
+    "commit": "cc4a83d3a7f14aa55a038464e9144e918e798fa8",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/ash-template/commands.json",
