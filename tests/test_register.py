@@ -327,7 +327,7 @@ def test_a_node_number_regents_cannot_read_stops_it_before_signing(method: str, 
         code, out, err = register(stand, profile, Path(folder), monkeypatch, "--json")
     told = json.loads(out)
     assert (code, told["error"]["code"]) == (1, "base_answer_unreadable"), err
-    assert NODE in json.dumps(told["next_steps"])
+    assert "node.example" in json.dumps(told["next_steps"])
     assert stand.sent() == []
 
 
