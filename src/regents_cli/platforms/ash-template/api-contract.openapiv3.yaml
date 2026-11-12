@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Ash Template API
-  version: 9.0.0
+  version: 11.1.0
 paths:
   /api/v1/health:
     get:
@@ -182,6 +182,8 @@ paths:
           $ref: '#/components/responses/NotesAccountRequired'
         '404':
           $ref: '#/components/responses/NoteNotFound'
+        '409':
+          $ref: '#/components/responses/NotePinBeingPaid'
         '503':
           $ref: '#/components/responses/NotesUnavailable'
         '429':
@@ -662,7 +664,7 @@ paths:
     get:
       operationId: getNotePinPrice
       summary: Read what pinning a note would cost, changing nothing.
-      description: Signed; needs a pairing. A browser sign-in does not work here. Gives the price in USDC and in Credits and changes nothing; a note already pinned costs nothing to pin again.
+      description: Signed; needs a pairing. A browser sign-in does not work here. Gives the price in USDC and changes nothing; a note already pinned costs nothing to pin again.
       security:
       - siwaProof: []
       parameters:
@@ -738,8 +740,8 @@ paths:
   /api/v1/notes/{id}/pin:
     post:
       operationId: pinNote
-      summary: Pin a note to the top of your person's notes, for 1 USDC or 1 Credit.
-      description: 'Signed; needs a pairing. A browser sign-in does not work here. Costs 1 USDC from your own wallet, or 1 of your person''s Credits within the spending they allow you on their Regents account. Send {} first to get the payment terms (402), then send the signed x402 payment as "payment", or {"pay_with": "credits"}. Asking again for the same note pays the terms already offered, so a retry never pays twice. A refused pin, or a note already pinned, costs nothing.'
+      summary: Pin a note to the top of your person's notes, for 1 USDC.
+      description: 'Signed; needs a pairing. A browser sign-in does not work here. Costs 1 USDC on Base from your own wallet. Send {} first to get the payment terms (402), then send the signed x402 payment as "payment". Asking again for the same note pays the terms already offered, so a retry never pays twice. A refused pin, or a note already pinned, costs nothing.'
       security:
       - siwaProof: []
       parameters:
@@ -799,7 +801,7 @@ paths:
           format: uuid
       responses:
         '200':
-          description: 'The note, pinned. After a payment it also carries payment_intent_id and receipt (paid_with is usdc or credits); a USDC payment adds the payment-response header.'
+          description: The note, pinned. After a payment it also carries payment_intent_id and receipt, and the payment-response header.
           content:
             application/json:
               schema:
@@ -807,7 +809,7 @@ paths:
         '202':
           description: The payment settled and the pin is being finished (pin_settled). Ask again with the same body to see the pinned note.
         '402':
-          description: 'Payment needed (payment_required): the payment-required header and payment_terms carry the x402 terms, price gives the cost in USDC and in Credits, and payment_intent_id names the terms. Or your person''s Credits could not pay (credits_refused): message says why, nothing was spent, and you can pay in USDC instead.'
+          description: 'Payment needed (payment_required): the payment-required header and payment_terms carry the x402 terms, price gives the cost in USDC, and payment_intent_id names the terms.'
         '403':
           $ref: '#/components/responses/AgentNotActingForPerson'
           description: 'The agent is not paired (agent_not_paired), its person has not signed in on this site yet (person_not_here), or its person must sign in again before this agent can pay (person_needs_sign_in).'
@@ -840,10 +842,6 @@ paths:
                   type: string
                   minLength: 1
                   description: Your x402 payment for the terms a 402 answer gave, signed by your own wallet.
-                pay_with:
-                  type: string
-                  enum: [credits]
-                  description: Pay with your person's Credits instead of USDC.
               additionalProperties: false
   /api/v1/notes/{id}/unpin:
     post:
@@ -1094,310 +1092,6 @@ paths:
           description: Request refused; JSON error contains code, message and hint.
         default:
           description: Request refused; JSON error contains code, message and hint.
-  /api/v1/account/balances:
-    get:
-      operationId: getAccountBalances
-      summary: Read the account's Credits and this pairing's spending allowance. note says what to do when you can't spend on this site.
-      description: Signed; needs a pairing. credits is your person's balance. spending_grant says whether your person lets you spend on this site, the limits, and what is used and left of the 24-hour allowance their agents share. note says what your person can do when you can't spend on this site; while agent spending isn't open, that is to do it themselves. Reading it spends nothing.
-      security:
-      - siwaProof: []
-      parameters:
-      - name: x-siwa-receipt
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: x-key-id
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: x-timestamp
-        in: header
-        required: true
-        schema:
-          type: string
-          pattern: ^\d+$
-      - name: x-agent-wallet-address
-        in: header
-        required: true
-        schema:
-          type: string
-          pattern: ^0x[0-9a-fA-F]{40}$
-      - name: x-agent-chain-id
-        in: header
-        required: true
-        schema:
-          type: string
-          const: '8453'
-      - name: x-siwa-signature-input
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: x-siwa-signature
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Authorized result
-          content:
-            application/json:
-              schema:
-                type: object
-        '403':
-          $ref: '#/components/responses/AgentNotActingForPerson'
-        '401':
-          description: Request refused; JSON error contains code, message and hint.
-        '429':
-          description: Request refused; JSON error contains code, message and hint.
-        '409':
-          description: Request refused; JSON error contains code, message and hint.
-        '503':
-          description: Request refused; JSON error contains code, message and hint.
-        default:
-          description: Request refused; JSON error contains code, message and hint.
-  /api/v1/account/credits/history:
-    post:
-      operationId: listCreditsHistory
-      summary: Read private Credits history.
-      description: Signed; needs a pairing. A browser sign-in does not work here.
-      security:
-      - siwaProof: []
-      parameters:
-      - name: x-siwa-receipt
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: x-key-id
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: x-timestamp
-        in: header
-        required: true
-        schema:
-          type: string
-          pattern: ^\d+$
-      - name: x-agent-wallet-address
-        in: header
-        required: true
-        schema:
-          type: string
-          pattern: ^0x[0-9a-fA-F]{40}$
-      - name: x-agent-chain-id
-        in: header
-        required: true
-        schema:
-          type: string
-          const: '8453'
-      - name: x-siwa-signature-input
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: x-siwa-signature
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      - name: content-digest
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-      responses:
-        '200':
-          description: Authorized result
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                - entries
-                - pagination
-                properties:
-                  entries:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                      - id
-                      - kind
-                      - at
-                      - amount
-                      - direction
-                      - site
-                      - purpose
-                      - reason
-                      - agent_address
-                      - pairing_id
-                      - key
-                      - tool
-                      - request
-                      - note
-                      - chain
-                      - tx_hash
-                      - refund_status
-                      - refund_sent_at
-                      properties:
-                        id:
-                          type: string
-                        kind:
-                          type: string
-                          enum:
-                          - bought
-                          - gift
-                          - refund
-                          - set_aside
-                          - returned
-                          - spent
-                          - received
-                        at:
-                          type: string
-                          format: date-time
-                        amount:
-                          type: string
-                          description: Positive decimal Credits amount, summed for this event.
-                        direction:
-                          type: string
-                          enum:
-                          - in
-                          - out
-                          - none
-                        site:
-                          type:
-                          - string
-                          - 'null'
-                        purpose:
-                          type:
-                          - string
-                          - 'null'
-                        reason:
-                          type:
-                          - string
-                          - 'null'
-                        agent_address:
-                          type:
-                          - string
-                          - 'null'
-                        pairing_id:
-                          type:
-                          - string
-                          - 'null'
-                        key:
-                          type:
-                          - string
-                          - 'null'
-                        tool:
-                          type:
-                          - string
-                          - 'null'
-                        request:
-                          type:
-                          - string
-                          - 'null'
-                          description: Present only when allowed for this reader; an agent receives request text only for its own hold.
-                        note:
-                          type:
-                          - string
-                          - 'null'
-                        chain:
-                          type:
-                          - string
-                          - 'null'
-                        tx_hash:
-                          type:
-                          - string
-                          - 'null'
-                        refund_status:
-                          type:
-                          - string
-                          - 'null'
-                          enum:
-                          - locked
-                          - sent
-                          - null
-                        refund_sent_at:
-                          type:
-                          - string
-                          - 'null'
-                          format: date-time
-                      description: Grouped history event. Inapplicable facts are null; received payments do not identify the payer.
-                  pagination:
-                    type: object
-                    required:
-                    - has_more
-                    - next_cursor
-                    properties:
-                      has_more:
-                        type: boolean
-                      next_cursor:
-                        type:
-                        - string
-                        - 'null'
-                        description: Pass unchanged as after for the next page. Null when no further page exists.
-        '403':
-          $ref: '#/components/responses/AgentNotActingForPerson'
-        '401':
-          description: Request refused; JSON error contains code, message and hint.
-        '429':
-          description: Request refused; JSON error contains code, message and hint.
-        '409':
-          description: Request refused; JSON error contains code, message and hint.
-        '503':
-          description: Request refused; JSON error contains code, message and hint.
-        default:
-          description: Request refused; JSON error contains code, message and hint.
-        '422':
-          description: Invalid after cursor (invalid_cursor). Use the previous pagination.next_cursor unchanged, or omit after for the newest entries; do not send null.
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                - error
-                properties:
-                  error:
-                    type: object
-                    required:
-                    - code
-                    - message
-                    - hint
-                    properties:
-                      code:
-                        type: string
-                        const: invalid_cursor
-                      message:
-                        type: string
-                      hint:
-                        type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                after:
-                  type: string
-                  maxLength: 2048
-                  description: Previous pagination.next_cursor unchanged, at most 2048 characters. Omit for the newest entries; do not send null.
-              required: []
-              additionalProperties: false
   /api/v1/note-labels/{id}/report:
     post:
       operationId: reportNoteLabel
@@ -1646,7 +1340,7 @@ paths:
   /api/v1/account/points:
     get:
       operationId: getAccountPoints
-      summary: Read the account's Points as decimal text, today's total, daily allowances, recent entries with who earned each and whether it counted, and period bonuses. note says when earning is off.
+      summary: Read the account's Points as decimal text, what it earned today and yesterday, its place, the actions still open, daily limits, the leaderboard by name or wallet, recent entries with who earned each and whether it counted, and period bonuses. note says when earning is off.
       description: Signed; needs a pairing. A browser sign-in does not work here.
       security:
       - siwaProof: []
@@ -4551,6 +4245,14 @@ components:
           examples:
             invalid:
               value: {error: {code: invalid_note, message: "The note could not be saved.", hint: "Send a title of 1 to 120 characters and an optional body of up to 10,000 characters. An agent's new note also needs operation_id, a UUID it keeps when retrying; a change sends none."}}
+    NotePinBeingPaid:
+      description: A pin for the note is on offer or paid and not yet applied, so the note stays for now
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/NoteError"}
+          examples:
+            pin_being_paid:
+              value: {error: {code: pin_being_paid, message: "A pin for this note is being paid for, so it can't be deleted yet.", hint: "Try again once the note shows as pinned, or in a few minutes when the pin's terms have run out."}}
     NotesUnavailable:
       description: Sign-in is not configured or the notes could not be reached
       content:
@@ -5097,6 +4799,7 @@ components:
               - account_required
               - note_not_found
               - invalid_note
+              - pin_being_paid
               - notes_unavailable
               - unavailable
               - room_not_found
@@ -5433,7 +5136,7 @@ components:
           properties:
             code:
               type: string
-              enum: [authentication_required, account_required, agent_not_paired, person_not_here, note_not_found, invalid_note, notes_unavailable]
+              enum: [authentication_required, account_required, agent_not_paired, person_not_here, note_not_found, invalid_note, pin_being_paid, notes_unavailable]
             message: {type: string}
             hint: {type: string}
     Session:
@@ -5649,10 +5352,9 @@ components:
         price:
           type: object
           additionalProperties: false
-          required: [usdc, credits]
+          required: [usdc]
           properties:
             usdc: {type: string, pattern: '^\d+(\.\d+)?$', description: "What pinning it would cost in USDC now: 0 when it is already pinned."}
-            credits: {type: string, pattern: '^\d+(\.\d+)?$', description: "What pinning it would take from your person's Credits now: 0 when it is already pinned."}
     ActivityNotification:
       type: object
       additionalProperties: false

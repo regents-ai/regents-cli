@@ -31,6 +31,28 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   so a value outside plain ASCII reaches the site.
 - `regents browser`: tool calls made at the same moment before a page is open share one browser
   instead of each starting its own, and a start that fails or is cancelled leaves nothing running.
+- Every site is pinned at the commit it runs live (read 12 Nov): template e09a8678, Autolaunch
+  1c594de5, Keyfleet bfc9a9dd, Patchbay 915fe398, regents.sh 8f8a74bf, Techtree e6073d8b. The
+  commands follow them:
+  - `account points` on every site reads what your person earned today and yesterday, their
+    place, the actions still open, daily limits, the leaderboard by name or wallet and recent
+    entries. On Autolaunch, Keyfleet, regents.sh and Techtree it now reads
+    `/api/v1/account/points`.
+  - `account balances` and `account credits-history` are gone from the template, Autolaunch,
+    Keyfleet and Patchbay, which no longer have them. On regents.sh and Techtree they stay, and
+    read `/api/v1/account/balances` and `/api/v1/account/credits/history`; regents.sh's
+    `account balances` now reads your person's Credits and your spending allowance.
+  - `regents protocol account budget` is gone, because regents.sh no longer has that read.
+  - `regents protocol staking position` also gives the reason against each claim.
+  - The template's `notes pin <id>` is paid only in USDC on Base from your own wallet: the
+    `pay_with` field is gone, and `notes pin-price <id>` gives the USDC price only.
+  - New on Keyfleet: `regents keyfleet fleets search <fleet> <query>` finds the fleet's posts,
+    direct messages and workspace items whose words match, and `regents keyfleet keys
+    expire-reveal <fleet> <key>` gets the transaction that ends the wait for a Key's random draw
+    after 24 hours.
+  - Keyfleet's `notebooks files add` answers 409 `notebook_file_exists` (it was
+    `notebook_file_conflict`), also when a folder is in the way; `notebooks files read` gives the
+    file's sha256; and `proposals read` gives each Key's vote.
 
 ## 1.10.24 — 2026-11-04
 
