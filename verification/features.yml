@@ -1112,12 +1112,12 @@ features:
     route: POST /api/v1/agent/fleets/{fleet_id}/graph/join
     who: paired agent
     changes: write
-    webmcp: '`workspace_join_goal`'
+    webmcp: '`workspace_join`'
   - cli: regents keyfleet workspace leave <fleet> <key>
     route: POST /api/v1/agent/fleets/{fleet_id}/graph/leave
     who: paired agent
     changes: write
-    webmcp: '`workspace_leave_goal`'
+    webmcp: '`workspace_leave`'
   - cli: regents keyfleet workspace submit <fleet> <key>
     route: POST /api/v1/agent/fleets/{fleet_id}/graph/submit
     who: paired agent
@@ -1931,7 +1931,7 @@ features:
     route: POST /api/agent/payment_intents
     who: paired agent
     changes: prepare
-    webmcp: '`post_priority_report`, `request_assist`'
+    webmcp: '`post_priority_report`'
   - cli: regents patchbay payments execute <id>
     route: POST /api/agent/payment_intents/{id}/execute
     who: paired agent
@@ -1950,17 +1950,12 @@ features:
   proofs:
   - tests/test_properties.py
 - id: patchbay-assist
-  what: 'Agents use regents patchbay assist: request, get <id>, free.'
+  what: 'Agents use regents patchbay assist: get <id>, free.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
   entry:
-  - cli: regents patchbay assist request
-    route: POST /api/agent/payment_intents
-    who: paired agent
-    changes: prepare
-    webmcp: '`post_priority_report`, `request_assist`'
   - cli: regents patchbay assist get <id>
     route: GET /api/agent/assists/{id}
     who: paired agent
@@ -2407,22 +2402,12 @@ features:
   gaps:
   - '`agents pair` has no WebMCP tool'
 - id: techtree-account
-  what: 'Agents use regents techtree account: balances, credits-history, points.'
+  what: 'Agents use regents techtree account: points.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/techtree/**
   entry:
-  - cli: regents techtree account balances
-    route: GET /api/v1/account/balances
-    who: paired agent
-    changes: read
-    webmcp: '`account_balances`'
-  - cli: regents techtree account credits-history
-    route: POST /api/v1/account/credits/history
-    who: paired agent
-    changes: read
-    webmcp: '`account_credits_history`'
   - cli: regents techtree account points
     route: GET /api/v1/account/points
     who: paired agent
@@ -2472,19 +2457,19 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: cc4a83d3a7f14aa55a038464e9144e918e798fa8
+  commit: 4d972bbc08ed28ca33316e6a7ab755b09480c11d
   commands: 56
   tools: 55
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 1c594de53f96c091cbb5b74f9d4217d1cfe75bfb
+  commit: 60d1476af2bf12924bd590b855e38f378326497f
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: bfc9a9dda66458b9dfddca713c58b45672b6bfa0
+  commit: 9b70189e1b2d876b71fc1e6ab7fa44aab0f0470c
   commands: 121
   tools: 131
   tools_with_no_command:
@@ -2514,9 +2499,9 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 915fe39831185fe802199b29f6ba86b75edbbac4
-  commands: 53
-  tools: 59
+  commit: 692e41eb63905531f39abb79128c7d10318c429b
+  commands: 52
+  tools: 58
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2534,7 +2519,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 8f8a74bfd0e2494c0c61ed02cd80ab54574a6c98
+  commit: 0c4c236931850cb3d137677765d577fa991ec077
   commands: 17
   tools: 23
   tools_with_no_command:
@@ -2556,9 +2541,9 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: e6073d8bc1640567365497a2debe35423faf89d0
-  commands: 9
-  tools: 14
+  commit: e222943a09b866683a2fdcb84cebc3864bb15a0d
+  commands: 7
+  tools: 12
   tools_with_no_command:
   - tool: results_bundle
     why: no command

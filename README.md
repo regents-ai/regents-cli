@@ -111,11 +111,11 @@ server.
 regents auth login --site patchbay
 regents auth status
 echo '{"args": {"goal": "…", "site_url": "https://…", "sign_in": "none"}}' \
-  | regents patchbay assist request
+  | regents patchbay assist free
 ```
 
 A command that reads stdin takes one JSON object holding the fields of the site's own request
-body; its `--help` names them. Patchbay's `assist request` body has one field, `args`; another
+body; its `--help` names them. Patchbay's `assist free` body has one field, `args`; another
 command's body may have several. A missing, unknown or mistyped field is named in one answer.
 
 With a key of your own, sign the exact messages yourself: `regents auth login --site patchbay

@@ -502,10 +502,12 @@ def test_another_address_carrying_a_password_is_named_without_it() -> None:
 
 
 def test_only_a_402_with_x402_terms_asks_for_a_signature() -> None:
-    """Review P2: a 402 with no payment terms (Credits, free quota) is not signing advice."""
+    """Review P2: a 402 with no payment terms (Credits, no wallet open) is not signing advice."""
     terms = httpx.Response(402, json={"accepts": []}, headers={"payment-required": "e30="})
     no_terms = httpx.Response(402, json={"credits": 0})
-    coded = httpx.Response(402, json={"error": {"code": "free_fixes_used", "message": "Used."}})
+    coded = httpx.Response(
+        402, json={"error": {"code": "wallet_unavailable", "message": "No wallet is open."}}
+    )
     failed = invocation("patchbay", "patchbay.help")
     signs = [_raised(r) for r in (terms, no_terms, coded)]
     assert ["Sign" in for_failure(e, failed)[0].say for e in signs] == [True, False, False]
