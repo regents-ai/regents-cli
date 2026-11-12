@@ -85,7 +85,7 @@
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "6709ece32913fda8d31efded20bd8ea32da5c28b",
+    "commit": "9ed140a42364e8917c7e268de810481a23d59ad1",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",

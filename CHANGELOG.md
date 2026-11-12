@@ -41,8 +41,8 @@ run against the live sites from the built wheel; Techtree release record climb-v
   sends nothing, and its step is to fix that setting.
 - A site's command description no longer takes the `spending_allowed` condition, since no site
   uses it any more; `member` is the one condition left.
-- Every site is pinned at the commit it runs live (read 12 Nov, 23:05Z): template 1f84891a,
-  Autolaunch b69c4b7a, Keyfleet 8c473fa5, Patchbay 149c9fb8, regents.sh 6709ece3, Techtree
+- Every site is pinned at the commit it runs live (read 12 Nov, 23:14Z): template 1f84891a,
+  Autolaunch b69c4b7a, Keyfleet 8c473fa5, Patchbay 149c9fb8, regents.sh 9ed140a4, Techtree
   182e6710. The commands follow them:
   - Patchbay has no Offers market any more, and no Credits, so thirteen commands are gone:
     `offers slots`, `offers bid-options`, `offers bid`, `offers ask-fit`, `offers save`,
