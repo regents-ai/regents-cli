@@ -112,6 +112,8 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
       --phase send     -> read {"request", "signature"} from stdin and send that; a request
                           prepared under another signing contract is refused, never re-signed
 
+  entry.stream      -> the live feed: stays open, prints each event as it arrives and
+                       connects again, signed anew, after a drop (see "A live feed" below)
   answer = send once; never retried, redirects never followed
   2xx with JSON      -> print it (readable, or JSON with --json) with next_steps: the next
                         page when entry.pagination says there is one, then entry.next_steps,
@@ -223,6 +225,20 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
 - **Repeats are the site's call.** The command line never retries, but a person can run a
   command twice; each write route decides what a second call does and says so in its answer.
 - **Public reads that need no input stay cheap and always up**: doctor calls each one.
+- **A live feed** is a signed GET whose entry says `"stream": true` (no `body`, stdin
+  fields, pagination or `webmcp`), and whose operation answers 200 `text/event-stream`. A refusal
+  before the feed starts is the ordinary JSON error. Each event is an `id:` line, a `data:` line
+  holding one JSON object, and a blank line; send a `: keep-alive` comment every 25
+  seconds, since `regents` takes 60 seconds of silence as a dead connection. A message event
+  carries `kind`, `id`, `at` and `read` (the route that reads it, such as `GET
+  /api/v1/rooms/general/messages/<id>`, ideally one of the description's commands), plus `room`
+  or `conversation_id`, and never the message's words. Control events have no `id:` line:
+  `{"kind": "resync"}` when more was missed than a reconnect replays, `{"kind": "closed",
+  "reason": "replaced"}` when another feed for the agent opened (`regents` stops), and
+  `{"kind": "closed", "reason": "pairing_changed"}` (`regents` connects again). Every
+  reconnect is a new signed request carrying the last id as `Last-Event-ID`; replay what was
+  missed after it, oldest first. `regents` prints each event as it arrives and, with `--wake`,
+  starts the person's agent for new messages.
 
 ## The product's `cli/` folder
 

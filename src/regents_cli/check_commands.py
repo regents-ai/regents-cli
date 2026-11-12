@@ -42,17 +42,34 @@ def is_json(kind: str) -> bool:
     )
 
 
-def answers_json(document: Any, operation: dict[str, Any]) -> bool:
+def success_content(document: Any, operation: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Each 2xx status the operation answers, with the content it answers it with."""
     shared = (document.get("components") or {}).get("responses") or {}
+    found = {}
     for code, response in (operation.get("responses") or {}).items():
         if str(code).startswith("2"):
             name = response.get("$ref", "").removeprefix("#/components/responses/")
-            content = (shared.get(name, {}) if name else response).get("content") or {}
-            if str(code) == "204" and content:
-                return False
-            if not all(map(is_json, content)):
-                return False
+            found[str(code)] = (shared.get(name, {}) if name else response).get("content") or {}
+    return found
+
+
+def answers_json(document: Any, operation: dict[str, Any]) -> bool:
+    for code, content in success_content(document, operation).items():
+        if code == "204" and content:
+            return False
+        if not all(map(is_json, content)):
+            return False
     return True
+
+
+def answers_events(document: Any, operation: dict[str, Any]) -> bool:
+    """Whether every success is a feed of server-sent events."""
+    answered = success_content(document, operation).values()
+    return bool(answered) and all(
+        content
+        and all(media.split(";")[0].strip().lower() == "text/event-stream" for media in content)
+        for content in answered
+    )
 
 
 class Body(NamedTuple):
@@ -70,6 +87,7 @@ class Operation(NamedTuple):
     method: str
     route: str
     answers_json: bool
+    answers_events: bool
     body: Body | None  # None: the operation takes no request body
 
 
@@ -129,6 +147,7 @@ def operations_in(documents: list[Any]) -> dict[str, Operation]:
                         method.upper(),
                         route,
                         answers_json(document, operation),
+                        answers_events(document, operation),
                         request_body(document, operation),
                     )
     return found
@@ -265,6 +284,13 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
         pagination = entry.get("pagination")
         if pagination and pagination["flag"] not in flag_names:
             say(f"pagination passes the cursor as --{pagination['flag']}, which is not a flag")
+        stream = entry.get("stream", False)
+        if stream and (
+            entry["authority"] == "public"
+            or entry["method"] != "GET"
+            or any(key in entry for key in ("body", "stdin_fields", "pagination", "webmcp"))
+        ):
+            say("stream is only for a signed GET with no body, stdin fields, pagination or webmcp")
 
         for step in entry.get("next_steps", []):
             if step["kind"] == "done" and "url" in step:
@@ -296,7 +322,9 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
                 f"operation {entry['operation_id']} is {operation.method} {operation.route}, "
                 f"not {entry['method']} {entry['path']}"
             )
-        elif not operation.answers_json:
+        elif stream and not operation.answers_events:
+            say(f"operation {entry['operation_id']} does not answer text/event-stream on success")
+        elif not stream and not operation.answers_json:
             say(
                 f"operation {entry['operation_id']} does not answer JSON or an empty 204 on success"
             )
