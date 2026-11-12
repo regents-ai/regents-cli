@@ -1075,7 +1075,18 @@ def _stop(
         folder / CANCEL_FILE,
         {"exit_reason": end, "why": why, "code": code, "details": details},
     )
-    return _cancelled(provider, folder, intent_id, provider.job(job_id))
+    try:
+        job = provider.job(job_id)
+    except ProviderError as error:
+        kind = PolicyError if code == grants.APPROVAL_REQUIRED else TechtreeError
+        return kind(
+            f"job {job_id} was cancelled: {why}. The look at it after the cancel did not "
+            f"finish: {error.message}. Run this command again to record what the provider "
+            "charged. The grant's use is spent.",
+            code=code,
+            details={**error.details, **details, "job_id": job_id, "intent_id": intent_id},
+        )
+    return _cancelled(provider, folder, intent_id, job)
 
 
 def _cancelled(provider: Autoresearch, folder: Path, intent_id: str, job: Job) -> TechtreeError:
