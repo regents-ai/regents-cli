@@ -76,6 +76,7 @@ from regents_cli.techtree.model_climb.contracts import (
 from regents_cli.techtree.model_climb.data import MINIMUM_SALT_BYTES, split_commitment
 from regents_cli.techtree.model_climb.provider import (
     BUDGET_EXHAUSTED,
+    ENDED,
     MICROS_PER_CENT,
     UNSUPPORTED_CAPABILITY,
     Autoresearch,
@@ -900,7 +901,9 @@ def _ready(
     queue_minutes: int,
     now: datetime,
 ) -> str:
-    """The attempt a submission may now be made for: the one already begun, or a new one."""
+    """The attempt a submission may now be made for, the one already begun or a new one, with
+    its job written down. An attempt already begun has submitted nothing, so it is checked as
+    fully as a new one."""
     grant = grants.admit(
         store,
         envelope,
@@ -927,7 +930,16 @@ def _ready(
             code=grants.APPROVAL_REQUIRED,
             details={"grant_id": grant.grant_id},
         )
-    return intent_id or _begin(store, provider, profile, plan, grant, context)
+    body = job_body(profile, plan, context, granted_minutes(grant, plan))
+    _affordable(provider, plan, grant, body)
+    # Read just before the first submission, also for an attempt begun by an earlier run that
+    # stopped before it submitted.
+    builds_before = provider.build_usage()
+    intent_id = intent_id or new_id("attempt")
+    folder = store.attempts_dir / intent_id
+    fs.atomic_write_json(folder / JOB_FILE, body)
+    fs.atomic_write_json(folder / BUILDS_BEFORE_FILE, builds_before)
+    return intent_id
 
 
 def _follow(
@@ -978,6 +990,10 @@ def _follow(
             + f", and the grant allows {grant.max_cents}",
             max_cost_usd_micros=ceiling,
         )
+    if job.status in ENDED:
+        # Ended, and its receipt is not on it yet: nothing is left to stop, so the next look
+        # collects it.
+        return _waiting(intent_id, job, ceiling)
     if job.money_wait is not None:
         # Automatic top-up is off, so this wait cannot end by itself, and a job that starts
         # whenever money is next added is not the run that was approved (contract 6.1).
@@ -1000,9 +1016,13 @@ def _follow(
             f"grant {grant.grant_id} was revoked while it was going",
             code=grants.APPROVAL_REQUIRED,
         )
+    return _waiting(intent_id, job, ceiling)
+
+
+def _waiting(intent_id: str, job: Job, ceiling: int) -> Waiting:
     return Waiting(
         intent_id=intent_id,
-        job_id=job_id,
+        job_id=job.id,
         status=job.status,
         wait_reason=job.queue.wait_reason if job.queue else None,
         max_cost_cents=cents(ceiling),
@@ -1040,13 +1060,14 @@ def _cancelled(provider: Autoresearch, folder: Path, intent_id: str, job: Job) -
     kind = PolicyError if code == grants.APPROVAL_REQUIRED else TechtreeError
     told = f"job {job.id} was cancelled: {cancel['why']}."
     details = {"job_id": job.id, "intent_id": intent_id, **cancel["details"]}
-    if job.receipt is None:
+    if not job.ended:
         return kind(
             f"{told} The provider has not yet said what it charged; run this command again "
             "to record that. The grant's use is spent.",
             code=code,
             details=details,
         )
+    assert job.receipt is not None
     builds = _build_usage(provider, folder)
     _finish(folder, cancel["exit_reason"], None, job.receipt, builds)
     charged = job.receipt.charged_usd_micros
@@ -1098,15 +1119,15 @@ def unfinished(
     return None
 
 
-def _begin(
-    store: ModelClimbStore,
+def _affordable(
     provider: Autoresearch,
-    profile: profiles.Profile,
     plan: ResolvedModelPlan,
     grant: ExecutionGrant,
-    context: dict[str, str],
-) -> str:
-    """A new attempt: its job, written down before anything is spent on it."""
+    body: dict[str, JsonValue],
+) -> None:
+    """Refuse the job unless the provider's rate is still the plan's, its maximum is within the
+    grant, top-up is off and the balance covers that maximum. Run before every first
+    submission of an attempt, so one resumed after an earlier run stopped is checked again."""
     rate = provider.micros_per_gpu_minute(grant.gpu_model, grant.gpu_count)
     planned = plan.spec.budget.prices[0].cents_per_hour
     if cents_per_gpu_hour(rate) != planned:
@@ -1116,7 +1137,6 @@ def _begin(
             code=grants.PLAN_CHANGED,
             details={"plan": grant.plan, "cents_per_gpu_hour": cents_per_gpu_hour(rate)},
         )
-    body = job_body(profile, plan, context, granted_minutes(grant, plan))
     ceiling = provider.preflight(body)
     if ceiling > grant.max_cents * MICROS_PER_CENT:
         raise TechtreeError(
@@ -1142,12 +1162,6 @@ def _begin(
             code=BUDGET_EXHAUSTED,
             details={"grant_id": grant.grant_id, "available_usd_micros": available},
         )
-    builds_before = provider.build_usage()
-    intent_id = new_id("attempt")
-    folder = store.attempts_dir / intent_id
-    fs.atomic_write_json(folder / JOB_FILE, body)
-    fs.atomic_write_json(folder / BUILDS_BEFORE_FILE, builds_before)
-    return intent_id
 
 
 def _finish(
@@ -1238,7 +1252,7 @@ def _collect(
         "succeeded"
         if job.status == "succeeded"
         else "cancelled"
-        if job.status.startswith("cancel")
+        if job.status == "canceled"
         else "failed"
     )
     _finish(folder, exit_reason, path, job.receipt, builds)

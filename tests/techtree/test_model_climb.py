@@ -8,8 +8,10 @@ job submitted after a first submission's outcome was unknown.
 
 from __future__ import annotations
 
+import io
 import json
 import re
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -315,15 +317,52 @@ def test_a_wrong_confirmation_issues_no_grant(
     assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
 
 
+@pytest.mark.parametrize("piped", [False, True])
 def test_without_a_person_at_a_terminal_no_grant_is_issued(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    piped: bool,
 ) -> None:
     store, plan_digest = stored_plan(monkeypatch, tmp_path)
-    assert main(issue(plan_digest, "--json")) == 1
-    error = json.loads(capsys.readouterr().out)["error"]
-    assert error["code"] == "approval_required"
-    assert any(plan_digest in line for line in error["details"]["review"])
+    if piped:
+        # Every answer the grant asks for, piped in instead of typed at a terminal.
+        monkeypatch.setattr(sys, "stdin", io.StringIO("y\ny\n35.50\n"))
+        assert main(issue(plan_digest)) == 1
+    else:
+        assert main(issue(plan_digest, "--json")) == 1
+        error = json.loads(capsys.readouterr().out)["error"]
+        assert error["code"] == "approval_required"
+        assert any(plan_digest in line for line in error["details"]["review"])
     assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
+
+
+@pytest.mark.parametrize("amount", ["sNaN", "-sNaN", "NaN", "Infinity", "1e999999"])
+@pytest.mark.parametrize("flag", ["--max-usd", "--max-hours"])
+def test_an_amount_that_is_not_a_number_issues_no_grant(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    flag: str,
+    amount: str,
+) -> None:
+    store, plan_digest = stored_plan(monkeypatch, tmp_path)
+    words = issue(plan_digest, "--json")
+    words[words.index(flag) + 1] = amount
+    assert main(words) == 1
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["error"]["code"] == "validation_error" and answer["next_steps"]
+    assert not store.grants_dir.exists() or not any(store.grants_dir.iterdir())
+
+
+def test_a_plan_for_an_amount_that_is_not_a_number_is_refused(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    words = ["techtree", "model-climb", "plan", "--profile", profiles.M0.name]
+    assert main([*words, "--max-usd", "sNaN", "--json"]) == 1
+    answer = json.loads(capsys.readouterr().out)
+    assert answer["error"]["code"] == "validation_error" and answer["next_steps"]
 
 
 # The coverage check (248 modules), on the module paths the M0 dry run reported

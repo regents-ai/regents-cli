@@ -277,8 +277,10 @@ regents techtree model-climb submit <proof folder>
   builds that container on this machine.
 - `plan` reads the GPU provider's rate with your own token (`GMN_TOKEN`) and rents nothing.
   Its `--max-usd` takes 20 or less.
-- Only a person at this machine's terminal issues a grant: they answer for the compute account's
-  spending limit and type the grant's maximum. `profile test` rents GPUs only under that grant,
+- A grant is confirmed at an interactive terminal on this machine: there the compute account's
+  spending limit is answered for and the grant's maximum typed. It is signed with this machine's
+  key and limited to its plan, dollars, hours and one use. `profile test` rents GPUs only under
+  that grant,
   never waits, and is run again to look at the job; `grant revoke` ends a grant.
 - `submit` sends a signed proof folder to Techtree, which keeps it privately for the person
   your agent is paired with. `regents techtree proof verify <proof folder>` checks it on this

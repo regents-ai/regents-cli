@@ -1,9 +1,13 @@
 """Model Climb walked as a person takes it, and its two money rules for every input.
 
-The costly failures: a GPU job rented before a person issued its grant, or after they revoked
-it; a provider's charge that never reaches the attempt's record; a proof Techtree keeps twice;
-a job given more minutes than its grant pays for at the plan's rate; and one grant spending
-more paid attempts than it allows, or one attempt spending two.
+The costly failures: a GPU job rented before its grant was issued at this machine's terminal,
+or after it was revoked; a job left running after its grant was revoked or its maximum went
+over the grant; an attempt closed before the provider's final receipt, or spent without a job
+because an answer that may hide a job was taken as a refusal; a resumed attempt submitted
+without checking the account again; a provider's charge that never reaches the attempt's
+record; a proof Techtree keeps twice; a job given more minutes than its grant pays for at the
+plan's rate; and one grant spending more paid attempts than it allows, or one attempt spending
+two.
 """
 
 from __future__ import annotations
@@ -31,7 +35,15 @@ from regents_cli.techtree.canonical import digest_object
 from regents_cli.techtree.errors import PolicyError
 from regents_cli.techtree.identity.service import IdentityService
 from regents_cli.techtree.identity.store import IdentityStore
-from regents_cli.techtree.model_climb import grants, ledger, profile_test, profiles, proof, provider
+from regents_cli.techtree.model_climb import (
+    attempts,
+    grants,
+    ledger,
+    profile_test,
+    profiles,
+    proof,
+    provider,
+)
 from regents_cli.techtree.model_climb.contracts import (
     AttemptOperational,
     Created,
@@ -61,17 +73,52 @@ TOKEN = "test-only-token"
 # A stand-in for the GPU provider and one for Techtree, each on this machine.
 
 
+#: What a provider's error answer carries beside its code, which no answer of the CLI repeats.
+PROVIDER_SAYS = "provider-reply-text-never-printed"
+
+
+def queued(**fields: Any) -> dict[str, Any]:
+    return {"status": "queued", **fields}
+
+
+def receipt(charged: int = CHARGED) -> dict[str, Any]:
+    return {
+        "image_digest": "sha256:" + "f" * 64,
+        "charged_usd_micros": charged,
+        "billed_seconds": 600,
+    }
+
+
+def ended(status: str = "succeeded", **fields: Any) -> dict[str, Any]:
+    return {"status": status, "result": job_result(), "receipt": receipt(), **fields}
+
+
 @dataclass
 class Provider:
-    """Autoresearch's batch API as the engine uses it: one job, which is queued at its first
-    look and has ended, with its receipt, at the next."""
+    """Autoresearch's batch API as the engine uses it, with one job. Each look at the job gets
+    the next of `looks`, and the last one again once they run out: by default it is queued at
+    its first look and has ended, with its receipt, at the next."""
 
+    looks: list[dict[str, Any]] = field(default_factory=lambda: [queued(), ended()])
+    #: Error answers by (method, path), as the provider's status code.
+    errors: dict[tuple[str, str], int] = field(default_factory=dict)
+    #: Whether a submission answered with an error still created its job.
+    created_anyway: bool = False
+    auto_topup: bool = False
     submissions: list[dict[str, Any]] = field(default_factory=list)
     cancels: list[str] = field(default_factory=list)
-    looks: int = 0
+    seen: int = 0
     ceiling: int = 0
 
-    def answer(self, method: str, path: str, query: dict[str, str], body: Any) -> object:
+    def answer(self, method: str, path: str, query: dict[str, str], body: Any) -> tuple[int, Any]:
+        status = self.errors.get((method, path), 200)
+        if path == "/preview/jobs" and method == "POST" and (status == 200 or self.created_anyway):
+            self.submissions.append(body)
+        if status != 200:
+            return status, {"error": {"code": "refused", "message": PROVIDER_SAYS}}
+        return 200, self._answer(method, path, query, body)
+
+    def _answer(self, method: str, path: str, query: dict[str, str], body: Any) -> object:
         if path == "/preview/jobs/validate":
             cost = RATE * body["max_duration_minutes"] * body["chip_count"]
             self.ceiling = cost
@@ -87,10 +134,9 @@ class Provider:
         if path == "/preview/billing":
             return {
                 "balance": {"at_zero": False, "available_usd_micros": 100_000_000},
-                "auto_topup": {"enabled": False},
+                "auto_topup": {"enabled": self.auto_topup},
             }
         if path == "/preview/jobs" and method == "POST":
-            self.submissions.append(body)
             return {"id": "job-1", "status": "queued"}
         if path == "/preview/jobs":
             labels = [job["label"] for job in self.submissions]
@@ -99,21 +145,10 @@ class Provider:
             }
         if path.endswith("/cancel"):
             self.cancels.append(path)
-            return {}
-        self.looks += 1
-        if self.looks == 1:
-            return {"id": "job-1", "status": "queued", "max_cost_usd_micros": self.ceiling}
-        return {
-            "id": "job-1",
-            "status": "succeeded",
-            "max_cost_usd_micros": self.ceiling,
-            "result": job_result(),
-            "receipt": {
-                "image_digest": "sha256:" + "f" * 64,
-                "charged_usd_micros": CHARGED,
-                "billed_seconds": 600,
-            },
-        }
+            return {"id": "job-1", "status": "canceling"}
+        look = self.looks[min(self.seen, len(self.looks) - 1)]
+        self.seen += 1
+        return {"id": "job-1", "max_cost_usd_micros": self.ceiling, **look}
 
 
 @dataclass
@@ -153,7 +188,7 @@ def stand_ins(monkeypatch: pytest.MonkeyPatch) -> Iterator[tuple[Provider, Techt
                     return self._send(401, {"error": "unauthorized"})
                 query = {name: values[0] for name, values in parse_qs(parts.query).items()}
                 body = json.loads(raw) if raw else None
-                return self._send(200, gpu.answer(self.command, parts.path, query, body))
+                return self._send(*gpu.answer(self.command, parts.path, query, body))
             headers = {name.lower(): value for name, value in self.headers.items()}
             return self._send(200, site.answer(self.path, raw, headers))
 
@@ -472,6 +507,190 @@ def test_a_person_walks_model_climb_and_nothing_is_rented_without_their_grant(
     code, answer = regents(capsys, "profile", "test", M0.name, "--grant", second)
     assert code != 0 and answer["error"]["code"] == "approval_required"
     assert len(gpu.submissions) == 1
+
+
+# The job's ends, walked from a grant.
+
+
+def granted(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> tuple[ModelClimbStore, str]:
+    """A profile checked, its plan written for $10 and a grant issued at the terminal."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setattr(profiles, "run_check", container_check)
+    store = ModelClimbStore(paths.home().model_climb_dir)
+    assert regents(capsys, "profile", "check", M0.name, "--dry-run")[0] == 0
+    code, planned = regents(capsys, "plan", "--profile", M0.name, "--max-usd", "10")
+    assert code == 0
+    hours = str(Decimal(planned["max_duration_minutes"]) / 60)
+    limits = ["--plan", planned["plan"], "--operation", grants.PROFILE_TEST, "--max-usd", "10"]
+    limits += ["--max-hours", hours, "--max-attempts", "1", "--expires-in", "12h"]
+    assert issue_at_a_terminal(monkeypatch, limits, "y\ny\n10\n") == 0
+    [grant_file] = store.grants_dir.glob("*.json")
+    return store, grant_file.stem
+
+
+def outcome(store: ModelClimbStore) -> dict[str, Any] | None:
+    """The one attempt's outcome, or None while it is open."""
+    [folder] = store.attempts_dir.iterdir()
+    path = folder / "outcome.json"
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+def test_a_receipt_on_a_job_that_has_not_ended_never_closes_its_attempt(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    gpu, _ = stand_ins
+    store, grant_id = granted(monkeypatch, tmp_path, capsys)
+    # Running with the charge so far, then ended before its receipt is ready, then receipted.
+    gpu.looks = [
+        {"status": "running", "receipt": receipt(charged=1)},
+        ended(receipt=None),
+        ended(),
+    ]
+    for _ in range(2):
+        code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+        assert code == 0 and answer["state"] == "running"
+        assert outcome(store) is None
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code == 0 and answer["state"] == "measured"
+    closed = outcome(store)
+    assert closed is not None and closed["charged_usd_micros"] == CHARGED
+    assert len(gpu.submissions) == 1 and gpu.cancels == []
+
+
+@pytest.mark.parametrize("status", [408, 409, 500])
+def test_a_submission_whose_answer_may_hide_a_job_is_looked_up_and_never_sent_again(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+    status: int,
+) -> None:
+    gpu, _ = stand_ins
+    store, grant_id = granted(monkeypatch, tmp_path, capsys)
+    gpu.errors[("POST", "/preview/jobs")] = status
+    gpu.created_anyway = True
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code == 0 and answer["state"] == "running" and answer["job_id"] == "job-1"
+    assert outcome(store) is None
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code == 0 and answer["state"] == "measured"
+    assert len(gpu.submissions) == 1
+
+
+def test_a_refused_submission_spends_the_use_and_prints_none_of_the_reply(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    gpu, _ = stand_ins
+    store, grant_id = granted(monkeypatch, tmp_path, capsys)
+    gpu.errors[("POST", "/preview/jobs")] = 422
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code != 0 and answer["next_steps"]
+    assert answer["error"]["details"]["provider_code"] == "refused"
+    assert PROVIDER_SAYS not in json.dumps(answer)
+    closed = outcome(store)
+    assert closed is not None and closed["exit_reason"] == "failed"
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code != 0 and answer["error"]["code"] == "approval_required"
+    assert gpu.submissions == []
+
+
+def test_a_provider_refusal_never_prints_its_reply(
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    gpu, _ = stand_ins
+    gpu.errors[("GET", "/preview/billing")] = 403
+    with pytest.raises(provider.ProviderError) as refused:
+        provider.Autoresearch(TOKEN).billing()
+    assert refused.value.details["provider_code"] == "refused"
+    assert PROVIDER_SAYS not in refused.value.message + json.dumps(refused.value.details)
+
+
+def test_an_attempt_resumed_before_its_submission_checks_the_account_again(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    gpu, _ = stand_ins
+    store, grant_id = granted(monkeypatch, tmp_path, capsys)
+    submit_once = attempts.submit_once
+    stops = [KeyboardInterrupt()]
+
+    def stopped_once(*args: Any) -> str:
+        if stops:
+            raise stops.pop()
+        return submit_once(*args)
+
+    # Stopped after the use is on the ledger and before the submission is written down.
+    monkeypatch.setattr(profile_test, "submit_once", stopped_once)
+    code, _ = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code != 0 and gpu.submissions == []
+    gpu.auto_topup = True
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code != 0 and answer["error"]["code"] == "approval_required"
+    assert gpu.submissions == []
+    gpu.auto_topup = False
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code == 0 and answer["state"] == "running" and len(gpu.submissions) == 1
+    assert outcome(store) is None
+
+
+def test_a_job_whose_maximum_is_over_the_grant_is_cancelled_and_closed_on_its_receipt(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    gpu, _ = stand_ins
+    store, grant_id = granted(monkeypatch, tmp_path, capsys)
+    over = 10 * 10_000 * 100 + 1
+    # After the cancel: still canceling with the charge so far, then canceled with no receipt
+    # yet, then the receipt.
+    gpu.looks = [
+        queued(max_cost_usd_micros=over),
+        {"status": "canceling", "max_cost_usd_micros": over, "receipt": receipt(charged=1)},
+        {"status": "canceled", "max_cost_usd_micros": over},
+        ended("canceled", max_cost_usd_micros=over, result=None),
+    ]
+    for _ in range(2):
+        code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+        assert code != 0 and answer["error"]["code"] == "budget_exhausted"
+        assert outcome(store) is None
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code != 0 and answer["error"]["code"] == "budget_exhausted" and answer["next_steps"]
+    closed = outcome(store)
+    assert closed is not None and closed["exit_reason"] == "budget_exhausted"
+    assert closed["charged_usd_micros"] == CHARGED
+    assert len(gpu.submissions) == 1 and len(gpu.cancels) == 1
+
+
+def test_a_grant_revoked_while_its_job_runs_cancels_the_job_at_the_next_look(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    stand_ins: tuple[Provider, Techtree],
+) -> None:
+    gpu, _ = stand_ins
+    store, grant_id = granted(monkeypatch, tmp_path, capsys)
+    gpu.looks = [queued(), queued(), ended("canceled", result=None)]
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code == 0 and answer["state"] == "running"
+    code, revoked = regents(capsys, "grant", "revoke", grant_id)
+    assert code == 0 and revoked["job_may_be_running"] is True
+    code, answer = regents(capsys, "profile", "test", M0.name, "--grant", grant_id)
+    assert code != 0 and answer["error"]["code"] == "approval_required"
+    closed = outcome(store)
+    assert closed is not None and closed["exit_reason"] == "cancelled"
+    assert closed["charged_usd_micros"] == CHARGED
+    assert len(gpu.submissions) == 1 and len(gpu.cancels) == 1
 
 
 # The money rules, for every input.

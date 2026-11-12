@@ -379,8 +379,8 @@ OWN: list[dict[str, Any]] = [
     {
         "id": "techtree-model-climb",
         "what": "An agent checks an open-model fine-tuning profile on this machine, plans its "
-        "paid test, runs the test on rented GPUs only under a grant its person issued at this "
-        "machine's terminal, and sends a signed proof to its person's private Techtree records.",
+        "paid test, runs the test on rented GPUs only under a grant confirmed at this machine's "
+        "terminal, and sends a signed proof to its person's private Techtree records.",
         "who": "agent",
         "level": "protected",
         "paths": [
@@ -413,8 +413,6 @@ OWN: list[dict[str, Any]] = [
             "stands in for its answer.",
             "No command writes the uplift report yet; the walk seals one by hand before "
             "sending its proof.",
-            "A cancelled or refused job, and a provider charge above the grant, are not "
-            "walked end to end.",
         ],
     },
     {

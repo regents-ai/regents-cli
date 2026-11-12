@@ -41,6 +41,16 @@ COST_CAP: Final = "cost-cap"
 #: cap reached or with too little room left, and an account past due or suspended.
 MONEY_WAITS: Final = frozenset({"balance", "spend_cap", "spend_cap_headroom", "payment"})
 MICROS_PER_CENT: Final = 10_000
+#: The states a job ends in, as the provider's manual names them (read 12 Nov 2026): its success
+#: check passed, failed or could not run, a health check stopped it, or it was cancelled. Every
+#: other state, `canceling` among them, is one the job has not ended in.
+ENDED: Final = frozenset(
+    {"succeeded", "check_failed", "check_errored", "self_terminated", "canceled"}
+)
+#: The answers to a submission that say plainly no job was created: a request the provider
+#: could not read, would not take or was not allowed, a mission it does not have, and a rate
+#: limit. Any other answer, a timeout (408) or a conflict (409) among them, may hide a job.
+NO_JOB: Final = frozenset({400, 401, 403, 404, 422, 429})
 #: All the free preflight takes of a job. It cannot be told the mission, the restarts or the
 #: build limit, so the maximum read back from the submitted job is what covers those.
 PREFLIGHT_FIELDS: Final = (
@@ -90,8 +100,8 @@ class Validation(_Answer):
 
 
 class Receipt(_Answer):
-    """What ran and what it cost, which Autoresearch puts on a job once it has ended. A
-    figure it leaves out stays absent: nothing is put in its place."""
+    """What ran and what it cost so far. It is final only once the job has ended. A figure
+    it leaves out stays absent: nothing is put in its place."""
 
     image_digest: str | None = None
     charged_usd_micros: int | None = None
@@ -116,7 +126,8 @@ class Job(_Answer):
 
     @property
     def ended(self) -> bool:
-        return self.receipt is not None
+        """The job is in a state it ends in and carries its receipt, which is then final."""
+        return self.status in ENDED and self.receipt is not None
 
     @property
     def money_wait(self) -> str | None:
@@ -235,15 +246,14 @@ class Autoresearch:
             response = self._request("POST", "/preview/jobs", body=body)
         except httpx.TransportError as error:
             raise SubmissionOutcomeUnknownError from error
-        if response.status_code >= 500:
-            raise SubmissionOutcomeUnknownError
-        if response.status_code >= 400:
+        if response.status_code in NO_JOB:
             raise SubmissionRefusedError(
-                f"the compute provider refused the job ({response.status_code}), so none "
-                f"exists: {response.text[:500]}",
+                f"the compute provider refused the job ({_said(response)}), so none exists",
                 code=UNSUPPORTED_CAPABILITY,
-                details={"step": "submit", "status": response.status_code},
+                details=_answered(response, "submit"),
             )
+        if not response.is_success:
+            raise SubmissionOutcomeUnknownError
         try:
             return Job.model_validate_json(response.content).id
         except PydanticValidationError as error:
@@ -347,10 +357,35 @@ def _unreachable(path: str) -> ProviderError:
 
 def _refused(response: httpx.Response) -> ProviderError:
     return ProviderError(
-        f"the compute provider refused the request ({response.status_code}): {response.text[:500]}",
+        f"the compute provider refused the request ({_said(response)})",
         code=UNSUPPORTED_CAPABILITY,
-        details={"step": "provider", "status": response.status_code},
+        details=_answered(response, "provider"),
     )
+
+
+def _provider_code(response: httpx.Response) -> str | None:
+    """The code of the provider's error answer, `{"error": {"code": …}}`. The rest of the
+    answer is never repeated: it is the provider's text, and may echo what was sent."""
+    try:
+        answer = response.json()
+    except ValueError:
+        return None
+    error = answer.get("error") if isinstance(answer, dict) else None
+    code = error.get("code") if isinstance(error, dict) else None
+    return code if isinstance(code, str) else None
+
+
+def _said(response: httpx.Response) -> str:
+    code = _provider_code(response)
+    return f"{response.status_code}, {code}" if code else str(response.status_code)
+
+
+def _answered(response: httpx.Response, step: str) -> dict[str, JsonValue]:
+    return {
+        "step": step,
+        "status": response.status_code,
+        "provider_code": _provider_code(response),
+    }
 
 
 def cents(micros: int) -> int:

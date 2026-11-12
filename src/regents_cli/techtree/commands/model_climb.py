@@ -1,7 +1,7 @@
 """`regents techtree model-climb …` (contract model-climb-v1): what this machine can run, the
 model-free compatibility check, the plan and local execution grants for its paid step (M0), and
 sending a signed proof to the person's private Techtree records (M3). Only `profile test` rents
-a machine, and only under a grant a person issued at this machine's terminal."""
+a machine, and only under a grant confirmed at an interactive terminal on this machine."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import shlex
 import sys
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, DecimalException
 from pathlib import Path
 from typing import Final, cast, get_args
 
@@ -396,8 +396,8 @@ def plan(profile_name: str | None, max_usd: str | None, as_json: bool) -> None:
         as_json=as_json,
         next_steps=[
             human(
-                "Show your person this plan. Only they issue its grant, at this machine's "
-                f"terminal, by running: {issue}"
+                "Show your person this plan. Its grant is confirmed at an interactive "
+                f"terminal on this machine, by running: {issue}"
             )
         ],
         shown=[
@@ -465,7 +465,11 @@ def profile_test_run(profile_name: str, grant_id: str | None, as_json: bool) -> 
             },
             as_json=as_json,
             next_steps=[
-                run(again, "The job keeps running at the provider: run this again to look at it.")
+                run(
+                    again,
+                    "Run this again to look at the job. Once it has ended and its receipt is "
+                    "on it, this reads what it measured.",
+                )
             ],
             shown=[
                 output.report(
@@ -607,9 +611,10 @@ def grant_issue(
         covers = profile_test.build_notice(grant.max_cents, minutes, grant.gpu_count)
     if as_json or not (sys.stdin.isatty() and sys.stdout.isatty()):
         raise PolicyError(
-            "a grant is issued only by a person at this machine's terminal, who answers for "
-            f"the account's spending limit and types the grant's maximum, {dollars}, to "
-            "confirm. Show the person the review; they run this command themselves.",
+            "a grant is issued only at an interactive terminal on this machine, where the "
+            "account's spending limit is answered for and the grant's maximum, "
+            f"{dollars}, is typed to confirm. Show your person the review; they run this "
+            "command themselves.",
             code=grants.APPROVAL_REQUIRED,
             details={"review": list(review), "covers": covers},
         )
@@ -742,23 +747,22 @@ def _grant_review(grant: ExecutionGrant) -> list[str]:
 
 
 def _cents(value: str) -> int:
+    # Inside the try: sNaN, or an amount too large to scale, signals as it is multiplied.
     try:
-        amount = Decimal(value)
-    except InvalidOperation as error:
+        cents = Decimal(value) * 100
+    except DecimalException as error:
         raise ValidationError(f"--max-usd {value!r} is not an amount in dollars") from error
-    cents = amount * 100
-    if not amount.is_finite() or amount <= 0 or cents != cents.to_integral_value():
+    if not cents.is_finite() or cents <= 0 or cents != cents.to_integral_value():
         raise ValidationError(f"--max-usd {value!r} must be more than 0, in whole cents")
     return int(cents)
 
 
 def _seconds(value: str) -> int:
     try:
-        hours = Decimal(value)
-    except InvalidOperation as error:
+        seconds = Decimal(value) * 3600
+    except DecimalException as error:
         raise ValidationError(f"--max-hours {value!r} is not a number of hours") from error
-    seconds = hours * 3600
-    if not hours.is_finite() or hours <= 0 or seconds != seconds.to_integral_value():
+    if not seconds.is_finite() or seconds <= 0 or seconds != seconds.to_integral_value():
         raise ValidationError(f"--max-hours {value!r} must be more than 0, in whole seconds")
     return int(seconds)
 
@@ -847,8 +851,10 @@ GRANT.add_command(
     click.Command(
         "issue",
         callback=grant_issue,
-        help="Issue a grant for one operation on one resolved plan, after you answer for the "
-        "account's spending limit and type the grant's maximum. Spends nothing itself.",
+        help="Issue a grant for one operation on one resolved plan, at an interactive terminal "
+        "on this machine, after you answer for the account's spending limit and type the "
+        "grant's maximum. It is signed with this machine's key and limited to its plan, its "
+        "dollars and hours, and its attempts (one for a profile test). Spends nothing itself.",
         params=[
             click.Option(["--plan"], metavar="DIGEST", help="The resolved plan it binds."),
             click.Option(
