@@ -34,6 +34,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from regents_cli import app, base, passkey, siwa
+from tests.own_process import read_until, started
 
 KEY = "0x" + "00" * 31 + "07"
 ADDRESS = Account.from_key(KEY).address.lower()
@@ -577,3 +578,49 @@ def test_the_hash_and_its_check_are_shown_before_the_node_is_handed_it(
     assert code == 0, err
     [before] = shown
     assert f"--tx-hash {sent_hash(stand)}" in before
+
+
+def test_a_reader_that_closes_stdout_once_it_is_signed_keeps_the_hash_and_its_check(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {"name": "Probe", "description": "A test agent."}
+    home = tmp_path / "agent"
+    home.mkdir(mode=0o700)
+    (home / "key.json").write_text(json.dumps({"address": ADDRESS, "private_key": KEY}))
+    (home / "key.json").chmod(0o600)
+    monkeypatch.setenv("SIWA_AGENT_HOME", str(home))
+    monkeypatch.setenv("SIWA_BROKER", SIGN_IN)
+    monkeypatch.setenv("SIWA_BASE_RPC", NODE)
+    # The stand-ins in the process `regents` runs in; the balance comes a second late, while
+    # the review is being read.
+    code = f"""
+import sys, time
+import httpx
+from regents_cli import app
+from tests.test_register import Stand, plenty
+
+stand = Stand({built(profile)!r}, plenty())
+answer = stand.post
+
+def post(url, *, json, **kw):
+    if json.get("method") == "eth_getBalance":
+        time.sleep(1)
+    return answer(url, json=json, **kw)
+
+httpx.post = post
+sys.argv = ["regents", "auth", "register", "--name", "Probe", "--description", "A test agent."]
+app.run()
+"""
+    running = started(code)
+    assert running.stdout is not None
+    try:
+        read_until(running, b"Signed exactly as", on_stderr=False)
+        # As `| head` does, before the hash is printed.
+        running.stdout.close()
+        _, err = running.communicate(timeout=30)
+    finally:
+        running.kill()
+        running.wait()
+    assert running.returncode == 130, err
+    assert re.search(rb"--tx-hash\s+0x[0-9a-f]{64}", err), err
+    assert b"Traceback" not in err

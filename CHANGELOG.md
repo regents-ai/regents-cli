@@ -38,7 +38,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   no ready post for patchbay.help. Interrupted once the listing is signed, it keeps the hash and
   the `--tx-hash` step too, so a second listing is never sent by running it again. The hash and
   that step are printed before the transaction is sent. A node that is not on Base signs
-  nothing. A `SIWA_BASE_RPC` that is empty, has no `https://`, or names another kind of address
+  nothing. A `SIWA_BASE_RPC` that is not an http or https address with a host
   sends nothing, and its step is to fix that setting.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent

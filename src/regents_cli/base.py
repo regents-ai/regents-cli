@@ -55,9 +55,10 @@ def rpc_host() -> str:
     try:
         parts = urlsplit(rpc_address())
         host = parts.hostname if parts.scheme in ("http", "https") else None
+        _port = parts.port  # Reading it refuses one that is not a number from 0 to 65535.
     except ValueError:
         host = None
-    if not host:
+    if not host or re.search(r"\s", host):
         raise address_unreadable()
     return host
 

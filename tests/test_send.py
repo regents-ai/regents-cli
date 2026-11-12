@@ -9,11 +9,7 @@ import io
 import json
 import os
 import re
-import selectors
 import signal
-import subprocess
-import sys
-import time
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
@@ -38,6 +34,7 @@ from regents_cli.errors import (
 )
 from regents_cli.http import Request
 from regents_cli.platforms import pinned_platforms
+from tests.own_process import read_until, started
 
 ADDRESS = "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf"
 NODE = "https://base-node.test"
@@ -496,8 +493,19 @@ def test_one_the_chain_would_refuse_is_built_afresh_not_sent_to_another_node(
         "",
         "zq7user:hunter2@base-node.test/v2/KEY123",
         "ftp://zq7user:hunter2@base-node.test/v2/KEY123",
+        "https://zq7user:hunter2@base-node.test:99999/v2/KEY123",
+        "https://zq7user:hunter2@base node.test/v2/KEY123",
     ],
-    ids=["control character", "port", "ipv6 host", "empty", "no scheme", "ftp"],
+    ids=[
+        "control character",
+        "port",
+        "ipv6 host",
+        "empty",
+        "no scheme",
+        "ftp",
+        "port out of range",
+        "space in host",
+    ],
 )
 def test_a_node_address_regents_cannot_call_names_the_setting_and_nothing_else(
     site: dict[str, Any], monkeypatch: pytest.MonkeyPatch, address: str
@@ -623,10 +631,12 @@ def test_a_key_refusal_after_one_landed_says_what_the_person_sorts_out_first(
     assert len(node.raw) == 1
 
 
-#: `regents keyfleet presence mark --send` in its own process, against the same stand-in site and
-#: a Base node that takes the transaction and never gives its receipt.
-KILLED = f"""
-import sys
+def in_its_own_process(built: list[Any], receipt: Any, slow: str | None = None) -> str:
+    """`regents keyfleet presence mark --send`, run as `regents` runs, in its own process: the
+    stand-in site offers `built`, and the Base node answers each receipt with `receipt`, a second
+    late when `slow` names the call."""
+    return f"""
+import sys, time
 from dataclasses import replace
 import httpx
 from regents_cli import app, runner
@@ -635,7 +645,7 @@ from regents_cli.platforms import pinned_platforms
 audiences = {{"code": "audiences", "data": {{"audiences": [
     {{"audience": "keyfleet", "origin": "https://keyfleet.ai"}}]}}}}
 httpx.get = lambda url, **_: httpx.Response(200, json=audiences)
-answer = {{"chain_id": 8453, "says": None, "transactions": [{step("present")!r}], "keys": []}}
+answer = {{"chain_id": 8453, "says": None, "transactions": {built!r}, "keys": []}}
 runner.respond = lambda *_: httpx.Response(200, json=answer)
 answers = {{
     "eth_estimateGas": hex(50_000),
@@ -645,19 +655,25 @@ answers = {{
     "eth_getBalance": hex(10**18),
     "eth_call": "0x{10**9:064x}",
     "eth_sendRawTransaction": "0x" + "00" * 32,
-    "eth_getTransactionReceipt": None,
+    "eth_getTransactionReceipt": {receipt!r},
     "eth_chainId": hex(8453),
 }}
-httpx.post = lambda url, *, json, **_: httpx.Response(
-    200, json={{"jsonrpc": "2.0", "id": 1, "result": answers[json["method"]]}}
-)
+
+def post(url, *, json, **_):
+    if json["method"] == {slow!r}:
+        time.sleep(1)
+    said = answers[json["method"]]
+    return httpx.Response(200, json={{"jsonrpc": "2.0", "id": 1, "result": said}})
+
+httpx.post = post
 platforms = [
     replace(p, commands=tuple(replace(c, sends=c.words == ("presence", "mark", "<fleet>"))
         for c in p.commands)) if p.name == "keyfleet" else p
     for p in pinned_platforms()
 ]
 app.pinned_platforms = lambda: platforms
-sys.exit(app.main([*{PRESENCE!r}, "--send", *sys.argv[1:]]))
+sys.argv = ["regents", *{PRESENCE!r}, "--send", *sys.argv[1:]]
+app.run()
 """
 
 
@@ -665,31 +681,36 @@ sys.exit(app.main([*{PRESENCE!r}, "--send", *sys.argv[1:]]))
 def test_a_run_killed_while_it_waits_for_the_receipt_has_already_shown_the_hash(
     site: dict[str, Any], as_json: bool
 ) -> None:
-    running = subprocess.Popen(
-        [sys.executable, "-c", KILLED, *(["--json"] if as_json else [])],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=dict(os.environ),
-    )
-    assert running.stdout is not None and running.stderr is not None
-    shown = {running.stdout.fileno(): b"", running.stderr.fileno(): b""}
-    looking = (running.stderr if as_json else running.stdout).fileno()
-    watch = selectors.DefaultSelector()
-    for pipe in shown:
-        os.set_blocking(pipe, False)
-        watch.register(pipe, selectors.EVENT_READ)
-    deadline = time.monotonic() + 30
+    running = started(in_its_own_process([step("present")], None), *(["--json"] * as_json))
     try:
-        while transactions.EXPLORER.encode() not in shown[looking]:
-            assert time.monotonic() < deadline, shown
-            for ready, _ in watch.select(deadline - time.monotonic()):
-                shown[ready.fd] += os.read(ready.fd, 65536)
+        shown = read_until(running, transactions.EXPLORER.encode(), on_stderr=as_json)
         running.send_signal(signal.SIGTERM)
         running.wait(timeout=30)
     finally:
         running.kill()
         running.wait()
-        watch.close()
     assert running.returncode == -signal.SIGTERM
-    hashes = re.findall(rb"0x[0-9a-f]{64}", shown[looking])
-    assert hashes and transactions.EXPLORER.encode() + hashes[0] in shown[looking]
+    printed = shown[(running.stderr if as_json else running.stdout).fileno()]  # type: ignore[union-attr]
+    hashes = re.findall(rb"0x[0-9a-f]{64}", printed)
+    assert hashes and transactions.EXPLORER.encode() + hashes[0] in printed
+
+
+def test_a_reader_that_closes_stdout_between_two_stops_it_and_says_what_landed(
+    site: dict[str, Any],
+) -> None:
+    code = in_its_own_process(
+        [step("approve"), step("stake")], {"status": "0x1"}, slow="eth_getTransactionReceipt"
+    )
+    running = started(code)
+    assert running.stdout is not None and running.stderr is not None
+    try:
+        read_until(running, transactions.EXPLORER.encode(), on_stderr=False)
+        # As `| head` does, while the first one's receipt is on its way.
+        running.stdout.close()
+        _, err = running.communicate(timeout=30)
+    finally:
+        running.kill()
+        running.wait()
+    assert running.returncode == EXIT_CANCELLED, err
+    assert b"Before it, approve landed on Base." in b" ".join(err.split())
+    assert b"Traceback" not in err

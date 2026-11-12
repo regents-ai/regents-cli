@@ -159,12 +159,13 @@ def send(
                     "sent. The chain may have changed after the site built it.",
                 )
                 raise with_sent(failed, sent, fresh)
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, BrokenPipeError) as stopped:
+            # A reader that closed stdout, as `| head` does, stops it as an interrupt would.
+            if isinstance(stopped, BrokenPipeError):
+                output.stdout_closed()
             if tx_hash is not None and not (sent and sent[-1]["tx_hash"] == tx_hash):
                 sent.append(record(transaction, tx_hash, status))
             if tx_hash is None or sent[-1]["landed"] != "not yet":
-                if not sent:
-                    raise
                 cancelled = CommandError(
                     "cancelled",
                     "The command was interrupted, and nothing more was sent.",

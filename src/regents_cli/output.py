@@ -12,6 +12,7 @@ to --json and names headings in words.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from collections.abc import Iterable, Sequence
@@ -123,6 +124,12 @@ def _print(console: Console, block: RenderableType) -> None:
         console.print(block, crop=False)
     console.file.write("".join(line.rstrip() + "\n" for line in captured.get().splitlines()))
     console.file.flush()
+
+
+def stdout_closed() -> None:
+    """The reader of stdout went away, as `| head` does: what is still to be said, and what was
+    waiting for it, goes to stderr."""
+    os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
 
 
 def report(markdown: str) -> RenderableType:

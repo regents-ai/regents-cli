@@ -383,8 +383,8 @@ def register(
         show_signing(step, transaction, needs, as_json)
         raw, tx_hash = base.signed(key, transaction, needs, timeout_ms)
         check_again = run([*again, "--tx-hash", tx_hash], "Check it before sending another.")
-        transactions.handing_over("the listing", tx_hash, check_again, as_json)
         try:
+            transactions.handing_over("the listing", tx_hash, check_again, as_json)
             if not base.broadcast(raw, timeout_ms):
                 raise CommandError(
                     "base_send_unclear",
@@ -395,7 +395,10 @@ def register(
                     tx_hash=tx_hash,
                 )
             listed = listing(profile, tx_hash, check_again, timeout_ms)
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, BrokenPipeError) as stopped:
+            # A reader that closed stdout, as `| head` does, stops it as an interrupt would.
+            if isinstance(stopped, BrokenPipeError):
+                output.stdout_closed()
             raise CommandError(
                 "cancelled",
                 f"The command was interrupted once the listing was signed, so it may be on its "
