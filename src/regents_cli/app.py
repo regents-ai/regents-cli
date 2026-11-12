@@ -50,8 +50,9 @@ Check a site answers, and your sign-in once you have one:
 
 Get this machine ready to run a Techtree Climb:
     regents techtree setup
-  Give your agent host a site's page tools, or its hosted MCP server,
-  signed with your agent key; add one as a local MCP server:
+
+Give your agent host a site's page tools, or its hosted MCP server, signed with your agent key;
+add one as a local MCP server:
     regents browser --site keyfleet
     regents mcp --site keyfleet
 

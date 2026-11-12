@@ -714,7 +714,7 @@
     },
     {
       "command": "notes pin-price <id>",
-      "description": "Read what pinning one of your person's notes would cost, in USDC and in Credits: 0 when it is already pinned. Changes nothing.",
+      "description": "Read what pinning one of your person's notes would cost in USDC: 0 when it is already pinned. Changes nothing.",
       "operation_id": "getNotePinPrice",
       "webmcp": "notes_pin_price",
       "method": "GET",
@@ -733,7 +733,7 @@
       "next_steps": [
         {
           "kind": "run",
-          "say": "If your person wants it pinned, pin it; it costs the price shown, in USDC from your own wallet or in your person's Credits.",
+          "say": "If your person wants it pinned, pin it; it costs the price shown, in USDC from your own wallet.",
           "command": "notes pin <id>",
           "arguments": {
             "id": "note.id"
@@ -743,7 +743,7 @@
     },
     {
       "command": "notes pin <id>",
-      "description": "Pin a note to the top of your person's notes for 1 USDC from your own wallet, or 1 of their Credits. With no stdin it answers 402 with the payment terms; pipe {\"payment\": \"…\"} with your signed x402 payment, or {\"pay_with\": \"credits\"}. Asking again for the same note pays the terms already offered, so a retry never pays twice.",
+      "description": "Pin a note to the top of your person's notes for 1 USDC on Base from your own wallet. With no stdin it answers 402 with the payment terms; pipe {\"payment\": \"…\"} with your signed x402 payment. Asking again for the same note pays the terms already offered, so a retry never pays twice.",
       "operation_id": "pinNote",
       "webmcp": "notes_pin",
       "method": "POST",
@@ -765,12 +765,6 @@
           "type": "string",
           "required": false,
           "description": "Your x402 payment for the terms the 402 answer gave, signed by your own wallet."
-        },
-        {
-          "field": "pay_with",
-          "type": "string",
-          "required": false,
-          "description": "\"credits\" to pay with your person's Credits instead of USDC."
         }
       ]
     },
@@ -865,43 +859,8 @@
       ]
     },
     {
-      "command": "account balances",
-      "description": "Read your person's Credits and your spending allowance.",
-      "operation_id": "getAccountBalances",
-      "webmcp": "account_balances",
-      "method": "GET",
-      "path": "/api/v1/account/balances",
-      "authority": "paired_agent",
-      "effect": "read"
-    },
-    {
-      "command": "account credits-history",
-      "description": "Read your person's Credits history, up to 50 transfers grouped into complete entries per page.",
-      "operation_id": "listCreditsHistory",
-      "webmcp": "account_credits_history",
-      "method": "POST",
-      "path": "/api/v1/account/credits/history",
-      "authority": "paired_agent",
-      "effect": "read",
-      "flags": [
-        {
-          "name": "after",
-          "type": "string",
-          "in": "body",
-          "field": "after",
-          "required": false,
-          "description": "The previous page's pagination.next_cursor unchanged, at most 2048 characters. Omit for the first page or when the cursor is null; do not send null."
-        }
-      ],
-      "pagination": {
-        "has_more": "pagination.has_more",
-        "cursor": "pagination.next_cursor",
-        "flag": "after"
-      }
-    },
-    {
       "command": "account points",
-      "description": "Read your person's Points, today's total, daily allowances and recent entries, each saying who earned it and whether it counted.",
+      "description": "Read your person's Points, what they earned today and yesterday, their place, the actions still open, daily limits, the leaderboard by name or wallet and recent entries, each saying who earned it and whether it counted.",
       "operation_id": "getAccountPoints",
       "webmcp": "account_points",
       "method": "GET",

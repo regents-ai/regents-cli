@@ -616,22 +616,12 @@ features:
   proofs:
   - tests/test_properties.py
 - id: ash-template-account
-  what: 'Agents use regents ash-template account: balances, credits-history, points.'
+  what: 'Agents use regents ash-template account: points.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/ash-template/**
   entry:
-  - cli: regents ash-template account balances
-    route: GET /api/v1/account/balances
-    who: paired agent
-    changes: read
-    webmcp: '`account_balances`'
-  - cli: regents ash-template account credits-history
-    route: POST /api/v1/account/credits/history
-    who: paired agent
-    changes: read
-    webmcp: '`account_credits_history`'
   - cli: regents ash-template account points
     route: GET /api/v1/account/points
     who: paired agent
@@ -951,24 +941,14 @@ features:
   proofs:
   - tests/test_properties.py
 - id: autolaunch-account
-  what: 'Agents use regents autolaunch account: balances, credits-history, points.'
+  what: 'Agents use regents autolaunch account: points.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/autolaunch/**
   entry:
-  - cli: regents autolaunch account balances
-    route: GET /api/agent/v1/account/balances
-    who: paired agent
-    changes: read
-    webmcp: '`account_balances`'
-  - cli: regents autolaunch account credits-history
-    route: POST /api/agent/v1/account/credits/history
-    who: paired agent
-    changes: read
-    webmcp: '`account_credits_history`'
   - cli: regents autolaunch account points
-    route: GET /api/agent/v1/account/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
     webmcp: '`account_points`'
@@ -1016,7 +996,8 @@ features:
   - tests/test_properties.py
   - tests/test_replays.py
 - id: keyfleet-fleets
-  what: 'Agents use regents keyfleet fleets: list, get <fleet>, activity <fleet>, doctor <fleet>.'
+  what: 'Agents use regents keyfleet fleets: list, get <fleet>, activity <fleet>, search <fleet> <query>,
+    doctor <fleet>.'
   who: agent
   level: protected
   paths:
@@ -1037,6 +1018,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`fleets_activity`'
+  - cli: regents keyfleet fleets search <fleet> <query>
+    route: POST /api/v1/agent/fleets/{fleet_id}/search
+    who: paired agent
+    changes: read
+    webmcp: '`fleets_search`'
   - cli: regents keyfleet fleets doctor <fleet>
     route: GET /api/v1/agent/fleets/{fleet_id}/doctor
     who: paired agent
@@ -1278,8 +1264,9 @@ features:
   - tests/test_properties.py
 - id: keyfleet-keys
   what: 'Agents use regents keyfleet keys: claim <fleet> <key>, claim-all <fleet>, buy <fleet>, club-claim
-    <fleet> <key>, reveal <fleet> <key>, thread <fleet> <key>, message <fleet> <key>, post <fleet> <key>,
-    remove <fleet> <key> <message>, show <fleet> <key>, held <fleet> <wallet>, post-as <fleet> <key>.'
+    <fleet> <key>, reveal <fleet> <key>, expire-reveal <fleet> <key>, thread <fleet> <key>, message <fleet>
+    <key>, post <fleet> <key>, remove <fleet> <key> <message>, show <fleet> <key>, held <fleet> <wallet>,
+    post-as <fleet> <key>.'
   who: agent
   level: protected
   paths:
@@ -1310,6 +1297,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`chain_reveal`'
+  - cli: regents keyfleet keys expire-reveal <fleet> <key>
+    route: POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/expire_reveal
+    who: paired agent
+    changes: read
+    webmcp: '`chain_expire_reveal`'
   - cli: regents keyfleet keys thread <fleet> <key>
     route: POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/read
     who: paired agent
@@ -1727,24 +1719,14 @@ features:
   proofs:
   - tests/test_properties.py
 - id: keyfleet-account
-  what: 'Agents use regents keyfleet account: balances, credits-history, points.'
+  what: 'Agents use regents keyfleet account: points.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
   entry:
-  - cli: regents keyfleet account balances
-    route: GET /api/v1/agent/account/balances
-    who: paired agent
-    changes: read
-    webmcp: '`account_balances`'
-  - cli: regents keyfleet account credits-history
-    route: POST /api/v1/agent/account/credits/history
-    who: paired agent
-    changes: read
-    webmcp: '`account_credits_history`'
   - cli: regents keyfleet account points
-    route: GET /api/v1/agent/account/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
     webmcp: '`account_points`'
@@ -2102,22 +2084,12 @@ features:
   proofs:
   - tests/test_properties.py
 - id: patchbay-account
-  what: 'Agents use regents patchbay account: balances, credits-history, points.'
+  what: 'Agents use regents patchbay account: points.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/patchbay/**
   entry:
-  - cli: regents patchbay account balances
-    route: GET /tools/account/balances
-    who: paired agent
-    changes: read
-    webmcp: '`account_balances`'
-  - cli: regents patchbay account credits-history
-    route: POST /tools/account/credits/history
-    who: paired agent
-    changes: read
-    webmcp: '`account_credits_history`'
   - cli: regents patchbay account points
     route: GET /tools/account/points
     who: paired agent
@@ -2290,7 +2262,7 @@ features:
   gaps:
   - '`agents pair` has no WebMCP tool'
 - id: protocol-account
-  what: 'Agents use regents protocol account: show, claims, balances, credits-history, budget, points.'
+  what: 'Agents use regents protocol account: show, claims, balances, credits-history, points.'
   who: agent
   level: protected
   paths:
@@ -2307,25 +2279,20 @@ features:
     changes: read
     webmcp: '`regents_claims`'
   - cli: regents protocol account balances
-    route: GET /api/agent/v1/credits/balance
+    route: GET /api/v1/account/balances
     who: paired agent
     changes: read
-    webmcp: '`regents_credits_balance`'
+    webmcp: '`account_balances`'
   - cli: regents protocol account credits-history
-    route: POST /api/agent/v1/credits/history
+    route: POST /api/v1/account/credits/history
     who: paired agent
     changes: read
-    webmcp: '`regents_credits_history`'
-  - cli: regents protocol account budget
-    route: GET /api/agent/v1/credits/budget
-    who: paired agent
-    changes: read
-    webmcp: '`regents_credits_budget`'
+    webmcp: '`account_credits_history`'
   - cli: regents protocol account points
-    route: GET /api/agent/v1/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
-    webmcp: '`regents_points_summary`'
+    webmcp: '`account_points`'
   proofs:
   - tests/test_properties.py
 - id: protocol-staking
@@ -2461,20 +2428,20 @@ features:
   - src/regents_cli/platforms/techtree/**
   entry:
   - cli: regents techtree account balances
-    route: GET /tools/account/balances
+    route: GET /api/v1/account/balances
     who: paired agent
     changes: read
     webmcp: '`account_balances`'
   - cli: regents techtree account credits-history
-    route: POST /tools/account/credits/history
+    route: POST /api/v1/account/credits/history
     who: paired agent
     changes: read
-    webmcp: '`credits_history`'
+    webmcp: '`account_credits_history`'
   - cli: regents techtree account points
-    route: GET /tools/account/points
+    route: GET /api/v1/account/points
     who: paired agent
     changes: read
-    webmcp: '`points_balance`'
+    webmcp: '`account_points`'
   proofs:
   - tests/test_properties.py
 - id: techtree-model-climb
@@ -2519,19 +2486,19 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: ff1eb3c357a54690c5970848d3bbf5694cb1ae22
-  commands: 58
-  tools: 57
+  commit: cc4a83d3a7f14aa55a038464e9144e918e798fa8
+  commands: 56
+  tools: 55
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: e8281ec21baf34702f58174aa188b511e34e7921
-  commands: 18
-  tools: 17
+  commit: 1c594de53f96c091cbb5b74f9d4217d1cfe75bfb
+  commands: 16
+  tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 1b2764d5554b22e5e46fbc41ee4152f18c35b6e5
+  commit: bfc9a9dda66458b9dfddca713c58b45672b6bfa0
   commands: 121
   tools: 131
   tools_with_no_command:
@@ -2561,9 +2528,9 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 4297acb1849bbf3c2c14a64953b88e1fe9d6b35c
-  commands: 55
-  tools: 61
+  commit: 915fe39831185fe802199b29f6ba86b75edbbac4
+  commands: 53
+  tools: 59
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2581,9 +2548,9 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: d15bc48c9fefe57d00550b17ead7e0d6eebcfb9e
-  commands: 18
-  tools: 24
+  commit: 8f8a74bfd0e2494c0c61ed02cd80ab54574a6c98
+  commands: 17
+  tools: 23
   tools_with_no_command:
   - tool: get_siwa_connection_help
     why: no command
@@ -2603,7 +2570,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 86a5cf94e765a37649251bc72150d172a815b076
+  commit: e6073d8bc1640567365497a2debe35423faf89d0
   commands: 9
   tools: 14
   tools_with_no_command:

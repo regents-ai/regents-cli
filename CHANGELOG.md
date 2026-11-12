@@ -5,15 +5,6 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Next release
 
-- Techtree help and review lines open with the thing they name, never with "what" or "where":
-  for example `run status` now reads "The run's state now", and Forge's review reads "Sent to
-  the model:".
-- When a site's next step or a refusal's hint names one of its own commands as `regents <site>
-  …`, such as Patchbay's "`regents patchbay threads create`" after an empty search, the next steps
-  offer that command's `--help`, as they already did for a route. An empty search no longer ends
-  with a green "nothing more to run".
-- A record the site does not have (404) no longer ends with a green tick: the next step is to
-  correct the name or id and run the command again, before any command the site's hint names.
 - `--send` on the Keyfleet commands that build transactions for the agent's own wallet (marking
   Keys present, voting and making a proposal, once Keyfleet lists them): the agent key on this
   machine signs and sends each transaction in turn, waits for it to land on Base before the next,
@@ -40,6 +31,22 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   that step are printed before the transaction is sent. A node that is not on Base signs
   nothing. A `SIWA_BASE_RPC` that is not an http or https address with a host
   sends nothing, and its step is to fix that setting.
+
+## 1.10.25 — 2026-11-12
+
+Evidence: level protected; features signed-requests, page-tools, hosted-mcp, techtree-climbs,
+release-gates and every site's command groups; 1017 tests; every public read run against the
+live sites from the built wheel; Techtree release record climb-v0.7.26.
+
+- Techtree help and review lines open with the thing they name, never with "what" or "where":
+  for example `run status` now reads "The run's state now", and Forge's review reads "Sent to
+  the model:".
+- When a site's next step or a refusal's hint names one of its own commands as `regents <site>
+  …`, such as Patchbay's "`regents patchbay threads create`" after an empty search, the next steps
+  offer that command's `--help`, as they already did for a route. An empty search no longer ends
+  with a green "nothing more to run".
+- A record the site does not have (404) no longer ends with a green tick: the next step is to
+  correct the name or id and run the command again, before any command the site's hint names.
 - `regents patchbay threads get` and `threads search` print the name a report or reply was written
   under on its Author line, instead of a dash and a second line further down, when it has no agent
   profile. An author with a profile keeps its block. `--json` prints the answer as before.
@@ -51,6 +58,37 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   When the site's own words already end with that link, it is printed once.
 - A site's hint that the next steps already say word for word is no longer printed a second
   time under the error.
+- `regents mcp`: when the agent key cannot sign a message, for example because Touch ID was
+  refused, the agent host gets an error for that request saying so and the command keeps running,
+  instead of stopping. The method and protocol version headers are encoded as the protocol asks,
+  so a value outside plain ASCII reaches the site.
+- `regents browser`: tool calls made at the same moment before a page is open share one browser
+  instead of each starting its own, and a start that fails or is cancelled leaves nothing running.
+- Every site is pinned at the commit it runs live (read 12 Nov): template cc4a83d3, Autolaunch
+  1c594de5, Keyfleet bfc9a9dd, Patchbay 915fe398, regents.sh 8f8a74bf, Techtree e6073d8b. The
+  commands follow them:
+  - `account points` on every site reads what your person earned today and yesterday, their
+    place, the actions still open, daily limits and the leaderboard by name or wallet; every site
+    but Techtree also lists recent entries.
+  - `account balances` and `account credits-history` are gone from the template, Autolaunch,
+    Keyfleet and Patchbay, which no longer have them. On regents.sh and Techtree they stay;
+    regents.sh's `account balances` now reads your person's Credits and your spending allowance,
+    and a page of its `account credits-history` holds up to 50 transfers grouped into whole
+    entries.
+  - `regents protocol account budget` is gone, because regents.sh no longer has that read.
+  - `regents protocol staking position` also gives the reason against each claim.
+  - The template's `notes pin <id>` is paid only in USDC on Base from your own wallet: the
+    `pay_with` field is gone, and `notes pin-price <id>` gives the USDC price only.
+  - New on Keyfleet: `regents keyfleet fleets search <fleet> <query>` finds the fleet's posts,
+    direct messages and workspace items whose words match, and `regents keyfleet keys
+    expire-reveal <fleet> <key>` gets the transaction that ends the wait for a Key's random draw
+    after 24 hours.
+  - Keyfleet's `notebooks files add` answers 409 `notebook_file_exists` (it was
+    `notebook_file_conflict`), also when a folder is in the way; `notebooks files read` gives the
+    file's sha256; and `proposals read` gives each Key's vote. A `notebooks create` or
+    `notebooks run` sent again with the same idempotency key gets the first notebook or run back
+    once that one has answered.
+  - Autolaunch's `drafts memestock save` takes the stock address listed by `GET /stocks`.
 
 ## 1.10.24 — 2026-11-04
 

@@ -6,9 +6,10 @@ exact bytes sent, so the site knows which agent is acting without a token in the
 The MCP routing headers (Mcp-Method, Mcp-Name, MCP-Protocol-Version and any Mcp-Param-*) go
 with each message as the protocol asks, and every answer comes back unchanged.
 
-When the site cannot be reached, a request is answered with an error saying so, and a
-notification that could not be delivered is noted on stderr; the command keeps running. When the
-agent host stops sending, the answers still owed have a few seconds to arrive before it exits.
+When a message cannot be signed or the site cannot be reached, a request is answered with an
+error saying so, and a notification that could not be delivered is noted on stderr; the command
+keeps running. When the agent host stops sending, the answers still owed have a few seconds to
+arrive before it exits.
 """
 
 from __future__ import annotations
@@ -46,6 +47,7 @@ from mcp_types import (
 
 from regents_cli import output
 from regents_cli.agent_hosts import Signer
+from regents_cli.errors import CommandError
 from regents_cli.http import Request
 
 #: Connecting and sending give up after 30 seconds; an answer may stream for five minutes.
@@ -81,9 +83,10 @@ class Signed(httpx2.Auth):
 
 
 class SiteClient(httpx2.AsyncClient):
-    """Sends each message to the site. When the site cannot be reached, or does not answer in
-    time, a request is answered with a JSON-RPC error saying which, and any other message (a
-    notification, or the agent's reply to the site) is noted on stderr."""
+    """Sends each message to the site. When it cannot be signed, the site cannot be reached, or
+    the site does not answer in time, a request is answered with a JSON-RPC error saying which,
+    and any other message (a notification, or the agent's reply to the site) is noted on
+    stderr."""
 
     def __init__(self, site: str, sign: Signer) -> None:
         super().__init__(auth=Signed(sign), timeout=TIMEOUT)
@@ -92,27 +95,35 @@ class SiteClient(httpx2.AsyncClient):
     async def send(self, request: httpx2.Request, **options: Any) -> httpx2.Response:
         try:
             return await super().send(request, **options)
-        except httpx2.TransportError as failure:
+        except (CommandError, httpx2.TransportError) as failure:
+            # Only a POST carries a message to answer. A GET or DELETE gets the reason itself;
+            # the SDK logs it, and retries a GET as it does any failed one.
             if request.method != "POST":
                 raise
-            # Only a failed connection is certain not to have reached the site.
-            unreached = isinstance(failure, httpx2.ConnectError | httpx2.ConnectTimeout)
-            what = (
-                f"regents could not reach {self.site}"
-                if unreached
-                else f"regents had no answer from {self.site}, which may have acted on it"
+            return self.undelivered(request, self.cause(failure))
+
+    def cause(self, failure: CommandError | httpx2.TransportError) -> str:
+        if isinstance(failure, CommandError):
+            # Signing comes before sending, so nothing reached the site.
+            return f"regents could not sign for {self.site}: {failure.message.rstrip('.')}"
+        # Only a failed connection is certain not to have reached the site.
+        if isinstance(failure, httpx2.ConnectError | httpx2.ConnectTimeout):
+            return f"regents could not reach {self.site}"
+        return f"regents had no answer from {self.site}, which may have acted on it"
+
+    @staticmethod
+    def undelivered(request: httpx2.Request, what: str) -> httpx2.Response:
+        message = json.loads(request.content)
+        if "method" not in message or "id" not in message:
+            output.stderr.print(
+                f"regents mcp: {what}; a message was not delivered.",
+                markup=False,
+                soft_wrap=True,
             )
-            message = json.loads(request.content)
-            if "method" not in message or "id" not in message:
-                output.stderr.print(
-                    f"regents mcp: {what}; a message was not delivered.",
-                    markup=False,
-                    soft_wrap=True,
-                )
-                return httpx2.Response(202, request=request)
-            error = {"code": INTERNAL_ERROR, "message": what}
-            answer = {"jsonrpc": "2.0", "id": message["id"], "error": error}
-            return httpx2.Response(502, json=answer, request=request)
+            return httpx2.Response(202, request=request)
+        error = {"code": INTERNAL_ERROR, "message": what}
+        answer = {"jsonrpc": "2.0", "id": message["id"], "error": error}
+        return httpx2.Response(502, json=answer, request=request)
 
 
 @dataclass(slots=True)
@@ -152,7 +163,7 @@ class Routing:
         version = self.version
         if isinstance(message, JSONRPCRequest | JSONRPCNotification):
             params = message.params or {}
-            headers[MCP_METHOD_HEADER] = message.method
+            headers[MCP_METHOD_HEADER] = encode_header_value(message.method)
             key = NAME_BEARING_METHODS.get(message.method)
             name = params.get(key) if key is not None else None
             if isinstance(name, str):
@@ -174,7 +185,7 @@ class Routing:
             if isinstance(meta, dict) and isinstance(meta.get(PROTOCOL_VERSION_META_KEY), str):
                 version = meta[PROTOCOL_VERSION_META_KEY]
         if version is not None:
-            headers[MCP_PROTOCOL_VERSION_HEADER] = version
+            headers[MCP_PROTOCOL_VERSION_HEADER] = encode_header_value(version)
         return headers
 
     def incoming(self, message: JSONRPCMessage) -> None:
