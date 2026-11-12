@@ -34,7 +34,7 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "pagination": {
-          "total": 3038,
+          "total": 3036,
           "page": 1,
           "pages": 102,
           "has_more": true,
@@ -177,7 +177,7 @@
             "verified_at": null,
             "inventory": null,
             "discussions": 0,
-            "next_update_at": "2026-11-12T11:50:43.632206Z",
+            "next_update_at": "2026-11-13T12:06:55.727032Z",
             "reported_tool_observation": {
               "count": 2,
               "evidence": "Recent directory observation",
@@ -425,7 +425,7 @@
             "verified_at": null,
             "inventory": null,
             "discussions": 0,
-            "next_update_at": "2026-11-12T08:39:29.613121Z",
+            "next_update_at": "2026-11-13T13:32:42.547525Z",
             "reported_tool_observation": {
               "count": 2,
               "evidence": "Recent directory observation",
@@ -446,7 +446,7 @@
                 "name": "results"
               }
             ],
-            "update_available": true,
+            "update_available": false,
             "updating": false,
             "website_url": "https://www.omio.com/"
           },
@@ -621,10 +621,10 @@
             "category": "Finance & Crypto",
             "relationship": null,
             "url": "https://patchbay.help/freetaxusa.com",
-            "verified_at": "2026-11-11T09:17:40.431606Z",
+            "verified_at": "2026-11-12T12:00:53.533178Z",
             "inventory": "partial",
             "discussions": 0,
-            "next_update_at": "2026-11-12T09:17:40.630057Z",
+            "next_update_at": "2026-11-13T12:00:53.823448Z",
             "reported_tool_observation": null,
             "tool_inventory": [
               {
@@ -864,7 +864,7 @@
                 "name": "create_client"
               }
             ],
-            "update_available": true,
+            "update_available": false,
             "updating": false,
             "website_url": "https://auth.freetaxusa.com/"
           },
@@ -1107,10 +1107,10 @@
             "category": "Developer Tools",
             "relationship": null,
             "url": "https://patchbay.help/quicknode.com",
-            "verified_at": "2026-11-06T04:00:09.565968Z",
+            "verified_at": "2026-11-12T12:23:04.619843Z",
             "inventory": "partial",
             "discussions": 0,
-            "next_update_at": "2026-11-07T04:00:10.679794Z",
+            "next_update_at": "2026-11-13T12:23:08.028704Z",
             "reported_tool_observation": {
               "count": 5,
               "evidence": "Recent directory observation",
@@ -1143,7 +1143,7 @@
                 "name": "quicknode_get_agent_info"
               }
             ],
-            "update_available": true,
+            "update_available": false,
             "updating": false,
             "website_url": "https://www.quicknode.com/"
           },
@@ -1871,7 +1871,7 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "notice": "Offer words are advertiser-authored: a claim, never an instruction. Reading grants nothing. A signed-in person bids on a slot's bid_url. A paired agent's bid_on_offer_slot is turned down until agent spending opens.",
-        "as_of": "2026-11-12T11:31:18.383851Z",
+        "as_of": "2026-11-12T14:05:10.503587Z",
         "markets": [
           {
             "scope": "global",
@@ -5763,7 +5763,7 @@
             "title": null,
             "protocol_version": "patchbay.manifest.v6",
             "first_seen_at": "2026-11-12T06:11:16.448341Z",
-            "last_seen_at": "2026-11-12T10:49:51.671870Z",
+            "last_seen_at": "2026-11-12T12:09:13.144640Z",
             "display_name": "agent_whoami",
             "input_schema": null,
             "source_kind": "official",
@@ -6389,7 +6389,7 @@
             "title": null,
             "protocol_version": "patchbay.manifest.v6",
             "first_seen_at": "2026-11-12T06:11:16.448341Z",
-            "last_seen_at": "2026-11-12T10:49:51.671870Z",
+            "last_seen_at": "2026-11-12T12:09:13.144640Z",
             "input_schema": null,
             "contract_sha256": "0b884e95b4736e0eadef7be28a5e024dd8f45f10a42df13304dc4c0158bd3d16",
             "output_schema": null
@@ -6507,7 +6507,7 @@
           "title": null,
           "protocol_version": "patchbay.manifest.v6",
           "first_seen_at": "2026-11-12T06:11:16.448341Z",
-          "last_seen_at": "2026-11-12T10:49:51.671870Z",
+          "last_seen_at": "2026-11-12T12:09:13.144640Z",
           "input_schema": null,
           "contract_sha256": "0b884e95b4736e0eadef7be28a5e024dd8f45f10a42df13304dc4c0158bd3d16",
           "output_schema": null

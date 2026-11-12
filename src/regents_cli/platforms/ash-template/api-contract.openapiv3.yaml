@@ -503,6 +503,7 @@ paths:
         "403": {$ref: "#/components/responses/CsrfForbidden"}
         "401": {$ref: "#/components/responses/PrivySessionUnauthorized"}
         "409": {$ref: "#/components/responses/SessionChanged"}
+        "503": {$ref: "#/components/responses/SignInUnavailable"}
     delete:
       operationId: deletePrivyBrowserSession
       security: [{csrfToken: []}]
@@ -4214,6 +4215,14 @@ components:
           examples:
             unauthorized:
               value: {error: {code: unauthorized, message: "This sign-in couldn't be confirmed.", hint: "Sign in again."}}
+    SignInUnavailable:
+      description: The site cannot check sign-ins right now; the browser's own sign-in is left as it is
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/RecoveryError"}
+          examples:
+            unavailable:
+              value: {error: {code: sign_in_unavailable, message: "Sign-in isn't available right now.", hint: "Try again in a moment."}}
     SessionChanged:
       description: This browser's session changed in another tab or ended; reload the page
       content:
