@@ -184,6 +184,9 @@ class Invocation:
     #: False for a site's public command, which no sign-in changes: a 401 there is the site's
     #: own refusal, such as an expired upload address.
     signed: bool = True
+    #: Whether the command line gave it an argument or option value of its own, such as a name
+    #: or id, that could have been mistyped.
+    named: bool = False
 
     @property
     def again(self) -> tuple[str, ...]:
@@ -297,13 +300,7 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
         )
         return [human(f"Ask your person about this first: {error.message}", page)]
     if status == 404 and coded:
-        return [
-            run(
-                again,
-                "There is no such record: correct the name or id if it was mistyped, then run "
-                f"this again{invocation.piped}.",
-            )
-        ]
+        return [_missing(invocation)]
     if status == 429:
         return [
             run(
@@ -356,13 +353,7 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
     if error.exit_code == EXIT_CANCELLED:
         return [run(again, f"Run it again when ready{invocation.piped}.")]
     if error.exit_code == EXIT_NOT_FOUND:
-        return [
-            run(
-                again,
-                "There is no such record: correct the name or id if it was mistyped, then run "
-                f"this again{invocation.piped}.",
-            )
-        ]
+        return [_missing(invocation)]
     if error.exit_code == EXIT_UNREACHABLE:
         return [
             run(again, f"Run it once more{invocation.piped}."),
@@ -373,6 +364,22 @@ def _failed(error: CommandError, invocation: Invocation) -> list[Step]:
     if error.code == "invalid_response":
         return _broken(error, None, invocation)
     return [run(again, f"Do what the message says, then run this again{invocation.piped}.")]
+
+
+def _missing(invocation: Invocation) -> Step:
+    """A record that is not there: run it again with the name or id corrected, when the command
+    was given one; else the commands beside it, among them any that makes one."""
+    if invocation.named:
+        return run(
+            invocation.again,
+            "There is no such record: correct the name or id if it was mistyped, then run "
+            f"this again{invocation.piped}.",
+        )
+    return run(
+        ("regents", *invocation.words[:-1], "--help"),
+        "There is no such record yet. These are the commands beside this one, among them any "
+        "that makes one.",
+    )
 
 
 def _unsure(error: CommandError, status: object) -> bool:

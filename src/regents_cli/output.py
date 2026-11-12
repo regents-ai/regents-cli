@@ -200,7 +200,7 @@ def _failure(error: CommandError, next_steps: Sequence[Step]) -> RenderableType:
     page = help_page(error.code)
     words = [error.message, json.dumps(error.fields, ensure_ascii=False)]
     words += [text for step in next_steps for text in (step.say, step.url) if text]
-    if page and not any(page in text for text in words):
+    if page and not any(re.search(rf"{re.escape(page)}(?![\w/-])", text) for text in words):
         blocks.append(Text.assemble("  Help: ", (page, "cyan"), no_wrap=True, overflow="ignore"))
     if error.review:
         blocks.append(review(error.review))

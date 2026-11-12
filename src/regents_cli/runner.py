@@ -360,10 +360,11 @@ def file_request(
 
 def example(platform: Platform, command: Command) -> str:
     """The command with its required stdin fields piped in, or its first when none is required,
-    each value a placeholder to fill: a string's in quotes, any other JSON value bare."""
+    each value a placeholder to fill: in quotes when it is sent as text, as a string and a UUID
+    are, and bare for any other JSON value."""
     fields = [f for f in command.stdin_fields if f.required] or list(command.stdin_fields[:1])
     piped = ", ".join(
-        f'"{f.field}": ' + (f'"<{f.field}>"' if f.type == "string" else f"<{f.field}>")
+        f'"{f.field}": ' + (f'"<{f.field}>"' if STDIN_TYPES[f.type][0] is str else f"<{f.field}>")
         for f in fields
     )
     names = [w if not w.startswith("<") else w[1:-1].upper() for w in command.words]
@@ -721,7 +722,7 @@ def named_command(platform: Platform, text: str) -> Command | None:
     """The first of the site's commands `text` names as `regents <site> <words>`, such as
     "Search with regents patchbay threads search --query WORDS.": the one whose words, its
     values left out, are the longest run of the words written there."""
-    written = rf"\bregents {re.escape(platform.name)}((?: [a-z][a-z0-9-]*)+)"
+    written = rf"(?<![\w-])regents {re.escape(platform.name)}((?: [a-z][a-z0-9-]*)+)"
     for found in re.finditer(written, text):
         words = found.group(1).split()
         fits = {

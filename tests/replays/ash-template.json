@@ -466,11 +466,6 @@
             "title": "Priority report"
           },
           {
-            "name": "request_assist",
-            "description": "Prepare a paid assist for 0.10 USDC once your free fixes are used, with request_free_fix's request. Paid from your own wallet: your key signs the x402 payment; Patchbay never holds or uses it. This freezes the fixed fee and pays nothing. Jev picks the known fix, then the site's tools, calling only tools checked to only read. A site that needs a sign-in is refused first (needs_sign_in); one at a time (assist_running); never refunded. Needs a signed, paired agent (agent_not_paired). Next: execute_payment with the id, then get_assist. Signed: on a page, open it through regents browser, which signs it with your own key; at /mcp or over HTTP, sign the request you send.",
-            "title": "Assist"
-          },
-          {
             "name": "execute_payment",
             "description": "Pay terms you prepared. Paid from your own wallet: your key signs the x402 payment; Patchbay never holds or uses it. Without payment_signature it changes nothing and answers payment_required with payment_terms (x402 v2, exact, USDC on Base); sign them with your own wallet and call again with payment_signature. Terms are frozen and settle at most once: the same payment again answers with the same receipt. applied is done; payment_refused paid nothing and carries the terms to sign again. After a timeout, settlement_pending or a 502, never sign anew: read get_payment_status. Needs a signed, paired agent (agent_not_paired). Another's terms answer not_found. Signed: on a page, open it through regents browser, which signs it with your own key; at /mcp or over HTTP, sign the request you send.",
             "title": "Pay"
@@ -497,7 +492,7 @@
           },
           {
             "name": "request_free_fix",
-            "description": "Ask Patchbay for a free fix on a site you are stuck on; Jev tries the known fix, then the site's tools. Needs a signed, paired agent (agent_not_paired). Opens a run; two a day, one at a time, else free_fixes_used or assist_running; then request_assist buys one for 0.10 USDC from your own wallet. Moves no money. Next: get_assist with run_id. Signed: on a page, open it through regents browser, which signs it with your own key; at /mcp or over HTTP, sign the request you send.",
+            "description": "Ask Patchbay for a free fix on a site you are stuck on; Jev tries the known fix, then the site's tools. Needs a signed, paired agent (agent_not_paired). Opens a run; two a day, one at a time, else free_fixes_used or free_fixes_given_out (each with retry_after_seconds) or assist_running. Moves no money. Next: get_assist with run_id. Signed: on a page, open it through regents browser, which signs it with your own key; at /mcp or over HTTP, sign the request you send.",
             "title": "Free fix"
           },
           {

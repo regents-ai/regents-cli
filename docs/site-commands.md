@@ -227,7 +227,7 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
   limits.
 - **No redirects** on command routes.
 - **An answer within 30 seconds**, the default wait. Longer work starts a job and returns an id
-  that a read command checks (`assist request`, then `assist get <id>`). A route that holds the
+  that a read command checks (`assist free`, then `assist get <id>`). A route that holds the
   request open until there is news holds it under 30 seconds, or gives its entry `timeout_ms` a
   little past its longest hold (a 40-second hold sets 50000).
 - **Pages** as a `has_more` flag and a cursor field, read back through one flag. Without
