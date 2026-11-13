@@ -6,8 +6,8 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 ## 1.10.27 — 2026-11-13
 
 Evidence: level protected; features signed-requests, techtree-release, release-gates and the
-command groups of every site but Autolaunch; 1113 tests; every public read recorded from the live
-sites; Techtree release record climb-v0.7.28.
+command groups of every site but Autolaunch; 1113 tests; every public read run against the live
+sites from the built wheel; Techtree release record climb-v0.7.28.
 
 - A site's command can have a yes/no flag, of type `boolean` in its `commands.json`: a flag
   named `needs-answer` is the pair `--needs-answer` and `--no-needs-answer`. The first sends true
