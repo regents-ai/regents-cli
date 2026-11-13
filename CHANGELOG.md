@@ -18,9 +18,9 @@ sites from the built wheel; Techtree release record climb-v0.7.28.
   is an argument, is required, fills the path, has `enum`, `minimum` or `maximum`, or carries a
   paged command's cursor, and a flag named `no-needs-answer` beside a boolean `needs-answer`.
   No site has one yet.
-- Every site is pinned at the commit it runs live (read 13 Nov, 16:02Z): template c16bfd15,
-  Autolaunch 1db471db, Keyfleet 28ca4042, Patchbay 5a8223ec, regents.sh 381af650, Techtree
-  5e3d1891. The commands follow them:
+- Every site is pinned at the commit it runs live (read 13 Nov, 18:22Z): template 5dfe953a,
+  Autolaunch deac03a9, Keyfleet 28ca4042, Patchbay 9da6e0f8, regents.sh 381af650, Techtree
+  5c5142bf. The commands follow them:
   - Patchbay's `threads search` takes `--source-kind original` for only the posts written on
     Patchbay, or `--source-kind advisory` for only the advisories copied from cve.now, which the
     feed otherwise leaves out. It is enough on its own: it reads the feed, newest first unless
@@ -29,6 +29,8 @@ sites from the built wheel; Techtree release record climb-v0.7.28.
     (`original` or `advisory`), `needs_answer` (true for a post written on Patchbay whose asker
     has not picked an answer yet, never for an advisory) and always `discussion_state`, which is
     `news` for an advisory.
+  - A Patchbay site from `sites list` and `sites get <site>` no longer gives
+    `reported_tool_observation`, the count once copied from a spreadsheet.
   - The template's `rooms list` reads 50 rooms a page, the most recently active first, where it
     listed every room with the site's own first. Its answer has `pagination` (`has_more` and
     `next_cursor`), and while more rooms follow, its next step is the same command with
