@@ -103,6 +103,8 @@ regents <site> <words> <ARGS> [--flags] [--json] [--base-url URL] [--timeout-ms 
   request = entry.method entry.path with each {param} filled from ARGS,
             flags placed in the query or body as each one's `in` says,
             plus entry.body's fixed fields
+  a boolean flag is --name (true) or --no-name (false): the text true or false in the query,
+            JSON true or false in the body; left out, nothing is sent
   a site_url argument must be an address on base matching entry.path, as the site answered
             it; its path is the request's path
   a file argument is the whole body: its bytes, sent with the media type its name gives,
@@ -243,6 +245,15 @@ sign proofs) is native code here. Ask the regents-cli chief before designing one
   Fields may be `array`, `object`, `string` or `integer`; they retain their JSON types in
   the signed body. An integer field refuses strings, fractions and booleans. A bare root
   JSON array is not a command body.
+- **Yes/no flags** have the type `boolean`:
+  `{"name": "needs-answer", "type": "boolean", "in": "query", "field": "needs_answer",
+  "required": false, "description": "..."}` gives the pair `--needs-answer` (true) and
+  `--no-needs-answer` (false). In the query it is the text `true` or `false`; in the body a JSON
+  `true` or `false`. Left out, nothing is sent, so the route's own default holds. Neither takes
+  a value: `--needs-answer=yes` is refused. A boolean is only ever a flag in the query or the
+  body: never an argument, never required, with no `enum`, `minimum` or `maximum`, never a paged
+  command's cursor flag, and no other flag of the command is named `no-<name>`. A next page or a
+  command printed to run again keeps it as `--name` or `--no-name`.
 - **Uploads** of a file's bytes go to an address the site answered on an earlier command, on
   the site itself: give that command an argument of type `site_url` (filled from the address,
   checked against the route) and one of type `file` with the media types it takes as `enum`

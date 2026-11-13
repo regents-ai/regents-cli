@@ -331,7 +331,7 @@
           "$ref": "#/$defs/name"
         },
         "type": {
-          "description": "string; integer; decimal (an exact decimal kept as text, 1.25); uuid; address (0x and 40 hex characters); site_url (an address on this site whose path is the command's route, such as an upload address an earlier answer gave: it fills the path, and an address anywhere else is refused); file (a file on this machine whose bytes are the whole request body, sent with the content type its name's extension gives, which `enum` lists, and at most `maximum` bytes).",
+          "description": "string; integer; decimal (an exact decimal kept as text, 1.25); uuid; address (0x and 40 hex characters); site_url (an address on this site whose path is the command's route, such as an upload address an earlier answer gave: it fills the path, and an address anywhere else is refused); file (a file on this machine whose bytes are the whole request body, sent with the content type its name's extension gives, which `enum` lists, and at most `maximum` bytes); boolean (a yes/no flag in the query or the body, never an argument or required: --<name> sends true and --no-<name> false, as the text true or false in the query or a JSON boolean in the body, and left out it sends nothing).",
           "enum": [
             "string",
             "integer",
@@ -339,7 +339,8 @@
             "uuid",
             "address",
             "site_url",
-            "file"
+            "file",
+            "boolean"
           ]
         },
         "in": {

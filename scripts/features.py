@@ -90,6 +90,7 @@ OWN: list[dict[str, Any]] = [
             "tests/test_next_steps.py",
             "tests/test_prepared.py",
             "tests/test_contract.py",
+            "tests/test_boolean_flags.py",
         ],
         "regressions": [
             {

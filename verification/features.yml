@@ -31,6 +31,7 @@ features:
   - tests/test_next_steps.py
   - tests/test_prepared.py
   - tests/test_contract.py
+  - tests/test_boolean_flags.py
   regressions:
   - id: R-20261018-refusal-fields
     from: '1.10.15 candidate: a site error field named exit_code crashed regents'

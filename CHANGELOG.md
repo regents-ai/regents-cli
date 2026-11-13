@@ -3,6 +3,17 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Next release
+
+- A site's command can have a yes/no flag, of type `boolean` in its `commands.json`: a flag
+  named `needs-answer` is the pair `--needs-answer` and `--no-needs-answer`. The first sends true
+  and the second false, as the text `true` or `false` in the query or a JSON `true` or `false` in
+  the body; leaving both out sends nothing, so the site's own default holds. Neither takes a
+  value, so `--needs-answer=yes` is refused. The help lists the pair, and a next page or a
+  command printed to run again keeps the one you gave. The command check refuses a boolean that
+  is an argument, is required, fills the path, has `enum`, `minimum` or `maximum`, or carries a
+  paged command's cursor, and a flag named `no-needs-answer` beside a boolean `needs-answer`.
+
 ## 1.10.26 — 2026-11-12
 
 Evidence: level protected; features signed-requests, agent-send, live-feed, sign-in,

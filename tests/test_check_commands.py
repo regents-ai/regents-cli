@@ -244,3 +244,107 @@ def test_a_site_address_is_the_whole_path(
     }
     found = problems_in(description, operations_in([upload_openapi({"image/png": {}})]))
     assert found == [f"{upload['command']}: {problem}" for problem in problems]
+
+
+YES_NO = {
+    "name": "needs-answer",
+    "type": "boolean",
+    "in": "query",
+    "field": "needs_answer",
+    "required": False,
+    "description": "Only threads still waiting for an answer.",
+}
+CURSOR = {
+    "name": "after",
+    "type": "string",
+    "in": "query",
+    "field": "after",
+    "description": "The page to start after.",
+}
+PAGED = {"has_more": "has_more", "cursor": "next", "flag": "after"}
+SEARCH = {
+    "openapi": "3.1.0",
+    "paths": {
+        route: {
+            "get": {
+                "operationId": operation,
+                "responses": {"200": {"content": {"application/json": {}}}},
+            }
+        }
+        for route, operation in (
+            ("/threads", "searchThreads"),
+            ("/threads/{needs_answer}", "threadsBy"),
+        )
+    },
+}
+
+
+@pytest.mark.parametrize(
+    ("changes", "problems"),
+    [
+        ({}, []),
+        (
+            {
+                "command": "threads search <needs-answer>",
+                "arguments": [{k: v for k, v in YES_NO.items() if k != "required"}],
+                "flags": [CURSOR],
+            },
+            ["a boolean input is a flag, not an argument"],
+        ),
+        (
+            {"flags": [YES_NO | {"required": True}, CURSOR]},
+            ["a boolean flag is never required: left out, it sends nothing"],
+        ),
+        (
+            {
+                "operation_id": "threadsBy",
+                "path": "/threads/{needs_answer}",
+                "flags": [YES_NO | {"in": "path"}, CURSOR],
+            },
+            ["a boolean flag goes in the query or the body"],
+        ),
+        (
+            {"flags": [YES_NO | {"enum": ["true", "false"]}, CURSOR]},
+            ["needs-answer: only string and file inputs take enum"],
+        ),
+        (
+            {"flags": [YES_NO | {"minimum": 0}, CURSOR]},
+            ["needs-answer: only integer inputs take minimum"],
+        ),
+        (
+            {"flags": [YES_NO | {"maximum": 1}, CURSOR]},
+            ["needs-answer: only integer and file inputs take maximum"],
+        ),
+        (
+            {"flags": [YES_NO, CURSOR, CURSOR | {"name": "no-needs-answer", "field": "skip"}]},
+            ["--no-needs-answer is both the other half of boolean --needs-answer and a flag"],
+        ),
+        (
+            {"pagination": PAGED | {"flag": "needs-answer"}},
+            ["pagination passes the cursor as --needs-answer, a boolean flag"],
+        ),
+    ],
+)
+def test_a_boolean_is_only_ever_a_yes_no_flag(changes: dict[str, Any], problems: list[str]) -> None:
+    """A boolean is a flag a caller gives or leaves out, so one that must be given, takes a
+    value, shares its --no- form with another flag, or carries a page's cursor, would never
+    send what the site's description says."""
+    search = {
+        "command": "threads search",
+        "description": "Search the threads.",
+        "operation_id": "searchThreads",
+        "method": "GET",
+        "path": "/threads",
+        "authority": "public",
+        "effect": "read",
+        "flags": [YES_NO, CURSOR],
+        "pagination": PAGED,
+    } | changes
+    description = {
+        "format": "regents.commands.v1",
+        "platform": "board",
+        "base_url": "https://board.example",
+        "commands": [search],
+    }
+    found = problems_in(description, operations_in([SEARCH]))
+    assert found == [f"{search['command']}: {problem}" for problem in problems]

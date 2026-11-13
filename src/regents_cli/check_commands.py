@@ -261,6 +261,16 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
             say("a site_url argument is the command's only path input")
         if any(i["in"] != "path" for i in site_urls):
             say("a site_url argument fills the path")
+        booleans = [f["name"] for f in flags if f["type"] == "boolean"]
+        if any(i["type"] == "boolean" for i in args):
+            say("a boolean input is a flag, not an argument")
+        if any(f.get("required") for f in flags if f["type"] == "boolean"):
+            say("a boolean flag is never required: left out, it sends nothing")
+        if any(f["in"] == "path" for f in flags if f["type"] == "boolean"):
+            say("a boolean flag goes in the query or the body")
+        for name in booleans:
+            if f"no-{name}" in flag_names:
+                say(f"--no-{name} is both the other half of boolean --{name} and a flag")
         for f in entry.get("stdin_fields", []):
             if ("minimum" in f or "maximum" in f) and f["type"] != "integer":
                 say(f"stdin {f['field']}: only integer fields take minimum and maximum")
@@ -286,6 +296,8 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
         pagination = entry.get("pagination")
         if pagination and pagination["flag"] not in flag_names:
             say(f"pagination passes the cursor as --{pagination['flag']}, which is not a flag")
+        if pagination and pagination["flag"] in booleans:
+            say(f"pagination passes the cursor as --{pagination['flag']}, a boolean flag")
         stream = entry.get("stream", False)
         if stream and (
             entry["authority"] == "public"

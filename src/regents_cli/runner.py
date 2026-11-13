@@ -85,6 +85,28 @@ def param_type(spec: Input) -> click.ParamType[Any]:
     return TYPES.get(spec.type, click.STRING)
 
 
+def flag_option(spec: Input) -> click.Option:
+    """A described flag: a yes/no one is the pair --name and --no-name, None when left out."""
+    dest = spec.name.replace("-", "_")
+    if spec.type == "boolean":
+        return click.Option(
+            [f"--{spec.name}/--no-{spec.name}", dest], default=None, help=spec.description
+        )
+    return click.Option(
+        [f"--{spec.name}", dest],
+        type=param_type(spec),
+        required=spec.required,
+        help=spec.description,
+    )
+
+
+def flag_words(spec: Input, value: Any) -> list[str]:
+    """A flag as it is typed: --name VALUE, or a yes/no flag's --name or --no-name."""
+    if spec.type == "boolean":
+        return [f"--{spec.name}" if value else f"--no-{spec.name}"]
+    return [f"--{spec.name}", str(value)]
+
+
 def platform_group(platform: Platform, group: click.Group | None = None) -> click.Group:
     help_text = f"Commands for {platform.base_url.removeprefix('https://')}."
     if platform.notes:
@@ -152,15 +174,7 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         )
         for spec in command.arguments
     ]
-    params += [
-        click.Option(
-            [f"--{spec.name}", spec.name.replace("-", "_")],
-            type=param_type(spec),
-            required=spec.required,
-            help=spec.description,
-        )
-        for spec in command.flags
-    ]
+    params += [flag_option(spec) for spec in command.flags]
     params += [
         click.Option(["--json", "as_json"], is_flag=True, help="Print the answer as JSON."),
         click.Option(["--base-url"], help=f"The site's address; also {platform.env_var}."),
@@ -317,6 +331,8 @@ def request_for(command: Command, given: dict[str, Any], base: str) -> Request:
             if str(value) in ("", ".", ".."):
                 raise UsageError(f"{spec.name.upper()} must name a record, not a dot path.")
             path = path.replace("{" + spec.field + "}", quote(str(value), safe=""))
+        elif spec.location == "query" and spec.type == "boolean":
+            query[spec.field] = "true" if value else "false"
         elif spec.location == "query":
             query[spec.field] = str(value)
         else:
@@ -570,7 +586,7 @@ def command_line(
         part
         for spec in command.flags
         if given[spec.name] is not None
-        for part in (f"--{spec.name}", str(given[spec.name]))
+        for part in flag_words(spec, given[spec.name])
     ]
     values = [str(given[spec.name]) for spec in command.arguments]
     return typed(["regents", platform.name, *names, *flags, *extra], values)

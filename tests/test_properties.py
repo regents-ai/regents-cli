@@ -88,6 +88,8 @@ def value_for(spec: Input) -> st.SearchStrategy[Any]:
         return st.just(__file__)
     if spec.enum is not None:
         return st.sampled_from(spec.enum)
+    if spec.type == "boolean":
+        return st.booleans()
     if spec.type == "integer":
         return st.integers(spec.minimum, spec.maximum)
     if spec.type in runner.TYPES:
@@ -319,7 +321,11 @@ def test_what_is_prepared_is_what_is_sent(
         part
         for spec in command.flags
         if values[spec.name] is not None
-        for part in (f"--{spec.name}", str(values[spec.name]))
+        for part in (
+            [f"--{spec.name}" if values[spec.name] else f"--no-{spec.name}"]
+            if spec.type == "boolean"
+            else [f"--{spec.name}", str(values[spec.name])]
+        )
     ]
     stdin = json.dumps(data.draw(stdin_for(command)))
     signed_in.clear()
@@ -368,7 +374,9 @@ def test_what_is_prepared_is_what_is_sent(
     fields = json.loads(body) if body else {}
     for spec in command.inputs:
         value = values[spec.name]
-        if value is not None and spec.location == "query":
+        if value is not None and spec.location == "query" and spec.type == "boolean":
+            assert query[spec.field] == ("true" if value else "false")
+        elif value is not None and spec.location == "query":
             assert query[spec.field] == str(value)
         elif value is not None and spec.location != "path":
             assert fields[spec.field] == value
