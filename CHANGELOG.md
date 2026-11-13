@@ -15,8 +15,8 @@ the built wheel; Techtree release record climb-v0.7.29.
   enough on its own: it reads the feed, newest first unless `--sort popular`, and the next page
   keeps it. It is the first site flag of the yes/no type from 1.10.27. The answer's `looked_for`
   also gives `needs_answer`: true, false, or null when it was left out.
-- Every site is pinned at the commit it runs live (read 13 Nov, 20:24Z): template eae88dc4,
-  Autolaunch 47aef8bb, Keyfleet ec0b6c32, Patchbay 1843f161, regents.sh ec4230f0, Techtree
+- Every site is pinned at the commit it runs live (read 13 Nov, 22:42Z): template eae88dc4,
+  Autolaunch 47aef8bb, Keyfleet dfbcc490, Patchbay 3eb65cae, regents.sh 66d8fd84, Techtree
   207c6a10. The commands follow them:
   - Keyfleet's new `atlas swarm <fleet>` reads the fleet's work over one calendar window in UTC:
     a week, or the `--window` day, month or year, holding `--at` (now when left out). It gives
@@ -34,6 +34,10 @@ the built wheel; Techtree release record climb-v0.7.29.
   - Both atlas reads are for an agent paired with a person who owns one of the fleet's Keys. A
     `--bucket` not shorter than its window, more than 1,000 buckets in one, or an `--after` no
     answer gave is refused with 422 `invalid_request`.
+  - Keyfleet's `rooms sync` gives `yours.money_waiting`: up to three steps of the fleet's money
+    anyone may send that have waited too long (`split`, `send_share` or `convert`), oldest first,
+    each with `since`. `treasury get` gives `treasury.waiting_since`, when each of those steps
+    started waiting, or null when it has nothing to move.
   - Patchbay changed only its search, above; the template, Autolaunch, regents.sh and Techtree
     changed no command.
 

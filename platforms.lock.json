@@ -45,7 +45,7 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "ec0b6c32c0c34f334f525bd1221a3b9712f5393a",
+    "commit": "dfbcc4903c16970a7a70bcb04d735cd90cf3361a",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
@@ -57,17 +57,17 @@
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/keyfleet/api-contract.openapiv3.yaml",
-        "sha256": "9c0bfe6c0414c0c04b61fdd4adb8a79eb61ae2e78a5b62072554b68513726a07"
+        "sha256": "f983afc0f5a6b96d11d248947ff65c7209fbcb4cac9709571cf33bc1c94480a2"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "src/regents_cli/platforms/keyfleet/tool_manifest.json",
-        "sha256": "04df145296f9735d5b5fafd5ebe14fc6f4a8279454d505b82384a7d7f9aa8ab7"
+        "sha256": "b25f28990605d9c858e7c3a4104b5844de669480429407e81888a30c95fb12db"
       }
     }
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "1843f161a3d5a6fc74fc37af851636cd2860ec80",
+    "commit": "3eb65cae9f77e761912e4b0f48db3d8137ee8304",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
@@ -85,7 +85,7 @@
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "ec4230f009c621c373de01563f4fb0efba1d8091",
+    "commit": "66d8fd84a8ac0a26c95b315d86094f41d34cbf14",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",

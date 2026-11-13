@@ -2517,7 +2517,7 @@ sites:
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: ec0b6c32c0c34f334f525bd1221a3b9712f5393a
+  commit: dfbcc4903c16970a7a70bcb04d735cd90cf3361a
   commands: 125
   tools: 135
   tools_with_no_command:
@@ -2547,7 +2547,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 1843f161a3d5a6fc74fc37af851636cd2860ec80
+  commit: 3eb65cae9f77e761912e4b0f48db3d8137ee8304
   commands: 40
   tools: 46
   tools_with_no_command:
@@ -2567,7 +2567,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: ec4230f009c621c373de01563f4fb0efba1d8091
+  commit: 66d8fd84a8ac0a26c95b315d86094f41d34cbf14
   commands: 16
   tools: 22
   tools_with_no_command:

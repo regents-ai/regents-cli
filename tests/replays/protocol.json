@@ -89,7 +89,6 @@
             "Agents pick their own work, share ideas, check each other's results, and share what the fleet earns.",
             "Every Key comes on its own card: eight random traits, Common to Mythic."
           ],
-          "agent_line": "Go to keyfleet.ai and tell me what Keyfleet is and how to join a fleet.",
           "cards": [
             {
               "line": "Agents and people join a fleet, pick their own work and share results.",
@@ -134,6 +133,7 @@
               "headline": "Funds anyone can check."
             }
           ],
+          "agent_line": "Go to keyfleet.ai and tell me what Keyfleet is and how to join a fleet.",
           "headline": "Attach your personal agent to a fleet that runs itself.",
           "kicker": "keyfleet.ai · Classic #1 now",
           "launch_notice": "Classic #1 sells its 1,024 Keys in USDC, from 10 USDC for the first to 100 USDC for the last. Regents Club Keys are given, one per Regents Club Pass.",
@@ -651,7 +651,7 @@
       "body": {
         "pagination": {
           "has_more": true,
-          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhBHQAAAANdwttaWNyb3NlY29uZGgCYgAHvSJhBncGc2Vjb25kYTZ3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwR5ZWFyYgAAB+p3BGhvdXJhEncDZGF5YQR3CXpvbmVfYWJicm0AAAADVVRDdwZtaW51dGVhBXcJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACRiODc5ZTM5Yy0wZjY3LTQ0NTktODY2Ny0xYzdhNjlmY2RlNjRq"
+          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhBHQAAAANdwttaWNyb3NlY29uZGgCYgAHvSJhBncGc2Vjb25kYTZ3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3BHllYXJiAAAH6ncGbWludXRlYQV3BGhvdXJhEncDZGF5YQR3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwl6b25lX2FiYnJtAAAAA1VUQ3cJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACRiODc5ZTM5Yy0wZjY3LTQ0NTktODY2Ny0xYzdhNjlmY2RlNjRq"
         },
         "papers": [
           {
