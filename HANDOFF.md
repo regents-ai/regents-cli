@@ -301,3 +301,9 @@ founder's explicit go.
    the release carries a newer SIWA change. `make check-siwa-latest` and `make check` must both
    pass. Push the branch and message "Chief: autolaunch" with the commit. That lane reviews,
    releases and records it; this one never merges to Autolaunch main or releases it.
+   The worktree to use is the existing `worktrees/autolaunch/manage-1022` (that lane, 2026-11-13);
+   the checkout guard refuses a new one. There: `git fetch origin`, then
+   `git switch -c al/cli-pin-<date> origin/main`; push that branch only and leave the worktree
+   clean. Its checks need Elixir 1.20.5-otp-29 and Erlang 29.1.2 from
+   `~/.local/share/mise/installs/` first on `PATH` (not `mise exec`), `SDKROOT` set to
+   `xcrun --sdk macosx --show-sdk-path`, and `MIX_TEST_PARTITION=_clipin`.
