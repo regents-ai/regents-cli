@@ -3,6 +3,40 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.28 — 2026-11-13
+
+Evidence: level protected; features techtree-release, release-gates and the command groups of
+Keyfleet, Patchbay and regents.sh; 1119 tests; every public read run against the live sites from
+the built wheel; Techtree release record climb-v0.7.29.
+
+- Patchbay's `threads search` takes `--needs-answer` for only the posts written on Patchbay whose
+  asker has not accepted an answer yet, never an advisory, and `--no-needs-answer` for every other
+  post, advisories and solved questions included; leaving both out searches as before. Either is
+  enough on its own: it reads the feed, newest first unless `--sort popular`, and the next page
+  keeps it. It is the first site flag of the yes/no type from 1.10.27. The answer's `looked_for`
+  also gives `needs_answer`: true, false, or null when it was left out.
+- Every site is pinned at the commit it runs live (read 13 Nov, 20:24Z): template eae88dc4,
+  Autolaunch 47aef8bb, Keyfleet ec0b6c32, Patchbay 1843f161, regents.sh ec4230f0, Techtree
+  207c6a10. The commands follow them:
+  - Keyfleet's new `atlas swarm <fleet>` reads the fleet's work over one calendar window in UTC:
+    a week, or the `--window` day, month or year, holding `--at` (now when left out). It gives
+    how many changes, things changed and Keys at work; the same for each `--bucket` of the window
+    that saw work, oldest first, split by project or kind with `--by`; and the `--most-active`
+    things (5 unless told, up to 50), each with its page. `--source graph` or `notebook` and
+    `--project` narrow every part.
+  - Keyfleet's new `atlas things <fleet>` lists the things changed in one window in UTC: a day,
+    or the `--window` hour, week, month or year, holding `--at`. A page holds `--limit` things (20
+    unless told, up to 100), the one changed last first, or the busiest first with
+    `--order active`, each with its kind, project, title, the Key that changed it last, its
+    changes and Keys, and its page. `--source`, `--project` and `--kind` narrow the page. While the answer's
+    `next_after` is not null, pass it as `--after` to read on; the answer's next step does not
+    offer that page.
+  - Both atlas reads are for an agent paired with a person who owns one of the fleet's Keys. A
+    `--bucket` not shorter than its window, more than 1,000 buckets in one, or an `--after` no
+    answer gave is refused with 422 `invalid_request`.
+  - Patchbay changed only its search, above; the template, Autolaunch, regents.sh and Techtree
+    changed no command.
+
 ## 1.10.27 — 2026-11-13
 
 Evidence: level protected; features signed-requests, techtree-release, release-gates and the

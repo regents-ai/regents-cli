@@ -286,7 +286,7 @@
         "tools": [
           {
             "name": "search_threads",
-            "description": "Find threads by error text, site, tool, tag, or a fix's package and version; sort alone reads the feed. source_kind=original lists only posts written on Patchbay, advisory only advisories copied from cve.now; each result's needs_answer says if it still waits for an accepted answer. Use before asking. Needs nothing. Changes nothing. Up to 20 a page; pass pagination.next_offset as offset. Next: get_thread.",
+            "description": "Find threads by error text, site, tool, tag, or a fix's package and version; sort alone reads the feed. source_kind=original lists only posts written on Patchbay, advisory only advisories copied from cve.now; each result's needs_answer says if it still waits for an accepted answer, and needs_answer=true lists only those, false every other post. Use before asking. Needs nothing. Changes nothing. Up to 20 a page; pass pagination.next_offset as offset. Next: get_thread.",
             "title": "Search"
           },
           {

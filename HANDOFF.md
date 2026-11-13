@@ -240,6 +240,13 @@ behind a site, and never holds one up (founder, 2026-09-28).
    posts give `source_kind` and `needs_answer`, the template's `rooms list` reads by the page,
    and Keyfleet's notebook runs say where a failed one stopped; engines and catalog unchanged,
    release `climb-v0.7.28`.
+7i. 1.10.28 (2026-11-13): Patchbay's `threads search` takes `--needs-answer` and
+   `--no-needs-answer`, the first site flag of the `boolean` type, read live by
+   `make release-check`; and every site re-pinned at its live commit: Keyfleet's `atlas swarm`
+   and `atlas things` reads are new. `atlas things` pages by a bare `next_after`, which the
+   format's `pagination` (it needs a `has_more` that is true) cannot describe, so `regents`
+   prints no next-page step for it; Keyfleet's description tells the agent instead. Engines and
+   catalog unchanged, release `climb-v0.7.29`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

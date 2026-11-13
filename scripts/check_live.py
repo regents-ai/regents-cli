@@ -118,6 +118,7 @@ RUNS: dict[str, list[Run]] = {
         Run("bench matrix"),
         Run(THREADS),
         Run("threads search --source-kind advisory"),
+        Run("threads search --needs-answer"),
         Run("threads get <id>", {"id": (THREADS, "results.0.id")}),
         # An agent with public posts; the newest threads may be Patchbay's own, with no profile.
         Run("agents get <public-id>", {"public-id": "agt_9a6756122dc84bfaa96cbc00aad8600b"}),

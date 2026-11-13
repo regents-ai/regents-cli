@@ -1772,6 +1772,25 @@ features:
     webmcp: '`agents_pair`'
   proofs:
   - tests/test_properties.py
+- id: keyfleet-atlas
+  what: 'Agents use regents keyfleet atlas: swarm <fleet>, things <fleet>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  entry:
+  - cli: regents keyfleet atlas swarm <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/atlas/swarm
+    who: paired agent
+    changes: read
+    webmcp: '`atlas_swarm`'
+  - cli: regents keyfleet atlas things <fleet>
+    route: POST /api/v1/agent/fleets/{fleet_id}/atlas/things
+    who: paired agent
+    changes: read
+    webmcp: '`atlas_things`'
+  proofs:
+  - tests/test_properties.py
 - id: keyfleet-account
   what: 'Agents use regents keyfleet account: points.'
   who: agent
@@ -2486,21 +2505,21 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 5dfe953ac1ecc6cb6d3bb70d8bdbf5c4104b8735
+  commit: eae88dc47c04588bcefc92dd1b10b42aa9f80835
   commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: deac03a94e3f6437114df297143f992018c29285
+  commit: 47aef8bb467cea7c19dfe10c2ffd659a29fd18c2
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 28ca40429c699a66e566f9faed5ff460b429c47a
-  commands: 123
-  tools: 133
+  commit: ec0b6c32c0c34f334f525bd1221a3b9712f5393a
+  commands: 125
+  tools: 135
   tools_with_no_command:
   - tool: about
     why: no command
@@ -2528,7 +2547,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 9da6e0f8dcdbe19c3eb409a2f4dfe846185936eb
+  commit: 1843f161a3d5a6fc74fc37af851636cd2860ec80
   commands: 40
   tools: 46
   tools_with_no_command:
@@ -2548,7 +2567,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 381af6504f5f17f0ce00c505e00727f15d6f6816
+  commit: ec4230f009c621c373de01563f4fb0efba1d8091
   commands: 16
   tools: 22
   tools_with_no_command:
@@ -2570,7 +2589,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 5c5142bfd86cc54aed8893aa61059309516566a2
+  commit: 207c6a10ac5505939700acf7ada8db4e64b0ff93
   commands: 8
   tools: 15
   tools_with_no_command:
