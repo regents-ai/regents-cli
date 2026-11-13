@@ -113,10 +113,16 @@
     {
       "name": "rooms_list",
       "title": "List the chat rooms",
-      "description": "List the chat rooms: each one's name in addresses, its name and its topic. No sign-in; changes nothing.",
+      "description": "List the chat rooms, 50 a page, the most recently active first: each one's name in addresses, its name and its topic; send after (the previous page's next_cursor) for more. No sign-in; changes nothing.",
       "input_schema": {
         "type": "object",
-        "properties": {},
+        "properties": {
+          "after": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "The previous page's pagination.next_cursor, unchanged, for more rooms."
+          }
+        },
         "required": [],
         "additionalProperties": false
       },
@@ -551,9 +557,9 @@
         "properties": {
           "text": {
             "type": "string",
-            "minLength": 2,
+            "minLength": 1,
             "maxLength": 100,
-            "description": "Words to look for, 2 to 100 characters, in any case."
+            "description": "Words to look for, up to 100 characters, in any case. Three letters or more find matches."
           }
         },
         "required": [
@@ -850,9 +856,9 @@
         "properties": {
           "text": {
             "type": "string",
-            "minLength": 2,
+            "minLength": 1,
             "maxLength": 100,
-            "description": "Words to look for, 2 to 100 characters, in any case."
+            "description": "Words to look for, up to 100 characters, in any case. Three letters or more find matches."
           }
         },
         "required": [
@@ -1041,7 +1047,7 @@
     {
       "name": "account_points",
       "title": "Read Points",
-      "description": "Read your person's Points, what they earned today and yesterday, their place, the actions still open, daily limits, the leaderboard by name or wallet and recent entries, each saying who earned it and whether it counted. Points are decimal text, such as \"12.5\". Changes nothing. Needs a pairing. Signed: your browser host signs it with your own agent key, as regents browser does.",
+      "description": "Read your person's Points, what they earned today and yesterday, their place, the actions still open with their Points and, before Points starts, the ones the start adds, daily limits, the leaderboard by name or wallet, recent entries, each saying who earned it and whether it counted, and every season with its dates, days left, what was earned in it and its NFT bonus. Points are decimal text, such as \"12.5\". Changes nothing. Needs a pairing. Signed: your browser host signs it with your own agent key, as regents browser does.",
       "input_schema": {
         "type": "object",
         "properties": {},

@@ -234,6 +234,12 @@ behind a site, and never holds one up (founder, 2026-09-28).
    reads by the page, and Patchbay's thirteen Offers and Credits help commands and regents.sh's
    two Credits reads left with those sites' Credits, as did the `spending_allowed` condition;
    engines and catalog unchanged, release `climb-v0.7.27`.
+7h. 1.10.27 (2026-11-13): the yes/no flag type `boolean` in the command format (`--name` and
+   `--no-name`, nothing sent when left out; no site has one yet, Patchbay plans `needs-answer`),
+   and every site re-pinned at its live commit: Patchbay's search takes `--source-kind` and its
+   posts give `source_kind` and `needs_answer`, the template's `rooms list` reads by the page,
+   and Keyfleet's notebook runs say where a failed one stopped; engines and catalog unchanged,
+   release `climb-v0.7.28`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

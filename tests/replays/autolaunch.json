@@ -29,7 +29,7 @@
             "featured": false,
             "token_symbol": "SANDY",
             "bid_volume": "0.431051634406938743",
-            "bid_volume_usd": "407.570527674255161913818",
+            "bid_volume_usd": "370.0578281383569108655",
             "currency_raised": "0.431051634406938742",
             "estimated_end_at": "2026-10-14T14:58:55.000000Z",
             "minimum_reached": true,
@@ -43,7 +43,7 @@
               "symbol": "SNDK"
             },
             "minimum_raise": "0.000000000026969531",
-            "record_updated_at": "2026-11-12T22:55:59.467124Z",
+            "record_updated_at": "2026-11-13T16:04:05.425877Z",
             "treasury_security": null
           },
           {
@@ -60,7 +60,7 @@
             "featured": false,
             "token_symbol": "AIFROG",
             "bid_volume": "1.71799654",
-            "bid_volume_usd": "286.1109157133951984",
+            "bid_volume_usd": "274.2623951976449476",
             "currency_raised": "1.71799653",
             "estimated_end_at": "2026-10-14T14:41:27.000000Z",
             "minimum_reached": true,
@@ -74,7 +74,7 @@
               "symbol": "NVDAc"
             },
             "minimum_raise": "0.26969531",
-            "record_updated_at": "2026-11-12T22:56:24.711493Z",
+            "record_updated_at": "2026-11-13T16:02:33.321419Z",
             "treasury_security": null
           },
           {
@@ -105,7 +105,7 @@
               "symbol": "SPCXc"
             },
             "minimum_raise": "0.00001001",
-            "record_updated_at": "2026-11-12T22:56:26.752338Z",
+            "record_updated_at": "2026-11-13T16:02:34.324041Z",
             "treasury_security": null
           },
           {
@@ -122,7 +122,7 @@
             "featured": false,
             "token_symbol": "JollyB",
             "bid_volume": "0.07983953",
-            "bid_volume_usd": "49.629449185463504",
+            "bid_volume_usd": "50.4452659012445707",
             "currency_raised": "0.07983952",
             "estimated_end_at": "2026-09-26T14:33:23.000000Z",
             "minimum_reached": true,
@@ -136,7 +136,7 @@
               "symbol": "METAc"
             },
             "minimum_raise": "0.00001001",
-            "record_updated_at": "2026-11-12T22:56:24.716402Z",
+            "record_updated_at": "2026-11-13T16:02:33.321308Z",
             "treasury_security": null
           },
           {
@@ -153,7 +153,7 @@
             "featured": false,
             "token_symbol": "BITE",
             "bid_volume": "129.27906679",
-            "bid_volume_usd": "45842.357083734",
+            "bid_volume_usd": "46206.9240507890093321",
             "currency_raised": "109.05727688",
             "estimated_end_at": "2026-09-25T16:15:23.000000Z",
             "minimum_reached": true,
@@ -167,7 +167,7 @@
               "symbol": "AAPLc"
             },
             "minimum_raise": "0.00010001",
-            "record_updated_at": "2026-11-12T22:56:24.836745Z",
+            "record_updated_at": "2026-11-13T16:02:33.321810Z",
             "treasury_security": null
           },
           {
@@ -184,7 +184,7 @@
             "featured": false,
             "token_symbol": "RDOG",
             "bid_volume": "55.042608231604116578",
-            "bid_volume_usd": "7743.118912980909099610150",
+            "bid_volume_usd": "7560.377453651983432571190",
             "currency_raised": "55.042608231604116577",
             "estimated_end_at": "2026-09-25T15:25:25.000000Z",
             "minimum_reached": true,
@@ -198,7 +198,7 @@
               "symbol": "SPCX"
             },
             "minimum_raise": "2.000000000000000001",
-            "record_updated_at": "2026-11-12T22:55:59.456519Z",
+            "record_updated_at": "2026-11-13T16:04:04.407295Z",
             "treasury_security": null
           }
         ],
@@ -276,7 +276,7 @@
             "price_quote": "0.000000000506151444",
             "price_updated_at": "2026-10-15T23:48:51.159498Z",
             "bid_volume": "0.431051634406938743",
-            "bid_volume_usd": "407.570527674255161913818",
+            "bid_volume_usd": "370.0578281383569108655",
             "quote_token": {
               "decimals": 18,
               "address": "0xb90a19ff0af67f7779aff50a882a9cff42446400",
@@ -284,10 +284,10 @@
             },
             "market_cap": "0.506151444",
             "graduated_at": "2026-10-14T15:04:16.160628Z",
-            "price_usd": "0.000000478579350239544",
+            "price_usd": "0.000000434531014674",
             "top_rank": null,
             "treasury_security": null,
-            "market_cap_usd": "478.579350239544"
+            "market_cap_usd": "434.531014674"
           },
           {
             "id": "f54d6675-319c-46a5-8372-5f1eb480c503",
@@ -303,7 +303,7 @@
             "price_quote": "0.000000001362012771",
             "price_updated_at": "2026-10-16T14:34:57.691124Z",
             "bid_volume": "1.71799654",
-            "bid_volume_usd": "286.1109157133951984",
+            "bid_volume_usd": "274.2623951976449476",
             "quote_token": {
               "decimals": 8,
               "address": "0xb20000000000000000000078ee7ce2fe4908108c",
@@ -311,10 +311,10 @@
             },
             "market_cap": "1.362012771",
             "graduated_at": "2026-10-14T14:46:14.306902Z",
-            "price_usd": "0.000000226826254914430059",
+            "price_usd": "0.000000217432850513331935",
             "top_rank": null,
             "treasury_security": null,
-            "market_cap_usd": "226.826254914430059"
+            "market_cap_usd": "217.432850513331935"
           },
           {
             "id": "228eef20-74f3-442a-92ce-073348f154fe",
@@ -330,7 +330,7 @@
             "price_quote": "0.000000003997533079",
             "price_updated_at": "2026-09-26T19:58:55.574180Z",
             "bid_volume": "0.07983953",
-            "bid_volume_usd": "49.629449185463504",
+            "bid_volume_usd": "50.4452659012445707",
             "quote_token": {
               "decimals": 8,
               "address": "0xb2000000000000000000008bc8786b856e61707c",
@@ -338,10 +338,10 @@
             },
             "market_cap": "3.997533079",
             "graduated_at": "2026-09-26T19:52:16.501944Z",
-            "price_usd": "0.00000248492651211047915",
+            "price_usd": "0.00000252577412616502025",
             "top_rank": null,
             "treasury_security": null,
-            "market_cap_usd": "2484.92651211047915"
+            "market_cap_usd": "2525.77412616502025"
           },
           {
             "id": "f5f67b36-e68a-4faf-9d46-264e56c5e78f",
@@ -357,7 +357,7 @@
             "price_quote": "0.00000003853200807",
             "price_updated_at": "2026-10-31T21:54:04.586247Z",
             "bid_volume": "129.27906679",
-            "bid_volume_usd": "45842.357083734",
+            "bid_volume_usd": "46206.9240507890093321",
             "quote_token": {
               "decimals": 8,
               "address": "0xb200000000000000000000c2e324d24d7eecd1fb",
@@ -365,10 +365,10 @@
             },
             "market_cap": "38.53200807",
             "graduated_at": "2026-09-25T16:19:58.493728Z",
-            "price_usd": "0.000013663450061622",
+            "price_usd": "0.00001377211032399408",
             "top_rank": null,
             "treasury_security": null,
-            "market_cap_usd": "13663.450061622"
+            "market_cap_usd": "13772.11032399408"
           },
           {
             "id": "57b01d54-79c6-46a4-9199-ee13f9303087",
@@ -384,7 +384,7 @@
             "price_quote": "0.000002840577784979",
             "price_updated_at": "2026-09-28T15:03:22.738261Z",
             "bid_volume": "55.042608231604116578",
-            "bid_volume_usd": "7743.118912980909099610150",
+            "bid_volume_usd": "7560.377453651983432571190",
             "quote_token": {
               "decimals": 18,
               "address": "0x4a0e65a3eccec6dbe60ae065f2e7bb85fae35eea",
@@ -392,10 +392,10 @@
             },
             "market_cap": "2840.577784979",
             "graduated_at": "2026-09-25T15:40:13.944539Z",
-            "price_usd": "0.000399598279901920825",
+            "price_usd": "0.000390167561655790545",
             "top_rank": null,
             "treasury_security": null,
-            "market_cap_usd": "399598.279901920825"
+            "market_cap_usd": "390167.561655790545"
           }
         ],
         "pagination": {
@@ -435,7 +435,7 @@
           "featured": false,
           "token_symbol": "SANDY",
           "bid_volume": "0.431051634406938743",
-          "bid_volume_usd": "407.570527674255161913818",
+          "bid_volume_usd": "370.0578281383569108655",
           "currency_raised": "0.431051634406938742",
           "estimated_end_at": "2026-10-14T14:58:55.000000Z",
           "minimum_reached": true,
@@ -449,7 +449,7 @@
             "symbol": "SNDK"
           },
           "minimum_raise": "0.000000000026969531",
-          "record_updated_at": "2026-11-12T22:55:59.467124Z",
+          "record_updated_at": "2026-11-13T16:04:05.425877Z",
           "treasury_security": null
         },
         "robinhood_unavailable": false
@@ -486,7 +486,7 @@
           "price_updated_at": "2026-10-15T23:48:51.159498Z",
           "token_supply": "1000000000",
           "bid_volume": "0.431051634406938743",
-          "bid_volume_usd": "407.570527674255161913818",
+          "bid_volume_usd": "370.0578281383569108655",
           "quote_token": {
             "decimals": 18,
             "address": "0xb90a19ff0af67f7779aff50a882a9cff42446400",
@@ -494,12 +494,12 @@
           },
           "market_cap": "0.506151444",
           "graduated_at": "2026-10-14T15:04:16.160628Z",
-          "price_usd": "0.000000478579350239544",
+          "price_usd": "0.000000434531014674",
           "top_rank": null,
           "auction_url": "https://autolaunch.sh/auctions/SANDY/96468",
           "treasury_security": null,
           "revenue_history": null,
-          "market_cap_usd": "478.579350239544"
+          "market_cap_usd": "434.531014674"
         }
       }
     }

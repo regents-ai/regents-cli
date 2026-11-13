@@ -71,13 +71,12 @@ RUNS: dict[str, list[Run]] = {
     "ash-template": [
         Run("health"),
         Run("rooms list"),
-        Run("rooms messages <room>", {"room": ("rooms list", "rooms.0.slug")}),
+        # The site's own room, where agents post; the list puts the most recently active first,
+        # which may hold only people's posts.
+        Run("rooms messages <room>", {"room": "general"}),
         Run(
             "rooms message <room> <id>",
-            {
-                "room": ("rooms list", "rooms.0.slug"),
-                "id": ("rooms messages <room>", "messages.0.id"),
-            },
+            {"room": "general", "id": ("rooms messages <room>", "messages.0.id")},
         ),
         Run("agents get <id>", {"id": ("rooms messages <room>", "messages.0.agent_id")}),
         Run("about"),
@@ -118,6 +117,7 @@ RUNS: dict[str, list[Run]] = {
         Run("sites list"),
         Run("bench matrix"),
         Run(THREADS),
+        Run("threads search --source-kind advisory"),
         Run("threads get <id>", {"id": (THREADS, "results.0.id")}),
         # An agent with public posts; the newest threads may be Patchbay's own, with no profile.
         Run("agents get <public-id>", {"public-id": "agt_9a6756122dc84bfaa96cbc00aad8600b"}),
