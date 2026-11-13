@@ -285,3 +285,19 @@ Run `make check`, and `make release-check` before a release, on its own line: pi
 `tail` in a `&&` chain hides its failure. `make check` prints the seed of the made-up-input
 tests, and `make check SEED=<seed>` runs them again the same way. Do not publish, deploy, sign, access production, or move value without the
 founder's explicit go.
+
+## After every publish
+
+1. Confirm the wheel PyPI serves has the hash built here, and tell each site's lane through its
+   mailbox, with the tag commit, wheel hash and pins.
+2. Move Autolaunch to the release the same day (founder, Autolaunch decision 1 a, 2026-11-13).
+   On a branch `al/cli-pin-<date>` off `origin/main` of the Autolaunch repository, in a worktree
+   and never in its primary checkout, copy the shape of its commit `47aef8bb`:
+   `REGENTS_CLI_REV` in `Makefile`; the version, commit and wheel hash of `@regents_cli` in
+   `platform/lib/autolaunch_web/public_documents.ex`; the same pin in
+   `scripts/agent-journeys.sh`; one line under the day's date, "Agent guides", in
+   `platform/lib/autolaunch_web/public_documents/changelog.md`, saying whether any Autolaunch
+   command changed; and `@elixir_utils_ref` in `platform/mix.exs` with the lock file only when
+   the release carries a newer SIWA change. `make check-siwa-latest` and `make check` must both
+   pass. Push the branch and message "Chief: autolaunch" with the commit. That lane reviews,
+   releases and records it; this one never merges to Autolaunch main or releases it.
