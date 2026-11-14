@@ -154,6 +154,14 @@ to sign, and `--phase send` reads `{"request": …, "signature": …}` and sends
 The prepared request names the signing contract it was built under; a `regents` that signs under
 another one refuses it, so prepare it again.
 
+A sign-in lasts as long as the sign-in server allows, about an hour; `regents auth status` shows
+when each one runs out (`signed_in_until`) and whether it still holds (`fresh`). One the agent key
+on this machine made renews itself (`renews`): the first signed command in its last minute or
+after it runs out signs in again with that key, so nobody has to. With the key `regents` makes on
+a Mac, the first signed command after a restart still needs your person's Touch ID, as any signing
+does then. A sign-in made with a key of your own through `--phase` is never renewed; once it runs
+out, sign in again the same way.
+
 A pairing works on every Regent site. A person signed in on a site makes a code with Pair New
 Agent in the site's account menu, such as on https://keyfleet.ai/, and the agent supplies
 string `code`, `name` and `harness` fields through private JSON stdin to that site's `agents pair`:

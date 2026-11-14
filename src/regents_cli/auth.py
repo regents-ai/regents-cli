@@ -88,8 +88,10 @@ def auth_group(sites: list[str]) -> click.Group:
             ],
             help="Show the agent key's address, each site's sign-in, the agent's listing in "
             "the agent registry and the World ID person it accepted (each null when it has "
-            "none), read through a sign-in this machine's key made. Pairing status uses a "
-            "site's read-only identity probe. A site without that command reports it unavailable.",
+            "none), read through a sign-in this machine's key made. A sign-in that key made "
+            "renews itself with the next signed command once it runs out (renews); only one it "
+            "can't renew needs signing in again. Pairing status uses a site's read-only identity "
+            "probe. A site without that command reports it unavailable.",
         )
     )
     group.add_command(
@@ -231,20 +233,8 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         identity_probe(site)
     key = siwa.load_key()
     receipts = siwa.receipts()
-    answer: dict[str, Any] = {
-        "agent_key": key.address if key is not None else None,
-        "sign_ins": [
-            {
-                "site": site,
-                "wallet_address": receipt.address,
-                "signed_in_until": receipt.receipt_expires_at,
-                "fresh": receipt.fresh(),
-                "signs": signs(receipt, key),
-            }
-            for site, receipt in receipts.items()
-        ],
-    }
-    mine = [site for site, receipt in receipts.items() if key and receipt.signed_by(key)]
+    found: dict[str, Any] = {}
+    mine = [site for site, receipt in receipts.items() if this_machine_signs(receipt, key)]
     addresses = {p.site: base_address(None, p.env_var, p.base_url) for p in pinned_platforms()}
     confirmable = [site for site in mine if site in addresses]
     if confirmable:
@@ -264,8 +254,8 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
             timeout_ms,
         )
         listing, person = told["agentRegistration"], told["agentBook"]
-        answer["registry_listing"] = listing["registryUrl"] if listing else None
-        answer["world_id"] = (
+        found["registry_listing"] = listing["registryUrl"] if listing else None
+        found["world_id"] = (
             {"human_id": person["humanId"], "agent_count": person["agentCount"]} if person else None
         )
     selected = site or ("regents" if "regents" in mine else mine[0] if mine else None)
@@ -273,7 +263,7 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         try:
             platform, probe = identity_probe(selected)
         except CommandError as error:
-            answer["pairing_status"] = {"site": selected, **error.as_json()}
+            found["pairing_status"] = {"site": selected, **error.as_json()}
         else:
             base = base_address(None, platform.env_var, platform.base_url)
             siwa.signs_for(selected, base, timeout_ms)
@@ -282,13 +272,31 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
                 request, headers=siwa.sign(request, siwa.current(selected, timeout_ms), base)
             )
             told = send(base, request, timeout_ms)
-            answer["pairing_status"] = {"site": selected, **data_with(told)}
-    output.emit(answer, as_json=as_json, next_steps=after_status(answer, receipts))
+            found["pairing_status"] = {"site": selected, **data_with(told)}
+    answer: dict[str, Any] = {
+        "agent_key": key.address if key is not None else None,
+        # Read after the signed reads above: they renew a run-out sign-in this machine's key made.
+        "sign_ins": [
+            {
+                "site": site,
+                "wallet_address": receipt.address,
+                "signed_in_until": receipt.receipt_expires_at,
+                "fresh": receipt.fresh(),
+                "renews": this_machine_signs(receipt, key),
+                "signs": signs(receipt, key),
+            }
+            for site, receipt in siwa.receipts().items()
+        ],
+        **found,
+    }
+    output.emit(answer, as_json=as_json, next_steps=after_status(answer))
 
 
-def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> list[Step]:
-    """Sign in where there is no fresh sign-in, pair where the site says it is not paired."""
-    if not receipts and answer.get("agent_key") is None:
+def after_status(answer: dict[str, Any]) -> list[Step]:
+    """Sign in where a sign-in has run out that this machine's key does not renew, pair where the
+    site says it is not paired."""
+    sign_ins = answer["sign_ins"]
+    if not sign_ins and answer.get("agent_key") is None:
         return [
             run(
                 ["regents", "auth", "login", "--site", "<site>"],
@@ -297,7 +305,7 @@ def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> l
                 "opens and confirms within 5 minutes.",
             )
         ]
-    if not receipts:
+    if not sign_ins:
         return [
             run(
                 ["regents", "auth", "login", "--site", "<site>"],
@@ -308,11 +316,11 @@ def after_status(answer: dict[str, Any], receipts: dict[str, siwa.Receipt]) -> l
         ]
     steps = [
         run(
-            ["regents", "auth", "login", "--site", site],
-            f"The {site} sign-in has run out; sign in again before using {site}.",
+            ["regents", "auth", "login", "--site", row["site"]],
+            f"The {row['site']} sign-in has run out; sign in again before using {row['site']}.",
         )
-        for site, receipt in receipts.items()
-        if not receipt.fresh()
+        for row in sign_ins
+        if not row["fresh"] and not row["renews"]
     ]
     pairing = answer.get("pairing_status")
     if isinstance(pairing, dict) and unpaired(pairing):
@@ -580,8 +588,14 @@ def accept_world_id(
 ACCEPTED = done("The agent's wallet accepted its World ID person; nothing more to run.")
 
 
+def this_machine_signs(receipt: siwa.Receipt, key: siwa.Key | None) -> bool:
+    """Whether the key on this machine made this sign-in: it signs with it, and renews it by
+    itself once it runs out, as siwa.current does."""
+    return key is not None and receipt.signed_by(key)
+
+
 def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
-    return "this machine" if key is not None and receipt.signed_by(key) else "you"
+    return "this machine" if this_machine_signs(receipt, key) else "you"
 
 
 def identity_probe(site: str) -> tuple[Platform, Command]:

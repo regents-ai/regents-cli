@@ -3,6 +3,15 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Next release
+
+- `regents auth status` asks for a new sign-in only where one has run out that the agent key on
+  this machine cannot renew: one another wallet made, or any with no key here. One that key made
+  renews itself with the next signed command, so status no longer tells an agent to sign in again
+  for it. Each entry in `sign_ins` gains `renews`, true when this machine's key renews it, beside
+  `fresh`; and the site status reads through, which it renews on the way, shows its new
+  `signed_in_until` and `fresh` instead of the ones it had before.
+
 ## 1.10.28 — 2026-11-13
 
 Evidence: level protected; features techtree-release, release-gates and the command groups of

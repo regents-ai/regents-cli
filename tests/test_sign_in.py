@@ -2,7 +2,8 @@
 issues: the agent's key signs exactly the message issued for its own address and the site asked
 for, the nonce and message go back unchanged, and the receipt is kept for that site only. With
 --phase prepare and send, the message printed is the one issued and the signature sent is the
-person's own, as given.
+person's own, as given. `regents auth status` asks for a new sign-in only where one has run out
+that this machine's key cannot renew.
 """
 
 from __future__ import annotations
@@ -22,11 +23,15 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from regents_cli import app
+from regents_cli.http import base_address
 from regents_cli.platforms import pinned_platforms
 
 SITES = sorted({platform.site for platform in pinned_platforms()})
 KEY = "0x" + "00" * 31 + "01"
 ADDRESS = Account.from_key(KEY).address.lower()
+OTHER_WALLET = "0x" + "c0ffee" * 6 + "c0fe"
+RAN_OUT = "2020-01-01T00:00:00Z"
+RENEWED_UNTIL = "2999-01-01T00:00:00Z"
 MESSAGES = st.text(st.characters(blacklist_categories=["Cs"]), min_size=1)
 NONCES = st.text(st.sampled_from("abcdef0123456789"), min_size=8, max_size=32)
 
@@ -180,3 +185,97 @@ def test_a_receipt_regents_cannot_read_is_never_kept(
     assert failed != 0
     assert json.loads(shown.getvalue())["error"]["code"] == "invalid_response"
     assert not list(home.glob("receipts/*.json"))
+
+
+def ran_out(home: Path, site: str, address: str) -> None:
+    """A sign-in to `site` that `address` made, kept as login keeps it, which has run out."""
+    folder = home / "receipts"
+    folder.mkdir(mode=0o700, exist_ok=True)
+    kept = folder / f"{site}.json"
+    kept.write_text(
+        json.dumps(
+            {
+                "address": address,
+                "audience": site,
+                "receipt": f"old-{site}",
+                "receipt_expires_at": RAN_OUT,
+                "key_id": address,
+            }
+        )
+    )
+    kept.chmod(0o600)
+
+
+def renewing(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A sign-in server that signs this machine's key in again, accepts the requests it signs and
+    lists each site at its own address, and sites whose identity probe answers paired."""
+    listed = [
+        {"audience": p.site, "origin": base_address(None, p.env_var, p.base_url)}
+        for p in pinned_platforms()
+    ]
+
+    def post(url: str, *, json: dict[str, Any], **_: Any) -> httpx.Response:
+        if url.endswith("/wallet/nonce"):
+            return httpx.Response(200, json={"data": {"nonce": "abcdef0123", "message": "Sign in"}})
+        if url.endswith("/wallet/verify"):
+            renewed = {
+                "walletAddress": json["wallet_address"],
+                "receipt": "renewed",
+                "receiptExpiresAt": RENEWED_UNTIL,
+                "keyId": json["wallet_address"],
+            }
+            return httpx.Response(200, json={"data": renewed})
+        assert url.endswith("/http-verify"), url
+        told = {"agentRegistration": None, "agentBook": None}
+        return httpx.Response(200, json={"code": "http_envelope_valid", "data": told})
+
+    def get(url: str, **_: Any) -> httpx.Response:
+        assert url.endswith("/audiences"), url
+        return httpx.Response(200, json={"data": {"audiences": listed}})
+
+    def request(method: str, url: str, **_: Any) -> httpx.Response:
+        assert (method, url.rsplit("/api/", 1)[1]) == ("GET", "agents/v1/whoami"), url
+        return httpx.Response(200, json={"data": {"pairing": {"account_id": "acct_1"}}})
+
+    monkeypatch.setattr(httpx, "post", post)
+    monkeypatch.setattr(httpx, "get", get)
+    monkeypatch.setattr(httpx, "request", request)
+
+
+def test_status_asks_for_no_sign_in_this_machine_renews(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Told to sign in again, an agent stops and asks its person, when its next signed command
+    would renew the sign-in by itself (field report on 1.10.28). Status renews the site it reads
+    through and shows it fresh, shows another that ran out renews, and asks for no sign-in."""
+    home = agent_home(tmp_path, monkeypatch, with_key=True)
+    ran_out(home, "regents", ADDRESS)
+    ran_out(home, "patchbay", ADDRESS)
+    renewing(monkeypatch)
+
+    told = regents(["auth", "status"])
+
+    shown = {
+        row["site"]: (row["signed_in_until"], row["fresh"], row["renews"])
+        for row in told["sign_ins"]
+    }
+    assert shown == {"regents": (RENEWED_UNTIL, True, True), "patchbay": (RAN_OUT, False, True)}
+    assert [step["kind"] for step in told["next_steps"]] == ["done"]
+
+
+@pytest.mark.parametrize(("with_key", "made_by"), [(True, OTHER_WALLET), (False, ADDRESS)])
+def test_status_asks_to_sign_in_where_nothing_here_renews(
+    with_key: bool, made_by: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A sign-in another wallet made, or one with no key left on this machine, is never renewed:
+    without the step, the agent's next signed command for the site fails on it."""
+    home = agent_home(tmp_path, monkeypatch, with_key=with_key)
+    ran_out(home, "keyfleet", made_by)
+
+    told = regents(["auth", "status"])
+
+    [row] = told["sign_ins"]
+    assert (row["fresh"], row["renews"]) == (False, False)
+    assert [step.get("command") for step in told["next_steps"]] == [
+        "regents auth login --site keyfleet"
+    ]
