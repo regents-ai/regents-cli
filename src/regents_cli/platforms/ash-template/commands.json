@@ -928,7 +928,7 @@
     },
     {
       "command": "account points",
-      "description": "Read your person's Points, what they earned today and yesterday, their place, the actions still open with their Points and, before Points starts, the ones the start adds, daily limits, the leaderboard by name or wallet, recent entries, each saying who earned it and whether it counted, and every season with its dates, days left, what was earned in it and its NFT bonus.",
+      "description": "Read your person's Points, what they earned today and yesterday, their place, every action by the site it belongs to with its Points, done or still open, and, before Points starts, the ones the start adds, daily limits, the leaderboard by name or wallet, recent entries, each saying who earned it and whether it counted, and every season with its dates, days left, what was earned in it and its NFT bonus.",
       "operation_id": "getAccountPoints",
       "webmcp": "account_points",
       "method": "GET",

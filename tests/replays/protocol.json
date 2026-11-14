@@ -25,7 +25,7 @@
           },
           {
             "name": "Autolaunch",
-            "summary": "Launch a memecoin paired with a tokenized stock on Base, sell calls on your stock, or raise early backing for an agent that earns.",
+            "summary": "Launch a memecoin paired with a tokenized stock on Base or Robinhood Chain, sell calls on your stock, or raise early backing for an agent that earns.",
             "page": "https://regents.sh/autolaunch",
             "github": "https://github.com/regents-ai/autolaunch",
             "site": "https://autolaunch.sh",
@@ -41,7 +41,7 @@
           },
           {
             "name": "Techtree",
-            "summary": "Uplift your harness, Skills, or environments with the latest frontier stack from Prime Intellect and Nvidia",
+            "summary": "Custom Skills, evaluations, training environments, and open-weight models, built around your workflows, with results you can measure.",
             "page": "https://regents.sh/techtree",
             "github": "https://github.com/regents-ai/techtree",
             "site": "https://techtree.sh",
@@ -139,7 +139,7 @@
           "launch_notice": "Classic #1 sells its 1,024 Keys in USDC, from 10 USDC for the first to 100 USDC for the last. Regents Club Keys are given, one per Regents Club Pass.",
           "tech_stack": [
             "Bring your own agent: Hermes, OpenAI Dots, Muse, Grok Bot.",
-            "The agents collaborate between marimo notebooks, Activegraph.ai, Twigpine, and ddocs by Fileverse.",
+            "The agents collaborate between marimo notebooks, Activegraph.ai, and Git.",
             "Private chat rooms, and direct messages to other agents in their fleet.",
             "Keys are owned and transferable on Base, and give treasury rights."
           ],
@@ -651,9 +651,79 @@
       "body": {
         "pagination": {
           "has_more": true,
-          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhBHQAAAANdwttaWNyb3NlY29uZGgCYgAHvSJhBncGc2Vjb25kYTZ3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3BHllYXJiAAAH6ncGbWludXRlYQV3BGhvdXJhEncDZGF5YQR3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwl6b25lX2FiYnJtAAAAA1VUQ3cJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACRiODc5ZTM5Yy0wZjY3LTQ0NTktODY2Ny0xYzdhNjlmY2RlNjRq"
+          "next_cursor": "g2wAAAADdAAAAAV3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdwtFbGl4aXIuRGF0ZXcEeWVhcmIAAAfqdwNkYXlhB3QAAAANdwttaWNyb3NlY29uZGgCYgAG6WhhBncGc2Vjb25kYRN3CGNhbGVuZGFydxNFbGl4aXIuQ2FsZW5kYXIuSVNPdwVtb250aGELdwpfX3N0cnVjdF9fdw9FbGl4aXIuRGF0ZVRpbWV3CnV0Y19vZmZzZXRhAHcKc3RkX29mZnNldGEAdwR5ZWFyYgAAB+p3BGhvdXJhFncDZGF5YQt3CXpvbmVfYWJicm0AAAADVVRDdwZtaW51dGVhB3cJdGltZV96b25lbQAAAAdFdGMvVVRDbQAAACQ3YTI0MzJlNC1iOTU1LTQ1MzctOWVkNS1mNWIwYzJiMTliZTlq"
         },
         "papers": [
+          {
+            "id": "1158ee73-816a-40b1-8156-974b2d75e098",
+            "date": "2026-11-14",
+            "title": "EnvOpt: Automated Optimization for Agent Environments",
+            "authors": [
+              "Mingxuan Li",
+              "Huanzhi Mao",
+              "Qiuyang Mang",
+              "Hanchen Li",
+              "Joseph E. Gonzalez",
+              "Alex Dimakis"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/1158ee73",
+            "cover_alt": "First page of EnvOpt, showing its title, authors, abstract, and introduction.",
+            "chatgpt_url": "https://chatgpt.com/share/6af8d6a8-20f4-83e9-ad6f-a623003adce0",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/1158ee73-816a-40b1-8156-974b2d75e098?v=1794693434138190",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2611.07372"
+          },
+          {
+            "id": "2730f2fe-ded3-4f87-b9ab-f2792dcda347",
+            "date": "2026-11-13",
+            "title": "Can LLM Agents Organize Their Own Memory?",
+            "authors": [
+              "Zichuan Fu",
+              "Junjia Qi",
+              "Wenlin Zhang",
+              "Yimin Deng",
+              "Shirong Wang",
+              "Jinyang Li",
+              "Xian Wu",
+              "Xiangyu Zhao"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/2730f2fe",
+            "cover_alt": "First page of the SoMem paper, showing its title, authors, and abstract.",
+            "chatgpt_url": "https://chatgpt.com/share/6af7d473-b508-83e9-a73c-ad018780df27",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/2730f2fe-ded3-4f87-b9ab-f2792dcda347?v=1794627852035828",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://arxiv.org/pdf/2611.11929"
+          },
+          {
+            "id": "2a6bfa85-7c64-41d6-ac29-7f6981395b30",
+            "date": "2026-11-13",
+            "title": "The Next Two Levels of AI Adoption",
+            "authors": [
+              "Mike Taylor"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/2a6bfa85",
+            "cover_alt": "Illustration of people building together by weaving orange paths across a blue field.",
+            "chatgpt_url": "https://chatgpt.com/share/6af7d44c-9f00-83e9-84c1-2468581a4d2d",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/2a6bfa85-7c64-41d6-ac29-7f6981395b30?v=1794627873454562",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://every.to/also-true-for-humans/the-next-two-levels-of-ai-adoption"
+          },
+          {
+            "id": "5df8d65c-1e55-4c95-bbcf-1566617537f0",
+            "date": "2026-11-12",
+            "title": "Continual-ARC: Measuring Skill Acquisition Over a Working Lifetime",
+            "authors": [
+              "Daniel Lenton",
+              "Yusha Arif",
+              "Haris Mahmood"
+            ],
+            "url": "https://regents.sh/paper-pro-daily/5df8d65c",
+            "cover_alt": "First page of Continual-ARC, showing its title, authors, and abstract.",
+            "chatgpt_url": "https://chatgpt.com/share/6af7d3b1-a344-83ea-882b-bd154c7ffbcf",
+            "cover_url": "https://regents.sh/paper-pro-daily/pictures/5df8d65c-1e55-4c95-bbcf-1566617537f0?v=1794627891240540",
+            "chatgpt_model": "ChatGPT Astra 6 Pro",
+            "paper_url": "https://unify.ai/papers/continual-arc.pdf"
+          },
           {
             "id": "d33a151f-1cb2-460d-bf77-113c80749659",
             "date": "2026-11-11",
@@ -750,140 +820,6 @@
             "cover_url": "https://regents.sh/paper-pro-daily/pictures/7a2432e4-b955-4537-9ed5-f5b0c2b19be9?v=1794434839452968",
             "chatgpt_model": "ChatGPT Astra 6 Pro",
             "paper_url": "https://pancake.ai/research/marketing-memory/report.pdf"
-          },
-          {
-            "id": "395204ad-ae92-409a-9247-f163d402a457",
-            "date": "2026-11-06",
-            "title": "Replay Is a Family of Assertions: Fork-Safety in Event-Sourced Agent Runtimes",
-            "authors": [
-              "Yohei Nakajima"
-            ],
-            "url": "https://regents.sh/paper-pro-daily/395204ad",
-            "cover_alt": "First page of the replay and fork-safety paper, with its author, abstract and introduction.",
-            "chatgpt_url": "https://chatgpt.com/s/t_6aee0346b7a481919599b2fb5a56176d",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/395204ad-ae92-409a-9247-f163d402a457?v=1793983426138964",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://arxiv.org/pdf/2611.06924"
-          },
-          {
-            "id": "1bcf4d70-61ae-469a-9585-b50acc7bb42b",
-            "date": "2026-11-05",
-            "title": "FrontierPhysics: Evaluating Agents for End-to-End Physics Research",
-            "authors": [
-              "Bingran You",
-              "Wenjun Ke",
-              "Ria Rosenauer",
-              "Bo Liu",
-              "Wenbo Chen",
-              "Min Chen",
-              "Shuqi Xu",
-              "Yue Ma",
-              "Jiechao Feng",
-              "Bo Chen",
-              "Xiangkai Sun",
-              "Jiarui Liu",
-              "Jinen Guo",
-              "Zeyu Zhou",
-              "Xu Huang",
-              "Zhuohan Li",
-              "Haoyu Li",
-              "Heguang Lin",
-              "Lijie Ding",
-              "Yadong Zeng",
-              "Kangqi Zhang",
-              "Xinge Liu",
-              "Hanwen Liu",
-              "Zhenghong Li",
-              "Alexander von Recum",
-              "Yuchen Zhu",
-              "Felix Schwarzfischer",
-              "Yizhou Zhao",
-              "Jicheng Wang",
-              "Binxu Li",
-              "Qian Yu",
-              "Chan Li",
-              "Cheng Dai",
-              "Di Wang",
-              "Haoyu Zhang",
-              "Jiankai Sun",
-              "Kaituo Feng",
-              "Mian Qin",
-              "Ruihong Yin",
-              "Yiqun Luo",
-              "Weiwei Wu",
-              "Shihong Pan",
-              "Tsung Yeh Hsieh",
-              "Xiao Huang",
-              "Yan Zhang",
-              "Sihan Li",
-              "Zirui Ren",
-              "Zengji Tu",
-              "Kyoung Whan Choe",
-              "Ke Sun",
-              "Vincenzo Galia",
-              "Vaisakhi Mishra",
-              "Jiashu He",
-              "Hongyang Wang",
-              "Zhiheng Yang",
-              "Shubham Gaur",
-              "Yifan Gu",
-              "Shuyi Wang",
-              "Zihao Zuo",
-              "Steven Dillmann",
-              "Yiyou Sun",
-              "Xinyang Han",
-              "Hanchung Lee",
-              "Molei Tao",
-              "Yue Zhao",
-              "Shilong Liu",
-              "Yuchen Wu",
-              "Xuandong Zhao",
-              "Xiangyi Li",
-              "Florian Brand",
-              "Gerbrand Ceder",
-              "Hartmut Haeffner"
-            ],
-            "url": "https://regents.sh/paper-pro-daily/1bcf4d70",
-            "cover_alt": "First page of FrontierPhysics, with its authors, abstract and a chart comparing physics research agents.",
-            "chatgpt_url": "https://chatgpt.com/s/t_6aee0368e7e88191b30479c1422d4129",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/1bcf4d70-61ae-469a-9585-b50acc7bb42b?v=1793983429193186",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://www.alphaxiv.org/pdf/2611.06910"
-          },
-          {
-            "id": "610e6e17-1d3e-489e-b694-fca4d836fc9d",
-            "date": "2026-11-04",
-            "title": "Progress on provable inference for large language models",
-            "authors": [
-              "Roy Rinberg",
-              "Alex Allain",
-              "Alessandro Chiesa",
-              "Miranda Christ",
-              "Rahul Dalal",
-              "Giacomo Fenzi",
-              "Ben Mayer",
-              "Guy Weissenberg"
-            ],
-            "url": "https://regents.sh/paper-pro-daily/610e6e17",
-            "cover_alt": "Anthropic’s provable inference article heading above an illustration of metal chain links.",
-            "chatgpt_url": "https://chatgpt.com/share/6aeb73a0-c404-83ea-bb7e-fd5cd852b369",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/610e6e17-1d3e-489e-b694-fca4d836fc9d?v=1793815550628218",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://www.anthropic.com/research/provable-inference"
-          },
-          {
-            "id": "b879e39c-0f67-4459-8667-1c7a69fcde64",
-            "date": "2026-11-04",
-            "title": "Devcon 8: Formal Verification, AI Agents, and Ethereum Engineering",
-            "authors": [
-              "binji"
-            ],
-            "url": "https://regents.sh/paper-pro-daily/b879e39c",
-            "cover_alt": "Opening of binji’s X post discussing Ethereum engineering and the Devcon programme.",
-            "chatgpt_url": "https://chatgpt.com/s/t_6aeb73b0705c819197fe208946542f4c",
-            "cover_url": "https://regents.sh/paper-pro-daily/pictures/b879e39c-0f67-4459-8667-1c7a69fcde64?v=1793815554507170",
-            "chatgpt_model": "ChatGPT Astra 6 Pro",
-            "paper_url": "https://x.com/binji_x/status/2118015120567619871"
           }
         ]
       }
@@ -894,11 +830,11 @@
     "words": [
       "research",
       "show",
-      "d33a151f-1cb2-460d-bf77-113c80749659"
+      "1158ee73-816a-40b1-8156-974b2d75e098"
     ],
     "request": {
       "method": "GET",
-      "url": "https://regents.sh/api/v1/reading/papers/d33a151f-1cb2-460d-bf77-113c80749659",
+      "url": "https://regents.sh/api/v1/reading/papers/1158ee73-816a-40b1-8156-974b2d75e098",
       "content": null
     },
     "response": {
@@ -906,25 +842,24 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "paper": {
-          "id": "d33a151f-1cb2-460d-bf77-113c80749659",
-          "date": "2026-11-11",
-          "title": "Learning to Reason from Reference Samples Alone: Reinforced Adversarial Learning for Modern LLM Post-Training",
+          "id": "1158ee73-816a-40b1-8156-974b2d75e098",
+          "date": "2026-11-14",
+          "title": "EnvOpt: Automated Optimization for Agent Environments",
           "authors": [
-            "Albert Bou",
-            "Javier Valdes-Aleman",
-            "Jon M. Laurent",
-            "Samuel G. Rodriques",
-            "Andrew D. White",
-            "Michaela Hinks",
-            "Siddharth Narayanan"
+            "Mingxuan Li",
+            "Huanzhi Mao",
+            "Qiuyang Mang",
+            "Hanchen Li",
+            "Joseph E. Gonzalez",
+            "Alex Dimakis"
           ],
-          "url": "https://regents.sh/paper-pro-daily/d33a151f",
-          "cover_alt": "First page of the paper, showing its title, authors, abstract, and introduction.",
-          "chatgpt_url": "https://chatgpt.com/s/t_6af4e1693a78819185fa6036a6b6d453",
-          "cover_url": "https://regents.sh/paper-pro-daily/pictures/d33a151f-1cb2-460d-bf77-113c80749659?v=1794434777085142",
-          "analysis_markdown": "**My assessment: this is a promising paper about learning useful reward functions from examples. Its strongest evidence concerns reasoning on tasks with checkable answers; its scientific-writing results demonstrate convincing imitation, while leaving scientific validity largely untested.**\n\nI read the linked article and the full manuscript, **“Learning to Reason from Reference Samples Alone: Reinforced Adversarial Learning for Modern LLM Post-Training,” v3, revised November 10, 2026**, including the appendices, and checked the released experiment recipes. [arxiv.org](https://arxiv.org/abs/2610.38851)\n\n## 1. General impact and importance\n\n### What the method changes\n\nReinforced Adversarial Learning, or **RAL**, trains two models together:\n\n- A **generator** produces an answer.\n- A **judge** learns to distinguish generated answers from reference examples.\n- The judge’s probability that an answer is a reference becomes the generator’s reward.\n\nThe judge sees the task and final answer, but not the generator’s reasoning. Training therefore needs examples of good answers without accompanying reasoning demonstrations or a hand-written correctness reward. [advances.edisonscientific.com](https://advances.edisonscientific.com/research/reinforced-adversarial-learning/)\n\nThe attraction is practical: **organizations often possess completed work they consider good, even when they cannot turn that judgment into a reliable scoring function.** RAL offers a way to use those examples for reinforcement learning.\n\n### What the results support\n\n| Experiment | Reported result | My interpretation |\n|---|---|---|\n| Four-digit multiplication | RAL **94.9%** accuracy; direct verifiable-reward training **93.8%** | A learned judge can support genuine correctness. |\n| Countdown-Code | RAL **0.878** reward; direct verifiable-reward training **0.858** | Comparable performance on a structured coding task. This is the reported reward metric. |\n| SMILES → molecular formula | RAL **81.6%** accuracy; verifiable reward **67.9%**; supervised fine-tuning **94.5%** | RAL improves over this RL baseline, but the simpler supervised method wins decisively. |\n\nThese are the paper’s Table 1 results. [arxiv.org](https://arxiv.org/html/2610.38851v3)\n\nFor NIH abstracts, RAL’s outputs fooled human evaluators **55%** of the time, versus **44%** for its starting model and **21–37%** for the frontier baselines. Against the LLM evaluator ensemble, RAL reached approximately **35%**, versus at most **4%** for the baselines. [advances.edisonscientific.com](https://advances.edisonscientific.com/research/reinforced-adversarial-learning/)\n\n**The important contribution is the possibility of learning a useful objective where specifying one is difficult.** That could expand post-training into research planning, technical analysis, and other work with complex quality standards.\n\nThe underlying adversarial-learning idea has a long lineage, which the authors acknowledge. The contribution is its application to modern reasoning models and the evidence that this particular training setup can work. [advances.edisonscientific.com](https://advances.edisonscientific.com/research/reinforced-adversarial-learning/)\n\n## 2. Connections to Regents Labs\n\n**I would prioritize Techtree and Patchbay, with Keyfleet organizing the research.** The applications below are proposed extensions; the paper does not establish that these product outcomes will follow.\n\n### Techtree: evaluate whether examples actually improve agents\n\nTechtree already emphasizes comparisons on held-out tasks, independently checkable results, and Prime Intellect’s Verifiers. RAL’s released implementation uses Prime-RL, so there is a concrete connection to your existing direction. [Techtree](https://techtree.sh/)\n\nA useful extension would be:\n\n> Give Techtree examples of successful work, train a specialist, and measure whether it succeeds more often on unseen work.\n\nThe important product decision is to compare several approaches: a better Skill, retrieved examples, supervised fine-tuning, and RAL. Customers should receive evidence about which method improves their workflow at an acceptable cost.\n\n**Your potential advantage is the evaluation and integration work:** preparing trustworthy examples, preventing leakage, measuring regressions, and checking performance after models or tools change.\n\n### Patchbay: learn from successful repairs\n\nPatchbay’s questions and repair discussions provide a natural starting point for collecting task examples. [patchbay.help](https://patchbay.help/)\n\nI would structure a training example as:\n\n**Observed failure + tool version + relevant environment → repair + evidence that it worked.**\n\nA learned judge could evaluate difficult qualitative properties: whether a diagnosis explains the failure, whether instructions are actionable, and whether the proposed repair addresses the cause. Independent replay or tests should determine whether the repair succeeds.\n\nThis connects directly to **agentic commerce**. A paid repair service could improve from accepted work, but its commercial metric should be **successful repairs per dollar**, not increasingly convincing repair reports.\n\n### Keyfleet: organize generation, criticism, and independent reproduction\n\nKeyfleet already presents shared goals, code, notebooks, and review as fleet activities. [Persistent teams for personal AI agents](https://keyfleet.ai/)\n\nA suitable research fleet would divide responsibility among:\n\n- Agents proposing solutions.\n- Agents examining weaknesses and counterexamples.\n- Agents independently reproducing results.\n- A curator maintaining the verified reference corpus.\n\nThe reference corpus could become a durable asset shared across changing fleet members. However, agreement among agents is weak evidence if they all inherit the same blind spots. Preserve an independent outcome check.\n\nAlso, **actual RAL updates model weights**. Having frozen API agents critique one another is an operational experiment inspired by the paper, rather than a replication of its learning method.\n\n### Agentic research and science: condition everything on evidence\n\nFor a Keyfleet biology or computational-science project, the valuable extension is to train on **datasets, analysis outputs, and successful research reports together**.\n\nAsk whether the resulting agent:\n\n- Selects more informative experiments.\n- Produces reproducible analyses.\n- Distinguishes findings from hypotheses.\n- Avoids claiming results that were never observed.\n\nA model that becomes better at presenting preliminary evidence it does not possess would make autonomous research harder to trust.\n\n### Autolaunch and onchain finance: use learned judgment within explicit constraints\n\nFor Autolaunch’s finance work, I would test RAL on transaction explanations, proposed strategies, and analyses of failure cases. The final checks should still enforce permissions, collateral requirements, accounting, and transaction behavior.\n\nSimilarly, across Regents, learned judgments could help assess work quality, while **Credits, Points, escrow releases, and treasury actions remain tied to independently established conditions**.\n\nThe most plausible initial offering is: **specialize an agent using a customer’s accepted work, then provide an independently checkable improvement report.** Start with one workflow and establish that the improvement survives a real operational test.\n\n## 3. Problems and limitations\n\n### A. Scientific plausibility is an incomplete objective\n\nThe abstract generator receives a title rather than underlying research results; the authors explicitly identify conditioning on real results as future work. [advances.edisonscientific.com](https://advances.edisonscientific.com/research/reinforced-adversarial-learning/)\n\nThat creates a fundamental ambiguity. An abstract can become more convincing by improving its experimental reasoning—or by inventing more persuasive supporting details.\n\nThe evaluation does not resolve that ambiguity. For scientific applications, I would want factual support, feasibility, novelty, and experimental usefulness evaluated separately from whether the text appears authentic.\n\n### B. The comparisons do not establish superior efficiency\n\nRAL receives additional training beyond the baseline horizon, and its strongest configurations use larger judges. [arxiv.org](https://arxiv.org/html/2610.38851v3)\n\nThat supports a claim that the method **can reach competitive performance**. It does not establish that it reaches that performance with less compute, less elapsed time, or lower total cost.\n\nThe NIH recipe illustrates the distinction: it specifies a **32B generator, a 235B judge, and seven nodes**. That is a substantial configured training setup, although it does not tell us the actual runtime or bill. [GitHub](https://github.com/EdisonScientific/prime-rl-adversarial-paper/blob/main/configs/paper_experiments/README.md)\n\n### C. The SFT comparison needs careful interpretation\n\nThe chemistry result already shows that RAL should not be the automatic choice. Additionally, the appendix evaluates SFT with thinking disabled and shorter output budgets than the RL models. [arxiv.org](https://arxiv.org/html/2610.38851v3)\n\nConsequently, the extremely poor multiplication SFT result should not become a general conclusion that supervised learning from answers cannot help. Compare matched inference budgets and include **SFT followed by RL** before making that claim.\n\n### D. Checkpoint selection weakens the final-test claim\n\nThe paper reports the best performance obtained on its held-out evaluation set. [arxiv.org](https://arxiv.org/html/2610.38851v3)\n\nOnce a set repeatedly selects checkpoints, it serves as validation data. An untouched final test would provide stronger evidence. Independent training seeds would also help distinguish a reliable method from a favorable training run.\n\n### E. The frozen-judge comparison changes several variables\n\nThe biomedical comparison uses a frozen Haiku judge with pairwise binary rewards versus a trained Qwen judge with continuous single-answer scores. [advances.edisonscientific.com](https://advances.edisonscientific.com/research/reinforced-adversarial-learning/)\n\nTherefore, the observed difference cannot cleanly identify how much comes from updating the judge, changing its model, or changing the reward. A comparison using the same judge architecture and scoring rule would isolate the mechanism.\n\n### F. Human evaluation remains preliminary\n\nThe reported **55% ± 9 percentage points** interval includes chance performance. The manuscript also leaves important human-evaluation details unspecified, including rater count and judgments per item. [arxiv.org](https://arxiv.org/html/2610.38851v3)\n\nThe result is encouraging evidence of improved resemblance. It is insufficient to claim superior scientific judgment.\n\nMore broadly, a reference-based objective may reward conventions and weaknesses already present in its examples. An unusually good, unconventional answer could look less like the reference corpus. That is especially relevant when the intended outcome is scientific discovery.\n\n## 4. What I would research or test next\n\n| Priority | Experiment | What would change my assessment |\n|---|---|---|\n| **1. Establish the learning effect cleanly** | Repeat the small tasks with multiple seeds, an untouched final test, matched compute and inference budgets, and stronger SFT/hybrid baselines. | Gains that disappear under these controls would weaken the case for adopting RAL. |\n| **2. Separate scientific substance from style** | Supply actual results to both models. Introduce plausible but false statements, missing controls, and unsupported causal conclusions. | The judge should penalize substantive errors even when the prose remains convincing. |\n| **3. Isolate the training mechanism** | Hold the judge model fixed while varying frozen versus updated weights, binary versus continuous reward, replay, and smoothing. | This would show which components are necessary and which merely add cost. |\n| **4. Test generalization and originality** | Split by project family and time; audit near-duplicates; test unusual correct answers and unfamiliar task types. | Success should survive beyond familiar templates and closely related examples. |\n| **5. Demonstrate product value** | Train on verified Patchbay repairs and evaluate unseen failures through independent execution. | Require improved repair success and acceptable cost, without increased confident misdiagnosis. |\n\nFor Regents, I would begin with the released multiplication recipe, whose smaller configurations use **four GPUs**, to verify the training pipeline. Then move to one evidence-grounded repair task. A short initial run would establish infrastructure and learning behavior; it would not reproduce the final published result. [GitHub](https://github.com/EdisonScientific/prime-rl-adversarial-paper/blob/main/configs/paper_experiments/README.md)\n\nFor agentic science, the decisive follow-up would be prospective: does RAL produce an experimental plan that, when executed, yields more useful information than the alternatives?\n\n## 5. Why it matters in 2026—and what would make it important in 2031\n\n**It matters now because it addresses a practical obstacle to specialist agents: knowing what good work looks like is often easier than writing a reliable reward function for it.**\n\nIf this approach transfers, a collection of verified completed work could become a reusable training asset. That is relevant to Regents’ combination of agent workspaces, repair records, evaluation infrastructure, and commerce.\n\nTo become a well-known paper by **2031**, I would want to see:\n\n1. **Independent replication** across model families and substantially different tasks.\n2. **Better real outcomes**, including reproducible research and successful operational work.\n3. **Practical economics**, with clear evidence about when RAL beats simpler alternatives.\n4. **Robustness to misleading examples and superficial imitation**, while preserving useful novelty.\n5. **A widely reused training recipe** that helps organizations turn their own work into better agents.\n\nMy judgment is that **RAL deserves a focused replication and a carefully grounded product experiment**. Its lasting importance will depend on whether learning to resemble good work reliably becomes learning to do good work.\n\n---\n\nIf you want, I can:\n\n- Draft a research plan for testing RAL in real-world repair tasks\n- Devise an experimental setup to isolate RAL's training mechanisms\n- Outline steps to replicate the smaller RAL multiplication experiment on a 4-GPU setup",
+          "url": "https://regents.sh/paper-pro-daily/1158ee73",
+          "cover_alt": "First page of EnvOpt, showing its title, authors, abstract, and introduction.",
+          "chatgpt_url": "https://chatgpt.com/share/6af8d6a8-20f4-83e9-ad6f-a623003adce0",
+          "cover_url": "https://regents.sh/paper-pro-daily/pictures/1158ee73-816a-40b1-8156-974b2d75e098?v=1794693434138190",
+          "analysis_markdown": "# EnvOpt: Automated Optimization for Agent Environments\n\n**My assessment: this is a highly relevant systems paper for Regents Labs.** Its strongest contribution is showing how improving an agent’s working environment can reduce the cost of useful work. The evidence for preserving reliability across deployments is less conclusive.\n\nI reviewed the full 36-page paper, including its experimental instructions and appendices, and checked the public code release. [1](https://arxiv.org/pdf/2611.07372)\n\n## 1. General impact and importance\n\nEnvOpt uses a research agent to improve data representations, indexes, tools, and guidance around a fixed target agent. Training tasks have no graders; validation tasks do. [2](https://arxiv.org/pdf/2611.07372)\n\n### What the results establish\n\nThe comparators differ across benchmarks, so they should remain explicit:\n\n| Evaluation | Comparator | Reported efficiency change | Reported accuracy: before → after |\n|---|---|---:|---:|\n| AutomationBench, Haiku 4.5 | Original environment | **72.7% lower cost** | **2.33% → 16.67%** |\n| Workspace-Bench, GPT-5.4-mini | Original environment | **47.7% lower cost** | **39.84% → 43.12%** |\n| Data-Eng-Bench, GPT-5.6-luna | Original environment | **53.4% lower cost** | **50.68% → 53.88%** |\n| Bleve coding tasks | GSkill | **130 → 74 seconds** | **100% → 97.7%** |\n| Tenacity coding tasks | Advisor Models | **14.4 → 12.4 steps** | **61.2% → 70.1%** |\n\nSources: Table 1 and Figure 4. [3](https://arxiv.org/pdf/2611.07372)\n\nAdding EnvOpt to Meta-Harness also reduces Haiku’s cost by **83.4%**, with an **11.17-percentage-point** accuracy gain over Meta-Harness alone. [4](https://arxiv.org/pdf/2611.07372)\n\nThree implications matter:\n\n- **The workspace becomes an optimization asset.** A useful improvement can benefit many subsequent tasks. This creates a reason to invest in durable representations of an organization’s data and procedures.\n- **Application builders have a performance lever they control.** You can improve how agents encounter information without owning the model or training its weights.\n- **Agent quality should be evaluated together with its environment.** A model comparison can conceal substantial differences caused by navigation, data formatting, and tool behavior.\n\nI would rate the paper’s **practical importance higher than its conceptual novelty**. Earlier work such as ALIGN already explored automated interface adaptation. EnvOpt’s opportunity is to make environment improvement a measurable, repeatable engineering discipline. [5](https://arxiv.org/abs/2505.21055)\n\n## 2. Specific implications for Regents Labs\n\n**My priority would be: Keyfleet as the first testbed, Techtree as the evaluation and commercial layer, then Patchbay as a channel for distributing proven improvements.** This fits Techtree’s existing emphasis on measured workflow improvements and Keyfleet’s persistent shared workspaces. [6](https://techtree.sh/)\n\nThe following are proposed applications; their benefits would need measurement.\n\n| Product | What I would test | Valuable outcome |\n|---|---|---|\n| **Techtree** | Add environment optimization to the uplift workflow: improve a customer’s workspace, tool responses, and navigation while holding the worker model fixed. Deliver the changes with an untouched final evaluation. | Lower **total cost per correctly completed task**, with an explicit reliability threshold. |\n| **Keyfleet** | Build a compact shared catalog linking goals, evidence, notebook runs, repository commits, procedures, and unresolved failures. Let agents retrieve details as needed. | Faster resumption of another agent’s work; fewer repeated searches and duplicated failed attempts. |\n| **Patchbay** | Accept and evaluate improvements to tool response formats, endpoint guidance, error messages, and retrieval behavior alongside functional repairs. | Evidence that a repaired interface helps unfamiliar agents complete tasks. |\n| **Regents shared infrastructure** | Version the guidance and data adapters used across CLI, MCP, and WebMCP. Compare equivalent tasks across interfaces with the same information and permissions. | Reusable improvements across products and agent harnesses. |\n| **Autolaunch** | Improve navigation of contract metadata, supported actions, fee rules, and transaction prerequisites. Preserve explicit freshness information for changing state. | Cheaper, more accurate research and transaction preparation. |\n\n### A particularly concrete Keyfleet opportunity\n\nThere is already a closely related **unverified report** on Patchbay: an agent says checking whether a Keyfleet notebook has failed cells requires downloading and parsing roughly 960 KB of HTML, because the run-status response lacks a cell-level summary. The post explicitly identifies itself as an author’s account that has not been matched to a logged call. [7](https://patchbay.help/posts/204882f0-19bc-4c7d-927f-cd6e9240ac67/notebook-run-status-says-succeeded-with-no-cell-summary-proving-0-error-cells)\n\nI would reproduce that case first. If confirmed, a compact, trustworthy run receipt—with cell outcomes, source version, and a pointer to full evidence—would be an excellent initial experiment. It has a clear correctness criterion and a measurable reduction in repeated work.\n\nA second report describes private agent procedure notes becoming stale and asks for shared procedures with provenance and version information. That is another useful candidate to investigate, with the same distinction between a reported problem and a verified one. [8](https://patchbay.help/posts/c8dc9833-10de-42ca-8b0e-9458775d0ddb/fleet-agents-each-keep-private-how-to-notes-with-no-tool-version-or-reviewer-let)\n\n### Agentic research and science\n\nStart with **reproducibility work**: finding datasets, understanding variables and units, recovering preprocessing steps, and rerunning someone else’s experiment.\n\nAn optimized research environment could expose a navigable catalog of these dependencies. The scientific outcome to measure is whether an unfamiliar agent can independently reproduce a result. Cheaper exploration only becomes scientifically valuable when the resulting claims survive verification.\n\n### Agentic commerce and onchain finance\n\nThe useful hypothesis is that better information access can lower the overhead of evaluating offers, understanding charges, and preparing valid actions.\n\nFor Autolaunch, freshness must be part of correctness. Its current documentation already distinguishes stored information from live prices and executable actions; an optimizer should preserve those distinctions. [9](https://autolaunch.sh/)\n\nI would measure correct preparation, fee interpretation, and state verification. Trading profitability and safe autonomous capital allocation require their own experiments.\n\n### AI swarms and fleets\n\nThe fleet-specific opportunity is **shared improvements that prevent repeated rediscovery**. One well-maintained catalog or procedure could help many agents.\n\nThe corresponding risk is correlated error: one incorrect shared representation could mislead the entire fleet. Measure successful handoffs and independently verified results alongside reduced duplication.\n\n## 3. Negative issues and methodological concerns\n\n### A. Cost evidence is stronger than reliability evidence\n\nSome transfer results decline in accuracy; the reported evaluations lack confidence intervals. [10](https://arxiv.org/pdf/2611.07372)\n\nI would therefore be cautious about small improvements or regressions. The large efficiency changes are more persuasive than claims of universal reliability preservation. The low absolute accuracy in the first table row also limits what that result implies about deployment readiness.\n\n### B. Validation remains essential\n\nThe researchers revised instructions after observing validation behavior. [11](https://arxiv.org/pdf/2611.07372)\n\nThat makes independent correctness evaluation central to a production interpretation. An optimizer can learn to remove necessary work as easily as unnecessary work if its quality signal is weak. For Techtree, the evaluator should remain independent of the component proposing improvements.\n\n### C. The stopping rule needs clarification\n\nTable 5 continues after Workspace validation cost rises **$2.76 → $2.97**, whereas Algorithm 1 says to stop after a cost increase. [12](https://arxiv.org/pdf/2611.07372)\n\nLater exploratory measurements are not inherently problematic. But a reproduction needs to know which checkpoints were eligible for selection, whether tolerances or restarts were used, and which version produced the final result. This is a procedural ambiguity, not evidence of misconduct.\n\n### D. The value of automation needs a stronger control\n\nI would want an equal-budget comparison against a competent engineer building a simple catalog, endpoint guide, and selective prefetcher.\n\nThat experiment would distinguish the value of the automated search process from the value of removing obvious interface inefficiencies. Both can be useful, but they support different commercial claims.\n\nThe boundary with harness optimization also needs care: Appendix A.1 permits system-context injection and tool changes. [13](https://arxiv.org/pdf/2611.07372) I would emphasize reusable improvements and demonstrated compatibility rather than insist on a perfectly separate optimization category.\n\n### E. Production economics require a fuller ledger\n\nSome dollar figures are API-equivalent estimates, and preprocessing can recur per task. [14](https://arxiv.org/pdf/2611.07372)\n\nA deployment calculation should include optimization, evaluation, tool execution, data refresh, maintenance, and failure recovery. Whether a transformation pays for itself will depend on workload volume, model price, and how often the environment changes.\n\n### F. Independent reproduction is still important\n\nThe public repository currently describes the release as incomplete; it specifically says the Data-Eng-Bench code and optimized environments await upload following machine maintenance. [15](https://github.com/itea1001/EnvOpt)\n\nThat does not undermine the results by itself. It does mean I would treat the paper as a promising basis for replication before making strong customer guarantees.\n\n## 4. What I would research or test next\n\n### 1. Reproduce the complete optimization procedure\n\nRepeat independent optimization runs, not just repeated evaluations of one selected environment. Specify checkpoint selection in advance and publish paired task outcomes, uncertainty intervals, and a complete cost ledger.\n\n**Question:** Does the process reliably discover useful improvements, or does success depend heavily on a particular run?\n\n### 2. Compare against straightforward engineering\n\nUse four conditions:\n\n1. Original environment.\n2. A manually improved environment.\n3. Automatically optimized environment.\n4. Optimized environment combined with harness optimization.\n\nKeep models, tasks, permissions, and budgets comparable.\n\n**Question:** How much benefit comes from automation, and which transformations contribute most?\n\n### 3. Test changing environments\n\nAfter optimization, change schemas, add records, remove files, update tools, and alter permissions. Evaluate refresh behavior and whether agents can recognize stale information.\n\n**Question:** Does an improvement remain useful after the world changes, and how expensive is maintaining it?\n\n### 4. Test information preservation and shared failures\n\nCheck generated parsers, indexes, summaries, and helper programs independently. Include missing records, conflicting evidence, unusual file formats, and cases where the initial retrieval misses the answer.\n\n**Question:** Does efficiency come from better access, or from silently discarding information needed by less common tasks?\n\n### 5. Run a Keyfleet scientific-workflow pilot\n\nUse a frozen Classic #1 snapshot and tasks such as:\n\n- Find the evidence supporting a claim.\n- Reproduce a notebook result.\n- Continue another agent’s unfinished experiment.\n- Identify a previously failed approach before repeating it.\n\nThen evaluate on a later snapshot and a second agent model.\n\nMy proposed commercial gate would be **at least 25% lower total cost per verified completion**, subject to a predefined reliability threshold and preserved provenance. That is a target for Regents to test, not a result established by this paper.\n\n## 5. Why this matters in 2026—and what would make it well known in 2031\n\n**It matters now because it gives application builders a concrete way to improve deployed agents using software and data structures they control.** For Regents, the attractive possibility is that better shared infrastructure benefits multiple products, tasks, and agents without requiring a separate model-training effort for each.\n\nFor EnvOpt to become a well-known paper by 2031, I would want to see four developments:\n\n- **Independent replication** across organizations, models, and substantially different workspaces.\n- **Durable gains under change**, including realistic refresh and maintenance costs.\n- **A reusable ecosystem** of environment transformations, evaluations, and versioned artifacts.\n- **Better downstream outcomes**, such as more reproducible research and more successful fleet collaboration—not merely cheaper individual runs.\n\nMy forecast is that environment optimization has a strong chance of becoming routine agent engineering. Whether *EnvOpt* becomes the canonical reference depends on how well its particular procedure survives reproduction and generalization.\n\n**For Regents, the immediate opportunity is specific: make one recurring Keyfleet workflow measurably easier for agents, verify the improvement through Techtree, and use that evidence to decide how far to expand.**\n",
           "chatgpt_model": "ChatGPT Astra 6 Pro",
-          "paper_url": "https://arxiv.org/pdf/2610.38851v3"
+          "paper_url": "https://arxiv.org/pdf/2611.07372"
         }
       }
     }

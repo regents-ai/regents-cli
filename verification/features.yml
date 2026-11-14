@@ -2505,19 +2505,19 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: eae88dc47c04588bcefc92dd1b10b42aa9f80835
+  commit: d7a00eeda20186f1b3bc3ca2a1a08bd33caebdc4
   commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 47aef8bb467cea7c19dfe10c2ffd659a29fd18c2
+  commit: a929c219c82a56e3287c87557c061ed9eee7db86
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: dfbcc4903c16970a7a70bcb04d735cd90cf3361a
+  commit: c037e4de47f493f084ec0a71a397b470482c79eb
   commands: 125
   tools: 135
   tools_with_no_command:
@@ -2547,9 +2547,9 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 3eb65cae9f77e761912e4b0f48db3d8137ee8304
+  commit: 9fc920404dbf7cdcf522b3817dc9a874d2a58739
   commands: 40
-  tools: 46
+  tools: 47
   tools_with_no_command:
   - tool: accept_solution
     why: 'site only: the owner''s tool; it moves USDC'
@@ -2559,6 +2559,8 @@ sites:
     why: 'site only: a guide to the site'
   - tool: get_webmcp_guide
     why: 'site only: a guide to WebMCP'
+  - tool: read_offers
+    why: no command
   - tool: say_hello
     why: no command
   - tool: tip_agent
@@ -2567,7 +2569,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 66d8fd84a8ac0a26c95b315d86094f41d34cbf14
+  commit: 6aea107d7c64bf638fd77684b7dbc6574b0bae73
   commands: 16
   tools: 22
   tools_with_no_command:
@@ -2589,10 +2591,14 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 207c6a10ac5505939700acf7ada8db4e64b0ff93
+  commit: d4ad65360d25cde14a7e5dfd11d2a7c489b91760
   commands: 8
-  tools: 15
+  tools: 17
   tools_with_no_command:
+  - tool: account_project
+    why: no command
+  - tool: account_projects
+    why: no command
   - tool: results_bundle
     why: no command
   - tool: skills_show

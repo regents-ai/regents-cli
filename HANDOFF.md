@@ -247,6 +247,13 @@ behind a site, and never holds one up (founder, 2026-09-28).
    format's `pagination` (it needs a `has_more` that is true) cannot describe, so `regents`
    prints no next-page step for it; Keyfleet's description tells the agent instead. Engines and
    catalog unchanged, release `climb-v0.7.29`.
+7j. 1.10.29 (2026-11-14): `auth status` asks for a new sign-in only where this machine's key
+   can't renew one (`renews` in each `sign_ins` entry), and every site re-pinned at its live
+   commit: Keyfleet's `notebooks files write` needs `expected_revision` and its notebook runs
+   give `entry_current` and `bundle_current` for `code_current`, the template's `account points`
+   groups `to_do` by site, and Patchbay's `updates read` names each event's author. Autolaunch
+   removed `cli/docs/profile.openapi.json` with its own command line's profile commands, so the
+   lock no longer copies it. Engines and catalog unchanged, release `climb-v0.7.30`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
