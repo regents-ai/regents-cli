@@ -257,6 +257,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
    `workspace packet` and `code file` reads are new. Autolaunch
    removed `cli/docs/profile.openapi.json` with its own command line's profile commands, so the
    lock no longer copies it. Engines and catalog unchanged, release `climb-v0.7.30`.
+7k. 1.10.30 (2026-11-15): every site re-pinned at its live commit: Keyfleet's `presence mark`
+   is the first site command marked `"sends": true`, so `--send` has a command to run on. Engines
+   and catalog unchanged, release `climb-v0.7.31`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

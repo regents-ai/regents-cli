@@ -2515,19 +2515,19 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 10a17e556b8e34a24329c86e87bb5ce152f7d585
+  commit: d561854b9c480003feda59915ddb288a138bc8a7
   commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 11c0851b8d9399994a83eca6309de0f666b115b9
+  commit: 3e563abb8de00b915d31a9104b021ec91cb63e9f
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 4d19070ba3f03cff74195defc6cf39059e819479
+  commit: 30c55567eeb01c4a1f5b9824bf2e3ebba2e2466f
   commands: 127
   tools: 137
   tools_with_no_command:
@@ -2557,7 +2557,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: ff33e1699e546eb3cfcb4db556c42620b2a100d0
+  commit: 64bb79144f573f28523e6d1ae60b2f3bcf9a3fc7
   commands: 40
   tools: 47
   tools_with_no_command:

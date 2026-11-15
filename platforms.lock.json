@@ -1,7 +1,7 @@
 {
   "ash-template": {
     "repository": "regents-ai/ash-template",
-    "commit": "10a17e556b8e34a24329c86e87bb5ce152f7d585",
+    "commit": "d561854b9c480003feda59915ddb288a138bc8a7",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/ash-template/commands.json",
@@ -23,7 +23,7 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "11c0851b8d9399994a83eca6309de0f666b115b9",
+    "commit": "3e563abb8de00b915d31a9104b021ec91cb63e9f",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
@@ -41,11 +41,11 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "4d19070ba3f03cff74195defc6cf39059e819479",
+    "commit": "30c55567eeb01c4a1f5b9824bf2e3ebba2e2466f",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
-        "sha256": "400e483b82c109e6c6f3b0a0de1810b304474c6d47fb4305d7b0bc7ac2fb8bbd"
+        "sha256": "d17a8e2930d0801931fec5b7de9bd4d7d26f8d12e0cff5f3ab97ff2720469b13"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/keyfleet/openapi.json",
@@ -53,17 +53,17 @@
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/keyfleet/api-contract.openapiv3.yaml",
-        "sha256": "ddccf243097b630a440961e5d948e1facdb6d9e640d373ed33f7ea636cd72ac0"
+        "sha256": "e82cc9a619ff75b3566cc757a3c4b694856805bf8134bd5bf6596478139a0e95"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "src/regents_cli/platforms/keyfleet/tool_manifest.json",
-        "sha256": "a27cb7053bc576c412a00ff3b33e243f1194b9b46429e2eacf348518da58dfe7"
+        "sha256": "4042e9ef818bf12d833a5cfc3aba2a8465fa6d8814cad513153d84c0f4e89509"
       }
     }
   },
   "patchbay": {
     "repository": "regents-ai/patchbay",
-    "commit": "ff33e1699e546eb3cfcb4db556c42620b2a100d0",
+    "commit": "64bb79144f573f28523e6d1ae60b2f3bcf9a3fc7",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",

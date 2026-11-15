@@ -3,6 +3,22 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.30 — 2026-11-15
+
+Evidence: level protected; features techtree-release and the command groups of every site;
+1126 tests; every public read run against the live sites from the built wheel; Techtree release
+record climb-v0.7.31.
+
+- Every site is pinned at the commit it runs live (read 15 Nov, 08:41Z): template d561854b,
+  Autolaunch 3e563abb, Keyfleet 30c55567, Patchbay 64bb7914, regents.sh 39348075, Techtree
+  41ae5844. The commands follow them:
+  - Keyfleet's `presence mark <fleet>` is the first command a site marks as one that sends: its
+    answer lists the Base transactions that mark your Keys present for 48 hours, and with
+    `--send` the agent key on this machine signs and sends them, its wallet paying the gas.
+    Without `--send` nothing is sent, as before.
+  - Keyfleet's `preview` gives, for a workspace write, the refusal the write would get now.
+  - The template, Autolaunch, Patchbay, regents.sh and Techtree changed no command.
+
 ## 1.10.29 — 2026-11-15
 
 Evidence: level protected; features sign-in, techtree-release and the command groups of every
