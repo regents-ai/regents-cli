@@ -2579,7 +2579,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 6aea107d7c64bf638fd77684b7dbc6574b0bae73
+  commit: 39348075d0c8e0cdcee4e0e310ed799336bc9715
   commands: 16
   tools: 22
   tools_with_no_command:
