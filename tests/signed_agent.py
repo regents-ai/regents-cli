@@ -1,5 +1,6 @@
-"""A test agent signed in to ash-template, and the check that a request a site received was
-signed by that agent's key over exactly the method, path and bytes received."""
+"""A test agent signed in to one site, ash-template unless another is named, and the check that a
+request a site received was signed by that agent's key over exactly the method, path and bytes
+received."""
 
 from __future__ import annotations
 
@@ -19,16 +20,16 @@ ADDRESS: Final = "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf"
 RECEIPT: Final = "test-receipt"
 
 
-def sign_in(folder: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """An agent home in `folder` with a fixed test key, signed in to ash-template."""
+def sign_in(folder: Path, monkeypatch: pytest.MonkeyPatch, site: str = "ash-template") -> None:
+    """An agent home in `folder` with a fixed test key, signed in to `site`."""
     home = folder / "agent"
     (home / "receipts").mkdir(parents=True, mode=0o700)
     home.chmod(0o700)
     files = {
         "key.json": {"address": ADDRESS, "private_key": "0x" + "00" * 31 + "01"},
-        "receipts/ash-template.json": {
+        f"receipts/{site}.json": {
             "address": ADDRESS,
-            "audience": "ash-template",
+            "audience": site,
             "receipt": RECEIPT,
             "receipt_expires_at": "2999-01-01T00:00:00Z",
             "key_id": ADDRESS,

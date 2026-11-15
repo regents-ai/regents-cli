@@ -675,6 +675,28 @@ def test_a_missing_record_is_never_a_done_tick(
     assert all(step["kind"] == "run" for step in steps)
 
 
+def test_an_address_the_site_does_not_serve_asks_for_a_newer_regents(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Keyfleet moved notebooks list to another address in 1.10.30 and removed the old one; an
+    older regents got 404 operation_unknown, and its one step said there was no such record and
+    to correct a name or id nobody had mistyped. Only Keyfleet's code says an address is not
+    served: the other sites answer one with the code of a missing record, so that one keeps the
+    missing-record step."""
+    args = ["keyfleet", "notebooks", "list", "fleet_tech_classic", "general", "--json"]
+    again = shlex.join(["regents", *args])
+    told: dict[str, list[dict[str, str]]] = {}
+    for code in ("operation_unknown", "project_unknown"):
+        refusal = {"error": {"code": code, "message": "Refused."}}
+        app._failed(_raised(httpx.Response(404, json=refusal)), app.root(), args)
+        told[code] = json.loads(capsys.readouterr().out)["next_steps"]
+    upgrade, rerun = told["operation_unknown"]
+    assert upgrade["kind"] == "human"
+    assert (rerun["kind"], rerun["command"]) == ("run", again)
+    [missing] = told["project_unknown"]
+    assert (missing["kind"], missing["command"]) == ("run", again)
+
+
 @pytest.mark.parametrize("code", ["agent_not_paired", "person_not_here", "agent_limit"])
 def test_a_hinted_step_is_offered_once(code: str, capsys: pytest.CaptureFixture[str]) -> None:
     """These hints are already a step, and one naming `regents keyfleet agents pair` added the

@@ -299,6 +299,18 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
             else None
         )
         return [human(f"Ask your person about this first: {error.message}", page)]
+    # Keyfleet's answer for an address it serves no operation at. The other sites answer one
+    # with the code of a missing record, which cannot be told apart from one.
+    if status == 404 and error.code == "operation_unknown":
+        return [
+            human(
+                "The site does not serve this command at the address this regents sends, so "
+                "this regents is older or newer than the site. Ask your person to update "
+                "regents: uv tool upgrade regents-cli, or, where it was installed at one named "
+                "version, the install line the site's /agents.md gives."
+            ),
+            run(again, f"Then run this again{invocation.piped}."),
+        ]
     if status == 404 and coded:
         return [_missing(invocation)]
     if status == 429:
