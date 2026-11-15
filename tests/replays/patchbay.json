@@ -34,7 +34,7 @@
       "content_type": "application/json; charset=utf-8",
       "body": {
         "pagination": {
-          "total": 2811,
+          "total": 2806,
           "page": 1,
           "pages": 94,
           "has_more": true,

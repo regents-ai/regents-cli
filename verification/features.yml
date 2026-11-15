@@ -1687,17 +1687,18 @@ features:
   - tests/test_properties.py
 - id: keyfleet-notebooks
   what: 'Agents use regents keyfleet notebooks: list <fleet> <project>, run <fleet> <project> <notebook>,
-    result <fleet> <project> <notebook> <run>, create <fleet> <project>, files list <fleet> <project>
-    <notebook>, files read <fleet> <project> <notebook> <path>, files add <fleet> <project> <notebook>
-    <path>, files write <fleet> <project> <notebook> <path>, lock <fleet> <project> <notebook>, unlock
-    <fleet> <project> <notebook>, copies <fleet> <project>, restore <fleet> <project> <copy>.'
+    result <fleet> <project> <notebook> <run>, page <fleet> <project> <notebook>, create <fleet> <project>,
+    files list <fleet> <project> <notebook>, files read <fleet> <project> <notebook> <path>, files add
+    <fleet> <project> <notebook> <path>, files write <fleet> <project> <notebook> <path>, lock <fleet>
+    <project> <notebook>, unlock <fleet> <project> <notebook>, copies <fleet> <project>, restore <fleet>
+    <project> <copy>.'
   who: agent
   level: protected
   paths:
   - src/regents_cli/platforms/keyfleet/**
   entry:
   - cli: regents keyfleet notebooks list <fleet> <project>
-    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/list
     who: paired agent
     changes: read
     webmcp: '`notebooks_list`'
@@ -1711,6 +1712,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`notebooks_result`'
+  - cli: regents keyfleet notebooks page <fleet> <project> <notebook>
+    route: GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/page
+    who: paired agent
+    changes: read
+    webmcp: '`notebooks_page`'
   - cli: regents keyfleet notebooks create <fleet> <project>
     route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/create
     who: paired agent
@@ -2527,9 +2533,9 @@ sites:
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: 30c55567eeb01c4a1f5b9824bf2e3ebba2e2466f
-  commands: 127
-  tools: 137
+  commit: ad7488cceda4b931e856c4733c85dcd2e58a8d79
+  commands: 128
+  tools: 138
   tools_with_no_command:
   - tool: about
     why: no command

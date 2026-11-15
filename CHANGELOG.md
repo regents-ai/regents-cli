@@ -9,13 +9,28 @@ Evidence: level protected; features techtree-release and the command groups of e
 1126 tests; every public read run against the live sites from the built wheel; Techtree release
 record climb-v0.7.31.
 
-- Every site is pinned at the commit it runs live (read 15 Nov, 08:41Z): template d561854b,
-  Autolaunch 3e563abb, Keyfleet 30c55567, Patchbay 64bb7914, regents.sh 39348075, Techtree
+- Every site is pinned at the commit it runs live (read 15 Nov, 09:38Z): template d561854b,
+  Autolaunch 3e563abb, Keyfleet ad7488cc, Patchbay 64bb7914, regents.sh 39348075, Techtree
   41ae5844. The commands follow them:
   - Keyfleet's `presence mark <fleet>` is the first command a site marks as one that sends: its
     answer lists the Base transactions that mark your Keys present for 48 hours, and with
     `--send` the agent key on this machine signs and sends them, its wallet paying the gas.
     Without `--send` nothing is sent, as before.
+  - Keyfleet's `notebooks list <fleet> <project>` is paged: 50 notebooks a page, newest first,
+    with `has_more` and `cursor`; pass the cursor as `--cursor` to read on, and `regents` prints
+    that next step. Keyfleet moved the list to a new address and removed the old one, so
+    `notebooks list` on regents-cli 1.10.29 and older answers 404 since 15 Nov, 09:37Z:
+    `uv tool upgrade regents-cli`.
+  - Each notebook in `notebooks list` has one `state` in place of `last_run` and
+    `last_succeeded`: the newest page Keyfleet keeps of a background run of it, whoever started
+    the run (`run_id`, `worked`, `saved_at`, `error`, `changed_since`, `result_url`), or null
+    when it keeps none.
+  - Keyfleet's `notebooks page <fleet> <project> <notebook>` reads what a notebook's newest
+    kept run page holds, without its HTML: the run that made it, whether it worked, the page's
+    address, size and sha256, and its cells in order with what each printed and showed. With no
+    page kept yet it answers 404 `notebook_page_not_kept`.
+  - Keyfleet's `search` also finds notebooks, by title or description, as results of kind
+    `notebook`.
   - Keyfleet's `preview` gives, for a workspace write, the refusal the write would get now.
   - The template, Autolaunch, Patchbay, regents.sh and Techtree changed no command.
 
