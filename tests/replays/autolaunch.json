@@ -31,7 +31,7 @@
             "bid_volume": "0",
             "bid_volume_usd": "0.00000000",
             "currency_raised": "0",
-            "estimated_end_at": "2026-11-15T21:00:24.000000Z",
+            "estimated_end_at": "2026-11-15T21:00:23.000000Z",
             "minimum_reached": false,
             "opened_at": "2026-11-14T21:00:25.000000Z",
             "percent_met": 0,
@@ -43,7 +43,7 @@
               "symbol": "GOOGLc"
             },
             "minimum_raise": "0.26969531",
-            "record_updated_at": "2026-11-14T22:36:10.441660Z",
+            "record_updated_at": "2026-11-15T01:31:39.010157Z",
             "treasury_security": null
           },
           {
@@ -74,7 +74,7 @@
               "symbol": "SNDK"
             },
             "minimum_raise": "0.000000000026969531",
-            "record_updated_at": "2026-11-14T22:28:44.995142Z",
+            "record_updated_at": "2026-11-15T01:30:12.169123Z",
             "treasury_security": null
           },
           {
@@ -105,7 +105,7 @@
               "symbol": "NVDAc"
             },
             "minimum_raise": "0.26969531",
-            "record_updated_at": "2026-11-14T22:30:55.453205Z",
+            "record_updated_at": "2026-11-15T01:31:46.140062Z",
             "treasury_security": null
           },
           {
@@ -136,7 +136,7 @@
               "symbol": "SPCXc"
             },
             "minimum_raise": "0.00001001",
-            "record_updated_at": "2026-11-14T22:31:06.610100Z",
+            "record_updated_at": "2026-11-15T01:31:56.247618Z",
             "treasury_security": null
           },
           {
@@ -167,7 +167,7 @@
               "symbol": "METAc"
             },
             "minimum_raise": "0.00001001",
-            "record_updated_at": "2026-11-14T22:30:55.470400Z",
+            "record_updated_at": "2026-11-15T01:31:46.130869Z",
             "treasury_security": null
           },
           {
@@ -198,7 +198,7 @@
               "symbol": "AAPLc"
             },
             "minimum_raise": "0.00010001",
-            "record_updated_at": "2026-11-14T22:30:56.468301Z",
+            "record_updated_at": "2026-11-15T01:31:46.257809Z",
             "treasury_security": null
           },
           {
@@ -229,7 +229,7 @@
               "symbol": "SPCX"
             },
             "minimum_raise": "2.000000000000000001",
-            "record_updated_at": "2026-11-14T22:28:44.972270Z",
+            "record_updated_at": "2026-11-15T01:30:12.164653Z",
             "treasury_security": null
           }
         ],
@@ -468,7 +468,7 @@
           "bid_volume": "0",
           "bid_volume_usd": "0.00000000",
           "currency_raised": "0",
-          "estimated_end_at": "2026-11-15T21:00:24.000000Z",
+          "estimated_end_at": "2026-11-15T21:00:23.000000Z",
           "minimum_reached": false,
           "opened_at": "2026-11-14T21:00:25.000000Z",
           "percent_met": 0,
@@ -480,7 +480,7 @@
             "symbol": "GOOGLc"
           },
           "minimum_raise": "0.26969531",
-          "record_updated_at": "2026-11-14T22:36:10.441660Z",
+          "record_updated_at": "2026-11-15T01:31:39.010157Z",
           "treasury_security": null
         },
         "robinhood_unavailable": false

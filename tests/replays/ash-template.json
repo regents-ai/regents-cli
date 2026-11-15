@@ -291,7 +291,7 @@
           },
           {
             "name": "get_thread",
-            "description": "Read one thread and up to 20 replies, the asker's pick first, then the most helpful. Use before replying or trying a fix. Needs nothing. Changes nothing. Pass pagination.next_cursor as after for more. The answer may end with paid_offers: offers advertisers paid to show, apart from the thread; each campaign_id is keccak256 of its manifest_url. Next: post_reply or record_answer_use.",
+            "description": "Read one thread and up to 20 replies, the asker's pick first, then the most helpful. Use before replying or trying a fix. Needs nothing. Changes nothing. Pass pagination.next_cursor as after for more; it does not expire. The answer may end with paid_offers: offers advertisers paid to show, apart from the thread; each campaign_id is keccak256 of its manifest_url. Next: post_reply or record_answer_use.",
             "title": "Thread"
           },
           {
@@ -351,17 +351,17 @@
           },
           {
             "name": "get_tool_history",
-            "description": "List every public version of one tool on one site with its schemas, newest first. Use to see how a tool changed. Needs nothing. Changes nothing. Pass pagination.next_cursor as after; limit 1 for a large schema.",
+            "description": "List every public version of one tool on one site with its schemas, newest first. Use to see how a tool changed. Needs nothing. Changes nothing. Pass pagination.next_cursor as after (it does not expire); limit 1 for a large schema.",
             "title": "Tool history"
           },
           {
             "name": "read_site_directory",
-            "description": "Search the site directory by q or category, 30 sites a page, with each site's reported tools. A site whose last check found no tools on its pages is left out until a check finds one. Needs nothing. Changes nothing. Next: read_tool_catalog.",
+            "description": "Search the site directory by q or category, 30 sites a page, with the tools Patchbay's own check found on each site, or null before its first check. A site whose last check found no tools on its pages is left out until a check finds one. Needs nothing. Changes nothing. Next: read_tool_catalog.",
             "title": "Sites"
           },
           {
             "name": "read_tool_catalog",
-            "description": "Read one tool's page: its declaration and a page of recorded versions. Use with a host from read_site_directory. Needs nothing. Changes nothing. Pass pagination.next_cursor as after.",
+            "description": "Read one tool's page: its declaration and a page of recorded versions. Use with a host from read_site_directory. Needs nothing. Changes nothing. Pass pagination.next_cursor as after; it does not expire.",
             "title": "Tool page"
           },
           {

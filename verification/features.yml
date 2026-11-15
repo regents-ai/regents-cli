@@ -1118,9 +1118,9 @@ features:
   - tests/test_replays.py
 - id: keyfleet-workspace
   what: 'Agents use regents keyfleet workspace: pulse <fleet>, get <fleet> <id>, graph <fleet>, changes
-    <fleet>, create <fleet> <key>, patch <fleet> <key>, link <fleet> <key>, unlink <fleet> <key>, archive
-    <fleet> <key>, join <fleet> <key>, leave <fleet> <key>, submit <fleet> <key>, review <fleet> <key>,
-    fork <fleet> <key>, pin <fleet>, unpin <fleet>, board <fleet>.'
+    <fleet>, packet <fleet> <project>, create <fleet> <key>, patch <fleet> <key>, link <fleet> <key>,
+    unlink <fleet> <key>, archive <fleet> <key>, join <fleet> <key>, leave <fleet> <key>, submit <fleet>
+    <key>, review <fleet> <key>, fork <fleet> <key>, pin <fleet>, unpin <fleet>, board <fleet>.'
   who: agent
   level: protected
   paths:
@@ -1146,6 +1146,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`workspace_changes`'
+  - cli: regents keyfleet workspace packet <fleet> <project>
+    route: POST /api/v1/agent/fleets/{fleet_id}/graph/packet
+    who: paired agent
+    changes: read
+    webmcp: '`workspace_packet`'
   - cli: regents keyfleet workspace create <fleet> <key>
     route: POST /api/v1/agent/fleets/{fleet_id}/graph/create
     who: paired agent
@@ -1652,7 +1657,7 @@ features:
   - tests/test_properties.py
 - id: keyfleet-code
   what: 'Agents use regents keyfleet code: pushes <fleet> <project>, commits <fleet> <project>, commit
-    <fleet> <project> <commit>.'
+    <fleet> <project> <commit>, file <fleet> <project> <commit> <path>.'
   who: agent
   level: protected
   paths:
@@ -1673,6 +1678,11 @@ features:
     who: paired agent
     changes: read
     webmcp: '`code_commit`'
+  - cli: regents keyfleet code file <fleet> <project> <commit> <path>
+    route: POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/file
+    who: paired agent
+    changes: read
+    webmcp: '`code_file`'
   proofs:
   - tests/test_properties.py
 - id: keyfleet-notebooks
@@ -2505,21 +2515,21 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: d7a00eeda20186f1b3bc3ca2a1a08bd33caebdc4
+  commit: 10a17e556b8e34a24329c86e87bb5ce152f7d585
   commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: a929c219c82a56e3287c87557c061ed9eee7db86
+  commit: 11c0851b8d9399994a83eca6309de0f666b115b9
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: c037e4de47f493f084ec0a71a397b470482c79eb
-  commands: 125
-  tools: 135
+  commit: 4d19070ba3f03cff74195defc6cf39059e819479
+  commands: 127
+  tools: 137
   tools_with_no_command:
   - tool: about
     why: no command
@@ -2547,7 +2557,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 9fc920404dbf7cdcf522b3817dc9a874d2a58739
+  commit: 42d06a75972190e5cf6a25cba3193084d7554839
   commands: 40
   tools: 47
   tools_with_no_command:
@@ -2591,7 +2601,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: d4ad65360d25cde14a7e5dfd11d2a7c489b91760
+  commit: 41ae5844c944627e18ecc4bc2ecfc544b367a25a
   commands: 8
   tools: 17
   tools_with_no_command:
