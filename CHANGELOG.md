@@ -15,8 +15,8 @@ release record climb-v0.7.30.
   for it. Each entry in `sign_ins` gains `renews`, true when this machine's key renews it, beside
   `fresh`; and the site status reads through, which it renews on the way, shows its new
   `signed_in_until` and `fresh` instead of the ones it had before.
-- Every site is pinned at the commit it runs live (read 15 Nov, 01:33Z): template 10a17e55,
-  Autolaunch 11c0851b, Keyfleet 4d19070b, Patchbay 42d06a75, regents.sh 6aea107d, Techtree
+- Every site is pinned at the commit it runs live (read 15 Nov, 02:48Z): template 10a17e55,
+  Autolaunch 11c0851b, Keyfleet 4d19070b, Patchbay ff33e169, regents.sh 6aea107d, Techtree
   41ae5844. The commands follow them:
   - Keyfleet's `notebooks files write` needs `expected_revision` on stdin beside `content`: the
     revision `notebooks files read`, or your last write of the file, answered. A file changed
