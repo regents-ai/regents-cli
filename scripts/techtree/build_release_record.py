@@ -93,7 +93,7 @@ def bootstrap(
                 "tool",
                 "install",
                 "--python",
-                "3.12",
+                "3.14",
                 f"regents-cli=={version}",
             ],
             "source_revision": revision,
