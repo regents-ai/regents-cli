@@ -259,6 +259,20 @@ features:
   - cli: regents techtree withdraw
   proofs:
   - tests/techtree/test_approval.py
+- id: techtree-doctor
+  what: 'Says whether this machine can run a Climb: Python, platform, uv, Docker, Hermes, the engines
+    and the home.'
+  who: agent
+  level: ordinary
+  paths:
+  - src/regents_cli/techtree/doctor/**
+  entry:
+  - cli: regents techtree doctor
+  - cli: regents techtree setup
+  proofs:
+  - tests/test_one_python.py
+  gaps:
+  - No test runs the doctor's other checks.
 - id: techtree-publication
   what: An agent publishes a finished run to Techtree's public log or withdraws it, signed and sent once,
     and reads published runs and Skills back from the site.

@@ -43,7 +43,7 @@ from regents_cli.techtree.verifiers.models import VariantName
 VERSION_TIMEOUT_SECONDS: Final = 10.0
 #: Reaching the Docker daemon can involve starting a VM on macOS.
 DAEMON_TIMEOUT_SECONDS: Final = 20.0
-SUPPORTED_PYTHON: Final[tuple[tuple[int, int], tuple[int, int]]] = ((3, 12), (3, 14))
+SUPPORTED_PYTHON: Final[tuple[tuple[int, int], tuple[int, int]]] = ((3, 12), (3, 15))
 TECHTREE_PLUGIN_NAME: Final = "techtree"
 START_PAGE_URL: Final = "https://techtree.sh/start"
 DEVELOPMENT_PLACEHOLDER_MARKERS: Final[tuple[str, ...]] = (
@@ -155,7 +155,7 @@ def detect_host_platform() -> str | None:
 
 
 def check_python_version() -> DoctorCheck:
-    """Require Python >=3.12,<3.14."""
+    """Require a Python this package runs on: the range the install lines name."""
     version = platform.python_version()
     minimum, exclusive_maximum = SUPPORTED_PYTHON
     supported = minimum <= sys.version_info[:2] < exclusive_maximum
