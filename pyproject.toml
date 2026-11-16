@@ -71,6 +71,7 @@ dev = [
   "mcp>=2.3,<3",
   "mcp-types>=2.3,<3",
   "uvicorn>=0.54,<1",
+  "pytest-xdist>=3.8,<4",
 ]
 
 [build-system]

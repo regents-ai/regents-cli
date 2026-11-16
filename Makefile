@@ -18,7 +18,8 @@ check:
 	# rebuilding the catalog and the ReleaseCore fails here.
 	uv run scripts/techtree/verify_release_core.py
 	@echo "Made-up inputs from seed $(SEED)"
-	uv run pytest -q --hypothesis-seed=$(SEED)
+	# The tests run side by side, one worker a core; every test still runs.
+	uv run pytest -q -n auto --hypothesis-seed=$(SEED)
 	uv run scripts/check_wheel.py
 
 # Before each release, on the founder's machine: every gate, and the lock's sha256 for each
