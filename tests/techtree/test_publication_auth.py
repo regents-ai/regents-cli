@@ -21,7 +21,7 @@ from regents_cli.techtree.publication.transport import (
 )
 
 
-@given(body=st.binary(max_size=4096))
+@given(body=st.binary(min_size=1, max_size=4096))
 # Whitespace and number spelling must survive: a JSON decode/encode changes these bytes.
 @example(body=b'{ "proof": {"amount":1e-8}, "signature":"unchanged-ed25519-proof" }\n')
 @settings(deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])

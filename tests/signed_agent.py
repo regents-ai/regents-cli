@@ -51,7 +51,7 @@ def signer_of(
         if (name.lower().startswith("x-") or name.lower() == "content-digest")
         and name.lower() != "x-siwa-signature"
     }
-    _, message = siwa.rebuild(Request(method, target, raw_content=body or None), proof, base)
+    _, message = siwa.rebuild(Request(method, target, raw_content=body), proof, base)
     signature = headers["x-siwa-signature"].split("=:", 1)[1].rstrip(":")
     recovered = Account.recover_message(
         encode_defunct(text=message), signature=base64.b64decode(signature)

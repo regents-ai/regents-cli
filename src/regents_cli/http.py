@@ -99,9 +99,13 @@ class Request:
 
     @property
     def content(self) -> bytes | None:
-        """The body's bytes exactly as sent, which is also what a content digest covers."""
+        """The body's bytes exactly as sent, which is also what a content digest covers.
+
+        A body of no bytes is no body: on the wire the two are one request, and a site refuses
+        a digest signed for a body it did not receive.
+        """
         if self.raw_content is not None:
-            return self.raw_content
+            return self.raw_content or None
         if self.body is None:
             return None
         return json.dumps(self.body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")

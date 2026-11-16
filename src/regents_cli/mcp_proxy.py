@@ -75,7 +75,7 @@ class Signed(httpx2.Auth):
             Request(
                 request.method,
                 request.url.raw_path.decode("ascii"),
-                raw_content=request.content or None,
+                raw_content=request.content,
             )
         )
         request.headers.update(signed)
