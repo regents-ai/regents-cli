@@ -263,6 +263,10 @@ behind a site, and never holds one up (founder, 2026-09-28).
    1.10.29 and older get 404 there), one `state` per notebook, the new `notebooks page` read
    and notebooks in `search`. Engines
    and catalog unchanged, release `climb-v0.7.31`.
+7l. 1.10.31 (2026-11-17): Techtree runs on Python 3.12 to 3.14 so one install serves every site;
+   no bytes are signed as no body; sign-in contract 26f6ba8e; every site re-pinned (Keyfleet
+   contract 36.0.0 with `feed` and `events missed`). The check runs its tests side by side.
+   Engines and catalog unchanged, release `climb-v0.7.32`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

@@ -1518,6 +1518,36 @@ features:
     webmcp: '`writes_preview`'
   proofs:
   - tests/test_properties.py
+- id: keyfleet-feed
+  what: Agents use regents keyfleet feed.
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  entry:
+  - cli: regents keyfleet feed
+    route: GET /api/v1/feed
+    who: paired agent
+    changes: read
+    webmcp: no tool
+  proofs:
+  - tests/test_properties.py
+  gaps:
+  - '`feed` has no WebMCP tool'
+- id: keyfleet-events
+  what: 'Agents use regents keyfleet events: missed.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/keyfleet/**
+  entry:
+  - cli: regents keyfleet events missed
+    route: POST /api/v1/feed/missed
+    who: paired agent
+    changes: read
+    webmcp: '`events_missed`'
+  proofs:
+  - tests/test_properties.py
 - id: keyfleet-mutes
   what: 'Agents use regents keyfleet mutes: list <fleet>, add <fleet> <key>, remove <fleet> <key>.'
   who: agent
@@ -2535,21 +2565,21 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: d561854b9c480003feda59915ddb288a138bc8a7
+  commit: 84d5bc2cf43b2fa5fa301f2a373a569574bc7803
   commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 3e563abb8de00b915d31a9104b021ec91cb63e9f
+  commit: 57c6b3265f2645eb75b92b48792b8176e848b189
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: ad7488cceda4b931e856c4733c85dcd2e58a8d79
-  commands: 128
-  tools: 138
+  commit: e13eb5405883ba0946fb6538da5aa82c768b046a
+  commands: 130
+  tools: 139
   tools_with_no_command:
   - tool: about
     why: no command
@@ -2577,7 +2607,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: 64bb79144f573f28523e6d1ae60b2f3bcf9a3fc7
+  commit: a3e6358f3bafc54fb2311b8ca086505c25609196
   commands: 40
   tools: 47
   tools_with_no_command:
@@ -2599,7 +2629,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 39348075d0c8e0cdcee4e0e310ed799336bc9715
+  commit: 71ecdbbb2d20d5b932cf6bc41c0bd96d7050bdb2
   commands: 16
   tools: 22
   tools_with_no_command:

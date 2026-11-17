@@ -1628,7 +1628,7 @@ wheels = [
 
 [[package]]
 name = "regents-cli"
-version = "1.10.30"
+version = "1.10.31"
 source = { editable = "." }
 dependencies = [
     { name = "click" },

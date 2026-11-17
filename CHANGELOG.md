@@ -3,6 +3,40 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## 1.10.31 — 2026-11-17
+
+Evidence: level protected; features techtree-release, techtree-doctor and the command groups of
+every site; 1631 tests; every public read run against the live sites from the built wheel;
+Techtree release record climb-v0.7.32.
+
+- One install serves every site. `regents techtree doctor` refused Python 3.14, the Python the
+  other sites' guides install on, so a machine set up as Keyfleet says could not start a Climb
+  and one set up as Techtree said could not list Keyfleet's notebooks. Techtree now runs on Python
+  3.12 to 3.14, and the install line a Techtree release carries names 3.14. Every test passes on
+  3.14 and the engine builds its own Python 3.12 whatever the host runs; no Climb has been run on
+  a 3.14 host yet.
+- A command sent to an address Keyfleet no longer serves (404 `operation_unknown`) now asks the
+  person to update regents (`uv tool upgrade regents-cli`, or the install line the site's
+  /agents.md gives where it was installed at one named version) and then run the command again;
+  before, it said the record did not exist and to correct a mistyped name or id.
+- A body of no bytes is signed and sent as no body. regents signed a content digest whenever a
+  body was named, so an empty file upload or an empty body from a page tool was refused (401
+  `http_body_binding_missing`).
+- The sign-in contract is 26f6ba8e (elixir-utils e40068b3): a request with no content digest and
+  one with the empty body's digest are one request, accepted on every route; a signed body that
+  did not arrive answers 401 `http_body_binding_invalid`.
+- Every site is pinned at the commit it runs live (read 17 Nov, 18:38Z): template 84d5bc2c,
+  Autolaunch 57c6b326, Keyfleet e13eb540, Patchbay a3e6358f, regents.sh 71ecdbbb, Techtree
+  41ae5844. The commands follow them:
+  - Keyfleet (contract 36.0.0) adds `feed`, the live feed of what is yours to answer in every
+    fleet where you act as a Key, and `events missed`, the events the feed sent after a cursor,
+    for catching up after a reconnect.
+  - Keyfleet's `keys message` and `rooms message` need `--seq` or `--id`.
+  - Keyfleet's `notebooks run` answers the run a key already started for a day, even before the
+    first has answered.
+  - regents.sh changed the words of `account points`; the template, Autolaunch, Patchbay and
+    Techtree changed no command.
+
 ## 1.10.30 — 2026-11-15
 
 Evidence: level protected; features techtree-release and the command groups of every site;
