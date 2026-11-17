@@ -101,8 +101,8 @@ class Request:
     def content(self) -> bytes | None:
         """The body's bytes exactly as sent, which is also what a content digest covers.
 
-        A body of no bytes is no body: on the wire the two are one request, and a site refuses
-        a digest signed for a body it did not receive.
+        A body of no bytes is no body: on the wire the two are one request, and the sign-in
+        contract counts them as one.
         """
         if self.raw_content is not None:
             return self.raw_content or None

@@ -1,7 +1,7 @@
 """A body of no bytes is signed and sent as no body.
 
-On the wire the two are one request. A site that received no bytes refuses a content digest
-(401 `http_body_binding_missing`), so an empty file or an empty tool body once failed to sign in.
+On the wire the two are one request, and the sign-in contract counts them as one. regents once
+signed a digest for a body of no bytes, which the sites then refused.
 """
 
 import httpx
