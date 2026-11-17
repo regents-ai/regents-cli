@@ -23,7 +23,7 @@
   },
   "autolaunch": {
     "repository": "regents-ai/autolaunch",
-    "commit": "f71a3415c822b2ef02f882f98a89b3d5292ae7f7",
+    "commit": "8113d7670d216c8bcd394fd7693e078046539de2",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
@@ -41,11 +41,11 @@
   },
   "keyfleet": {
     "repository": "regents-ai/keyfleet",
-    "commit": "fc9a6ac5edf41ad83931a1b111241a63ab4acedf",
+    "commit": "b5894246a2b820262904dfdf4d72047fb84a2dbd",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
-        "sha256": "36d09ee75c79c46738c525a2a3d8bbcf8d5b73e68b2c32fd418352596a0de722"
+        "sha256": "ff9c777e634ccef0fb49bd1b66d0cdcd490b02af8238f0888a2023666d0b27cc"
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/keyfleet/openapi.json",
@@ -53,11 +53,11 @@
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/keyfleet/api-contract.openapiv3.yaml",
-        "sha256": "24058651944bb3ca2dbd1f066b1bf2993fd1165fbb9df2945bf7e604f843393b"
+        "sha256": "f4de79347bbe563de0c704e33a4792e12698ea0d8c0a5e2e75cbf3acda96f3bd"
       },
       "platform/priv/tool_manifest.json": {
         "copy": "src/regents_cli/platforms/keyfleet/tool_manifest.json",
-        "sha256": "9548815eb315733b2a46de7f097c3e39e3a97a15884f7e4d93adba1fe151fdfa"
+        "sha256": "113728ccdaaa861874b92197214efc916e34c0e6d4dfbe1c236ac73253c6d64e"
       }
     }
   },
@@ -117,7 +117,7 @@
   },
   "techtree": {
     "repository": "regents-ai/techtree",
-    "commit": "eab18b3c11cfe8b0ac87507f8bc92f4e3e94cfd5",
+    "commit": "eca75a55737255b55f7f22c398c1fcd9ffcd276b",
     "files": {
       "cli/commands.json": {
         "copy": "src/regents_cli/platforms/techtree/commands.json",
@@ -129,7 +129,7 @@
       },
       "platform/priv/tool_manifest.json": {
         "copy": "src/regents_cli/platforms/techtree/tool_manifest.json",
-        "sha256": "e9ee87d49fadb43f5e4ee925e6e1ecf31c840fe33d5e8064e0adea58dc465069"
+        "sha256": "07f0eb84e68c79db6ae83d159a3d760a110322566624ead826c116e9978f8b17"
       }
     }
   }

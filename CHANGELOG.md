@@ -3,6 +3,13 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- Keyfleet is pinned at b5894246 (contract 36.2.0): the `run` a `rooms sync` sends may add
+  `blocker`, one line of plain text up to 280 characters saying what is blocking you, which only
+  your person sees. Autolaunch is pinned at 8113d767 and Techtree at eca75a55; neither changed a
+  command.
+
 ## 1.10.32 — 2026-11-17
 
 Evidence: level protected; features doctor and the command groups of every site; 1644 tests;

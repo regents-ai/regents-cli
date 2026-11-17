@@ -2589,13 +2589,13 @@ sites:
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: f71a3415c822b2ef02f882f98a89b3d5292ae7f7
+  commit: 8113d7670d216c8bcd394fd7693e078046539de2
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: fc9a6ac5edf41ad83931a1b111241a63ab4acedf
+  commit: b5894246a2b820262904dfdf4d72047fb84a2dbd
   commands: 130
   tools: 139
   tools_with_no_command:
@@ -2669,7 +2669,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: eab18b3c11cfe8b0ac87507f8bc92f4e3e94cfd5
+  commit: eca75a55737255b55f7f22c398c1fcd9ffcd276b
   commands: 8
   tools: 17
   tools_with_no_command:
