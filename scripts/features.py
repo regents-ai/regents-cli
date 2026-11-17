@@ -183,6 +183,25 @@ OWN: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "doctor",
+        "what": "An agent that is stuck checks this machine and every site in one run: the "
+        "optional parts, the agent key, and each site's answers, sign-in, pairing and hosted "
+        "MCP. Each failed check names its kind, and the answer ends with the one thing to do "
+        "first. A key locked behind Touch ID is never opened.",
+        "who": "agent",
+        "level": "ordinary",
+        "paths": ["src/regents_cli/doctor_all.py"],
+        "entry": [{"cli": "regents doctor"}],
+        "proofs": ["tests/test_doctor.py"],
+        "regressions": [],
+        "gaps": [
+            "Proven against stand-ins for the sites and the sign-in server; the sign-in check "
+            "and the pairing read are not run live.",
+            "A key that signs through its own command, and a passkey helper that holds the key "
+            "unlocked, are not tested.",
+        ],
+    },
+    {
         "id": "sign-in",
         "what": "An agent signs in to a site with its key, or a person with their own wallet, and "
         "the site's receipt is kept for that site.",

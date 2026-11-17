@@ -15,6 +15,7 @@ from rich_click import RichCommand
 from regents_cli import browser, next_steps, output, siwa
 from regents_cli.agent_hosts import browser_command, mcp_command
 from regents_cli.auth import auth_group
+from regents_cli.doctor_all import doctor_all_command
 from regents_cli.errors import (
     EXIT_CANCELLED,
     EXIT_CODES,
@@ -44,6 +45,9 @@ your person confirms a Touch ID page:
 
 Pair with your person; this says whether you are paired and how to pair:
     regents keyfleet agents whoami
+
+Stuck? Check this machine and every site at once, and get the one thing to do first:
+    regents doctor
 
 Check a site answers, and your sign-in once you have one:
     regents keyfleet doctor
@@ -91,6 +95,7 @@ def root() -> click.Group:
         group.add_command(custom)
     group.add_command(browser_command(platforms))
     group.add_command(mcp_command(platforms))
+    group.add_command(doctor_all_command(platforms))
     return group
 
 

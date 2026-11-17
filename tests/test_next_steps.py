@@ -797,7 +797,7 @@ def test_doctor_asks_for_an_update_when_other_checks_fail(
     monkeypatch.setattr(doctor, "release_named", lambda *_: "1.10.20")
     monkeypatch.setattr(doctor, "site_answers", unreachable)
     monkeypatch.setattr(doctor, "read_answers", unreachable)
-    monkeypatch.setattr(doctor, "sign_in_good", lambda *_: (doctor.NOT_SIGNED_IN, "Not yet."))
+    monkeypatch.setattr(doctor, "sign_in_good", lambda *_, **__: (doctor.NOT_SIGNED_IN, "Not yet."))
     exit_code = app.main(["keyfleet", "doctor", "--base-url", "https://127.0.0.1:9", "--json"])
 
     said = [step["say"] for step in json.loads(capsys.readouterr().out)["next_steps"]]

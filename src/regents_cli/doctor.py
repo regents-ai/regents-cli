@@ -4,28 +4,55 @@ The site answers at all; each public read that needs no input answers; this rege
 release the site names in its /capabilities.json, or newer; and, for a site with signed commands,
 the sign-in on this machine is one the sign-in server accepts. No sign-in yet is not a failure:
 only signed commands need one, and an older regents still runs every command it carries.
+
+`regents doctor` runs the same checks for every site. Each check's row says, when it failed,
+what kind of failure it is, read from the error's code and the site's status.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from functools import partial
 from importlib.metadata import version
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlsplit
 
 import click
 
 from regents_cli import output, siwa
-from regents_cli.errors import CommandError
+from regents_cli.errors import EXIT_AUTH, EXIT_UNREACHABLE, CommandError
 from regents_cli.http import Request, base_address, respond, same_origin, send
 from regents_cli.next_steps import Step, done, elsewhere, human, patchbay, run, search, sign_in
 from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform
 
+#: What a failed check is: the site could not be reached (network), the sign-in is missing,
+#: run out or refused (sign_in), no person's account is paired with the agent, or its person has
+#: not signed in on the site yet (pairing), the site refused this agent (permission), the site
+#: serves nothing at the address (address), the site answered with its own error (site), or
+#: something on this machine needs installing or fixing (machine).
+type Kind = Literal["network", "sign_in", "pairing", "permission", "address", "site", "machine"]
+
 SIGN_IN = "sign-in"
 #: A sign-in check that failed on a file on this machine: signing in again meets the same file.
 KEY_FILE_PROBLEMS = ("unsafe_file", "bad_key_file", "unreadable_file")
+#: Failures this machine causes, which only fixing something here clears: a file the key or a
+#: sign-in is kept in, a part of regents not installed, or the program that signs with the key.
+MACHINE_PROBLEMS = frozenset(
+    {
+        *KEY_FILE_PROBLEMS,
+        "installation_incomplete",
+        "locked_key_needs_mac",
+        "key_helper_not_answering",
+        "key_helper_refused",
+        "key_helper_failed",
+        "signer_failed",
+    }
+)
+PAIRING_PROBLEMS = frozenset({"agent_not_paired", "person_not_here"})
 NOT_SIGNED_IN = "not_signed_in"
+ACCEPTED = "accepted"
+#: A sign-in made by a key that can't sign now without its person: it was left unchecked.
+UNCHECKED = "unchecked"
 RELEASE = "regents version"
 BEHIND = "update_available"
 
@@ -33,18 +60,7 @@ BEHIND = "update_available"
 def doctor_command(platform: Platform) -> click.Command:
     def run(as_json: bool, base_url: str | None, timeout_ms: int) -> None:
         base = base_address(base_url, platform.env_var, platform.base_url)
-        checks = [check("site answers", lambda: site_answers(base, timeout_ms))]
-        checks += [
-            check(" ".join(c.words), partial(read_answers, base, c, timeout_ms))
-            for c in platform.commands
-            if needs_nothing(c)
-        ]
-        named = release_named(base, timeout_ms)
-        if named is not None:
-            host = urlsplit(base).netloc
-            checks.append(check(RELEASE, lambda: release_current(host, named)))
-        if any(c.signed for c in platform.commands):
-            checks.append(check(SIGN_IN, lambda: sign_in_good(platform.site, base, timeout_ms)))
+        checks = site_checks(platform, base, timeout_ms, may_sign=True)
         found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
         failed = [c for c in checks if not c["ok"]]
         if failed:
@@ -55,7 +71,7 @@ def doctor_command(platform: Platform) -> click.Command:
             raise CommandError(
                 "doctor_found_problems",
                 message,
-                next_steps=[*updates(checks), *repairs(platform, base, failed, message, again)],
+                next_steps=[*updates(checks), *repairs(platform, base, failed, again)],
                 **found,
             )
         output.emit(found, as_json=as_json, next_steps=held(platform.site, checks))
@@ -79,31 +95,60 @@ def doctor_command(platform: Platform) -> click.Command:
     )
 
 
+def site_checks(
+    platform: Platform, base: str, timeout_ms: int, *, may_sign: bool
+) -> list[dict[str, Any]]:
+    """The site at `base` answers, its public reads that need no input answer, this regents is
+    the release it names or newer, and, for a site with signed commands, the sign-in to it holds.
+    Signing checks the sign-in only when `may_sign`; otherwise the sign-in is left unchecked."""
+    checks = [check("site answers", lambda: site_answers(base, timeout_ms))]
+    checks += [
+        check(" ".join(c.words), partial(read_answers, base, c, timeout_ms))
+        for c in platform.commands
+        if needs_nothing(c)
+    ]
+    named = release_named(base, timeout_ms)
+    if named is not None:
+        host = urlsplit(base).netloc
+        checks.append(check(RELEASE, lambda: release_current(host, named)))
+    if any(c.signed for c in platform.commands):
+        checks.append(
+            check(
+                SIGN_IN,
+                lambda: sign_in_good(platform.site, base, timeout_ms, may_sign=may_sign),
+            )
+        )
+    return checks
+
+
 def repairs(
-    platform: Platform, base: str, failed: list[dict[str, Any]], message: str, again: list[str]
+    platform: Platform, base: str, failed: list[dict[str, Any]], again: list[str]
 ) -> list[Step]:
-    """Sign in again for a failed sign-in, or fix the file it could not use; search
-    patchbay.help about a site that failed its own checks, then report it there, unless the
-    checks ran against another address."""
+    """Sign in again for a failed sign-in, or fix the file it could not use; report a site that
+    failed its own checks."""
     steps: list[Step] = []
     for failure in (c for c in failed if c["check"] == SIGN_IN):
         key_file = failure["code"] in KEY_FILE_PROBLEMS
         steps.append(human(failure["detail"]) if key_file else sign_in(platform.site))
     broken = [c for c in failed if c["check"] != SIGN_IN]
     steps.append(run(again, "Then check again."))
-    detail = "; ".join(f"{c['check']}: {c['code']}: {c['detail']}" for c in broken)
-    if broken and not same_origin(base, platform.base_url):
-        steps.append(elsewhere(base, detail))
-    elif broken and platform.name == "patchbay":
-        steps.append(human(f"If Patchbay keeps failing its checks, tell your person: {message}"))
-    elif broken:
-        steps.append(search(platform.host, None))
-        steps.append(
-            patchbay(
-                platform.host, (platform.name, "doctor"), "doctor_found_problems", detail, None
-            )
-        )
+    if broken:
+        detail = "; ".join(f"{c['check']}: {c['code']}: {c['detail']}" for c in broken)
+        words = (platform.name, "doctor")
+        steps += reported(platform, base, words, "doctor_found_problems", detail)
     return steps
+
+
+def reported(
+    platform: Platform, base: str, words: Sequence[str], code: str, detail: str
+) -> list[Step]:
+    """Search patchbay.help about a site that failed its checks, then report it there; a person
+    is told instead when Patchbay itself failed, or the checks ran against another address."""
+    if not same_origin(base, platform.base_url):
+        return [elsewhere(base, detail)]
+    if platform.name == "patchbay":
+        return [human(f"If Patchbay keeps failing its checks, tell your person: {detail}")]
+    return [search(platform.host, None), patchbay(platform.host, words, code, detail, None)]
 
 
 def updates(checks: list[dict[str, Any]]) -> list[Step]:
@@ -141,12 +186,36 @@ def needs_nothing(command: Command) -> bool:
 
 
 def check(name: str, run: Callable[[], tuple[str, str]]) -> dict[str, Any]:
-    """One check's row: its code (the error's, when it failed) and what it found."""
+    """One check's row: its code (the error's, when it failed), the kind of failure, and what
+    it found."""
     try:
         code, detail = run()
-        return {"check": name, "ok": True, "code": code, "detail": detail}
+        return {"check": name, "ok": True, "code": code, "kind": None, "detail": detail}
     except CommandError as error:
-        return {"check": name, "ok": False, "code": error.code, "detail": error.message}
+        return {
+            "check": name,
+            "ok": False,
+            "code": error.code,
+            "kind": kind_of(error),
+            "detail": error.message,
+        }
+
+
+def kind_of(error: CommandError) -> Kind:
+    """A failure's kind, from its code and, for a refusal, the status it came with."""
+    if error.code in MACHINE_PROBLEMS:
+        return "machine"
+    if error.code in PAIRING_PROBLEMS:
+        return "pairing"
+    status = error.fields.get("status")
+    if isinstance(status, int):
+        refused: dict[int, Kind] = {401: "sign_in", 403: "permission", 404: "address"}
+        return refused.get(status, "site")
+    if error.exit_code == EXIT_UNREACHABLE:
+        return "network"
+    if error.exit_code == EXIT_AUTH:
+        return "sign_in"
+    return "site"
 
 
 def site_answers(base: str, timeout_ms: int) -> tuple[str, str]:
@@ -186,10 +255,16 @@ def numbered(release: str) -> tuple[int, ...] | None:
     return tuple(int(p) for p in parts) if all(p.isdigit() for p in parts) else None
 
 
-def sign_in_good(site: str, base: str, timeout_ms: int) -> tuple[str, str]:
+def sign_in_good(site: str, base: str, timeout_ms: int, *, may_sign: bool) -> tuple[str, str]:
     key = siwa.load_key()
-    if siwa.load_receipt(site) is None:
+    kept = siwa.load_receipt(site)
+    if kept is None:
         return NOT_SIGNED_IN, "Not signed in yet; needed only for signed commands."
+    if not may_sign and key is not None and kept.signed_by(key):
+        return UNCHECKED, (
+            f"Signed in as {kept.address} until {kept.receipt_expires_at}; not checked, since "
+            "signing with the agent key now waits for your person."
+        )
     receipt = siwa.current(site, timeout_ms)
     if key is None or not receipt.signed_by(key):
         return "own_key", (
@@ -209,7 +284,7 @@ def sign_in_good(site: str, base: str, timeout_ms: int) -> tuple[str, str]:
         if person
         else "it has accepted no World ID person (optional: regents auth accept-world-id)"
     )
-    return "accepted", (
+    return ACCEPTED, (
         f"The sign-in server accepts {receipt.address} until {receipt.receipt_expires_at}; "
         f"it is {listed}, and {vouched}."
     )

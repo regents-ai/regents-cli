@@ -265,14 +265,8 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         except CommandError as error:
             found["pairing_status"] = {"site": selected, **error.as_json()}
         else:
-            base = base_address(None, platform.env_var, platform.base_url)
-            siwa.signs_for(selected, base, timeout_ms)
-            request = Request(probe.method, probe.path)
-            request = replace(
-                request, headers=siwa.sign(request, siwa.current(selected, timeout_ms), base)
-            )
-            told = send(base, request, timeout_ms)
-            found["pairing_status"] = {"site": selected, **data_with(told)}
+            told = pairing_status(platform, probe, timeout_ms)
+            found["pairing_status"] = {"site": selected, **told}
     answer: dict[str, Any] = {
         "agent_key": key.address if key is not None else None,
         # Read after the signed reads above: they renew a run-out sign-in this machine's key made.
@@ -598,21 +592,42 @@ def signs(receipt: siwa.Receipt, key: siwa.Key | None) -> str:
     return "this machine" if this_machine_signs(receipt, key) else "you"
 
 
+def probe_of(platform: Platform) -> Command | None:
+    """The site's pinned read-only identity and pairing probe, `agents whoami`; never the
+    rewarding legacy check-in."""
+    return next(
+        (
+            command
+            for command in platform.commands
+            if command.words == ("agents", "whoami")
+            and command.method == "GET"
+            and command.effect == "read"
+            and command.authority == "signed_agent"
+            and not command.inputs
+            and command.body is None
+        ),
+        None,
+    )
+
+
+def pairing_status(platform: Platform, probe: Command, timeout_ms: int) -> dict[str, Any]:
+    """The site's answer to its probe, at its address, signed with this machine's key and its
+    sign-in to the site."""
+    base = base_address(None, platform.env_var, platform.base_url)
+    siwa.signs_for(platform.site, base, timeout_ms)
+    request = Request(probe.method, probe.path)
+    signed = replace(
+        request, headers=siwa.sign(request, siwa.current(platform.site, timeout_ms), base)
+    )
+    return data_with(send(base, signed, timeout_ms))
+
+
 def identity_probe(site: str) -> tuple[Platform, Command]:
-    """Find the pinned read-only probe; never substitute the rewarding legacy check-in."""
+    """The site's command tree and its pinned read-only probe."""
     for platform in pinned_platforms():
-        if platform.site != site:
-            continue
-        for command in platform.commands:
-            if (
-                command.words == ("agents", "whoami")
-                and command.method == "GET"
-                and command.effect == "read"
-                and command.authority == "signed_agent"
-                and not command.inputs
-                and command.body is None
-            ):
-                return platform, command
+        probe = probe_of(platform) if platform.site == site else None
+        if probe is not None:
+            return platform, probe
     raise CommandError(
         "identity_probe_unavailable",
         f"This release has no read-only identity probe for {site}. "

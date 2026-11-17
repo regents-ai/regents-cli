@@ -3,6 +3,24 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- New: `regents doctor` checks this machine and every site in one run, so an agent that is stuck
+  learns the one thing to do first. This machine: the regents release, its Python, the agent
+  key's address, and whether `regents mcp` and `regents browser` can run. Each site: the checks
+  `regents <site> doctor` runs; once the sign-in server accepts the sign-in, whether a person's
+  account is paired with the agent, read from the site's own `agents whoami`; and whether the
+  site answers where `regents mcp` sends (regents.sh serves no hosted MCP). `--site` checks only
+  the sites named. It changes nothing on any site, signs only the sign-in check and the pairing
+  read, and never opens a key locked behind Touch ID: with no Touch ID session holding it
+  unlocked, each sign-in is shown as not checked. It exits 0 when every check holds, and 1 with
+  `doctor_found_problems` otherwise.
+- Every row of a doctor's `checks` has a new field, `kind`: null when the check held, otherwise
+  what failed, one of `network`, `sign_in`, `pairing`, `permission`, `address`, `site` and
+  `machine`.
+- When Patchbay fails its own checks, `regents patchbay doctor` now tells the person which
+  checks failed and why; before, it said only how many.
+
 ## 1.10.31 — 2026-11-17
 
 Evidence: level protected; features techtree-release, techtree-doctor and the command groups of

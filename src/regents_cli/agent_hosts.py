@@ -24,6 +24,8 @@ from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Platform
 INSTALL = "uv tool install --python 3.14 'regents-cli[browser,mcp]'"
 #: Installs the Chromium `regents browser` drives.
 INSTALL_CHROMIUM = "uvx --from 'playwright==1.64.*' playwright install chromium"
+#: Where a site's hosted MCP server takes messages, under the site's address.
+MCP_PATH = "/mcp"
 
 type Signer = Callable[[Request], Awaitable[dict[str, str]]]
 
@@ -50,7 +52,7 @@ def browser_command(platforms: list[Platform]) -> click.Command:
     def run(site: str, base_url: str | None, show_browser: bool) -> None:
         platform = sites[site]
         origin = base_address(base_url, platform.env_var, platform.base_url)
-        _ready_to_browse()
+        ready_to_browse()
         from regents_cli import webmcp_host
 
         bridge = webmcp_host.Bridge(
@@ -77,7 +79,7 @@ def mcp_command(platforms: list[Platform]) -> click.Command:
     )
     @click.option("--site", required=True, type=click.Choice(sorted(sites)), help="The site.")
     def run(site: str, base_url: str | None) -> None:
-        _installed("regents mcp", ("anyio", "httpx2", "mcp", "mcp_types"), INSTALL)
+        ready_to_proxy()
         import anyio
 
         from regents_cli import mcp_proxy
@@ -85,7 +87,7 @@ def mcp_command(platforms: list[Platform]) -> click.Command:
         platform = sites[site]
         origin = base_address(base_url, platform.env_var, platform.base_url)
         siwa.current(platform.site, DEFAULT_TIMEOUT_MS)
-        anyio.run(mcp_proxy.serve, f"{origin}/mcp", key_signer(platform.site, origin))
+        anyio.run(mcp_proxy.serve, origin + MCP_PATH, key_signer(platform.site, origin))
 
     return run
 
@@ -114,7 +116,12 @@ def _installed(command: str, modules: tuple[str, ...], install: str) -> None:
             ) from None
 
 
-def _ready_to_browse() -> None:
+def ready_to_proxy() -> None:
+    """Refuse to start `regents mcp` without the mcp extra, saying how to add it."""
+    _installed("regents mcp", ("anyio", "httpx2", "mcp", "mcp_types"), INSTALL)
+
+
+def ready_to_browse() -> None:
     """Refuse to start without the browser extra and its Chromium, saying how to add them."""
     _installed("regents browser", ("jsonschema", "mcp", "playwright"), INSTALL)
     from playwright.sync_api import sync_playwright

@@ -42,8 +42,23 @@ since only signed commands need it; the check says so and the next step shows ho
 exits 1 when any other check fails, including a key file it can't use or a sign-in it can't
 renew.
 
+`regents doctor` checks this machine and every site in one run, for an agent that is stuck. On
+this machine: the regents release, its Python, the agent key (its address, never more), and
+whether `regents mcp` and `regents browser` can run. On each site: the checks above; once the
+sign-in server accepts the sign-in, whether a person's account is paired with the agent, read
+from the site's own `agents whoami`; and whether the site answers where `regents mcp` sends.
+`--site` checks only the sites named.
+
+Each failed check, in either doctor, names its `kind`: `network`, `sign_in`, `pairing`,
+`permission`, `address`, `site` or `machine`. `regents doctor` ends with the one thing to do
+first: update regents, fix something on this machine, sign in, pair, or wait and check again. It
+changes nothing on any site and never opens a key locked behind Touch ID; with no Touch ID
+session holding the key unlocked, each sign-in is shown as not checked.
+
 ```bash
 regents patchbay doctor
+regents doctor
+regents doctor --site keyfleet --json
 ```
 
 ## Agent hosts

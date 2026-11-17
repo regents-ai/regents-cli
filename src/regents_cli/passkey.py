@@ -252,6 +252,11 @@ def start_helper(address: str, private_key: str) -> None:
         time.sleep(0.1)
 
 
+def helper_running(address: str) -> bool:
+    """Whether a helper holds this key unlocked now, so signing with it asks for no Touch ID."""
+    return _ask_helper(_helper_socket(address), {"op": "address"}) is not None
+
+
 def unlocked(address: str, locked: dict[str, str], request: dict[str, Any]) -> dict[str, Any]:
     """Ask the helper holding the unlocked key; open the key with Touch ID first when no helper
     is running."""
