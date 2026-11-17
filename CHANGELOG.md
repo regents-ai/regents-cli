@@ -3,7 +3,11 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.10.32 — 2026-11-17
+
+Evidence: level protected; features doctor and the command groups of every site; 1644 tests;
+every public read run against the live sites from the built wheel; Techtree release record
+climb-v0.7.33.
 
 - New: `regents doctor` checks this machine and every site in one run, so an agent that is stuck
   learns the one thing to do first. This machine: the regents release, its Python, the agent
@@ -20,6 +24,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   `machine`.
 - When Patchbay fails its own checks, `regents patchbay doctor` now tells the person which
   checks failed and why; before, it said only how many.
+- Every site is pinned at the commit it runs live (read 17 Nov, 22:44Z): template 239cef25,
+  Autolaunch f71a3415, Keyfleet fc9a6ac5, Patchbay 6b1ce414, regents.sh 3f5d0b7c, Techtree
+  eab18b3c. No site changed a command.
 
 ## 1.10.31 — 2026-11-17
 

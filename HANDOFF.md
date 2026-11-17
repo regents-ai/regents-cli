@@ -267,6 +267,9 @@ behind a site, and never holds one up (founder, 2026-09-28).
    no bytes are signed as no body; sign-in contract 26f6ba8e; every site re-pinned (Keyfleet
    contract 36.0.0 with `feed` and `events missed`). The check runs its tests side by side.
    Engines and catalog unchanged, release `climb-v0.7.32`.
+7m. 1.10.32 (2026-11-17): `regents doctor` checks this machine and every site in one run, each
+   failure with its kind and the one thing to do first; every site re-pinned, no command changed.
+   Engines and catalog unchanged, release `climb-v0.7.33`.
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins

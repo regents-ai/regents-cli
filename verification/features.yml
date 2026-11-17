@@ -2583,19 +2583,19 @@ features:
 sites:
 - site: ash-template
   repository: regents-ai/ash-template
-  commit: 84d5bc2cf43b2fa5fa301f2a373a569574bc7803
+  commit: 239cef251111e852a47261602649c035b6fea242
   commands: 58
   tools: 56
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 57c6b3265f2645eb75b92b48792b8176e848b189
+  commit: f71a3415c822b2ef02f882f98a89b3d5292ae7f7
   commands: 16
   tools: 15
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet
-  commit: e13eb5405883ba0946fb6538da5aa82c768b046a
+  commit: fc9a6ac5edf41ad83931a1b111241a63ab4acedf
   commands: 130
   tools: 139
   tools_with_no_command:
@@ -2625,7 +2625,7 @@ sites:
     why: no command
 - site: patchbay
   repository: regents-ai/patchbay
-  commit: a3e6358f3bafc54fb2311b8ca086505c25609196
+  commit: 6b1ce414830f9e3a1878a6bb85b809fad9dadf95
   commands: 40
   tools: 47
   tools_with_no_command:
@@ -2647,7 +2647,7 @@ sites:
     why: 'site only: the owner''s tool; it moves USDC'
 - site: protocol
   repository: regents-ai/regents
-  commit: 71ecdbbb2d20d5b932cf6bc41c0bd96d7050bdb2
+  commit: 3f5d0b7c0fa9341b4bf41abc35b55f58d4aad2d0
   commands: 16
   tools: 22
   tools_with_no_command:
@@ -2669,7 +2669,7 @@ sites:
     why: 'site only: reads the about and docs pages'
 - site: techtree
   repository: regents-ai/techtree
-  commit: 41ae5844c944627e18ecc4bc2ecfc544b367a25a
+  commit: eab18b3c11cfe8b0ac87507f8bc92f4e3e94cfd5
   commands: 8
   tools: 17
   tools_with_no_command:
