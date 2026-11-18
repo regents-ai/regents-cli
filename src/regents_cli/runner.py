@@ -24,15 +24,21 @@ from regents_cli import feed, output, siwa, transactions
 from regents_cli.doctor import doctor_command
 from regents_cli.errors import UsageError
 from regents_cli.http import Request, answer, base_address, respond, same_origin
-from regents_cli.next_steps import Step, as_described, done, pair_first, run_piped, wallet
+from regents_cli.next_steps import (
+    WHOAMI,
+    Step,
+    as_described,
+    done,
+    pair_first,
+    run_piped,
+    wallet,
+)
 from regents_cli.next_steps import run as run_step
 from regents_cli.platforms import Command, Input, Platform, StdinField
 
 STDIN_LIMIT = 200_000
 #: The one command that asks for its stdin fields when run at a terminal, its code hidden.
 PAIR = ("agents", "pair")
-#: The read-only command that says which account an agent is paired to.
-WHOAMI = ("agents", "whoami")
 #: Each stdin field type, as the JSON value it must be and how an error names it.
 STDIN_TYPES: dict[str, tuple[type, str]] = {
     "array": (list, "a list"),

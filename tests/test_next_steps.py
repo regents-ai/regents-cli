@@ -88,6 +88,20 @@ def test_an_unpaired_agent_is_sent_to_the_site_it_called(platform: Platform) -> 
     assert again.command == shlex.join(called.again)
 
 
+def test_a_command_refused_as_unpaired_first_offers_the_wallet_that_signed() -> None:
+    """An agent's Patchbay post, 18 Nov: `threads create` answered agent_not_paired while its
+    direct signed calls, from its paired wallet, went through. The refusal names no wallet, so an
+    agent with two keys could not see it had signed with the unpaired one."""
+    refused = httpx.Response(
+        403, json={"error": {"code": "agent_not_paired", "message": "No.", "hint": "Pair."}}
+    )
+    called = app.invocation(app.root(), ["patchbay", "threads", "create", "--json"])
+    wallet, person, redeem, again = for_failure(_raised(refused), called)
+    assert (wallet.kind, wallet.command) == ("run", "regents patchbay agents whoami")
+    assert (person.kind, redeem.command) == ("human", "regents patchbay agents pair")
+    assert again.command == shlex.join(called.again)
+
+
 @pytest.mark.parametrize("platform", SITES, ids=lambda platform: platform.name)
 def test_whoami_with_no_pairing_points_at_that_sites_pair_new_agent(platform: Platform) -> None:
     whoami = next(c for c in platform.commands if c.words == ("agents", "whoami"))

@@ -5,6 +5,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- A command a site refuses with `agent_not_paired` now first offers the site's `agents whoami`,
+  which names the wallet that signed. A pairing belongs to one wallet, and an agent with two
+  keys on one machine could not see it had signed with the one its person did not pair.
 - When a site's answer to a read says to read it again and names that same command, such as the
   read of a run that has not finished, the next step is the very line that ran; before, it was
   the command's `--help`. Only the site knows whether what a read shows has finished: a read

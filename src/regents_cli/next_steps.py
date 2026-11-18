@@ -36,6 +36,8 @@ type Kind = Literal["done", "run", "human", "wallet", "patchbay"]
 PATCHBAY_SEARCH = ("regents", "patchbay", "threads", "search")
 PATCHBAY_POST = ("regents", "patchbay", "threads", "create")
 TITLE_LIMIT = 160
+#: The read-only command that says which wallet signed and which account it is paired to.
+WHOAMI = ("agents", "whoami")
 
 
 @dataclass(frozen=True, slots=True)
@@ -271,6 +273,7 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
     hint = error.fields.get("hint")
     if error.code == "agent_not_paired" and isinstance(hint, str) and invocation.host:
         return [
+            *signed_as(invocation),
             human(hint, account_menu(invocation.host)),
             redeem(invocation.words[0]),
             run(again, f"Then run this again{invocation.piped}."),
@@ -330,6 +333,22 @@ def _site_refused(error: CommandError, status: int, invocation: Invocation) -> l
             done("Otherwise that is the site's answer; nothing more to run."),
         ]
     return [run(again, f"Run it once more{invocation.piped}."), *_broken(error, status, invocation)]
+
+
+def signed_as(invocation: Invocation) -> list[Step]:
+    """Before pairing after a refusal: the site's `agents whoami`, which answers an agent that
+    is not paired and names the wallet that signed. A pairing belongs to one wallet, and a
+    machine with two agent keys can sign with the one its person did not pair."""
+    if invocation.words[1:] == WHOAMI:
+        return []
+    return [
+        run(
+            ("regents", invocation.words[0], *WHOAMI),
+            "First see which wallet signed this: a pairing belongs to one wallet. If your person "
+            "already paired another of your agent keys, sign with that one (SIWA_AGENT_HOME "
+            "names its folder) instead of pairing again.",
+        )
+    ]
 
 
 def not_served() -> Step:
