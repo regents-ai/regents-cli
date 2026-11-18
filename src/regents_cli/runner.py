@@ -675,7 +675,7 @@ def after(
     data = answer.get("data")
     said = (data if isinstance(data, dict) else answer).get("next_step")
     if isinstance(said, str) and said.strip():
-        return site_says(platform, command.effect, said)
+        return site_says(platform, command, said, given, shared)
     return [done(DONE[command.effect])]
 
 
@@ -714,14 +714,21 @@ def to_send(answer: dict[str, Any]) -> list[Step]:
 ROUTE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE) (/[^\s,;)`'\"?#]*)")
 
 
-def site_says(platform: Platform, effect: str, said: str) -> list[Step]:
+def site_says(
+    platform: Platform, ran: Command, said: str, given: dict[str, Any], shared: list[str]
+) -> list[Step]:
     """The site's own next step, as it wrote it: with the help of the command for the first
     route it names that is one of the site's commands, or of the first of its commands it names
-    as `regents <site> …`, or else beside what the answer means."""
+    as `regents <site> …`, or else beside what the answer means. When the command it names is a
+    read and the one that just ran, such as the read of a run that has not finished, the step is
+    that same line again, from the values it was `given`."""
+    effect = ran.effect
     routed = (routed_command(platform, m, p.rstrip(".")) for m, p in ROUTE.findall(said))
     command = next((c for c in routed if c is not None), None) or named_command(platform, said)
     if command is None:
         return [done(f"{DONE[effect]} The site adds: {said}")]
+    if command is ran and effect == "read":
+        return [run_step(command_line(platform, ran, given, shared), said)]
     named = [w for w in command.words if not w.startswith("<")]
     follow = run_step(["regents", platform.name, *named, "--help"], said)
     return [follow] if effect == "read" else [done(DONE[effect]), follow]

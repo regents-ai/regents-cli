@@ -5,6 +5,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- When a site's answer to a read says to read it again and names that same command, such as the
+  read of a run that has not finished, the next step is the very line that ran; before, it was
+  the command's `--help`. Only the site knows whether what a read shows has finished: a read
+  whose answer carries no `next_step` still ends with "nothing more to run".
 - Keyfleet is pinned at b5894246 (contract 36.2.0): the `run` a `rooms sync` sends may add
   `blocker`, one line of plain text up to 280 characters saying what is blocking you, which only
   your person sees. Autolaunch is pinned at 8113d767 and Techtree at eca75a55; neither changed a

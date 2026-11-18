@@ -637,6 +637,22 @@ def test_a_site_that_names_its_command_gets_that_command_not_a_done_tick() -> No
     assert hinted(patchbay, "See sub-regents patchbay threads create.", []) == []
 
 
+def test_a_read_the_site_says_to_read_again_is_offered_as_the_same_line() -> None:
+    """Contessa, 18 Nov: `notebooks result` on a run still provisioning ended with a green
+    "nothing more to run". Only the site knows a run has not finished; when its answer says to
+    read it again, the step is the very line that ran, never a new run."""
+    keyfleet = next(p for p in pinned_platforms() if p.name == "keyfleet")
+    result = next(c for c in keyfleet.commands if c.words[:2] == ("notebooks", "result"))
+    given = {spec.name: spec.name.upper() if spec.required else None for spec in result.inputs}
+    said = "The run has not finished: read it again with regents keyfleet notebooks result."
+    answer = {"status": "running", "result_url": None, "next_step": said}
+    (step,) = after(keyfleet, result, answer, given, ["--json"], finished=True)
+    assert (step.kind, step.command) == (
+        "run",
+        "regents keyfleet notebooks result --json FLEET PROJECT NOTEBOOK RUN",
+    )
+
+
 @pytest.mark.parametrize(
     ("args", "hint", "commands"),
     [
