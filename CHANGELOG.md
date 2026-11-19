@@ -3,6 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- `regents browser` can post feedback about the site it has open. On a site whose pinned tool
+  manifest names the `feedback` tool, the agent calls that page tool with a `title`, a
+  `body_markdown`, a `client_request_id` it chooses and `public: true`, and regents itself posts
+  one public thread about the site on Patchbay, signed with this machine's Patchbay sign-in. The
+  page only asks; it never sees what is signed. regents posts only for exactly the agent's call,
+  once, from the site's own page opened at the site's own address, and never signs in or renews
+  a sign-in to do it. When it cannot tell whether the thread was posted, it says so and asks
+  the agent to read it back with `regents patchbay requests get` before posting again. It is off
+  for every site until that site's manifest names the tool, and no pinned manifest does yet.
+
 ## 1.10.33 — 2026-11-19
 
 - Autolaunch has three stock groups. `covered-calls` reads the book, quotes premiums, reads

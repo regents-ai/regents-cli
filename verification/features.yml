@@ -184,7 +184,9 @@ features:
 - id: page-tools
   what: An agent host uses a site's pages and the WebMCP tools each page offers, in a hidden Chromium
     of regents' own; a signed tool is signed with the agent key only for the exact request the agent's
-    call builds on the site's own page, once.
+    call builds on the site's own page, once. Where the site's pinned manifest names it, the page's feedback
+    tool has regents itself post one public Patchbay thread about the site, for exactly the agent's call,
+    once.
   who: agent
   level: protected
   paths:
@@ -194,8 +196,12 @@ features:
   - cli: regents browser --site <site>
   proofs:
   - tests/test_page_tools.py
+  - tests/test_page_feedback.py
   regressions: []
   gaps:
+  - 'Feedback is off for every site: no pinned manifest names the tool yet. It is proven against a stand-in
+    page and a stand-in for Patchbay; nothing is posted to Patchbay.'
+  - A popup the open page opens on the site is refused feedback by the page check, but no test opens one.
   - Proven against a stand-in page that signs the way the shared library does; no site page has moved
     to the library's host signer yet, so nothing is run against a real site's pages.
   - Runs in headless Chromium only; WebKit is not run on the Mac.

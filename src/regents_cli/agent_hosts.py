@@ -55,12 +55,12 @@ def browser_command(platforms: list[Platform]) -> click.Command:
         ready_to_browse()
         from regents_cli import webmcp_host
 
+        manifest = webmcp_host.tool_manifest(platform)
         bridge = webmcp_host.Bridge(
-            origin=origin,
-            manifest=webmcp_host.tool_manifest(platform),
-            sign=key_signer(platform.site, origin),
+            origin=origin, manifest=manifest, sign=key_signer(platform.site, origin)
         )
-        host = webmcp_host.PageHost(bridge=bridge, show=show_browser)
+        feedback = webmcp_host.FeedbackDoor.for_site(platform, origin, manifest)
+        host = webmcp_host.PageHost(bridge=bridge, show=show_browser, feedback=feedback)
         webmcp_host.server(platform, host).run("stdio")
 
     return run

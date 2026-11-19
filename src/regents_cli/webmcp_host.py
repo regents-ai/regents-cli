@@ -17,31 +17,43 @@ matches a call that is still waiting, which it then uses up. It answers the sign
 the page holds to send its request; a call that ended while it was being signed gets a refusal
 instead. Each set of signed headers is good for that one request, once, and only for a short
 time. The key never leaves this machine.
+
+A site whose pinned tool manifest names the feedback tool lets the agent post one public thread
+about it on Patchbay. regents describes that tool and its input itself. The page only asks
+`window.regentsFeedback` with the input of the agent's call; the post is made by this module's
+`FeedbackDoor`, outside the page, and only when the browser was opened at the site's own address,
+the ask comes from the open page's top frame on the site, and the input is exactly a feedback
+call that is still waiting, which it then uses up. It signs with the Patchbay sign-in already on
+this machine, never signing in or renewing one, and sends one request to Patchbay's own address.
+The page hears back only the thread or a refusal, never what was signed.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import math
 import re
 import traceback
-from collections.abc import AsyncIterator, Awaitable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from decimal import Decimal
+from functools import cache
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import quote, urlsplit
 
 import anyio
+import httpx
 from jsonschema import Draft202012Validator, validators
 from jsonschema.exceptions import best_match
 
 from regents_cli import output, siwa
 from regents_cli.agent_hosts import Signer
 from regents_cli.errors import CommandError
-from regents_cli.http import Request, same_origin
-from regents_cli.platforms import Platform
+from regents_cli.http import Request, respond, same_origin
+from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Platform, pinned_platforms
 
 if TYPE_CHECKING:
     from playwright.async_api import Browser, Page, Playwright
@@ -57,6 +69,58 @@ PLACEHOLDER: Final = re.compile(r"\{([a-z_]+)\}")
 URI_COMPONENT_SAFE: Final = "-_.!~*'()"
 #: The largest body a page may ask to have signed, as the sites' signed-tools library allows.
 MAX_BODY_BYTES: Final = 2_097_152
+#: The site whose sign-in signs a feedback thread, and whose own address takes it.
+PATCHBAY: Final = "patchbay"
+#: The page tool that posts feedback, which regents describes and posts for itself.
+FEEDBACK: Final = "feedback"
+#: Where Patchbay takes a new thread: the one request a feedback call makes.
+FEEDBACK_PATH: Final = "/forum/threads"
+#: regents' own description of the feedback tool, in a manifest entry's shape. Its input is fixed
+#: here, with Patchbay's own limits, and never read from the page or the site.
+FEEDBACK_ENTRY: Final[dict[str, Any]] = {
+    "name": FEEDBACK,
+    "title": "Feedback",
+    "description": (
+        "Opens a public, permanent thread on Patchbay about this site, under your own Patchbay "
+        "sign-in and pairing. Search Patchbay first (regents patchbay threads search) and reply "
+        "to a thread already there instead of posting a copy. Say what you did, what you "
+        "expected and what happened; leave out credentials, session ids and personal details. "
+        "Three posts turned away in one UTC day pause posting for your person and all their "
+        "agents for 48 hours. Answers the thread's id and address."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160,
+                "description": "The thread's title, in one line.",
+            },
+            "body_markdown": {
+                "type": "string",
+                "maxLength": 16384,
+                "description": "What you did, what you expected and what happened. Markdown.",
+            },
+            "client_request_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "description": "A key you choose for this post. When the answer is unknown, read "
+                "the post back with regents patchbay requests get and this key before posting "
+                "again.",
+            },
+            "public": {
+                "type": "boolean",
+                "const": True,
+                "description": "true, to confirm the thread is public for good.",
+            },
+        },
+        "required": ["title", "body_markdown", "client_request_id", "public"],
+        "additionalProperties": False,
+    },
+    "annotations": {"readOnlyHint": False, "consequentialHint": True},
+}
 
 
 def _whole_number(_checker: Any, value: Any) -> bool:
@@ -188,24 +252,7 @@ class Bridge:
 
     def could_not_sign(self, error: Exception) -> dict[str, str]:
         """The page's plain refusal for a signer that failed; the details go to stderr only."""
-        if isinstance(error, CommandError):
-            output.stderr.print(
-                f"regents browser: could not sign: {error.code}: {error.message}", markup=False
-            )
-            return {
-                "code": error.code,
-                "message": "regents could not sign this request, so nothing was sent.",
-                "hint": "Check this machine's sign-in with regents auth login --site "
-                f"{self.manifest['audience']}, then call the tool again.",
-            }
-        output.stderr.print(
-            "regents browser: could not sign:\n" + "".join(traceback.format_exception(error)),
-            markup=False,
-        )
-        return {
-            "code": "signing_failed",
-            "message": "regents could not sign this request, so nothing was sent.",
-        }
+        return signing_refusal(error, self.manifest["audience"])
 
     def claim(self, frame_url: str, prepared: Any) -> tuple[Invocation, Request]:
         """The request to sign, after using up the waiting call it matches."""
@@ -255,6 +302,29 @@ class Bridge:
             "The request the page built is not the call you made, so nothing was signed.",
             "Call the tool again with call_page_tool; each call is signed once.",
         )
+
+
+def signing_refusal(error: Exception, site: str) -> dict[str, str]:
+    """The page's plain refusal for a signer that failed with this machine's sign-in to `site`;
+    the details go to stderr only."""
+    if isinstance(error, CommandError):
+        output.stderr.print(
+            f"regents browser: could not sign: {error.code}: {error.message}", markup=False
+        )
+        return {
+            "code": error.code,
+            "message": "regents could not sign this request, so nothing was sent.",
+            "hint": f"Check this machine's sign-in with regents auth login --site {site}, then "
+            "call the tool again.",
+        }
+    output.stderr.print(
+        "regents browser: could not sign:\n" + "".join(traceback.format_exception(error)),
+        markup=False,
+    )
+    return {
+        "code": "signing_failed",
+        "message": "regents could not sign this request, so nothing was sent.",
+    }
 
 
 def unreadable_request() -> RefusalError:
@@ -392,12 +462,203 @@ def js_number(number: float) -> str:
     return ("-" if number < 0 else "") + written
 
 
+type Post = Callable[[Request], Awaitable[httpx.Response]]
+
+
+@cache
+def patchbay_address() -> str:
+    """Patchbay's own address, from its pinned command description. Every feedback thread goes
+    there, whatever address the site was opened at and whatever PATCHBAY_BASE_URL says."""
+    return next(platform.base_url for platform in pinned_platforms() if platform.name == PATCHBAY)
+
+
+async def send_to_patchbay(request: Request) -> httpx.Response:
+    """Sends a signed request to Patchbay's own address once: no retry, no redirect followed."""
+    return await asyncio.to_thread(respond, patchbay_address(), request, DEFAULT_TIMEOUT_MS)
+
+
+@dataclass(slots=True)
+class FeedbackDoor:
+    """Posts one public Patchbay thread about the site, for exactly a feedback call the agent is
+    making. Off until the site's pinned manifest names the tool."""
+
+    #: Whether the site's pinned tool manifest names the feedback tool.
+    offered: bool = False
+    #: The host the thread is filed under, from the site's pinned address; None when the browser
+    #: was opened at another address.
+    site: str | None = None
+    post: Post = send_to_patchbay
+    waiting: list[Invocation] = field(default_factory=list)
+
+    @classmethod
+    def for_site(cls, platform: Platform, origin: str, manifest: dict[str, Any]) -> FeedbackDoor:
+        """The door for `platform`'s pages opened at `origin`, by its pinned tool `manifest`."""
+        return cls(
+            offered=any(
+                tool["name"] == FEEDBACK
+                and tool.get("authentication") == "patchbay_feedback"
+                and tool.get("availability") == "available"
+                for tool in manifest["tools"]
+            ),
+            site=platform.host if same_origin(origin, platform.base_url) else None,
+        )
+
+    def expect(self, tool: str, given: Any) -> Invocation:
+        invocation = Invocation(tool, given)
+        self.waiting.append(invocation)
+        return invocation
+
+    def forget(self, invocation: Invocation) -> None:
+        """The agent's call ended: nothing more is posted for it, even once signed."""
+        invocation.finished = True
+        if invocation in self.waiting:
+            self.waiting.remove(invocation)
+
+    async def answer(self, from_site_page: bool, given: tuple[Any, ...]) -> dict[str, Any]:
+        """What `window.regentsFeedback` resolves to: `{thread_id, url}` or `{error}`, never a
+        failure. A thread sent once is reported as Patchbay answered, even when the agent's call
+        ended while it was on its way."""
+        try:
+            invocation, site = self.claim(from_site_page, given)
+            feedback = invocation.input
+            request = Request(
+                "POST",
+                FEEDBACK_PATH,
+                body={
+                    "site": site,
+                    "title": feedback["title"],
+                    "body_markdown": feedback["body_markdown"],
+                    "topic_tags": ["feedback"],
+                    "client_request_id": feedback["client_request_id"],
+                },
+            )
+            receipt = await asyncio.to_thread(patchbay_sign_in)
+            headers = await asyncio.to_thread(siwa.sign, request, receipt, patchbay_address())
+        except RefusalError as refusal:
+            return {"error": refusal.as_json()}
+        except Exception as error:
+            return {"error": signing_refusal(error, PATCHBAY)}
+        if invocation.finished:
+            return {
+                "error": RefusalError(
+                    "call_ended",
+                    "The call this feedback was for has ended, so nothing was posted.",
+                    "Call the tool again with call_page_tool.",
+                ).as_json()
+            }
+        try:
+            response = await self.post(replace(request, headers=headers))
+        except Exception as error:
+            said = (
+                f"{error.code}: {error.message}"
+                if isinstance(error, CommandError)
+                else "\n" + "".join(traceback.format_exception(error))
+            )
+            output.stderr.print(f"regents browser: feedback post: {said}", markup=False)
+            return {"error": unknown_outcome().as_json()}
+        return published(response)
+
+    def claim(self, from_site_page: bool, given: tuple[Any, ...]) -> tuple[Invocation, str]:
+        """The waiting call the page's feedback is, used up, and the host it is about."""
+        if not self.offered:
+            raise RefusalError(
+                "feedback_unavailable",
+                "This site does not take feedback through regents browser, so nothing was posted.",
+            )
+        if self.site is None:
+            raise RefusalError(
+                "not_canonical_site",
+                "regents browser was opened at another address than the site's own, so no "
+                "feedback is posted from it.",
+                "Start regents browser without --base-url or the site's address variable, then "
+                "call the tool again.",
+            )
+        if not from_site_page:
+            raise RefusalError(
+                "untrusted_page",
+                "Feedback is taken only from the open page of the site, so nothing was posted.",
+                "Open a page of the site with open_page, then call the tool again.",
+            )
+        for invocation in self.waiting:
+            if len(given) == 1 and same_json(given[0], invocation.input):
+                self.waiting.remove(invocation)
+                return invocation, self.site
+        raise RefusalError(
+            "no_matching_call",
+            "The feedback the page sent is not the call you made, so nothing was posted.",
+            "Call the tool again with call_page_tool; each call posts once.",
+        )
+
+
+def patchbay_sign_in() -> siwa.Receipt:
+    """This machine's Patchbay sign-in as it stands: a post never signs in, renews or pairs."""
+    receipt = siwa.load_receipt(PATCHBAY)
+    hint = f"Sign in with regents auth login --site {PATCHBAY}, then call the tool again."
+    if receipt is None:
+        raise RefusalError(
+            "not_signed_in",
+            "This machine is not signed in to Patchbay, so nothing was posted.",
+            hint,
+        )
+    if not receipt.fresh(siwa.RENEW_MARGIN_SECONDS):
+        raise RefusalError(
+            "sign_in_expired",
+            "This machine's Patchbay sign-in has expired, so nothing was posted.",
+            hint,
+        )
+    return receipt
+
+
+def published(response: httpx.Response) -> dict[str, Any]:
+    """What the page hears of Patchbay's answer: the thread, Patchbay's own refusal, or that it is
+    not known whether the thread was posted. Nothing else of the answer is passed on."""
+    try:
+        body = json.loads(response.content, parse_constant=_no_constant)
+    except (ValueError, RecursionError):
+        body = None
+    if not isinstance(body, dict):
+        return {"error": unknown_outcome().as_json()}
+    thread_id, path, error = body.get("thread_id"), body.get("url"), body.get("error")
+    if (
+        response.status_code in (200, 201)
+        and isinstance(thread_id, str)
+        and isinstance(path, str)
+        and path.startswith("/")
+    ):
+        return {"thread_id": thread_id, "url": patchbay_address() + path}
+    if (
+        response.is_client_error
+        and isinstance(error, dict)
+        and isinstance(error.get("code"), str)
+        and isinstance(error.get("message"), str)
+    ):
+        hint = error.get("hint")
+        refusal = RefusalError(
+            error["code"], error["message"], hint if isinstance(hint, str) else None
+        )
+        return {"error": refusal.as_json()}
+    return {"error": unknown_outcome().as_json()}
+
+
+def unknown_outcome() -> RefusalError:
+    """The answer when nobody can say whether Patchbay posted the thread."""
+    return RefusalError(
+        "unknown",
+        "regents could not tell whether Patchbay posted the thread, so it may or may not be "
+        "public now. It was not sent again.",
+        "Read it back with regents patchbay requests get and the same client_request_id before "
+        "posting again.",
+    )
+
+
 @dataclass(slots=True)
 class PageHost:
     """One sandboxed Chromium, one fresh profile, one page; started by the first open_page."""
 
     bridge: Bridge
     show: bool
+    #: Posts a feedback thread about the site; off unless its pinned manifest names the tool.
+    feedback: FeedbackDoor = field(default_factory=FeedbackDoor)
     playwright: Playwright | None = None
     browser: Browser | None = None
     page: Page | None = None
@@ -420,7 +681,7 @@ class PageHost:
     async def tools(self) -> list[Any]:
         listed: list[Any] = []
         for tool in await self._site_page().webmcp.tools():
-            entry = self.bridge.signed_tool(tool["name"])
+            entry = self._described(tool["name"])
             listed.append(
                 tool
                 if entry is None
@@ -436,7 +697,7 @@ class PageHost:
 
     async def call(self, name: str, given: dict[str, Any]) -> Any:
         page = self._site_page()
-        if (entry := self.bridge.signed_tool(name)) is None:
+        if (entry := self._described(name)) is None:
             return await page.webmcp.call_tool(name, given, timeout=TOOL_TIMEOUT_MS)
         if (problem := input_problem(entry, given)) is not None:
             raise RefusalError(
@@ -444,11 +705,19 @@ class PageHost:
                 f"{name} does not take that input, so nothing was sent: {problem}",
                 "Call list_page_tools for the input schema, then call the tool again.",
             )
-        invocation = self.bridge.expect(name, given)
+        keeper = self.feedback if entry is FEEDBACK_ENTRY else self.bridge
+        invocation = keeper.expect(name, given)
         try:
             return await page.webmcp.call_tool(name, given, timeout=TOOL_TIMEOUT_MS)
         finally:
-            self.bridge.forget(invocation)
+            keeper.forget(invocation)
+
+    def _described(self, name: str) -> dict[str, Any] | None:
+        """regents' own description of the page tool called `name`: the feedback tool when the
+        site offers it, else the manifest's signed tool, if there is one."""
+        if name == FEEDBACK and self.feedback.offered:
+            return FEEDBACK_ENTRY
+        return self.bridge.signed_tool(name)
 
     def _on_site(self, page: Page) -> bool:
         return same_origin(origin_of(page.url) or "", self.bridge.origin)
@@ -477,6 +746,16 @@ class PageHost:
                     return {"error": unreadable_request().as_json()}
                 return await self.bridge.answer(source["frame"].url, given[0])
 
+            async def regents_feedback(source: dict[str, Any], *given: Any) -> dict[str, Any]:
+                """`window.regentsFeedback(input)`: the thread or a refusal; never a failure."""
+                frame = source["frame"]
+                from_site_page = (
+                    source["page"] is self.page
+                    and frame.parent_frame is None
+                    and same_origin(origin_of(frame.url) or "", self.bridge.origin)
+                )
+                return await self.feedback.answer(from_site_page, given)
+
             # Kept only once the page is open: a start that fails, or is cancelled through its
             # anyio scope, stops what it started, so the next call starts from nothing. The
             # driver's own start is shielded, since a cancel inside it leaves the driver running.
@@ -488,6 +767,7 @@ class PageHost:
                 )
                 context = await browser.new_context()
                 await context.expose_binding("regentsSign", regents_sign)
+                await context.expose_binding("regentsFeedback", regents_feedback)
                 page = await context.new_page()
             except BaseException:
                 with anyio.CancelScope(shield=True):
