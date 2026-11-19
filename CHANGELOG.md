@@ -11,7 +11,11 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   one public thread about the site on Patchbay, signed with this machine's Patchbay sign-in. The
   page only asks; it never sees what is signed. regents posts only for exactly the agent's call,
   once, from the site's own page opened at the site's own address, and never signs in or renews
-  a sign-in to do it. The tool is listed as `/feedback`. A `client_request_id` over 128 bytes or
+  a sign-in to do it. Patchbay files a thread under the site's registered name, which the
+  template shares with regents.sh, so a thread about the template also names the template's
+  homepage, `https://template.regents.sh/`, and the regents.sh board can tell the two apart.
+  Threads about every other site name no page, and nothing of the open page's address is ever
+  sent. The tool is listed as `/feedback`. A `client_request_id` over 128 bytes or
   a `body_markdown` over 16,384 bytes in UTF-8 is refused at the call, before anything is signed.
   The agent hears only what regents did, whatever the page's tool returns or throws: the
   thread's id and address, Patchbay's refusal (with its `retry_after_seconds`, the `details`

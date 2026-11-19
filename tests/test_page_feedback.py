@@ -721,6 +721,46 @@ async def test_no_address_setting_moves_the_post_or_its_site(
     assert signer_of("POST", sent.target, sent.content, sent.headers, PATCHBAY) == ADDRESS
 
 
+def pinned_door(name: str, origin: str) -> FeedbackDoor:
+    """The door `regents browser` builds for a real pinned site opened at `origin`, with that
+    site's pinned manifest naming the feedback tool."""
+    platform = PLATFORMS[name]
+    return FeedbackDoor.for_site(platform, origin, offering(webmcp_host.tool_manifest(platform)))
+
+
+@pytest.mark.parametrize("name", sorted(PLATFORMS))
+async def test_only_a_site_on_a_shared_board_names_its_homepage(signed_in: Path, name: str) -> None:
+    """Patchbay files template.regents.sh's threads on regents.sh's board, so the template also
+    names its homepage; every other site's post carries exactly the fields it always did."""
+    patchbay = Patchbay()
+    feedback = pinned_door(name, PLATFORMS[name].base_url)
+    feedback.post = patchbay.post
+    feedback.expect(FEEDBACK_INPUT)
+    assert await feedback.answer(True, (FEEDBACK_INPUT,)) == POSTED
+    fields: dict[str, Any] = {
+        "site": PLATFORMS[name].host,
+        "title": FEEDBACK_INPUT["title"],
+        "body_markdown": FEEDBACK_INPUT["body_markdown"],
+        "topic_tags": ["feedback"],
+        "client_request_id": FEEDBACK_INPUT["client_request_id"],
+    }
+    if name == "ash-template":
+        fields["page_url"] = "https://template.regents.sh/"
+    [sent] = patchbay.received
+    assert sent.content == Request("POST", "/forum/threads", body=fields).content
+
+
+@pytest.mark.parametrize("name", sorted(PLATFORMS))
+async def test_no_site_opened_elsewhere_posts(signed_in: Path, name: str) -> None:
+    patchbay = Patchbay()
+    feedback = pinned_door(name, "http://localhost:4000")
+    feedback.post = patchbay.post
+    feedback.expect(FEEDBACK_INPUT)
+    answer = await feedback.answer(True, (FEEDBACK_INPUT,))
+    assert answer["error"]["code"] == "not_canonical_site"
+    assert patchbay.received == []
+
+
 # The whole path: a page on a stand-in site registers `feedback` in Playwright's Chromium, the
 # agent calls it through regents browser's MCP tools, and the page asks window.regentsFeedback.
 # `?mode=` makes it misbehave: `twice` asks a second time, `framed` asks from a frame of the site
@@ -869,6 +909,32 @@ async def test_what_the_page_returns_or_throws_is_never_the_answer(
     asked = {"name": "feedback", "input": FEEDBACK_INPUT}
     assert await call(site.client, "call_page_tool", asked) == {"result": heard}
     assert len(site.patchbay.received) == sent
+
+
+#: An open page whose address carries a path, text shaped like a user and password, a query
+#: and a fragment: none of it may reach Patchbay.
+PRIVATE_PAGE = "/notes/alice:hunter2@site.test/secret-path?token=secret-query#secret-fragment"
+PRIVATE = ("alice", "hunter2", "secret-path", "secret-query", "secret-fragment", "site.test")
+
+
+@pytest.mark.parametrize(
+    ("name", "homepage"), [("ash-template", "https://template.regents.sh/"), ("keyfleet", None)]
+)
+async def test_nothing_of_the_open_pages_address_is_sent(
+    signed_in: Path, name: str, homepage: str | None
+) -> None:
+    """The pages are the stand-in site's; the door is the real pinned site's, opened at its own
+    address, as `regents browser` builds it."""
+    async with opened(pinned_door(name, PLATFORMS[name].base_url)) as site:
+        shown = await call(site.client, "open_page", {"url": PRIVATE_PAGE})
+        assert "secret-query" in shown["url"]
+        asked = {"name": "feedback", "input": FEEDBACK_INPUT}
+        assert await call(site.client, "call_page_tool", asked) == {"result": POSTED}
+        [sent] = site.patchbay.received
+        assert sent.content is not None
+        assert json.loads(sent.content).get("page_url") == homepage
+        said = sent.target + sent.content.decode() + json.dumps(sent.headers)
+        assert [secret for secret in PRIVATE if secret in said] == []
 
 
 class Watched(FeedbackDoor):

@@ -25,6 +25,11 @@ about it on Patchbay. regents describes that tool and its input itself. The page
 the ask comes from the open page's top frame on the site, and the input is exactly a feedback
 call that is still waiting, which it then uses up. It signs with the Patchbay sign-in already on
 this machine, never signing in or renewing one, and sends one request to Patchbay's own address.
+The thread names the site by its pinned host. Patchbay files a thread under the site's registered
+name, so the template, whose name it shares with regents.sh, also names its homepage from its
+pinned address, whose host the board tells the two apart by. Nothing of the open page's address
+is ever sent.
+
 The page hears back only the thread or a refusal, never what was signed. The agent hears only
 what regents did for its call, whatever the page's tool returns or throws: for the ask that
 matched it and used it up, the thread, Patchbay's refusal, the refusal of a sign-in that could not
@@ -81,9 +86,13 @@ PATCHBAY: Final = "patchbay"
 FEEDBACK: Final = "feedback"
 #: Where Patchbay takes a new thread: the one request a feedback call makes.
 FEEDBACK_PATH: Final = "/forum/threads"
+#: The sites whose host shares its registered name with another Regent site, so Patchbay files
+#: their threads on that site's board (template.regents.sh on regents.sh's). Their feedback also
+#: names the site's homepage, whose host is how the board tells their threads apart.
+SHARED_BOARD: Final = frozenset({"ash-template"})
 #: The fields a feedback post sends, which Patchbay's refusal lines may name.
 FEEDBACK_FIELDS: Final = frozenset(
-    {"site", "title", "body_markdown", "topic_tags", "client_request_id"}
+    {"site", "title", "body_markdown", "topic_tags", "client_request_id", "page_url"}
 )
 #: Patchbay's limits in UTF-8 bytes. A title within its 160 characters is always within Patchbay's
 #: 640 bytes, so it needs no limit here.
@@ -525,6 +534,9 @@ class FeedbackDoor:
     #: The host the thread is filed under, from the site's pinned address; None when the browser
     #: was opened at another address.
     site: str | None = None
+    #: The site's homepage, from its pinned address, for a site on a board it shares
+    #: (`SHARED_BOARD`); None for every other site, whose threads name no page.
+    homepage: str | None = None
     post: Post = send_to_patchbay
     waiting: list[FeedbackCall] = field(default_factory=list)
 
@@ -539,6 +551,7 @@ class FeedbackDoor:
                 for tool in manifest["tools"]
             ),
             site=platform.host if same_origin(origin, platform.base_url) else None,
+            homepage=platform.base_url + "/" if platform.name in SHARED_BOARD else None,
         )
 
     def expect(self, given: dict[str, Any]) -> FeedbackCall:
@@ -576,18 +589,17 @@ class FeedbackDoor:
             call, site = self.claim(from_site_page, given)
         except RefusalError as refusal:
             return {"error": refusal.as_json()}
+        body: dict[str, Any] = {
+            "site": site,
+            "title": call.input["title"],
+            "body_markdown": call.input["body_markdown"],
+            "topic_tags": ["feedback"],
+            "client_request_id": call.input["client_request_id"],
+        }
+        if self.homepage is not None:
+            body["page_url"] = self.homepage
         try:
-            request = Request(
-                "POST",
-                FEEDBACK_PATH,
-                body={
-                    "site": site,
-                    "title": call.input["title"],
-                    "body_markdown": call.input["body_markdown"],
-                    "topic_tags": ["feedback"],
-                    "client_request_id": call.input["client_request_id"],
-                },
-            )
+            request = Request("POST", FEEDBACK_PATH, body=body)
             receipt = await asyncio.to_thread(patchbay_sign_in)
             headers = await asyncio.to_thread(siwa.sign, request, receipt, patchbay_address())
         except Exception as error:
