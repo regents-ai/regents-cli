@@ -7,8 +7,7 @@ builds of it and the two points this side settled with Techtree on 28 Oct 2026.
 ## Digests over model files (spec section 3)
 
 `src/regents_cli/techtree/model_files.py` computes `file_root`, `weights_root`,
-`tokenizer_digest` and `chat_template_digest` exactly as section 3 sets out, and
-`tests/techtree/test_model_files.py` checks the spec's test vector. It also computes
+`tokenizer_digest` and `chat_template_digest` exactly as section 3 sets out. It also computes
 `config_digest`, the root over `config.json` and, when present, `generation_config.json`, which
 both sides must share: a config that changes the architecture or the context length, or a
 generation config whose sampling defaults vLLM applies, would change more than the weights.

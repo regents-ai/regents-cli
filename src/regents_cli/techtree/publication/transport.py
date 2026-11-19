@@ -44,10 +44,10 @@ _TIMEOUT_SECONDS: Final = 120.0
 
 
 class HttpsPublicationTransport:
-    """The real request. A test hands in an `httpx.Client` over `httpx.MockTransport`."""
+    """The HTTPS request that carries a publication or a withdrawal."""
 
-    def __init__(self, client: httpx.Client | None = None) -> None:
-        self._client = client or httpx.Client(timeout=_TIMEOUT_SECONDS)
+    def __init__(self) -> None:
+        self._client = httpx.Client(timeout=_TIMEOUT_SECONDS)
 
     def submit(
         self,

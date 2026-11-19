@@ -15,7 +15,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
-import httpx
 from pydantic import ValidationError as PydanticValidationError
 
 from regents_cli.errors import CommandError
@@ -80,12 +79,11 @@ def prepare_rerun(
     *,
     access: ModelAccess | None,
     base: str,
-    client: httpx.Client | None = None,
 ) -> PreparedDraft:
     """An ordinary draft over a published Result's Campaign and Skill, recording what it reruns,
     on any route the Campaign offers: not necessarily the one the original ran on."""
     submission = _parse(
-        get_json(base, "publications", bundle_digest, "bundle", client=client),
+        get_json(base, "publications", bundle_digest, "bundle"),
         PublicationSubmission,
         "a published Result's bundle",
     )
@@ -136,12 +134,9 @@ def fetch_skill(
     *,
     base: str,
     to: Path | None,
-    client: httpx.Client | None = None,
 ) -> FetchedSkill:
     """A published Skill checked against `root_digest`, then written to a new or empty folder."""
-    answer = _parse(
-        get_json(base, "skills", root_digest, client=client), _SkillAnswer, "a published Skill"
-    )
+    answer = _parse(get_json(base, "skills", root_digest), _SkillAnswer, "a published Skill")
     skill = answer.skill
     files: dict[str, bytes] = {}
     for item in answer.files:

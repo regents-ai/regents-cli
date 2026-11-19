@@ -32,31 +32,27 @@ def site_base(flag: str | None) -> str:
     return base_address(flag, BASE_URL_VARIABLE, f"{parts.scheme}://{parts.netloc}")
 
 
-def get_json(base: str, *segments: str, client: httpx.Client | None = None) -> Any:
+def get_json(base: str, *segments: str) -> Any:
     """GET `base` + `/api/v1/<segments>` and return the JSON answer, or raise the site's refusal
     with its code, message and hint."""
     path = "/api/v1/" + "/".join(quote(segment, safe=":") for segment in segments)
-    owned = client is None
-    session = client or httpx.Client(timeout=_TIMEOUT_SECONDS)
     try:
-        request = session.build_request(
-            "GET", base + path, headers={"accept": "application/json", **client_header()}
-        )
-        # SECURITY: no redirect is followed, so an answer always comes from the address named.
-        response = session.send(request, stream=True, follow_redirects=False)
-        try:
-            body = _capped(response, base)
-        finally:
-            response.close()
+        with httpx.Client(timeout=_TIMEOUT_SECONDS) as session:
+            request = session.build_request(
+                "GET", base + path, headers={"accept": "application/json", **client_header()}
+            )
+            # SECURITY: no redirect is followed, so an answer always comes from the address named.
+            response = session.send(request, stream=True, follow_redirects=False)
+            try:
+                body = _capped(response, base)
+            finally:
+                response.close()
     except httpx.HTTPError:
         raise CommandError(
             "unreachable",
             f"{base} could not be reached. The request was not retried.",
             exit_code=EXIT_UNREACHABLE,
         ) from None
-    finally:
-        if owned:
-            session.close()
     # The body is already decoded, so the headers that describe its encoding stay behind.
     headers = {
         name: value
