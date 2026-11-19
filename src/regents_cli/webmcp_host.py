@@ -25,7 +25,10 @@ about it on Patchbay. regents describes that tool and its input itself. The page
 the ask comes from the open page's top frame on the site, and the input is exactly a feedback
 call that is still waiting, which it then uses up. It signs with the Patchbay sign-in already on
 this machine, never signing in or renewing one, and sends one request to Patchbay's own address.
-The page hears back only the thread or a refusal, never what was signed.
+The page hears back only the thread or a refusal, never what was signed. The agent hears only
+what regents did for its call, whatever the page's tool returns or throws: the thread, Patchbay's
+refusal, a refusal of the page's ask, that the page never asked, or, once a post was sent and
+Patchbay's answer could not be read, that nobody can tell whether it was posted.
 """
 
 from __future__ import annotations
@@ -36,7 +39,7 @@ import math
 import re
 import traceback
 from collections.abc import AsyncIterator, Awaitable, Callable
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from functools import cache
@@ -75,11 +78,23 @@ PATCHBAY: Final = "patchbay"
 FEEDBACK: Final = "feedback"
 #: Where Patchbay takes a new thread: the one request a feedback call makes.
 FEEDBACK_PATH: Final = "/forum/threads"
+#: The fields a feedback post sends, which Patchbay's refusal lines may name.
+FEEDBACK_FIELDS: Final = frozenset(
+    {"site", "title", "body_markdown", "topic_tags", "client_request_id"}
+)
+#: Patchbay's limits in UTF-8 bytes. A title within its 160 characters is always within Patchbay's
+#: 640 bytes, so it needs no limit here.
+FEEDBACK_BYTES: Final = {"body_markdown": 16_384, "client_request_id": 128}
+#: The longest wait a Patchbay refusal is passed on with: a day.
+MAX_RETRY_AFTER_SECONDS: Final = 86_400
+#: How many of Patchbay's refusal lines are passed on, and how long each may be.
+MAX_DETAIL_LINES: Final = 10
+MAX_DETAIL_LENGTH: Final = 500
 #: regents' own description of the feedback tool, in a manifest entry's shape. Its input is fixed
 #: here, with Patchbay's own limits, and never read from the page or the site.
 FEEDBACK_ENTRY: Final[dict[str, Any]] = {
     "name": FEEDBACK,
-    "title": "Feedback",
+    "title": "/feedback",
     "description": (
         "Opens a public, permanent thread on Patchbay about this site, under your own Patchbay "
         "sign-in and pairing. Search Patchbay first (regents patchbay threads search) and reply "
@@ -100,15 +115,16 @@ FEEDBACK_ENTRY: Final[dict[str, Any]] = {
             "body_markdown": {
                 "type": "string",
                 "maxLength": 16384,
-                "description": "What you did, what you expected and what happened. Markdown.",
+                "description": "What you did, what you expected and what happened. Markdown, up "
+                "to 16,384 bytes in UTF-8.",
             },
             "client_request_id": {
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 128,
-                "description": "A key you choose for this post. When the answer is unknown, read "
-                "the post back with regents patchbay requests get and this key before posting "
-                "again.",
+                "description": "A key you choose for this post, up to 128 bytes in UTF-8. When "
+                "the answer is unknown, read the post back with regents patchbay requests get and "
+                "this key before posting again.",
             },
             "public": {
                 "type": "boolean",
@@ -477,6 +493,22 @@ async def send_to_patchbay(request: Request) -> httpx.Response:
     return await asyncio.to_thread(respond, patchbay_address(), request, DEFAULT_TIMEOUT_MS)
 
 
+@dataclass(eq=False, slots=True)
+class FeedbackCall:
+    """A feedback call the agent made, and what regents did for it. Only this decides what the
+    agent hears; whatever the page returns or throws does not."""
+
+    input: Any
+    finished: bool = False
+    #: Set just before the post is sent; from then on only Patchbay's answer says what happened.
+    dispatched: bool = False
+    #: What regents answered the page's last ask for this call: a refusal, or once the post is
+    #: sent, its outcome, which is unknown until Patchbay's answer is read.
+    outcome: dict[str, Any] | None = None
+    #: Set once a post that was sent has its outcome.
+    settled: anyio.Event = field(default_factory=anyio.Event)
+
+
 @dataclass(slots=True)
 class FeedbackDoor:
     """Posts one public Patchbay thread about the site, for exactly a feedback call the agent is
@@ -488,7 +520,7 @@ class FeedbackDoor:
     #: was opened at another address.
     site: str | None = None
     post: Post = send_to_patchbay
-    waiting: list[Invocation] = field(default_factory=list)
+    waiting: list[FeedbackCall] = field(default_factory=list)
 
     @classmethod
     def for_site(cls, platform: Platform, origin: str, manifest: dict[str, Any]) -> FeedbackDoor:
@@ -503,42 +535,67 @@ class FeedbackDoor:
             site=platform.host if same_origin(origin, platform.base_url) else None,
         )
 
-    def expect(self, tool: str, given: Any) -> Invocation:
-        invocation = Invocation(tool, given)
-        self.waiting.append(invocation)
-        return invocation
+    def expect(self, given: dict[str, Any]) -> FeedbackCall:
+        """The agent's call, waiting for the page to ask, once its input is one regents posts."""
+        if (problem := feedback_problem(given)) is not None:
+            raise RefusalError(
+                "invalid_input",
+                f"{FEEDBACK} does not take that input, so nothing was sent: {problem}",
+                "Call list_page_tools for the input schema, then call the tool again.",
+            )
+        call = FeedbackCall(given)
+        self.waiting.append(call)
+        return call
 
-    def forget(self, invocation: Invocation) -> None:
-        """The agent's call ended: nothing more is posted for it, even once signed."""
-        invocation.finished = True
-        if invocation in self.waiting:
-            self.waiting.remove(invocation)
+    def forget(self, call: FeedbackCall) -> None:
+        """The agent's call ended: no post for it begins any more."""
+        call.finished = True
+        if call in self.waiting:
+            self.waiting.remove(call)
+
+    async def told(self, call: FeedbackCall) -> dict[str, Any]:
+        """What the agent hears for a call that has ended, however its page tool ended: the post's
+        outcome once Patchbay's answer settles it, else the refusal the page's ask got, else that
+        the page never asked. A post that was sent is never reported as nothing posted."""
+        if call.dispatched:
+            await call.settled.wait()
+        return call.outcome or {"error": not_posted().as_json()}
 
     async def answer(self, from_site_page: bool, given: tuple[Any, ...]) -> dict[str, Any]:
         """What `window.regentsFeedback` resolves to: `{thread_id, url}` or `{error}`, never a
-        failure. A thread sent once is reported as Patchbay answered, even when the agent's call
-        ended while it was on its way."""
+        failure. The answer is kept on its call for the agent; a refusal that names no call is kept
+        on every call still waiting. A thread sent once is reported as Patchbay answered, even
+        when the agent's call ended while it was on its way."""
         try:
-            invocation, site = self.claim(from_site_page, given)
-            feedback = invocation.input
+            call, site = self.claim(from_site_page, given)
+        except RefusalError as refusal:
+            heard = {"error": refusal.as_json()}
+            for waiting in self.waiting:
+                waiting.outcome = heard
+            return heard
+        try:
             request = Request(
                 "POST",
                 FEEDBACK_PATH,
                 body={
                     "site": site,
-                    "title": feedback["title"],
-                    "body_markdown": feedback["body_markdown"],
+                    "title": call.input["title"],
+                    "body_markdown": call.input["body_markdown"],
                     "topic_tags": ["feedback"],
-                    "client_request_id": feedback["client_request_id"],
+                    "client_request_id": call.input["client_request_id"],
                 },
             )
             receipt = await asyncio.to_thread(patchbay_sign_in)
             headers = await asyncio.to_thread(siwa.sign, request, receipt, patchbay_address())
-        except RefusalError as refusal:
-            return {"error": refusal.as_json()}
         except Exception as error:
-            return {"error": signing_refusal(error, PATCHBAY)}
-        if invocation.finished:
+            refused = (
+                error.as_json()
+                if isinstance(error, RefusalError)
+                else signing_refusal(error, PATCHBAY)
+            )
+            call.outcome = {"error": refused}
+            return call.outcome
+        if call.finished:
             return {
                 "error": RefusalError(
                     "call_ended",
@@ -546,8 +603,10 @@ class FeedbackDoor:
                     "Call the tool again with call_page_tool.",
                 ).as_json()
             }
+        heard = {"error": unknown_outcome().as_json()}
+        call.dispatched, call.outcome = True, heard
         try:
-            response = await self.post(replace(request, headers=headers))
+            heard = call.outcome = published(await self.post(replace(request, headers=headers)))
         except Exception as error:
             said = (
                 f"{error.code}: {error.message}"
@@ -555,10 +614,11 @@ class FeedbackDoor:
                 else "\n" + "".join(traceback.format_exception(error))
             )
             output.stderr.print(f"regents browser: feedback post: {said}", markup=False)
-            return {"error": unknown_outcome().as_json()}
-        return published(response)
+        finally:
+            call.settled.set()
+        return heard
 
-    def claim(self, from_site_page: bool, given: tuple[Any, ...]) -> tuple[Invocation, str]:
+    def claim(self, from_site_page: bool, given: tuple[Any, ...]) -> tuple[FeedbackCall, str]:
         """The waiting call the page's feedback is, used up, and the host it is about."""
         if not self.offered:
             raise RefusalError(
@@ -579,15 +639,30 @@ class FeedbackDoor:
                 "Feedback is taken only from the open page of the site, so nothing was posted.",
                 "Open a page of the site with open_page, then call the tool again.",
             )
-        for invocation in self.waiting:
-            if len(given) == 1 and same_json(given[0], invocation.input):
-                self.waiting.remove(invocation)
-                return invocation, self.site
+        for call in self.waiting:
+            if len(given) == 1 and same_json(given[0], call.input):
+                self.waiting.remove(call)
+                return call, self.site
         raise RefusalError(
             "no_matching_call",
             "The feedback the page sent is not the call you made, so nothing was posted.",
             "Call the tool again with call_page_tool; each call posts once.",
         )
+
+
+def feedback_problem(given: dict[str, Any]) -> str | None:
+    """Why `given` is not feedback input regents posts, or None: the tool's schema, then
+    Patchbay's limits in UTF-8 bytes, which a schema's length in characters cannot say."""
+    if (problem := input_problem(FEEDBACK_ENTRY, given)) is not None:
+        return problem
+    return next(
+        (
+            f"{name} is over {limit} bytes in UTF-8"
+            for name, limit in FEEDBACK_BYTES.items()
+            if len(given[name].encode("utf-8", "surrogatepass")) > limit
+        ),
+        None,
+    )
 
 
 def patchbay_sign_in() -> siwa.Receipt:
@@ -626,18 +701,50 @@ def published(response: httpx.Response) -> dict[str, Any]:
         and path.startswith("/")
     ):
         return {"thread_id": thread_id, "url": patchbay_address() + path}
-    if (
-        response.is_client_error
-        and isinstance(error, dict)
+    if response.is_client_error and (refusal := patchbay_refusal(error)) is not None:
+        return {"error": refusal}
+    return {"error": unknown_outcome().as_json()}
+
+
+def patchbay_refusal(error: Any) -> dict[str, Any] | None:
+    """Patchbay's own refusal in its words, keeping beside them only what an agent acts on: the
+    whole seconds to wait, and the lines naming a field this tool sends and the rule it broke.
+    None when it is not a refusal regents can read."""
+    if not (
+        isinstance(error, dict)
         and isinstance(error.get("code"), str)
         and isinstance(error.get("message"), str)
     ):
-        hint = error.get("hint")
-        refusal = RefusalError(
-            error["code"], error["message"], hint if isinstance(hint, str) else None
-        )
-        return {"error": refusal.as_json()}
-    return {"error": unknown_outcome().as_json()}
+        return None
+    kept: dict[str, Any] = {"code": error["code"], "message": error["message"]}
+    if isinstance(hint := error.get("hint"), str):
+        kept["hint"] = hint
+    seconds = error.get("retry_after_seconds")
+    if type(seconds) is int and 0 <= seconds <= MAX_RETRY_AFTER_SECONDS:
+        kept["retry_after_seconds"] = seconds
+    details = error.get("details")
+    lines = [line for line in details if names_a_field(line)] if isinstance(details, list) else []
+    if lines:
+        kept["details"] = lines[:MAX_DETAIL_LINES]
+    return kept
+
+
+def names_a_field(line: Any) -> bool:
+    """Whether `line` is one of Patchbay's refusal lines, `<field>: <rule>`, for a field this tool
+    sends."""
+    if not isinstance(line, str) or len(line) > MAX_DETAIL_LENGTH:
+        return False
+    named, separator, _rule = line.partition(": ")
+    return bool(separator) and named in FEEDBACK_FIELDS
+
+
+def not_posted() -> RefusalError:
+    """The answer when the page's tool ended without ever asking regents to post."""
+    return RefusalError(
+        "not_posted",
+        "The page's feedback tool ended without asking regents to post it, so nothing was posted.",
+        "Check the page offers feedback with list_page_tools, then call it again.",
+    )
 
 
 def unknown_outcome() -> RefusalError:
@@ -697,7 +804,9 @@ class PageHost:
 
     async def call(self, name: str, given: dict[str, Any]) -> Any:
         page = self._site_page()
-        if (entry := self._described(name)) is None:
+        if name == FEEDBACK and self.feedback.offered:
+            return await self._feedback(page, given)
+        if (entry := self.bridge.signed_tool(name)) is None:
             return await page.webmcp.call_tool(name, given, timeout=TOOL_TIMEOUT_MS)
         if (problem := input_problem(entry, given)) is not None:
             raise RefusalError(
@@ -705,12 +814,22 @@ class PageHost:
                 f"{name} does not take that input, so nothing was sent: {problem}",
                 "Call list_page_tools for the input schema, then call the tool again.",
             )
-        keeper = self.feedback if entry is FEEDBACK_ENTRY else self.bridge
-        invocation = keeper.expect(name, given)
+        invocation = self.bridge.expect(name, given)
         try:
             return await page.webmcp.call_tool(name, given, timeout=TOOL_TIMEOUT_MS)
         finally:
-            keeper.forget(invocation)
+            self.bridge.forget(invocation)
+
+    async def _feedback(self, page: Page, given: dict[str, Any]) -> dict[str, Any]:
+        """A feedback call: the page's tool runs, but what it returns or throws is never the
+        answer. The agent hears only what regents did for the call."""
+        call = self.feedback.expect(given)
+        try:
+            with suppress(Exception):
+                await page.webmcp.call_tool(FEEDBACK, given, timeout=TOOL_TIMEOUT_MS)
+        finally:
+            self.feedback.forget(call)
+        return await self.feedback.told(call)
 
     def _described(self, name: str) -> dict[str, Any] | None:
         """regents' own description of the page tool called `name`: the feedback tool when the

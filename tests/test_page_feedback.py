@@ -3,19 +3,21 @@
 Patchbay thread about the site. It posts only the exact call the agent made, once, from the site's
 own page opened at the site's own address, with a Patchbay sign-in already on this machine, and
 only ever to Patchbay's own address. The page hears back the thread or a refusal, never what was
-signed. Patchbay is a stand-in here: nothing leaves this machine.
+signed, and the agent hears only what regents did, whatever the page's tool returns or throws.
+Patchbay is a stand-in here: nothing leaves this machine.
 """
 
 from __future__ import annotations
 
 import json
-from collections.abc import AsyncIterator, Callable, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, NamedTuple
 
+import anyio
 import httpx
 import pytest
 from hypothesis import HealthCheck, given, settings
@@ -27,7 +29,16 @@ from regents_cli.agent_hosts import key_signer
 from regents_cli.errors import CommandError
 from regents_cli.http import Request, base_address
 from regents_cli.platforms import pinned_platforms
-from regents_cli.webmcp_host import FEEDBACK, Bridge, FeedbackDoor, PageHost
+from regents_cli.webmcp_host import (
+    FEEDBACK,
+    Bridge,
+    FeedbackCall,
+    FeedbackDoor,
+    PageHost,
+    RefusalError,
+    not_posted,
+    unknown_outcome,
+)
 from tests.signed_agent import ADDRESS, RECEIPT, sign_in, signer_of
 
 pytestmark = pytest.mark.anyio
@@ -51,12 +62,15 @@ THREAD = {
     "paid_offers": [{"campaign_id": "0xabc", "manifest_url": "https://ads.test/m.json"}],
 }
 POSTED = {"thread_id": THREAD_ID, "url": PATCHBAY + THREAD_PATH}
+NOT_POSTED = {"error": not_posted().as_json()}
+UNKNOWN = {"error": unknown_outcome().as_json()}
 FEEDBACK_INPUT = {
     "title": "The save button does nothing",
     "body_markdown": "I pressed **Save** on /notes. I expected a saved note; nothing changed.",
     "client_request_id": "fb-2026-11-19-1",
     "public": True,
 }
+TIMED_OUT = CommandError("timeout", "https://patchbay.help did not answer within 30000 ms.")
 
 
 def offering(manifest: dict[str, Any], **entry: str) -> dict[str, Any]:
@@ -66,14 +80,18 @@ def offering(manifest: dict[str, Any], **entry: str) -> dict[str, Any]:
 
 
 class Patchbay:
-    """A stand-in for Patchbay: what it answers, and each request it received."""
+    """A stand-in for Patchbay: what it answers, each request it received, and what it waits for
+    before it answers."""
 
     def __init__(self, answer: httpx.Response | Exception | None = None) -> None:
         self.answer = httpx.Response(201, json=THREAD) if answer is None else answer
         self.received: list[Request] = []
+        self.hold: Callable[[], Awaitable[None]] | None = None
 
     async def post(self, request: Request) -> httpx.Response:
         self.received.append(request)
+        if self.hold is not None:
+            await self.hold()
         if isinstance(self.answer, Exception):
             raise self.answer
         return self.answer
@@ -112,7 +130,7 @@ def door(patchbay: Patchbay, site: str = "site.test") -> FeedbackDoor:
 async def test_posts_exactly_the_call_once(signed_in: Path) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     assert await feedback.answer(True, (FEEDBACK_INPUT,)) == POSTED
     again = await feedback.answer(True, (FEEDBACK_INPUT,))
     assert again["error"]["code"] == "no_matching_call"
@@ -154,13 +172,14 @@ async def test_refuses_feedback_the_call_did_not_make(
 ) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     answer = await feedback.answer(True, asked)
     assert answer["error"]["code"] == "no_matching_call"
     assert patchbay.received == []
 
 
-TEXT = st.text(max_size=40)
+# 32 characters are at most 128 bytes in UTF-8, so every key drawn is one Patchbay takes.
+TEXT = st.text(max_size=32)
 INPUTS = st.fixed_dictionaries(
     {
         "title": TEXT.filter(bool),
@@ -181,7 +200,7 @@ async def test_posts_only_the_input_its_call_made(
 ) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, made)
+    feedback.expect(made)
     if other != made:
         assert (await feedback.answer(True, (other,)))["error"]["code"] == "no_matching_call"
     assert await feedback.answer(True, (made,)) == POSTED
@@ -191,6 +210,44 @@ async def test_posts_only_the_input_its_call_made(
     assert {key: body[key] for key in ("title", "body_markdown", "client_request_id")} == {
         key: made[key] for key in ("title", "body_markdown", "client_request_id")
     }
+
+
+@pytest.mark.parametrize(
+    "over",
+    [
+        {"client_request_id": "é" * 128},
+        {"client_request_id": "🙂" * 33},
+        {"body_markdown": "é" * 8193},
+    ],
+)
+def test_refuses_input_over_patchbays_bytes_at_the_call(over: dict[str, str]) -> None:
+    """Within the schema's characters, but over Patchbay's limit in UTF-8 bytes."""
+    feedback = door(Patchbay())
+    with pytest.raises(RefusalError) as refused:
+        feedback.expect({**FEEDBACK_INPUT, **over})
+    assert refused.value.code == "invalid_input"
+    assert feedback.waiting == []
+
+
+@pytest.mark.parametrize(
+    "within",
+    [
+        {"client_request_id": "k" * 128},
+        {"client_request_id": "é" * 64},
+        {"body_markdown": "b" * 16_384},
+        {"body_markdown": "é" * 8192},
+    ],
+)
+async def test_posts_input_up_to_patchbays_bytes(signed_in: Path, within: dict[str, str]) -> None:
+    patchbay = Patchbay()
+    feedback = door(patchbay)
+    made = {**FEEDBACK_INPUT, **within}
+    feedback.expect(made)
+    assert await feedback.answer(True, (made,)) == POSTED
+    [sent] = patchbay.received
+    assert sent.content is not None
+    body = json.loads(sent.content)
+    assert {key: body[key] for key in within} == within
 
 
 @pytest.mark.parametrize(
@@ -217,7 +274,7 @@ async def test_off_or_elsewhere_sends_nothing(
 ) -> None:
     patchbay = Patchbay()
     feedback.post = patchbay.post
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     answer = await feedback.answer(True, (FEEDBACK_INPUT,))
     assert answer["error"]["code"] == refusal
     assert patchbay.received == []
@@ -226,7 +283,7 @@ async def test_off_or_elsewhere_sends_nothing(
 async def test_refuses_an_ask_from_anywhere_but_the_sites_open_page(signed_in: Path) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     answer = await feedback.answer(False, (FEEDBACK_INPUT,))
     assert answer["error"]["code"] == "untrusted_page"
     assert patchbay.received == []
@@ -253,7 +310,7 @@ async def test_needs_a_patchbay_sign_in_already_made(
     change(signed_in)
     patchbay = Patchbay()
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     answer = await feedback.answer(True, (FEEDBACK_INPUT,))
     assert answer["error"]["code"] == refusal
     assert "regents auth login --site patchbay" in answer["error"]["hint"]
@@ -265,7 +322,7 @@ async def test_a_sign_in_due_to_expire_is_not_renewed(signed_in: Path) -> None:
     write_receipt(signed_in, soon.isoformat().replace("+00:00", "Z"))
     patchbay = Patchbay()
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     assert (await feedback.answer(True, (FEEDBACK_INPUT,)))["error"]["code"] == "sign_in_expired"
     assert patchbay.received == []
 
@@ -274,7 +331,7 @@ async def test_a_key_that_cannot_sign_sends_nothing(signed_in: Path) -> None:
     (signed_in / "key.json").unlink()
     patchbay = Patchbay()
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     answer = await feedback.answer(True, (FEEDBACK_INPUT,))
     assert answer["error"]["code"] == "outside_key"
     assert "nothing was sent" in answer["error"]["message"]
@@ -287,37 +344,39 @@ async def test_a_call_that_ended_while_signing_sends_nothing(
 ) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
-    invocation = feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    call = feedback.expect(FEEDBACK_INPUT)
     sign = siwa.sign
 
     def slow(request: Request, receipt: siwa.Receipt, base: str) -> dict[str, str]:
-        feedback.forget(invocation)
+        feedback.forget(call)
         return sign(request, receipt, base)
 
     monkeypatch.setattr(siwa, "sign", slow)
     answer = await feedback.answer(True, (FEEDBACK_INPUT,))
     assert answer["error"]["code"] == "call_ended"
+    assert await feedback.told(call) == NOT_POSTED
     assert patchbay.received == []
 
 
 async def test_a_call_that_ended_while_posting_still_hears_the_thread(signed_in: Path) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
-    invocation = feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    call = feedback.expect(FEEDBACK_INPUT)
 
     async def post(request: Request) -> httpx.Response:
-        feedback.forget(invocation)
+        feedback.forget(call)
         return await patchbay.post(request)
 
     feedback.post = post
     assert await feedback.answer(True, (FEEDBACK_INPUT,)) == POSTED
+    assert await feedback.told(call) == POSTED
     assert len(patchbay.received) == 1
 
 
 @pytest.mark.parametrize(
     "answer",
     [
-        CommandError("timeout", "https://patchbay.help did not answer within 30000 ms."),
+        TIMED_OUT,
         CommandError("unreachable", "https://patchbay.help could not be reached."),
         httpx.Response(500, json={"error": {"code": "internal_error", "message": "Oops."}}),
         httpx.Response(502, text="<html>Bad gateway</html>"),
@@ -333,54 +392,223 @@ async def test_an_answer_that_does_not_say_is_unknown_and_never_resent(
 ) -> None:
     patchbay = Patchbay(answer)
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    call = feedback.expect(FEEDBACK_INPUT)
     heard = await feedback.answer(True, (FEEDBACK_INPUT,))
-    assert heard["error"]["code"] == "unknown"
+    feedback.forget(call)
+    assert heard == UNKNOWN
     assert "regents patchbay requests get" in heard["error"]["hint"]
+    assert await feedback.told(call) == UNKNOWN
     assert len(patchbay.received) == 1
 
 
+AGENT_NOT_PAIRED = {
+    "code": "agent_not_paired",
+    "message": "This agent is not paired with an account.",
+    "hint": "Ask your person to pair you on their Agents page, then send it again.",
+}
+POST_REJECTED = {
+    "code": "post_rejected",
+    "message": "Patchbay did not post this: it is too short to help anyone.",
+    "hint": "Rewrite the post, then send it again.",
+}
+RATE_LIMITED = {
+    "code": "rate_limited",
+    "message": "This account has posted too often in the past hour.",
+    "hint": "Wait retry_after_seconds, then send it again.",
+    "retry_after_seconds": 694,
+}
+INVALID = {
+    "code": "invalid",
+    "message": "title: length must be less than or equal to 160 site: name the site the thread "
+    "is on",
+    "hint": "Correct the fields in details, then send it again.",
+    "details": [
+        "title: length must be less than or equal to 160",
+        "site: name the site the thread is on",
+    ],
+}
+
+
 @pytest.mark.parametrize(
-    ("status", "error"),
+    ("status", "error", "kept"),
     [
-        (
-            403,
-            {
-                "code": "agent_not_paired",
-                "message": "This agent is not paired with an account.",
-                "hint": "Ask your person to pair you on their Agents page, then send it again.",
-            },
-        ),
+        (403, AGENT_NOT_PAIRED, AGENT_NOT_PAIRED),
         (
             422,
-            {
-                "code": "post_rejected",
-                "message": "Patchbay did not post this: it is too short to help anyone.",
-                "hint": "Rewrite the post, then send it again.",
-                "reason": "too_short",
-                "rejects_today": 1,
-                "posting_paused_until": None,
-            },
+            {**POST_REJECTED, "reason": "too_short", "rejects_today": 1},
+            POST_REJECTED,
         ),
-        (
-            429,
-            {
-                "code": "rate_limited",
-                "message": "This account has posted too often in the past hour.",
-                "hint": "Wait retry_after_seconds, then send it again.",
-                "retry_after_seconds": 694,
-            },
-        ),
+        (429, {**RATE_LIMITED, "subject": "account"}, RATE_LIMITED),
+        (422, INVALID, INVALID),
     ],
 )
 async def test_passes_on_patchbays_own_refusal(
-    signed_in: Path, status: int, error: dict[str, Any]
+    signed_in: Path, status: int, error: dict[str, Any], kept: dict[str, Any]
 ) -> None:
     patchbay = Patchbay(httpx.Response(status, json={"error": error}))
     feedback = door(patchbay)
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    call = feedback.expect(FEEDBACK_INPUT)
     heard = await feedback.answer(True, (FEEDBACK_INPUT,))
-    assert heard == {"error": {key: error[key] for key in ("code", "message", "hint")}}
+    feedback.forget(call)
+    assert heard == {"error": kept}
+    # The agent hears what the page heard.
+    assert await feedback.told(call) == heard
+    assert len(patchbay.received) == 1
+
+
+REFUSED = {key: INVALID[key] for key in ("code", "message", "hint")}
+
+
+@pytest.mark.parametrize(
+    ("extra", "kept"),
+    [
+        ({"retry_after_seconds": 0}, {"retry_after_seconds": 0}),
+        ({"retry_after_seconds": 86_400}, {"retry_after_seconds": 86_400}),
+        ({"retry_after_seconds": 86_401}, {}),
+        ({"retry_after_seconds": -1}, {}),
+        ({"retry_after_seconds": True}, {}),
+        ({"retry_after_seconds": 1.5}, {}),
+        ({"retry_after_seconds": "60"}, {}),
+        ({"retry_after_seconds": None}, {}),
+        (
+            {
+                "details": [
+                    "title: is required",
+                    7,
+                    None,
+                    ["site: is required"],
+                    {"title": "is required"},
+                    "tools: must be text",
+                    "titles: is required",
+                    "title is required",
+                    "title",
+                    "That could not be posted. Check the values you sent and try again.",
+                    "body_markdown: " + "x" * 600,
+                    "client_request_id: is required (1 to 128 bytes)",
+                ]
+            },
+            {
+                "details": [
+                    "title: is required",
+                    "client_request_id: is required (1 to 128 bytes)",
+                ]
+            },
+        ),
+        (
+            {"details": [f"topic_tags: rule {number}" for number in range(12)]},
+            {"details": [f"topic_tags: rule {number}" for number in range(10)]},
+        ),
+        ({"details": "title: is required"}, {}),
+        ({"details": []}, {}),
+        ({"details": ["tools: must be text"]}, {}),
+        ({"posting_paused_until": "2026-11-21T00:00:00Z", "run_id": "r-1", "subject": "x"}, {}),
+    ],
+)
+async def test_keeps_only_the_wait_and_the_lines_naming_its_fields(
+    signed_in: Path, extra: dict[str, Any], kept: dict[str, Any]
+) -> None:
+    patchbay = Patchbay(httpx.Response(422, json={"error": {**REFUSED, **extra}}))
+    feedback = door(patchbay)
+    call = feedback.expect(FEEDBACK_INPUT)
+    heard = await feedback.answer(True, (FEEDBACK_INPUT,))
+    feedback.forget(call)
+    assert heard == {"error": {**REFUSED, **kept}}
+    assert await feedback.told(call) == heard
+
+
+# What the agent hears is decided only by what regents did for its call: never asked, an ask
+# refused, a post settled, or a post still on its way.
+async def test_told_a_call_the_page_never_asked_for_is_not_posted(signed_in: Path) -> None:
+    patchbay = Patchbay()
+    feedback = door(patchbay)
+    call = feedback.expect(FEEDBACK_INPUT)
+    feedback.forget(call)
+    assert await feedback.told(call) == NOT_POSTED
+    # An ask that comes after the call ended uses nothing up and posts nothing.
+    late = await feedback.answer(True, (FEEDBACK_INPUT,))
+    assert late["error"]["code"] == "no_matching_call"
+    assert patchbay.received == []
+
+
+async def test_told_the_refusal_the_pages_ask_got(signed_in: Path) -> None:
+    patchbay = Patchbay()
+    feedback = door(patchbay)
+    call = feedback.expect(FEEDBACK_INPUT)
+    for asked in ((False, (FEEDBACK_INPUT,)), (True, ({**FEEDBACK_INPUT, "title": "Other"},))):
+        refused = await feedback.answer(*asked)
+        assert await feedback.told(call) == refused
+    feedback.forget(call)
+    assert (await feedback.told(call))["error"]["code"] == "no_matching_call"
+    assert patchbay.received == []
+
+
+async def test_told_a_signer_that_failed(signed_in: Path) -> None:
+    (signed_in / "receipts" / "patchbay.json").unlink()
+    patchbay = Patchbay()
+    feedback = door(patchbay)
+    call = feedback.expect(FEEDBACK_INPUT)
+    refused = await feedback.answer(True, (FEEDBACK_INPUT,))
+    feedback.forget(call)
+    assert refused["error"]["code"] == "not_signed_in"
+    assert await feedback.told(call) == refused
+    assert patchbay.received == []
+
+
+@pytest.mark.parametrize(
+    ("answer", "heard"),
+    [
+        (httpx.Response(201, json=THREAD), POSTED),
+        (TIMED_OUT, UNKNOWN),
+        (httpx.Response(503, text="busy"), UNKNOWN),
+    ],
+)
+async def test_told_waits_for_a_post_on_its_way(
+    signed_in: Path, answer: httpx.Response | Exception, heard: dict[str, Any]
+) -> None:
+    patchbay = Patchbay(answer)
+    reached, release = anyio.Event(), anyio.Event()
+
+    async def hold() -> None:
+        reached.set()
+        await release.wait()
+
+    patchbay.hold = hold
+    feedback = door(patchbay)
+    call = feedback.expect(FEEDBACK_INPUT)
+    told: list[dict[str, Any]] = []
+
+    async def tell() -> None:
+        told.append(await feedback.told(call))
+
+    async with anyio.create_task_group() as group:
+        group.start_soon(feedback.answer, True, (FEEDBACK_INPUT,))
+        await reached.wait()
+        feedback.forget(call)
+        group.start_soon(tell)
+        await anyio.wait_all_tasks_blocked()
+        assert told == []
+        release.set()
+    assert told == [heard]
+    assert len(patchbay.received) == 1
+
+
+async def test_told_a_post_cut_short_is_unknown(signed_in: Path) -> None:
+    patchbay = Patchbay()
+    reached = anyio.Event()
+
+    async def hold() -> None:
+        reached.set()
+        await anyio.sleep_forever()
+
+    patchbay.hold = hold
+    feedback = door(patchbay)
+    call = feedback.expect(FEEDBACK_INPUT)
+    async with anyio.create_task_group() as group:
+        group.start_soon(feedback.answer, True, (FEEDBACK_INPUT,))
+        await reached.wait()
+        group.cancel_scope.cancel()
+    feedback.forget(call)
+    assert await feedback.told(call) == UNKNOWN
     assert len(patchbay.received) == 1
 
 
@@ -419,7 +647,7 @@ async def test_no_address_setting_moves_the_post_or_its_site(
     feedback = FeedbackDoor.for_site(
         KEYFLEET, origin, offering(webmcp_host.tool_manifest(KEYFLEET))
     )
-    feedback.expect(FEEDBACK, FEEDBACK_INPUT)
+    feedback.expect(FEEDBACK_INPUT)
     heard = await feedback.answer(True, (FEEDBACK_INPUT,))
     if not posts:
         assert heard["error"]["code"] == "not_canonical_site"
@@ -437,10 +665,14 @@ async def test_no_address_setting_moves_the_post_or_its_site(
 # The whole path: a page on a stand-in site registers `feedback` in Playwright's Chromium, the
 # agent calls it through regents browser's MCP tools, and the page asks window.regentsFeedback.
 # `?mode=` makes it misbehave: `twice` asks a second time, `framed` asks from a frame of the site
-# itself, and `elsewhere` from a frame on another site.
+# itself and `elsewhere` from a frame on another site; `fake` answers a thread of its own without
+# asking and `throw` throws without asking; `throw-after` and `replace` ask, then throw or answer
+# a thread of their own; `pending-return` and `pending-throw` ask without waiting, then return or
+# throw when the test calls window.release().
 PAGE = """<!doctype html><title>Notes</title>
 <script>
 const mode = new URLSearchParams(location.search).get("mode")
+const fake = {thread_id: "fake", url: "https://patchbay.help/posts/fake"}
 if (mode === "framed" || mode === "elsewhere") {
   const frame = document.createElement("iframe")
   frame.id = "inner"
@@ -455,8 +687,18 @@ async function feedback(input) {
       frame.postMessage(input, "*")
     })
   }
+  if (mode === "fake") return fake
+  if (mode === "throw") throw new Error("The page broke before asking.")
+  if (mode === "pending-return" || mode === "pending-throw") {
+    window.regentsFeedback(input)
+    await new Promise(release => { window.release = release })
+    if (mode === "pending-throw") throw new Error("The page broke while posting.")
+    return fake
+  }
   const answer = await window.regentsFeedback(input)
   if (mode === "twice") return {first: answer, second: await window.regentsFeedback(input)}
+  if (mode === "throw-after") throw new Error("The page broke after posting.")
+  if (mode === "replace") return fake
   return answer
 }
 document.modelContext.registerTool({
@@ -477,6 +719,7 @@ addEventListener("message", async event => {
 class Site(NamedTuple):
     client: Client
     patchbay: Patchbay
+    host: PageHost
 
 
 @asynccontextmanager
@@ -499,7 +742,7 @@ async def opened(feedback: FeedbackDoor) -> AsyncIterator[Site]:
     page = await host._page()
     await page.context.route("**/*", answer)
     async with Client(webmcp_host.server(TEMPLATE, host)) as client:
-        yield Site(client, patchbay)
+        yield Site(client, patchbay, host)
 
 
 @pytest.fixture
@@ -521,35 +764,92 @@ async def call(client: Client, name: str, arguments: dict[str, Any]) -> Any:
 
 
 async def test_the_page_hears_only_the_thread(site: Site) -> None:
-    client, patchbay = site
-    await call(client, "open_page", {"url": "/notes"})
-    listed = {tool["name"]: tool for tool in (await call(client, "list_page_tools", {}))["tools"]}
-    assert listed["feedback"]["inputSchema"] == webmcp_host.FEEDBACK_ENTRY["input_schema"]
-    assert listed["feedback"]["description"] == webmcp_host.FEEDBACK_ENTRY["description"]
-    answered = await call(client, "call_page_tool", {"name": "feedback", "input": FEEDBACK_INPUT})
-    assert answered == {"result": POSTED}
-    [sent] = patchbay.received
+    await call(site.client, "open_page", {"url": "/notes"})
+    listed = await call(site.client, "list_page_tools", {})
+    tools = {tool["name"]: tool for tool in listed["tools"]}
+    assert tools["feedback"]["title"] == "/feedback"
+    assert tools["feedback"]["inputSchema"] == webmcp_host.FEEDBACK_ENTRY["input_schema"]
+    assert tools["feedback"]["description"] == webmcp_host.FEEDBACK_ENTRY["description"]
+    asked = {"name": "feedback", "input": FEEDBACK_INPUT}
+    assert await call(site.client, "call_page_tool", asked) == {"result": POSTED}
+    [sent] = site.patchbay.received
     assert sent.content is not None
     assert json.loads(sent.content)["site"] == "site.test"
     assert signer_of("POST", sent.target, sent.content, sent.headers, PATCHBAY) == ADDRESS
 
 
 async def test_the_page_posts_each_call_once(site: Site) -> None:
-    client, patchbay = site
-    await call(client, "open_page", {"url": "/notes?mode=twice"})
-    answered = await call(client, "call_page_tool", {"name": "feedback", "input": FEEDBACK_INPUT})
-    assert answered["result"]["first"] == POSTED
-    assert answered["result"]["second"]["error"]["code"] == "no_matching_call"
-    assert len(patchbay.received) == 1
+    await call(site.client, "open_page", {"url": "/notes?mode=twice"})
+    asked = {"name": "feedback", "input": FEEDBACK_INPUT}
+    assert await call(site.client, "call_page_tool", asked) == {"result": POSTED}
+    assert len(site.patchbay.received) == 1
 
 
 @pytest.mark.parametrize("mode", ["framed", "elsewhere"])
 async def test_a_frame_cannot_post(site: Site, mode: str) -> None:
-    client, patchbay = site
-    await call(client, "open_page", {"url": f"/notes?mode={mode}"})
-    answered = await call(client, "call_page_tool", {"name": "feedback", "input": FEEDBACK_INPUT})
+    await call(site.client, "open_page", {"url": f"/notes?mode={mode}"})
+    asked = {"name": "feedback", "input": FEEDBACK_INPUT}
+    answered = await call(site.client, "call_page_tool", asked)
     assert answered["result"]["error"]["code"] == "untrusted_page"
-    assert patchbay.received == []
+    assert site.patchbay.received == []
+
+
+@pytest.mark.parametrize(
+    ("mode", "heard", "sent"),
+    [
+        ("fake", NOT_POSTED, 0),
+        ("throw", NOT_POSTED, 0),
+        ("throw-after", POSTED, 1),
+        ("replace", POSTED, 1),
+    ],
+)
+async def test_what_the_page_returns_or_throws_is_never_the_answer(
+    site: Site, mode: str, heard: dict[str, Any], sent: int
+) -> None:
+    await call(site.client, "open_page", {"url": f"/notes?mode={mode}"})
+    asked = {"name": "feedback", "input": FEEDBACK_INPUT}
+    assert await call(site.client, "call_page_tool", asked) == {"result": heard}
+    assert len(site.patchbay.received) == sent
+
+
+class Watched(FeedbackDoor):
+    """The site's feedback door, telling the test when the agent's call has ended."""
+
+    ended: anyio.Event
+
+    def forget(self, call: FeedbackCall) -> None:
+        super().forget(call)
+        self.ended.set()
+
+
+@pytest.mark.parametrize("mode", ["pending-return", "pending-throw"])
+@pytest.mark.parametrize(
+    ("answer", "heard"),
+    [
+        (httpx.Response(201, json=THREAD), POSTED),
+        (TIMED_OUT, UNKNOWN),
+        (httpx.Response(500, text="Internal error"), UNKNOWN),
+    ],
+)
+async def test_a_page_that_ends_while_the_post_is_on_its_way(
+    signed_in: Path, mode: str, answer: httpx.Response | Exception, heard: dict[str, Any]
+) -> None:
+    """The page's tool returns or throws once the post is sent; Patchbay answers only after."""
+    feedback = Watched(offered=True, site="site.test")
+    feedback.ended = anyio.Event()
+    async with opened(feedback) as site:
+        page = site.host.page
+        assert page is not None
+
+        async def hold() -> None:
+            await page.evaluate("window.release()")
+            await feedback.ended.wait()
+
+        site.patchbay.answer, site.patchbay.hold = answer, hold
+        await call(site.client, "open_page", {"url": f"/notes?mode={mode}"})
+        asked = {"name": "feedback", "input": FEEDBACK_INPUT}
+        assert await call(site.client, "call_page_tool", asked) == {"result": heard}
+        assert len(site.patchbay.received) == 1
 
 
 @pytest.mark.parametrize(
@@ -560,22 +860,26 @@ async def test_a_frame_cannot_post(site: Site, mode: str) -> None:
         {**FEEDBACK_INPUT, "title": "x" * 161},
         {**FEEDBACK_INPUT, "page_url": SITE + "/notes"},
         {key: value for key, value in FEEDBACK_INPUT.items() if key != "public"},
+        {**FEEDBACK_INPUT, "client_request_id": "é" * 128},
+        {**FEEDBACK_INPUT, "body_markdown": "é" * 8193},
     ],
 )
 async def test_refuses_input_it_does_not_take_before_the_page_runs(
-    site: Site, wrong: dict[str, Any]
+    site: Site, monkeypatch: pytest.MonkeyPatch, wrong: dict[str, Any]
 ) -> None:
-    client, patchbay = site
-    await call(client, "open_page", {"url": "/notes"})
-    result = await client.call_tool("call_page_tool", {"name": "feedback", "input": wrong})
+    signed: list[Any] = []
+    monkeypatch.setattr(siwa, "sign", lambda *given: signed.append(given))
+    await call(site.client, "open_page", {"url": "/notes"})
+    result = await site.client.call_tool("call_page_tool", {"name": "feedback", "input": wrong})
     assert result.is_error
-    assert patchbay.received == []
+    assert signed == []
+    assert site.patchbay.received == []
 
 
 async def test_without_the_sites_word_feedback_is_the_pages_own_tool(
     site_without_feedback: Site,
 ) -> None:
-    client, patchbay = site_without_feedback
+    client, patchbay = site_without_feedback.client, site_without_feedback.patchbay
     await call(client, "open_page", {"url": "/notes"})
     listed = {tool["name"]: tool for tool in (await call(client, "list_page_tools", {}))["tools"]}
     assert listed["feedback"]["description"] == "Tell the site's makers (the page's own words)."

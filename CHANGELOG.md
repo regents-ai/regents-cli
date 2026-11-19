@@ -11,9 +11,15 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   one public thread about the site on Patchbay, signed with this machine's Patchbay sign-in. The
   page only asks; it never sees what is signed. regents posts only for exactly the agent's call,
   once, from the site's own page opened at the site's own address, and never signs in or renews
-  a sign-in to do it. When it cannot tell whether the thread was posted, it says so and asks
-  the agent to read it back with `regents patchbay requests get` before posting again. It is off
-  for every site until that site's manifest names the tool, and no pinned manifest does yet.
+  a sign-in to do it. The tool is listed as `/feedback`. A `client_request_id` over 128 bytes or
+  a `body_markdown` over 16,384 bytes in UTF-8 is refused at the call, before anything is signed.
+  The agent hears only what regents did, whatever the page's tool returns or throws: the
+  thread's id and address, Patchbay's refusal (with its `retry_after_seconds` and the
+  `details` lines naming the fields it sent, when Patchbay gives them), a refusal of the page's
+  ask, or `not_posted` when the page never asked. When it cannot tell whether the thread was
+  posted, it says so and asks the agent to read it back with `regents patchbay requests get`
+  before posting again. It is off for every site until that site's manifest names the tool, and
+  no pinned manifest does yet.
 
 ## 1.10.33 — 2026-11-19
 
