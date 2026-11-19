@@ -274,9 +274,11 @@ async def test_off_or_elsewhere_sends_nothing(
 ) -> None:
     patchbay = Patchbay()
     feedback.post = patchbay.post
-    feedback.expect(FEEDBACK_INPUT)
+    call = feedback.expect(FEEDBACK_INPUT)
     answer = await feedback.answer(True, (FEEDBACK_INPUT,))
     assert answer["error"]["code"] == refusal
+    feedback.forget(call)
+    assert await feedback.told(call) == NOT_POSTED
     assert patchbay.received == []
 
 
@@ -417,6 +419,13 @@ RATE_LIMITED = {
     "hint": "Wait retry_after_seconds, then send it again.",
     "retry_after_seconds": 694,
 }
+POSTING_PAUSED = {
+    "code": "posting_paused",
+    "message": "Posting for this account and its agents is paused until 15 Oct 2026, 18:40 UTC, "
+    "after three posts were turned away in one day.",
+    "hint": "Post again after posting_paused_until.",
+    "posting_paused_until": "2026-10-15T18:40:12.000000Z",
+}
 INVALID = {
     "code": "invalid",
     "message": "title: length must be less than or equal to 160 site: name the site the thread "
@@ -439,6 +448,7 @@ INVALID = {
             POST_REJECTED,
         ),
         (429, {**RATE_LIMITED, "subject": "account"}, RATE_LIMITED),
+        (403, POSTING_PAUSED, POSTING_PAUSED),
         (422, INVALID, INVALID),
     ],
 )
@@ -501,7 +511,21 @@ REFUSED = {key: INVALID[key] for key in ("code", "message", "hint")}
         ({"details": "title: is required"}, {}),
         ({"details": []}, {}),
         ({"details": ["tools: must be text"]}, {}),
-        ({"posting_paused_until": "2026-11-21T00:00:00Z", "run_id": "r-1", "subject": "x"}, {}),
+        ({"rejects_today": 3, "run_id": "r-1", "subject": "x"}, {}),
+        (
+            {"posting_paused_until": "2026-11-21T09:04:42.123456Z"},
+            {"posting_paused_until": "2026-11-21T09:04:42.123456Z"},
+        ),
+        ({"posting_paused_until": "2026-11-21T09:04:42Z"}, {}),
+        ({"posting_paused_until": "2026-11-21T09:04:42.123Z"}, {}),
+        ({"posting_paused_until": "2026-11-21T09:04:42.123456+00:00"}, {}),
+        ({"posting_paused_until": "2026-11-21 09:04:42.123456Z"}, {}),
+        ({"posting_paused_until": "2026-11-21T9:04:42.123456Z"}, {}),
+        ({"posting_paused_until": "2026-13-21T09:04:42.123456Z"}, {}),
+        ({"posting_paused_until": " 2026-11-21T09:04:42.123456Z"}, {}),
+        ({"posting_paused_until": "after the weekend"}, {}),
+        ({"posting_paused_until": 1_763_715_882}, {}),
+        ({"posting_paused_until": None}, {}),
     ],
 )
 async def test_keeps_only_the_wait_and_the_lines_naming_its_fields(
@@ -516,8 +540,8 @@ async def test_keeps_only_the_wait_and_the_lines_naming_its_fields(
     assert await feedback.told(call) == heard
 
 
-# What the agent hears is decided only by what regents did for its call: never asked, an ask
-# refused, a post settled, or a post still on its way.
+# What the agent hears is decided only by what regents did for its call: no ask matched it, the
+# ask that matched it could not be signed, its post settled, or its post is still on its way.
 async def test_told_a_call_the_page_never_asked_for_is_not_posted(signed_in: Path) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
@@ -530,16 +554,51 @@ async def test_told_a_call_the_page_never_asked_for_is_not_posted(signed_in: Pat
     assert patchbay.received == []
 
 
-async def test_told_the_refusal_the_pages_ask_got(signed_in: Path) -> None:
+#: Asks that match no waiting call exactly, as `(from the site's open page, arguments)`.
+UNMATCHED = [
+    (False, (FEEDBACK_INPUT,)),
+    (True, ({**FEEDBACK_INPUT, "title": "Another title"},)),
+    (True, ({**FEEDBACK_INPUT, "page_url": SITE + "/notes"},)),
+    (True, (FEEDBACK_INPUT, FEEDBACK_INPUT)),
+    (True, ()),
+    (True, (json.dumps(FEEDBACK_INPUT),)),
+]
+
+
+@pytest.mark.parametrize(("from_site_page", "asked"), UNMATCHED)
+async def test_an_ask_that_matched_no_call_is_answered_to_the_page_only(
+    signed_in: Path, from_site_page: bool, asked: tuple[Any, ...]
+) -> None:
     patchbay = Patchbay()
     feedback = door(patchbay)
     call = feedback.expect(FEEDBACK_INPUT)
-    for asked in ((False, (FEEDBACK_INPUT,)), (True, ({**FEEDBACK_INPUT, "title": "Other"},))):
-        refused = await feedback.answer(*asked)
-        assert await feedback.told(call) == refused
+    refused = await feedback.answer(from_site_page, asked)
+    assert refused["error"]["code"] in ("untrusted_page", "no_matching_call")
     feedback.forget(call)
-    assert (await feedback.told(call))["error"]["code"] == "no_matching_call"
+    assert await feedback.told(call) == NOT_POSTED
     assert patchbay.received == []
+
+
+@pytest.mark.parametrize(("from_site_page", "asked"), UNMATCHED)
+async def test_two_calls_waiting_each_hear_only_their_own_outcome(
+    signed_in: Path, from_site_page: bool, asked: tuple[Any, ...]
+) -> None:
+    patchbay = Patchbay()
+    feedback = door(patchbay)
+    other = {**FEEDBACK_INPUT, "title": "The notes list is empty", "client_request_id": "fb-2"}
+    posted, left = feedback.expect(FEEDBACK_INPUT), feedback.expect(other)
+    assert (await feedback.answer(from_site_page, asked))["error"]["code"] in (
+        "untrusted_page",
+        "no_matching_call",
+    )
+    assert await feedback.answer(True, (FEEDBACK_INPUT,)) == POSTED
+    feedback.forget(posted)
+    feedback.forget(left)
+    assert await feedback.told(posted) == POSTED
+    assert await feedback.told(left) == NOT_POSTED
+    [sent] = patchbay.received
+    assert sent.content is not None
+    assert json.loads(sent.content)["client_request_id"] == FEEDBACK_INPUT["client_request_id"]
 
 
 async def test_told_a_signer_that_failed(signed_in: Path) -> None:
@@ -789,8 +848,8 @@ async def test_the_page_posts_each_call_once(site: Site) -> None:
 async def test_a_frame_cannot_post(site: Site, mode: str) -> None:
     await call(site.client, "open_page", {"url": f"/notes?mode={mode}"})
     asked = {"name": "feedback", "input": FEEDBACK_INPUT}
-    answered = await call(site.client, "call_page_tool", asked)
-    assert answered["result"]["error"]["code"] == "untrusted_page"
+    # The frame's ask is refused to the page; the agent hears only that nothing was posted.
+    assert await call(site.client, "call_page_tool", asked) == {"result": NOT_POSTED}
     assert site.patchbay.received == []
 
 

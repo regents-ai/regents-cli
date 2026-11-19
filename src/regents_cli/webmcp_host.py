@@ -26,9 +26,11 @@ the ask comes from the open page's top frame on the site, and the input is exact
 call that is still waiting, which it then uses up. It signs with the Patchbay sign-in already on
 this machine, never signing in or renewing one, and sends one request to Patchbay's own address.
 The page hears back only the thread or a refusal, never what was signed. The agent hears only
-what regents did for its call, whatever the page's tool returns or throws: the thread, Patchbay's
-refusal, a refusal of the page's ask, that the page never asked, or, once a post was sent and
-Patchbay's answer could not be read, that nobody can tell whether it was posted.
+what regents did for its call, whatever the page's tool returns or throws: for the ask that
+matched it and used it up, the thread, Patchbay's refusal, the refusal of a sign-in that could not
+sign, or, once a post was sent and Patchbay's answer could not be read, that nobody can tell
+whether it was posted; and with no such ask, that nothing was posted. An ask that matches no call
+is answered to the page only.
 """
 
 from __future__ import annotations
@@ -41,6 +43,7 @@ import traceback
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field, replace
+from datetime import datetime
 from decimal import Decimal
 from functools import cache
 from importlib.resources import files
@@ -90,6 +93,8 @@ MAX_RETRY_AFTER_SECONDS: Final = 86_400
 #: How many of Patchbay's refusal lines are passed on, and how long each may be.
 MAX_DETAIL_LINES: Final = 10
 MAX_DETAIL_LENGTH: Final = 500
+#: How Patchbay writes a time: UTC, to the microsecond, such as 2026-10-15T18:40:12.000000Z.
+PATCHBAY_TIME: Final = "%Y-%m-%dT%H:%M:%S.%fZ"
 #: regents' own description of the feedback tool, in a manifest entry's shape. Its input is fixed
 #: here, with Patchbay's own limits, and never read from the page or the site.
 FEEDBACK_ENTRY: Final[dict[str, Any]] = {
@@ -502,8 +507,9 @@ class FeedbackCall:
     finished: bool = False
     #: Set just before the post is sent; from then on only Patchbay's answer says what happened.
     dispatched: bool = False
-    #: What regents answered the page's last ask for this call: a refusal, or once the post is
-    #: sent, its outcome, which is unknown until Patchbay's answer is read.
+    #: What regents answered the one ask that matched this call and used it up: a sign-in that
+    #: could not sign, or once the post is sent, its outcome, unknown until Patchbay's answer is
+    #: read. None while no ask has matched it.
     outcome: dict[str, Any] | None = None
     #: Set once a post that was sent has its outcome.
     settled: anyio.Event = field(default_factory=anyio.Event)
@@ -555,24 +561,21 @@ class FeedbackDoor:
 
     async def told(self, call: FeedbackCall) -> dict[str, Any]:
         """What the agent hears for a call that has ended, however its page tool ended: the post's
-        outcome once Patchbay's answer settles it, else the refusal the page's ask got, else that
-        the page never asked. A post that was sent is never reported as nothing posted."""
+        outcome once Patchbay's answer settles it, else what the ask that matched it got, else
+        that nothing was posted. A post that was sent is never reported as nothing posted."""
         if call.dispatched:
             await call.settled.wait()
         return call.outcome or {"error": not_posted().as_json()}
 
     async def answer(self, from_site_page: bool, given: tuple[Any, ...]) -> dict[str, Any]:
         """What `window.regentsFeedback` resolves to: `{thread_id, url}` or `{error}`, never a
-        failure. The answer is kept on its call for the agent; a refusal that names no call is kept
-        on every call still waiting. A thread sent once is reported as Patchbay answered, even
-        when the agent's call ended while it was on its way."""
+        failure. The answer is kept for the agent only on the call the ask matched and used up;
+        an ask refused before that is answered to the page alone. A thread sent once is reported
+        as Patchbay answered, even when the agent's call ended while it was on its way."""
         try:
             call, site = self.claim(from_site_page, given)
         except RefusalError as refusal:
-            heard = {"error": refusal.as_json()}
-            for waiting in self.waiting:
-                waiting.outcome = heard
-            return heard
+            return {"error": refusal.as_json()}
         try:
             request = Request(
                 "POST",
@@ -708,8 +711,8 @@ def published(response: httpx.Response) -> dict[str, Any]:
 
 def patchbay_refusal(error: Any) -> dict[str, Any] | None:
     """Patchbay's own refusal in its words, keeping beside them only what an agent acts on: the
-    whole seconds to wait, and the lines naming a field this tool sends and the rule it broke.
-    None when it is not a refusal regents can read."""
+    whole seconds to wait, the lines naming a field this tool sends and the rule it broke, and
+    when a pause on posting ends. None when it is not a refusal regents can read."""
     if not (
         isinstance(error, dict)
         and isinstance(error.get("code"), str)
@@ -726,7 +729,19 @@ def patchbay_refusal(error: Any) -> dict[str, Any] | None:
     lines = [line for line in details if names_a_field(line)] if isinstance(details, list) else []
     if lines:
         kept["details"] = lines[:MAX_DETAIL_LINES]
+    if patchbay_time(paused := error.get("posting_paused_until")):
+        kept["posting_paused_until"] = paused
     return kept
+
+
+def patchbay_time(value: Any) -> bool:
+    """Whether `value` is a time exactly as Patchbay writes one."""
+    if not isinstance(value, str):
+        return False
+    try:
+        return datetime.strptime(value, PATCHBAY_TIME).strftime(PATCHBAY_TIME) == value
+    except ValueError:
+        return False
 
 
 def names_a_field(line: Any) -> bool:
@@ -739,11 +754,12 @@ def names_a_field(line: Any) -> bool:
 
 
 def not_posted() -> RefusalError:
-    """The answer when the page's tool ended without ever asking regents to post."""
+    """The answer when the page's tool ended without an ask that matched the call."""
     return RefusalError(
         "not_posted",
-        "The page's feedback tool ended without asking regents to post it, so nothing was posted.",
-        "Check the page offers feedback with list_page_tools, then call it again.",
+        "The page's feedback tool ended without a matching ask, so nothing was posted.",
+        "Open a page of the site with open_page and check it offers feedback with "
+        "list_page_tools, then call the tool again.",
     )
 
 

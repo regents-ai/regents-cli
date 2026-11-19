@@ -14,9 +14,10 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   a sign-in to do it. The tool is listed as `/feedback`. A `client_request_id` over 128 bytes or
   a `body_markdown` over 16,384 bytes in UTF-8 is refused at the call, before anything is signed.
   The agent hears only what regents did, whatever the page's tool returns or throws: the
-  thread's id and address, Patchbay's refusal (with its `retry_after_seconds` and the
-  `details` lines naming the fields it sent, when Patchbay gives them), a refusal of the page's
-  ask, or `not_posted` when the page never asked. When it cannot tell whether the thread was
+  thread's id and address, Patchbay's refusal (with its `retry_after_seconds`, the `details`
+  lines naming the fields it sent and `posting_paused_until`, when Patchbay gives them), a
+  sign-in that could not sign, or `not_posted` when no ask from the page matched the call. An
+  ask that matches no call is refused to the page only. When it cannot tell whether the thread was
   posted, it says so and asks the agent to read it back with `regents patchbay requests get`
   before posting again. It is off for every site until that site's manifest names the tool, and
   no pinned manifest does yet.
