@@ -10,6 +10,8 @@ serves must be the live sign-in server's own, byte for byte (the page its agent 
 /agent/siwa_agent.py, serves). The check fails when a site's description has a public read
 with no run here, so a new read is checked from the release that adds it. A read whose pinned
 shape accepts any object is shown as unchecked, by name.
+Every site must also be pinned at the commit it says it runs live (/capabilities.json
+`build.commit`): the commands and page tools a release ships are read at the pin.
 
 Nothing signed runs: `regents` runs with only PATH, an empty home and an empty agent home, so
 nothing is signed, paid or changed, and nothing of this machine's own setup reaches it. It reads
@@ -441,6 +443,22 @@ def live_touch_id_page() -> str:
     return page
 
 
+def stale_pins() -> list[str]:
+    """The sites whose pinned commit is not the one the live site says it runs, in its
+    /capabilities.json `build.commit`. What ships for a site, its commands and its page tools, is
+    read at the pinned commit, so a release pinned anywhere else describes a site nobody is
+    running."""
+    lock = json.loads((ROOT / "platforms.lock.json").read_text("utf-8"))
+    stale = []
+    for described in sorted(PLATFORMS.glob("*/commands.json")):
+        site = described.parent.name
+        base = json.loads(described.read_text("utf-8"))["base_url"]
+        live = httpx.get(f"{base}/capabilities.json", timeout=30).json()["build"]["commit"]
+        if live != lock[site]["commit"]:
+            stale.append(f"{site} is pinned at {lock[site]['commit'][:8]} and runs {live[:8]}")
+    return stale
+
+
 def main() -> int:
     version = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))["project"]["version"]
     git = ["git", "-C", str(ROOT)]
@@ -496,6 +514,11 @@ def main() -> int:
         else:
             console.print(f"[red]✗ The Touch ID page differs from the one {BROKER} serves[/red]")
             failures += 1
+        if stale := stale_pins():
+            console.print(f"[red]✗ Pinned elsewhere than live:[/red] {escape('; '.join(stale))}")
+            failures += len(stale)
+        else:
+            console.print("[green]✓[/green] Every site is pinned at the commit it runs live")
         unchecked: list[str] = []
         for site in sorted(path.parent.name for path in PLATFORMS.glob("*/commands.json")):
             with console.status(f"Reading {site}"):
