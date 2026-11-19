@@ -25,7 +25,8 @@ writes the changelog and releases. `docs/site-commands.md` is the guide for site
 - Hard cutover: no aliases, fallbacks, old command names or dual shapes.
 - "ash-template" is internal phrasing only, never for public use (founder, 2026-10-20). Keep it
   out of public text: the README, the changelog, help, errors and next steps.
-- Automated tests stay few; each names the costly failure it protects against. No smoke tests.
+- There are no automated tests (founder, 2026-11-19). `make check` is the gate: formatting,
+  lint, types, the pinned copies, the command check, the ReleaseCore and the wheel.
 
 ## Protected actions
 

@@ -10,9 +10,6 @@ commands that name a tool the site's list does not have. Tools regents does itse
 and commands that are site-only or command-line-only by design, are listed apart and are not
 gaps. The report shows gaps and never fails a release.
 
-The feature map, verification/features.yml, writes the same comparison into each site's
-features (scripts/features.py), so a new gap is seen in the change that makes it.
-
     uv run scripts/webmcp_parity.py           # print the report
 """
 
@@ -32,9 +29,6 @@ from regents_cli.webmcp_host import tool_manifest
 
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
-
-#: Who may call a command, from its `authority`.
-WHO = {"public": "anyone", "signed_agent": "signed-in agent", "paired_agent": "paired agent"}
 
 #: Tools whose job `regents` does with its own commands rather than a site command.
 COVERED_BY_CLI: dict[str, dict[str, str]] = {
@@ -92,8 +86,6 @@ def compare(name: str) -> dict[str, Any]:
     done_by: dict[str, list[str]] = {tool: [] for tool in tool_names}
     lone_commands: list[str] = []
     unknown_tools: list[tuple[str, str]] = []
-    rows: list[dict[str, Any]] = []
-    untooled: set[str] = set()
     for command in commands:
         route = routes(f"{command['method']} {command['path']}")
         named = command.get("webmcp")
@@ -104,15 +96,11 @@ def compare(name: str) -> dict[str, Any]:
             matched.add(named)
         for tool in matched:
             done_by[tool].append(command["command"])
-        rows.append({**command, "tools": sorted(matched)})
-        if not matched:
-            untooled.add(command["command"])
         if not matched and command["command"] not in cli_only:
             lone_commands.append(command["command"])
     lone_tools = sorted(
         tool for tool, by in done_by.items() if not by and tool not in covered | site_only
     )
-    unserved = {tool for tool, by in done_by.items() if not by}
     return {
         "name": name,
         "tools": len(tools),
@@ -120,8 +108,6 @@ def compare(name: str) -> dict[str, Any]:
         "lone_tools": lone_tools,
         "lone_commands": lone_commands,
         "unknown_tools": unknown_tools,
-        "rows": rows,
-        "done_by": done_by,
         "covered": {tool: how for tool, how in covered.items() if tool in tool_names},
         "site_only": {tool: why for tool, why in site_only.items() if tool in tool_names},
         "cli_only": {
@@ -129,49 +115,7 @@ def compare(name: str) -> dict[str, Any]:
             for command, why in cli_only.items()
             if command in {command["command"] for command in commands}
         },
-        # The allowlist entries this site needs: a tool or command that has no partner.
-        "needs": {("COVERED_BY_CLI", tool) for tool in covered if tool in unserved}
-        | {("SITE_ONLY", tool) for tool in site_only if tool in unserved}
-        | {("CLI_ONLY", command) for command in cli_only if command in untooled},
     }
-
-
-def stale(sites: list[dict[str, Any]]) -> list[str]:
-    """Allowlist entries no site needs: a tool that now has a command, a command that now has
-    a tool, or a name no site has."""
-    found = []
-    for table, entries in (
-        ("COVERED_BY_CLI", COVERED_BY_CLI),
-        ("CLI_ONLY", CLI_ONLY),
-        ("SITE_ONLY", SITE_ONLY),
-    ):
-        for scope, names in entries.items():
-            within = [site for site in sites if scope in ("*", site["name"])]
-            found += [
-                f"{table}[{scope!r}] {name!r}"
-                for name in names
-                if not any((table, name) in site["needs"] for site in within)
-            ]
-    return found
-
-
-def command_state(site: dict[str, Any], row: dict[str, Any]) -> str:
-    named = row.get("webmcp")
-    if named is not None and named not in site["done_by"]:
-        return f"**names `{named}`, which the site does not list**"
-    if row["tools"]:
-        return ", ".join(f"`{tool}`" for tool in row["tools"])
-    if row["command"] in site["cli_only"]:
-        return f"command line only: {site['cli_only'][row['command']]}"
-    return "**no tool**"
-
-
-def tool_state(site: dict[str, Any], tool: str) -> str:
-    if tool in site["covered"]:
-        return f"done by regents itself: {site['covered'][tool]}"
-    if tool in site["site_only"]:
-        return f"site only: {site['site_only'][tool]}"
-    return "**no command**"
 
 
 def report(sites: list[dict[str, Any]]) -> None:

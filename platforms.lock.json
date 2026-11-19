@@ -132,10 +132,6 @@
       "siwa/contract/contract.json": {
         "copy": "src/regents_cli/platforms/siwa/contract.json",
         "sha256": "26f6ba8e03e944a955114615c69f6d699480ac2e9e44bd171c892a7ac0b720a0"
-      },
-      "siwa/contract/fixtures.json": {
-        "copy": "src/regents_cli/platforms/siwa/fixtures.json",
-        "sha256": "334a5cf72adb86ff931ba85d8d3fc0f38bc8e76fbdc39baa53e54f14867f8013"
       }
     }
   },
