@@ -270,6 +270,12 @@ behind a site, and never holds one up (founder, 2026-09-28).
 7m. 1.10.32 (2026-11-17): `regents doctor` checks this machine and every site in one run, each
    failure with its kind and the one thing to do first; every site re-pinned, no command changed.
    Engines and catalog unchanged, release `climb-v0.7.33`.
+7n. 1.10.33 (2026-11-19): Autolaunch's three stock groups, `covered-calls`, `after-hours` and
+   `earn`, pinned at `5d193fc7` with their own API descriptions and page tool lists beside the
+   site's; an unpaired refusal first offers `agents whoami`, and a read the site says to read
+   again is offered as the same line. Engines and catalog unchanged, release `climb-v0.7.34`.
+   After it, on main and unreleased: the release check refuses a pin that is not the commit a
+   site runs live, and every test and the feature map are deleted (founder, 2026-11-19).
 8. Parking `repos/regents-cli-v2` and `repos/monorepo-template`'s Python host: not started.
 
 ## Next pins
@@ -305,8 +311,7 @@ behind a site, and never holds one up (founder, 2026-09-28).
 ## Checks
 
 Run `make check`, and `make release-check` before a release, on its own line: piping it into
-`tail` in a `&&` chain hides its failure. `make check` prints the seed of the made-up-input
-tests, and `make check SEED=<seed>` runs them again the same way. Do not publish, deploy, sign, access production, or move value without the
+`tail` in a `&&` chain hides its failure. There are no automated tests. Do not publish, deploy, sign, access production, or move value without the
 founder's explicit go.
 
 ## After every publish
