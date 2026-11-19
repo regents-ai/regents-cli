@@ -1035,6 +1035,98 @@ features:
     webmcp: '`account_points`'
   proofs:
   - tests/test_properties.py
+- id: autolaunch-covered-calls
+  what: 'Agents use regents autolaunch covered-calls: book <symbol>, quote <symbol>, positions <symbol>,
+    prepare <symbol>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  entry:
+  - cli: regents autolaunch covered-calls book <symbol>
+    route: GET /api/v1/covered-calls/{symbol}
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_covered_call_listings`'
+  - cli: regents autolaunch covered-calls quote <symbol>
+    route: POST /api/v1/covered-calls/{symbol}/quote
+    who: anyone
+    changes: quote
+    webmcp: '`autolaunch_covered_call_quote`'
+  - cli: regents autolaunch covered-calls positions <symbol>
+    route: GET /api/agent/v1/covered-calls/{symbol}/positions
+    who: paired agent
+    changes: read
+    webmcp: '`autolaunch_my_covered_calls`'
+  - cli: regents autolaunch covered-calls prepare <symbol>
+    route: POST /api/agent/v1/covered-calls/{symbol}/steps
+    who: paired agent
+    changes: prepare
+    webmcp: '`autolaunch_covered_call_prepare`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: autolaunch-after-hours
+  what: 'Agents use regents autolaunch after-hours: list, series <series>, positions <series>, prepare
+    <series>.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  entry:
+  - cli: regents autolaunch after-hours list
+    route: GET /api/v1/after-hour-stocks
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_after_hour_stocks_list`'
+  - cli: regents autolaunch after-hours series <series>
+    route: GET /api/v1/after-hour-stocks/{series}
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_after_hour_stocks_series`'
+  - cli: regents autolaunch after-hours positions <series>
+    route: GET /api/agent/v1/after-hour-stocks/{series}/holdings
+    who: paired agent
+    changes: read
+    webmcp: '`autolaunch_my_after_hour_stocks`'
+  - cli: regents autolaunch after-hours prepare <series>
+    route: POST /api/agent/v1/after-hour-stocks/{series}/steps
+    who: paired agent
+    changes: prepare
+    webmcp: '`autolaunch_after_hour_stocks_prepare`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
+- id: autolaunch-earn
+  what: 'Agents use regents autolaunch earn: list, positions, quote, prepare.'
+  who: agent
+  level: protected
+  paths:
+  - src/regents_cli/platforms/autolaunch/**
+  entry:
+  - cli: regents autolaunch earn list
+    route: GET /api/v1/earn/products
+    who: anyone
+    changes: read
+    webmcp: '`autolaunch_earn_products`'
+  - cli: regents autolaunch earn positions
+    route: GET /api/agent/v1/earn/positions
+    who: paired agent
+    changes: read
+    webmcp: '`autolaunch_earn_positions`'
+  - cli: regents autolaunch earn quote
+    route: POST /api/agent/v1/earn/quote
+    who: paired agent
+    changes: quote
+    webmcp: '`autolaunch_earn_quote`'
+  - cli: regents autolaunch earn prepare
+    route: POST /api/agent/v1/earn/steps
+    who: paired agent
+    changes: prepare
+    webmcp: '`autolaunch_earn_prepare`'
+  proofs:
+  - tests/test_properties.py
+  - tests/test_replays.py
 - id: keyfleet-proposals
   what: 'Agents use regents keyfleet proposals: list <fleet>, create <fleet>, vote <fleet> <number> <choice>,
     cancel <fleet> <number>, carry-out <fleet> <number>, read <fleet> <number>.'
@@ -2589,9 +2681,9 @@ sites:
   tools_with_no_command: []
 - site: autolaunch
   repository: regents-ai/autolaunch
-  commit: 8113d7670d216c8bcd394fd7693e078046539de2
-  commands: 16
-  tools: 15
+  commit: 5d193fc79738c1531fc4b9d321608cbfd1ee2a74
+  commands: 28
+  tools: 27
   tools_with_no_command: []
 - site: keyfleet
   repository: regents-ai/keyfleet

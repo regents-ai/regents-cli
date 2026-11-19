@@ -89,9 +89,12 @@ class RefusalError(Exception):
 
 
 def tool_manifest(platform: Platform) -> dict[str, Any]:
-    """The site's pinned WebMCP tool manifest, shipped beside its command description."""
-    path = files("regents_cli.platforms") / platform.name / "tool_manifest.json"
-    manifest: dict[str, Any] = json.loads(path.read_text("utf-8"))
+    """The site's pinned WebMCP tool manifests, shipped beside its command description."""
+    folder = files("regents_cli.platforms") / platform.name
+    manifest: dict[str, Any] = json.loads(folder.joinpath("tool_manifest.json").read_text("utf-8"))
+    for fragment in sorted(folder.iterdir(), key=lambda path: path.name):
+        if fragment.name.endswith("_tools.json") and fragment.is_file():
+            manifest["tools"].extend(json.loads(fragment.read_text("utf-8"))["tools"])
     return manifest
 
 

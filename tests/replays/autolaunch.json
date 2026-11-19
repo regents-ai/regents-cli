@@ -558,5 +558,468 @@
         }
       }
     }
+  },
+  {
+    "command": "covered-calls book <symbol>",
+    "words": [
+      "covered-calls",
+      "book",
+      "AMZNc"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/covered-calls/AMZNc",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": {
+          "block": 59372493,
+          "unit": 100000000,
+          "now": 1795064874,
+          "symbol": "AMZNc",
+          "market": {
+            "symbol": "AMZNc",
+            "issuer": "Coinbase",
+            "chain": "Base",
+            "chain_id": 8453,
+            "stock": "0xb200000000000000000000d9192b6b456483c2e8",
+            "contract": "0xee5b494b7974fea38add81a92ea3c794adb8dde6"
+          },
+          "read_at": "2026-11-19T05:07:54.232335Z",
+          "multiplier": 1000000000000000000,
+          "expiries": [
+            1795208400,
+            1796418000,
+            1797022800,
+            1797627600
+          ],
+          "listings": [],
+          "listings_total": 0,
+          "bids": [],
+          "bids_total": 0,
+          "multiplier_change_at": 0,
+          "reference_price": {
+            "decimals": 8,
+            "answer": 26980527254,
+            "updated_at": 1795052092
+          }
+        }
+      }
+    }
+  },
+  {
+    "command": "after-hours list",
+    "words": [
+      "after-hours",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/after-hour-stocks",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": [
+          {
+            "block": 59372494,
+            "status": "pending",
+            "now": 1795064874,
+            "next": {
+              "index": 0,
+              "at": 1793653200,
+              "deadline": 1794258000,
+              "kind": "close",
+              "recordable_at": 1793656800
+            },
+            "address": "0x1df53a86c8260c20ab79b5f620544209bd454266",
+            "schedule": [
+              {
+                "index": 0,
+                "at": 1793653200,
+                "kind": "close"
+              },
+              {
+                "index": 1,
+                "at": 1793716200,
+                "kind": "open"
+              },
+              {
+                "index": 2,
+                "at": 1793739600,
+                "kind": "close"
+              },
+              {
+                "index": 3,
+                "at": 1793802600,
+                "kind": "open"
+              },
+              {
+                "index": 4,
+                "at": 1793826000,
+                "kind": "close"
+              },
+              {
+                "index": 5,
+                "at": 1793889000,
+                "kind": "open"
+              },
+              {
+                "index": 6,
+                "at": 1793912400,
+                "kind": "close"
+              },
+              {
+                "index": 7,
+                "at": 1793975400,
+                "kind": "open"
+              },
+              {
+                "index": 8,
+                "at": 1793998800,
+                "kind": "close"
+              }
+            ],
+            "held": 0,
+            "stock": {
+              "decimals": 8,
+              "name": "Amazon.com Inc.",
+              "address": "0xb200000000000000000000d9192b6b456483c2e8",
+              "symbol": "AMZNc"
+            },
+            "price": 0,
+            "read_at": "2026-11-19T05:07:54.607824Z",
+            "deposited": 0,
+            "feed": "0x06a8e4b3abb3b7543d8396fb2b763d22820cb295",
+            "max_report_delay": 604800,
+            "prints": [],
+            "oracle": "0x64b8404e979ec2791e68f55d959d011ea4eea88a",
+            "end_reason": null,
+            "terms_hash": "0xa1cf3a36b50d547ac64d9877391da6edfbe2fdb0b594345280db6f05b4a5db23",
+            "deposit_cap": 4000000000,
+            "after_hours": {
+              "decimals": 8,
+              "name": "AMZNc After-hours 2 to 6 Nov 2026",
+              "address": "0xb1303e0eb033e6dfcdda568a54c73a6bafbb7e42",
+              "pool": null,
+              "symbol": "AMZNc-AH-1102",
+              "supply": 0,
+              "ledger": 0
+            },
+            "feed_phase": 2,
+            "market_hours": {
+              "decimals": 8,
+              "name": "AMZNc Market-hours 2 to 6 Nov 2026",
+              "address": "0x0fd3995511a1d35f77d0855fd5c112eb61084aaa",
+              "pool": null,
+              "symbol": "AMZNc-MH-1102",
+              "supply": 0,
+              "ledger": 0
+            },
+            "terms_url": "https://autolaunch.sh/stock/isolated-afters/terms/0xa1cf3a36b50d547ac64d9877391da6edfbe2fdb0b594345280db6f05b4a5db23"
+          },
+          {
+            "block": 59372494,
+            "status": "active",
+            "now": 1795064874,
+            "next": {
+              "index": 1,
+              "at": 1793629800,
+              "deadline": 1794234600,
+              "kind": "open",
+              "recordable_at": 1793633400
+            },
+            "address": "0xcae5aad4cc21700b32931404c366efd4fc1ddfa0",
+            "schedule": [
+              {
+                "index": 0,
+                "at": 1793390400,
+                "kind": "close"
+              },
+              {
+                "index": 1,
+                "at": 1793629800,
+                "kind": "open"
+              },
+              {
+                "index": 2,
+                "at": 1793653200,
+                "kind": "close"
+              },
+              {
+                "index": 3,
+                "at": 1793716200,
+                "kind": "open"
+              },
+              {
+                "index": 4,
+                "at": 1793739600,
+                "kind": "close"
+              },
+              {
+                "index": 5,
+                "at": 1793802600,
+                "kind": "open"
+              },
+              {
+                "index": 6,
+                "at": 1793826000,
+                "kind": "close"
+              },
+              {
+                "index": 7,
+                "at": 1793889000,
+                "kind": "open"
+              },
+              {
+                "index": 8,
+                "at": 1793912400,
+                "kind": "close"
+              },
+              {
+                "index": 9,
+                "at": 1793975400,
+                "kind": "open"
+              },
+              {
+                "index": 10,
+                "at": 1793998800,
+                "kind": "close"
+              }
+            ],
+            "held": 20000000,
+            "stock": {
+              "decimals": 8,
+              "name": "Amazon.com Inc.",
+              "address": "0xb200000000000000000000d9192b6b456483c2e8",
+              "symbol": "AMZNc"
+            },
+            "price": 240271250000000000000,
+            "read_at": "2026-11-19T05:07:54.767746Z",
+            "deposited": 20000000,
+            "feed": "0x06a8e4b3abb3b7543d8396fb2b763d22820cb295",
+            "max_report_delay": 604800,
+            "prints": [
+              {
+                "index": 0,
+                "at": 1793390400,
+                "kind": "close",
+                "recorded_at": 1793394131,
+                "price": 240271250000000000000,
+                "after_hours": 120135625000000000000,
+                "market_hours": 120135625000000000000,
+                "feed_round_id": 36893488147419103840,
+                "feed_updated_at": 1793390057
+              }
+            ],
+            "oracle": "0x64b8404e979ec2791e68f55d959d011ea4eea88a",
+            "end_reason": null,
+            "terms_hash": "0x5f67343b39277939aea7613c578fa3931b8b89da7a65eb36dd7217c81a5a2e8f",
+            "deposit_cap": 40000000,
+            "after_hours": {
+              "decimals": 8,
+              "name": "AMZNc After-hours to 6 Nov 2026",
+              "address": "0x07e4aabf673b556892ac3f9a254941b222993603",
+              "pool": {
+                "address": "0x619b0b15aa5d20959ca79ddeabd649ef07a2d5fd",
+                "usdc_per_token": 120153340
+              },
+              "symbol": "AMZNc-AH-1106",
+              "supply": 20000000,
+              "ledger": 120135625000000000000
+            },
+            "feed_phase": 2,
+            "market_hours": {
+              "decimals": 8,
+              "name": "AMZNc Market-hours to 6 Nov 2026",
+              "address": "0x668a22ab136ad30e88cb76859c151cbbb20efffd",
+              "pool": {
+                "address": "0x8082ebb625a9f3dd97f4c7d910beae803ff7fb98",
+                "usdc_per_token": 120153340
+              },
+              "symbol": "AMZNc-MH-1106",
+              "supply": 20000000,
+              "ledger": 120135625000000000000
+            },
+            "terms_url": "https://autolaunch.sh/stock/isolated-afters/terms/0x5f67343b39277939aea7613c578fa3931b8b89da7a65eb36dd7217c81a5a2e8f"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "after-hours series <series>",
+    "words": [
+      "after-hours",
+      "series",
+      "0x1df53a86c8260c20ab79b5f620544209bd454266"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/after-hour-stocks/0x1df53a86c8260c20ab79b5f620544209bd454266",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": {
+          "block": 59372496,
+          "status": "pending",
+          "now": 1795064874,
+          "next": {
+            "index": 0,
+            "at": 1793653200,
+            "deadline": 1794258000,
+            "kind": "close",
+            "recordable_at": 1793656800
+          },
+          "address": "0x1df53a86c8260c20ab79b5f620544209bd454266",
+          "schedule": [
+            {
+              "index": 0,
+              "at": 1793653200,
+              "kind": "close"
+            },
+            {
+              "index": 1,
+              "at": 1793716200,
+              "kind": "open"
+            },
+            {
+              "index": 2,
+              "at": 1793739600,
+              "kind": "close"
+            },
+            {
+              "index": 3,
+              "at": 1793802600,
+              "kind": "open"
+            },
+            {
+              "index": 4,
+              "at": 1793826000,
+              "kind": "close"
+            },
+            {
+              "index": 5,
+              "at": 1793889000,
+              "kind": "open"
+            },
+            {
+              "index": 6,
+              "at": 1793912400,
+              "kind": "close"
+            },
+            {
+              "index": 7,
+              "at": 1793975400,
+              "kind": "open"
+            },
+            {
+              "index": 8,
+              "at": 1793998800,
+              "kind": "close"
+            }
+          ],
+          "held": 0,
+          "stock": {
+            "decimals": 8,
+            "name": "Amazon.com Inc.",
+            "address": "0xb200000000000000000000d9192b6b456483c2e8",
+            "symbol": "AMZNc"
+          },
+          "price": 0,
+          "read_at": "2026-11-19T05:07:55.079569Z",
+          "deposited": 0,
+          "feed": "0x06a8e4b3abb3b7543d8396fb2b763d22820cb295",
+          "max_report_delay": 604800,
+          "prints": [],
+          "oracle": "0x64b8404e979ec2791e68f55d959d011ea4eea88a",
+          "end_reason": null,
+          "terms_hash": "0xa1cf3a36b50d547ac64d9877391da6edfbe2fdb0b594345280db6f05b4a5db23",
+          "deposit_cap": 4000000000,
+          "after_hours": {
+            "decimals": 8,
+            "name": "AMZNc After-hours 2 to 6 Nov 2026",
+            "address": "0xb1303e0eb033e6dfcdda568a54c73a6bafbb7e42",
+            "pool": null,
+            "symbol": "AMZNc-AH-1102",
+            "supply": 0,
+            "ledger": 0
+          },
+          "feed_phase": 2,
+          "market_hours": {
+            "decimals": 8,
+            "name": "AMZNc Market-hours 2 to 6 Nov 2026",
+            "address": "0x0fd3995511a1d35f77d0855fd5c112eb61084aaa",
+            "pool": null,
+            "symbol": "AMZNc-MH-1102",
+            "supply": 0,
+            "ledger": 0
+          },
+          "terms_url": "https://autolaunch.sh/stock/isolated-afters/terms/0xa1cf3a36b50d547ac64d9877391da6edfbe2fdb0b594345280db6f05b4a5db23"
+        }
+      }
+    }
+  },
+  {
+    "command": "earn list",
+    "words": [
+      "earn",
+      "list"
+    ],
+    "request": {
+      "method": "GET",
+      "url": "https://autolaunch.sh/api/v1/earn/products",
+      "content": null
+    },
+    "response": {
+      "status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "body": {
+        "data": {
+          "products": [
+            {
+              "block": {
+                "timestamp": 1795064875,
+                "number": 59372497,
+                "hash": "0xd39d6e33d060c121d5ed9e3a65bdf04dc027bea9de0ba9c1f5e520e0174822ad",
+                "read_at": "2026-11-19T05:07:55Z"
+              },
+              "decimals": 6,
+              "id": "aave-usdc",
+              "status": "open",
+              "protocol": "Aave",
+              "pool": "0xa238dd80c259a72e81d7e4664a9801593f98d1c5",
+              "available": 13050857325133,
+              "chain_id": 8453,
+              "asset": "USDC",
+              "capacity": 46051714742288,
+              "market": "Aave V3 on Base",
+              "market_token": "0x4e65fe4dba92790696d040ac24aa414708f5c0ab",
+              "supplied": 183945108240660,
+              "risks": [
+                "The rate changes. It moves with how much USDC is borrowed, and it can fall.",
+                "A withdrawal depends on how much USDC is available at that moment. When most of it is lent out, you may have to wait for borrowers to repay.",
+                "Aave's contracts, or the assets borrowers pledge, could fail, and money could be lost.",
+                "Autolaunch never holds your funds and charges nothing. Your wallet deals with Aave directly."
+              ],
+              "rate_now": {
+                "ray": "50013493984160887151694040",
+                "yearly_percent": "5.00"
+              },
+              "supply_cap": 230000000,
+              "asset_address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+            }
+          ]
+        }
+      }
+    }
   }
 ]

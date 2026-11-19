@@ -27,6 +27,9 @@ from typing import Any
 from rich.console import Console
 from rich.table import Table
 
+from regents_cli.platforms import Platform
+from regents_cli.webmcp_host import tool_manifest
+
 ROOT = Path(__file__).resolve().parent.parent
 PLATFORMS = ROOT / "src/regents_cli/platforms"
 
@@ -77,8 +80,10 @@ def routes(text: str | None) -> set[str]:
 
 
 def compare(name: str) -> dict[str, Any]:
-    commands = json.loads((PLATFORMS / name / "commands.json").read_text("utf-8"))["commands"]
-    tools = json.loads((PLATFORMS / name / "tool_manifest.json").read_text("utf-8"))["tools"]
+    folder = PLATFORMS / name
+    description = json.loads((folder / "commands.json").read_text("utf-8"))
+    commands = description["commands"]
+    tools = tool_manifest(Platform.parse(description))["tools"]
     covered = COVERED_BY_CLI.get(name, {})
     cli_only = CLI_ONLY.get(name, {})
     site_only = SITE_ONLY.get(name, {})

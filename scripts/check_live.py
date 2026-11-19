@@ -103,6 +103,10 @@ RUNS: dict[str, list[Run]] = {
             {"address": ("auctions list", "data.0.address")},
             refuses=("not_found", 404),
         ),
+        Run("covered-calls book <symbol>", {"symbol": "AMZNc"}),
+        Run("after-hours list"),
+        Run("after-hours series <series>", {"series": ("after-hours list", "data.0.address")}),
+        Run("earn list"),
     ],
     "keyfleet": [
         Run("fleets list"),
@@ -246,15 +250,39 @@ def referred(document: Any, node: Any, where: tuple[str, ...]) -> tuple[Any, tup
 Shapes = dict[tuple[str, str], dict[str, list[Draft202012Validator]]]
 
 
+def pinned_contracts(site: str) -> Iterable[tuple[str, dict[str, Any]]]:
+    """OpenAPI documents from the pin. Standalone route fragments share the base components."""
+    documents: list[tuple[str, dict[str, Any]]] = []
+    fragments = []
+    for path in sorted((PLATFORMS / site).iterdir()):
+        if path.suffix not in (".json", ".yaml"):
+            continue
+        document = read_document(path)
+        if "openapi" in document:
+            documents.append((path.name, document))
+        elif "paths" in document:
+            fragments.append((path.name, document))
+
+    for name, document in documents:
+        yield name, document
+
+    for name, fragment in fragments:
+        [(_, base)] = documents
+        base_components = base.get("components", {})
+        added = fragment.get("components", {})
+        components = {
+            kind: {**base_components.get(kind, {}), **added.get(kind, {})}
+            for kind in base_components.keys() | added.keys()
+        }
+        yield name, {**fragment, "components": components}
+
+
 def answer_shapes(site: str) -> Shapes:
     """For each route, the JSON schema every pinned OpenAPI document gives each of its answers,
     with the document's own references."""
     shapes: Shapes = {}
-    for path in sorted((PLATFORMS / site).iterdir()):
-        if path.name == "commands.json" or path.suffix not in (".json", ".yaml"):
-            continue
-        document = read_document(path)
-        uri = f"urn:regents-cli:{site}:{path.name}"
+    for name, document in pinned_contracts(site):
+        uri = f"urn:regents-cli:{site}:{name}"
         registry = Registry().with_resource(
             uri, Resource.from_contents(document, default_specification=DRAFT202012)
         )

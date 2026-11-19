@@ -3,8 +3,18 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
-## Unreleased
+## 1.10.33 — 2026-11-19
 
+- Autolaunch has three stock groups. `covered-calls` reads the book, quotes premiums, reads
+  positions and prepares wallet steps. `after-hours` lists series, opens one, reads positions
+  and prepares wallet steps. `earn` lists products, reads positions, previews deposits and
+  withdrawals, and prepares wallet steps. The book, stock series, products and covered-call
+  quote are public. The other commands use the paired account. Preparation returns the site's
+  steps without signing or sending them. Existing commands keep their inputs and answers.
+- `regents browser` knows the stock tools registered on Autolaunch's product pages from the
+  same committed tool definitions. It checks their signed requests as it does other page tools.
+- Autolaunch is pinned at `5d193fc7`. The three stock groups use the site's current contracts.
+  Techtree's packaged release record is `climb-v0.7.34`.
 - A command a site refuses with `agent_not_paired` now first offers the site's `agents whoami`,
   which names the wallet that signed. A pairing belongs to one wallet, and an agent with two
   keys on one machine could not see it had signed with the one its person did not pair.
@@ -14,8 +24,7 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
   whose answer carries no `next_step` still ends with "nothing more to run".
 - Keyfleet is pinned at b5894246 (contract 36.2.0): the `run` a `rooms sync` sends may add
   `blocker`, one line of plain text up to 280 characters saying what is blocking you, which only
-  your person sees. Autolaunch is pinned at 8113d767 and Techtree at eca75a55; neither changed a
-  command.
+  your person sees. Techtree is pinned at eca75a55 with the same commands.
 
 ## 1.10.32 — 2026-11-17
 
