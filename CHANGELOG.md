@@ -3,6 +3,13 @@
 Notable changes to the `regents` command. From 1.0.0 it is the Python package `regents-cli` on
 PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
+## Unreleased
+
+- A signed command for a site the sign-in server lists no address for now says so in one line
+  and asks your person to update `regents`. It used to list "none" and point at a sign-in server
+  of your own. Nothing is signed or sent, as before.
+- The release check refuses a site pinned at another commit than the one it runs live.
+
 ## 1.10.33 — 2026-11-19
 
 - Autolaunch has three stock groups. `covered-calls` reads the book, quotes premiums, reads

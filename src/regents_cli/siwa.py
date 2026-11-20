@@ -348,11 +348,27 @@ def signs_for(site: str, base: str, timeout_ms: int) -> None:
     ):
         raise unreadable()
     origins = [entry["origin"] for entry in listed if entry["audience"] == site]
+    if not origins:
+        raise CommandError(
+            "address_not_listed",
+            f"The sign-in server {address} lists no address for {site}, so nothing was signed "
+            "or sent.",
+            exit_code=EXIT_AUTH,
+            next_steps=[
+                human(
+                    f"The sign-in server does not sign agents in to {site} by that name. Unless "
+                    "SIWA_BROKER names a sign-in server of your own, this regents is older than "
+                    "the site: ask your person to update regents with uv tool upgrade "
+                    "regents-cli, or, where it was installed at one named version, the install "
+                    "line the site's /agents.md gives."
+                )
+            ],
+        )
     if base not in origins:
         raise CommandError(
             "address_not_listed",
             f"{base} is not an address the sign-in server {address} lists for {site}, so "
-            f"nothing was signed or sent. Its addresses: {', '.join(origins) or 'none'}. A copy "
+            f"nothing was signed or sent. Its addresses: {', '.join(origins)}. A copy "
             "of the site elsewhere signs in through its own sign-in server, named in SIWA_BROKER.",
             exit_code=EXIT_AUTH,
         )
