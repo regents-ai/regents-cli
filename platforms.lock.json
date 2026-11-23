@@ -113,7 +113,7 @@
       },
       "platform/priv/public/openapi.json": {
         "copy": "src/regents_cli/platforms/protocol/openapi.json",
-        "sha256": "744dcda1506654f523ac375fb2113eb726ea50505d93a0a4e7ce6c6bd204b8df"
+        "sha256": "4d79dfa4c6e1f7a53d934053a922ed81330a82d6054df5d54aed2a786d2f8177"
       },
       "platform/priv/static/api-contract.openapiv3.yaml": {
         "copy": "src/regents_cli/platforms/protocol/api-contract.openapiv3.yaml",
